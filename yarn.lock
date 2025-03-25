@@ -4479,10 +4479,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-3.0.0.tgz#7dc45f8ba3a451d1e1c505dfb26f45aa4143cd09"
-  integrity sha512-7k2s3FxQorz/vi7XWmmXIjI7QNcmtoUBNZtXzAwu4W44YAZdY3ojVdA20qCnHQW1NkSHn44eaacfZynqiZmQ1Q==
+"@metamask/bridge-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-7.0.0.tgz#b75bf39ab9d11cfd6572ad9bcc3866916d8250e2"
+  integrity sha512-K60vcQvfFHPIaj0FVsFPOLQeJKQ6yV4n4hi3tfPKFTtg08fDOnOXS8NQOBwI535mWpg1co4U9DHrg9gdr0tjCw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4490,19 +4490,19 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/controller-utils" "^11.6.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^12.0.3"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/bridge-status-controller@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-3.0.0.tgz#472416e8f8e2c3ea159560f95c3078a351f87c73"
-  integrity sha512-SRXiIk7TNs2vUmckILHkaev3IGtpwUwoX8b+Hcg0VQ3aEH/8+cQFSLh3JHRfFHTkj9vTrsYRUj4qobMGIjElUQ==
+"@metamask/bridge-status-controller@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-7.0.0.tgz#0c585c4588503fdfb52c201921fb342b00f532e9"
+  integrity sha512-tCmH3rkXGTfdcquXitsm6bW62u6hA4fr9Aca4rtWHMlKPey+DUk8UFu0TMMbz4yRJEgLokI+fJOIJ+CpwnlneQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/bridge-controller" "^3.0.0"
-    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/bridge-controller" "^7.0.0"
+    "@metamask/controller-utils" "^11.6.0"
     "@metamask/polling-controller" "^12.0.3"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"

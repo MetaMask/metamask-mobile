@@ -1,66 +1,33 @@
-import { renderScreen, DeepPartial } from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
-import { RootState } from '../../../reducers';
-import BridgeView from '../Bridge';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { renderScreen } from '../../../util/test/renderWithProvider';
+import { BridgeNetworkSelector } from './BridgeNetworkSelector';
 import Routes from '../../../constants/navigation/Routes';
-import { BridgeState } from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
+import { setSelectedSourceChainIds } from '../../../core/redux/slices/bridge';
 import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
-import { ethers } from 'ethers';
-
-// TODO remove this mock once we have a real implementation
-jest.mock('../../../selectors/confirmTransaction');
-
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    SwapsController: {
-      fetchAggregatorMetadataWithCache: jest.fn(),
-      fetchTopAssetsWithCache: jest.fn(),
-      fetchTokenWithCache: jest.fn(),
-    },
-  },
-}));
-
-const mockInitialState: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
-  },
-};
 
 const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => {
-  const actualNav = jest.requireActual('@react-navigation/native');
-  return {
-    ...actualNav,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: jest.fn(),
-    }),
-  };
-});
+const mockGoBack = jest.fn();
 
-// Mock useLatestBalance hook
-jest.mock('./useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({
-    address,
-    chainId,
-  }) => {
-    if (!address || !chainId) return undefined;
-
-    // Need to do this due to this error: "The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.""
-    const actualEthers = jest.requireActual('ethers');
-
-    return {
-      displayBalance: '2.0',
-      atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
-    };
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: mockGoBack,
   }),
 }));
 
-describe('BridgeView', () => {
+jest.mock('../../../core/redux/slices/bridge', () => {
+  const actual = jest.requireActual('../../../core/redux/slices/bridge');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    setSelectedSourceChainIds: jest.fn(actual.setSelectedSourceChainIds),
+  };
+});
+
+describe('BridgeNetworkSelector', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
@@ -168,11 +135,6 @@ describe('BridgeView', () => {
                 1559: true,
               },
             },
-            selectedNetworkClientId: {
-              EIPS: {
-                1559: true,
-              },
-            },
             '0xa': {
               EIPS: {
                 1559: true,
@@ -261,11 +223,6 @@ describe('BridgeView', () => {
         TokenRatesController: {
           marketData: {
             [mockChainId]: {
-              [ethers.constants.AddressZero as Hex]: {
-                tokenAddress: ethers.constants.AddressZero as Hex,
-                currency: 'ETH',
-                price: 1, // 1 ETH = 1 ETH
-              },
               [token1Address]: {
                 tokenAddress: token1Address,
                 currency: 'ETH',
@@ -291,7 +248,6 @@ describe('BridgeView', () => {
             key: 'tokenFiatAmount',
             order: 'dsc' as const,
           },
-          ipfsGateway: 'https://dweb.link/ipfs/',
         },
         TokenListController: {
           tokenList: {
@@ -338,255 +294,198 @@ describe('BridgeView', () => {
         },
       },
     },
-    settings: {
-      basicFunctionalityEnabled: true,
-    },
     bridge: {
-      sourceToken: {
-        symbol: 'ETH',
-        decimals: 18,
-        address: '0x0000000000000000000000000000000000000000',
-        image: 'https://example.com/image.png',
-        chainId: '0x1' as Hex,
-      },
-      destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
       destChainId: undefined,
+      sourceToken: undefined,
+      destToken: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
-    } as BridgeState,
+    },
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders', async () => {
+  it('renders with initial state and displays networks', async () => {
     const { getByText } = renderScreen(
-      BridgeView,
+      BridgeNetworkSelector,
       {
-        name: Routes.BRIDGE,
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
       },
-      { state: mockInitialState },
-    );
-    expect(getByText('Select amount')).toBeDefined();
-  });
-
-  it('should open BridgeTokenSelector when clicking source token', async () => {
-    const { findByText } = renderScreen(
-      BridgeView,
-      {
-        name: Routes.BRIDGE,
-      },
-      { state: initialState },
+      { state: initialState }
     );
 
-    // Find and click the token button
-    const tokenButton = await findByText('ETH');
-    expect(tokenButton).toBeTruthy();
-    fireEvent.press(tokenButton);
+    // Header should be visible
+    expect(getByText('Select network')).toBeTruthy();
 
-    // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      params: {},
-    });
-  });
-
-  it('should open BridgeTokenSelector when clicking destination token area', async () => {
-    const { getByTestId } = renderScreen(
-      BridgeView,
-      {
-        name: Routes.BRIDGE,
-      },
-      { state: initialState },
-    );
-
-    // Find and click the destination token area
-    const destTokenArea = getByTestId('dest-token-area');
-    expect(destTokenArea).toBeTruthy();
-
-    fireEvent.press(destTokenArea);
-
-    // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
-      params: {},
-    });
-  });
-
-  it('should update source token amount when typing', () => {
-    const { getByTestId, getByText } = renderScreen(
-      BridgeView,
-      {
-        name: Routes.BRIDGE,
-      },
-      { state: initialState },
-    );
-
-    // Press number buttons to input 1.5
-    fireEvent.press(getByText('9'));
-    fireEvent.press(getByText('.'));
-    fireEvent.press(getByText('5'));
-
-    // Verify the input value is updated
-    const input = getByTestId('source-token-area-input');
-    expect(input.props.value).toBe('9.5');
-
-    // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
-    expect(getByText('$19000')).toBeTruthy();
-  });
-
-  it('should display source token symbol and balance', async () => {
-    const stateWithAmount = {
-      ...initialState,
-      bridge: {
-        ...initialState.bridge,
-        sourceAmount: '1.5',
-      },
-    };
-
-    const { getByText, getByTestId } = renderScreen(
-      BridgeView,
-      {
-        name: Routes.BRIDGE,
-      },
-      { state: stateWithAmount },
-    );
-
-    // Verify token symbol is displayed
-    expect(getByText('ETH')).toBeTruthy();
-
-    // Verify token amount is displayed
-    const input = getByTestId('source-token-area-input');
-    expect(input.props.value).toBe('1.5');
-
-    // Verify fiat value is displayed (1.5 ETH * $2000 = $3000)
-    expect(getByText('$3000')).toBeTruthy();
-
-    // Verify balance is displayed
+    // Networks should be visible with fiat values
     await waitFor(() => {
-      expect(getByText('2.0 ETH')).toBeTruthy();
+      expect(getByText('Ethereum Mainnet')).toBeTruthy();
+      expect(getByText('Optimism')).toBeTruthy();
+
+      // Check for fiat values
+      // Optimism: 20 ETH * $2000 + 3 TOKEN3 * 8 ETH * $2000 = $40,000 + $48,000 = $88,000
+      expect(getByText('$88000')).toBeTruthy();
+
+      // Ethereum: 3 ETH * $2000 + 1 TOKEN1 * 10 ETH * $2000 + 2 TOKEN2 * 5 ETH * $2000 = $6,000 + $20,000 + $20,000 = $46,000
+      expect(getByText('$46000')).toBeTruthy();
     });
+
+    // "Select all networks" button should be visible
+    expect(getByText('Deselect all')).toBeTruthy();
   });
 
-  describe('Bottom Content', () => {
-    it('should show "Select amount" when no amount is entered', () => {
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: initialState },
-      );
+  it('handles network selection toggle correctly', async () => {
+    const { getAllByTestId } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
 
-      expect(getByText('Select amount')).toBeTruthy();
-    });
 
-    it('should show "Select amount" when amount is zero', () => {
-      const stateWithZeroAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '0',
-        },
-      };
+    // Initially both networks should be selected
+    const ethereum = getAllByTestId(`checkbox-${mockChainId}`);
+    const ethereumCheckbox = getAllByTestId(`checkbox-${mockChainId}`)[0];
+    const optimism = getAllByTestId(`checkbox-${optimismChainId}`);
 
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: stateWithZeroAmount },
-      );
+    // Check that both checkboxes are initially checked
+    expect(ethereum.length).toBe(2);
+    expect(optimism.length).toBe(2);
 
-      expect(getByText('Select amount')).toBeTruthy();
-    });
+    // Uncheck Ethereum network
+    fireEvent.press(ethereumCheckbox);
 
-    it('should show "Insufficient balance" when amount exceeds balance', () => {
-      const stateWithHighAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '3.0', // Balance is mocked at 2.0 ETH
-        },
-      };
+    // Now Ethereum should be unchecked
+    const ethereumAfter = getAllByTestId(`checkbox-${mockChainId}`);
+    expect(ethereumAfter.length).toBe(1);
 
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: stateWithHighAmount },
-      );
+    // Optimism should still be checked
+    const optimismAfter = getAllByTestId(`checkbox-${optimismChainId}`);
+    expect(optimismAfter.length).toBe(2);
+  });
 
-      expect(getByText('Insufficient balance')).toBeTruthy();
-    });
+  it('handles "select all" and "deselect all" toggle correctly', async () => {
+    const { getAllByTestId, getByText, queryByText } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
 
-    it('should show Continue button and Terms link when amount is valid', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '1.0', // Less than balance of 2.0 ETH
-        },
-      };
+    // Initially should show "Deselect all networks" since all networks are selected
+    expect(getByText('Deselect all')).toBeTruthy();
 
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: stateWithValidAmount },
-      );
+    // Click "Deselect all networks"
+    const allNetworksToggle = getByText('Deselect all');
+    fireEvent.press(allNetworksToggle);
 
-      expect(getByText('Continue')).toBeTruthy();
-      expect(getByText('Terms & Conditions')).toBeTruthy();
-    });
+    // Now both networks should be unchecked
+    const ethereum = getAllByTestId(`checkbox-${mockChainId}`);
+    const optimism = getAllByTestId(`checkbox-${optimismChainId}`);
 
-    // TODO: Add expectations once Continue button is implemented
-    it('should handle Continue button press', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '1.0',
-        },
-      };
+    expect(ethereum.length).toBe(1);
+    expect(optimism.length).toBe(1);
 
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: stateWithValidAmount },
-      );
+    // Button should now say "Select all networks"
+    expect(getByText('Select all')).toBeTruthy();
+    expect(queryByText('Deselect all')).toBeNull();
 
-      const continueButton = getByText('Continue');
-      fireEvent.press(continueButton);
-    });
+    // Click "Select all networks"
+    fireEvent.press(allNetworksToggle);
 
-    it('should handle Terms & Conditions press', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '1.0',
-        },
-      };
+    // Now both networks should be checked again
+    const ethereumAfter = getAllByTestId(`checkbox-${mockChainId}`);
+    const optimismAfter = getAllByTestId(`checkbox-${optimismChainId}`);
 
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE,
-        },
-        { state: stateWithValidAmount },
-      );
+    expect(ethereumAfter.length).toBe(2);
+    expect(optimismAfter.length).toBe(2);
 
-      const termsButton = getByText('Terms & Conditions');
-      fireEvent.press(termsButton);
+    expect(ethereumAfter.length).toBe(2);
+    expect(optimismAfter.length).toBe(2);
 
-      // TODO: Add expectations once Terms navigation is implemented
-    });
+    // Button should now say "Deselect all networks" again
+    expect(getByText('Deselect all')).toBeTruthy();
+    expect(queryByText('Select all')).toBeNull();
+  });
+
+  it('applies selected networks when clicking Apply button', async () => {
+    const { getAllByTestId, getByText } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    // Uncheck Ethereum network
+    const ethereumCheckbox = getAllByTestId(`checkbox-${mockChainId}`)[0];
+    fireEvent.press(ethereumCheckbox);
+
+    // Click Apply button
+    const applyButton = getByText('Apply');
+    fireEvent.press(applyButton);
+
+    // Should call setSelectedSourceChainIds with just Optimism chainId
+    expect(setSelectedSourceChainIds).toHaveBeenCalledWith([optimismChainId]);
+
+    // Should navigate back
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('handles close button correctly', () => {
+    const { getByTestId } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    const closeButton = getByTestId('bridge-network-selector-close-button');
+    fireEvent.press(closeButton);
+
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('disables Apply button when no networks are selected', async () => {
+    const { getByTestId, getByText } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    // Deselect all networks
+    const selectAllButton = getByText('Deselect all');
+    fireEvent.press(selectAllButton);
+
+    // Apply button should be disabled
+    const applyButton = getByTestId('bridge-network-selector-apply-button');
+    expect(applyButton.props.disabled).toBe(true);
+  });
+
+  it('networks should be sorted by fiat value in descending order', async () => {
+    const { getAllByTestId } = renderScreen(
+      BridgeNetworkSelector,
+      {
+        name: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    // Get all network items
+    const networkItems = getAllByTestId(/chain-/);
+
+    // Optimism should be first (higher value - $88,000)
+    expect(networkItems[0].props.testID).toBe(`chain-${optimismChainId}`);
+
+    // Ethereum should be second (lower value - $46,000)
+    expect(networkItems[1].props.testID).toBe(`chain-${mockChainId}`);
   });
 });

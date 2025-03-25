@@ -139,6 +139,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 
 const clearStackNavigatorOptions = {
@@ -464,6 +465,10 @@ const RootModalFlow = () => (
       name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
       component={BridgeTokenSelector}
     />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_NETWORK_SELECTOR}
+      component={BridgeNetworkSelector}
+      />
     <Stack.Screen
       name={Routes.SHEET.SLIPPAGE_MODAL}
       component={SlippageModal}
