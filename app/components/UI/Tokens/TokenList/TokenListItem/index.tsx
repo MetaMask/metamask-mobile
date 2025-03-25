@@ -315,6 +315,7 @@ export const TokenListItem = React.memo(
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={networkBadgeSource(chainId as Hex)}
+                name=""
               />
             }
           >
