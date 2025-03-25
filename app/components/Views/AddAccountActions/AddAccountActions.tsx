@@ -101,7 +101,7 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
     const hasMultipleHdKeyrings = hdKeyrings.length > 1;
 
     if (hasMultipleHdKeyrings) {
-      onAddHdAccount();
+      onAddHdAccount?.();
       return;
     }
     ///: END:ONLY_INCLUDE_IF
