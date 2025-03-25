@@ -183,6 +183,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
           variant={ButtonVariants.Secondary}
           disabled={candidateSourceChainIds.length === 0}
           width={ButtonWidthTypes.Full}
+          testID={BridgeSourceNetworkSelectorSelectorsIDs.APPLY_BUTTON}
         />
       </Box>
     </BridgeNetworkSelectorBase>
