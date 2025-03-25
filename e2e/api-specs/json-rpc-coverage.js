@@ -68,15 +68,15 @@ const main = async () => {
         'wallet_revokePermissions example of revoking the eth_accounts permission',
       params: [
         {
-          name: 'Permission',
+          name: 'revokePermissionObject',
           value: {
             eth_accounts: {},
           },
         },
       ],
       result: {
-        name: 'Null response',
-        value: 'null',
+        name: 'RevokePermissionsResult',
+        value:  null,
       },
     },
   ];
