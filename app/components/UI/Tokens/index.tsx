@@ -74,10 +74,8 @@ const Tokens = memo(() => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   // non-evm
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmTokens = useSelector(selectMultichainTokenList);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  ///: END:ONLY_INCLUDE_IF
 
   const tokenList = isEvmSelected ? evmTokens : nonEvmTokens;
 
