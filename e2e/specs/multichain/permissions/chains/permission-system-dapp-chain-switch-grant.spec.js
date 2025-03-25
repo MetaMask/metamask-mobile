@@ -42,6 +42,7 @@ describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
 
           // Connect to test dApp
           await Browser.navigateToTestDApp();
+
           await TestDApp.connect();
           await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
           await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();

@@ -9,7 +9,8 @@ import {
   renderFromWei,
   toHexadecimal,
 } from '../../../../../../util/number';
-import { isValidAddress, BN, addHexPrefix } from 'ethereumjs-util';
+import { isValidAddress, addHexPrefix } from 'ethereumjs-util';
+import BN from 'bnjs4';
 import { strings } from '../../../../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -981,7 +982,7 @@ const mapStateToProps = (state) => {
     primaryCurrency: state.settings.primaryCurrency,
     chainId,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

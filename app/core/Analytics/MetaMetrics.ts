@@ -2,7 +2,6 @@ import {
   createClient,
   GroupTraits,
   JsonMap,
-  SegmentClient,
   UserTraits,
 } from '@segment/analytics-react-native';
 import axios, { AxiosHeaderValue } from 'axios';
@@ -519,9 +518,8 @@ class MetaMetrics implements IMetaMetrics {
         );
 
       const segmentClient = isE2E ? undefined : createClient(config);
-      segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin() });
 
-      this.instance = new MetaMetrics(segmentClient as SegmentClient);
+      this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
     return this.instance;
   }
@@ -548,6 +546,9 @@ class MetaMetrics implements IMetaMetrics {
       this.deleteRegulationDate =
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
+
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+
       this.#isConfigured = true;
 
       // identify user with the latest traits
@@ -654,11 +655,11 @@ class MetaMetrics implements IMetaMetrics {
    * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent(
+  trackEvent = (
     // New signature
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
-  ): void {
+  ): void => {
     if (!this.enabled) {
       return;
     }
@@ -694,7 +695,7 @@ class MetaMetrics implements IMetaMetrics {
         saveDataRecording,
       );
     }
-  }
+  };
 
   /**
    * Clear the internal state of the library for the current user and reset the user ID

@@ -50,6 +50,7 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
+    MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -115,6 +116,9 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
+    BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
+    BRIDGE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
+    SLIPPAGE_MODAL: 'SlippageModal',
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -137,7 +141,10 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
+  BRIDGE: 'Bridge',
   LOCK_SCREEN: 'LockScreen',
+  CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
+  CONFIRM_MODAL: 'Confirmation Modal',
   NOTIFICATIONS: {
     VIEW: 'NotificationsView',
     OPT_IN: 'OptIn',
@@ -149,13 +156,25 @@ const Routes = {
     STAKE_CONFIRMATION: 'StakeConfirmation',
     UNSTAKE: 'Unstake',
     UNSTAKE_CONFIRMATION: 'UnstakeConfirmation',
+    EARNINGS_HISTORY: 'EarningsHistory',
     CLAIM: 'Claim',
     MODALS: {
       LEARN_MORE: 'LearnMore',
       MAX_INPUT: 'MaxInput',
       GAS_IMPACT: 'GasImpact',
+      EARN_TOKEN_LIST: 'EarnTokenList',
     },
   },
+  STANDALONE_CONFIRMATIONS: {
+    STAKE_DEPOSIT: 'RedesignedStakeDeposit',
+    STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
+    STAKE_CLAIM: 'RedesignedStakeClaim',
+  },
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  MULTI_SRP: {
+    IMPORT: 'ImportSRPView',
+  },
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

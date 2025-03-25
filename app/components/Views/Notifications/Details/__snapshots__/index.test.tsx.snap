@@ -739,17 +739,17 @@ exports[`NotificationsDetails renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -776,7 +776,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
@@ -910,7 +910,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
@@ -969,79 +969,6 @@ exports[`NotificationsDetails renders correctly 1`] = `
           >
             Ethereum
           </Text>
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "flexDirection": "row",
-            "gap": 16,
-            "minWidth": "100%",
-            "paddingVertical": 5,
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "flexDirection": "row",
-                "gap": 8,
-              }
-            }
-          >
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 45,
-                      "marginTop": 8,
-                      "width": 32,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-            <View
-              style={
-                {
-                  "position": "relative",
-                }
-              }
-            >
-              <View
-                style={
-                  [
-                    {
-                      "borderRadius": 6,
-                      "height": 45,
-                      "marginTop": 8,
-                      "width": 682,
-                    },
-                    {
-                      "backgroundColor": "#E1E9EE",
-                      "overflow": "hidden",
-                    },
-                  ]
-                }
-              />
-            </View>
-          </View>
         </View>
       </View>
       <TouchableOpacity

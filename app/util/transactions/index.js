@@ -1,4 +1,5 @@
-import { addHexPrefix, toChecksumAddress, BN } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
+import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
 import humanizeDuration from 'humanize-duration';
@@ -432,7 +433,7 @@ export async function getTransactionActionKey(transaction, chainId) {
   const toSmartContract =
     transaction.toSmartContract !== undefined
       ? transaction.toSmartContract
-      : await isSmartContractAddress(to, undefined, networkClientId);
+      : await isSmartContractAddress(to, chainId, networkClientId);
 
   if (toSmartContract) {
     return SMART_CONTRACT_INTERACTION_ACTION_KEY;

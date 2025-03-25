@@ -12,6 +12,9 @@ import { mockNetworkState } from '../../../../../util/test/network';
 import * as jsonRequest from '../../../../../util/jsonRpcRequest';
 import Logger from '../../../../../util/Logger';
 import Engine from '../../../../../core/Engine';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../../../util/networks';
+const { PreferencesController } = Engine.context;
 
 // Mock the entire module
 jest.mock('../../../../../util/networks/isNetworkUiRedesignEnabled', () => ({
@@ -55,8 +58,14 @@ jest.mock('../../../../../core/Engine', () => ({
       removeNetwork: jest.fn(),
       updateNetwork: jest.fn(),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
+    },
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
     },
   },
 }));
@@ -1771,6 +1780,44 @@ describe('NetworkSettings', () => {
           shouldNetworkSwitchPopToWallet: false,
         }),
       );
+    });
+
+    it('should not call setTokenNetworkFilter when portfolio view is disabled', async () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+      const tokenNetworkFilterSpy = jest.spyOn(
+        PreferencesController,
+        'setTokenNetworkFilter',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+      });
+
+      await wrapper.instance().addRpcUrl();
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(0);
+    });
+
+    it('should call setTokenNetworkFilter when portfolio view is enabled', async () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      const tokenNetworkFilterSpy = jest.spyOn(
+        PreferencesController,
+        'setTokenNetworkFilter',
+      );
+
+      wrapper.setState({
+        rpcUrl: 'http://localhost:8545',
+        chainId: '0x1',
+        ticker: 'ETH',
+        nickname: 'Localhost',
+        enableAction: true,
+      });
+
+      await wrapper.instance().addRpcUrl();
+      expect(tokenNetworkFilterSpy).toHaveBeenCalledTimes(1);
     });
   });
 

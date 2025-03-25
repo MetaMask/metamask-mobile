@@ -14,6 +14,7 @@ import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/te
 import { Text } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
+import { RootState } from '../../../reducers';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -108,11 +109,9 @@ describe('AddAccountActions', () => {
     ).toBeDefined();
 
     // Check for multichain options
-    expect(screen.getByText('Add a new Solana Account (Beta)')).toBeDefined();
-    expect(screen.getByText('Add a new Bitcoin Account (Beta)')).toBeDefined();
-    expect(
-      screen.getByText('Add a new Bitcoin Account (Testnet)'),
-    ).toBeDefined();
+    expect(screen.getByText('Solana account')).toBeDefined();
+    expect(screen.getByText('Bitcoin account')).toBeDefined();
+    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
@@ -209,7 +208,7 @@ describe('AddAccountActions', () => {
     );
 
     expect(hardwareWalletButton.findByType(Text).props.children).toBe(
-      'Add hardware wallet',
+      'Hardware wallet',
     );
     fireEvent.press(hardwareWalletButton);
 
@@ -255,7 +254,7 @@ describe('AddAccountActions', () => {
             },
           },
         },
-      };
+      } as unknown as RootState;
 
       renderScreen(
         () => <AddAccountActions {...mockProps} />,
@@ -270,9 +269,7 @@ describe('AddAccountActions', () => {
       const solButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
       );
-      expect(solButton.findByType(Text).props.children).toBe(
-        'Add a new Solana Account (Beta)',
-      );
+      expect(solButton.findByType(Text).props.children).toBe('Solana account');
       expect(solButton.props.disabled).toBe(false);
     });
 
@@ -295,7 +292,7 @@ describe('AddAccountActions', () => {
             },
           },
         },
-      };
+      } as unknown as RootState;
 
       renderScreen(
         () => <AddAccountActions {...mockProps} />,
@@ -310,9 +307,7 @@ describe('AddAccountActions', () => {
       const btcButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
       );
-      expect(btcButton.findByType(Text).props.children).toBe(
-        'Add a new Bitcoin Account (Beta)',
-      );
+      expect(btcButton.findByType(Text).props.children).toBe('Bitcoin account');
       expect(btcButton.props.disabled).toBe(true);
     });
 

@@ -7,7 +7,7 @@ import {
 
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { updateTransactionMetrics } from '../../../core/redux/slices/transactionMetrics';
+import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import {
   UseDisplayNameRequest,
   UseDisplayNameResponse,
@@ -111,7 +111,7 @@ export function useSimulationMetrics({
       return;
     }
 
-    dispatch(updateTransactionMetrics({ transactionId, params }));
+    dispatch(updateConfirmationMetric({ id: transactionId, params }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldSkipMetrics, transactionId, JSON.stringify(params), dispatch]);
 }
@@ -172,7 +172,7 @@ function getProperties(changes: BalanceChange[], prefix: string) {
 function getSensitiveProperties(changes: BalanceChange[], prefix: string) {
   const fiatAmounts = changes.map((change) => change.fiatAmount);
   const totalFiat = calculateTotalFiat(fiatAmounts);
-  const totalValue = totalFiat ? Math.abs(totalFiat) : undefined;
+  const totalValue = totalFiat ? totalFiat.abs().toNumber() : undefined;
 
   return getPrefixProperties({ total_value: totalValue }, prefix);
 }

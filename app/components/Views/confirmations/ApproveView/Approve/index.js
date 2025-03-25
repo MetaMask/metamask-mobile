@@ -45,9 +45,10 @@ import {
 } from '../../../../../core/GasPolling/GasPolling';
 import {
   selectNativeCurrencyByChainId,
-  selectNetworkConfigurations,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderTypeByChainId,
-  selectRpcUrlByChainId
+  selectRpcUrlByChainId,
+  selectEvmChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectConversionRateByChainId,
@@ -83,6 +84,7 @@ import {
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
 import { buildTransactionParams } from '../../../../../util/confirmation/transactions';
 import Routes from '../../../../../constants/navigation/Routes';
+import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -511,7 +513,7 @@ class Approve extends PureComponent {
       metrics,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     const {
@@ -566,7 +568,10 @@ class Approve extends PureComponent {
                 assetType: 'ETH',
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approve)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -631,6 +636,8 @@ class Approve extends PureComponent {
           [{ text: 'OK' }],
         );
         Logger.error(error, 'error while trying to send transaction (Approve)');
+        this.setState({ transactionHandled: true });
+        this.props.hideModal();
       } else {
         metrics.trackEvent(
           metrics
@@ -820,7 +827,6 @@ class Approve extends PureComponent {
     }
 
     if (!transaction.id) return null;
-
     return (
       <Modal
         isVisible={this.props.modalVisible && !isChangeInSimulationModalOpen}
@@ -847,8 +853,12 @@ class Approve extends PureComponent {
             address={address}
             savedContactListToArray={savedContactListToArray}
             addressNickname={addressNickname}
+            providerType={providerType}
+            providerChainId={chainId}
+            providerRpcTarget={providerRpcTarget}
+            networkConfigurations={networkConfigurations}
           />
-        ) : this.state.isBlockExplorerVisible ? (
+        ) : this.state.isBlockExplorerVisible && !isNonEvmChainId(chainId) ? (
           <ShowBlockExplorer
             setIsBlockExplorerVisible={this.setIsBlockExplorerVisible}
             type={providerType}
@@ -975,11 +985,11 @@ const mapStateToProps = (state) => {
     addressBook: selectAddressBook(state),
     providerType: selectProviderTypeByChainId(state, chainId),
     providerRpcTarget: selectRpcUrlByChainId(state, chainId),
-    networkConfigurations: selectNetworkConfigurations(state),
+    networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   setTransactionObject: (transaction) =>

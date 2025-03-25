@@ -1,24 +1,38 @@
+import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
+import Device from '../../../../../../util/device';
 
-import { Theme } from '../../../../../../util/theme/models';
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { isStakingConfirmationBool: boolean };
+}) => {
+  const {
+    theme: { colors },
+    vars: { isStakingConfirmationBool },
+  } = params;
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+  const basePaddingBottom = Device.isIos() 
+    ? (isStakingConfirmationBool ? 16 : 8) 
+    : (isStakingConfirmationBool ? 36 : 28);
 
   return StyleSheet.create({
-    footerButton: {
-      flex: 1,
+    base: {
+      backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: basePaddingBottom,
     },
-    divider: {
-      height: 1,
-      backgroundColor: theme.colors.border.muted,
+    linkText: {
+      textDecorationLine: 'underline',
     },
-    buttonsContainer: {
+    bottomTextContainer: {
+      flexDirection: 'column',
+      justifyContent: 'center',
+      marginBottom: 12,
+    },
+    bottomTextContainerLine: {
       flexDirection: 'row',
-      paddingVertical: 16,
-    },
-    buttonDivider: {
-      width: 8,
+      justifyContent: 'center',
     },
   });
 };

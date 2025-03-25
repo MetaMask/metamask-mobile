@@ -89,6 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
+import BridgeView from '../../UI/Bridge';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -713,6 +714,16 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
+const Bridge = () => (
+  <Stack.Navigator>
+    <Stack.Screen
+      name="BridgeView"
+      component={BridgeView}
+      options={BridgeView.navigationOptions}
+    />
+  </Stack.Navigator>
+);
+
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -817,6 +828,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
+    <Stack.Screen name={Routes.BRIDGE} component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
@@ -829,12 +841,21 @@ const MainNavigator = () => (
       headerTitle={() => (
         <Image
           style={styles.headerLogo}
-          source={require('../../../images/metamask-name.png')}
+          source={require('../../../images/branding/metamask-name.png')}
           resizeMode={'contain'}
         />
       )}
       // eslint-disable-next-line react-native/no-inline-styles
       headerStyle={{ borderBottomWidth: 0 }}
+    />
+    {/* TODO: This is added to support slide 4 in the carousel - once changed this can be safely removed*/}
+    <Stack.Screen
+      name="GeneralSettings"
+      component={GeneralSettings}
+      options={{
+        headerShown: true,
+        ...GeneralSettings.navigationOptions,
+      }}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}

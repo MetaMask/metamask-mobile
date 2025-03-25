@@ -4,13 +4,19 @@ import {
   BtcAccountType,
   SolAccountType,
   EthMethod,
-  EthScopes,
-  BtcScopes,
-  SolScopes,
+  EthScope,
+  BtcScope,
+  SolScope,
   KeyringAccountType,
+  BtcMethod,
+  SolMethod,
+  CaipChainId,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountsControllerState } from '@metamask/accounts-controller';
+import {
+  AccountId,
+  AccountsControllerState,
+} from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   mockQrKeyringAddress,
@@ -19,7 +25,7 @@ import {
   mockSnapAddress2,
 } from './keyringControllerTestUtils';
 
-export function createMockUuidFromAddress(address: string): string {
+export function createMockUuidFromAddress(address: string): AccountId {
   const fakeShaFromAddress = Array.from(
     { length: 16 },
     (_, i) => address.charCodeAt(i) || 0,
@@ -34,18 +40,18 @@ export function createMockUuidFromAddress(address: string): string {
  * @param accountType - The type of account (ETH, BTC, or Solana)
  * @returns Array of scopes corresponding to the account type
  */
-function getAccountTypeScopes(accountType: KeyringAccountType): string[] {
+function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
   // Define scope mappings
   const scopeMappings = {
     // Ethereum account types
-    [EthAccountType.Eoa]: [EthScopes.Namespace],
-    [EthAccountType.Erc4337]: [EthScopes.Namespace],
+    [EthAccountType.Eoa]: [EthScope.Eoa],
+    [EthAccountType.Erc4337]: [EthScope.Testnet],
 
     // Bitcoin account types
-    [BtcAccountType.P2wpkh]: [BtcScopes.Namespace],
+    [BtcAccountType.P2wpkh]: [BtcScope.Mainnet],
 
     // Solana account types
-    [SolAccountType.DataAccount]: [SolScopes.Namespace],
+    [SolAccountType.DataAccount]: [SolScope.Mainnet],
   };
 
   const scopes = scopeMappings[accountType];
@@ -126,9 +132,75 @@ export function createMockSnapInternalAccount(
       EthMethod.SignTypedDataV4,
     ],
     type: EthAccountType.Eoa,
-    scopes: [EthScopes.Namespace],
+    scopes: [EthScope.Eoa],
   };
 }
+
+export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
+  id: 'ae247df6-3911-47f7-9e36-28e6a7d96078',
+  address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
+  options: {
+    scope: BtcScope.Mainnet,
+    index: 0,
+  },
+  methods: [BtcMethod.SendBitcoin],
+  scopes: [BtcScope.Mainnet],
+  type: BtcAccountType.P2wpkh,
+  metadata: {
+    name: 'Bitcoin Account',
+    keyring: { type: KeyringTypes.snap },
+    importTime: 1691565967600,
+    lastSelected: 1955565967656,
+  },
+};
+
+export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
+  id: 'fcdafe8b-4bdf-4e25-9051-e255b2a0af5f',
+  address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
+  options: {
+    scope: BtcScope.Testnet,
+    index: 0,
+  },
+  methods: [BtcMethod.SendBitcoin],
+  scopes: [BtcScope.Testnet],
+  type: BtcAccountType.P2wpkh,
+  metadata: {
+    name: 'Bitcoin Testnet Account',
+    keyring: { type: KeyringTypes.snap },
+    importTime: 1691565967600,
+    lastSelected: 1955565967656,
+  },
+};
+
+export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
+  address: '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+  id: '1',
+  type: SolAccountType.DataAccount,
+  methods: [SolMethod.SendAndConfirmTransaction],
+  options: {
+    imported: false,
+    scope: SolScope.Mainnet,
+  },
+  metadata: {
+    name: 'Solana Account',
+    importTime: 1684232000456,
+    keyring: {
+      type: KeyringTypes.snap,
+    },
+    snap: {
+      id: 'npm:"@metamask/solana-wallet-snap',
+      name: 'Solana Wallet Snap',
+      enabled: true,
+    },
+  },
+  scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
+};
+
+export const MOCK_MULTICHAIN_NON_EVM_ACCOUNTS = {
+  [MOCK_ACCOUNT_BIP122_P2WPKH.id]: MOCK_ACCOUNT_BIP122_P2WPKH,
+  [MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET.id]: MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET,
+  [MOCK_SOLANA_ACCOUNT.id]: MOCK_SOLANA_ACCOUNT,
+};
 
 // Mock checksummed addresses
 export const MOCK_ADDRESS_1 = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';

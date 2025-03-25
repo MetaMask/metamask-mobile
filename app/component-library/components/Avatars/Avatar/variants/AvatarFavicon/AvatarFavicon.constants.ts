@@ -18,6 +18,7 @@ export const TEST_REMOTE_SVG_IMAGE_URL =
 
 // Test IDs
 export const AVATARFAVICON_IMAGE_TESTID = 'favicon-avatar-image';
+export const AVATARFAVICON_IMAGE_SVG_TESTID = 'favicon-avatar-svg-image';
 
 // Sample consts
 export const SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE: ImageSourcePropType = {
@@ -27,7 +28,7 @@ export const SAMPLE_AVATARFAVICON_SVGIMAGESOURCE_REMOTE: ImageSourcePropType = {
   uri: 'https://metamask.github.io/test-dapp/metamask-fox.svg',
 };
 /* eslint-disable-next-line */
-export const SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/fox.png');
+export const SAMPLE_AVATARFAVICON_IMAGESOURCE_LOCAL: ImageSourcePropType = require('../../../../../../images/branding/fox.png');
 
 export const SAMPLE_AVATARFAVICON_PROPS: AvatarFaviconProps = {
   imageSource: SAMPLE_AVATARFAVICON_IMAGESOURCE_REMOTE,

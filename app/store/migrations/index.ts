@@ -67,6 +67,14 @@ import migration63 from './063';
 import migration64 from './064';
 import migration65 from './065';
 import migration66 from './066';
+import migration67 from './067';
+import migration68 from './068';
+import migration69 from './069';
+import migration70 from './070';
+
+// Add migrations above this line
+import { validatePostMigrationState } from '../validateMigration/validateMigration';
+import { RootState } from '../../reducers';
 
 type MigrationFunction = (state: unknown) => unknown;
 type AsyncMigrationFunction = (state: unknown) => Promise<unknown>;
@@ -146,10 +154,17 @@ export const migrationList: MigrationsList = {
   64: migration64,
   65: migration65,
   66: migration66,
+  67: migration67,
+  68: migration68,
+  69: migration69,
+  70: migration70,
 };
 
 // Enable both synchronous and asynchronous migrations
-export const asyncifyMigrations = (inputMigrations: MigrationsList) =>
+export const asyncifyMigrations = (
+  inputMigrations: MigrationsList,
+  onMigrationsComplete?: (state: unknown) => void,
+) =>
   Object.entries(inputMigrations).reduce(
     (newMigrations, [migrationNumber, migrationFunction]) => {
       // Handle migrations as async
@@ -157,7 +172,17 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) =>
         incomingState: Promise<unknown> | unknown,
       ) => {
         const state = await incomingState;
-        return migrationFunction(state);
+        const migratedState = await migrationFunction(state);
+
+        // If this is the last migration and we have a callback, run it
+        if (
+          onMigrationsComplete &&
+          Number(migrationNumber) === Object.keys(inputMigrations).length - 1
+        ) {
+          onMigrationsComplete(migratedState);
+        }
+
+        return migratedState;
       };
       newMigrations[migrationNumber] = asyncMigration;
       return newMigrations;
@@ -166,9 +191,9 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) =>
   );
 
 // Convert all migrations to async
-export const migrations = asyncifyMigrations(
-  migrationList,
-) as unknown as MigrationManifest;
+export const migrations = asyncifyMigrations(migrationList, (state) => {
+  validatePostMigrationState(state as RootState);
+}) as unknown as MigrationManifest;
 
 // The latest (i.e. highest) version number.
 export const version = Object.keys(migrations).length - 1;

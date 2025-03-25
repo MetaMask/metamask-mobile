@@ -40,6 +40,13 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../../../../../core/Analytics/MetaMetrics');
 
+const mockAutoSignIn = jest.fn();
+jest.mock('../../../../../../util/identity/hooks/useAuthentication', () => ({
+  useAutoSignIn: () => ({
+    autoSignIn: mockAutoSignIn,
+  }),
+}));
+
 const mockMetrics = {
   trackEvent: jest.fn(),
   enable: jest.fn(() => Promise.resolve()),
@@ -63,6 +70,9 @@ const initialStateMarketingTrue = {
   engine: {
     backgroundState,
   },
+  settings: {
+    basicFunctionalityEnabled: true,
+  },
   security: {
     dataCollectionForMarketing: true,
   },
@@ -71,6 +81,9 @@ const initialStateMarketingTrue = {
 const initialStateMarketingFalse = {
   engine: {
     backgroundState,
+  },
+  settings: {
+    basicFunctionalityEnabled: true,
   },
   security: {
     dataCollectionForMarketing: false,
@@ -114,7 +127,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
     describe('switch', () => {
       it('is on when MetaMetrics is initially enabled', async () => {
-        mockMetrics.isEnabled.mockReturnValueOnce(true);
+        mockMetrics.isEnabled.mockReturnValue(true);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -131,6 +144,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('is off when MetaMetrics is initially disabled', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -145,8 +159,46 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(metaMetricsSwitch.props.value).toBe(false);
       });
 
+      it('is disabled when basic functionality is disabled', async () => {
+        mockMetrics.isEnabled.mockReturnValue(true);
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          {
+            state: {
+              ...initialStateMarketingTrue,
+              settings: { basicFunctionalityEnabled: false },
+            },
+          },
+        );
+
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+        expect(metaMetricsSwitch).toBeTruthy();
+        expect(metaMetricsSwitch.props.disabled).toBe(true);
+        expect(metaMetricsSwitch.props.value).toBe(false);
+      });
+
+      it('calls autoSignIn when toggling the switch', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          { state: initialStateMarketingFalse },
+        );
+        const metaMetricsSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
+        );
+
+        fireEvent(metaMetricsSwitch, 'valueChange', true);
+        await waitFor(() => {
+          expect(mockAutoSignIn).toHaveBeenCalled();
+        });
+      });
+
       it('alerts and disables marketing when turned off', async () => {
-        mockMetrics.isEnabled.mockReturnValueOnce(true);
+        mockMetrics.isEnabled.mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -180,6 +232,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       });
 
       it('keeps marketing off, adds traits to user and tracks event when turned on', async () => {
+        mockMetrics.isEnabled.mockReturnValue(false);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -210,7 +263,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
             deviceProp: 'Device value',
             userProp: 'User value',
-            is_metrics_opted_in: true,
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
             MetricsEventBuilder.createEventBuilder(
@@ -219,6 +271,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 is_metrics_opted_in: true,
                 updated_after_onboarding: true,
+                location: 'settings',
               })
               .build(),
           );
@@ -259,11 +312,31 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(false);
       });
 
+      it('is disabled when basic functionality is disabled', async () => {
+        const { findByTestId } = renderScreen(
+          MetaMetricsAndDataCollectionSection,
+          { name: 'MetaMetricsAndDataCollectionSection' },
+          {
+            state: {
+              ...initialStateMarketingTrue,
+              settings: { basicFunctionalityEnabled: false },
+            },
+          },
+        );
+
+        const marketingSwitch = await findByTestId(
+          SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+        );
+        expect(marketingSwitch).toBeTruthy();
+        expect(marketingSwitch.props.disabled).toBe(true);
+        expect(marketingSwitch.props.value).toBe(false);
+      });
+
       // testing the interaction between MetaMetrics and Marketing switches
       const testMarketingSwitchWithMetaMetricsSwitch = async (
         metaMetricsInitiallyEnabled: boolean,
       ) => {
-        mockMetrics.isEnabled.mockReturnValueOnce(metaMetricsInitiallyEnabled);
+        mockMetrics.isEnabled.mockReturnValue(metaMetricsInitiallyEnabled);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -299,7 +372,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             expect(mockMetrics.addTraitsToUser).toHaveBeenNthCalledWith(1, {
               deviceProp: 'Device value',
               userProp: 'User value',
-              is_metrics_opted_in: true,
             });
             expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
               1,
@@ -308,6 +380,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               )
                 .addProperties({
                   is_metrics_opted_in: true,
+                  location: 'settings',
                   updated_after_onboarding: true,
                 })
                 .build(),
@@ -318,7 +391,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             // if MetaMetrics is initially disabled, addTraitsToUser is called twice and this is 2nd call
             !metaMetricsInitiallyEnabled ? 2 : 1,
             {
-              has_marketing_consent: true,
+              has_marketing_consent: 'ON',
             },
           );
           expect(mockMetrics.trackEvent).toHaveBeenNthCalledWith(
@@ -330,6 +403,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: true,
                 location: 'settings',
+                updated_after_onboarding: true,
               })
               .build(),
           );
@@ -376,7 +450,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           expect(mockAlert).not.toHaveBeenCalled();
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledTimes(1);
           expect(mockMetrics.addTraitsToUser).toHaveBeenCalledWith({
-            has_marketing_consent: false,
+            has_marketing_consent: 'OFF',
           });
           expect(mockMetrics.trackEvent).toHaveBeenCalledTimes(1);
           expect(mockMetrics.trackEvent).toHaveBeenCalledWith(
@@ -386,6 +460,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
               .addProperties({
                 has_marketing_consent: false,
                 location: 'settings',
+                updated_after_onboarding: true,
               })
               .build(),
           );

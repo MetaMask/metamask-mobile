@@ -1,46 +1,25 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useCallback, useState } from 'react';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { useStakeContext } from './useStakeContext';
-import {
-  selectStakingEligibility,
-  setStakingEligibility,
-} from '../../../../core/redux/slices/staking';
+import { useSelector } from 'react-redux';
+import { useState } from 'react';
+import { pooledStakingSelectors } from '../../../../selectors/earnController';
+import Engine from '../../../../core/Engine';
 
 const useStakingEligibility = () => {
-  const dispatch = useDispatch();
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
-  const { isEligible } = useSelector(selectStakingEligibility);
-
-  const { stakingApiService } = useStakeContext();
+  const isEligible = useSelector(pooledStakingSelectors.selectEligibility);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchStakingEligibility = useCallback(async () => {
+  const fetchStakingEligibility = async () => {
     try {
-      if (!stakingApiService) {
-        return { isEligible: false };
-      }
       setIsLoading(true);
       setError(null);
-      const { eligible } = await stakingApiService.getPooledStakingEligibility([
-        selectedAddress,
-      ]);
-      dispatch(setStakingEligibility(eligible));
-      return { isEligible: eligible };
+      await Engine.context.EarnController.refreshStakingEligibility();
     } catch (err) {
       setError('Failed to fetch pooled staking eligibility');
-      return { isEligible: false };
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAddress, stakingApiService, dispatch]);
-
-  useEffect(() => {
-    fetchStakingEligibility();
-  }, [fetchStakingEligibility]);
+  };
 
   return {
     isEligible,

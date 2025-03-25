@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
-import { updateTransactionMetrics } from '../../../core/redux/slices/transactionMetrics';
+import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -39,7 +39,7 @@ jest.mock('react', () => ({
 
 jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
-jest.mock('../../../core/redux/slices/transactionMetrics');
+jest.mock('../../../core/redux/slices/confirmationMetrics');
 jest.mock('../../../components/hooks/useMetrics');
 const mockTrackEvent = jest.fn();
 (useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
@@ -80,7 +80,7 @@ const DISPLAY_NAME_SAVED_MOCK = {
 };
 
 describe('useSimulationMetrics', () => {
-  const updateTransactionMetricsMock = jest.mocked(updateTransactionMetrics);
+  const updateConfirmationMetricMock = jest.mocked(updateConfirmationMetric);
   const useDispatchMock = jest.mocked(useDispatch);
   const useStateMock = jest.mocked(useState);
   const useEffectMock = jest.mocked(useEffect);
@@ -88,7 +88,7 @@ describe('useSimulationMetrics', () => {
   const useLoadingTimeMock = jest.mocked(useLoadingTime);
   const setLoadingCompleteMock = jest.fn();
 
-  function expectUpdateTransactionMetricsCalled(
+  function expectUpdateConfirmationMetricCalled(
     {
       balanceChanges,
       simulationData,
@@ -110,10 +110,10 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionMetricsMock).toHaveBeenCalledTimes(1);
-    expect(updateTransactionMetricsMock).toHaveBeenCalledWith(
+    expect(updateConfirmationMetricMock).toHaveBeenCalledTimes(1);
+    expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        transactionId: TRANSACTION_ID_MOCK,
+        id: TRANSACTION_ID_MOCK,
         params: expectedParams,
       }),
     );
@@ -155,9 +155,9 @@ describe('useSimulationMetrics', () => {
       });
 
       expect(setLoadingCompleteMock).toHaveBeenCalledTimes(1);
-      expect(updateTransactionMetrics).toHaveBeenCalledWith(
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith(
         expect.objectContaining({
-          transactionId: TRANSACTION_ID_MOCK,
+          id: TRANSACTION_ID_MOCK,
           params: expect.objectContaining({
             properties: expect.objectContaining({
               simulation_latency: LOADING_TIME_MOCK,
@@ -184,7 +184,7 @@ describe('useSimulationMetrics', () => {
         useDisplayNamesMock.mockReset();
         useDisplayNamesMock.mockReturnValue([]);
 
-        expectUpdateTransactionMetricsCalled(
+        expectUpdateConfirmationMetricCalled(
           {
             simulationData: simulationData as SimulationData,
           },
@@ -207,7 +207,7 @@ describe('useSimulationMetrics', () => {
       amount: new BigNumber(isNegative ? -1 : 1),
     };
 
-    expectUpdateTransactionMetricsCalled(
+    expectUpdateConfirmationMetricCalled(
       {
         balanceChanges: [balanceChange, balanceChange, balanceChange],
       },
@@ -277,7 +277,7 @@ describe('useSimulationMetrics', () => {
       [AssetType.Native],
     ],
   ])('with asset type if %s', (_, type, isNegative, property, value) => {
-    expectUpdateTransactionMetricsCalled(
+    expectUpdateConfirmationMetricCalled(
       {
         balanceChanges: [
           {
@@ -330,10 +330,10 @@ describe('useSimulationMetrics', () => {
       const balanceChange = {
         ...BALANCE_CHANGE_MOCK,
         amount: new BigNumber(isNegative ? -1 : 1),
-        fiatAmount,
+        fiatAmount: fiatAmount as number,
       };
 
-      expectUpdateTransactionMetricsCalled(
+      expectUpdateConfirmationMetricCalled(
         {
           balanceChanges: [balanceChange],
         },
@@ -361,7 +361,7 @@ describe('useSimulationMetrics', () => {
       fiatAmount: 1.23,
     };
 
-    expectUpdateTransactionMetricsCalled(
+    expectUpdateConfirmationMetricCalled(
       {
         balanceChanges: [balanceChange1, balanceChange2],
       },
@@ -425,6 +425,6 @@ describe('useSimulationMetrics', () => {
       transactionId: TRANSACTION_ID_MOCK,
     });
 
-    expect(updateTransactionMetricsMock).not.toHaveBeenCalled();
+    expect(updateConfirmationMetricMock).not.toHaveBeenCalled();
   });
 });

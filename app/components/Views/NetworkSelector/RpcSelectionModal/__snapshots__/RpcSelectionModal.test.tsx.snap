@@ -117,11 +117,14 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
       </View>
       <View
         style={
-          {
-            "backgroundColor": "#ffffff",
-            "flexDirection": "row",
-            "padding": 16,
-          }
+          [
+            {
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "padding": 16,
+            },
+            false,
+          ]
         }
         testID="header"
       >
@@ -197,7 +200,7 @@ exports[`RpcSelectionModal should render correctly when visible 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 12,
+                    "borderRadius": 8,
                     "height": 24,
                     "justifyContent": "center",
                     "marginRight": 0,

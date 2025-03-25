@@ -16,7 +16,7 @@ import { createMockAccountsControllerState } from '../../../../../util/test/acco
 import { RootState } from '../../../../../reducers';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { ConfirmViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/ConfirmView.selectors';
-import { updateTransactionMetrics } from '../../../../../core/redux/slices/transactionMetrics';
+import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
 
@@ -127,7 +127,6 @@ jest.mock('../../../../../util/ENSUtils', () => ({
 jest.mock('../../../../../lib/ppom/ppom-util', () => ({
   ...jest.requireActual('../../../../../lib/ppom/ppom-util'),
   validateRequest: jest.fn(),
-  isChainSupported: jest.fn(),
 }));
 
 jest.mock('../../../../../core/Engine', () => {
@@ -179,10 +178,29 @@ jest.mock('../../../../../util/transactions', () => ({
   decodeTransferData: jest.fn().mockImplementation(() => ['0x2']),
 }));
 
-jest.mock('../../../../../core/redux/slices/transactionMetrics', () => ({
-  ...jest.requireActual('../../../../../core/redux/slices/transactionMetrics'),
-  updateTransactionMetrics: jest.fn(),
-  selectTransactionMetrics: jest.fn().mockReturnValue({}),
+jest.mock('../../../../../core/redux/slices/confirmationMetrics', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/confirmationMetrics'),
+  updateConfirmationMetric: jest.fn(),
+  selectConfirmationMetrics: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../../../reducers/swaps', () => ({
+  swapsStateSelector: () => ({
+    featureFlags: {
+      smart_transactions: {
+        mobile_active: false,
+      },
+    },
+  }),
+  swapsSmartTxFlagEnabled: () => false,
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectSmartTransactionsBannerDismissed: () => false,
+  selectSmartTransactionsMigrationApplied: () => false,
+  selectSmartTransactionsOptInStatus: () => false,
+  selectUseTransactionSimulations: () => false,
+  selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
 }));
 
 function render(
@@ -203,7 +221,7 @@ function render(
 }
 
 describe('Confirm', () => {
-  const mockUpdateTransactionMetrics = jest.mocked(updateTransactionMetrics);
+  const mockUpdateConfirmationMetric = jest.mocked(updateConfirmationMetric);
 
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
@@ -249,7 +267,7 @@ describe('Confirm', () => {
     fireEvent.press(sendButton);
 
     await waitFor(() => {
-      expect(mockUpdateTransactionMetrics).toHaveBeenCalledWith(
+      expect(mockUpdateConfirmationMetric).toHaveBeenCalledWith(
         expect.objectContaining({
           params: {
             properties: {

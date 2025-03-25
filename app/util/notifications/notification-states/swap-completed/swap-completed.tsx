@@ -1,15 +1,11 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ModalFieldType,
-  ModalFooterType,
-  TRIGGER_TYPES,
-} from '../../constants';
+import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
-  getNetworkFees,
   getNotificationBadge,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
@@ -96,10 +92,6 @@ const state: NotificationState<SwapCompletedNotification> = {
           rate: `1 ${notification.data.token_out.symbol} ≈ ${(
             1 / parseFloat(notification.data.rate)
           ).toFixed(5)} ${notification.data.token_in.symbol}`,
-        },
-        {
-          type: ModalFieldType.NETWORK_FEE,
-          getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {

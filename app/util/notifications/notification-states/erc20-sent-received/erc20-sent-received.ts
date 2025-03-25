@@ -1,9 +1,6 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ModalFieldType,
-  ModalFooterType,
-  TRIGGER_TYPES,
-} from '../../constants';
+import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import {
   label_address_from,
@@ -13,7 +10,6 @@ import {
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
-  getNetworkFees,
   getNotificationBadge,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
@@ -103,10 +99,6 @@ const state: NotificationState<ERC20Notification> = {
           type: ModalFieldType.NETWORK,
           iconUrl: nativeTokenDetails?.image,
           name: nativeTokenDetails?.name,
-        },
-        {
-          type: ModalFieldType.NETWORK_FEE,
-          getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {

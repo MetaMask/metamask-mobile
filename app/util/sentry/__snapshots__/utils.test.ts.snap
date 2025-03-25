@@ -24,6 +24,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
     "favorites": {},
     "isNftFetchingProgress": false,
   },
+  "confirmationMetrics": "object",
   "engine": {
     "backgroundState": {
       "AccountTrackerController": {
@@ -52,6 +53,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
                 "eth_signTypedData_v4",
               ],
               "options": {},
+              "scopes": [
+                "eip155:0",
+              ],
               "type": "eip155:eoa",
             },
             "2be55f5b-eba9-41a7-a9ed-a6a8274aca28": {
@@ -70,6 +74,9 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
                 "eth_signTransaction",
               ],
               "options": {},
+              "scopes": [
+                "eip155:0",
+              ],
               "type": "eip155:eoa",
             },
           },
@@ -249,7 +256,6 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
   "signatureRequest": "object",
   "swaps": "object",
   "transaction": "object",
-  "transactionMetrics": "object",
   "user": {
     "ambiguousAddressEntries": "object",
     "backUpSeedphraseVisible": false,

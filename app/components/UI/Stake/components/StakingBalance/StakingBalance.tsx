@@ -1,52 +1,55 @@
-import React, { useEffect, useMemo, useState } from 'react';
 import { Hex } from '@metamask/utils';
+import bn from 'bignumber.js';
+import BN4 from 'bnjs4';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
-import AssetElement from '../../../AssetElement';
-import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
-import { useSelector } from 'react-redux';
-import styleSheet from './StakingBalance.styles';
-import { View } from 'react-native';
-import StakingButtons from './StakingButtons/StakingButtons';
-import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
-import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Banner, {
   BannerAlertSeverity,
   BannerVariant,
 } from '../../../../../component-library/components/Banners/Banner';
-import { strings } from '../../../../../../locales/i18n';
-import { renderFromWei } from '../../../../../util/number';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../component-library/hooks';
+import { RootState } from '../../../../../reducers';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
-import { filterExitRequests } from './utils';
-import { BN } from 'ethereumjs-util';
-import bn from 'bignumber.js';
+import { isPortfolioViewEnabled } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import AssetElement from '../../../AssetElement';
+import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
+import NetworkAssetLogo from '../../../NetworkAssetLogo';
+import NetworkMainAssetLogo from '../../../NetworkMainAssetLogo';
+import type { TokenI } from '../../../Tokens/types';
+import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import useBalance from '../../hooks/useBalance';
+import usePooledStakes from '../../hooks/usePooledStakes';
+import { useStakingChainByChainId } from '../../hooks/useStakingChain';
+import useStakingEligibility from '../../hooks/useStakingEligibility';
+import useVaultApyAverages from '../../hooks/useVaultApyAverages';
+import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
+import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
 import {
   CommonPercentageInputUnits,
   fixDisplayAmount,
   formatPercent,
   PercentageOutputFormat,
 } from '../../utils/value';
-import { multiplyValueByPowerOfTen } from '../../utils/bignumber';
+import styleSheet from './StakingBalance.styles';
+import ClaimBanner from './StakingBanners/ClaimBanner/ClaimBanner';
+import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
+import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
-import useStakingEligibility from '../../hooks/useStakingEligibility';
-import { useStakingChainByChainId } from '../../hooks/useStakingChain';
-import usePooledStakes from '../../hooks/usePooledStakes';
-import useVaultData from '../../hooks/useVaultData';
-import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
-import type { TokenI } from '../../../Tokens/types';
-import useBalance from '../../hooks/useBalance';
-import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
-import { selectChainId } from '../../../../../selectors/networkController';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
+import { filterExitRequests } from './utils';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -60,8 +63,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     setHasSentViewingStakingRewardsMetric,
   ] = useState(false);
 
-  const chainId = useSelector(selectChainId);
-  const networkName = useSelector(selectNetworkName);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, asset.chainId as Hex),
+  );
 
   const { isEligible: isEligibleForPooledStaking } = useStakingEligibility();
 
@@ -78,8 +82,8 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     hasEthToUnstake,
     isLoadingPooledStakesData,
   } = usePooledStakes();
-  const { vaultData } = useVaultData();
-  const annualRewardRate = vaultData?.apy || '';
+
+  const { vaultApyAverages, isLoadingVaultApyAverages } = useVaultApyAverages();
 
   const {
     formattedStakedBalanceETH: stakedBalanceETH,
@@ -91,19 +95,19 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     return filterExitRequests(exitRequests, exchangeRate);
   }, [pooledStakesData, exchangeRate]);
 
-  const claimableEth = useMemo(
+  const claimableWei = useMemo(
     () =>
-      renderFromWei(
-        claimableRequests.reduce(
+      claimableRequests
+        .reduce(
           (acc, { claimedAssets }) =>
-            claimedAssets ? acc.add(new BN(claimedAssets)) : acc,
-          new BN(0),
-        ),
-      ),
+            claimedAssets ? acc.add(new BN4(claimedAssets)) : acc,
+          new BN4(0),
+        )
+        .toString(),
     [claimableRequests],
   );
 
-  const hasClaimableEth = !!Number(claimableEth);
+  const hasClaimableWei = !!Number(claimableWei);
 
   useEffect(() => {
     if (hasStakedPositions && !hasSentViewingStakingRewardsMetric) {
@@ -132,9 +136,6 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   }
 
   const renderStakingContent = () => {
-    if (chainId !== asset.chainId) {
-      return <></>;
-    }
     if (isLoadingPooledStakesData) {
       return (
         <SkeletonPlaceholder>
@@ -175,17 +176,17 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             ),
         )}
 
-        {hasClaimableEth && (
+        {hasClaimableWei && (
           <ClaimBanner
-            claimableAmount={claimableEth}
+            claimableAmount={claimableWei}
             style={styles.bannerStyles}
           />
         )}
 
-        {!hasStakedPositions && (
+        {!hasStakedPositions && !isLoadingVaultApyAverages && (
           <StakingCta
             style={styles.stakingCta}
-            estimatedRewardRate={formatPercent(annualRewardRate, {
+            estimatedRewardRate={formatPercent(vaultApyAverages.oneWeek, {
               inputFormat: CommonPercentageInputUnits.PERCENTAGE,
               outputFormat: PercentageOutputFormat.PERCENT_SIGN,
               fixed: 1,
@@ -194,6 +195,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
         )}
 
         <StakingButtons
+          asset={asset}
           style={styles.buttonsContainer}
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
@@ -207,25 +209,41 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
-          mainBalance={stakedBalanceETH}
+          secondaryBalance={stakedBalanceETH}
           balance={stakedBalanceFiat}
         >
           <BadgeWrapper
+            badgePosition={BadgePosition.BottomRight}
             style={styles.badgeWrapper}
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={NetworkBadgeSource(
                   asset.chainId as Hex,
-                  asset.ticker || asset.symbol,
+                  asset.ticker ?? asset.symbol,
                 )}
-                name={networkName}
+                name={networkConfigurationByChainId?.name}
               />
             }
           >
-            <NetworkMainAssetLogo style={styles.ethLogo} />
+            {isPortfolioViewEnabled() ? (
+              <NetworkAssetLogo
+                chainId={asset.chainId as Hex}
+                style={styles.ethLogo}
+                ticker={asset.symbol}
+                big={false}
+                biggest={false}
+                testID={'staking-balance-asset-logo'}
+              />
+            ) : (
+              <NetworkMainAssetLogo style={styles.ethLogo} />
+            )}
           </BadgeWrapper>
-          <Text style={styles.balances} variant={TextVariant.BodyLGMedium}>
+          <Text
+            style={styles.balances}
+            variant={TextVariant.BodyLGMedium}
+            testID="staked-ethereum-label"
+          >
             {strings('stake.staked_ethereum')}
           </Text>
         </AssetElement>

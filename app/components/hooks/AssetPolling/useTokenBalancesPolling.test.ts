@@ -4,6 +4,7 @@ import useTokenBalancesPolling from './useTokenBalancesPolling';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -25,6 +26,12 @@ describe('useTokenBalancesPolling', () => {
       backgroundState: {
         TokenBalancesController: {
           tokenBalances: {},
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
         NetworkController: {
           selectedNetworkClientId: 'selectedNetworkClientId',
@@ -168,6 +175,11 @@ describe('useTokenBalancesPolling', () => {
                     ],
                   },
                 },
+              },
+              MultichainNetworkController: {
+                isEvmSelected: true,
+                selectedMultichainNetworkChainId: SolScope.Mainnet,
+                multichainNetworkConfigurationsByChainId: {},
               },
             },
           },

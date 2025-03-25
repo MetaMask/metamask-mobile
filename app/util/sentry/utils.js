@@ -39,6 +39,7 @@ export const sentryStateMask = {
               type: true,
               options: true,
               methods: true,
+              scopes: true,
               metadata: {
                 name: true,
                 importTime: true,
@@ -192,9 +193,6 @@ export const sentryStateMask = {
       TransactionController: {
         [AllProperties]: false,
       },
-      AuthenticationController: {
-        [AllProperties]: false,
-      },
       NotificationServicesController: {
         isCheckingAccountsPresence: false,
         isFeatureAnnouncementsEnabled: false,
@@ -207,9 +205,23 @@ export const sentryStateMask = {
         metamaskNotificationsReadList: [],
         subscriptionAccountsSeen: [],
       },
+      AuthenticationController: {
+        isSignedIn: false,
+        sessionData: {
+          token: {
+            accessToken: false,
+            expiresIn: true,
+            obtainedAt: true,
+          },
+          profile: true,
+        },
+      },
       UserStorageController: {
         isProfileSyncingEnabled: true,
         isProfileSyncingUpdateLoading: false,
+        hasAccountSyncingSyncedAtLeastOnce: false,
+        isAccountSyncingReadyToBeDispatched: false,
+        isAccountSyncingInProgress: false,
       },
     },
   },
@@ -545,11 +557,11 @@ export function setupSentry() {
 
     Sentry.init({
       dsn,
-      debug: isDev,
+      debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
       integrations,
       // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isQa ? 1.0 : 0.04,
+      tracesSampleRate: isDev || isQa ? 1.0 : 0.03,
       profilesSampleRate: 1.0,
       beforeSend: (report) => rewriteReport(report),
       beforeBreadcrumb: (breadcrumb) => rewriteBreadcrumb(breadcrumb),

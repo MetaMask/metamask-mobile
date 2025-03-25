@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import {
   selectChainId,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../../../selectors/networkController';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -26,7 +26,7 @@ export const ScamWarningIcon = ({
 }: ScamWarningIconProps) => {
   const { type } = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
     chainId,
     ticker,

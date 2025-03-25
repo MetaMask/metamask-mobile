@@ -24,7 +24,7 @@ import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
@@ -413,7 +413,7 @@ const mapStateToProps = (state) => ({
   tokensLength: selectTokensLength(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   networkType: selectProviderType(state),
-  chainId: selectChainId(state),
+  chainId: selectEvmChainId(state),
 });
 
 AccountApproval.contextType = ThemeContext;

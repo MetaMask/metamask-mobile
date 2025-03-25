@@ -47,7 +47,7 @@ import { updateTransaction } from '../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
 import { STX_NO_HASH_ERROR } from '../../../../util/smart-transactions/smart-publish-hook';
 import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { selectTransactionMetrics } from '../../../../core/redux/slices/transactionMetrics';
+import { selectConfirmationMetrics } from '../../../../core/redux/slices/confirmationMetrics';
 import {
   selectCurrentTransactionSecurityAlertResponse,
   selectCurrentTransactionMetadata,
@@ -132,9 +132,9 @@ class Approval extends PureComponent {
     shouldUseSmartTransaction: PropTypes.bool,
 
     /**
-     * Object containing transaction metrics by id
+     * Object containing confirmation metrics by id
      */
-    transactionMetricsById: PropTypes.object,
+    confirmationMetricsById: PropTypes.object,
 
     /**
      * Object containing blockaid validation response for confirmation
@@ -502,7 +502,7 @@ class Approval extends PureComponent {
       transactions,
       chainId,
       shouldUseSmartTransaction,
-      simulationData: { isUpdatedAfterSecurityCheck },
+      simulationData: { isUpdatedAfterSecurityCheck } = {},
       navigation,
     } = this.props;
     let { transaction } = this.props;
@@ -560,7 +560,10 @@ class Approval extends PureComponent {
                 assetType: transaction.assetType,
               });
             } else {
-              throw transactionMeta.error;
+              Logger.error(
+                transactionMeta.error,
+                'error while trying to finish a transaction (Approval)',
+              );
             }
           },
           (transactionMeta) => transactionMeta.id === transaction.id,
@@ -702,11 +705,11 @@ class Approval extends PureComponent {
   };
 
   getTransactionMetrics = () => {
-    const { transactionMetricsById, transaction } = this.props;
+    const { confirmationMetricsById, transaction } = this.props;
     const { id: transactionId } = transaction;
 
     // Skip sensitiveProperties for now as it's not supported by mobile Metametrics client
-    return transactionMetricsById[transactionId]?.properties || {};
+    return confirmationMetricsById[transactionId]?.properties || {};
   };
 
   render = () => {
@@ -761,10 +764,10 @@ const mapStateToProps = (state) => {
     chainId,
     activeTabUrl: getActiveTabUrl(state),
     shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
-    transactionMetricsById: selectTransactionMetrics(state),
+    confirmationMetricsById: selectConfirmationMetrics(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
-}
+};
 
 const mapDispatchToProps = (dispatch) => ({
   resetTransaction: () => dispatch(resetTransaction()),

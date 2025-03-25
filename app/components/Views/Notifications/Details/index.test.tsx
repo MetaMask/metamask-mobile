@@ -7,7 +7,15 @@ import configureMockStore from 'redux-mock-store';
 import NotificationsDetails from './index';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-import { NotificationComponentState } from '../../../../util/notifications/notification-states';
+// eslint-disable-next-line import/no-namespace
+import * as NotificationStatesModule from '../../../../util/notifications/notification-states';
+// eslint-disable-next-line import/no-namespace
+import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
+
+jest.mock('../../../../util/notifications/constants/config', () => ({
+  ...jest.requireActual('../../../../util/notifications/constants/config'),
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 const mockInitialState = {
   settings: {
@@ -47,6 +55,10 @@ describe('NotificationsDetails', () => {
       navigate: jest.fn(),
       setOptions: jest.fn(),
     } as unknown as NavigationProp<ParamListBase>;
+
+    jest
+      .spyOn(UseNotificationsModule, 'useMarkNotificationAsRead')
+      .mockReturnValue({ markNotificationAsRead: jest.fn(), loading: false });
   });
 
   it('renders correctly', () => {
@@ -66,18 +78,10 @@ describe('NotificationsDetails', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('derives state correctly based on notification type', () => {
-    const notificationType = MOCK_NOTIFICATIONS[1].type as keyof typeof NotificationComponentState;
-
-    (NotificationComponentState[notificationType] as unknown) = {
-      createModalDetails: jest.fn().mockReturnValue({
-        title: 'Test Title',
-        createdAt: new Date().toISOString(),
-        header: 'Test Header',
-        fields: [],
-        footer: 'Test Footer',
-      }),
-    };
+  it('returns null if unable to create modal state', () => {
+    jest
+      .spyOn(NotificationStatesModule, 'hasNotificationComponents')
+      .mockReturnValue(false);
 
     const result = render(
       <Provider store={store}>
@@ -91,6 +95,6 @@ describe('NotificationsDetails', () => {
         />
       </Provider>,
     );
-    expect(result).toBeTruthy();
+    expect(result.toJSON()).toBe(null);
   });
 });

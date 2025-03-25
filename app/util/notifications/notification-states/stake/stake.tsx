@@ -1,15 +1,11 @@
+import { TRIGGER_TYPES } from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../locales/i18n';
-import {
-  ModalFieldType,
-  ModalFooterType,
-  TRIGGER_TYPES,
-} from '../../constants';
+import { ModalFieldType, ModalFooterType } from '../../constants';
 import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   getAmount,
   getNativeTokenDetailsByChainId,
-  getNetworkFees,
   getNotificationBadge,
 } from '../../methods/common';
 import { ModalField } from '../types/NotificationModalDetails';
@@ -157,10 +153,6 @@ const state: NotificationState<StakeNotification> = {
           tokenIconUrl: isStaked(notification)
             ? notification.data.stake_out.image
             : notification.data.stake_in.image,
-        },
-        {
-          type: ModalFieldType.NETWORK_FEE,
-          getNetworkFees: () => getNetworkFees(notification),
         },
       ],
       footer: {

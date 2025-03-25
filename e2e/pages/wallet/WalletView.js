@@ -4,6 +4,7 @@ import {
 } from '../../selectors/wallet/WalletView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
 
 class WalletView {
   get container() {
@@ -12,6 +13,18 @@ class WalletView {
 
   get portfolioButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.PORTFOLIO_BUTTON);
+  }
+
+  get earnButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
+  }
+
+  get stakedEthereumLabel() {
+    return Matchers.getElementByText(WalletViewSelectorsText.STAKED_ETHEREUM);
+  }
+
+  get stakeMoreButton() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
 
   get tokenDetectionLinkButton() {
@@ -90,6 +103,10 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER);
   }
 
+  get sortBy() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.SORT_BY);
+  }
+
   get tokenNetworkFilterAll() {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER_ALL,
@@ -106,13 +123,62 @@ class WalletView {
     return Matchers.getElementByText('Cancel');
   }
 
+  get carouselContainer() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+  }
+
+  get carouselFirstSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
+  }
+
+  get carouselFirstSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
+    );
+  }
+
+  get carouselSecondSlide() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
+    );
+  }
+
+  get carouselSecondSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
+    );
+  }
+
+  get carouselProgressDots() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+    );
+  }
+
+  get carouselFirstSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSecondSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
 
-  async tapOnToken(token) {
+  async tapOnToken(token, index = 0) {
     const element = Matchers.getElementByText(
       token || WalletViewSelectorsText.DEFAULT_TOKEN,
+      index,
     );
     await Gestures.waitAndTap(element);
   }
@@ -122,7 +188,7 @@ class WalletView {
   }
 
   async tapNetworksButtonOnNavBar() {
-    await Gestures.waitAndTap(this.navbarNetworkButton);
+    await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   async tapNftTab() {
@@ -174,6 +240,16 @@ class WalletView {
     return Matchers.getElementByText(tokenName);
   }
 
+  async getTokensInWallet() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST,
+    );
+  }
+
+  async nftIDInWallet(nftId) {
+    return Matchers.getElementByID(nftId);
+  }
+
   async nftInWallet(nftName) {
     return Matchers.getElementByText(nftName);
   }
@@ -190,6 +266,10 @@ class WalletView {
     await Gestures.waitAndTap(this.tokenNetworkFilter);
   }
 
+  async tapSortBy() {
+    await Gestures.waitAndTap(this.sortBy);
+  }
+
   async tapTokenNetworkFilterAll() {
     await Gestures.waitAndTap(this.tokenNetworkFilterAll);
   }
@@ -198,8 +278,28 @@ class WalletView {
     await Gestures.waitAndTap(this.tokenNetworkFilterCurrent);
   }
 
+  async tapOnEarnButton() {
+    await Gestures.waitAndTap(this.earnButton);
+  }
+
+  async tapOnStakedEthereum() {
+    await Gestures.waitAndTap(this.stakedEthereumLabel);
+  }
+
+  async tapOnStakeMore() {
+    await Gestures.waitAndTap(this.stakeMoreButton);
+  }
+
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapCarouselCloseButton() {
+    await Gestures.tap(this.carouselCloseButton);
+  }
+
+  async tapCarouselSlide() {
+    await Gestures.tap(this.carouselSlide);
   }
 }
 

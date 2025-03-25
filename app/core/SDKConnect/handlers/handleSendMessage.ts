@@ -1,9 +1,6 @@
-import { Platform } from 'react-native';
 import Routes from '../../../../app/constants/navigation/Routes';
 import AppConstants from '../../../../app/core/AppConstants';
 import Logger from '../../../util/Logger';
-import Device from '../../../util/device';
-import { Minimizer } from '../../NativeModules';
 import { Connection } from '../Connection';
 import { METHODS_TO_DELAY, RPC_METHODS } from '../SDKConnectConstants';
 import DevLogger from '../utils/DevLogger';
@@ -140,16 +137,9 @@ export const handleSendMessage = async ({
 
     // Trigger should be removed after redirect so we don't redirect the dapp next time and go back to nothing.
     connection.trigger = 'resume';
-
-    // Check for iOS 17 and above to use a custom modal, as Minimizer.goBack() is incompatible with these versions
-    if (Device.isIos() && parseInt(Platform.Version as string) >= 17) {
-      connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-      });
-    } else {
-      DevLogger.log(`[handleSendMessage] goBack()`);
-      await Minimizer.goBack();
-    }
+    connection.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+    });
   } catch (err) {
     Logger.log(
       err,

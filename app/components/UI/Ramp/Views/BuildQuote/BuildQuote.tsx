@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 
 import { useRampSDK } from '../../sdk';
 import usePaymentMethods from '../../hooks/usePaymentMethods';
@@ -80,12 +80,13 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import useERC20GasLimitEstimation from '../../hooks/useERC20GasLimitEstimation';
+import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectorButton = BaseSelectorButton as any;
 
-const TRANSFER_GAS_LIMIT = 21000;
 interface BuildQuoteParams {
   showBack?: boolean;
 }
@@ -98,13 +99,13 @@ const BuildQuote = () => {
   const params = useParams<BuildQuoteParams>();
   const {
     styles,
-    theme: { colors },
+    theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
   const [amountFocused, setAmountFocused] = useState(false);
   const [amount, setAmount] = useState('0');
   const [amountNumber, setAmountNumber] = useState(0);
-  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN>();
+  const [amountBNMinimalUnit, setAmountBNMinimalUnit] = useState<BN4>();
   const [error, setError] = useState<string | null>(null);
   const keyboardHeight = useRef(1000);
   const keypadOffset = useSharedValue(1000);
@@ -169,6 +170,21 @@ const BuildQuote = () => {
     currentPaymentMethod,
   } = usePaymentMethods();
 
+  const paymentMethodIcons = useMemo(() => {
+    if (!paymentMethods) {
+      return [];
+    }
+
+    return [
+      ...new Set(
+        paymentMethods.reduce((acc, payment) => {
+          const icons = payment.logo[themeAppearance] || [];
+          return [...acc, ...icons];
+        }, [] as string[]),
+      ),
+    ];
+  }, [paymentMethods, themeAppearance]);
+
   const {
     defaultFiatCurrency,
     queryDefaultFiatCurrency,
@@ -196,9 +212,18 @@ const BuildQuote = () => {
     currentFiatCurrency,
   );
 
+  const gasLimitEstimation = useERC20GasLimitEstimation({
+    tokenAddress: selectedAsset?.address,
+    fromAddress: selectedAddress,
+    chainId: selectedChainId,
+    amount,
+    decimals: selectedAsset?.decimals ?? 18, // Default ERC20 decimals
+    isNativeToken: selectedAsset?.address === NATIVE_ADDRESS,
+  });
+
   const gasPriceEstimation = useGasPriceEstimation({
     // 0 is set when buying since there's no transaction involved
-    gasLimit: isBuy ? 0 : TRANSFER_GAS_LIMIT,
+    gasLimit: isBuy ? 0 : gasLimitEstimation,
     estimateRange: 'high',
   });
 
@@ -221,9 +246,11 @@ const BuildQuote = () => {
     selectedAddress,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset
       ? {
+          chainId: selectedAsset.network.chainId,
+          assetId: selectedAsset.assetId,
           address: selectedAsset.address,
           decimals: selectedAsset.decimals,
         }
@@ -341,7 +368,7 @@ const BuildQuote = () => {
       setAmountNumber(valueAsNumber);
       if (isSell) {
         setAmountBNMinimalUnit(
-          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN,
+          toTokenMinimalUnit(`${value}`, selectedAsset?.decimals ?? 0) as BN4,
         );
       }
     },
@@ -356,8 +383,8 @@ const BuildQuote = () => {
       } else {
         const percentage = value * 100;
         const amountPercentage = balanceBN
-          ?.mul(new BN(percentage))
-          .div(new BN(100));
+          ?.mul(new BN4(percentage))
+          .div(new BN4(100));
 
         if (!amountPercentage) {
           return;
@@ -725,7 +752,7 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN(0))) {
+  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN4(0))) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -754,6 +781,7 @@ const BuildQuote = () => {
                 accessibilityRole="button"
                 accessible
                 onPress={handleChangeRegion}
+                testID={BuildQuoteSelectors.REGION_DROPDOWN}
               >
                 <Text style={styles.flagText}>{selectedRegion?.emoji}</Text>
               </SelectorButton>
@@ -796,7 +824,7 @@ const BuildQuote = () => {
                   color={TextColor.Alternative}
                 >
                   {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                  {addressBalance}
+                  {selectedAsset?.assetId && balance ? balance : addressBalance}
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                 </Text>
               </Row>
@@ -828,14 +856,22 @@ const BuildQuote = () => {
               )}
             {hasInsufficientBalance && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR}
+                >
                   {strings('fiat_on_ramp_aggregator.insufficient_balance')}
                 </Text>
               </Row>
             )}
             {!hasInsufficientBalance && amountIsBelowMinimum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MIN_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.minimum')}{' '}
@@ -850,7 +886,11 @@ const BuildQuote = () => {
             )}
             {!hasInsufficientBalance && amountIsAboveMaximum && limits && (
               <Row>
-                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Error}
+                  testID={BuildQuoteSelectors.MAX_LIMIT_ERROR}
+                >
                   {isBuy ? (
                     <>
                       {strings('fiat_on_ramp_aggregator.maximum')}{' '}
@@ -880,6 +920,7 @@ const BuildQuote = () => {
                 }
                 name={currentPaymentMethod?.name}
                 onPress={showPaymentMethodsModal as () => void}
+                paymentMethodIcons={paymentMethodIcons}
               />
             </Row>
           </ScreenLayout.Content>
