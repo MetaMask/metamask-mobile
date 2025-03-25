@@ -444,16 +444,16 @@ workflows:
               #!/usr/bin/env bash
               # Define label data
               LABELS_JSON='{"labels":["bitrise-result-ready"]}'
-              	
+
               # API URL to add labels to a PR
               API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
 
               # Perform the curl request and capture the HTTP status code
               HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              	
+
               # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"	
-              
+              echo "HTTP Response Code: $HTTP_RESPONSE"
+
               # Optionally check the response
               echo "HTTP Response Code: $HTTP_RESPONSE"
 
@@ -466,7 +466,7 @@ workflows:
 
               # Clean up the response file
               rm response.txt
-                	
+
 
   # Send a Slack message when workflow fails
   notify_failure:
@@ -1570,9 +1570,9 @@ workflows:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
           title: Deploy Source Map
-    meta: 
-      bitrise.io: 
-        stack: osx-xcode-15.0.x 
+    meta:
+      bitrise.io:
+        stack: osx-xcode-15.0.x
         machine_type_id: g2.mac.large
   build_ios_release_and_upload_sourcemaps:
     envs:
