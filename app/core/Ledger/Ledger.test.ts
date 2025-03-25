@@ -70,9 +70,7 @@ describe('Ledger core', () => {
     const mockKeyringController = MockEngine.context.KeyringController;
 
     ledgerKeyring = {
-      addAccounts: jest
-        .fn()
-        .mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']),
+      addAccounts: jest.fn().mockResolvedValue(['0x49b6FFd1BD9d1c64EEf400a64a1e4bBC33E2CAB2']),
       bridge: {
         getAppNameAndVersion: jest
           .fn()
@@ -133,9 +131,8 @@ describe('Ledger core', () => {
     };
 
     mockKeyringController.withKeyring.mockImplementation(
-      (_selector, operation) =>
-        // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
-        operation({ keyring: ledgerKeyring, metadata: { id: '1234' } }),
+      // @ts-expect-error The Ledger keyring is not compatible with our keyring type yet
+      (_selector, operation) => operation(ledgerKeyring),
     );
     mockKeyringController.signTypedMessage.mockResolvedValue('signature');
   });
@@ -280,7 +277,7 @@ describe('Ledger core', () => {
       // @ts-expect-error: The account metadata type is hard to mock
       metadata: {
         name: 'Ledger 1',
-      },
+      }
     });
 
     it(`calls keyring.setAccountToUnlock and addAccounts`, async () => {
@@ -290,20 +287,24 @@ describe('Ledger core', () => {
     });
 
     it(`throws an error if the account name has already exists`, async () => {
+
+
       mockAccountsController.state.internalAccounts.accounts = [
         {
           // @ts-expect-error: The account metadata type is hard to mock
           metadata: {
             name: 'Ledger 1',
           },
-        },
+        }
       ];
 
       try {
         await unlockLedgerWalletAccount(1);
       } catch (err) {
         expect(err).toBeInstanceOf(Error);
-        expect((err as Error).message).toBe(`Account Ledger 1 already exists`);
+        expect((err as Error).message).toBe(
+          `Account Ledger 1 already exists`
+        );
       }
     });
   });

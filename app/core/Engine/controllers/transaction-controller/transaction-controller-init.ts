@@ -37,6 +37,7 @@ import type { TransactionMetrics } from './types';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
+  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
@@ -170,6 +171,7 @@ function isIncomingTransactionsEnabled(
 
 function getControllers(
   request: ControllerInitRequest<
+    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,

@@ -239,12 +239,11 @@ describe('Engine', () => {
 
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementationOnce(() => [])
-      .mockImplementationOnce(() => [mockSnapKeyring]);
+      .mockImplementation(() => []);
 
     jest
       .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
+      .mockImplementation(async () => mockSnapKeyring);
 
     const getSnapKeyringSpy = jest
       .spyOn(engine, 'getSnapKeyring')
