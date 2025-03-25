@@ -371,7 +371,6 @@ export async function isSmartContractAddress(address, chainId, networkClientId =
   try {
     finalNetworkClientId = networkClientId ?? NetworkController.findNetworkClientIdByChainId(chainId);
   } catch (err) {
-    Logger.error(err, 'Error in isSmartContractAddress');
     trackErrorAsAnalytics(`Unable to find network client id for chainId ${chainId}`, err.message);
     return false;
   }
