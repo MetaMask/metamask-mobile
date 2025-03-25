@@ -74,15 +74,12 @@ import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSumma
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { getNetworkImageSource } from '../../../util/networks';
 import NetworkConnectMultiSelector from '../NetworkConnect/NetworkConnectMultiSelector';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { addPermittedChains } from '../../../core/Permissions';
 import { Hex } from '@metamask/utils';
 import { getCaip25PermissionsResponse, getRequestedCaip25CaveatValue } from './utils';
 
@@ -393,6 +390,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const handleConnect = useCallback(async () => {
     const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
       // TODO: Fix this :(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hostInfo.permissions as any,
     );
 
@@ -470,6 +468,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     trackEvent,
     faviconSource,
     createEventBuilder,
+    selectedChainIds,
+    chainId
   ]);
 
   const handleCreateAccount = useCallback(
