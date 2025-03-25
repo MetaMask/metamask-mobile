@@ -361,7 +361,7 @@ describe('MultiChain utils', () => {
 
       it('returns a formatted transaction URL for Solana', () => {
         const mockUrl =
-          'https://explorer.solana.com/tx/4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM7cvkMPXTz5NAGvXUqaJyPmAB3Wyaq7FZggeuTEpjZM2r';
+          'https://solscan.io/tx/4uQeVj5tqViQh7yWWGStvkEG1Zmhx6uasJtWCJziofM7cvkMPXTz5NAGvXUqaJyPmAB3Wyaq7FZggeuTEpjZM2r';
         (formatBlockExplorerTransactionUrl as jest.Mock).mockReturnValue(
           mockUrl,
         );
@@ -406,7 +406,7 @@ describe('MultiChain utils', () => {
 
       it('returns a formatted address URL for Solana', () => {
         const mockUrl =
-          'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+          'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
         (formatBlockExplorerAddressUrl as jest.Mock).mockReturnValue(mockUrl);
 
         const result = getAddressUrl(SOL_ADDRESS, SolScope.Mainnet);

@@ -147,8 +147,8 @@ export function isBtcTestnetAddress(address: string): boolean {
  * Different networks have different URL patterns:
  * Bitcoin Mainnet: https://blockstream.info/tx/{txId}
  * Bitcoin Testnet: https://blockstream.info/testnet/tx/{txId}
- * Solana Mainnet: https://explorer.solana.com/tx/{txId}
- * Solana Devnet: https://explorer.solana.com/tx/{txId}?cluster=devnet
+ * Solana Mainnet: https://solscan.io/tx/{txId}
+ * Solana Devnet: https://solscan.io/tx/{txId}?cluster=devnet
  *
  * @param txId - Transaction ID
  * @param chainId - Network chain ID
@@ -172,8 +172,8 @@ export const getTransactionUrl = (
  * Different networks have different URL patterns:
  * Bitcoin Mainnet: https://blockstream.info/address/{address}
  * Bitcoin Testnet: https://blockstream.info/testnet/address/{address}
- * Solana Mainnet: https://explorer.solana.com/address/{address}
- * Solana Devnet: https://explorer.solana.com/address/{address}?cluster=devnet
+ * Solana Mainnet: https://solscan.io/account/{address}
+ * Solana Devnet: https://solscan.io/account/{address}?cluster=devnet
  *
  * @param address - Wallet address
  * @param chainId - Network chain ID

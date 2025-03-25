@@ -24,8 +24,8 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 jest.mock('../../../core/Multichain/utils', () => ({
-  getAddressUrl: jest.fn(() => 'https://explorer.solana.com/address/123'),
-  getTransactionUrl: jest.fn(() => 'https://explorer.solana.com/tx/123'),
+  getAddressUrl: jest.fn(() => 'https://solscan.io/account/123'),
+  getTransactionUrl: jest.fn(() => 'https://solscan.io/tx/123'),
 }));
 
 describe('MultichainTransactionDetailsModal', () => {
@@ -145,7 +145,7 @@ describe('MultichainTransactionDetailsModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
-      params: { url: 'https://explorer.solana.com/tx/123' },
+      params: { url: 'https://solscan.io/tx/123' },
     });
   });
 
@@ -166,7 +166,7 @@ describe('MultichainTransactionDetailsModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
-      params: { url: 'https://explorer.solana.com/address/123' },
+      params: { url: 'https://solscan.io/account/123' },
     });
   });
 });

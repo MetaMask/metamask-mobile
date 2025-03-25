@@ -227,7 +227,7 @@ jest.mock('../../../util/networks', () => {
       if (account.type === 'p2wpkh') {
         return 'https://mempool.space/address/bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k';
       } else if (account.type === 'data_account') {
-        return 'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+        return 'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
       }
       return '';
     }),
@@ -235,7 +235,7 @@ jest.mock('../../../util/networks', () => {
     getBlockExplorerName: jest.fn((url) => {
       if (url.includes('etherscan')) return 'etherscan.io';
       if (url.includes('mempool.space')) return 'mempool.space';
-      if (url.includes('explorer.solana.com')) return 'explorer.solana.com';
+      if (url.includes('solscan.io')) return 'solscan.io';
       if (url.includes('custom-explorer.com')) return 'custom-explorer.com';
       return 'Block Explorer';
     }),
@@ -421,8 +421,8 @@ describe('AccountActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://explorer.solana.com/address/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
-        title: 'explorer.solana.com',
+        url: 'https://solscan.io/account/7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+        title: 'solscan.io',
       },
     });
   });

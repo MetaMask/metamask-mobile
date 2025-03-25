@@ -671,7 +671,7 @@ describe('network-utils', () => {
         });
 
         expect(url).toBe(
-          `https://explorer.solana.com/address/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
+          `https://solscan.io/account/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
         );
       });
 
