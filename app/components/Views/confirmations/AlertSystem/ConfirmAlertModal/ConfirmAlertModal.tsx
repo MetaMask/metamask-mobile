@@ -50,7 +50,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
   }
 
   return (
-    <BottomModal onClose={handleReject}>
+    <BottomModal onClose={handleReject} testID="confirm-alert-modal" >
       <View style={styles.modalContainer}>
         <View>
           <Icon name={IconName.Danger} size={IconSize.Xl} color={colors.error.default} />

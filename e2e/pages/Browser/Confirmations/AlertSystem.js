@@ -1,5 +1,5 @@
 import Matchers from '../../../utils/Matchers';
-import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmAlertModalSelectorsText, ConfirmationPageSectionsSelectorIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationPageSectionsSelectorIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText } from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Gestures from '../../../utils/Gestures';
 
 class AlertSystem {
@@ -38,8 +38,8 @@ class AlertSystem {
   }
 
   get confirmAlertModal() {
-    return Matchers.getElementByText(
-      ConfirmAlertModalSelectorsText.CONFIRM_ALERT_MODAL_TITLE,
+    return Matchers.getElementByID(
+      ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL,
     );
   }
 
