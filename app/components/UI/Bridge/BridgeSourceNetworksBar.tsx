@@ -65,11 +65,24 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
     networkText = strings('bridge.num_networks', { numNetworks: selectedSourceChainIds.length });
   }
 
-  const navigateToNetworkSelector = useCallback(() => {
+  const navigateToNetworkSelector = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
     });
-  }, [navigation]);
+  };
+
+  const renderNetwork = useCallback(({ chainId }: { chainId: Hex }) => (
+      <Box key={chainId} style={styles.avatarContainer}>
+      <AvatarNetwork
+        key={chainId}
+        // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        imageSource={getNetworkImageSource({ chainId })}
+        name={networkConfigurations[chainId]?.name}
+        size={AvatarSize.Xs}
+        style={styles.avatarNetwork}
+      />
+    </Box>
+  ), [networkConfigurations, styles]);
 
   return (
     <Button
@@ -78,18 +91,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
       label={
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
-          {networksToShow.map(({ chainId }) => (
-            <Box key={chainId} style={styles.avatarContainer}>
-              <AvatarNetwork
-                key={chainId}
-                // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                imageSource={getNetworkImageSource({ chainId })}
-                name={networkConfigurations[chainId]?.name}
-                size={AvatarSize.Xs}
-                style={styles.avatarNetwork}
-              />
-            </Box>
-          ))}
+          {networksToShow.map(renderNetwork)}
           {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
             <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
               <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>

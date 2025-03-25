@@ -453,7 +453,7 @@ describe('BridgeSourceNetworkSelector', () => {
   });
 
   it('disables Apply button when no networks are selected', async () => {
-    const { getByTestId, getByText } = renderScreen(
+    const { getByText } = renderScreen(
       BridgeSourceNetworkSelector,
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
@@ -466,7 +466,7 @@ describe('BridgeSourceNetworkSelector', () => {
     fireEvent.press(selectAllButton);
 
     // Apply button should be disabled
-    const applyButton = getByTestId('bridge-network-selector-apply-button');
+    const applyButton = getByText('Apply');
     expect(applyButton.props.disabled).toBe(true);
   });
 

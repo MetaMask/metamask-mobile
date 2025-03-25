@@ -24,6 +24,8 @@ import { useSortedSourceNetworks } from './useSortedSourceNetworks';
 import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
 import { NetworkRow } from './NetworkRow';
 import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const createStyles = () => StyleSheet.create({
   listContent: {
@@ -48,7 +50,9 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
-  const enabledSourceChainIds = enabledSourceChains.map((chain) => chain.chainId);
+  const enabledSourceChainIds = useMemo(
+    () => enabledSourceChains.map((chain) => chain.chainId), [enabledSourceChains]
+  );
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -122,58 +126,59 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     candidateSourceChainIds.length === enabledSourceChainIds.length,
   [candidateSourceChainIds, enabledSourceChainIds]);
 
+  const renderNetworkItem = useCallback((chain: NetworkConfiguration) => {
+    const totalFiatValue = getChainTotalFiatValue(chain.chainId);
+    const isSelected = candidateSourceChainIds.includes(chain.chainId);
+
+    return (
+      <TouchableOpacity
+        key={chain.chainId}
+        onPress={() => toggleChain(chain.chainId)}
+        testID={`chain-${chain.chainId}`}
+      >
+        <ListItem
+          verticalAlignment={VerticalAlignment.Center}
+        >
+          <Checkbox
+            isChecked={isSelected}
+            onPress={() => toggleChain(chain.chainId)}
+            testID={`checkbox-${chain.chainId}`}
+          />
+            <NetworkRow
+              chainId={chain.chainId}
+              chainName={chain.name}
+            >
+              <Text
+                style={styles.fiatValue}
+                variant={TextVariant.BodyLGMedium}
+              >
+                {formatFiatValue(totalFiatValue)}
+              </Text>
+            </NetworkRow>
+        </ListItem>
+      </TouchableOpacity>
+    );
+  }, [candidateSourceChainIds, formatFiatValue, getChainTotalFiatValue, styles, toggleChain]);
+
   return (
     <BridgeNetworkSelectorBase>
       <Box style={styles.selectAllContainer}>
         <Button
           label={areAllNetworksSelected ? strings('bridge.deselect_all_networks') : strings('bridge.select_all_networks')}
           onPress={toggleAllChains}
-          testID="select-all-networks-button"
+          testID={BridgeSourceNetworkSelectorSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON}
           variant={ButtonVariants.Link}
         />
       </Box>
 
       <Box style={styles.listContent}>
-        {sortedSourceNetworks.map((chain) => {
-          const totalFiatValue = getChainTotalFiatValue(chain.chainId);
-          const isSelected = candidateSourceChainIds.includes(chain.chainId);
-
-          return (
-            <TouchableOpacity
-              key={chain.chainId}
-              onPress={() => toggleChain(chain.chainId)}
-              testID={`chain-${chain.chainId}`}
-            >
-              <ListItem
-                verticalAlignment={VerticalAlignment.Center}
-              >
-                <Checkbox
-                  isChecked={isSelected}
-                  onPress={() => toggleChain(chain.chainId)}
-                  testID={`checkbox-${chain.chainId}`}
-                />
-                  <NetworkRow
-                    chainId={chain.chainId}
-                    chainName={chain.name}
-                  >
-                    <Text
-                      style={styles.fiatValue}
-                      variant={TextVariant.BodyLGMedium}
-                    >
-                      {formatFiatValue(totalFiatValue)}
-                    </Text>
-                  </NetworkRow>
-              </ListItem>
-            </TouchableOpacity>
-          );
-        })}
+        {sortedSourceNetworks.map(renderNetworkItem)}
       </Box>
 
       <Box style={styles.applyButtonContainer}>
         <Button
           label={strings('bridge.apply')}
           onPress={handleApply}
-          testID="bridge-network-selector-apply-button"
           variant={ButtonVariants.Secondary}
           disabled={candidateSourceChainIds.length === 0}
           width={ButtonWidthTypes.Full}

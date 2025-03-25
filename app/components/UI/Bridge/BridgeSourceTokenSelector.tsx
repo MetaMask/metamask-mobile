@@ -23,13 +23,14 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const selectedSourceToken = useSelector(selectSourceToken);
 
-  const handleTokenPress = useCallback((token: TokenI) => {
-    dispatch(setSourceToken(token));
-    navigation.goBack();
-  }, [dispatch, navigation]);
 
+  const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
+    const handleTokenPress = (token: TokenI) => {
+      dispatch(setSourceToken(token));
+      navigation.goBack();
+    };
 
-  const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => (
+    return (
     <TokenSelectorItem
       token={item}
       onPress={handleTokenPress}
@@ -40,10 +41,9 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         selectedSourceToken?.address === item.address &&
         selectedSourceToken?.chainId === item.chainId
       }
-    />
-    ),
-    [handleTokenPress, networkConfigurations, selectedSourceToken],
-  );
+      />
+    );
+  }, [dispatch, navigation, networkConfigurations, selectedSourceToken]);
 
   const networksToShow = useMemo(() =>
     sortedSourceNetworks

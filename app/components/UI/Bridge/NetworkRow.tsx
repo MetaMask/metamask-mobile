@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Box } from '../Box/Box';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { FlexDirection, AlignItems } from '../Box/box.types';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
@@ -11,10 +11,6 @@ import { Hex } from '@metamask/utils';
 const createStyles = () => StyleSheet.create({
     wrapper: {
       flex: 1
-    },
-    chainName: {
-      fontSize: 16,
-      fontWeight: '500',
     },
     nameWrapper: {
       flex: 1,
@@ -51,7 +47,7 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({ chainId, chainName, chil
         <AvatarNetwork
           imageSource={imageSource}
         />
-        <Text style={styles.chainName}>{chainName}</Text>
+        <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
       </Box>
 
       {children ? (

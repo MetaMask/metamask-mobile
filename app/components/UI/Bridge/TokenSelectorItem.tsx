@@ -71,11 +71,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const balanceWithSymbol = `${token.balance} ${token.symbol}`;
 
   // Open the asset details screen as a bottom sheet
-  const handleInfoButtonPress = () => {
-     navigation.navigate('Asset', {
-      ...token,
-    });
-  };
+  const handleInfoButtonPress = () => navigation.navigate('Asset', { ...token });
 
   return (
     <Box

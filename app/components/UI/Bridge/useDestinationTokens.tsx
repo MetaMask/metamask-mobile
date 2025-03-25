@@ -2,6 +2,7 @@ import { useTokensWithBalance, TokenIWithFiatAmount } from './useTokensWithBalan
 import { useSelector } from 'react-redux';
 import { selectSelectedDestChainId, selectSourceToken } from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
+import { useMemo } from 'react';
 
 // TODO get top tokens from BridgeController
 export const useDestinationTokens: () => TokenIWithFiatAmount[] = () => {
@@ -10,6 +11,11 @@ export const useDestinationTokens: () => TokenIWithFiatAmount[] = () => {
 
   const tokensWithBalance = useTokensWithBalance({ chainIds: [selectedDestChainId as Hex] });
 
-  return tokensWithBalance.filter((token) => !(token.address === selectedSourceToken?.address
-    && token.chainId === selectedSourceToken?.chainId));
+  const filteredTokens = useMemo(() => tokensWithBalance.filter((token) => {
+    const isSelectedSourceToken = token.address === selectedSourceToken?.address && token.chainId === selectedSourceToken?.chainId;
+
+    return !isSelectedSourceToken;
+  }), [tokensWithBalance, selectedSourceToken]);
+
+  return filteredTokens;
 };

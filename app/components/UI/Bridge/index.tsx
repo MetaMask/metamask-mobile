@@ -198,19 +198,17 @@ const BridgeView = () => {
     });
   };
 
-  const handleSourceTokenPress = () => {
+  const handleSourceTokenPress = () => 
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       params: {},
     });
-  };
 
-  const handleDestTokenPress = () => {
+  const handleDestTokenPress = () => 
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {},
     });
-  };
 
   const renderBottomContent = () => {
     if (

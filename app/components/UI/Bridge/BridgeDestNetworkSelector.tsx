@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import { VerticalAlignment } from '../../../component-library/components/List/Li
 import { Hex } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
 import { NetworkRow } from './NetworkRow';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 
 const createStyles = () => StyleSheet.create({
@@ -27,29 +28,31 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
 
-  const handleChainSelect = (chainId: Hex) => {
+  const handleChainSelect = useCallback((chainId: Hex) => {
     dispatch(setSelectedDestChainId(chainId));
     navigation.goBack();
-  };
+  }, [dispatch, navigation]);
+
+  const renderItem = useCallback((chain: NetworkConfiguration) => (
+    <TouchableOpacity
+      key={chain.chainId}
+      onPress={() => handleChainSelect(chain.chainId)}
+    >
+      <ListItem
+        verticalAlignment={VerticalAlignment.Center}
+      >
+        <NetworkRow
+          chainId={chain.chainId}
+          chainName={chain.name}
+        />
+      </ListItem>
+    </TouchableOpacity>
+  ), [handleChainSelect]);
 
   return (
     <BridgeNetworkSelectorBase>
       <Box style={styles.listContent}>
-        {enabledDestChains.map((chain) => (
-          <TouchableOpacity
-            key={chain.chainId}
-            onPress={() => handleChainSelect(chain.chainId)}
-          >
-            <ListItem
-              verticalAlignment={VerticalAlignment.Center}
-            >
-              <NetworkRow
-                chainId={chain.chainId}
-                chainName={chain.name}
-              />
-            </ListItem>
-          </TouchableOpacity>
-        ))}
+        {enabledDestChains.map(renderItem)}
       </Box>
     </BridgeNetworkSelectorBase>
   );
