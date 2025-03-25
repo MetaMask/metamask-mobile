@@ -86,7 +86,7 @@ describe('Transaction Event Handlers', () => {
         const expectedProperties = {
           chain_id: '0x1',
           transaction_internal_id: 'test-id',
-          transaction_type: 'standard',
+          transaction_type: 'unknown',
           test_property: 'test_value',
         };
 

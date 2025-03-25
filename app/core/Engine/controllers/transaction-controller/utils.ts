@@ -1,5 +1,7 @@
-import { TransactionType } from '@metamask/transaction-controller';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
@@ -45,10 +47,9 @@ function getTransactionTypeValue(transactionType: TransactionType | undefined) {
     case TransactionType.tokenMethodTransferFrom:
       return 'token_method_transfer_from';
     // No need for snake case transformation
-    // Already in snake case
+    // Already in snake case or single word
     case TransactionType.ethDecrypt:
     case TransactionType.personalSign:
-    // Single word transaction types
     case TransactionType.bridge:
     case TransactionType.cancel:
     case TransactionType.incoming:
@@ -75,7 +76,7 @@ export function generateDefaultTransactionMetrics(
         chain_id: chainId,
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),
-        status: status,
+        status,
       },
     },
     getTransactionMetricProperties(id),
