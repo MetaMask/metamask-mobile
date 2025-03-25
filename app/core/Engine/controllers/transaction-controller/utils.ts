@@ -10,7 +10,7 @@ import {
 } from '../../../Analytics/MetaMetrics.types';
 import type { TransactionMetricRequest } from './types';
 
-function getTransactionTypeValue(transactionType: TransactionType | undefined) {
+export function getTransactionTypeValue(transactionType: TransactionType | undefined) {
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
