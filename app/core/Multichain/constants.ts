@@ -28,18 +28,17 @@ export interface ProviderConfigWithImageUrl {
   id?: string;
 }
 
+export type MultichainNetworkIds = CaipChainId;
+
 export type MultichainProviderConfig = ProviderConfigWithImageUrl & {
   nickname: string;
   chainId: CaipChainId;
+  // Variant of block explorer URLs for non-EVM.
+  blockExplorerFormatUrls?: MultichainBlockExplorerFormatUrls;
   // NOTE: For now we use a callback to check if the address is compatible with
   // the given network or not
   isAddressCompatible: (address: string) => boolean;
 };
-
-export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
-  [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
-  [SolAccountType.DataAccount]: SolScope.Mainnet,
-} as const;
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   CaipChainId,
@@ -71,6 +70,11 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     address: 'https://explorer.solana.com/address/{address}?cluster=testnet',
     transaction: 'https://explorer.solana.com/tx/{txId}?cluster=testnet',
   },
+} as const;
+
+export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
+  [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
+  [SolAccountType.DataAccount]: SolScope.Mainnet,
 } as const;
 
 export const PRICE_API_CURRENCIES = [

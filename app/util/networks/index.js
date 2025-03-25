@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -48,7 +49,6 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectMultichainNetworkControllerState,
 } from '../../selectors/multichainNetworkController';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 /**
  * List of the supported networks
@@ -309,6 +309,18 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
 
 /**
  * Returns block explorer for non-evm chain id
+ *
+ * @param {object} internalAccount - Internal account object
+ * @returns {string} - Block explorer url or undefined if not found
+ */
+export function findBlockExplorerForNonEvmChainId(chainId) {
+  const blockExplorerUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  return blockExplorerUrls?.url;
+}
+
+/**
+ * Returns block explorer for non-evm account
  *
  * @param {object} internalAccount - Internal account object
  * @returns {string} - Block explorer url or undefined if not found
