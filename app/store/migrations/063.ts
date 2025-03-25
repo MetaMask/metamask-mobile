@@ -29,12 +29,8 @@ export default function migrate(state: unknown) {
     return state;
   }
 
-  if (!isObject(smartTransactionsControllerState)) {
-    captureException(
-      new Error(
-        `Migration ${migrationVersion}: Invalid SmartTransactionsController state: '${smartTransactionsControllerState}'`,
-      ),
-    );
+  if (!isObject(smartTransactionsControllerState) && !smartTransactionsControllerState) {
+    // This is a fresh install, so we can skip this migration.
     return state;
   }
 
