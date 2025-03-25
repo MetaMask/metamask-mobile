@@ -1,22 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import {
-  StyleSheet,
-  View,
-  Text,
-  ActivityIndicator,
-} from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
 import { CaipChainId, Transaction } from '@metamask/keyring-api';
-import { ThemeColors } from '@metamask/design-tokens';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import Text from '../../../component-library/components/Texts/Text';
+import { baseStyles } from '../../../styles/common';
 import {
   getAddressUrl,
   nonEvmNetworkChainIdByAccountAddress,
@@ -25,39 +20,11 @@ import { selectSolanaAccountTransactions } from '../../../selectors/multichain/m
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import { getBlockExplorerName } from '../../../util/networks';
-
-const createStyles = (colors: ThemeColors) =>
-  StyleSheet.create({
-    wrapper: {
-      flex: 1,
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: 20,
-    },
-    emptyText: {
-      fontSize: 20,
-      color: colors.text.muted,
-      ...fontStyles.normal,
-    },
-    viewMoreWrapper: {
-      padding: 16,
-    },
-    viewMoreButton: {
-      width: '100%',
-    },
-    loader: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-  });
+import styles from './MultichainTransactionsView.styles';
 
 const MultichainTransactionsView = () => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const style = styles(colors);
   const navigation = useNavigation();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -90,8 +57,8 @@ const MultichainTransactionsView = () => {
   }, [solanaAccountTransactions]);
 
   const renderEmptyList = () => (
-    <View style={styles.emptyContainer}>
-      <Text style={[styles.emptyText, { color: colors.text.default }]}>
+    <View style={style.emptyContainer}>
+      <Text style={[style.emptyText, { color: colors.text.default }]}>
         {strings('wallet.no_transactions')}
       </Text>
     </View>
@@ -102,14 +69,14 @@ const MultichainTransactionsView = () => {
     const url = getAddressUrl(selectedAddress || '', chainId as CaipChainId);
 
     return (
-      <View style={styles.viewMoreWrapper}>
+      <View style={style.viewMoreWrapper}>
         <Button
           variant={ButtonVariants.Link}
           size={ButtonSize.Lg}
           label={`${strings(
             'transactions.view_full_history_on',
           )} ${getBlockExplorerName(url)}`}
-          style={styles.viewMoreButton}
+          style={style.viewMoreButton}
           onPress={() => {
             navigation.navigate('Webview', {
               screen: 'SimpleWebview',
@@ -131,7 +98,7 @@ const MultichainTransactionsView = () => {
 
   if (loading) {
     return (
-      <View style={styles.loader}>
+      <View style={style.loader}>
         <ActivityIndicator
           size="large"
           color={colors.primary.default}
@@ -142,7 +109,7 @@ const MultichainTransactionsView = () => {
   }
 
   return (
-    <View style={styles.wrapper}>
+    <View style={style.wrapper}>
       <FlashList
         data={transactions}
         renderItem={renderTransactionItem}

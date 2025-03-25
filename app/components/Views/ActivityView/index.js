@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
@@ -97,15 +97,12 @@ const ActivityView = () => {
           renderTabBar={renderTabBar}
           locked={!hasOrders}
         >
-          {
-            isSolanaAddress(selectedAddress) ? (
+          {isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
             />
           ) : (
-            <TransactionsView
-              tabLabel={strings('transactions_view.title')}
-            />
+            <TransactionsView tabLabel={strings('transactions_view.title')} />
           )}
           {hasOrders && (
             <RampOrdersList
