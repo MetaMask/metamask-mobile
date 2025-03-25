@@ -138,11 +138,6 @@ import { Confirm } from '../../Views/confirmations/Confirm';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
-import { BridgeSourceTokenSelector } from '../../UI/Bridge/BridgeSourceTokenSelector';
-import { BridgeSourceNetworkSelector } from '../../UI/Bridge/BridgeSourceNetworkSelector';
-import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
-import { BridgeDestNetworkSelector } from '../../UI/Bridge/BridgeDestNetworkSelector';
-import { BridgeDestTokenSelector } from '../../UI/Bridge/BridgeDestTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
