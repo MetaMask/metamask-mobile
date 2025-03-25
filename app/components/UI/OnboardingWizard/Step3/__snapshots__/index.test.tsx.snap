@@ -45,7 +45,7 @@ exports[`Step3 should render correctly 1`] = `
           style={
             {
               "backgroundColor": "transparent",
-              "borderBottomColor": "#0376c9",
+              "borderBottomColor": "#4459ff",
               "borderBottomWidth": 12,
               "borderLeftColor": "transparent",
               "borderLeftWidth": 15,
@@ -63,7 +63,7 @@ exports[`Step3 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -257,7 +257,7 @@ exports[`Step3 should render correctly 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],
