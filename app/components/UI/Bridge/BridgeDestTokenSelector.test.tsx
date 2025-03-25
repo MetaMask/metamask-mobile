@@ -433,7 +433,7 @@ describe('BridgeDestTokenSelector', () => {
     const seeAllButton = getByText('See all');
     fireEvent.press(seeAllButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
     });
   });
