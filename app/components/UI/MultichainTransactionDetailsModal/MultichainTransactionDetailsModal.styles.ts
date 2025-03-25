@@ -61,7 +61,9 @@ const createStyles = (colors: Colors, typography: ThemeTypography) =>
       textAlign: 'right',
     },
     linkText: {
+      fontSize: 16,
       color: colors.primary.default,
+      textAlign: 'right',
     },
     linkContainer: {
       flexDirection: 'row',

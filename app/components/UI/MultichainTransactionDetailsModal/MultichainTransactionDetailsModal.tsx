@@ -101,13 +101,13 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             style={style.linkContainer}
             onPress={() => viewOnBlockExplorer(label)}
           >
-            <Text style={[style.value, style.linkText]}>
+            <Text style={style.linkText}>
               {formatAddress(value, 'short')}
             </Text>
             <Icon
               name="external-link"
               size={16}
-              color="#0376C9"
+              color={colors.primary.default}
               style={style.linkIcon}
             />
           </TouchableOpacity>
@@ -145,7 +145,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             onPress={onClose}
             testID={`transaction-details-close-button`}
           >
-            <Icon name="x" size={24} color="#000" />
+            <Icon name="x" size={24} color={colors.text.default} />
           </TouchableOpacity>
         </View>
 
@@ -183,7 +183,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
           <Text style={style.viewDetailsText}>
             {strings('networks.view_details')}
           </Text>
-          <Icon name="external-link" size={16} color="#0376C9" />
+          <Icon name="external-link" size={16} color={colors.primary.default} />
         </TouchableOpacity>
       </View>
     </Modal>
