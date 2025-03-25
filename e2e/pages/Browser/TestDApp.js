@@ -15,10 +15,6 @@ const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
 
 class TestDApp {
-  get androidContainer() {
-    return BrowserViewSelectorsIDs.ANDROID_CONTAINER;
-  }
-
   get confirmButtonText() {
     return Matchers.getElementByText(CONFIRM_BUTTON_TEXT);
   }

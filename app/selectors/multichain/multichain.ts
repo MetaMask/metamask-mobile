@@ -7,7 +7,10 @@ import {
   selectEvmChainId,
   selectProviderConfig as selectEvmProviderConfig,
 } from '../networkController';
-import { selectSelectedInternalAccount } from '../accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSolanaAccount,
+} from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
@@ -197,6 +200,18 @@ export const selectMultichainTransactions = createDeepEqualSelector(
   selectMultichainTransactionsControllerState,
   (multichainTransactionsControllerState) =>
     multichainTransactionsControllerState.nonEvmTransactions,
+);
+
+export const selectSolanaAccountTransactions = createDeepEqualSelector(
+  selectMultichainTransactions,
+  selectSolanaAccount,
+  (nonEvmTransactions, selectedAccount) => {
+    if (!selectedAccount) {
+      return [];
+    }
+
+    return nonEvmTransactions[selectedAccount.id] || [];
+  },
 );
 
 ///: END:ONLY_INCLUDE_IF
