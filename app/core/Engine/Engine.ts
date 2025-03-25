@@ -116,7 +116,7 @@ import {
   SignatureController,
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
-import { Hex, Json } from '@metamask/utils';
+import { Hex, hexToNumber, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -207,6 +207,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import onlyKeepHost from '../../util/onlyKeepHost';
+import { QUICKNODE_URLS_BY_INFURA_NETWORK_NAME } from '../../util/networks/customNetworks';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -329,18 +330,23 @@ export class Engine {
       // Add failovers for default Infura RPC endpoints
       initialNetworkControllerState.networkConfigurationsByChainId[
         ChainId.mainnet
-      ].rpcEndpoints[0].failoverUrls = [
-        process.env.QUICKNODE_MAINNET_URL ?? '',
-      ].filter(Boolean);
+      ].rpcEndpoints[0].failoverUrls = QUICKNODE_URLS_BY_INFURA_NETWORK_NAME[
+        'ethereum-mainnet'
+      ]
+        ? [QUICKNODE_URLS_BY_INFURA_NETWORK_NAME['ethereum-mainnet']]
+        : [];
       initialNetworkControllerState.networkConfigurationsByChainId[
         ChainId['linea-mainnet']
-      ].rpcEndpoints[0].failoverUrls = [
-        process.env.QUICKNODE_LINEA_MAINNET_URL ?? '',
-      ].filter(Boolean);
+      ].rpcEndpoints[0].failoverUrls = QUICKNODE_URLS_BY_INFURA_NETWORK_NAME[
+        'linea-mainnet'
+      ]
+        ? [QUICKNODE_URLS_BY_INFURA_NETWORK_NAME['linea-mainnet']]
+        : [];
     }
 
+    const infuraProjectId = process.env.MM_INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
+      infuraProjectId,
       state: initialNetworkControllerState,
       messenger: networkControllerMessenger,
       getRpcServiceOptions: () => ({
@@ -349,23 +355,32 @@ export class Engine {
       }),
     };
     const networkController = new NetworkController(networkControllerOpts);
-
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointUnavailable',
       async ({ chainId, endpointUrl, error }) => {
-        const parsedUrl = new URL(endpointUrl);
-        const hostParts = parsedUrl.host.split('.');
-        const rootDomainName = hostParts.slice(-2).join('.');
+        const isInfuraEndpointUrl = new RegExp(
+          `https://[^.]+.infura.io/v3/${infuraProjectId}`,
+          'u',
+        ).test(endpointUrl);
+        const isQuicknodeEndpointUrl = Object.values(
+          QUICKNODE_URLS_BY_INFURA_NETWORK_NAME,
+        ).includes(endpointUrl);
         if (
-          (rootDomainName === 'infura.io' ||
-            rootDomainName === 'quicknode.pro') &&
+          (isInfuraEndpointUrl || isQuicknodeEndpointUrl) &&
           !isConnectionError(error)
         ) {
+          Logger.log(
+            `Creating Segment event "${
+              MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE
+            }" with chain_id_caip: "eip155:${hexToNumber(
+              chainId,
+            )}", rpc_endpoint_url: ${onlyKeepHost(endpointUrl)}`,
+          );
           const metricsEvent = MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
           )
             .addProperties({
-              chain_id_caip: `eip155:${chainId}`,
+              chain_id_caip: `eip155:${hexToNumber(chainId)}`,
               rpc_endpoint_url: onlyKeepHost(endpointUrl),
             })
             .build();
@@ -376,13 +391,21 @@ export class Engine {
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
       async ({ chainId, endpointUrl }) => {
-        const parsedUrl = new URL(endpointUrl);
-        const hostParts = parsedUrl.host.split('.');
-        const rootDomainName = hostParts.slice(-2).join('.');
-        if (
-          rootDomainName === 'infura.io' ||
-          rootDomainName === 'quicknode.pro'
-        ) {
+        const isInfuraEndpointUrl = new RegExp(
+          `https://[^.]+.infura.io/v3/${infuraProjectId}`,
+          'u',
+        ).test(endpointUrl);
+        const isQuicknodeEndpointUrl = Object.values(
+          QUICKNODE_URLS_BY_INFURA_NETWORK_NAME,
+        ).includes(endpointUrl);
+        if (isInfuraEndpointUrl || isQuicknodeEndpointUrl) {
+          Logger.log(
+            `Creating Segment event "${
+              MetaMetricsEvents.RPC_SERVICE_DEGRADED
+            }" with chain_id_caip: "eip155:${chainId}", rpc_endpoint_url: ${onlyKeepHost(
+              endpointUrl,
+            )}`,
+          );
           const metricsEvent = MetricsEventBuilder.createEventBuilder(
             MetaMetricsEvents.RPC_SERVICE_DEGRADED,
           )
@@ -395,7 +418,6 @@ export class Engine {
         }
       },
     );
-
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
