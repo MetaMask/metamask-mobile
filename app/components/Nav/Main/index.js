@@ -143,11 +143,9 @@ const Main = (props) => {
       (id) => showIncomingTransactionsNetworks[id],
     );
 
-    if (filteredChainIds.includes(chainId)) {
-      startIncomingTransactionPolling([chainId]);
+    if (filteredChainIds.length > 0) {
+      startIncomingTransactionPolling(filteredChainIds);
     }
-
-    startIncomingTransactionPolling(filteredChainIds);
   }, [
     chainId,
     networkClientId,

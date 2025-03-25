@@ -123,8 +123,14 @@ const renderComponent = ({
 
 describe('TransactionDetails', () => {
   it('should render correctly', () => {
-    const { toJSON } = renderComponent({ state: initialState });
+    const { toJSON, getByText } = renderComponent({ state: initialState });
     expect(toJSON()).toMatchSnapshot();
+    const nonceText = getByText('Nonce');
+    expect(nonceText).toBeDefined();
+    const totalAmountText = getByText('Total amount');
+    expect(totalAmountText).toBeDefined();
+    const dateText = getByText('Date');
+    expect(dateText).toBeDefined();
   });
 
   it('should render correctly for multi-layer fee network', () => {
