@@ -270,7 +270,7 @@ describe('BridgeDestTokenSelector', () => {
   });
 
   it('renders with initial state and displays tokens', async () => {
-    const { getByText } = renderScreen(
+    const { getByText, toJSON } = renderScreen(
       BridgeDestTokenSelector,
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
@@ -285,6 +285,8 @@ describe('BridgeDestTokenSelector', () => {
     await waitFor(() => {
       expect(getByText('HELLO')).toBeTruthy();
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles token selection correctly', async () => {

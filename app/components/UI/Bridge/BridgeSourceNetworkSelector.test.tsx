@@ -310,7 +310,7 @@ describe('BridgeSourceNetworkSelector', () => {
   });
 
   it('renders with initial state and displays networks', async () => {
-    const { getByText } = renderScreen(
+    const { getByText, toJSON } = renderScreen(
       BridgeSourceNetworkSelector,
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
@@ -336,6 +336,8 @@ describe('BridgeSourceNetworkSelector', () => {
 
     // "Select all networks" button should be visible
     expect(getByText('Deselect all')).toBeTruthy();
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles network selection toggle correctly', async () => {

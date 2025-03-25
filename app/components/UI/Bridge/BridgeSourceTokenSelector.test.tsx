@@ -278,7 +278,7 @@ describe('BridgeSourceTokenSelector', () => {
   });
 
   it('renders with initial state and displays tokens', async () => {
-    const { getByText } = renderScreen(
+    const { getByText, toJSON } = renderScreen(
       BridgeSourceTokenSelector,
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
@@ -303,6 +303,8 @@ describe('BridgeSourceTokenSelector', () => {
       expect(getByText('2 HELLO')).toBeTruthy();
       expect(getByText('$200000')).toBeTruthy();
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles token selection correctly', async () => {

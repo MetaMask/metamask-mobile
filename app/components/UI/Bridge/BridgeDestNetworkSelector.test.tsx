@@ -77,7 +77,7 @@ describe('BridgeDestNetworkSelector', () => {
   });
 
   it('renders with initial state and displays networks', () => {
-    const { getByText } = renderScreen(
+    const { getByText, toJSON } = renderScreen(
       BridgeDestNetworkSelector,
       {
         name: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
@@ -92,6 +92,8 @@ describe('BridgeDestNetworkSelector', () => {
     expect(getByText('Ethereum Mainnet')).toBeTruthy();
     expect(getByText('Optimism')).toBeTruthy();
     expect(getByText('Base')).toBeTruthy();
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles network selection correctly', () => {

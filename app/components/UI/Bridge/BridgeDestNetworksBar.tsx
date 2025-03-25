@@ -65,9 +65,9 @@ const ShortChainNames: Record<Hex, string> = {
 export const BridgeDestNetworksBar = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const { styles } = useStyles(createStyles, {});
   const enabledDestChains = useSelector(selectEnabledDestChains);
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
+  const { styles } = useStyles(createStyles, { selectedDestChainId });
 
   const sortedDestChains = useMemo(() => [...enabledDestChains].sort((a, b) => {
     const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
