@@ -15,7 +15,6 @@ import { Hex } from '@metamask/utils';
 import { Box } from '../Box/Box';
 import { getNetworkImageSource } from '../../../util/networks';
 import { AlignItems, FlexDirection } from '../Box/box.types';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 
@@ -82,27 +81,30 @@ export const BridgeDestNetworksBar = () => {
     });
   };
 
-  const renderDestChain = useCallback((chain: NetworkConfiguration) => {
-    // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-    const networkImage = getNetworkImageSource({ chainId: chain.chainId});
+  const renderDestChains = useCallback(
+    () => (
+      sortedDestChains.map((chain) => {
+      // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+      const networkImage = getNetworkImageSource({ chainId: chain.chainId});
 
-    const handleSelectNetwork = (chainId: Hex) => dispatch(setSelectedDestChainId(chainId));
+      const handleSelectNetwork = (chainId: Hex) => dispatch(setSelectedDestChainId(chainId));
 
-    return (
-      <Button
-        key={chain.chainId}
-        variant={ButtonVariants.Secondary}
-        label={
-          <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
-            {selectedDestChainId === chain.chainId ? <AvatarNetwork imageSource={networkImage} size={AvatarSize.Xs} /> : null}
-            <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
-          </Box>
-        }
-        style={selectedDestChainId === chain.chainId ? styles.selectedNetworkIcon : styles.networksButton}
-        onPress={() => handleSelectNetwork(chain.chainId)}
-      />
-    );
-  }, [dispatch, selectedDestChainId, styles]);
+      return (
+        <Button
+          key={chain.chainId}
+          variant={ButtonVariants.Secondary}
+          label={
+            <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+              {selectedDestChainId === chain.chainId ? <AvatarNetwork imageSource={networkImage} size={AvatarSize.Xs} /> : null}
+              <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
+            </Box>
+          }
+          style={selectedDestChainId === chain.chainId ? styles.selectedNetworkIcon : styles.networksButton}
+          onPress={() => handleSelectNetwork(chain.chainId)}
+        />
+      );
+    })
+  ), [dispatch, selectedDestChainId, styles, sortedDestChains]);
 
   return (
     <ScrollView
@@ -118,7 +120,7 @@ export const BridgeDestNetworksBar = () => {
         style={styles.networksButton}
         endIconName={IconName.ArrowDown}
       />
-      {sortedDestChains.map(renderDestChain)}
+      {renderDestChains()}
     </ScrollView>
   );
 };

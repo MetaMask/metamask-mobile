@@ -13,8 +13,6 @@ import { VerticalAlignment } from '../../../component-library/components/List/Li
 import { Hex } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
 import { NetworkRow } from './NetworkRow';
-import { NetworkConfiguration } from '@metamask/network-controller';
-
 
 const createStyles = () => StyleSheet.create({
     listContent: {
@@ -33,26 +31,28 @@ export const BridgeDestNetworkSelector: React.FC = () => {
     navigation.goBack();
   }, [dispatch, navigation]);
 
-  const renderItem = useCallback((chain: NetworkConfiguration) => (
-    <TouchableOpacity
-      key={chain.chainId}
-      onPress={() => handleChainSelect(chain.chainId)}
-    >
-      <ListItem
-        verticalAlignment={VerticalAlignment.Center}
+  const renderDestChains = useCallback(() => (
+    enabledDestChains.map((chain) => (
+      <TouchableOpacity
+        key={chain.chainId}
+        onPress={() => handleChainSelect(chain.chainId)}
       >
-        <NetworkRow
-          chainId={chain.chainId}
-          chainName={chain.name}
-        />
-      </ListItem>
-    </TouchableOpacity>
-  ), [handleChainSelect]);
+        <ListItem
+          verticalAlignment={VerticalAlignment.Center}
+        >
+          <NetworkRow
+            chainId={chain.chainId}
+            chainName={chain.name}
+          />
+        </ListItem>
+      </TouchableOpacity>
+    ))
+  ), [enabledDestChains, handleChainSelect]);
 
   return (
     <BridgeNetworkSelectorBase>
       <Box style={styles.listContent}>
-        {enabledDestChains.map(renderItem)}
+        {renderDestChains()}
       </Box>
     </BridgeNetworkSelectorBase>
   );

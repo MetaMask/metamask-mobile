@@ -71,7 +71,8 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
     });
   };
 
-  const renderNetwork = useCallback(({ chainId }: { chainId: Hex }) => (
+  const renderSourceNetworks = useCallback(() => (
+    networksToShow.map(({ chainId }) => (
       <Box key={chainId} style={styles.avatarContainer}>
       <AvatarNetwork
         key={chainId}
@@ -80,9 +81,10 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
         name={networkConfigurations[chainId]?.name}
         size={AvatarSize.Xs}
         style={styles.avatarNetwork}
-      />
-    </Box>
-  ), [networkConfigurations, styles]);
+        />
+      </Box>
+    ))
+  ), [networkConfigurations, styles, networksToShow]);
 
   return (
     <Button
@@ -91,7 +93,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
       label={
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
         <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={-8}>
-          {networksToShow.map(renderNetwork)}
+          {renderSourceNetworks()}
           {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
             <Box style={styles.networkOverflowCircle} justifyContent={JustifyContent.center} alignItems={AlignItems.center}>
               <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>+{selectedSourceChainIds.length - MAX_NETWORK_ICONS}</Text>
