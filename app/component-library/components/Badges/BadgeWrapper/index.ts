@@ -1,6 +1,6 @@
 export { default } from './BadgeWrapper';
+export { BadgePosition } from './BadgeWrapper.types';
 export type {
   BadgeWrapperProps,
   BadgeAnchorElementShape,
-  BadgePosition,
 } from './BadgeWrapper.types';
