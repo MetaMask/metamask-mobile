@@ -34,7 +34,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import {
   selectEvmTokenFiatBalances,
   selectEvmTokens,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   selectMultichainTokenList,
+  ///: END:ONLY_INCLUDE_IF
 } from '../../../selectors/multichain';
 import { TraceName, endTrace, trace } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
@@ -74,7 +76,9 @@ const Tokens = memo(() => {
   const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
 
   // non-evm
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmTokens = useSelector(selectMultichainTokenList);
+  ///: END:ONLY_INCLUDE_IF
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
   const tokenList = isEvmSelected ? evmTokens : nonEvmTokens;
