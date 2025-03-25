@@ -88,6 +88,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix: Improve redesigned staking deposit confirmation navigation ([#13743](https://github.com/MetaMask/metamask-mobile/pull/13743))
 - fix: fixes ramp quote selection test ([#13756](https://github.com/MetaMask/metamask-mobile/pull/13756))
 
+## [7.42.1]
+
+### Fixed
+
+- fix: Manage order for app services initialization ([#13912](https://github.com/MetaMask/metamask-mobile/pull/13912))
+- fix: #9487 Remove false vault back up failure log ([#14038](https://github.com/MetaMask/metamask-mobile/pull/14038))
+
 ## [7.42.0]
 
 ### Added
@@ -5167,7 +5174,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.43.0...HEAD
-[7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.0...v7.43.0
+[7.43.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.1...v7.43.0
+[7.42.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.42.0...v7.42.1
 [7.42.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.41.0...v7.42.0
 [7.41.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.40.0...v7.41.0
 [7.40.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.39.0...v7.40.0
