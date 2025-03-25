@@ -405,215 +405,367 @@ exports[`ActivityView should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RNCSafeAreaView
                       style={
                         {
                           "backgroundColor": "#ffffff",
-                          "flexDirection": "row",
-                          "marginTop": 0,
-                          "paddingHorizontal": 16,
-                        }
-                      }
-                    >
-                      <Text
-                        style={
-                          {
-                            "fontFamily": "EuclidCircularB-Bold",
-                            "fontSize": 20,
-                            "fontWeight": "600",
-                            "marginTop": 20,
-                          }
-                        }
-                        variant="sHeadingSM"
-                      >
-                        Transactions
-                      </Text>
-                    </View>
-                    <View
-                      style={
-                        {
                           "flex": 1,
+                          "paddingHorizontal": 8,
                         }
                       }
                     >
                       <View
                         style={
                           {
-                            "flexDirection": "row",
-                            "justifyContent": "space-between",
+                            "backgroundColor": "#ffffff",
+                            "flex": 1,
                             "paddingHorizontal": 8,
-                            "paddingVertical": 16,
-                            "width": "100%",
                           }
-                        }
-                      >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#BBC0C566",
-                              "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
-                              "flexDirection": "row",
-                              "height": 40,
-                              "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
-                              "paddingHorizontal": 16,
-                            }
-                          }
-                          testID="token-network-filter"
-                        >
-                          <Text
-                            numberOfLines={1}
-                          >
-                            Ethereum Main Network
-                          </Text>
-                          <SvgMock
-                            color="#141618"
-                            height={16}
-                            name="ArrowDown"
-                            style={
-                              {
-                                "height": 16,
-                                "marginLeft": 8,
-                                "width": 16,
-                              }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View
-                        onLayout={[Function]}
-                        style={
-                          [
-                            {
-                              "flex": 1,
-                            },
-                            undefined,
-                          ]
                         }
                       >
                         <View
-                          activeTab={0}
-                          containerWidth={750}
-                          goToPage={[Function]}
-                          scrollValue={0}
-                          tabs={
-                            [
-                              "Transactions",
-                            ]
-                          }
-                        />
-                        <RCTScrollView
-                          alwaysBounceVertical={false}
-                          automaticallyAdjustContentInsets={false}
-                          collapsable={false}
-                          contentOffset={
+                          style={
                             {
-                              "x": 0,
+                              "alignItems": "center",
+                              "paddingTop": 20,
                             }
                           }
-                          directionalLockEnabled={true}
-                          horizontal={true}
-                          keyboardDismissMode="on-drag"
-                          onMomentumScrollBegin={[Function]}
-                          onMomentumScrollEnd={[Function]}
-                          onScroll={[Function]}
-                          pagingEnabled={true}
-                          scrollEnabled={false}
-                          scrollEventThrottle={16}
-                          scrollsToTop={false}
-                          showsHorizontalScrollIndicator={false}
-                          style={{}}
                         >
-                          <View>
-                            <View
+                          <Image
+                            source={1}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                          />
+                          <Text
+                            style={
+                              {
+                                "color": "#141618",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 24,
+                                "fontWeight": "600",
+                                "lineHeight": 34,
+                                "paddingBottom": 20,
+                                "paddingTop": 10,
+                              }
+                            }
+                          >
+                            An error occurred
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#0376C91A",
+                              "borderColor": "#0376c9",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginBottom": 20,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#0376c9"
+                              height={24}
+                              name="Info"
                               style={
                                 {
-                                  "width": 750,
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
-                              <View
+                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#BF52081A",
+                              "borderColor": "#bf5208",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#bf5208"
+                              height={24}
+                              name="Danger"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              If you keep getting this error,
+                               
+                              <Text
+                                onPress={[Function]}
                                 style={
                                   {
-                                    "flex": 1,
+                                    "color": "#0376c9",
                                   }
                                 }
                               >
-                                <View
-                                  style={
-                                    {
-                                      "backgroundColor": "#ffffff",
-                                      "flex": 1,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "justifyContent": "center",
-                                        "paddingBottom": 24,
-                                      }
-                                    }
-                                  >
-                                    <ActivityIndicator
-                                      size="small"
-                                      style={
-                                        {
-                                          "alignSelf": "center",
-                                        }
-                                      }
-                                    />
-                                  </View>
-                                </View>
-                                <Modal
-                                  animationType="none"
-                                  deviceHeight={null}
-                                  deviceWidth={null}
-                                  hardwareAccelerated={false}
-                                  hideModalContentWhileAnimating={false}
-                                  onBackdropPress={[Function]}
-                                  onModalHide={[Function]}
-                                  onModalWillHide={[Function]}
-                                  onModalWillShow={[Function]}
-                                  onRequestClose={[Function]}
-                                  onSwipeComplete={[Function]}
-                                  panResponderThreshold={4}
-                                  scrollHorizontal={false}
-                                  scrollOffset={0}
-                                  scrollOffsetMax={0}
-                                  scrollTo={null}
-                                  statusBarTranslucent={false}
-                                  supportedOrientations={
-                                    [
-                                      "portrait",
-                                      "landscape",
-                                    ]
-                                  }
-                                  swipeDirection="down"
-                                  swipeThreshold={100}
-                                  transparent={true}
-                                  visible={false}
-                                />
-                              </View>
-                            </View>
+                                save your Secret Recovery Phrase
+                              </Text>
+                               
+                              and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                            </Text>
                           </View>
-                        </RCTScrollView>
+                        </View>
+                        <Text
+                          style={
+                            {
+                              "color": "#141618",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "lineHeight": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            onPress={[Function]}
+                            style={
+                              {
+                                "color": "#0376c9",
+                              }
+                            }
+                          >
+                            save your Secret Recovery Phrase
+                          </Text>
+                        </Text>
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "marginTop": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            style={
+                              {
+                                "fontWeight": "600",
+                              }
+                            }
+                          >
+                            Error message:
+                          </Text>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#0376c9"
+                              height={16}
+                              name="Copy"
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                            <Text
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "paddingLeft": 5,
+                                }
+                              }
+                            >
+                              Copy
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#D738471A",
+                              "borderRadius": 8,
+                              "flexShrink": 1,
+                              "marginTop": 10,
+                              "padding": 10,
+                            }
+                          }
+                        >
+                          <RCTScrollView
+                            collapsable={false}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                          >
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "color": "#d73847",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "lineHeight": 20,
+                                    "padding": 8,
+                                  }
+                                }
+                              >
+                                View: ActivityView
+TypeError: _Engine.default.context.KeyringController.getOrAddQRKeyring is not a function
+                              </Text>
+                            </View>
+                          </RCTScrollView>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "bottom": 10,
+                              "flexGrow": 1,
+                              "justifyContent": "flex-end",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "backgroundColor": "#0376c9",
+                                "borderColor": "#0376c9",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#ffffff",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Contact support
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#0376c9",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#0376c9",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Try again
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Modal
+                          animationType="slide"
+                          hardwareAccelerated={false}
+                          onRequestClose={[Function]}
+                          visible={false}
+                        />
                       </View>
-                    </View>
+                    </RNCSafeAreaView>
                   </View>
                 </View>
               </View>
