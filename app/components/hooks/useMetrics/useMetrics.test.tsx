@@ -163,10 +163,8 @@ describe('useMetrics', () => {
       result: { current: secondResult },
     } = renderHook(() => useMetrics());
 
-    Object.keys(firstResult).forEach((key) => {
-      expect(firstResult[key as keyof IUseMetricsHook]).toBe(
-        secondResult[key as keyof IUseMetricsHook],
-      );
+    (Object.keys(firstResult) as (keyof IUseMetricsHook)[]).forEach((key) => {
+      expect(firstResult[key]).toBe(secondResult[key]);
     });
   });
 });
