@@ -206,6 +206,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
+  // Basic functionality setting from app settings
+  const basicFunctionalityEnabled = useSelector(
+    (state: RootState) => state.settings?.basicFunctionalityEnabled
+  );
+
   /**
    * Checks if a given url or the current url is the homepage
    */
@@ -296,6 +301,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     (urlOrigin: string) => {
       const { PhishingController } = Engine.context;
 
+      // Check if basic functionality is disabled
+      if (!basicFunctionalityEnabled) {
+        return true;
+      }
+
       // Update phishing configuration if it is out-of-date
       // This is async but we are not `await`-ing it here intentionally, so that we don't slow
       // down network requests. The configuration is updated for the next request.
@@ -314,7 +324,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
       );
     },
-    [whitelist],
+    [whitelist, basicFunctionalityEnabled],
   );
 
   /**
