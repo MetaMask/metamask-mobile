@@ -67,6 +67,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
       balanceFiat: '$4.00',
       balanceFiatCalculation: 50,
       balanceValueFormatted: '100 ABC',
+      balance: '100',
     });
   });
 
@@ -153,6 +154,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
       balanceFiat: '< $0.01',
       balanceFiatCalculation: 0.00001,
       balanceValueFormatted: '100 ABC',
+      balance: '100',
     });
     expect(addCurrencySymbol).toHaveBeenCalledWith('0.01', 'USD');
   });
@@ -188,6 +190,7 @@ describe('deriveBalanceFromAssetMarketDetails', () => {
       balanceFiat: '< $0.01',
       balanceFiatCalculation: NaN,
       balanceValueFormatted: '< .00001 ETH',
+      balance: '< .00001',
     });
     expect(addCurrencySymbol).toHaveBeenCalledWith('0.01', 'USD');
   });
