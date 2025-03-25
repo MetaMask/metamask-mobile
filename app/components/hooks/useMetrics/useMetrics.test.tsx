@@ -8,6 +8,7 @@ import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { IUseMetricsHook } from './useMetrics.types';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -162,26 +163,10 @@ describe('useMetrics', () => {
       result: { current: secondResult },
     } = renderHook(() => useMetrics());
 
-    expect(firstResult.trackEvent).toBe(secondResult.trackEvent);
-    expect(firstResult.enable).toBe(secondResult.enable);
-    expect(firstResult.addTraitsToUser).toBe(secondResult.addTraitsToUser);
-    expect(firstResult.createDataDeletionTask).toBe(
-      secondResult.createDataDeletionTask,
-    );
-    expect(firstResult.checkDataDeleteStatus).toBe(
-      secondResult.checkDataDeleteStatus,
-    );
-    expect(firstResult.getDeleteRegulationCreationDate).toBe(
-      secondResult.getDeleteRegulationCreationDate,
-    );
-    expect(firstResult.getDeleteRegulationId).toBe(
-      secondResult.getDeleteRegulationId,
-    );
-    expect(firstResult.isDataRecorded).toBe(secondResult.isDataRecorded);
-    expect(firstResult.isEnabled).toBe(secondResult.isEnabled);
-    expect(firstResult.getMetaMetricsId).toBe(secondResult.getMetaMetricsId);
-    expect(firstResult.createEventBuilder).toBe(
-      secondResult.createEventBuilder,
-    );
+    Object.keys(firstResult).forEach((key) => {
+      expect(firstResult[key as keyof IUseMetricsHook]).toBe(
+        secondResult[key as keyof IUseMetricsHook],
+      );
+    });
   });
 });
