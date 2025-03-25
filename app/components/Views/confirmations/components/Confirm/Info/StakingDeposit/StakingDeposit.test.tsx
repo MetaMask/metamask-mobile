@@ -101,16 +101,9 @@ describe('StakingDeposit', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Advanced details'));
-
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isExpanded: true,
-      }),
-    );
-
+    // 2 calls here, 1st call is for the initial page view,
+    // 2nd call is for the advanced details view
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -120,7 +113,24 @@ describe('StakingDeposit', () => {
         }),
       }),
     );
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: false,
+        }),
+      }),
+    );
 
+    fireEvent.press(getByText('Advanced details'));
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isExpanded: true,
+      }),
+    );
+
+    // Last call is for the advanced details view
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
@@ -128,5 +138,10 @@ describe('StakingDeposit', () => {
         }),
       }),
     );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    // Collapse toggle should not set advanced_details_viewed
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
   });
 });
