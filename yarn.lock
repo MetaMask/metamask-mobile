@@ -11227,13 +11227,13 @@
     "@types/react" "*"
     "@types/react-native" "*"
 
-"@types/react-native-material-textfield@^0.16.5":
-  version "0.16.5"
-  resolved "https://registry.yarnpkg.com/@types/react-native-material-textfield/-/react-native-material-textfield-0.16.5.tgz#fe91ef6339c282668f6eae24ca09a69f0a974974"
-  integrity sha512-QS3QzYiIE8DcaMp0ZALI3CQYsSn2mC8jjJAcbDleDfMeQ3+CD49kRpvKRKrgBkq7n4eRTZ2/KvaEKvb12sJ7Iw==
+"@types/react-native-material-textfield@^0.16.10":
+  version "0.16.10"
+  resolved "https://registry.yarnpkg.com/@types/react-native-material-textfield/-/react-native-material-textfield-0.16.10.tgz#4b3e8736bef92b820d28a69898b76b653ab46225"
+  integrity sha512-gGI5QIardz8H2Q9Wlp73qvYGcOjQxLK/AQOdtHnYPYZ4wWN4kmVhhOdQOAcQHB9t0CytWYw5SXnTwK1/y1MRgQ==
   dependencies:
     "@types/react" "*"
-    "@types/react-native" "*"
+    react-native "*"
 
 "@types/react-native-scrollable-tab-view@^0.10.11":
   version "0.10.11"
