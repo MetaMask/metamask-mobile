@@ -138,6 +138,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
   ChainId,
+  handleFetch,
   toChecksumHexAddress,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
@@ -199,12 +200,13 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import { BRIDGE_DEV_API_BASE_URL, BridgeClientId, BridgeController } from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import onlyKeepHost from '../../util/onlyKeepHost';
 import { QUICKNODE_URLS_BY_INFURA_NETWORK_NAME } from '../../util/networks/customNetworks';
@@ -780,6 +782,30 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getPreferences: () => {
+        const {
+          securityAlertsEnabled,
+          useTransactionSimulations,
+          useTokenDetection,
+          privacyMode,
+          useNftDetection,
+          displayNftMedia,
+          isMultiAccountBalancesEnabled,
+        } = this.getPreferences();
+        const locale = I18n.locale;
+        return {
+          locale,
+          currency: this.context.CurrencyRateController.state.currentCurrency,
+          hideBalances: privacyMode,
+          useSecurityAlerts: securityAlertsEnabled,
+          simulateOnChainActions: useTransactionSimulations,
+          useTokenDetection,
+          batchCheckBalances: isMultiAccountBalancesEnabled,
+          displayNftMedia,
+          useNftDetection,
+          useExternalPricingData: true,
+        };
+      },
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -1054,7 +1080,10 @@ export class Engine {
           chainId,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }) as any,
-      fetchFn: fetch,
+      fetchFn: handleFetch,
+      config: {
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
+      }
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1827,6 +1856,31 @@ export class Engine {
       tokenFiat: 0,
       ethFiat1dAgo: 0,
       tokenFiat1dAgo: 0,
+    };
+  };
+
+  /**
+   * Gets a subset of preferences from the PreferencesController to pass to a snap.
+   */
+  getPreferences = () => {
+    const {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
+    } = this.context.PreferencesController.state;
+
+    return {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
     };
   };
 

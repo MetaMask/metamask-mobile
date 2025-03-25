@@ -117,6 +117,7 @@ const Routes = {
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
     BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
+    BRIDGE_NETWORK_SELECTOR: 'BridgeNetworkSelector',
     SLIPPAGE_MODAL: 'SlippageModal',
   },
   BROWSER: {
@@ -169,6 +170,11 @@ const Routes = {
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  MULTI_SRP: {
+    IMPORT: 'ImportSRPView',
+  },
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
