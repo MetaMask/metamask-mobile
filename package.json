@@ -143,8 +143,8 @@
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
-    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-a47985c",
-    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.0.0-preview-a47985c"
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-49487623",
+    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.1.0-preview-49487623"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -162,7 +162,7 @@
     "@metamask/bridge-controller": "^3.0.0",
     "@metamask/bridge-status-controller": "^3.0.0",
     "@metamask/composable-controller": "^11.0.0",
-    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-a47985c",
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-49487623",
     "@metamask/design-tokens": "^5.0.0",
     "@metamask/earn-controller": "^0.8.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
@@ -189,7 +189,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/multichain-network-controller": "^0.1.1",
     "@metamask/multichain-transactions-controller": "^0.7.0",
-    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.0.0-preview-a47985c",
+    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.1.0-preview-49487623",
     "@metamask/notification-services-controller": "^2.0.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^12.0.3",
