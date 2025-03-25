@@ -19,7 +19,4 @@ export const TestDappSelectorsWebIDs = {
   SEND_FAILING_TRANSACTION_BUTTON_ID: 'sendFailingButton',
   BATCH_TRANSFER_ERC1155_BUTTON_ID: 'batchTransferFromButton',
   SWITCH_ETHEREUM_CHAIN: 'switchEthereumChain',
-  REVOKE_ACCOUNT_PERMISSIONS: 'revokeAccountsPermission',
-  GET_PERMISSIONS: 'getPermissions',
-  PERMISSIONS_RESULT: 'permissionsResult',
 };

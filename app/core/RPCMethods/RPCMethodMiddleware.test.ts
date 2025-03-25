@@ -1253,8 +1253,8 @@ describe('getRpcMethodMiddleware', () => {
         expectedError.message,
       );
       expect(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((response as JsonRpcFailure).error as JsonRpcError<any>).data.cause
+        //@ts-expect-error {JsonRpcError} will be fixed by a future bump. [Reference](https://github.com/MetaMask/metamask-mobile/pull/14091/files#r2009831015)
+        ((response as JsonRpcFailure).error as JsonRpcError<unknown>).data.cause
           .message,
       ).toBe(expectedError.message);
     });
