@@ -7,7 +7,10 @@ import {
   selectEvmChainId,
   selectProviderConfig as selectEvmProviderConfig,
 } from '../networkController';
-import { selectSelectedInternalAccount } from '../accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSolanaAccount,
+} from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
@@ -19,19 +22,6 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectSelectedNonEvmNetworkSymbol,
 } from '../multichainNetworkController';
-
-/**
- * @deprecated TEMPORARY SOURCE OF TRUTH TBD
- * Non evm network mapping.
- */
-export enum MultichainNetworks {
-  BITCOIN = 'bip122:000000000019d6689c085ae165831e93',
-  BITCOIN_TESTNET = 'bip122:000000000933ea01ad0ee984209779ba',
-
-  SOLANA = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-  SOLANA_DEVNET = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
-  SOLANA_TESTNET = 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
-}
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -210,6 +200,18 @@ export const selectMultichainTransactions = createDeepEqualSelector(
   selectMultichainTransactionsControllerState,
   (multichainTransactionsControllerState) =>
     multichainTransactionsControllerState.nonEvmTransactions,
+);
+
+export const selectSolanaAccountTransactions = createDeepEqualSelector(
+  selectMultichainTransactions,
+  selectSolanaAccount,
+  (nonEvmTransactions, selectedAccount) => {
+    if (!selectedAccount) {
+      return [];
+    }
+
+    return nonEvmTransactions[selectedAccount.id] || [];
+  },
 );
 
 ///: END:ONLY_INCLUDE_IF

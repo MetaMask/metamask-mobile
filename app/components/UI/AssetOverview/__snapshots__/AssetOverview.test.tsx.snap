@@ -996,17 +996,17 @@ exports[`AssetOverview should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -1033,7 +1033,7 @@ exports[`AssetOverview should render correctly 1`] = `
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
@@ -1102,17 +1102,15 @@ exports[`AssetOverview should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
+                "color": "#141618",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
-                "paddingHorizontal": 0,
-                "textTransform": "uppercase",
+                "lineHeight": 24,
               }
             }
-            testID="main-balance-test-id"
+            testID="balance-test-id"
           >
             0 ETH
           </Text>
@@ -2127,17 +2125,17 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -2164,7 +2162,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
@@ -2241,7 +2239,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "lineHeight": 24,
               }
             }
-            testID="fiat-balance-test-id"
+            testID="balance-test-id"
           >
             1500
           </Text>
@@ -2259,7 +2257,7 @@ exports[`AssetOverview should render correctly when portfolio view is enabled 1`
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
             0 ETH
           </Text>
@@ -3308,17 +3306,17 @@ exports[`AssetOverview should render native balances even if there are no accoun
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -3425,7 +3423,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "lineHeight": 24,
               }
             }
-            testID="fiat-balance-test-id"
+            testID="balance-test-id"
           >
             1500
           </Text>
@@ -3443,7 +3441,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 "textTransform": "uppercase",
               }
             }
-            testID="main-balance-test-id"
+            testID="secondary-balance-test-id"
           >
             0 ETH
           </Text>

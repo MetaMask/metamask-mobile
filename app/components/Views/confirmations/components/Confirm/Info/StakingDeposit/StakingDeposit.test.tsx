@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { getNavbar } from '../../Navbar/Navbar';
@@ -33,6 +34,7 @@ jest.mock('../../../../hooks/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -40,6 +42,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
@@ -47,6 +50,7 @@ jest.mock('@react-navigation/native', () => {
 describe('StakingDeposit', () => {
   const mockTrackPageViewedEvent = jest.fn();
   const mockTrackAdvancedDetailsToggledEvent = jest.fn();
+  const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
   const mockUseConfirmationMetricEvents = jest.mocked(
@@ -63,6 +67,7 @@ describe('StakingDeposit', () => {
     mockUseConfirmationMetricEvents.mockReturnValue({
       trackAdvancedDetailsToggledEvent: mockTrackAdvancedDetailsToggledEvent,
       trackPageViewedEvent: mockTrackPageViewedEvent,
+      setConfirmationMetric: mockSetConfirmationMetric,
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
@@ -87,6 +92,7 @@ describe('StakingDeposit', () => {
     expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Stake',
       onReject: mockOnReject,
+      addBackButton: true,
     });
   });
 
@@ -95,14 +101,47 @@ describe('StakingDeposit', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Advanced details'));
-
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+    // 2 calls here, 1st call is for the setting transaction_amount_eth
+    // 2nd call is for the setting advanced_details_viewed
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          transaction_amount_eth: '0.0001',
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        }),
+      }),
+    );
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: false,
+        }),
+      }),
+    );
+
+    fireEvent.press(getByText('Advanced details'));
     expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         isExpanded: true,
       }),
     );
+
+    // Last call is for the advanced details view
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: true,
+        }),
+      }),
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    // Collapse toggle should not set advanced_details_viewed
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
   });
 });

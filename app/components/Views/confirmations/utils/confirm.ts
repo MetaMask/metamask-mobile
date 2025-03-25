@@ -15,5 +15,6 @@ export function isStakingConfirmation(requestType: string) {
   return [
     TransactionType.stakingDeposit,
     TransactionType.stakingUnstake,
+    TransactionType.stakingClaim,
   ].includes(requestType as TransactionType);
 }
