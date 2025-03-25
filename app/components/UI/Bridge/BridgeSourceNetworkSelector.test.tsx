@@ -5,6 +5,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../core/redux/slices/bridge';
 import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -453,7 +454,7 @@ describe('BridgeSourceNetworkSelector', () => {
   });
 
   it('disables Apply button when no networks are selected', async () => {
-    const { getByText } = renderScreen(
+    const { getByText, getByTestId } = renderScreen(
       BridgeSourceNetworkSelector,
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
@@ -466,7 +467,7 @@ describe('BridgeSourceNetworkSelector', () => {
     fireEvent.press(selectAllButton);
 
     // Apply button should be disabled
-    const applyButton = getByText('Apply');
+    const applyButton = getByTestId(BridgeSourceNetworkSelectorSelectorsIDs.APPLY_BUTTON);
     expect(applyButton.props.disabled).toBe(true);
   });
 
