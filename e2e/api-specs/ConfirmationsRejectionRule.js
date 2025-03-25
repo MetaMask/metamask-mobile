@@ -31,6 +31,7 @@ export default class ConfirmationsRejectRule {
       'personal_sign',
       'eth_signTypedData_v4',
       'eth_getEncryptionPublicKey',
+      'wallet_revokePermissions',
     ];
   }
 

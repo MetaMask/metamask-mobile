@@ -75,8 +75,8 @@ const main = async () => {
         },
       ],
       result: {
-        name: 'RevokePermissionsResult',
-        value:  null,
+        name: 'wallet_revokePermissions',
+        value: undefined,
       },
     },
   ];
