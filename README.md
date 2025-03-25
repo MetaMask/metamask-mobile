@@ -27,7 +27,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 
 ### Using Expo (recommended)
 
-Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native enviornment setup, developers only need to download a precompiled develpoment build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
+Expo is the fastest way to start developing. With the Expo framework, developers don't need to compile the native side of the application as before, hence no need for any native environment setup, developers only need to download a precompiled development build and run the javascript bundler. The development build will then connect with the bundler to load the javascript code.
 
 #### Expo Environment Setup
 

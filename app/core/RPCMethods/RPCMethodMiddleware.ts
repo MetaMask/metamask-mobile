@@ -50,6 +50,7 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
+import { PermissionKeys } from '../Permissions/specifications.js';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -462,12 +463,61 @@ export const getRpcMethodMiddleware = ({
     // TODO: [ffmcgee] - Ask Owen what takes precedence, I see `wallet_getPermissions` handler in here, but also see some method middlewares defined in BackgroundBridge (ex.:L#586, L#668)
     // Background bridge is consumed by the in app browser (Owen suggests to make some sort of factory, and injecting the behaviour on both this file and BackgroundBridge)
     // Owen to get more clarity on this
-    const [requestPermissionsHandler, getPermissionsHandler] =
-      permissionRpcMethods.handlers;
+    const [
+      requestPermissionsHandler,
+      getPermissionsHandler,
+      revokePermissionsHandler,
+    ] = permissionRpcMethods.handlers;
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
+      wallet_revokePermissions: async () =>
+        await revokePermissionsHandler.implementation(
+          req,
+          res,
+          next,
+          (err) => {
+            if (err) {
+              throw err;
+            }
+          },
+          {
+            revokePermissionsForOrigin: (permissionKeys) => {
+              try {
+                /**
+                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both.
+                 * This manual filtering will be handled / refactored once we implement [CAIP-25 permissions](https://github.com/MetaMask/MetaMask-planning/issues/4129)
+                 */
+                const caip25EquivalentPermissions: string[] = [
+                  PermissionKeys.eth_accounts,
+                  PermissionKeys.permittedChains,
+                ];
+
+                const keysToRevoke = permissionKeys.some((key) =>
+                  caip25EquivalentPermissions.includes(key),
+                )
+                  ? Array.from(
+                      new Set([
+                        ...caip25EquivalentPermissions,
+                        ...permissionKeys,
+                      ]),
+                    )
+                  : permissionKeys;
+
+                Engine.context.PermissionController.revokePermissions({
+                  [origin]: keysToRevoke,
+                });
+              } catch (e) {
+                // we dont want to handle errors here because
+                // the revokePermissions api method should just
+                // return `null` if the permissions were not
+                // successfully revoked or if the permissions
+                // for the origin do not exist
+              }
+            },
+          },
+        ),
       wallet_getPermissions: async () =>
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

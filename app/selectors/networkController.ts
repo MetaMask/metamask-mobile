@@ -197,6 +197,20 @@ export const selectNetworkConfigurations = createSelector(
   },
 );
 
+export const selectNativeNetworkCurrencies = createDeepEqualSelector(
+  selectNetworkConfigurations,
+  (networkConfigurationsByChainId) => {
+    const nativeCurrencies = [
+      ...new Set(
+        Object.values(networkConfigurationsByChainId).map(
+          (n) => n.nativeCurrency,
+        ),
+      ),
+    ];
+    return nativeCurrencies;
+  },
+);
+
 export const selectNetworkClientId = createSelector(
   selectNetworkControllerState,
   (networkControllerState: NetworkState) =>

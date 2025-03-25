@@ -111,7 +111,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Reject'));
+    fireEvent.press(getByText('Cancel'));
     expect(
       Engine.context.KeyringController.cancelQRSignRequest,
     ).toHaveBeenCalledTimes(0);
@@ -132,7 +132,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Reject'));
+    fireEvent.press(getByText('Cancel'));
     expect(
       Engine.context.KeyringController.cancelQRSignRequest,
     ).toHaveBeenCalledTimes(1);
