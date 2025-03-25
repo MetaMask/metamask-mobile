@@ -111,12 +111,20 @@ describe('StakingDeposit', () => {
       }),
     );
 
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
           transaction_amount_eth: '0.0001',
           selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        }),
+      }),
+    );
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: true,
         }),
       }),
     );

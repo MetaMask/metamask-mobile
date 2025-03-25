@@ -31,9 +31,16 @@ const StakingDeposit = () => {
   }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-  
+
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });
+    if (isExpanded) {
+      setConfirmationMetric({
+        properties: {
+          advanced_details_viewed: true,
+        },
+      });
+    }
   };
 
   return (
