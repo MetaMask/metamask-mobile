@@ -1345,7 +1345,7 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
+  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
   RCTRequired: fb207f74935626041e7308c9e88dcdda680f1073
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
   RCTTypeSafety: 146fd11361680250b7580dd1f7f601995cfad1b1

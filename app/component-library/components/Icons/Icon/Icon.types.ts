@@ -144,7 +144,6 @@ export enum IconName {
   Home2 = 'Home2',
   Home = 'Home',
   Import = 'Import',
-  InfoHollow = 'InfoHollow',
   Info = 'Info',
   Key = 'Key',
   Light = 'Light',

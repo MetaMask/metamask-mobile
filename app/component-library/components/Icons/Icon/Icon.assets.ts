@@ -78,7 +78,6 @@ import hierarchySVG from './assets/hierarchy.svg';
 import home2SVG from './assets/home-2.svg';
 import homeSVG from './assets/home.svg';
 import importSVG from './assets/import.svg';
-import infohollowSVG from './assets/info-hollow.svg';
 import infoSVG from './assets/info.svg';
 import keySVG from './assets/key.svg';
 import lightSVG from './assets/light.svg';
@@ -247,7 +246,6 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Home2]: home2SVG,
   [IconName.Home]: homeSVG,
   [IconName.Import]: importSVG,
-  [IconName.InfoHollow]: infohollowSVG,
   [IconName.Info]: infoSVG,
   [IconName.Key]: keySVG,
   [IconName.Light]: lightSVG,
