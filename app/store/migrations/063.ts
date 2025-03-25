@@ -12,6 +12,10 @@ interface SmartTransactionsState {
   };
 }
 
+interface SmartTransactionsControllerState {
+  smartTransactionsState: SmartTransactionsState;
+}
+
 export default function migrate(state: unknown) {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
@@ -43,7 +47,8 @@ export default function migrate(state: unknown) {
     );
     return state;
   }
-  const smartTransactions = (smartTransactionsControllerState?.smartTransactionsState as SmartTransactionsState)?.smartTransactions;
+
+  const smartTransactions = (smartTransactionsControllerState as SmartTransactionsControllerState)?.smartTransactionsState?.smartTransactions;
   if (!isObject(smartTransactions)) {
     captureException(
       new Error(
