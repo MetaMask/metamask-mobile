@@ -36,6 +36,7 @@ import { selectContractExchangeRates } from '../../../../selectors/tokenRatesCon
 import { selectAccounts } from '../../../../selectors/accountTrackerController';
 import { speedUpTransaction } from '../../../../util/transaction-controller';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectCurrentTransactionMetadata } from '../../../../selectors/confirmTransaction';
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 const ACTION_CANCEL = 'cancel';
@@ -239,12 +240,11 @@ function TransactionNotification(props) {
       } = props;
       // console.log(
       // log the chainId the ticker and the primaryCurrency
-      console.log('>>> before decodeTransaction chainId', chainId);
-      console.log('>>> before decodeTransaction ticker', ticker);
-      console.log(
-        '>>> before decodeTransaction primaryCurrency',
-        primaryCurrency,
-      );
+      // console.log('>>> TransactionNotification prop chainId', chainId);
+      // console.log(
+      //   '>>> TransactionNotification prop isInBrowserView',
+      //   isInBrowserView,
+      // );
       //   '>>> getTransactionInfo TransactionNotification props',
       //   props,
       // );
@@ -460,6 +460,8 @@ const mapStateToProps = (state) => {
       chainId
     ] || [];
 
+  const currentTransactionMetadata = selectCurrentTransactionMetadata(state);
+  console.log('>>> currentTransactionMetadata', currentTransactionMetadata);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
