@@ -4,6 +4,7 @@ import { BridgeTokenSelector } from './BridgeTokenSelector';
 import Routes from '../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSourceToken } from '../../../core/redux/slices/bridge';
+import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -19,6 +20,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../core/redux/slices/bridge', () => {
   const actual = jest.requireActual('../../../core/redux/slices/bridge');
   return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
     setSourceToken: jest.fn(actual.setSourceToken),
   };
 });
@@ -28,17 +32,29 @@ describe('BridgeTokenSelector', () => {
   const mockChainId = '0x1' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
-  const token3Address = '0x0000000000000000000000000000000000000003' as Hex;
 
   const initialState = {
     engine: {
       backgroundState: {
+        BridgeController: {
+          bridgeFeatureFlags: {
+            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+              chains: {
+                '0x1': { isActiveSrc: true, isActiveDst: true },
+                '0xa': { isActiveSrc: true, isActiveDst: true },
+              },
+            },
+          },
+        },
         TokenBalancesController: {
           tokenBalances: {
             [mockAddress]: {
               [mockChainId]: {
                 [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
                 [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
+              },
+              '0xa': {
+                [token1Address]: '0x4563918244f40000' as Hex, // 5 TOKEN1 on Optimism
               },
             },
           },
@@ -86,16 +102,46 @@ describe('BridgeTokenSelector', () => {
           ],
         },
         NetworkController: {
-          selectedNetworkClientId: '1',
-          networkConfigurations: {
-            [mockChainId]: {
-              chainId: mockChainId,
-              ticker: 'ETH',
-              nickname: 'Ethereum Mainnet',
+          selectedNetworkClientId: 'selectedNetworkClientId',
+          networksMetadata: {
+            mainnet: {
+              EIPS: {
+                1559: true,
+              },
+            },
+            '0xa': {
+              EIPS: {
+                1559: true,
+              },
+            },
+          },
+          networkConfigurationsByChainId:  {
+            '0x1': {
+              chainId: '0x1' as Hex,
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              nativeCurrency: 'ETH',
+            },
+            '0xa': {
+              chainId: '0xa' as Hex,
+              rpcEndpoints: [
+                {
+                  networkClientId: 'optimismNetworkClientId',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              nativeCurrency: 'ETH',
             },
           },
           providerConfig: {
             chainId: mockChainId,
+            ticker: 'ETH',
+            rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
+            type: 'infura',
           },
         },
         AccountTrackerController: {
@@ -108,6 +154,11 @@ describe('BridgeTokenSelector', () => {
             [mockChainId]: {
               [mockAddress]: {
                 balance: '0x29a2241af62c0000' as Hex, // 3 ETH
+              },
+            },
+            '0xa': {
+              [mockAddress]: {
+                balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
               },
             },
           },
@@ -152,6 +203,13 @@ describe('BridgeTokenSelector', () => {
                 price: 50, // 1 TOKEN2 = 5 ETH
               },
             },
+            '0xa': {
+              [token1Address]: {
+                tokenAddress: token1Address,
+                currency: 'ETH',
+                price: 8, // 1 TOKEN1 = 8 ETH on Optimism
+              },
+            },
           },
         },
         PreferencesController: {
@@ -162,34 +220,56 @@ describe('BridgeTokenSelector', () => {
         },
         TokenListController: {
           tokenList: {
-            [token3Address]: {
-              name: 'Token Three',
-              symbol: 'TOKEN3',
+            [token1Address]: {
+              name: 'Token One',
+              symbol: 'TOKEN1',
               decimals: 18,
-              address: token3Address,
-              iconUrl: 'https://token3.com/logo.png',
+              address: token1Address,
+              iconUrl: 'https://token1.com/logo.png',
               occurrences: 1,
               aggregators: [],
+            },
+            [token2Address]: {
+              name: 'Hello Token',
+              symbol: 'HELLO',
+              decimals: 18,
+              address: token2Address,
+              iconUrl: 'https://token2.com/logo.png',
             },
           },
           tokensChainsCache: {
             [mockChainId]: {
               timestamp: Date.now(),
               data: {
-                [token3Address]: {
-                  name: 'Token Three',
-                  symbol: 'TOKEN3',
+                [token1Address]: {
+                  name: 'Token One',
+                  symbol: 'TOKEN1',
                   decimals: 18,
-                  address: token3Address,
-                  iconUrl: 'https://token3.com/logo.png',
+                  address: token1Address,
+                  iconUrl: 'https://token1.com/logo.png',
                   occurrences: 1,
                   aggregators: [],
+                },
+                [token2Address]: {
+                  name: 'Hello Token',
+                  symbol: 'HELLO',
+                  decimals: 18,
+                  address: token2Address,
+                  iconUrl: 'https://token2.com/logo.png',
                 },
               },
             },
           },
         },
       },
+    },
+    bridge: {
+      sourceAmount: undefined,
+      destAmount: undefined,
+      destChainId: undefined,
+      sourceToken: undefined,
+      destToken: undefined,
+      selectedSourceChainIds: undefined,
     },
   };
 
@@ -217,10 +297,10 @@ describe('BridgeTokenSelector', () => {
 
     // ERC20 tokens should be visible with correct balances
     await waitFor(() => {
-      expect(getByText('1.0 TOKEN1')).toBeTruthy();
+      expect(getByText('1 TOKEN1')).toBeTruthy();
       expect(getByText('$20000')).toBeTruthy();
 
-      expect(getByText('2.0 HELLO')).toBeTruthy();
+      expect(getByText('2 HELLO')).toBeTruthy();
       expect(getByText('$200000')).toBeTruthy();
     });
   });
@@ -235,16 +315,25 @@ describe('BridgeTokenSelector', () => {
     );
 
     await waitFor(() => {
-      const token1Element = getByText('1.0 TOKEN1');
+      const token1Element = getByText('1 TOKEN1');
       fireEvent.press(token1Element);
     });
 
     expect(setSourceToken).toHaveBeenCalledWith({
       address: token1Address,
-      symbol: 'TOKEN1',
-      image: 'https://token1.com/logo.png',
+      aggregators: ['1inch'],
+      balance: '1',
+      balanceFiat: '$20000',
+      chainId: '0x1',
       decimals: 18,
-      chainId: mockChainId,
+      image: 'https://token1.com/logo.png',
+      isETH: false,
+      isNative: false,
+      isStaked: false,
+      name: 'Token One',
+      symbol: 'TOKEN1',
+      token: 'Token One',
+      tokenFiatAmount: 20000,
     });
     expect(mockGoBack).toHaveBeenCalled();
   });
@@ -276,8 +365,8 @@ describe('BridgeTokenSelector', () => {
     // Initially all tokens should be visible
     await waitFor(() => {
       expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('1.0 TOKEN1')).toBeTruthy();
-      expect(getByText('2.0 HELLO')).toBeTruthy();
+      expect(getByText('1 TOKEN1')).toBeTruthy();
+      expect(getByText('2 HELLO')).toBeTruthy();
     });
 
     // Search for TOKEN1
@@ -286,15 +375,15 @@ describe('BridgeTokenSelector', () => {
 
     // Should only show HELLO, not TOKEN1
     await waitFor(() => {
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(queryByText('1.0 TOKEN1')).toBeNull();
+      expect(getByText('2 HELLO')).toBeTruthy();
+      expect(queryByText('1 TOKEN1')).toBeNull();
     });
 
     // Search should be case-insensitive
     fireEvent.changeText(searchInput, 'hello');
     await waitFor(() => {
-      expect(getByText('2.0 HELLO')).toBeTruthy();
-      expect(queryByText('1.0 TOKEN1')).toBeNull();
+      expect(getByText('2 HELLO')).toBeTruthy();
+      expect(queryByText('1 TOKEN1')).toBeNull();
     });
   });
 
