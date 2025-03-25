@@ -3803,8 +3803,14 @@
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
+    "select_network": "Select network",
+    "all_networks": "All networks",
+    "num_networks": "{{numNetworks}} networks",
+    "one_network": "1 network",
+    "select_all_networks": "Select all",
+    "deselect_all_networks": "Deselect all",
     "slippage": "Slippage",
     "apply": "Apply",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
-    }
+  }
 }
