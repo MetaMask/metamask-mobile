@@ -10,11 +10,7 @@ import {
 } from '@metamask/smart-transactions-controller/dist/types';
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
-import { createSelectorCreator, defaultMemoize } from 'reselect';
-import isEqual from 'lodash/isEqual';
-
-// Create a deep equal selector creator that uses Lodash's isEqual for result equality.
-const createDeepEqualSelector = createSelectorCreator(defaultMemoize, isEqual);
+import { createDeepEqualSelector } from './util';
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [

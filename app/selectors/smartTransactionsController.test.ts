@@ -61,6 +61,16 @@ const getDefaultState = () => {
           },
         },
       },
+      '0x10': {
+        isLive: true,
+        featureFlags: {
+          smartTransactions: {
+            expectedDeadline: 45,
+            maxDeadline: 160,
+            mobileReturnTxHashAsap: false,
+          },
+        },
+      },
     },
   };
   defaultState.engine.backgroundState.NetworkController.providerConfig = {

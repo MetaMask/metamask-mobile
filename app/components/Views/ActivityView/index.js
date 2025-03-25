@@ -94,6 +94,9 @@ const ActivityView = () => {
   const tabViewRef = useRef();
   const params = useParams();
 
+  const isTestnetOrNotPopularNetwork =
+    isTestNet(currentChainId) || !isPopularNetwork;
+
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.ACCOUNT_SELECTOR,
@@ -172,7 +175,7 @@ const ActivityView = () => {
                   : networkName ?? strings('wallet.current_network')}
               </Text>
             }
-            isDisabled={isTestNet(currentChainId) || !isPopularNetwork}
+            isDisabled={isTestnetOrNotPopularNetwork}
             onPress={isEvmSelected ? showFilterControls : () => null}
             endIconName={isEvmSelected ? IconName.ArrowDown : undefined}
             style={
