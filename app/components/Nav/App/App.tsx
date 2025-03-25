@@ -134,8 +134,12 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
+import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
 
 const clearStackNavigatorOptions = {
@@ -462,6 +466,10 @@ const RootModalFlow = () => (
       component={BridgeTokenSelector}
     />
     <Stack.Screen
+      name={Routes.SHEET.BRIDGE_NETWORK_SELECTOR}
+      component={BridgeNetworkSelector}
+      />
+    <Stack.Screen
       name={Routes.SHEET.SLIPPAGE_MODAL}
       component={SlippageModal}
     />
@@ -482,6 +490,18 @@ const ImportPrivateKeyView = () => (
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
   </Stack.Navigator>
 );
+
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+const ImportSRPView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -589,6 +609,15 @@ const AppFlow = () => {
         component={ImportPrivateKeyView}
         options={{ animationEnabled: true }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        <Stack.Screen
+          name="ImportSRPView"
+          component={ImportSRPView}
+          options={{ animationEnabled: true }}
+        />
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}

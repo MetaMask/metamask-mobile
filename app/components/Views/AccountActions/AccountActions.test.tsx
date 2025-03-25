@@ -25,6 +25,10 @@ jest.mock('../../../selectors/tokensController', () => ({
   selectAllTokens: jest.fn(() => ({})),
 }));
 
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  selectAllBridgeableNetworks: jest.fn(() => []),
+}));
+
 // Mock swaps selectors
 jest.mock('../../../reducers/swaps', () => ({
   swapsControllerTokens: jest.fn(() => ({})),
