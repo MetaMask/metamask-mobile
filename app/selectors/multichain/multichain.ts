@@ -252,7 +252,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
         const balanceInFiat = new BigNumber(balance.amount).times(rate);
 
         const assetMetadataFallback = {
-          name: balance.unit,
+          name: balance.unit || '',
           symbol: balance.unit || '',
           fungible: true,
           units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
