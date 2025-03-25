@@ -3,7 +3,7 @@ import { useLatestBalance } from './useLatestBalance';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
-
+import { Hex } from '@metamask/utils';
 // Mock dependencies
 jest.mock('../../../util/notifications/methods/common', () => ({
   getProviderByChainId: jest.fn(),
@@ -94,8 +94,8 @@ describe('useLatestBalance', () => {
           {
             address: constants.AddressZero,
             decimals: 18,
+            chainId: '0x1' as Hex,
           },
-          '0x1',
         ),
       { state: initialState },
     );
@@ -116,8 +116,8 @@ describe('useLatestBalance', () => {
           {
             address: '0x1234567890123456789012345678901234567890',
             decimals: 6,
+            chainId: '0x1' as Hex,
           },
-          '0x1',
         ),
       { state: initialState },
     );
@@ -137,25 +137,8 @@ describe('useLatestBalance', () => {
           {
             address: constants.AddressZero,
             decimals: 18,
+            chainId: 'eip155:1',
           },
-          'eip155:1',
-        ),
-      { state: initialState },
-    );
-
-    expect(mockProvider.getBalance).not.toHaveBeenCalled();
-    expect(result.current).toBeUndefined();
-  });
-
-  it('should not fetch balance when chainId does not match current chain', async () => {
-    const { result } = renderHookWithProvider(
-      () =>
-        useLatestBalance(
-          {
-            address: constants.AddressZero,
-            decimals: 18,
-          },
-          '0x2',
         ),
       { state: initialState },
     );
@@ -170,13 +153,42 @@ describe('useLatestBalance', () => {
         useLatestBalance(
           {
             decimals: 18,
+            chainId: '0x1' as Hex,
           },
-          '0x1',
         ),
       { state: initialState },
     );
 
     expect(mockProvider.getBalance).not.toHaveBeenCalled();
     expect(result.current).toBeUndefined();
+  });
+
+  it('should return cached balance when latest balance is not yet fetched', async () => {
+    const { result } = renderHookWithProvider(
+      () =>
+        useLatestBalance(
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 6,
+            chainId: '0x1' as Hex,
+            balance: '5.5',
+          },
+        ),
+      { state: initialState },
+    );
+
+    // Initially it should return the cached balance while fetching
+    expect(result.current).toEqual({
+      displayBalance: '5.5',
+      atomicBalance: BigNumber.from('5500000'),
+    });
+
+    // After fetching it should update to the fetched balance
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        displayBalance: '1.0',
+        atomicBalance: BigNumber.from('1000000'),
+      });
+    });
   });
 });
