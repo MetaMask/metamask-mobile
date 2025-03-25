@@ -193,15 +193,12 @@ const ActivityView = () => {
           renderTabBar={renderTabBar}
           locked={!hasOrders}
         >
-          {
-            isSolanaAddress(selectedAddress) ? (
+          {selectedAddress && isSolanaAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
             />
           ) : (
-            <TransactionsView
-              tabLabel={strings('transactions_view.title')}
-            />
+            <TransactionsView tabLabel={strings('transactions_view.title')} />
           )}
           {hasOrders && (
             <RampOrdersList
