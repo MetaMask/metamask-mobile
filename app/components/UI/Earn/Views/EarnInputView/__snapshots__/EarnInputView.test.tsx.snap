@@ -414,6 +414,7 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="currency-toggle"
                             >
                               <Text
                                 accessibilityRole="none"
@@ -2011,6 +2012,7 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="currency-toggle"
                             >
                               <Text
                                 accessibilityRole="none"

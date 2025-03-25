@@ -2,22 +2,24 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import MaxInputModal from '.';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockHandleMaxPress = jest.fn();
+const mockUseRoute = jest.fn().mockReturnValue({
+  params: {
+    isEth: true,
+    ticker: 'ETH',
+    handleMaxPress: mockHandleMaxPress,
+  },
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useRoute: () => ({
-      params: {
-        isEth: true,
-        ticker: 'ETH',
-        handleMaxPress: mockHandleMaxPress,
-      },
-    }),
+    useRoute: () => mockUseRoute(),
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -29,6 +31,10 @@ const renderMaxInputModal = () =>
   renderScreen(MaxInputModal, { name: Routes.STAKING.MODALS.MAX_INPUT });
 
 describe('MaxInputModal', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('render matches snapshot', () => {
     const { toJSON } = renderMaxInputModal();
     expect(toJSON()).toMatchSnapshot();
@@ -65,5 +71,33 @@ describe('MaxInputModal', () => {
 
     // Check if the BottomSheet's close function was called
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('displays the correct content when asset is ETH', () => {
+    const { queryByText } = renderMaxInputModal();
+
+    const ethDescriptionText = queryByText(
+      strings('stake.max_modal.eth.description'),
+    );
+    expect(ethDescriptionText).toBeTruthy();
+  });
+
+  it('displays the correct content when asset is not ETH', () => {
+    const ticker = 'USDC';
+    mockUseRoute.mockReturnValue({
+      params: {
+        isEth: false,
+        ticker,
+        handleMaxPress: mockHandleMaxPress,
+      },
+    });
+
+    const { getByText } = renderMaxInputModal();
+
+    getByText(
+      strings('stake.max_modal.token.description', {
+        ticker,
+      }),
+    );
   });
 });

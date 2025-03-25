@@ -3,13 +3,13 @@ import { View, StyleSheet } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../locales/i18n';
-import CurrencyToggle from '../../Stake/components/CurrencySwitch';
-import type { Colors } from '../../../../util/theme/models';
-import { useTheme } from '../../../../util/theme';
+} from '../../../../../component-library/components/Texts/Text';
+import { strings } from '../../../../../../locales/i18n';
+import CurrencyToggle from '../../../Stake/components/CurrencySwitch';
+import type { Colors } from '../../../../../util/theme/models';
+import { useTheme } from '../../../../../util/theme';
 
-interface InputDisplayProps {
+export interface InputDisplayProps {
   isOverMaximum: {
     isOverMaximumEth: boolean;
     isOverMaximumToken: boolean;

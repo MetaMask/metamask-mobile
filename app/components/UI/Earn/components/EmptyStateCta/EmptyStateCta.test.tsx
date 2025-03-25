@@ -103,7 +103,7 @@ describe('EmptyStateCta', () => {
       params: {
         action: 'LEND',
         token: {
-          address: '0xabc',
+          address: MOCK_USDC_MAINNET_ASSET.address,
           aggregators: [],
           balance: '',
           balanceFiat: '',

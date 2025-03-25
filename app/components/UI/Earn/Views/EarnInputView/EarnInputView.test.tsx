@@ -1,48 +1,65 @@
-import React from 'react';
-import BN4 from 'bnjs4';
-import { fireEvent } from '@testing-library/react-native';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
+import { fireEvent } from '@testing-library/react-native';
+import BN4 from 'bnjs4';
 import { Contract } from 'ethers';
-import EarnInputView from './EarnInputView';
+import React from 'react';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
+import { RootState } from '../../../../../reducers';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import {
+  selectConfirmationRedesignFlags,
+  type ConfirmationRedesignRemoteFlags,
+} from '../../../../../selectors/featureFlagController';
+import { toWei, weiToFiatNumber } from '../../../../../util/number';
+import {
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
+  MOCK_ADDRESS_2,
+} from '../../../../../util/test/accountsControllerTestUtils';
+import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   DeepPartial,
   renderScreen,
 } from '../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../constants/navigation/Routes';
-import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+import { flushPromises } from '../../../../../util/test/utils';
+import useMetrics from '../../../../hooks/useMetrics/useMetrics';
 import {
   MOCK_ETH_MAINNET_ASSET,
   MOCK_GET_VAULT_RESPONSE,
 } from '../../../Stake/__mocks__/mockData';
-import { toWei, weiToFiatNumber } from '../../../../../util/number';
-import { strings } from '../../../../../../locales/i18n';
+import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
+import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
+import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
+import EarnInputView from './EarnInputView';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
 import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
-import { RootState } from '../../../../../reducers';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import {
-  selectConfirmationRedesignFlags,
-  type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController';
-import { flushPromises } from '../../../../../util/test/utils';
-import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
-import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
-import useMetrics from '../../../../hooks/useMetrics/useMetrics';
-import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
+import { BNToHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import BigNumber from 'bignumber.js';
+import { getStakingNavbar } from '../../../Navbar';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
+import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import {
+  createMockToken,
+  getCreateMockTokenOptions,
+} from '../../../Stake/testUtils';
+import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 
-const MOCK_SELECTED_INTERNAL_ACCOUNT = {
-  address: '0x123',
-} as InternalAccount;
+const MOCK_USDC_MAINNET_ASSET = createMockToken({
+  ...getCreateMockTokenOptions(
+    CHAIN_IDS.MAINNET,
+    TOKENS_WITH_DEFAULT_OPTIONS.USDC,
+  ),
+  address: '0xusDC123',
+});
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -51,6 +68,14 @@ const mockPop = jest.fn();
 const mockConversionRate = 2000;
 
 jest.mock('../../../../hooks/useMetrics/useMetrics');
+
+jest.mock('../../../Navbar', () => ({
+  getStakingNavbar: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock('../../../Stake/constants', () => ({
+  isStablecoinLendingFeatureEnabled: jest.fn(() => false),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -195,6 +220,30 @@ const mockInitialState: DeepPartial<RootState> = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      TokenBalancesController: {
+        tokenBalances: {
+          [MOCK_ADDRESS_2.toLowerCase()]: {
+            [CHAIN_IDS.MAINNET]: {
+              [MOCK_USDC_MAINNET_ASSET.address]: BNToHex(
+                new BigNumber('1000000'),
+              ),
+            },
+          },
+        },
+      },
+      CurrencyRateController: {
+        currentCurrency: 'USD',
+        currencyRates: {
+          ETH: { conversionRate: 2000 },
+        },
+      },
+      TokenRatesController: {
+        marketData: {
+          [CHAIN_IDS.MAINNET]: {
+            [MOCK_USDC_MAINNET_ASSET.address]: { price: 0.0005 },
+          },
+        },
+      },
     },
   },
 };
@@ -219,11 +268,18 @@ describe('StakeInputView', () => {
   };
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
-
+  const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
+  const mockIsStablecoinLendingFeatureEnabled = jest.mocked(
+    isStablecoinLendingFeatureEnabled,
+  );
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsStablecoinLendingFeatureEnabled.mockReturnValue(false);
     selectSelectedInternalAccountMock.mockImplementation(
-      () => MOCK_SELECTED_INTERNAL_ACCOUNT,
+      () =>
+        ({
+          address: MOCK_ADDRESS_2,
+        } as InternalAccount),
     );
     selectConfirmationRedesignFlagsMock.mockImplementation(
       () =>
@@ -240,16 +296,20 @@ describe('StakeInputView', () => {
     } as unknown as ReturnType<typeof useMetrics>);
   });
 
-  function render(Component: React.ComponentType) {
+  function render(
+    Component: React.ComponentType,
+    route: EarnInputViewProps['route'] = baseProps.route,
+    state: DeepPartial<RootState> = mockInitialState,
+  ) {
     return renderScreen(
       Component,
       {
         name: Routes.STAKING.STAKE,
       },
       {
-        state: mockInitialState,
+        state: { ...mockInitialState, ...state },
       },
-      baseProps.route.params,
+      { ...baseProps.route.params, ...route.params },
     );
   }
 
@@ -258,6 +318,34 @@ describe('StakeInputView', () => {
   it('render matches snapshot', () => {
     const { toJSON } = renderComponent();
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  describe('when erc20 token is selected', () => {
+    it('renders the correct USDC token', () => {
+      mockIsStablecoinLendingFeatureEnabled.mockReturnValue(true);
+      const { getByText } = render(EarnInputView, {
+        params: {
+          ...baseProps.route.params,
+          action: EARN_INPUT_VIEW_ACTIONS.LEND,
+          token: MOCK_USDC_MAINNET_ASSET,
+        },
+        key: Routes.STAKING.STAKE,
+        name: 'params',
+      });
+
+      expect(mockGetStakingNavbar).toHaveBeenCalledWith(
+        'Deposit USDC',
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+        expect.anything(),
+      );
+      expect(getByText('Balance: 1 USDC')).toBeTruthy();
+      expect(getByText('0 USD')).toBeTruthy();
+
+      fireEvent.press(getByText('1'));
+      expect(getByText('1 USD')).toBeTruthy();
+    });
   });
 
   describe('when values are entered in the keypad', () => {
@@ -360,6 +448,7 @@ describe('StakeInputView', () => {
         fireEvent.press(getByText(strings('stake.review')));
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
+
         expect(mockNavigate).toHaveBeenLastCalledWith('StakeModals', {
           screen: Routes.STAKING.MODALS.GAS_IMPACT,
           params: {
@@ -401,7 +490,7 @@ describe('StakeInputView', () => {
         expect(attemptDepositTransactionMock).toHaveBeenCalledTimes(1);
         expect(attemptDepositTransactionMock).toHaveBeenCalledWith(
           '375000000000000000',
-          MOCK_SELECTED_INTERNAL_ACCOUNT.address,
+          MOCK_ADDRESS_2,
           undefined,
           true,
         );

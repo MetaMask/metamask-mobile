@@ -28,7 +28,7 @@ import { getStakingNavbar } from '../../../Navbar';
 import ScreenLayout from '../../../Ramp/components/ScreenLayout';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import EstimatedAnnualRewardsCard from '../../../Stake/components/EstimatedAnnualRewardsCard';
-import InputDisplay from '../../../Earn/components/InputDisplay';
+import InputDisplay from '../../components/InputDisplay';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import {
@@ -44,31 +44,36 @@ import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
 
 const EarnInputView = () => {
+  // navigation hooks
   const navigation = useNavigation();
   const route = useRoute<EarnInputViewProps['route']>();
   const { action, token } = route.params;
 
-  const { styles, theme } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  // state
+  const [
+    isSubmittingStakeDepositTransaction,
+    setIsSubmittingStakeDepositTransaction,
+  ] = useState(false);
 
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
-  const { attemptDepositTransaction } = usePoolStakedDeposit();
-
+  // selectors
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_transactions;
   const activeAccount = useSelector(selectSelectedInternalAccount);
-
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
   );
   const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
 
+  // other hooks
+  const { styles, theme } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
+  const { attemptDepositTransaction } = usePoolStakedDeposit();
   const earnToken = getTokenWithBalanceAndApr(token);
-
   const {
     isFiat,
     currentCurrency,
@@ -106,18 +111,7 @@ const EarnInputView = () => {
     });
   };
 
-  const [
-    isSubmittingStakeDepositTransaction,
-    setIsSubmittingStakeDepositTransaction,
-  ] = useState(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      setIsSubmittingStakeDepositTransaction(false);
-    }, []),
-  );
-
-  const handleStakePress = useCallback(async () => {
+  const handleEarnPress = useCallback(async () => {
     if (isHighGasCostImpact()) {
       trackEvent(
         createEventBuilder(
@@ -252,11 +246,16 @@ const EarnInputView = () => {
   const balanceText = strings('stake.balance');
   const buttonLabel = getButtonLabel();
 
+  useFocusEffect(
+    useCallback(() => {
+      setIsSubmittingStakeDepositTransaction(false);
+    }, []),
+  );
+
   useEffect(() => {
     const title = isStablecoinLendingFeatureEnabled()
       ? getEarnInputViewTitle(action, token.symbol, token.isETH)
       : strings('stake.stake_eth');
-
     navigation.setOptions(
       getStakingNavbar(
         title,
@@ -373,7 +372,7 @@ const EarnInputView = () => {
             isSubmittingStakeDepositTransaction
           }
           width={ButtonWidthTypes.Full}
-          onPress={handleStakePress}
+          onPress={handleEarnPress}
         />
       </View>
     </ScreenLayout>

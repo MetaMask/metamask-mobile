@@ -13,15 +13,17 @@ import useInputHandler from './useInput';
 import useStakingGasFee from '../../Stake/hooks/useStakingGasFee';
 import useVaultMetadata from '../../Stake/hooks/useVaultMetadata';
 
+export interface EarnInputProps {
+  earnToken: EarnTokenDetails;
+  conversionRate: number;
+  exchangeRate: number;
+}
+
 const useEarnInputHandlers = ({
   earnToken,
   conversionRate,
   exchangeRate,
-}: {
-  earnToken: EarnTokenDetails;
-  conversionRate: number;
-  exchangeRate: number;
-}) => {
+}: EarnInputProps) => {
   const { balanceWei, balanceETH, balanceFiatNumber } = useBalance();
   const [estimatedAnnualRewards, setEstimatedAnnualRewards] = useState('-');
 

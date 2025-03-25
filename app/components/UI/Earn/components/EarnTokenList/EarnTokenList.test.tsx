@@ -7,8 +7,10 @@ import initialRootState from '../../../../../util/test/initial-root-state';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  MOCK_ETH_MAINNET_ASSET,
   MOCK_SUPPORTED_EARN_TOKENS_NO_FIAT_BALANCE,
   MOCK_USDC_BASE_MAINNET_ASSET,
+  MOCK_USDC_MAINNET_ASSET,
 } from '../../../Stake/__mocks__/mockData';
 import Engine from '../../../../../core/Engine';
 import * as tokenUtils from '../../../Earn/utils/token';
@@ -266,7 +268,7 @@ describe('EarnTokenList', () => {
       params: {
         action: 'STAKE',
         token: {
-          address: '0xabc',
+          address: MOCK_ETH_MAINNET_ASSET.address,
           aggregators: [],
           balance: '',
           balanceFiat: '',
@@ -311,7 +313,7 @@ describe('EarnTokenList', () => {
       params: {
         action: 'LEND',
         token: {
-          address: '0xabc',
+          address: MOCK_USDC_MAINNET_ASSET.address,
           aggregators: [],
           balance: '',
           balanceFiat: 'tokenBalanceLoading',

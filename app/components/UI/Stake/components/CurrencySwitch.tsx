@@ -36,6 +36,7 @@ const CurrencyToggle = ({ onPress, value }: CurrencyToggleProps) => {
 
   return (
     <ButtonBase
+      testID="currency-toggle"
       onPress={onPress}
       size={ButtonSize.Sm}
       width={ButtonWidthTypes.Auto}

@@ -12,7 +12,7 @@ import {
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
 
-interface InputHandlerParams {
+export interface InputHandlerParams {
   balance: string;
   decimals: number;
   ticker: string;
@@ -21,6 +21,7 @@ interface InputHandlerParams {
 }
 
 const MAX_DIGITS = 12;
+const MAX_FRACTION_DIGITS = 5;
 
 const useInputHandler = ({
   balance,
@@ -96,9 +97,16 @@ const useInputHandler = ({
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;
+      const isValueNaN = isNaN(parseFloat(value));
 
-      if (pressedKey === 'BACK' || totalDigits <= MAX_DIGITS) {
-        if (isNaN(parseFloat(value))) {
+      if (
+        pressedKey === 'BACK' ||
+        isValueNaN ||
+        (totalDigits <= MAX_DIGITS &&
+          fraction.length <= MAX_FRACTION_DIGITS &&
+          value !== amountToken)
+      ) {
+        if (isValueNaN) {
           if (
             pressedKey === digitsOnly[digitsOnly.length - 1] ||
             pressedKey === 'PERIOD'
@@ -111,7 +119,7 @@ const useInputHandler = ({
         isFiat ? handleFiatInput(value) : handleTokenInput(value);
       }
     },
-    [handleTokenInput, handleFiatInput, isFiat],
+    [handleTokenInput, handleFiatInput, isFiat, amountToken],
   );
 
   const handleCurrencySwitch = useCallback(() => {
@@ -131,16 +139,11 @@ const useInputHandler = ({
       const amountPercentage = balanceMinimalUnit
         .mul(new BN4(percentage))
         .div(new BN4(100));
-
       const newTokenAmount = renderFromTokenMinimalUnit(
         amountPercentage,
         decimals,
         5,
       );
-      // if (isNaN(parseFloat(newTokenAmount))) {
-      //   newTokenAmount = fromTokenMinimalUnit(amountPercentage, decimals);
-      // }
-
       const newBalanceFiatNumber = balanceToFiatNumber(
         fromTokenMinimalUnit(amountPercentage, decimals),
         conversionRate,
@@ -161,13 +164,6 @@ const useInputHandler = ({
         decimals,
         5,
       );
-      // if the token value is NaN due to being less than .00001 of asset
-      // show the full amount in minimal asset unit
-      // this is a temp fix for cases where a user has less than .00001 of asset
-      // so that we are not setting ">.00001" as the input value
-      // if (isNaN(parseFloat(tokenValue))) {
-      //   tokenValue = fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals);
-      // }
       const fiatValue = balanceToFiatNumber(
         fromTokenMinimalUnit(maxStakeableMinimalUnit, decimals),
         conversionRate,

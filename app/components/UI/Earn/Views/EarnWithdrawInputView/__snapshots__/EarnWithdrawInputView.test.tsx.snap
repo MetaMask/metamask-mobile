@@ -471,6 +471,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              testID="currency-toggle"
                             >
                               <Text
                                 accessibilityRole="none"
