@@ -37,13 +37,11 @@ const migration = (state: unknown): unknown => {
         );
       }
 
+      // Regardness if the network already exists, we will overwrite it with our default MegaETH configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
         megaethTestnetChainId
       ] = defaultState.networkConfigurationsByChainId[megaethTestnetChainId];
-
-      
     }
-
     return state;
   } catch (error) {
     captureException(

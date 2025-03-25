@@ -133,7 +133,9 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
   it('captures expection if `MegaETH Testnet` configuration not found from getDefaultNetworkControllerState()', () => {
     const oldState = createTestState()
     const orgState = cloneDeep(oldState);
+    // Mocking the getDefaultNetworkControllerState to return configuration for all networks except MegaETH Testnet
     jest.spyOn(networkController, 'getDefaultNetworkControllerState').mockReturnValue({
+      // getDefaultNetworkControllerState() with no arguments will return all default infura networks only
       ...getDefaultNetworkControllerState()
     })
     mockedEnsureValidState.mockReturnValue(true);
