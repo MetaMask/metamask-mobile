@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.42.0",
+  "version": "7.42.1",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -157,8 +157,8 @@
     "@metamask/assets-controllers": "^51.0.2",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
-    "@metamask/bridge-controller": "^3.0.0",
-    "@metamask/bridge-status-controller": "^3.0.0",
+    "@metamask/bridge-controller": "^7.0.0",
+    "@metamask/bridge-status-controller": "^7.0.0",
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.3.0",
     "@metamask/design-tokens": "^5.0.0",
@@ -177,7 +177,7 @@
     "@metamask/gas-fee-controller": "^22.0.3",
     "@metamask/json-rpc-engine": "^10.0.3",
     "@metamask/json-rpc-middleware-stream": "^8.0.6",
-    "@metamask/key-tree": "^10.1.0",
+    "@metamask/key-tree": "^10.1.1",
     "@metamask/keyring-api": "^17.2.1",
     "@metamask/keyring-controller": "^19.2.0",
     "@metamask/keyring-internal-api": "^4.0.3",
