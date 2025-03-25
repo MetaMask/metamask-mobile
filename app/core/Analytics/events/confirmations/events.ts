@@ -12,6 +12,8 @@ enum EVENT_NAME {
 enum TRANSACTION_EVENT_NAMES {
   TRANSACTION_ADDED = 'Transaction Added',
   TRANSACTION_APPROVED = 'Transaction Approved',
+  // Finalized is the unified event that is triggered
+  // when the transaction is confirmed, dropped or failed
   TRANSACTION_FINALIZED = 'Transaction Finalized',
   TRANSACTION_REJECTED = 'Transaction Rejected',
   TRANSACTION_SUBMITTED = 'Transaction Submitted',

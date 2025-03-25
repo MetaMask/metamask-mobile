@@ -102,8 +102,8 @@ describe('StakingDeposit', () => {
     });
 
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
-    // 2 calls here, 1st call is for the initial page view,
-    // 2nd call is for the advanced details view
+    // 2 calls here, 1st call is for the setting transaction_amount_eth
+    // 2nd call is for the setting advanced_details_viewed
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
