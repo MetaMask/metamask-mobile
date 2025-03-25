@@ -331,10 +331,11 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
+  // const name = useSelector(selectNetworkName);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  // const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  const networkName = '';
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
