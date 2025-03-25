@@ -2,12 +2,12 @@ import { useEffect, useState, useCallback } from 'react';
 import { type Hex, type CaipChainId, isCaipChainId } from '@metamask/utils';
 import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
-import { formatUnits, getAddress } from 'ethers/lib/utils';
+import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { selectChainId } from '../../../selectors/networkController';
 import { getProviderByChainId } from '../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
+import usePrevious from '../../hooks/usePrevious';
 
 export async function fetchAtomicTokenBalance(
   address: string,
@@ -43,30 +43,35 @@ interface Balance {
 
 /**
  * A hook that fetches and returns the latest balance for a given token.
- * @param token - The token object containing address, decimals, and symbol.
- * @param chainId - The chain ID to be used for fetching the balance. Optional.
+ * Latest balance is important because token balances can be cached and may not be updated immediately.
+ * @param token.address - The token address.
+ * @param token.decimals - The token decimals.
+ * @param token.chainId - The chain ID to be used for fetching the balance.
+ * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
 export const useLatestBalance = (
   token: {
     address?: string;
     decimals?: number;
+    chainId?: Hex | CaipChainId;
+    balance?: string
   },
-  chainId?: Hex | CaipChainId,
 ) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
-  const currentChainId = useSelector(selectChainId);
+  const previousToken = usePrevious(token);
+
+  const chainId = token.chainId;
 
   const handleFetchAtomicBalance = useCallback(async () => {
     if (
       token.address &&
       token.decimals &&
       chainId && !isCaipChainId(chainId) &&
-      currentChainId === chainId &&
       selectedAddress
     ) {
-      const web3Provider = getProviderByChainId(currentChainId);
+      const web3Provider = getProviderByChainId(chainId);
       const atomicBalance = await fetchAtomicBalance(
         web3Provider,
         selectedAddress,
@@ -80,11 +85,28 @@ export const useLatestBalance = (
         });
       }
     }
-  }, [token.address, token.decimals, chainId, currentChainId, selectedAddress]);
+  }, [token.address, token.decimals, chainId, selectedAddress]);
 
   useEffect(() => {
     handleFetchAtomicBalance();
   }, [handleFetchAtomicBalance]);
 
-  return balance;
+  if (isCaipChainId(chainId) || !token.address || !token.decimals) {
+    return undefined;
+  }
+
+  const cachedBalance = {
+    displayBalance: token.balance,
+    atomicBalance: token.balance
+      ? parseUnits(token.balance, token.decimals)
+      : undefined,
+  };
+
+  // If the token has changed, return cached balance of new token, so we have time to fetch the new balance
+  if (previousToken?.address !== token.address) {
+    return cachedBalance;
+  }
+
+  // Return balance if it exists, otherwise return cached balance of new token
+  return balance ?? cachedBalance;
 };

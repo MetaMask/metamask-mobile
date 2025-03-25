@@ -3,6 +3,7 @@ import { useSourceTokens } from './useSourceTokens';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
+import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 // Mock dependencies
 jest.mock('../../../util/networks', () => ({
@@ -11,12 +12,14 @@ jest.mock('../../../util/networks', () => ({
 }));
 
 jest.mock('../Tokens/util', () => ({
+  ...jest.requireActual('../Tokens/util'),
   sortAssets: jest.fn().mockImplementation((assets) => assets),
 }));
 
 describe('useSourceTokens', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
+  const optimismChainId = '0xa' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
   const token3Address = '0x0000000000000000000000000000000000000003' as Hex;
@@ -24,12 +27,25 @@ describe('useSourceTokens', () => {
   const initialState = {
     engine: {
       backgroundState: {
+        BridgeController: {
+          bridgeFeatureFlags: {
+            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
+              chains: {
+                '0x1': { isActiveSrc: true, isActiveDst: true },
+                '0xa': { isActiveSrc: true, isActiveDst: true },
+              },
+            },
+          },
+        },
         TokenBalancesController: {
           tokenBalances: {
             [mockAddress]: {
               [mockChainId]: {
                 [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
                 [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 TOKEN2
+              },
+              [optimismChainId]: {
+                [token3Address]: '0x29a2241af62c0000' as Hex, // 3 TOKEN3
               },
             },
           },
@@ -56,6 +72,19 @@ describe('useSourceTokens', () => {
                 },
               ],
             },
+            [optimismChainId]: {
+              [mockAddress]: [
+                {
+                  address: token3Address,
+                  symbol: 'TOKEN3',
+                  decimals: 18,
+                  image: 'https://token3.com/logo.png',
+                  name: 'Token Three',
+                  aggregators: ['optimism'],
+                  chainId: optimismChainId,
+                },
+              ],
+            },
           },
           tokens: [
             {
@@ -65,6 +94,7 @@ describe('useSourceTokens', () => {
               image: 'https://token1.com/logo.png',
               name: 'Token One',
               aggregators: ['1inch'],
+              chainId: mockChainId,
             },
             {
               address: token2Address,
@@ -73,20 +103,63 @@ describe('useSourceTokens', () => {
               image: 'https://token2.com/logo.png',
               name: 'Token Two',
               aggregators: ['uniswap'],
+              chainId: mockChainId,
+            },
+            {
+              address: token3Address,
+              symbol: 'TOKEN3',
+              decimals: 18,
+              image: 'https://token3.com/logo.png',
+              name: 'Token Three',
+              aggregators: ['optimism'],
+              chainId: optimismChainId,
             },
           ],
         },
         NetworkController: {
-          selectedNetworkClientId: '1',
-          networkConfigurations: {
+          selectedNetworkClientId: 'selectedNetworkClientId',
+          networksMetadata: {
+            mainnet: {
+              EIPS: {
+                1559: true,
+              },
+            },
+            optimism: {
+              EIPS: {
+                1559: true,
+              },
+            },
+          },
+          networkConfigurationsByChainId: {
             [mockChainId]: {
               chainId: mockChainId,
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              nativeCurrency: 'ETH',
               ticker: 'ETH',
               nickname: 'Ethereum Mainnet',
+            },
+            [optimismChainId]: {
+              chainId: optimismChainId,
+              rpcEndpoints: [
+                {
+                  networkClientId: 'optimismNetworkClientId',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+              nativeCurrency: 'ETH',
+              ticker: 'ETH',
+              nickname: 'Optimism',
             },
           },
           providerConfig: {
             chainId: mockChainId,
+            ticker: 'ETH',
+            type: 'infura',
           },
         },
         AccountTrackerController: {
@@ -99,6 +172,11 @@ describe('useSourceTokens', () => {
             [mockChainId]: {
               [mockAddress]: {
                 balance: '0x29a2241af62c0000' as Hex, // 3 ETH
+              },
+            },
+            [optimismChainId]: {
+              [mockAddress]: {
+                balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
               },
             },
           },
@@ -143,6 +221,13 @@ describe('useSourceTokens', () => {
                 price: 5, // 1 TOKEN2 = 5 ETH
               },
             },
+            [optimismChainId]: {
+              [token3Address]: {
+                tokenAddress: token3Address,
+                currency: 'ETH',
+                price: 8, // 1 TOKEN3 = 8 ETH on Optimism
+              },
+            },
           },
         },
         PreferencesController: {
@@ -178,9 +263,31 @@ describe('useSourceTokens', () => {
                 },
               },
             },
+            [optimismChainId]: {
+              timestamp: Date.now(),
+              data: {
+                [token3Address]: {
+                  name: 'Token Three',
+                  symbol: 'TOKEN3',
+                  decimals: 18,
+                  address: token3Address,
+                  iconUrl: 'https://token3.com/logo.png',
+                  occurrences: 1,
+                  aggregators: ['optimism'],
+                },
+              },
+            },
           },
         },
       },
+    },
+    bridge: {
+      sourceAmount: undefined,
+      destAmount: undefined,
+      destChainId: undefined,
+      sourceToken: undefined,
+      destToken: undefined,
+      selectedSourceChainIds: [mockChainId, optimismChainId],
     },
   };
 
@@ -194,11 +301,11 @@ describe('useSourceTokens', () => {
     });
 
     await waitFor(() => {
-      const nativeToken = result.current[0];
+      const nativeToken = result.current.find(token => token.isNative && token.chainId === mockChainId);
       expect(nativeToken).toMatchObject({
         address: constants.AddressZero,
         symbol: 'ETH',
-        name: 'Ether',
+        name: 'Ethereum',
         decimals: 18,
         isNative: true,
         balance: '3',
@@ -214,37 +321,79 @@ describe('useSourceTokens', () => {
     });
 
     await waitFor(() => {
-      const token1 = result.current.find((t) => t.address === token1Address);
-      const token2 = result.current.find((t) => t.address === token2Address);
+      // Ethereum chain tokens
+      const token1 = result.current.find((t) => t.address === token1Address && t.chainId === mockChainId);
+      const token2 = result.current.find((t) => t.address === token2Address && t.chainId === mockChainId);
 
       expect(token1).toMatchObject({
-        balance: '1.0',
+        balance: '1',
         balanceFiat: '$20000', // 1 TOKEN1 * 10 ETH/TOKEN1 * $2000/ETH
         tokenFiatAmount: 20000,
       });
 
       expect(token2).toMatchObject({
-        balance: '2.0',
+        balance: '2',
         balanceFiat: '$20000', // 2 TOKEN2 * 5 ETH/TOKEN2 * $2000/ETH
         tokenFiatAmount: 20000,
+      });
+
+      // Optimism chain tokens
+      const optimismNative = result.current.find(token => token.isNative && token.chainId === optimismChainId);
+      expect(optimismNative).toMatchObject({
+        address: constants.AddressZero,
+        symbol: 'ETH',
+        chainId: optimismChainId,
+        balance: '20',
+        balanceFiat: '$40000', // 20 ETH * $2000/ETH
+        tokenFiatAmount: 40000,
+      });
+
+      const token3 = result.current.find((t) => t.address === token3Address);
+      expect(token3).toMatchObject({
+        address: token3Address,
+        symbol: 'TOKEN3',
+        name: 'Token Three',
+        chainId: optimismChainId,
+        balance: '3',
+        balanceFiat: '$48000', // 3 TOKEN3 * 8 ETH/TOKEN3 * $2000/ETH
+        tokenFiatAmount: 48000,
       });
     });
   });
 
-  it('should include additional tokens from token list with zero balance', async () => {
+  it('should only show tokens for selected chains', async () => {
+    // Create a state with only the Ethereum chain selected
+    const stateWithOnlyEthereumSelected = {
+      ...initialState,
+      bridge: {
+        ...initialState.bridge,
+        selectedSourceChainIds: [mockChainId], // Only Ethereum chain selected
+      },
+    };
+
     const { result } = renderHookWithProvider(() => useSourceTokens(), {
-      state: initialState,
+      state: stateWithOnlyEthereumSelected,
     });
 
     await waitFor(() => {
-      const token3 = result.current.find((t) => t.address === token3Address);
-      expect(token3).toMatchObject({
-        balance: '0',
-        balanceFiat: '$0',
-        tokenFiatAmount: 0,
-        name: 'Token Three',
-        symbol: 'TOKEN3',
-      });
+      // Ethereum tokens should be present
+      const ethereumNative = result.current.find(token => token.isNative && token.chainId === mockChainId);
+      const token1 = result.current.find(t => t.address === token1Address);
+      const token2 = result.current.find(t => t.address === token2Address);
+
+      expect(ethereumNative).toBeTruthy();
+      expect(token1).toBeTruthy();
+      expect(token2).toBeTruthy();
+
+      // Optimism tokens should not be present
+      const optimismNative = result.current.find(token => token.isNative && token.chainId === optimismChainId);
+      const token3 = result.current.find(t => t.address === token3Address);
+
+      expect(optimismNative).toBeUndefined();
+      expect(token3).toBeUndefined();
+
+      // Verify the total number of tokens is correct (should only have Ethereum tokens)
+      expect(result.current.length).toBe(3); // ETH native + TOKEN1 + TOKEN2
     });
   });
 
@@ -261,6 +410,9 @@ describe('useSourceTokens', () => {
                 [mockChainId]: {
                   [token1Address]: '0x1' as Hex, // Very small amount
                 },
+                [optimismChainId]: {
+                  [token3Address]: '0x1' as Hex, // Very small amount on Optimism
+                },
               },
             },
           },
@@ -275,6 +427,9 @@ describe('useSourceTokens', () => {
     await waitFor(() => {
       const token1 = result.current.find((t) => t.address === token1Address);
       expect(token1?.balanceFiat).toBe('$0');
+
+      const token3 = result.current.find((t) => t.address === token3Address);
+      expect(token3?.balanceFiat).toBe('$0');
     });
   });
 });

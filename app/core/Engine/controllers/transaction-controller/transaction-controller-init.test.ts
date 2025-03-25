@@ -17,13 +17,13 @@ import { TransactionControllerInitMessenger } from '../../messengers/transaction
 import { ControllerInitRequest } from '../../types';
 import { TransactionControllerInit } from './transaction-controller-init';
 import {
+  handleTransactionAdded,
   handleTransactionApproved,
   handleTransactionConfirmed,
   handleTransactionDropped,
   handleTransactionFailed,
   handleTransactionRejected,
   handleTransactionSubmitted,
-  handleUnapprovedTransactionAdded,
 } from './transaction-event-handlers';
 
 jest.mock('@metamask/transaction-controller');
@@ -100,9 +100,7 @@ describe('Transaction Controller Init', () => {
   const handleTransactionSubmittedMock = jest.mocked(
     handleTransactionSubmitted,
   );
-  const handleUnapprovedTransactionAddedMock = jest.mocked(
-    handleUnapprovedTransactionAdded,
-  );
+  const handleTransactionAddedMock = jest.mocked(handleTransactionAdded);
 
   /**
    * Extract a constructor option passed to the controller.
@@ -366,6 +364,6 @@ describe('Transaction Controller Init', () => {
     subscribeCallbacks['TransactionController:unapprovedTransactionAdded'](
       mockTransactionMeta,
     );
-    expect(handleUnapprovedTransactionAddedMock).toHaveBeenCalled();
+    expect(handleTransactionAddedMock).toHaveBeenCalled();
   });
 });

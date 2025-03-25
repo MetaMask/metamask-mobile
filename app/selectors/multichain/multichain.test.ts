@@ -13,6 +13,7 @@ import {
   selectMultichainBalances,
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
+  selectSolanaAccountTransactions,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -51,6 +52,17 @@ function getEvmState(
             ticker: 'ETH',
             chainId: currentChainId,
           }),
+        },
+        KeyringController: {
+          keyrings: [],
+          isUnlocked: true,
+          keyringTypes: {},
+          vault: '',
+          encryptionKey: '',
+          encryptionSalt: '',
+          memStore: {
+            isUnlocked: true,
+          },
         },
         AccountsController: mockEvmAccountsState,
         AccountTrackerController: {
@@ -154,6 +166,17 @@ function getNonEvmState(
     engine: {
       backgroundState: {
         ...getEvmState().engine.backgroundState,
+        KeyringController: {
+          keyrings: [],
+          isUnlocked: true,
+          keyringTypes: {},
+          vault: '',
+          encryptionKey: '',
+          encryptionSalt: '',
+          memStore: {
+            isUnlocked: true,
+          },
+        },
         AccountsController: {
           internalAccounts: {
             selectedAccount: selectedAccount.id,
@@ -549,6 +572,54 @@ describe('MultichainNonEvm Selectors', () => {
       };
 
       expect(selectMultichainTransactions(state)).toEqual({});
+    });
+  });
+
+  describe('selectSolanaAccountTransactions', () => {
+    it('returns transactions for the selected Solana account', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+      const mockTransactionData = {
+        transactions: [
+          {
+            id: 'sol-tx-id',
+            timestamp: 1733736433,
+            chain: MultichainNativeAssets.Solana,
+            status: 'confirmed' as const,
+            type: 'send' as const,
+            account: MOCK_SOLANA_ACCOUNT.id,
+            from: [],
+            to: [],
+            fees: [],
+            events: [],
+          },
+        ],
+        next: null,
+        lastUpdated: Date.now(),
+      };
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {
+          [MOCK_SOLANA_ACCOUNT.id]: mockTransactionData,
+        };
+
+      expect(selectSolanaAccountTransactions(state)).toEqual(
+        mockTransactionData,
+      );
+    });
+
+    it('returns empty array when no Solana account is selected', () => {
+      const state = getEvmState();
+      expect(selectSolanaAccountTransactions(state)).toEqual([]);
+    });
+
+    it('returns empty array when Solana account has no transactions', () => {
+      const state = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+
+      state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
+        {};
+
+      expect(selectSolanaAccountTransactions(state)).toEqual([]);
     });
   });
 });
