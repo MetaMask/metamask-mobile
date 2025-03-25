@@ -2,7 +2,7 @@ import React from 'react';
 import { FlatList, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
-import { selectHdKeyrings } from '../../../selectors/keyringController';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './SRPList.styles';
@@ -11,7 +11,7 @@ import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.
 
 const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const hdKeyrings = useSelector(selectHdKeyrings);
+  const hdKeyrings = useSelector(selectHDKeyrings);
 
   return (
     <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>

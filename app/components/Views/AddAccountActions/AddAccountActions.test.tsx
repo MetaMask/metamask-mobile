@@ -3,7 +3,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import AddAccountActions from './AddAccountActions';
-import Engine from '../../../core/Engine';
+import { addNewHdAccount } from '../../../actions/multiSrp';
 import {
   createMockInternalAccount,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -37,13 +37,8 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    KeyringController: {
-      addNewAccount: jest.fn(),
-    },
-  },
-  setSelectedAddress: jest.fn(),
+jest.mock('../../../actions/multiSrp', () => ({
+  addNewHdAccount: jest.fn(),
 }));
 
 // Mock Logger
@@ -117,9 +112,7 @@ describe('AddAccountActions', () => {
 
   it('creates new ETH account when clicking add new account', async () => {
     const mockNewAddress = '0x123';
-    (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
-    ).mockResolvedValueOnce(mockNewAddress);
+    (addNewHdAccount as jest.Mock).mockResolvedValueOnce(mockNewAddress);
 
     renderScreen(
       () => <AddAccountActions {...mockProps} />,
@@ -137,17 +130,14 @@ describe('AddAccountActions', () => {
     fireEvent.press(addButton);
 
     await waitFor(() => {
-      expect(Engine.context.KeyringController.addNewAccount).toHaveBeenCalled();
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(mockNewAddress);
+      expect(addNewHdAccount).toHaveBeenCalled();
       expect(mockProps.onBack).toHaveBeenCalled();
     });
   });
 
   it('handles error when creating new ETH account fails', async () => {
     const mockError = new Error('Failed to create account');
-    (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
-    ).mockRejectedValueOnce(mockError);
+    (addNewHdAccount as jest.Mock).mockRejectedValueOnce(mockError);
 
     renderScreen(
       () => <AddAccountActions {...mockProps} />,

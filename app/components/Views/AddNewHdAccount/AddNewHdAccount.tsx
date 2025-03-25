@@ -23,7 +23,7 @@ import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddNewHdAccount.styles';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { selectHdKeyrings } from '../../../selectors/keyringController';
+import { selectHDKeyrings } from '../../../selectors/keyringController';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -36,7 +36,7 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
-  const hdKeyrings = useSelector(selectHdKeyrings);
+  const hdKeyrings = useSelector(selectHDKeyrings);
   const [keyringId, setKeyringId] = useState<string>(hdKeyrings[0].metadata.id);
   const [showSRPList, setShowSRPList] = useState(false);
 
