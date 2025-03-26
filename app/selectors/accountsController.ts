@@ -148,4 +148,9 @@ export const selectSolanaAccountAddress = createSelector(
   (accounts) => accounts.find((account) => isSolanaAccount(account))?.address,
 );
 
+export const selectSolanaAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.find((account) => isSolanaAccount(account)),
+);
+
 ///: END:ONLY_INCLUDE_IF

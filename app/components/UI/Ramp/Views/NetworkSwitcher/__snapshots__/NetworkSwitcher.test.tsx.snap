@@ -543,7 +543,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -693,7 +693,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -1417,7 +1417,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -1568,7 +1568,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -2242,7 +2242,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -2392,7 +2392,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -2542,7 +2542,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -2693,7 +2693,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -3367,7 +3367,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -3517,7 +3517,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -3667,7 +3667,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -3818,7 +3818,7 @@ exports[`NetworkSwitcher View renders correctly 1`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -4492,7 +4492,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -4642,7 +4642,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -4792,7 +4792,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",
@@ -4943,7 +4943,7 @@ exports[`NetworkSwitcher View renders correctly 2`] = `
                                           {
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
-                                            "borderRadius": 12,
+                                            "borderRadius": 8,
                                             "height": 24,
                                             "justifyContent": "center",
                                             "overflow": "hidden",

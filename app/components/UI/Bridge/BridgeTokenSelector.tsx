@@ -10,10 +10,8 @@ import BottomSheetHeader from '../../../component-library/components/BottomSheet
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 import { TokenI } from '../Tokens/types';
 import { Hex } from '@metamask/utils';
-import { selectChainId, selectNetworkConfigurations } from '../../../selectors/networkController';
-import { BridgeToken } from './types';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { setSourceToken } from '../../../core/redux/slices/bridge';
+import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken } from '../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../util/networks';
 import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
@@ -23,6 +21,10 @@ import { strings } from '../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
 import { useTokenSearch } from './useTokenSearch';
 import TextFieldSearch from '../../../component-library/components/Form/TextFieldSearch';
+import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
+import { useSortedSourceNetworks } from './useSortedSourceNetworks';
+import { MAX_NETWORK_ICONS, SourceNetworksButtonLabel } from './SourceNetworksButtonLabel';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -45,13 +47,16 @@ const createStyles = (params: { theme: Theme }) => {
     listContent: {
       padding: 4,
     },
-    input: {
-      marginHorizontal: 24,
-      marginVertical: 10,
-    },
     emptyList: {
       marginVertical: 10,
       marginHorizontal: 24,
+    },
+    networksButton: {
+      borderColor: theme.colors.border.muted,
+    },
+    buttonContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
     },
   });
 };
@@ -60,8 +65,9 @@ export const BridgeTokenSelector: React.FC = () => {
   const { styles, theme } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const currentChainId = useSelector(selectChainId) as Hex;
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const enabledSourceChains = useSelector(selectEnabledSourceChains);
+  const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const tokensList = useSourceTokens();
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
@@ -70,17 +76,10 @@ export const BridgeTokenSelector: React.FC = () => {
     searchString ? searchResults : tokensList,
     [searchString, searchResults, tokensList]
   );
+  const { sortedSourceNetworks } = useSortedSourceNetworks();
 
   const handleTokenPress = useCallback((token: TokenI) => {
-    const bridgeToken: BridgeToken = {
-      address: token.address,
-      symbol: token.symbol,
-      image: token.image,
-      decimals: token.decimals,
-      chainId: token.chainId as SupportedCaipChainId,
-    };
-
-    dispatch(setSourceToken(bridgeToken));
+    dispatch(setSourceToken(token));
     navigation.goBack();
   }, [dispatch, navigation]);
 
@@ -94,7 +93,7 @@ export const BridgeTokenSelector: React.FC = () => {
   }, [networkConfigurations]);
 
   const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
-    const networkDetails = getNetworkBadgeDetails(currentChainId);
+    const networkDetails = getNetworkBadgeDetails(item.chainId as Hex);
 
     return (
       <TokenSelectorItem
@@ -104,9 +103,9 @@ export const BridgeTokenSelector: React.FC = () => {
         networkImageSource={networkDetails.imageSource}
       />
     );
-  }, [currentChainId, getNetworkBadgeDetails, handleTokenPress]);
+  }, [getNetworkBadgeDetails, handleTokenPress]);
 
-  const keyExtractor = useCallback((token: TokenI) => token.address, []);
+  const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
@@ -121,6 +120,22 @@ export const BridgeTokenSelector: React.FC = () => {
       </Box>
     ),
     [searchString, styles],
+  );
+
+  const navigateToNetworkSelector = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.BRIDGE_NETWORK_SELECTOR,
+      params: {
+        testing: 'testing',
+      },
+    });
+  }, [navigation]);
+
+  const networksToShow = useMemo(() =>
+    sortedSourceNetworks
+      .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
+      .filter((_, i) => i < MAX_NETWORK_ICONS),
+    [selectedSourceChainIds, sortedSourceNetworks],
   );
 
   return (
@@ -150,14 +165,28 @@ export const BridgeTokenSelector: React.FC = () => {
               </Box>
             </Box>
           </BottomSheetHeader>
+        </Box>
+
+        <Box style={styles.buttonContainer} gap={16}>
+          <Button
+            onPress={navigateToNetworkSelector}
+            variant={ButtonVariants.Secondary}
+            label={<SourceNetworksButtonLabel
+              networksToShow={networksToShow}
+              networkConfigurations={networkConfigurations}
+              selectedSourceChainIds={selectedSourceChainIds as Hex[]}
+              enabledSourceChains={enabledSourceChains}
+            />}
+            style={styles.networksButton}
+            endIconName={IconName.ArrowDown}
+            />
 
           <TextFieldSearch
             value={searchString}
             onChangeText={handleSearchTextChange}
             placeholder={strings('swaps.search_token')}
-            style={styles.input}
             testID="bridge-token-search-input"
-          />
+            />
         </Box>
 
         <FlatList
@@ -166,11 +195,6 @@ export const BridgeTokenSelector: React.FC = () => {
           keyExtractor={keyExtractor}
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={renderEmptyList}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          windowSize={10}
-          initialNumToRender={20}
-          keyboardShouldPersistTaps="always"
         />
       </Box>
     </BottomSheet>
