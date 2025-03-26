@@ -48,11 +48,12 @@ export const handleCodeFlow = async (data : HandleFlowParams, dispatch: Dispatch
     // const result = seedlessOnboardingController.authenticate(byoaAuthToken)
     // const existingUser = result.existingUser;
 
+    console.log('handleCodeFlow: dispatching OAUTH2_LOGIN_SUCCESS');
     // dispatch Action for login success
     dispatch({
         type: UserActionType.OAUTH2_LOGIN_SUCCESS,
         payload: {
-            existingUser: true,
+            existingUser: false,
         },
     });
 };
@@ -155,7 +156,7 @@ const handleGoogleLogin = async(dispatch: Dispatch<UserAction>) => {
                 },
             });
         } else {
-            dispatch({ type: UserActionType.OAUTH2_LOGIN_COMPLETE });
+            // dispatch({ type: UserActionType.OAUTH2_LOGIN_COMPLETE });
         }
 
         return result.type;

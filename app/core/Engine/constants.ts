@@ -65,4 +65,5 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'SeedlessOnboardingController:stateChange',
 ] as const;

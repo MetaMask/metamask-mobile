@@ -100,6 +100,8 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
+    // eslint-disable-next-line no-console
+    console.log('KeyringController.state', KeyringController.state);
     await KeyringController.createNewVaultAndKeychain(password);
     password = this.wipeSensitiveData();
   };
@@ -170,7 +172,11 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     // Restore vault with empty password
+    // eslint-disable-next-line no-console
+    console.log('resetVault: KeyringController', KeyringController);
     await KeyringController.submitPassword('');
+    // eslint-disable-next-line no-console
+    console.log('resetVault: KeyringController after submitPassword', KeyringController);
     await this.resetPassword();
   };
 
@@ -308,6 +314,13 @@ class AuthenticationService {
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+
+
+      // if seedless onboarding is enabled, we need to create a seedphrase backup
+      // if (SeedlessOnboardingController.state.authToken.length > 0) {
+      //   await SeedlessOnboardingController.createSeedPhraseBackup(password, seedPhrase);
+      // }
+
       this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type

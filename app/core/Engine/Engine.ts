@@ -207,6 +207,8 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+// import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingController } from '@metamask/seedless-onboarding-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1008,6 +1010,14 @@ export class Engine {
       fetchFn: fetch,
     });
 
+    const seedlessOnboardingController = new SeedlessOnboardingController({
+      messenger: this.controllerMessenger.getRestricted({
+        name: 'SeedlessOnboardingController',
+        allowedActions: [],
+        allowedEvents: ['KeyringController:stateChange'],
+      }),
+    });
+
     const existingControllersByName = {
       ApprovalController: approvalController,
       GasFeeController: gasFeeController,
@@ -1015,6 +1025,7 @@ export class Engine {
       NetworkController: networkController,
       PreferencesController: preferencesController,
       SmartTransactionsController: this.smartTransactionsController,
+      // seedlessOnboardingController
     };
 
     const initRequest = {
@@ -1041,6 +1052,7 @@ export class Engine {
         MultichainBalancesController: multichainBalancesControllerInit,
         MultichainTransactionsController: multichainTransactionsControllerInit,
         ///: END:ONLY_INCLUDE_IF
+        // SeedlessOnboardingController: seedlessOnboardingControllerInit,
       },
       persistedState: initialState as EngineState,
       existingControllersByName,
@@ -1050,7 +1062,7 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const transactionController = controllersByName.TransactionController;
-
+    // const seedlessOnboardingController = seedlessOnboardingController;
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.transactionController = transactionController;
@@ -1408,6 +1420,7 @@ export class Engine {
       BridgeController: bridgeController,
       BridgeStatusController: bridgeStatusController,
       EarnController: earnController,
+      SeedlessOnboardingController: seedlessOnboardingController,
     };
 
     const childControllers = Object.assign({}, this.context);

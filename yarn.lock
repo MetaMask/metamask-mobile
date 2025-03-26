@@ -5357,6 +5357,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
+"@metamask/seedless-onboarding-controller@https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?7e3d33696713d2644480de02409db6f570b56fc4":
+  version "0.0.1"
+  resolved "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?7e3d33696713d2644480de02409db6f570b56fc4#c00513c1d5b5a918f64872c0dd160fde3c383c2d"
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/keyring-controller" "^21.0.0"
+    "@metamask/utils" "^11.2.0"
+
 "@metamask/selected-network-controller@^21.0.0":
   version "21.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-21.0.0.tgz#d1972a2af8a241497c490c32efb1dabd39e75c52"
@@ -21291,11 +21300,6 @@ marky@^1.2.2:
   version "1.2.5"
   resolved "https://registry.yarnpkg.com/marky/-/marky-1.2.5.tgz#55796b688cbd72390d2d399eaaf1832c9413e3c0"
   integrity sha512-q9JtQJKjpsVxCRVgQ+WapguSbKC3SQ5HEzFGPAJMStgh3QjCawp00UKv3MTTAArTmGmmPUvllHZoNbZ3gs0I+Q==
-
-material-colors@^1.2.1:
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/material-colors/-/material-colors-1.2.6.tgz#6d1958871126992ceecc72f4bcc4d8f010865f46"
-  integrity sha512-6qE4B9deFBIa9YSpOc9O0Sgc43zTeVYbgDT5veRKSlB2+ZuHNoVVxA1L/ckMUayV9Ay9y7Z/SZCLcGteW9i7bg==
 
 math-intrinsics@^1.1.0:
   version "1.1.0"

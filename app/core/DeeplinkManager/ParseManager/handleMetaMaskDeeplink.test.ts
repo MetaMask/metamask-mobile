@@ -22,6 +22,7 @@ jest.mock('../../../core/NativeModules', () => ({
 
 describe('handleMetaMaskProtocol', () => {
   const mockParse = jest.fn();
+  const mockHandleOauth2RedirectUrl = jest.fn();
   const mockHandleBuyCrypto = jest.fn();
   const mockHandleSellCrypto = jest.fn();
   const mockHandleBrowserUrl = jest.fn();
@@ -33,7 +34,6 @@ describe('handleMetaMaskProtocol', () => {
   const mockGetApprovedHosts = jest.fn();
   const mockBindAndroidSDK = jest.fn();
   const mockNavigate = jest.fn();
-
   const mockHandleDeeplink = handleDeeplink as jest.Mock;
   const mockSDKConnectGetInstance = SDKConnect.getInstance as jest.Mock;
   const mockWC2ManagerGetInstance = WC2Manager.getInstance as jest.Mock;
@@ -43,6 +43,7 @@ describe('handleMetaMaskProtocol', () => {
     _handleBuyCrypto: mockHandleBuyCrypto,
     _handleSellCrypto: mockHandleSellCrypto,
     _handleBrowserUrl: mockHandleBrowserUrl,
+    _handleOauth2RedirectUrl: mockHandleOauth2RedirectUrl,
   } as unknown as DeeplinkManager;
 
   const handled = jest.fn();
@@ -394,6 +395,26 @@ describe('handleMetaMaskProtocol', () => {
       });
 
       expect(mockHandleSellCrypto).toHaveBeenCalled();
+    });
+  });
+
+
+  describe('when url start with ${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}', () => {
+    beforeEach(() => {
+      url = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
+    });
+
+    it('should call _handleOauth2RedirectUrl', () => {
+      handleMetaMaskDeeplink({
+        instance,
+        handled,
+        params,
+        url,
+        origin,
+        wcURL,
+      });
+
+      expect(mockHandleOauth2RedirectUrl).toHaveBeenCalled();
     });
   });
 });

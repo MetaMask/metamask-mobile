@@ -47,6 +47,7 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    // ReduxService.store.dispatch({ type: UPDATE_BG_STATE_KEY });
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
@@ -54,6 +55,9 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = reduxState?.engine?.backgroundState ?? {};
+    // const state = {};
+    // eslint-disable-next-line no-console
+    console.log('EngineService: rstate', state);
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {

@@ -254,6 +254,12 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
+import {
+  SeedlessOnboardingController,
+  SeedlessOnboardingControllerState,
+  SeedlessOnboardingControllerStateChangeEvent,
+} from '@metamask/seedless-onboarding-controller';
+
 import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
@@ -390,7 +396,8 @@ type GlobalEvents =
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
+  | EarnControllerEvents
+  | SeedlessOnboardingControllerStateChangeEvent;
 
 // TODO: Abstract this into controller utils for TransactionController
 export interface TransactionEventPayload {
@@ -469,6 +476,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  SeedlessOnboardingController: SeedlessOnboardingController;
 };
 
 /**
@@ -530,6 +538,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
 /** Controller names */

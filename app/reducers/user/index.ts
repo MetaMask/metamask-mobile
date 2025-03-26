@@ -146,6 +146,13 @@ const userReducer = (
         oauth2LoginSuccess: false,
         oauth2LoginError: action.payload.error,
       };
+    case UserActionType.OAUTH2_LOGIN_RESET:
+      return {
+        ...state,
+        oauth2LoginInProgress: false,
+        oauth2LoginSuccess: false,
+        oauth2LoginError: null,
+      };
     default:
       return state;
   }

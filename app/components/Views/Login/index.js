@@ -380,6 +380,8 @@ class Login extends PureComponent {
 
   onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
+    // if password is not set, and seedlessOnboarding.state.nodeAuthTokens exist, we proceed with seedless onboarding rehydration
+
     const { password } = this.state;
     const { current: field } = this.fieldRef;
     const locked = !passwordRequirementsMet(password);

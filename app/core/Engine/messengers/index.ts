@@ -22,6 +22,7 @@ import {
   getTransactionControllerInitMessenger,
   getTransactionControllerMessenger,
 } from './transaction-controller-messenger';
+import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-controller-messenger';
 
 /**
  * The messengers for the controllers that have been.
@@ -83,4 +84,8 @@ export const CONTROLLER_MESSENGERS = {
     getInitMessenger: noop,
   },
   ///: END:ONLY_INCLUDE_IF
+  SeedlessOnboardingController: {
+    getMessenger: getSeedlessOnboardingControllerMessenger,
+    getInitMessenger: noop,
+  },
 } as const;

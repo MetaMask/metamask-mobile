@@ -32,7 +32,7 @@ import {
 import Device from '../../../util/device';
 import BaseNotification from '../../UI/Notification/BaseNotification';
 import ElevatedView from 'react-native-elevated-view';
-import { loadingSet, loadingUnset } from '../../../actions/user';
+import { loadingSet, loadingUnset, UserActionType } from '../../../actions/user';
 import { storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction } from '../../../reducers/legalNotices';
 import PreventScreenshot from '../../../core/PreventScreenshot';
 import WarningExistingUserModal from '../../UI/WarningExistingUserModal';
@@ -163,6 +163,10 @@ class Onboarding extends PureComponent {
      */
     unsetLoading: PropTypes.func,
     /**
+     * oauth2LoginReset
+     */
+    oauth2LoginReset: PropTypes.func,
+    /**
      * loadings msg
      */
     loadingMsg: PropTypes.string,
@@ -246,22 +250,29 @@ class Onboarding extends PureComponent {
     );
   };
 
-  updateOAuth2Login = () => {
+  updateOAuth2Login = async () => {
     const { oauth2LoginSuccess, oauth2LoginExistingUser, oauth2LoginError, oauth2LoginInProgress, navigation} = this.props;
     // if oauth2LoginSuccess is true, navigate to home
     DevLogger.log('updateOAuth2Login: oauth2LoginSuccess', oauth2LoginSuccess);
     DevLogger.log('updateOAuth2Login: oauth2LoginExistingUser', oauth2LoginExistingUser);
     DevLogger.log('updateOAuth2Login: oauth2LoginError', oauth2LoginError);
-    DevLogger.log('updateOAuth2Login: oauth2LoginInProgress', oauth2LoginInProgress);
+    // eslint-disable-next-line no-console
+    console.log('updateOAuth2Login: oauth2LoginInProgress', oauth2LoginInProgress);
+
     if (oauth2LoginSuccess) {
       if (oauth2LoginExistingUser) {
         // TODO: handle existing user
         // Navigate to Relogin Wallet
-        navigation.navigate('ChoosePassword');
+        this.props.oauth2LoginReset();
+        await Authentication.lockApp();
+        navigation.navigate(Routes.ONBOARDING.LOGIN);
       } else {
-        setTimeout(() => {
-          navigation.navigate('ChoosePassword');
-        }, 1000);
+        this.props.oauth2LoginReset();
+        // eslint-disable-next-line no-console
+        console.log('updateOAuth2Login: navigate to ChoosePassword');
+        this.props.navigation.navigate('ChoosePassword', {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+        });
       }
     }
     if (oauth2LoginError) {
@@ -553,6 +564,7 @@ const mapDispatchToProps = (dispatch) => ({
   unsetLoading: () => dispatch(loadingUnset()),
   disableNewPrivacyPolicyToast: () =>
     dispatch(storePrivacyPolicyClickedOrClosedAction()),
+  oauth2LoginReset: () => dispatch({ type: UserActionType.OAUTH2_LOGIN_RESET }),
 });
 
 export default connect(

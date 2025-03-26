@@ -26,6 +26,7 @@ export enum UserActionType {
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
 
   OAUTH2_LOGIN = 'OAUTH2_LOGIN',
+  OAUTH2_LOGIN_RESET = 'OAUTH2_LOGIN_RESET',
   OAUTH2_LOGIN_COMPLETE = 'OAUTH2_LOGIN_COMPLETE',
   OAUTH2_LOGIN_SUCCESS = 'OAUTH2_LOGIN_SUCCESS',
   OAUTH2_LOGIN_ERROR = 'OAUTH2_LOGIN_ERROR',
@@ -102,6 +103,8 @@ export type OAuth2LoginErrorAction = Action<UserActionType.OAUTH2_LOGIN_ERROR> &
 
 export type OAuth2LoginCompleteAction = Action<UserActionType.OAUTH2_LOGIN_COMPLETE>;
 
+export type OAuth2LoginResetAction = Action<UserActionType.OAUTH2_LOGIN_RESET>;
+
 /**
  * User actions union type
  */
@@ -130,4 +133,5 @@ export type UserAction =
   | OAuth2LoginAction
   | OAuth2LoginSuccessAction
   | OAuth2LoginErrorAction
-  | OAuth2LoginCompleteAction;
+  | OAuth2LoginCompleteAction
+  | OAuth2LoginResetAction;
