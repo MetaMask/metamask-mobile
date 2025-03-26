@@ -101,7 +101,9 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             style={style.linkContainer}
             onPress={() => viewOnBlockExplorer(label)}
           >
-            <Text style={style.linkText}>{formatAddress(value, 'short')}</Text>
+            <Text style={style.linkText}>
+              {formatAddress(value, 'short')}
+            </Text>
             <Icon
               name="external-link"
               size={16}
