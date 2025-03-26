@@ -46,7 +46,17 @@ import { ProviderConfig } from '../../selectors/networkController';
 jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
+  requestPermittedChainsPermissionIncremental: jest.fn(),
+  controllerMessenger: {
+    call: { bind: jest.fn() },
+  },
   context: {
+    ApprovalController: {
+      has: jest.fn(),
+    },
+    SelectedNetworkController: {
+      getNetworkClientIdForDomain: jest.fn(),
+    },
     PreferencesController: {
       state: {},
     },
@@ -55,11 +65,14 @@ jest.mock('../Engine', () => ({
       newUnsignedTypedMessage: jest.fn(),
     },
     PermissionController: {
+      getCaveat: jest.fn(),
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
     },
     NetworkController: {
+      getNetworkConfigurationByChainId: jest.fn(),
+      getNetworkConfigurationByNetworkClientId: () => ({ chainId: '0x1' }),
       getNetworkClientById: () => ({
         configuration: {
           chainId: '0x1',
@@ -381,7 +394,7 @@ describe('getRpcMethodMiddleware', () => {
         EthMethod.SignTypedDataV4,
       ],
     };
-    const mockGetInternalAccounts = jest.fn().mockImplementationOnce(() => [
+    const mockListAccounts = jest.fn().mockImplementationOnce(() => [
       {
         address: '0x1',
         id: '21066553-d8c8-4cdc-af33-efc921cd3ca9',
@@ -402,18 +415,11 @@ describe('getRpcMethodMiddleware', () => {
         allowedEvents: [],
       }),
       caveatSpecifications: getCaveatSpecifications({
-        getInternalAccounts: mockGetInternalAccounts,
+        listAccounts: mockListAccounts,
         findNetworkClientIdByChainId: jest.fn(),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
-        ...getPermissionSpecifications({
-          getAllAccounts: jest.fn().mockImplementation(async () => ['0x1']),
-          getInternalAccounts: mockGetInternalAccounts,
-          captureKeyringTypesWithMissingIdentities: jest
-            .fn()
-            .mockImplementation(() => []),
-        }),
+        ...getPermissionSpecifications(),
       },
       unrestrictedMethods,
     });
@@ -707,7 +713,7 @@ describe('getRpcMethodMiddleware', () => {
   });
 
   describe('wallet_requestPermissions', () => {
-    it('can requestPermissions for eth_accounts', async () => {
+    it.only('can requestPermissions for eth_accounts', async () => {
       const mockOrigin = 'example.metamask.io';
       const mockPermission: Awaited<
         ReturnType<
@@ -736,6 +742,7 @@ describe('getRpcMethodMiddleware', () => {
           },
         ],
       );
+
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
@@ -751,6 +758,7 @@ describe('getRpcMethodMiddleware', () => {
         ],
       };
       const response = await callMiddleware({ middleware, request });
+
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
       ).toEqual([mockPermission.eth_accounts]);

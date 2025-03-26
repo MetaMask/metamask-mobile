@@ -1985,7 +1985,6 @@ export class Engine {
     origin: string,
     requestedPermissions: ValidPermission<string, Caveat<string, Json>>,
   ) {
-    // TODO: [ffmcgee] DRY this (BackgroundBridge.js)
     const permissions = pick(requestedPermissions, [
       PermissionKeys.eth_accounts,
       PermissionKeys.permittedChains,
