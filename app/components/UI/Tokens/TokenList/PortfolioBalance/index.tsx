@@ -105,25 +105,13 @@ export const PortfolioBalance = React.memo(() => {
       return null;
     }
 
-    if (multichainBalances.isPortfolioVieEnabled) {
-      return (
-        <AggregatedPercentageCrossChains
-          privacyMode={privacyMode}
-          totalFiatCrossChains={multichainBalances.totalFiatBalance}
-          tokenFiatBalancesCrossChains={
-            multichainBalances.tokenFiatBalancesCrossChains
-          }
-        />
-      );
-    }
-
     return (
-      <AggregatedPercentage
+      <AggregatedPercentageCrossChains
         privacyMode={privacyMode}
-        ethFiat={multichainBalances.aggregatedBalance.ethFiat}
-        tokenFiat={multichainBalances.aggregatedBalance.tokenFiat}
-        tokenFiat1dAgo={multichainBalances.aggregatedBalance.tokenFiat1dAgo}
-        ethFiat1dAgo={multichainBalances.aggregatedBalance.ethFiat1dAgo}
+        totalFiatCrossChains={multichainBalances.totalFiatBalance}
+        tokenFiatBalancesCrossChains={
+          multichainBalances.tokenFiatBalancesCrossChains
+        }
       />
     );
   };
