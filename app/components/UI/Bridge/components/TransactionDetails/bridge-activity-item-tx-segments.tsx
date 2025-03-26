@@ -21,11 +21,9 @@ const getTxIndex = (srcTxStatus: StatusTypes) => {
   throw new Error('No more possible states for srcTxStatus');
 };
 
-const getSrcTxStatus = (initialTransaction: TransactionMeta) => {
-  return initialTransaction.status === TransactionStatus.confirmed
+const getSrcTxStatus = (initialTransaction: TransactionMeta) => initialTransaction.status === TransactionStatus.confirmed
     ? StatusTypes.COMPLETE
     : StatusTypes.PENDING;
-};
 
 const getDestTxStatus = ({
   bridgeTxHistoryItem,
@@ -70,5 +68,5 @@ export default function BridgeActivityItemTxSegments({
         <Segment type={destTxStatus} />
       </Box>
     </Box>
-  ); 
+  );
 }

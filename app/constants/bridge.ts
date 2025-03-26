@@ -1,4 +1,4 @@
-import { CHAIN_IDS } from "@metamask/transaction-controller";
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 // TODO read from feature flags
 export const ALLOWED_BRIDGE_CHAIN_IDS = [
@@ -12,7 +12,7 @@ export const ALLOWED_BRIDGE_CHAIN_IDS = [
     CHAIN_IDS.LINEA_MAINNET,
     CHAIN_IDS.BASE,
   ];
-  
+
 export type AllowedBridgeChainIds = (typeof ALLOWED_BRIDGE_CHAIN_IDS)[number];
 
 export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';

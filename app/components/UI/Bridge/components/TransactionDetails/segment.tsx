@@ -4,7 +4,7 @@ import { Box } from '../../../Box/Box';
 import { useTheme } from '../../../../../util/theme';
 import { StyleSheet } from 'react-native';
 
-const getSegmentStyle = (type: StatusTypes | null) => 
+const getSegmentStyle = (type: StatusTypes | null) =>
   StyleSheet.create({
     outerSegment: {
       height: 4,

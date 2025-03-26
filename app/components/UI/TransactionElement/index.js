@@ -331,7 +331,7 @@ class TransactionElement extends PureComponent {
       tx: { time, status, isSmartTransaction, type },
     } = this.props;
     const isBridgeTransaction = type === 'bridge';
-    const { bridgeTxHistoryItem, isBridgeComplete } = this.props?.bridgeTxHistoryData;    
+    const { bridgeTxHistoryItem, isBridgeComplete } = this.props?.bridgeTxHistoryData;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -364,7 +364,7 @@ class TransactionElement extends PureComponent {
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
                 {title}
               </ListItem.Title>
-              { !FINAL_NON_CONFIRMED_STATUSES.includes(status) && 
+              {!FINAL_NON_CONFIRMED_STATUSES.includes(status) &&
                 isBridgeTransaction &&
                 !isBridgeComplete ? (
                   <BridgeActivityItemTxSegments
@@ -649,7 +649,7 @@ TransactionElement.contextType = ThemeContext;
 // Create a wrapper functional component
 const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({txMeta: props.tx});
-  
+
   return <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />;
 };
 

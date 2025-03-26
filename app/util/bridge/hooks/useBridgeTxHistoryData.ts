@@ -11,9 +11,9 @@ export const FINAL_NON_CONFIRMED_STATUSES = [
   TransactionStatus.rejected,
 ];
 
-export type UseBridgeTxHistoryDataProps = {
+export interface UseBridgeTxHistoryDataProps {
     txMeta: TransactionMeta;
-};
+}
 
 export function useBridgeTxHistoryData({txMeta}: UseBridgeTxHistoryDataProps) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);

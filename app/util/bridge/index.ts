@@ -1,5 +1,5 @@
-import { QuoteMetadata, QuoteResponse } from "@metamask/bridge-controller";
-import { QuoteMetadataSerialized } from "@metamask/bridge-status-controller";
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
+import { QuoteMetadataSerialized } from '@metamask/bridge-status-controller';
 
 export const serializeQuoteMetadata = (
     quoteResponse: QuoteResponse & QuoteMetadata,
