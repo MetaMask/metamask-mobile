@@ -501,7 +501,8 @@
       },
       "packages": {
         "rimraf>glob>once": true,
-        "rimraf>glob>inflight>wrappy": true
+        "rimraf>glob>inflight>wrappy": true,
+        "wrappy": true
       }
     },
     "image-size>queue>inherits": {
