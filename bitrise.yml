@@ -256,12 +256,24 @@ stages:
   build_e2e_flask_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build_flask: {}
-      - android_e2e_build_flask: {}
+      - ios_e2e_build:
+          envs:
+            - METAMASK_BUILD_TYPE: 'flask'
+            - METAMASK_ENVIRONMENT: 'local'
+      - android_e2e_build:
+          envs:
+            - METAMASK_BUILD_TYPE: 'flask'
+            - METAMASK_ENVIRONMENT: 'local'
   run_e2e_flask_stage:
     workflows:
-      - ios_e2e_test_flask: {}
-      - android_e2e_test_flask: {}
+      - ios_e2e_test:
+          envs:
+            - METAMASK_BUILD_TYPE: 'flask'
+            - METAMASK_ENVIRONMENT: 'local'
+      - android_e2e_test:
+          envs:
+            - METAMASK_BUILD_TYPE: 'flask'
+            - METAMASK_ENVIRONMENT: 'local'
 
 workflows:
   # Code Setups
@@ -820,7 +832,13 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+
+                if [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:build:qa-release e2e/specs/flask/
+                else
+                  IS_TEST='true' METAMASK_BUILD_TYPE='main' yarn test:e2e:android:build:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                fi
       - save-gradle-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -1000,6 +1018,7 @@ workflows:
   ios_e2e_build:
     envs:
       - NO_FLIPPER: '1'
+      - METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE:-'main'}
     before_run:
       - install_applesimutils
       - code_setup
@@ -1083,6 +1102,7 @@ workflows:
   ios_e2e_test:
     envs:
       - NO_FLIPPER: '1'
+      - METAMASK_BUILD_TYPE: ${METAMASK_BUILD_TYPE:-'main'}
     before_run:
       - setup
       - install_applesimutils
@@ -1149,7 +1169,11 @@ workflows:
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                if [ "$METAMASK_BUILD_TYPE" == "flask" ]; then
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
+                else
+                  IS_TEST='true' IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                fi
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1934,25 +1958,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
-                  TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                  echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                  TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
+                IS_TEST='true' yarn test:e2e:ios:run:qa-release
       - script@1:
           title: Kill Metro bundler
           is_always_run: true
@@ -2109,24 +2117,9 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
-                  TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release e2e/specs/flask/
+                IS_TEST='true' yarn test:e2e:android:run:qa-release
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
