@@ -4,17 +4,51 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
-// Mock the store
+// Mock all the necessary imports
 jest.mock('../../../store', () => ({
   default: {
-    getState: jest.fn(() => ({}))
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: '0x1'
+            }
+          }
+        }
+      },
+      settings: {
+        basicFunctionalityEnabled: true
+      }
+    }))
   },
   _updateMockState: jest.fn(),
+  store: {
+    getState: jest.fn(() => ({
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            provider: {
+              chainId: '0x1'
+            }
+          }
+        }
+      },
+      settings: {
+        basicFunctionalityEnabled: true
+      }
+    }))
+  }
 }));
 
 // Mock the settings selector
 jest.mock('../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(() => true)
+}));
+
+// Mock the network controller selector
+jest.mock('../../../selectors/networkController', () => ({
+  selectChainId: jest.fn(() => '0x1')
 }));
 
 jest.mock('../../../core/Engine', () => {
@@ -68,6 +102,11 @@ const mockInitialState = {
           },
         },
       },
+      NetworkController: {
+        provider: {
+          chainId: '0x1'
+        }
+      }
     },
   },
   settings: {
