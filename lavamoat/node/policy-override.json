@@ -41,7 +41,8 @@
         "@babel/template": true,
         "@babel/types": true,
         "@babel/core>debug": true,
-        "@babel/traverse>globals": true
+        "@babel/traverse>globals": true,
+        "debug": true
       }
     },
     "@babel/types": {
