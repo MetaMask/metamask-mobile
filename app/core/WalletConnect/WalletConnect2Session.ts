@@ -1,7 +1,6 @@
 import { WalletDevice } from '@metamask/transaction-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
-import { ErrorResponse } from '@walletconnect/jsonrpc-types';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
@@ -353,7 +352,7 @@ class WalletConnect2Session {
       errorMsg = JSON.stringify(error);
     }
 
-    const errorResponse: ErrorResponse = {
+    const errorResponse = {
       code: ERROR_CODES.USER_REJECT_CODE,
       message: errorMsg,
     };
