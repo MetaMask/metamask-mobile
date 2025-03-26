@@ -1,13 +1,13 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { ButtonLinkProps } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.types';
+import { TouchableOpacity, StyleSheet, View } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import AnimatedLottieView from 'lottie-react-native';
+import { useTheme } from '../../../util/theme';
 
 export interface SnapUIButtonProps {
   name?: string;
@@ -16,6 +16,10 @@ export interface SnapUIButtonProps {
   form?: string;
   variant: keyof typeof COLORS;
   textVariant?: TextVariant;
+  style?: any;
+  disabled?: boolean;
+  onPress?: () => void;
+  children?: React.ReactNode;
 }
 
 const COLORS = {
@@ -24,9 +28,7 @@ const COLORS = {
   disabled: TextColor.Muted,
 };
 
-export const SnapUIButton: FunctionComponent<
-  SnapUIButtonProps & ButtonLinkProps
-> = ({
+export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   name,
   children,
   form,
@@ -34,18 +36,22 @@ export const SnapUIButton: FunctionComponent<
   variant = 'primary',
   disabled = false,
   loading = false,
-  textVariant,
+  textVariant = TextVariant.BodyMDMedium,
+  style,
+  onPress,
   ...props
 }) => {
   const { handleEvent } = useSnapInterfaceContext();
+  const { colors } = useTheme();
 
   const handlePress = () => {
+    onPress?.();
+
     handleEvent({
       event: UserInputEventType.ButtonClickEvent,
       name,
     });
 
-    // Since we don't have onSubmit on mobile, the button submits the form.
     if (type === ButtonType.Submit) {
       handleEvent({
         event: UserInputEventType.FormSubmitEvent,
@@ -55,33 +61,77 @@ export const SnapUIButton: FunctionComponent<
   };
 
   const overriddenVariant = disabled ? 'disabled' : variant;
-
   const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
+  const isIcon =
+    React.isValidElement(children) &&
+    (children.props?.type === 'Icon' ||
+      (children.type as any)?.displayName === 'Icon');
+
+  const styles = StyleSheet.create({
+    button: {
+      backgroundColor: colors.background.default,
+      borderRadius: 8,
+      paddingVertical: 8,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      ...style,
+    },
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    icon: {
+      marginRight: 8,
+    },
+    lastIcon: {
+      marginRight: 0,
+    },
+  });
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <AnimatedLottieView
+          source={{ uri: './loading.json' }}
+          autoPlay
+          loop
+          style={{
+            width: 24,
+            height: 24,
+          }}
+        />
+      );
+    }
+
+    if (isIcon) {
+      return <View style={styles.content}>{children}</View>;
+    }
+
+    if (typeof children === 'string') {
+      return (
+        <Text color={color} variant={textVariant}>
+          {children}
+        </Text>
+      );
+    }
+
+    return children;
+  };
+
   return (
-    <ButtonLink
-      {...props}
-      id={name}
+    <TouchableOpacity
+      style={styles.button}
       onPress={handlePress}
       disabled={disabled}
-      label={
-        loading ? (
-          <AnimatedLottieView
-            source={{ uri: './loading.json' }}
-            autoPlay
-            loop
-            // eslint-disable-next-line react-native/no-inline-styles
-            style={{
-              width: 24,
-              height: 24,
-            }}
-          />
-        ) : (
-          <Text color={color} variant={textVariant}>
-            {children}
-          </Text>
-        )
-      }
-    />
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={typeof children === 'string' ? children : name}
+      {...props}
+    >
+      {renderContent()}
+    </TouchableOpacity>
   );
 };
