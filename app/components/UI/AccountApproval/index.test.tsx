@@ -8,7 +8,8 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 jest.mock('../../../store', () => ({
   default: {
     getState: jest.fn(() => ({}))
-  }
+  },
+  _updateMockState: jest.fn(),
 }));
 
 // Mock the settings selector
@@ -69,6 +70,9 @@ const mockInitialState = {
       },
     },
   },
+  settings: {
+    basicFunctionalityEnabled: true
+  }
 };
 
 describe('AccountApproval', () => {
