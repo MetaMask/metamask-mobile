@@ -1049,7 +1049,8 @@
         "process.platform": true
       },
       "packages": {
-        "chalk>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true,
+        "has-flag": true
       }
     },
     "jest-worker>supports-color": {
