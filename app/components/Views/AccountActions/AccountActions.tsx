@@ -101,10 +101,6 @@ const AccountActions = () => {
             networkConfigurations,
           );
 
-          if (!explorer) {
-            return undefined;
-          }
-          // eslint-disable-next-line no-console
           return {
             url: `${explorer}/address/${selectedAccount.address}`,
             title: new URL(explorer).hostname,
