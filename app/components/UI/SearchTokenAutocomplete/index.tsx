@@ -5,6 +5,7 @@ import {
   InteractionManager,
   Text,
   LayoutAnimation,
+  TouchableOpacity,
 } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import AssetSearch from '../AssetSearch';
@@ -36,6 +37,7 @@ import Button, {
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 import Logger from '../../../util/Logger';
 import { Hex } from '@metamask/utils';
+import NetworkImageComponent from '../NetworkImages';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,6 +45,9 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     wrapper: {
       height: '85%',
+    },
+    base: {
+      padding: 16,
     },
     tokenDetectionBanner: {
       marginHorizontal: 20,
@@ -65,6 +70,32 @@ const createStyles = (colors: any) =>
     searchInput: {
       paddingBottom: 16,
     },
+    networkCell: {
+      alignItems: 'center',
+    },
+    networkSelectorContainer: {
+      marginHorizontal: 16,
+      borderWidth: 1,
+      marginTop: 16,
+      borderColor: colors.border.default,
+      borderRadius: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 10,
+    },
+    buttonIconContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    container: {
+      backgroundColor: colors.background.default,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    title: {
+      color: colors.text.default,
+    },
   });
 
 interface Props {
@@ -75,12 +106,20 @@ interface Props {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
   tabLabel: string;
+  onPress: () => void;
+  isAllNetworksEnabled: boolean;
+  allNetworksEnabled: { [key: string]: boolean };
 }
 
 /**
  * Component that provides ability to add searched assets with metadata.
  */
-const SearchTokenAutocomplete = ({ navigation }: Props) => {
+const SearchTokenAutocomplete = ({
+  navigation,
+  onPress,
+  isAllNetworksEnabled,
+  allNetworksEnabled,
+}: Props) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const [searchResults, setSearchResults] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -160,7 +199,30 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   );
 
   const addToken = useCallback(
-    async ({ address, symbol, decimals, iconUrl, name }) => {
+    async ({
+      address,
+      symbol,
+      decimals,
+      iconUrl,
+      name,
+      chainId: networkId,
+    }) => {
+      const networkConfig =
+        Engine.context.NetworkController.state
+          ?.networkConfigurationsByChainId?.[networkId];
+
+      if (!networkConfig) {
+        return;
+      }
+
+      const networkClient =
+        networkConfig?.rpcEndpoints?.[networkConfig?.defaultRpcEndpointIndex]
+          ?.networkClientId;
+
+      if (!networkClient) {
+        return;
+      }
+
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { TokensController } = Engine.context as any;
@@ -170,6 +232,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         decimals,
         image: iconUrl,
         name,
+        networkClientId: networkClient,
       });
 
       const analyticsParams = getTokenAddedAnalyticsParams({
@@ -229,7 +292,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const goToConfirmAddToken = () => {
     navigation.push('ConfirmAddAsset', {
-      selectedAssets,
+      selectedAsset: selectedAssets,
       networkName,
       chainId,
       ticker,
@@ -300,6 +363,31 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
       <ScrollView style={styles.wrapper}>
         <View>
           {renderTokenDetectionBanner()}
+          <TouchableOpacity
+            style={styles.networkSelectorContainer}
+            onPress={onPress}
+            onLongPress={onPress}
+          >
+            <TouchableOpacity
+              style={styles.base}
+              disabled={false}
+              onPress={onPress}
+              onLongPress={onPress}
+            >
+              <Text style={styles.title}>
+                {isAllNetworksEnabled
+                  ? `${strings('app_settings.popular')} ${strings(
+                      'app_settings.networks',
+                    )}`
+                  : networkName}
+              </Text>
+            </TouchableOpacity>
+            <NetworkImageComponent
+              isAllNetworksEnabled={isAllNetworksEnabled}
+              allNetworksEnabled={allNetworksEnabled}
+              onPress={onPress}
+            />
+          </TouchableOpacity>
 
           <View style={styles.searchInput}>
             <AssetSearch
@@ -308,6 +396,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
                 setFocusState(true);
               }}
               onBlur={() => setFocusState(false)}
+              allNetworksEnabled={isAllNetworksEnabled}
             />
           </View>
           <MultiAssetListItems

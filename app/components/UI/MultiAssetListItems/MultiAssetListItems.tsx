@@ -13,10 +13,9 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
-import { useSelector } from 'react-redux';
-import { selectNetworkImageSource } from '../../../selectors/networkInfos';
 import { strings } from '../../../../locales/i18n';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 
 interface Props {
   /**
@@ -63,7 +62,6 @@ const MultiAssetListItems = ({
   networkName,
 }: Props) => {
   const { styles } = useStyles(stylesheet, {});
-  const networkImageSource = useSelector(selectNetworkImageSource);
 
   return (
     <View style={styles.rowWrapper}>
@@ -93,7 +91,10 @@ const MultiAssetListItems = ({
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}
-                    imageSource={networkImageSource}
+                    imageSource={NetworkBadgeSource(
+                      searchResults[i]?.chainId,
+                      searchResults[i]?.symbol,
+                    )}
                     name={networkName}
                   />
                 }
