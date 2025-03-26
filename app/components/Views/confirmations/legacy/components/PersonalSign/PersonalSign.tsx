@@ -12,7 +12,7 @@ import {
   isExternalHardwareAccount,
   stripHexPrefix,
 } from '../../../../../../util/address';
-import { sanitizeString } from '../../../../../../util/string';
+import { escapeSpecialUnicode } from '../../../../../../util/string';
 import { useTheme } from '../../../../../../util/theme';
 import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
 import SignatureRequest from '../SignatureRequest';
@@ -210,7 +210,7 @@ const PersonalSign = ({
   };
 
   const renderMessageText = () => {
-    const textChild = sanitizeString(msgHexToText(messageParams.data))
+    const textChild = escapeSpecialUnicode(msgHexToText(messageParams.data))
       .split('\n')
       .map((line: string, i: number) => (
         <Text

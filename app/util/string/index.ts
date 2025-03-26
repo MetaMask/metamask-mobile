@@ -1,12 +1,12 @@
 import { isString } from '../lodash';
 
 /**
- * The method escapes LTR and RTL override unicode in the string
+ * The method escapes left-to-right (LTR) and right-to-left (RTL) unicode characters in the string
  *
  * @param {string} str
  * @returns {(string|*)} escaped string or original param value
  */
-export const sanitizeString = (str: string): string => {
+export const escapeSpecialUnicode = (str: string): string => {
   if (!str) {
     return str;
   }

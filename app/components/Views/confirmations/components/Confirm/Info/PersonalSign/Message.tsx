@@ -8,7 +8,7 @@ import Text from '../../../../../../../component-library/components/Texts/Text';
 import { Theme } from '../../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../../styles/common';
 import { useStyles } from '../../../../../../../component-library/hooks';
-import { sanitizeString } from '../../../../../../../util/string';
+import { escapeSpecialUnicode } from '../../../../../../../util/string';
 import { getSIWEDetails, SIWEMessage } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Address from '../../../UI/InfoRow/InfoValue/Address';
@@ -106,7 +106,7 @@ const Message = () => {
     if (!signatureRequest?.messageParams?.data) {
       return '';
     }
-    return sanitizeString(
+    return escapeSpecialUnicode(
       hexToText(signatureRequest?.messageParams?.data as string),
     );
   }, [signatureRequest?.messageParams?.data]);
