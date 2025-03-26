@@ -204,6 +204,16 @@ class TransactionElement extends PureComponent {
     this.mounted && this.setState({ transactionElement, transactionDetails });
   };
 
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.txChainId !== this.props.txChainId ||
+      prevProps.swapsTransactions !== this.props.swapsTransactions ||
+      prevProps.swapsTokens !== this.props.swapsTokens
+    ) {
+      this.componentDidMount();
+    }
+  }
+
   componentWillUnmount() {
     this.mounted = false;
   }
