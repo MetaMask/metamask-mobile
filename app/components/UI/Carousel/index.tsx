@@ -23,12 +23,16 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
 import { selectDismissedBanners } from '../../../selectors/banner';
+import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 
 export const Carousel: FC<CarouselProps> = ({ style }) => {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [pressedSlideId, setPressedSlideId] = useState<string | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { multichainBalances } = useMultichainBalances();
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const { multichainBalances } = useMultichainBalances(
+    selectedInternalAccount!,
+  );
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();

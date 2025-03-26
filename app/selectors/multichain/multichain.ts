@@ -24,6 +24,7 @@ import {
 } from '../multichainNetworkController';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -142,28 +143,28 @@ export const selectMultichainShouldShowFiat = createDeepEqualSelector(
   },
 );
 
-const selectNonEvmCachedBalance = createDeepEqualSelector(
-  selectSelectedInternalAccount,
-  selectMultichainBalances,
-  selectSelectedNonEvmNetworkChainId,
-  (selectedInternalAccount, multichainBalances, nonEvmChainId) => {
-    if (!selectedInternalAccount) {
-      return undefined;
-    }
-    // We assume that there's at least one asset type in and that is the native
-    // token for that network.
-    const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
-    const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
-    const balanceOfAsset = balancesForAccount?.[asset];
-    return balanceOfAsset?.amount ?? 0;
-  },
-);
+const selectNonEvmCachedBalance = (account: InternalAccount) =>
+  createDeepEqualSelector(
+    selectMultichainBalances,
+    selectSelectedNonEvmNetworkChainId,
+    (multichainBalances, nonEvmChainId) => {
+      if (!account) {
+        return undefined;
+      }
+      // We assume that there's at least one asset type in and that is the native
+      // token for that network.
+      const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+      const balancesForAccount = multichainBalances?.[account.id];
+      const balanceOfAsset = balancesForAccount?.[asset];
+      return balanceOfAsset?.amount ?? 0;
+    },
+  );
 
-export const selectMultichainSelectedAccountCachedBalance =
+export const selectMultichainCachedBalance = (account: InternalAccount) =>
   createDeepEqualSelector(
     selectIsEvmNetworkSelected,
     selectAccountBalanceByChainId,
-    selectNonEvmCachedBalance,
+    selectNonEvmCachedBalance(account),
     (isEvmSelected, accountBalanceByChainId, nonEvmCachedBalance) =>
       isEvmSelected
         ? accountBalanceByChainId?.balance ?? '0x0'
