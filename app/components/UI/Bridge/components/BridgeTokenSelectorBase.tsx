@@ -6,14 +6,13 @@ import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheet, { BottomSheetRef } from '../../../../component-library/components/BottomSheets/BottomSheet';
-import { TokenI } from '../../Tokens/types';
 import Icon, { IconName } from '../../../../component-library/components/Icons/Icon';
 import { IconSize } from '../../../../component-library/components/Icons/Icon/Icon.types';
-import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
 import { strings } from '../../../../../locales/i18n';
 import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
+import { BridgeToken } from '../types';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -49,8 +48,8 @@ const createStyles = (params: { theme: Theme }) => {
 
 interface BridgeTokenSelectorBaseProps {
   networksBar: React.ReactNode;
-  renderTokenItem: ({ item }: { item: TokenIWithFiatAmount }) => React.JSX.Element;
-  tokensList: TokenIWithFiatAmount[];
+  renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
+  tokensList: BridgeToken[];
 }
 
 export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = ({
@@ -67,7 +66,7 @@ export const BridgeTokenSelectorBase: React.FC<BridgeTokenSelectorBaseProps> = (
     [searchString, searchResults, tokensList]
   );
 
-  const keyExtractor = useCallback((token: TokenI) => `${token.chainId}-${token.address}`, []);
+  const keyExtractor = useCallback((token: BridgeToken) => `${token.chainId}-${token.address}`, []);
 
   const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);

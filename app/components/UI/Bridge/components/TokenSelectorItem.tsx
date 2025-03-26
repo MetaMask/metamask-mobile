@@ -16,16 +16,13 @@ import Text, {
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
-import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-
+import { BridgeToken } from '../types';
+import { TokenI } from '../../Tokens/types';
+import { ethers } from 'ethers';
 const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boolean } }) =>
   StyleSheet.create({
-    tokenIcon: {
-      width: 40,
-      height: 40,
-    },
     tokenInfo: {
       flex: 1,
       marginLeft: 8,
@@ -43,8 +40,8 @@ const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boole
   });
 
 interface TokenSelectorItemProps {
-  token: TokenIWithFiatAmount;
-  onPress: (token: TokenIWithFiatAmount) => void;
+  token: BridgeToken;
+  onPress: (token: BridgeToken) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
   isSelected?: boolean;
@@ -65,6 +62,8 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const fiatValue = token.balanceFiat;
   const balanceWithSymbol = token.balance ? `${token.balance} ${token.symbol}` : undefined;
 
+  const isNative = token.address === ethers.constants.AddressZero;
+
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -76,7 +75,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
 
       <AssetElement
         key={token.address}
-        asset={token}
+        asset={token as TokenI}
         onPress={() => onPress(token)}
         balance={shouldShowBalance ? fiatValue : undefined}
         secondaryBalance={shouldShowBalance ? balanceWithSymbol : undefined}
@@ -91,13 +90,11 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             />
           }
         >
-          {token.isNative ? (
+          {isNative ? (
             <TokenIcon
               symbol={token.symbol}
               icon={token.image}
-              style={styles.tokenIcon}
-              big={false}
-              biggest={false}
+              medium
               testID={`network-logo-${token.symbol}`}
             />
           ) : (
