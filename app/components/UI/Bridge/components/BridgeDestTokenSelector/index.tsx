@@ -1,13 +1,11 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
-import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
 import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
 import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
 import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
@@ -15,6 +13,7 @@ import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/co
 import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
+import { BridgeToken } from '../../types';
 const createStyles = () => StyleSheet.create({
   infoButton: {
     marginRight: 12,
@@ -35,15 +34,15 @@ export const BridgeDestTokenSelector: React.FC = () => {
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
   const handleTokenPress = useCallback(
-    (token: TokenI) => {
+    (token: BridgeToken) => {
       dispatch(setDestToken(token));
       navigation.goBack();
     },
     [dispatch, navigation]
   );
 
-  const renderItem = useCallback(
-    ({ item }: { item: TokenIWithFiatAmount }) => {
+  const renderToken = useCallback(
+    ({ item }: { item: BridgeToken }) => {
 
     // Open the asset details screen as a bottom sheet
     const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
@@ -77,7 +76,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
   return (
     <BridgeTokenSelectorBase
       networksBar={<BridgeDestNetworksBar />}
-      renderTokenItem={renderItem}
+      renderTokenItem={renderToken}
       tokensList={tokensList}
     />
   );

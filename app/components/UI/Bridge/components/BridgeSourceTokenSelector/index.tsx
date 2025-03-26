@@ -1,17 +1,16 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
-import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
 import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from '../BridgeSourceNetworksBar';
 import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
 import { useTokens } from '../../hooks/useTokens';
+import { BridgeToken } from '../../types';
 
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
@@ -29,8 +28,8 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
   });
 
-  const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
-    const handleTokenPress = (token: TokenI) => {
+  const renderItem = useCallback(({ item }: { item: BridgeToken }) => {
+    const handleTokenPress = (token: BridgeToken) => {
       dispatch(setSourceToken(token));
       navigation.goBack();
     };
