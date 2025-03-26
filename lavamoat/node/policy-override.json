@@ -847,7 +847,8 @@
         "invariant": true,
         "metro-source-map": true,
         "nullthrows": true,
-        "metro-source-map>vlq": true
+        "metro-source-map>vlq": true,
+        "vlq": true
       }
     },
     "metro-transform-plugins": {
