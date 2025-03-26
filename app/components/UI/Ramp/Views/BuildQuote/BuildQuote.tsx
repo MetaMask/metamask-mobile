@@ -40,7 +40,6 @@ import Keypad from '../../components/Keypad';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
-import CustomActionButton from '../../containers/CustomActionButton';
 import TokenSelectModal from '../../components/TokenSelectModal';
 import PaymentMethodModal from '../../components/PaymentMethodModal';
 import PaymentMethodIcon from '../../components/PaymentMethodIcon';
@@ -752,7 +751,11 @@ const BuildQuote = () => {
         value: quickAmount,
         label: currentFiatCurrency?.denomSymbol + quickAmount.toString(),
       })) ?? [];
-  } else if (balanceBN && !balanceBN.isZero() && maxSellAmount?.gt(new BN4(0))) {
+  } else if (
+    balanceBN &&
+    !balanceBN.isZero() &&
+    maxSellAmount?.gt(new BN4(0))
+  ) {
     quickAmounts = [
       { value: 0.25, label: '25%' },
       { value: 0.5, label: '50%' },
@@ -929,24 +932,15 @@ const BuildQuote = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <Row style={styles.cta}>
-            {currentPaymentMethod?.customAction ? (
-              <CustomActionButton
-                customAction={currentPaymentMethod.customAction}
-                amount={amountNumber}
-                disabled={!amountIsValid || amountNumber <= 0}
-                fiatSymbol={currentFiatCurrency?.symbol}
-              />
-            ) : (
-              <StyledButton
-                type="confirm"
-                onPress={handleGetQuotePress}
-                accessibilityRole="button"
-                accessible
-                disabled={amountNumber <= 0}
-              >
-                {strings('fiat_on_ramp_aggregator.get_quotes')}
-              </StyledButton>
-            )}
+            <StyledButton
+              type="confirm"
+              onPress={handleGetQuotePress}
+              accessibilityRole="button"
+              accessible
+              disabled={amountNumber <= 0}
+            >
+              {strings('fiat_on_ramp_aggregator.get_quotes')}
+            </StyledButton>
           </Row>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

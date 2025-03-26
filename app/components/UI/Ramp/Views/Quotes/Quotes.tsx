@@ -16,7 +16,7 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import { Provider } from '@consensys/on-ramp-sdk/dist/API';
+import { PaymentCustomAction, Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
@@ -26,6 +26,7 @@ import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import ErrorView from '../../components/ErrorView';
 import Row from '../../components/Row';
 import Quote from '../../components/Quote';
+import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import {
@@ -245,7 +246,7 @@ function Quotes() {
   ]);
 
   const handleOnQuotePress = useCallback(
-    (quote: QuoteResponse | SellQuoteResponse) => {
+    (quote: QuoteResponse | SellQuoteResponse | PaymentCustomAction) => {
       setProviderId(quote.provider.id);
     },
     [],
@@ -272,83 +273,91 @@ function Quotes() {
   );
 
   const handleOnPressCTA = useCallback(
-    async (quote: QuoteResponse | SellQuoteResponse, index) => {
+    async (
+      quote: QuoteResponse | SellQuoteResponse | PaymentCustomAction,
+      index,
+    ) => {
       try {
         setIsQuoteLoading(true);
 
-        const totalFee =
-          (quote.networkFee ?? 0) +
-          (quote.providerFee ?? 0) +
-          (quote.extraFee ?? 0);
-
-        const payload = {
-          refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
-          quote_position: index + 1,
-          results_count: quotesByPriceWithoutError.length,
-          payment_method_id: selectedPaymentMethodId as string,
-          total_fee: totalFee,
-          gas_fee: quote.networkFee ?? 0,
-          processing_fee: quote.providerFee ?? 0,
-          exchange_rate:
-            ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
-          amount: params.amount,
-          is_most_reliable: quote.tags.isMostReliable,
-          is_best_rate: quote.tags.isBestRate,
-          is_recommended:
-            !isExpanded && quote.provider.id === recommendedQuote?.provider.id,
-        };
-
-        if (isBuy) {
-          trackEvent('ONRAMP_PROVIDER_SELECTED', {
-            ...payload,
-            currency_source: params.fiatCurrency?.symbol,
-            currency_destination: params.asset?.symbol,
-            provider_onramp: quote.provider.name,
-            crypto_out: quote.amountOut ?? 0,
-            chain_id_destination: selectedChainId,
-          });
+        // check if the quote is a custom action
+        if (!('amountIn' in quote)) {
+          console.log('user clicked a custom action');
         } else {
-          trackEvent('OFFRAMP_PROVIDER_SELECTED', {
-            ...payload,
-            currency_destination: params.fiatCurrency?.symbol,
-            currency_source: params.asset?.symbol,
-            provider_offramp: quote.provider.name,
-            fiat_out: quote.amountOut ?? 0,
-            chain_id_source: selectedChainId,
-          });
-        }
+          const totalFee =
+            (quote.networkFee ?? 0) +
+            (quote.providerFee ?? 0) +
+            (quote.extraFee ?? 0);
 
-        let buyAction;
-        if (isBuyQuote(quote, rampType)) {
-          buyAction = await quote.buy();
-        } else {
-          buyAction = await quote.sell();
-        }
+          const payload = {
+            refresh_count: appConfig.POLLING_CYCLES - pollingCyclesLeft,
+            quote_position: index + 1,
+            results_count: quotesByPriceWithoutError.length,
+            payment_method_id: selectedPaymentMethodId as string,
+            total_fee: totalFee,
+            gas_fee: quote.networkFee ?? 0,
+            processing_fee: quote.providerFee ?? 0,
+            exchange_rate:
+              ((quote.amountIn ?? 0) - totalFee) / (quote.amountOut ?? 0),
+            amount: params.amount,
+            is_most_reliable: quote.tags.isMostReliable,
+            is_best_rate: quote.tags.isBestRate,
+            is_recommended:
+              !isExpanded &&
+              quote.provider.id === recommendedQuote?.provider.id,
+          };
 
-        if (
-          buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
-        ) {
-          await renderInAppBrowser(
-            buyAction,
-            quote.provider,
-            quote.amountIn as number,
-            quote.fiat?.symbol,
-          );
-        } else if (
-          buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser
-        ) {
-          const { url, orderId: customOrderId } = await buyAction.createWidget(
-            callbackBaseUrl,
-          );
-          navigation.navigate(
-            ...createCheckoutNavDetails({
-              provider: quote.provider,
-              url,
-              customOrderId,
-            }),
-          );
-        } else {
-          throw new Error('Unsupported browser type: ' + buyAction.browser);
+          if (isBuy) {
+            trackEvent('ONRAMP_PROVIDER_SELECTED', {
+              ...payload,
+              currency_source: params.fiatCurrency?.symbol,
+              currency_destination: params.asset?.symbol,
+              provider_onramp: quote.provider.name,
+              crypto_out: quote.amountOut ?? 0,
+              chain_id_destination: selectedChainId,
+            });
+          } else {
+            trackEvent('OFFRAMP_PROVIDER_SELECTED', {
+              ...payload,
+              currency_destination: params.fiatCurrency?.symbol,
+              currency_source: params.asset?.symbol,
+              provider_offramp: quote.provider.name,
+              fiat_out: quote.amountOut ?? 0,
+              chain_id_source: selectedChainId,
+            });
+          }
+
+          let buyAction;
+          if (isBuyQuote(quote, rampType)) {
+            buyAction = await quote.buy();
+          } else {
+            buyAction = await quote.sell();
+          }
+
+          if (
+            buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
+          ) {
+            await renderInAppBrowser(
+              buyAction,
+              quote.provider,
+              quote.amountIn as number,
+              quote.fiat?.symbol,
+            );
+          } else if (
+            buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser
+          ) {
+            const { url, orderId: customOrderId } =
+              await buyAction.createWidget(callbackBaseUrl);
+            navigation.navigate(
+              ...createCheckoutNavDetails({
+                provider: quote.provider,
+                url,
+                customOrderId,
+              }),
+            );
+          } else {
+            throw new Error('Unsupported browser type: ' + buyAction.browser);
+          }
         }
       } catch (error) {
         Logger.error(error as Error, {
@@ -593,8 +602,15 @@ function Quotes() {
       } else if (recommendedQuote) {
         setProviderId(recommendedQuote.provider?.id);
       }
+    } else if (recommendedCustomAction) {
+      setProviderId(recommendedCustomAction.provider.id);
     }
-  }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
+  }, [
+    isExpanded,
+    quotesByPriceWithoutError,
+    recommendedCustomAction,
+    recommendedQuote,
+  ]);
 
   if (sdkError) {
     if (!isExpanded) {
@@ -701,7 +717,11 @@ function Quotes() {
   }
 
   // No providers available
-  if (!isFetchingQuotes && quotesByPriceWithoutError.length === 0) {
+  if (
+    !isFetchingQuotes &&
+    quotesByPriceWithoutError.length === 0 &&
+    customActions?.length === 0
+  ) {
     if (!isExpanded) {
       return (
         <BottomSheet>
@@ -758,7 +778,22 @@ function Quotes() {
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={1} />
             ) : recommendedCustomAction ? (
-              <>{/*TODO: Implement Custom Action Fake Quote */}</>
+              <CustomAction
+                isLoading={isQuoteLoading}
+                previouslyUsedProvider={ordersProviders.includes(
+                  recommendedCustomAction.provider.id,
+                )}
+                customAction={recommendedCustomAction}
+                onPress={() => handleOnQuotePress(recommendedCustomAction)}
+                onPressCTA={() => handleOnPressCTA(recommendedCustomAction, 0)}
+                highlighted={recommendedCustomAction.provider.id === providerId}
+                showInfo={() =>
+                  handleInfoPress({
+                    provider: recommendedCustomAction.provider,
+                  })
+                }
+                rampType={rampType}
+              />
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
                 <Quote
