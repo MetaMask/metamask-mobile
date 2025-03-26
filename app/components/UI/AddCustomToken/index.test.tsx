@@ -5,11 +5,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 jest.mock('../../../util/networks', () => ({
   getBlockExplorerAddressUrl: jest
     .fn()
-    .mockReturnValue({ title: 'test', url: 'https://example.com/' }),
+    .mockReturnValue({ title: 'test-network', url: 'https://test-2.com/' }),
 }));
 
 describe('AddCustomToken', () => {
-  it('render matches previous snapshot', () => {
+  it('render correctly', () => {
     const { toJSON } = renderWithProvider(<AddCustomToken />);
     expect(toJSON()).toMatchSnapshot();
   });
