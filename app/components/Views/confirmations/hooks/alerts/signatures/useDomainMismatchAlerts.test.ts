@@ -5,7 +5,6 @@ import { isSIWESignatureRequest } from '../../../utils/signature';
 import useDomainMismatchAlerts from './useDomainMismatchAlerts';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { siweSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
-import { AlertKeys } from '../../../constants/alerts';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('../../../utils/signature');
@@ -13,7 +12,7 @@ jest.mock('../../../utils/signature');
 describe('useDomainMismatchAlerts', () => {
   const ALERT_MOCK = {
     field: RowAlertKey.RequestFrom,
-    key: AlertKeys.DomainMismatch,
+    key: RowAlertKey.RequestFrom,
     message: `The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials.`,
     title: 'Suspicious sign-in request',
     severity: Severity.Danger,

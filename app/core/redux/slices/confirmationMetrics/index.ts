@@ -1,7 +1,6 @@
 import { merge } from 'lodash';
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { createSelector } from 'reselect';
 
 export interface ConfirmationMetrics {
   properties?: Record<string, unknown>;
@@ -51,8 +50,3 @@ export const { updateConfirmationMetric } = actions;
 // Selectors
 export const selectConfirmationMetrics = (state: RootState) =>
   state[name].metricsById;
-
-export const selectConfirmationMetricsById = createSelector(
-  [selectConfirmationMetrics, (_: RootState, id: string) => id],
-  (metricsById, id) => metricsById[id]
-);
