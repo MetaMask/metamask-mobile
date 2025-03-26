@@ -17,9 +17,6 @@ import TokenIcon from '../../Swaps/components/TokenIcon';
 import { Box } from '../../Box/Box';
 import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
 import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 
@@ -32,9 +29,6 @@ const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boole
     tokenInfo: {
       flex: 1,
       marginLeft: 8,
-    },
-    infoButton: {
-      marginRight: 12,
     },
     container: {
       backgroundColor: vars.isSelected ? theme.colors.primary.muted : theme.colors.background.default,
@@ -53,8 +47,9 @@ interface TokenSelectorItemProps {
   onPress: (token: TokenIWithFiatAmount) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
-  shouldShowBalance?: boolean;
   isSelected?: boolean;
+  shouldShowBalance?: boolean;
+  children?: React.ReactNode;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -62,16 +57,13 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   onPress,
   networkName,
   networkImageSource,
-  shouldShowBalance = true,
   isSelected = false,
+  shouldShowBalance = true,
+  children,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
-  const navigation = useNavigation();
   const fiatValue = token.balanceFiat;
-  const balanceWithSymbol = `${token.balance} ${token.symbol}`;
-
-  // Open the asset details screen as a bottom sheet
-  const handleInfoButtonPress = () => navigation.navigate('Asset', { ...token });
+  const balanceWithSymbol = token.balance ? `${token.balance} ${token.symbol}` : undefined;
 
   return (
     <Box
@@ -125,16 +117,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
           </Text>
         </Box>
       </AssetElement>
-      {!shouldShowBalance && (
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSizes.Md}
-          onPress={handleInfoButtonPress}
-          iconColor={IconColor.Alternative}
-          style={styles.infoButton}
-          testID="token-info-button"
-        />
-      )}
+      {children}
     </Box>
   );
 };

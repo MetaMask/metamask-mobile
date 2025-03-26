@@ -19,10 +19,9 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
-  const tokensList = useSourceTokens();
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const selectedSourceToken = useSelector(selectSourceToken);
-
+  const tokensList = useSourceTokens({ chainId: selectedSourceToken?.chainId as Hex });
 
   const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
     const handleTokenPress = (token: TokenI) => {
@@ -31,16 +30,16 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     };
 
     return (
-    <TokenSelectorItem
-      token={item}
-      onPress={handleTokenPress}
-      networkName={networkConfigurations[item.chainId as Hex].name}
-      //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-      networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
-      isSelected={
-        selectedSourceToken?.address === item.address &&
-        selectedSourceToken?.chainId === item.chainId
-      }
+      <TokenSelectorItem
+        token={item}
+        onPress={handleTokenPress}
+        networkName={networkConfigurations[item.chainId as Hex].name}
+        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
+        isSelected={
+          selectedSourceToken?.address === item.address &&
+          selectedSourceToken?.chainId === item.chainId
+        }
       />
     );
   }, [dispatch, navigation, networkConfigurations, selectedSourceToken]);
