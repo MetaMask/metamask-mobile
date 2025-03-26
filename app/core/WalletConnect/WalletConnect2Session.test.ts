@@ -29,6 +29,7 @@ jest.mock('@reown/walletkit', () => {
     getPendingSessionRequests: jest.fn(),
     respondSessionRequest: jest.fn().mockResolvedValue(undefined),
     on: jest.fn(),
+    emitSessionEvent: jest.fn(),
   };
 
   return {
@@ -63,6 +64,7 @@ jest.mock('../Permissions', () => ({
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../RPCMethods/RPCMethodMiddleware', () => ({
@@ -183,7 +185,7 @@ describe('WalletConnect2Session', () => {
       response: {
         id: '1',
         jsonrpc: '2.0',
-        error: { code: 1, message: 'Invalid chainId' },
+        error: { code: 4902, message: 'Invalid chainId' },
       },
     });
   });
