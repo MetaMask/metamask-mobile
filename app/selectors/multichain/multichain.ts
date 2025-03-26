@@ -249,7 +249,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
         const isNative = assetNamespace === 'slip44';
         const balance = balances?.[assetId] || { amount: undefined, unit: '' };
         const rate = assetsRates?.[assetId]?.rate || '0';
-        const balanceInFiat = new BigNumber(balance.amount).times(rate);
+        const balanceInFiat = balance.amount
+          ? new BigNumber(balance.amount).times(rate)
+          : undefined;
 
         const assetMetadataFallback = {
           name: balance.unit || '',
@@ -271,9 +273,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
           chainId,
           isNative,
           balance: balance.amount,
-          secondary: balanceInFiat.toString(),
+          secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
           string: '',
-          balanceFiat: balanceInFiat.toString(),
+          balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
           isStakeable: false,
           aggregators: [],
           isETH: false,
