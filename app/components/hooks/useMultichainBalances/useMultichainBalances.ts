@@ -1,7 +1,7 @@
 /* eslint-disable arrow-body-style */
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,
@@ -86,9 +86,20 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     let total;
 
     if (isOriginalNativeTokenSymbol) {
+      if (isPortfolioViewEnabled()) {
+        total =
+          totalFiatBalancesCrossChain[
+            selectedInternalAccount?.address as string
+          ]?.totalFiatBalance ?? 0;
+      } else {
+        const tokenFiatTotal = balance?.tokenFiat ?? 0;
+        const ethFiatTotal = balance?.ethFiat ?? 0;
+        total = tokenFiatTotal + ethFiatTotal;
+      }
+    } else if (isPortfolioViewEnabled()) {
       total =
         totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
-          ?.totalFiatBalance ?? 0;
+          ?.totalTokenFiat ?? 0;
     } else {
       total = balance?.tokenFiat ?? 0;
     }
@@ -171,6 +182,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
           ?.totalTokenFiat ?? 0,
       shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
+      isPortfolioVieEnabled: isPortfolioViewEnabled(),
       aggregatedBalance: getAggregatedBalance(),
     },
   };

@@ -162,6 +162,7 @@ describe('useMultichainBalances', () => {
 
     const { result } = renderHook(() => useMultichainBalances());
 
+    expect(result.current.multichainBalances.isPortfolioVieEnabled).toBe(true);
     expect(result.current.multichainBalances.totalFiatBalance).toBe(
       mockTotalFiatBalance,
     );

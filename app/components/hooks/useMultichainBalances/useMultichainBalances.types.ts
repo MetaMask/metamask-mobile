@@ -8,6 +8,7 @@ export interface MultichainBalancesData {
   totalFiatBalance: number;
   totalTokenFiat: number;
   shouldShowAggregatedPercentage: boolean;
+  isPortfolioVieEnabled: boolean;
   aggregatedBalance: AggregatedPercentageProps;
 }
 
