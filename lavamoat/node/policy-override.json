@@ -1001,7 +1001,8 @@
         "setTimeout": true
       },
       "packages": {
-        "image-size>queue>inherits": true
+        "image-size>queue>inherits": true,
+        "inherits": true
       }
     },
     "metro-config>jest-validate>pretty-format>react-is": {
