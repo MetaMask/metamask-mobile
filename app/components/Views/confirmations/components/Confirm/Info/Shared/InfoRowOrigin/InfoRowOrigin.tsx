@@ -29,7 +29,7 @@ const InfoRowOrigin = () => {
       testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
     >
       <AlertRow
-        alertField={RowAlertKey.RequestFrom}
+        alertKey={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >

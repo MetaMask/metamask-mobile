@@ -3,7 +3,6 @@ import reducer, {
   updateConfirmationMetric,
   selectConfirmationMetrics,
   ConfirmationMetrics,
-  selectConfirmationMetricsById,
 } from './index';
 import { RootState } from '../../../../reducers';
 
@@ -91,25 +90,6 @@ describe('confirmationMetrics slice', () => {
       } as unknown as RootState;
 
       expect(selectConfirmationMetrics(state)).toEqual(metricsById);
-    });
-
-    it('selects confirmation metrics by ID', () => {
-      const metricsById = {
-        'id-1': {
-          properties: { prop1: 'value1' },
-          sensitiveProperties: { sensitive: 'secret' },
-        },
-        'id-2': {
-          properties: { prop2: 'value2' },
-          sensitiveProperties: { sensitive2: 'secret2' },
-        },
-      };
-
-      const state = {
-        confirmationMetrics: { metricsById },
-      } as unknown as RootState;
-
-      expect(selectConfirmationMetricsById(state, 'id-1')).toEqual(metricsById['id-1']);
     });
   });
 });

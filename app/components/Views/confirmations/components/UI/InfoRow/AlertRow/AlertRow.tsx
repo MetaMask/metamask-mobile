@@ -1,9 +1,8 @@
 import React from 'react';
+import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InlineAlert from '../../../../AlertSystem/InlineAlert/InlineAlert';
 import { useAlerts } from '../../../../AlertSystem/context';
-import { useConfirmationAlertMetric } from '../../../../hooks/useConfirmationAlertMetric';
 import { Severity } from '../../../../types/alerts';
-import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InfoRow, { InfoRowProps } from '../InfoRow';
 
 function getAlertTextColors(
@@ -20,21 +19,18 @@ function getAlertTextColors(
 }
 
 export interface AlertRowProps extends InfoRowProps {
-  alertField: string;
+  alertKey: string;
   /** Determines whether to display the row only when an alert is present. */
   isShownWithAlertsOnly?: boolean;
 }
 
-const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
-  const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
-  const { trackInlineAlertClicked } = useConfirmationAlertMetric();
-  const alertSelected = fieldAlerts.find((a) => a.field === alertField);
+const AlertRow = ({ alertKey, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
+  const { alerts, showAlertModal, setAlertKey } = useAlerts();
+  const alertSelected = alerts.find((a) => a.key === alertKey);
 
   const handleInlineAlertClick = () => {
-    if(!alertSelected) return;
-    setAlertKey(alertSelected.key);
+    setAlertKey(alertKey);
     showAlertModal();
-    trackInlineAlertClicked();
   };
 
   if (!alertSelected && isShownWithAlertsOnly) {
