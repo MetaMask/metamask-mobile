@@ -11,13 +11,30 @@ import {
   PRIMARY_TYPES_PERMIT,
   PrimaryType,
 } from '../constants/signatures';
-import { sanitizeMessage } from '../../../../util/string';
+import {
+  isArrayType,
+  isSolidityType,
+  stripArrayType,
+  stripMultipleNewlines,
+  stripOneLayerofNesting,
+ } from '../../../../util/string';
 import { TOKEN_ADDRESS } from '../constants/tokens';
 import BigNumber from 'bignumber.js';
 
+type FieldValue = string | string[] | Record<string, unknown>;
+
+interface BaseType {
+  name: string;
+  type: string;
+}
 interface TypedSignatureRequest {
   messageParams: MessageParamsTyped;
   type: SignatureRequestType.TypedSign;
+}
+
+interface ValueType {
+  value: FieldValue | ValueType[];
+  type: string;
 }
 
 /**
@@ -64,6 +81,63 @@ export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
   );
 };
 
+export const sanitizeMessage = (
+  message: FieldValue,
+  primaryType: string,
+  types: Record<string, BaseType[]> | undefined,
+): ValueType => {
+  if (!types) {
+    throw new Error(`Invalid types definition`);
+  }
+
+  // Primary type can be an array.
+  const isArray = primaryType && isArrayType(primaryType);
+  if (isArray) {
+    return {
+      value: (message as string[]).map(
+        (value: string): ValueType =>
+          sanitizeMessage(value, stripOneLayerofNesting(primaryType), types),
+      ),
+      type: primaryType,
+    };
+  } else if (isSolidityType(primaryType)) {
+    return {
+      value: stripMultipleNewlines(message as string),
+      type: primaryType,
+    };
+  }
+
+  // If not, assume to be struct
+  const baseType = isArray ? stripArrayType(primaryType) : primaryType;
+
+  const baseTypeDefinitions = types[baseType];
+  if (!baseTypeDefinitions) {
+    throw new Error(`Invalid primary type definition`);
+  }
+
+  const sanitizedStruct = {};
+  const msgKeys = Object.keys(message);
+  msgKeys.forEach((msgKey: string) => {
+    const definedType: BaseType | undefined = Object.values(
+      baseTypeDefinitions,
+    ).find(
+      (baseTypeDefinition: BaseType) => baseTypeDefinition.name === msgKey,
+    );
+
+    if (!definedType) {
+      return;
+    }
+
+    (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeMessage(
+      (message as Record<string, string>)[msgKey],
+      definedType.type,
+      types,
+    );
+  });
+  return { value: sanitizedStruct, type: primaryType };
+};
+
+
 const REGEX_MESSAGE_VALUE_LARGE =
   /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
 
@@ -99,6 +173,11 @@ export const parseTypedDataMessage = (dataToParse: string) => {
     result.message.value = messageValue || String(result.message.value);
   }
   return result;
+};
+
+export const parseTypedSignDataMessage = (dataToParse: string) => {
+  const { message, primaryType, types } = JSON.parse(dataToParse);
+  return sanitizeMessage(message, primaryType, types);
 };
 
 export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
