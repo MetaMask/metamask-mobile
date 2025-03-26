@@ -37,6 +37,8 @@ pipelines:
       - notify: {}
   #Run E2E test suite for iOS Flask only
   run_e2e_flask_pipeline:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
     stages:
       - build_e2e_flask_stage: {}
       - run_e2e_flask_stage: {}
