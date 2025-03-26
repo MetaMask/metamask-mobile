@@ -1,12 +1,6 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  TextStyle,
-} from 'react-native';
+import { View, TouchableOpacity, TextStyle } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Feather';
 import { Transaction } from '@metamask/keyring-api';
@@ -15,14 +9,14 @@ import { toDateFormat } from '../../../util/date';
 import { formatAddress } from '../../../util/address';
 import { capitalize } from 'lodash';
 import StatusText from '../../Base/StatusText';
+import Text from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
-import { ThemeTypography } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
 import {
   getAddressUrl,
   getTransactionUrl,
 } from '../../../core/Multichain/utils';
-import { Colors } from '../../../util/theme/models';
+import styles from './MultichainTransactionDetailsModal.styles';
 
 interface TransactionDetailsProps {
   isVisible: boolean;
@@ -42,89 +36,6 @@ const TransactionDetailRow = {
   PriorityFee: strings('transactions.multichain_priority_fee'),
 } as const;
 
-const createStyles = (colors: Colors, typography: ThemeTypography) =>
-  StyleSheet.create({
-    modal: {
-      margin: 0,
-      justifyContent: 'flex-end',
-    },
-    container: {
-      backgroundColor: colors.background.default,
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      padding: 20,
-    },
-    header: {
-      flexDirection: 'column',
-      alignItems: 'center',
-      marginBottom: 20,
-      position: 'relative',
-      paddingBottom: 15,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    title: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginBottom: 5,
-    },
-    date: {
-      fontSize: 14,
-      color: colors.text.muted,
-    },
-    closeButton: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
-    },
-    content: {
-      marginBottom: 20,
-    },
-    detailRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    label: {
-      fontSize: 16,
-      color: colors.text.default,
-    },
-    valueContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    value: {
-      fontSize: 16,
-      color: colors.text.default,
-      textAlign: 'right',
-    },
-    linkText: {
-      color: colors.primary.default,
-    },
-    linkContainer: {
-      flexDirection: 'row',
-    },
-    linkIcon: {
-      marginLeft: 5,
-    },
-    viewDetailsButton: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 10,
-    },
-    viewDetailsText: {
-      color: colors.primary.default,
-      fontSize: 16,
-      marginRight: 5,
-    },
-    listItemStatus: {
-      ...(typography.lBodyMDBold as TextStyle),
-    },
-  });
-
 const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   isVisible,
   onClose,
@@ -133,7 +44,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   navigation,
 }) => {
   const { colors, typography } = useTheme();
-  const styles = createStyles(colors, typography);
+  const style = styles(colors, typography);
 
   const {
     id,
@@ -182,33 +93,33 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     value: string,
     isLink: boolean = false,
   ) => (
-    <View style={styles.detailRow}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.valueContainer}>
+    <View style={style.detailRow}>
+      <Text style={style.label}>{label}</Text>
+      <View style={style.valueContainer}>
         {isLink ? (
           <TouchableOpacity
-            style={styles.linkContainer}
+            style={style.linkContainer}
             onPress={() => viewOnBlockExplorer(label)}
           >
-            <Text style={[styles.value, styles.linkText]}>
+            <Text style={style.linkText}>
               {formatAddress(value, 'short')}
             </Text>
             <Icon
               name="external-link"
               size={16}
-              color="#0376C9"
-              style={styles.linkIcon}
+              color={colors.primary.default}
+              style={style.linkIcon}
             />
           </TouchableOpacity>
         ) : label === 'Status' ? (
           <StatusText
             testID={`transaction-status-${transaction.id}`}
             status={status}
-            style={styles.listItemStatus as TextStyle}
+            style={style.listItemStatus as TextStyle}
             context="transaction"
           />
         ) : (
-          <Text style={[styles.value]}>{value}</Text>
+          <Text style={[style.value]}>{value}</Text>
         )}
       </View>
     </View>
@@ -221,24 +132,24 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
       backdropOpacity={0.7}
       animationIn="slideInUp"
       animationOut="slideOutDown"
-      style={styles.modal}
+      style={style.modal}
     >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{strings(`transactions.${type}`)}</Text>
-          <Text style={styles.date}>
+      <View style={style.container}>
+        <View style={style.header}>
+          <Text style={style.title}>{strings(`transactions.${type}`)}</Text>
+          <Text style={style.date}>
             {timestamp && toDateFormat(new Date(timestamp * 1000))}
           </Text>
           <TouchableOpacity
-            style={styles.closeButton}
+            style={style.closeButton}
             onPress={onClose}
             testID={`transaction-details-close-button`}
           >
-            <Icon name="x" size={24} color="#000" />
+            <Icon name="x" size={24} color={colors.text.default} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <View style={style.content}>
           {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
           {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
           {renderDetailRow(
@@ -264,15 +175,15 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
         </View>
 
         <TouchableOpacity
-          style={styles.viewDetailsButton}
+          style={style.viewDetailsButton}
           onPress={() =>
             viewOnBlockExplorer(TransactionDetailRow.TransactionID)
           }
         >
-          <Text style={styles.viewDetailsText}>
+          <Text style={style.viewDetailsText}>
             {strings('networks.view_details')}
           </Text>
-          <Icon name="external-link" size={16} color="#0376C9" />
+          <Icon name="external-link" size={16} color={colors.primary.default} />
         </TouchableOpacity>
       </View>
     </Modal>

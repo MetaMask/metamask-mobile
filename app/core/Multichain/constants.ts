@@ -56,19 +56,19 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   },
 
   [SolScope.Mainnet]: {
-    url: 'https://explorer.solana.com',
-    address: 'https://explorer.solana.com/address/{address}',
-    transaction: 'https://explorer.solana.com/tx/{txId}',
+    url: 'https://solscan.io',
+    address: 'https://solscan.io/account/{address}',
+    transaction: 'https://solscan.io/tx/{txId}',
   },
   [SolScope.Devnet]: {
-    url: 'https://explorer.solana.com',
-    address: 'https://explorer.solana.com/address/{address}?cluster=devnet',
-    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=devnet',
+    url: 'https://solscan.io',
+    address: 'https://solscan.io/account/{address}?cluster=devnet',
+    transaction: 'https://solscan.io/tx/{txId}?cluster=devnet',
   },
   [SolScope.Testnet]: {
-    url: 'https://explorer.solana.com',
-    address: 'https://explorer.solana.com/address/{address}?cluster=testnet',
-    transaction: 'https://explorer.solana.com/tx/{txId}?cluster=testnet',
+    url: 'https://solscan.io',
+    address: 'https://solscan.io/account/{address}?cluster=testnet',
+    transaction: 'https://solscan.io/tx/{txId}?cluster=testnet',
   },
 } as const;
 
