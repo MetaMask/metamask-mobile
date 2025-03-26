@@ -5,6 +5,7 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+# Allows the design system and mobile platform team to review and approve all snapshot changes. This allows for system wide design token changes to color, typography, etc.
 **/*.snap                            @MetaMask/design-system-engineers @MetaMask/mobile-devs
 
 # Platform Team
