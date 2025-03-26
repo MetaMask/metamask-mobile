@@ -110,7 +110,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { RecommendedAction } from '@metamask/phishing-controller/';
+import { RecommendedAction } from '@metamask/phishing-controller';
 
 /**
  * Tab component for the in-app browser
@@ -298,7 +298,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Check if an origin is allowed
    */
   const isAllowedOrigin = useCallback(
-    async (urlOrigin: string) => {
+    async (urlOrigin: string): Promise<boolean> => {
       const whitelisted = whitelist?.includes(urlOrigin);
       if (whitelisted) {
         return true;
@@ -307,7 +307,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const { PhishingController } = Engine.context;
 
       if (productSafetyDappScanningEnabled) {
-        Logger.log('Real time dapp scanning enabled');
+        // eslint-disable-next-line no-console
+        console.log(
+          `${new Date().toISOString()} [BrowserTab][isAllowedOrigin] Scanning URL: ${urlOrigin}`,
+        );
 
         const scanResult = await PhishingController.scanUrl(urlOrigin);
         if (scanResult.fetchError) {
@@ -318,7 +321,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           );
           return true;
         }
-
+        // eslint-disable-next-line no-console
+        console.log(
+          `${new Date().toISOString()} [BrowserTab][isAllowedOrigin] finished scanning: ${urlOrigin}: ${JSON.stringify(
+            scanResult,
+          )}`,
+        );
         return !(
           scanResult.recommendedAction === RecommendedAction.Block ||
           scanResult.recommendedAction === RecommendedAction.Warn
@@ -327,7 +335,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       // Fire-and-forget update.
       PhishingController.maybeUpdateState();
       const testResult = PhishingController.test(urlOrigin);
-
       if (testResult.result && testResult.name) {
         blockListType.current = testResult.name;
         return false;
@@ -337,11 +344,23 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     },
     [whitelist, productSafetyDappScanningEnabled],
   );
-
   /**
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
+    // eslint-disable-next-line no-console
+    console.log(
+      `${new Date().toISOString()} [BrowserTab][handleNotAllowedUrl] urlOrigin: ${urlOrigin}`,
+    );
+    // Get the current URL that's being loaded or viewed
+    const currentUrlOrigin = new URLParse(submittedUrlRef.current).origin;
+    if (currentUrlOrigin === urlOrigin) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `${new Date().toISOString()} [BrowserTab][handleNotAllowedUrl] currentUrlOrigin: ${currentUrlOrigin} urlOrigin: ${urlOrigin}`,
+      );
+      return;
+    }
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   }, []);
@@ -468,16 +487,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const handleFirstUrl = useCallback(async () => {
     setIsResolvedIpfsUrl(false);
-    const prefixedUrl = prefixUrlWithProtocol(initialUrl);
-
-        setFirstUrlLoaded(true);
-        setProgress(0);
-        return;
-      }
-      handleNotAllowedUrl(prefixedUrl);
-    // eslint-disable-next-line no-console
-    console.log(
-      `${new Date().toISOString()} [BrowserTab][handleFirstUrl] url:`,
+    setFirstUrlLoaded(true);
+    setProgress(0);
+    return;
+  }, []);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -743,17 +756,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     url: string;
   }) => {
     const { origin: urlOrigin } = new URLParse(urlToLoad);
-
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
       requested: true,
     };
-
-    // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(urlOrigin)) {
-      handleNotAllowedUrl(urlOrigin);
-      return false;
-    }
 
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
@@ -818,7 +824,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       event: WebViewNavigationEvent | WebViewErrorEvent;
       forceResolve?: boolean;
     }) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `${new Date().toISOString()} [BrowserTab][onLoadEnd] started: ${
+          nativeEvent.url
+        }`,
+      );
       if ('code' in nativeEvent) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `${new Date().toISOString()} [BrowserTab][onLoadEnd] calling handleError and then returning ${
+            nativeEvent.url
+          } code: ${nativeEvent.code}`,
+        );
         // Handle error - code is a property of WebViewErrorEvent
         return handleError(nativeEvent);
       }
@@ -845,6 +863,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           canGoForward,
         });
       }
+      // eslint-disable-next-line no-console
+      console.log(
+        `${new Date().toISOString()} [BrowserTab][onLoadEnd] finished: ${
+          nativeEvent.url
+        }`,
+      );
     },
     [handleError, handleSuccessfulPageResolution, favicon],
   );
@@ -952,8 +976,21 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         started: true,
       };
 
+      // eslint-disable-next-line no-console
+      console.log(
+        `${new Date().toISOString()} [BrowserTab][onLoadStart] urlOrigin: ${urlOrigin}`,
+      );
       // Cancel loading the page if we detect its a phishing page
-      if (!isAllowedOrigin(urlOrigin)) {
+      const isAllowed = await isAllowedOrigin(urlOrigin);
+      // eslint-disable-next-line no-console
+      console.log(
+        `${new Date().toISOString()} [BrowserTab][onLoadStart] isAllowed: ${isAllowed}`,
+      );
+      if (!isAllowed) {
+        // eslint-disable-next-line no-console
+        console.log(
+          `${new Date().toISOString()} [BrowserTab][onLoadStart] handleNotAllowedUrl: ${urlOrigin}`,
+        );
         handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
         return false;
       }
@@ -1097,6 +1134,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         return onSubmitEditingRef.current(handledEnsUrl);
       }
       // Directly update url in webview
+      console.log(
+        `[BrowserTab][onSubmitEditing] updating url: ${processedUrl}`,
+      );
       webviewRef.current?.injectJavaScript(`
       window.location.href = '${sanitizeUrlInput(processedUrl)}';
       true;  // Required for iOS
@@ -1406,7 +1446,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               showPhishingModal={showPhishingModal}
               setShowPhishingModal={setShowPhishingModal}
               setBlockedUrl={setBlockedUrl}
-              urlBarRef={urlBarRef}
               addToWhitelist={triggerAddToWhitelist}
               activeUrl={resolvedUrlRef.current}
               blockListType={blockListType}
