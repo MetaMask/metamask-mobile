@@ -833,7 +833,8 @@
         "metro-source-map>ob1": true,
         "source-map": true,
         "metro-source-map>source-map": true,
-        "metro-source-map>vlq": true
+        "metro-source-map>vlq": true,
+        "vlq": true
       }
     },
     "metro-symbolicate": {
