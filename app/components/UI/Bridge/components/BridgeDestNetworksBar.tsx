@@ -1,22 +1,22 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../constants/navigation/Routes';
-import Button, { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
-import { strings } from '../../../../../../locales/i18n';
-import { useStyles } from '../../../../../component-library/hooks';
-import { Theme } from '../../../../../util/theme/models';
+import Text from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
+import Button, { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../locales/i18n';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
 import { StyleSheet, ScrollView } from 'react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectEnabledDestChains, selectSelectedDestChainId, setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
+import { selectEnabledDestChains, selectSelectedDestChainId, setSelectedDestChainId } from '../../../../core/redux/slices/bridge';
 import { ETH_CHAIN_ID, BASE_CHAIN_ID, BSC_CHAIN_ID, LINEA_CHAIN_ID, AVALANCHE_CHAIN_ID, OPTIMISM_CHAIN_ID, POLYGON_CHAIN_ID, ARBITRUM_CHAIN_ID, ZKSYNC_ERA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { Hex } from '@metamask/utils';
-import { Box } from '../../../Box/Box';
-import { getNetworkImageSource } from '../../../../../util/networks';
-import { AlignItems, FlexDirection } from '../../../Box/box.types';
-import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { Box } from '../../Box/Box';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { AlignItems, FlexDirection } from '../../Box/box.types';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
