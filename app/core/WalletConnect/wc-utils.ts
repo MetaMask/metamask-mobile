@@ -228,12 +228,12 @@ export const getApprovedSessionMethods = (_: {
 };
 
 export const getScopedPermissions = async ({ origin }: { origin: string }) => {
-  console.log('🔴 getScopedPermissions origin', origin);
+  //console.log('🔴 getScopedPermissions origin', origin);
   // origin is already normalized by this point - no need to normalize again
   const approvedAccounts = await getPermittedAccounts(origin);
-  console.log('🔴 getScopedPermissions approvedAccounts', approvedAccounts);
+  //console.log('🔴 getScopedPermissions approvedAccounts', approvedAccounts);
   const chains = await getPermittedChains(getHostname(origin));
-  console.log('🔴 getScopedPermissions chains', chains);
+  //console.log('🔴 getScopedPermissions chains', chains);
 
   DevLogger.log(
     `WC::getScopedPermissions for ${origin}, found accounts:`,
@@ -264,7 +264,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
 const requestUserApproval = (origin: string) => async ({
   type = '',
 }: { type: string; requestData: Record<string, unknown> }) => {
-  console.log('🟢 requestUserApproval', JSON.stringify({ origin, type }, null, 2));
+  //console.log('🟢 requestUserApproval', JSON.stringify({ origin, type }, null, 2));
   await Engine.context.ApprovalController.clear(
     providerErrors.userRejectedRequest(),
   );
@@ -279,19 +279,19 @@ export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
 }: { origin: string; caip2ChainId: string }) => {
-  console.log('🟢 checkWCPermissions', JSON.stringify({ origin, caip2ChainId }, null, 2));
+  //console.log('🟢 checkWCPermissions', JSON.stringify({ origin, caip2ChainId }, null, 2));
   const networkConfigurations = selectNetworkConfigurations(store.getState());
-  console.log('🟢 checkWCPermissions networkConfigurations', networkConfigurations);
+  //console.log('🟢 checkWCPermissions networkConfigurations', networkConfigurations);
   const decimalChainId = caip2ChainId.split(':')[1];
-  console.log('🟢 checkWCPermissions decimalChainId', decimalChainId);
+  //console.log('🟢 checkWCPermissions decimalChainId', decimalChainId);
   const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
-  console.log('🟢 checkWCPermissions hexChainIdString', hexChainIdString);
+  //console.log('🟢 checkWCPermissions hexChainIdString', hexChainIdString);
 
   const existingNetwork = findExistingNetwork(
     hexChainIdString,
     networkConfigurations,
   );
-  console.log('🟢 checkWCPermissions existingNetwork', existingNetwork);
+  //console.log('🟢 checkWCPermissions existingNetwork', existingNetwork);
 
   if (!existingNetwork) {
     DevLogger.log(`WC::checkWCPermissions no existing network found`);
@@ -301,14 +301,14 @@ export const checkWCPermissions = async ({
   }
 
   const permittedChains = await getPermittedChains(getHostname(origin));
-  console.log('🟢 checkWCPermissions permittedChains', permittedChains);
+  //console.log('🟢 checkWCPermissions permittedChains', permittedChains);
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
-  console.log('🟢 checkWCPermissions isAllowedChainId', isAllowedChainId);
+  //console.log('🟢 checkWCPermissions isAllowedChainId', isAllowedChainId);
 
   const providerConfig = selectProviderConfig(store.getState());
-  console.log('🟢 checkWCPermissions providerConfig', providerConfig);
+  //console.log('🟢 checkWCPermissions providerConfig', providerConfig);
   const activeCaip2ChainId = `${EVM_IDENTIFIER}:${parseInt(providerConfig.chainId, 16)}`;
-  console.log('🟢 checkWCPermissions activeCaip2ChainId', activeCaip2ChainId);
+  //console.log('🟢 checkWCPermissions activeCaip2ChainId', activeCaip2ChainId);
 
   DevLogger.log(
     `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
@@ -327,7 +327,7 @@ export const checkWCPermissions = async ({
     existingNetwork,
   );
 
-  console.log('🟢 checkWCPermissions caip2ChainId !== activeCaip2ChainId', caip2ChainId !== activeCaip2ChainId);
+  //console.log('🟢 checkWCPermissions caip2ChainId !== activeCaip2ChainId', caip2ChainId !== activeCaip2ChainId);
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
       const result = await switchToNetwork({
@@ -336,7 +336,7 @@ export const checkWCPermissions = async ({
         controllers: Engine.context,
         // requestUserApproval: requestUserApproval(origin),
         requestUserApproval: async (args: any) => {
-          console.log('🟢 requestUserApproval', JSON.stringify({args}, null, 2));
+          //console.log('🟢 requestUserApproval', JSON.stringify({args}, null, 2));
           await Engine.context.ApprovalController.clear(
             providerErrors.userRejectedRequest(),
           );
@@ -352,7 +352,7 @@ export const checkWCPermissions = async ({
         isAddNetworkFlow: false,
       });
 
-      console.log('🟢 checkWCPermissions result', result);
+      //console.log('🟢 checkWCPermissions result', result);
     } catch (error) {
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,
