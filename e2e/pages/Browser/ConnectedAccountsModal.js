@@ -7,6 +7,10 @@ import Gestures from '../../utils/Gestures';
 import TestHelpers from '../../helpers';
 
 class ConnectedAccountsModal {
+  get container() {
+    return Matchers.getElementByID(ConnectedAccountsSelectorsIDs.CONTAINER);
+  }
+
   get permissionsButton() {
     return Matchers.getElementByText(
       ConnectedAccountModalSelectorsText.PERMISSION_LINK,

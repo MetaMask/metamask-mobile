@@ -237,6 +237,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                     ],
                   ]
                 }
+                testID="smart_transactions_opt_in_switch"
                 thumbTintColor="#ffffff"
                 tintColor="#BBC0C566"
                 value={true}
@@ -257,7 +258,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               }
             }
           >
-            Turn on Smart Transactions for more reliable and secure transactions on Ethereum Mainnet.
+            Turn on Smart Transactions for more reliable and secure transactions on supported networks.
              
             <Text
               accessibilityRole="text"

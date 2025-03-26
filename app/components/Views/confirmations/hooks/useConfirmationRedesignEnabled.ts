@@ -1,37 +1,47 @@
-import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { ApprovalType } from '@metamask/controller-utils';
 import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { ApprovalType } from '@metamask/controller-utils';
-
-import { isHardwareAccount } from '../../../../util/address';
+import { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
+import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
   ApprovalType.PersonalSign,
 ];
 
-const REDESIGNED_TRANSACTION_TYPES = [TransactionType.stakingDeposit];
+const REDESIGNED_TRANSACTION_TYPES = [
+  TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+  TransactionType.stakingClaim,
+];
 
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
+  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
+  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
+    !isExternalHardwareAccount(fromAddress)
   );
 }
 
@@ -59,7 +69,7 @@ function isRedesignedTransaction({
     return false;
   }
 
-  if (transactionMetadata.type === TransactionType.stakingDeposit) {
+  if (isStakingConfirmation(transactionMetadata?.type as string)) {
     return confirmationRedesignFlags?.staking_transactions;
   }
 
@@ -81,6 +91,7 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
+        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,

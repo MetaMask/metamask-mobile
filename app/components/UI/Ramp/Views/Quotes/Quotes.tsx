@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Animated, {
   Extrapolate,
   interpolate,
@@ -394,7 +395,7 @@ function Quotes() {
           : appConfig.POLLING_INTERVAL;
       });
     },
-    isInPolling && !isFetchingQuotes ? 1000 : null,
+    { delay: isInPolling && !isFetchingQuotes ? 1000 : null },
   );
 
   useEffect(() => {
@@ -593,6 +594,25 @@ function Quotes() {
       }
     }
   }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const hardwareBackPress = () => {
+        if (isExpanded) {
+          setIsExpanded(false);
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        hardwareBackPress,
+      );
+
+      return () => subscription.remove();
+    }, [isExpanded]),
+  );
 
   if (sdkError) {
     if (!isExpanded) {

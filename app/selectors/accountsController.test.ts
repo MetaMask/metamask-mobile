@@ -5,6 +5,10 @@ import {
   BtcAccountType,
   EthAccountType,
   EthScope,
+  BtcMethod,
+  EthMethod,
+  SolMethod,
+  SolAccountType,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
@@ -14,6 +18,9 @@ import {
   selectSelectedInternalAccountFormattedAddress,
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
+  selectCanSignTransactions,
+  selectSolanaAccountAddress,
+  selectSolanaAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -31,6 +38,8 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+// eslint-disable-next-line import/no-namespace
+import * as utils from '../core/Multichain/utils';
 
 /**
  * Generates a mocked AccountsController state
@@ -254,5 +263,233 @@ describe('Bitcoin Account Selectors', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
     });
+  });
+});
+
+describe('Solana Account Selectors', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(utils, 'isSolanaAccount')
+      .mockImplementation(
+        (account) => account?.address === 'solana_address_123',
+      );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const solanaAccount: InternalAccount = {
+    id: 'sol-account-id',
+    address: 'solana_address_123',
+    type: SolAccountType.DataAccount,
+    methods: [SolMethod.SignTransaction],
+    options: {},
+    metadata: {
+      name: 'Solana Account',
+      importTime: 1672531200,
+      keyring: {
+        type: KeyringTypes.snap,
+      },
+    },
+    scopes: [],
+  };
+
+  const ethAccount: InternalAccount = {
+    id: 'eth-account-id',
+    address: '0xabc123',
+    type: EthAccountType.Eoa,
+    methods: [EthMethod.SignTransaction],
+    options: {},
+    metadata: {
+      name: 'Ethereum Account',
+      importTime: 1672531200,
+      keyring: {
+        type: KeyringTypes.hd,
+      },
+    },
+    scopes: [],
+  };
+
+  const noSolanaAccountInState = {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [ethAccount.id]: ethAccount,
+            },
+            selectedAccount: ethAccount.id,
+          },
+        },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
+      },
+    },
+  } as RootState;
+
+  const solanaAccountExistsInState = {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [solanaAccount.id]: solanaAccount,
+              [ethAccount.id]: ethAccount,
+            },
+            selectedAccount: ethAccount.id,
+          },
+        },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
+      },
+    },
+  } as RootState;
+
+  describe('selectSolanaAccount', () => {
+    it('returns the Solana account when it exists', () => {
+      expect(selectSolanaAccount(solanaAccountExistsInState)).toEqual(
+        solanaAccount,
+      );
+    });
+
+    it('returns undefined when no Solana account exists', () => {
+      expect(selectSolanaAccount(noSolanaAccountInState)).toBeUndefined();
+    });
+  });
+
+  describe('selectSolanaAccountAddress', () => {
+    it('returns the Solana account address when it exists', () => {
+      expect(selectSolanaAccountAddress(solanaAccountExistsInState)).toEqual(
+        'solana_address_123',
+      );
+    });
+
+    it('returns undefined when no Solana account exists', () => {
+      expect(
+        selectSolanaAccountAddress(noSolanaAccountInState),
+      ).toBeUndefined();
+    });
+  });
+});
+
+describe('selectCanSignTransactions', () => {
+  const ethAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x123',
+      'ETH Account with Sign',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [EthMethod.SignTransaction],
+  };
+
+  const solAccountWithSignTransaction = {
+    ...createMockInternalAccount(
+      '0x456',
+      'SOL Account with Sign',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignTransaction],
+  };
+
+  const solAccountWithSignMessage = {
+    ...createMockInternalAccount(
+      '0x789',
+      'SOL Account with Sign Message',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignMessage],
+  };
+
+  const solAccountWithSendAndConfirm = {
+    ...createMockInternalAccount(
+      '0xabc',
+      'SOL Account with Send and Confirm',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SendAndConfirmTransaction],
+  };
+
+  const solAccountWithSignAndSend = {
+    ...createMockInternalAccount(
+      '0xdef',
+      'SOL Account with Sign and Send',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    ),
+    methods: [SolMethod.SignAndSendTransaction],
+  };
+
+  const btcAccountWithSendBitcoin = {
+    ...createMockInternalAccount(
+      'bc1q123',
+      'BTC Account with Send',
+      KeyringTypes.snap,
+      BtcAccountType.P2wpkh,
+    ),
+    methods: [BtcMethod.SendBitcoin],
+  };
+
+  const accountWithoutSigningMethods = {
+    ...createMockInternalAccount(
+      '0x999',
+      'Account without Signing',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    ),
+    methods: [],
+  };
+
+  it('returns true for ETH account with SignTransaction method', () => {
+    const state = getStateWithAccount(ethAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignTransaction);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignMessage method', () => {
+    const state = getStateWithAccount(solAccountWithSignMessage);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SendAndConfirmTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSendAndConfirm);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for SOL account with SignAndSendTransaction method', () => {
+    const state = getStateWithAccount(solAccountWithSignAndSend);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns true for BTC account with SendBitcoin method', () => {
+    const state = getStateWithAccount(btcAccountWithSendBitcoin);
+    expect(selectCanSignTransactions(state)).toBe(true);
+  });
+
+  it('returns false for account without any signing methods', () => {
+    const state = getStateWithAccount(accountWithoutSigningMethods);
+    expect(selectCanSignTransactions(state)).toBe(false);
+  });
+
+  it('returns false when no account is selected', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: 'non-existent-id',
+            },
+          },
+        },
+      },
+    } as RootState;
+    expect(selectCanSignTransactions(state)).toBe(false);
   });
 });

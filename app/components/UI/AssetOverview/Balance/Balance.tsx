@@ -19,7 +19,9 @@ import {
   isPortfolioViewEnabled,
 } from '../../../../util/networks';
 import images from '../../../../images/image-icons';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import NetworkMainAssetLogo from '../../NetworkMainAssetLogo';
@@ -144,8 +146,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       </Text>
       <AssetElement
         asset={asset}
-        mainBalance={mainBalance}
-        balance={secondaryBalance}
+        balance={mainBalance}
+        secondaryBalance={secondaryBalance}
         onPress={() =>
           !asset.isETH &&
           !asset.isNative &&
@@ -157,6 +159,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       >
         <BadgeWrapper
           style={styles.badgeWrapper}
+          badgePosition={BadgePosition.BottomRight}
           badgeElement={
             <Badge
               variant={BadgeVariant.Network}

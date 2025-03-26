@@ -87,10 +87,10 @@ import {
 } from '../../../util/transaction-controller';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
-import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvider';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
+import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 
 const Stack = createStackNavigator();
 
@@ -122,6 +122,7 @@ const Main = (props) => {
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler();
+  useIdentityEffects();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
@@ -260,10 +261,16 @@ const Main = (props) => {
       //set here token network filter if portfolio view is enabled
       if (isPortfolioViewEnabled()) {
         const { PreferencesController } = Engine.context;
-        PreferencesController.setTokenNetworkFilter({
-          ...(isAllNetworks ? tokenNetworkFilter : {}),
-          [chainId]: true,
-        });
+        if (Object.keys(tokenNetworkFilter).length === 1) {
+          PreferencesController.setTokenNetworkFilter({
+            [chainId]: true,
+          });
+        } else {
+          PreferencesController.setTokenNetworkFilter({
+            ...tokenNetworkFilter,
+            [chainId]: true,
+          });
+        }
       }
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
@@ -415,37 +422,35 @@ const Main = (props) => {
 
   return (
     <React.Fragment>
-      <AssetPollingProvider>
-        <View style={styles.flex}>
-          {!forceReload ? (
-            <MainNavigator navigation={props.navigation} />
-          ) : (
-            renderLoader()
-          )}
-          <GlobalAlert />
-          <FadeOutOverlay />
-          <Notification navigation={props.navigation} />
-          <RampOrders />
-          <SwapsLiveness />
-          <BackupAlert
-            onDismiss={toggleRemindLater}
-            navigation={props.navigation}
-          />
-          {renderDeprecatedNetworkAlert(
-            props.chainId,
-            props.backUpSeedphraseVisible,
-          )}
-          <SkipAccountSecurityModal
-            modalVisible={showRemindLaterModal}
-            onCancel={skipAccountModalSecureNow}
-            onConfirm={skipAccountModalSkip}
-            skipCheckbox={skipCheckbox}
-            toggleSkipCheckbox={toggleSkipCheckbox}
-          />
-          <ProtectYourWalletModal navigation={props.navigation} />
-          <RootRPCMethodsUI navigation={props.navigation} />
-        </View>
-      </AssetPollingProvider>
+      <View style={styles.flex}>
+        {!forceReload ? (
+          <MainNavigator navigation={props.navigation} />
+        ) : (
+          renderLoader()
+        )}
+        <GlobalAlert />
+        <FadeOutOverlay />
+        <Notification navigation={props.navigation} />
+        <RampOrders />
+        <SwapsLiveness />
+        <BackupAlert
+          onDismiss={toggleRemindLater}
+          navigation={props.navigation}
+        />
+        {renderDeprecatedNetworkAlert(
+          props.chainId,
+          props.backUpSeedphraseVisible,
+        )}
+        <SkipAccountSecurityModal
+          modalVisible={showRemindLaterModal}
+          onCancel={skipAccountModalSecureNow}
+          onConfirm={skipAccountModalSkip}
+          skipCheckbox={skipCheckbox}
+          toggleSkipCheckbox={toggleSkipCheckbox}
+        />
+        <ProtectYourWalletModal navigation={props.navigation} />
+        <RootRPCMethodsUI navigation={props.navigation} />
+      </View>
     </React.Fragment>
   );
 };

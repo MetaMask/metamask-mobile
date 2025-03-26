@@ -383,6 +383,7 @@ export const unrestrictedMethods = Object.freeze([
   // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
   'wallet_getPermissions',
   'wallet_requestPermissions',
+  'wallet_revokePermissions',
   'eth_getTransactionByHash',
   'eth_getTransactionByBlockHashAndIndex',
   'eth_getTransactionByBlockNumberAndIndex',
@@ -419,11 +420,19 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_invokeSnap',
   'wallet_invokeKeyring',
   'snap_getClientStatus',
+  'snap_clearState',
   'snap_getFile',
+  'snap_getState',
+  'snap_listEntropySources',
   'snap_createInterface',
   'snap_updateInterface',
   'snap_getInterfaceState',
   'snap_getInterfaceContext',
   'snap_resolveInterface',
+  'snap_setState',
+  'snap_scheduleBackgroundEvent',
+  'snap_cancelBackgroundEvent',
+  'snap_getBackgroundEvents',
+  'snap_experimentalProviderRequest',
   ///: END:ONLY_INCLUDE_IF
 ]);

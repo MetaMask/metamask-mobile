@@ -18,7 +18,7 @@ export const MOCK_QR_KEYRING_METADATA: KeyringMetadata = {
   name: '',
 };
 export const MOCK_HD_KEYRING_METADATA: KeyringMetadata = {
-  id: '01JNDDC4GZNY0AG25TW3E4ZEDP',
+  id: '01JPM6NFVGW8V8KKN34053JVFT',
   name: '',
 };
 

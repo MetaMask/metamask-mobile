@@ -4,17 +4,16 @@ import Engine from '../../core/Engine';
 import {
   importNewSecretRecoveryPhrase,
   createNewSecretRecoveryPhrase,
-  addNewHdAccount,
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { address } from '@solana/addresses';
+
+jest.mock('../../util/Logger');
 
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
 const mockWithKeyring = jest.fn();
 const mockGetAccounts = jest.fn();
-const mockSetAccountLabel = jest.fn();
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
@@ -27,8 +26,6 @@ jest.mock('../../core/Engine', () => ({
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
-  setAccountLabel: (address: string, label: string) =>
-    mockSetAccountLabel(address, label),
 }));
 
 jest.mocked(Engine);
@@ -43,7 +40,7 @@ describe('MultiSRP Actions', () => {
   });
 
   describe('importNewSecretRecoveryPhrase', () => {
-    it('should import new SRP successfully', async () => {
+    it('imports new SRP', async () => {
       mockGetKeyringsByType.mockResolvedValue([]);
       mockAddNewKeyring.mockResolvedValue({ getAccounts: () => [testAddress] });
 
@@ -56,7 +53,7 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
-    it('should throw error if SRP already imported', async () => {
+    it('throws error if SRP already imported', async () => {
       mockGetKeyringsByType.mockResolvedValue([
         {
           mnemonic: new Uint16Array(
@@ -65,14 +62,16 @@ describe('MultiSRP Actions', () => {
         },
       ]);
 
-      await importNewSecretRecoveryPhrase(testMnemonic);
+      await expect(
+        async () => await importNewSecretRecoveryPhrase(testMnemonic),
+      ).rejects.toThrow('This mnemonic has already been imported.');
 
       expect(mockAddNewKeyring).not.toHaveBeenCalled();
     });
   });
 
   describe('createNewSecretRecoveryPhrase', () => {
-    it('should create new SRP successfully', async () => {
+    it('creates new SRP', async () => {
       mockAddNewKeyring.mockResolvedValue({
         getAccounts: () => Promise.resolve([testAddress]),
       });
@@ -86,60 +85,15 @@ describe('MultiSRP Actions', () => {
       expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
     });
 
-    it('should handle errors gracefully', async () => {
+    it('Does not set selected address or gets accounts on errors', async () => {
       mockAddNewKeyring.mockRejectedValue(new Error('Test error'));
 
-      await createNewSecretRecoveryPhrase();
+      await expect(
+        async () => await createNewSecretRecoveryPhrase(),
+      ).rejects.toThrow('Test error');
 
+      expect(mockGetAccounts).not.toHaveBeenCalled();
       expect(mockSetSelectedAddress).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('addNewHdAccount', () => {
-    it('should add new HD account successfully with name', async () => {
-      mockWithKeyring.mockResolvedValue(Promise.resolve([testAddress]));
-
-      await addNewHdAccount('Test Account');
-
-      expect(mockWithKeyring).toHaveBeenCalledWith({
-        type: ExtendedKeyringTypes.hd,
-      });
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockSetAccountLabel).toHaveBeenCalledWith(
-        testAddress,
-        'Test Account',
-      );
-    });
-
-    it('should add new HD account successfully without name', async () => {
-      mockWithKeyring.mockResolvedValue([testAddress]);
-
-      await addNewHdAccount();
-
-      expect(mockWithKeyring).toHaveBeenCalledWith({
-        type: ExtendedKeyringTypes.hd,
-      });
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-      expect(mockSetAccountLabel).not.toHaveBeenCalled();
-    });
-
-    it('should use keyringId when provided', async () => {
-      const keyringId = 'test-keyring-id';
-      mockWithKeyring.mockResolvedValue([testAddress]);
-
-      await addNewHdAccount('Test Account', keyringId);
-
-      expect(mockWithKeyring).toHaveBeenCalledWith({ id: keyringId });
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
-    });
-
-    it('should handle errors gracefully', async () => {
-      mockWithKeyring.mockRejectedValue(new Error('Test error'));
-
-      await addNewHdAccount('Test Account');
-
-      expect(mockSetSelectedAddress).not.toHaveBeenCalled();
-      expect(mockSetAccountLabel).not.toHaveBeenCalled();
     });
   });
 });

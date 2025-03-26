@@ -40,7 +40,7 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
 jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
-      addNewAccount: jest.fn(),
+      withKeyring: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -118,7 +118,7 @@ describe('AddAccountActions', () => {
   it('creates new ETH account when clicking add new account', async () => {
     const mockNewAddress = '0x123';
     (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
+      Engine.context.KeyringController.withKeyring as jest.Mock
     ).mockResolvedValueOnce(mockNewAddress);
 
     renderScreen(
@@ -137,8 +137,7 @@ describe('AddAccountActions', () => {
     fireEvent.press(addButton);
 
     await waitFor(() => {
-      expect(Engine.context.KeyringController.addNewAccount).toHaveBeenCalled();
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(mockNewAddress);
+      expect(Engine.context.KeyringController.withKeyring).toHaveBeenCalled();
       expect(mockProps.onBack).toHaveBeenCalled();
     });
   });
@@ -146,7 +145,7 @@ describe('AddAccountActions', () => {
   it('handles error when creating new ETH account fails', async () => {
     const mockError = new Error('Failed to create account');
     (
-      Engine.context.KeyringController.addNewAccount as jest.Mock
+      Engine.context.KeyringController.withKeyring as jest.Mock
     ).mockRejectedValueOnce(mockError);
 
     renderScreen(

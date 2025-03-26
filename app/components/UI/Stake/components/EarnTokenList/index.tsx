@@ -31,7 +31,7 @@ import { isStablecoinLendingFeatureEnabled } from '../../constants';
 import {
   filterEligibleTokens,
   getSupportedEarnTokens,
-} from '../../utils/token';
+} from '../../../Earn/utils/token';
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
 import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
