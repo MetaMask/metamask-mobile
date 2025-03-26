@@ -44,9 +44,11 @@ import {
 import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { SelectedNetworkController } from '@metamask/selected-network-controller';
 import {
+  Caveat,
   PermissionController,
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SubjectMetadataController,
+  ValidPermission,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
 import SwapsController, { swapsUtils } from '@metamask/swaps-controller';
@@ -108,6 +110,7 @@ import { createUserStorageController } from './controllers/identity/create-user-
 import {
   getCaveatSpecifications,
   getPermissionSpecifications,
+  PermissionKeys,
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
@@ -210,11 +213,14 @@ import { TransactionControllerInit } from './controllers/transaction-controller'
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { isSnapId } from '@metamask/snaps-utils';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { pick } from 'lodash';
+import { CaveatTypes } from '../Permissions/constants';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1968,6 +1974,89 @@ export class Engine {
   }
 
   /**
+   * Requests user approval for the CAIP-25 permission for the specified origin
+   * and returns a granted permissions object.
+   *
+   * @param {string} origin - The origin to request approval for.
+   * @param requestedPermissions - The legacy permissions to request approval for.
+   * @returns the approved permissions object.
+   */
+  getCaip25PermissionFromLegacyPermissions(
+    origin: string,
+    requestedPermissions: ValidPermission<string, Caveat<string, Json>>,
+  ) {
+    // TODO: [ffmcgee] DRY this (BackgroundBridge.js)
+    const permissions = pick(requestedPermissions, [
+      PermissionKeys.eth_accounts,
+      PermissionKeys.permittedChains,
+    ]);
+
+    // TODO: [ffmcgee] type gymnastics over here
+    //@ts-expect-error ...
+    if (!permissions[PermissionKeys.eth_accounts]) {
+      //@ts-expect-error ...
+      permissions[PermissionKeys.eth_accounts] = {};
+    }
+
+    //@ts-expect-error ...
+    if (!permissions[PermissionKeys.permittedChains]) {
+      //@ts-expect-error ...
+      permissions[PermissionKeys.permittedChains] = {};
+    }
+
+    if (isSnapId(origin)) {
+      //@ts-expect-error ...
+      delete permissions[PermissionKeys.permittedChains];
+    }
+
+    const requestedAccounts =
+      //@ts-expect-error ...
+      permissions[PermissionKeys.eth_accounts]?.caveats?.find(
+        //@ts-expect-error ...
+        (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
+      )?.value ?? [];
+
+    const requestedChains =
+      //@ts-expect-error ...
+      permissions[PermissionKeys.permittedChains]?.caveats?.find(
+        //@ts-expect-error ...
+        (caveat) => caveat.type === CaveatTypes.restrictNetworkSwitching,
+      )?.value ?? [];
+
+    const newCaveatValue = {
+      requiredScopes: {},
+      optionalScopes: {
+        'wallet:eip155': {
+          accounts: [],
+        },
+      },
+      isMultichainOrigin: false,
+      sessionProperties: {},
+    };
+
+    const caveatValueWithChains = setPermittedEthChainIds(
+      newCaveatValue,
+      isSnapId(origin) ? [] : requestedChains,
+    );
+
+    const caveatValueWithAccountsAndChains = setEthAccounts(
+      caveatValueWithChains,
+      requestedAccounts,
+    );
+
+    return {
+      [Caip25EndowmentPermissionName]: {
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValueWithAccountsAndChains,
+          },
+        ],
+      },
+    };
+  }
+
+  /**
    * Requests incremental permittedChains permission for the specified origin.
    * and updates the existing CAIP-25 permission.
    * Allows for granting without prompting for user approval which
@@ -2001,7 +2090,7 @@ export class Engine {
         requiredScopes: {},
         optionalScopes: {},
         isMultichainOrigin: false,
-        sessionProperties: {}
+        sessionProperties: {},
       },
       [chainId],
     );
@@ -2212,6 +2301,21 @@ export default {
       logErrors?: boolean;
     } = {},
   ) => instance?.rejectPendingApproval(id, reason, opts),
+
+  getCaip25PermissionFromLegacyPermissions: (
+    origin: string,
+    requestedPermissions: ValidPermission<string, Caveat<string, Json>>,
+  ) =>
+    instance?.getCaip25PermissionFromLegacyPermissions(
+      origin,
+      requestedPermissions,
+    ),
+
+  requestPermittedChainsPermissionIncremental: (options: {
+    origin: string;
+    chainId: Hex;
+    autoApprove: boolean;
+  }) => instance?.requestPermittedChainsPermissionIncremental(options),
 
   setSelectedAddress: (address: string) => {
     assertEngineExists(instance);

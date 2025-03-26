@@ -15,8 +15,12 @@ import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   PermissionDoesNotExistError,
-  permissionRpcMethods,
 } from '@metamask/permission-controller';
+import {
+  getPermissionsHandler,
+  requestPermissionsHandler,
+  revokePermissionsHandler,
+} from '@metamask/eip1193-permission-middleware';
 import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import {
@@ -51,7 +55,6 @@ import {
 } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
 import { PermissionKeys } from '../Permissions/specifications.js';
-
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -460,14 +463,6 @@ export const getRpcMethodMiddleware = ({
     };
 
     const hooks = getRpcMethodMiddlewareHooks(origin);
-    // TODO: [ffmcgee] - Ask Owen what takes precedence, I see `wallet_getPermissions` handler in here, but also see some method middlewares defined in BackgroundBridge (ex.:L#586, L#668)
-    // Background bridge is consumed by the in app browser (Owen suggests to make some sort of factory, and injecting the behaviour on both this file and BackgroundBridge)
-    // Owen to get more clarity on this
-    const [
-      requestPermissionsHandler,
-      getPermissionsHandler,
-      revokePermissionsHandler,
-    ] = permissionRpcMethods.handlers;
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -530,6 +525,7 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
+              getAccounts: (...args) => getPermittedAccounts(origin, ...args),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
@@ -557,6 +553,14 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
+                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getCaip25PermissionFromLegacyPermissionsForOrigin: (
+                  requestedPermissions,
+                ) =>
+                  Engine.getCaip25PermissionFromLegacyPermissions(
+                    origin,
+                    requestedPermissions,
+                  ),
                 requestPermissionsForOrigin:
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,

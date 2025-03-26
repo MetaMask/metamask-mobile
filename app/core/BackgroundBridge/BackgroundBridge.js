@@ -392,74 +392,6 @@ export class BackgroundBridge extends EventEmitter {
   };
 
   /**
-   * Requests user approval for the CAIP-25 permission for the specified origin
-   * and returns a granted permissions object.
-   *
-   * @param {string} origin - The origin to request approval for.
-   * @param requestedPermissions - The legacy permissions to request approval for.
-   * @returns the approved permissions object.
-   */
-  getCaip25PermissionFromLegacyPermissions(origin, requestedPermissions = {}) {
-    const permissions = pick(requestedPermissions, [
-      RestrictedMethods.eth_accounts,
-      PermissionKeys.permittedChains,
-    ]);
-
-    if (!permissions[RestrictedMethods.eth_accounts]) {
-      permissions[RestrictedMethods.eth_accounts] = {};
-    }
-
-    if (!permissions[PermissionKeys.permittedChains]) {
-      permissions[PermissionKeys.permittedChains] = {};
-    }
-
-    if (isSnapId(origin)) {
-      delete permissions[PermissionKeys.permittedChains];
-    }
-
-    const requestedAccounts =
-      permissions[RestrictedMethods.eth_accounts]?.caveats?.find(
-        (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
-      )?.value ?? [];
-
-    const requestedChains =
-      permissions[PermissionKeys.permittedChains]?.caveats?.find(
-        (caveat) => caveat.type === CaveatTypes.restrictNetworkSwitching,
-      )?.value ?? [];
-
-    const newCaveatValue = {
-      requiredScopes: {},
-      optionalScopes: {
-        'wallet:eip155': {
-          accounts: [],
-        },
-      },
-      isMultichainOrigin: false,
-    };
-
-    const caveatValueWithChains = setPermittedEthChainIds(
-      newCaveatValue,
-      isSnapId(origin) ? [] : requestedChains,
-    );
-
-    const caveatValueWithAccountsAndChains = setEthAccounts(
-      caveatValueWithChains,
-      requestedAccounts,
-    );
-
-    return {
-      [Caip25EndowmentPermissionName]: {
-        caveats: [
-          {
-            type: Caip25CaveatType,
-            value: caveatValueWithAccountsAndChains,
-          },
-        ],
-      },
-    };
-  }
-
-  /**
    * A method for serving our ethereum provider over a given stream.
    * @param {*} outStream - The stream to provide over.
    */
@@ -532,8 +464,13 @@ export class BackgroundBridge extends EventEmitter {
               this.isMMSDK ? this.channelId : origin,
               ...args,
             ),
-          getCaip25PermissionFromLegacyPermissionsForOrigin:
-            this.getCaip25PermissionFromLegacyPermissions.bind(this, origin),
+          getCaip25PermissionFromLegacyPermissionsForOrigin: (
+            requestedPermissions,
+          ) =>
+            Engine.getCaip25PermissionFromLegacyPermissions(
+              origin,
+              requestedPermissions,
+            ),
           getPermissionsForOrigin: PermissionController.getPermissions.bind(
             PermissionController,
             origin,
