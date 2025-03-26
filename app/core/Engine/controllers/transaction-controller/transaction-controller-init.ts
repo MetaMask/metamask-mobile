@@ -19,14 +19,13 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import {
+  handleTransactionAdded,
   handleTransactionApproved,
   handleTransactionConfirmed,
   handleTransactionDropped,
   handleTransactionFailed,
   handleTransactionRejected,
   handleTransactionSubmitted,
-  handleUnapprovedTransactionAdded,
-  type TransactionMetrics,
 } from './transaction-event-handlers';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
@@ -34,6 +33,7 @@ import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
+import type { TransactionMetrics } from './types';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -252,10 +252,7 @@ function addTransactionControllerListeners({
   initMessenger.subscribe(
     'TransactionController:unapprovedTransactionAdded',
     (transactionMeta: TransactionMeta) => {
-      handleUnapprovedTransactionAdded(
-        transactionMeta,
-        transactionMetricRequest,
-      );
+      handleTransactionAdded(transactionMeta, transactionMetricRequest);
     },
   );
 }
