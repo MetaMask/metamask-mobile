@@ -159,6 +159,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const isWebViewReadyToLoad = useRef(false);
   const urlBarRef = useRef<BrowserUrlBarRef>(null);
   const autocompleteRef = useRef<UrlAutocompleteRef>(null);
+  // Cache to keep track of scanned domains to avoid redundant scans
+  const scannedDomainsRef = useRef<Record<string, boolean>>({});
+  // Keep track of ongoing scans to avoid multiple concurrent scans for the same domain
+  const ongoingScanRef = useRef<Record<string, Promise<boolean> | null>>({});
   const onSubmitEditingRef = useRef<(text: string) => Promise<void>>(
     async () => {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -305,35 +309,66 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         return true;
       }
 
+      const hostname = new URLParse(urlOrigin).hostname;
+      if (scannedDomainsRef.current[hostname] !== undefined) {
+        // We've already scanned this domain
+        return scannedDomainsRef.current[hostname];
+      }
+
+      // If there's an ongoing scan for this domain, reuse the promise
+      const ongoingScan = ongoingScanRef.current[hostname];
+      if (ongoingScan) {
+        return ongoingScan;
+      }
+
       const { PhishingController } = Engine.context;
 
       if (productSafetyDappScanningEnabled) {
-        Logger.log('Real time dapp scanning enabled');
+        const scanPromise = (async () => {
+          try {
+            Logger.log('Real time dapp scanning enabled');
+            const scanResult = await PhishingController.scanUrl(urlOrigin);
 
-        const scanResult = await PhishingController.scanUrl(urlOrigin);
-        if (scanResult.fetchError) {
-          // Log error but don't block the site based on a failed scan
-          Logger.log(
-            '[BrowserTab][isAllowedOriginV2] Fetch error:',
-            scanResult.fetchError,
-          );
-          return true;
-        }
+            if (scanResult.fetchError) {
+              // Log error but don't block the site based on a failed scan
+              Logger.log(
+                '[BrowserTab][isAllowedOriginV2] Fetch error:',
+                scanResult.fetchError,
+              );
+              scannedDomainsRef.current[hostname] = true;
+              return true;
+            }
 
-        return !(
-          scanResult.recommendedAction === RecommendedAction.Block ||
-          scanResult.recommendedAction === RecommendedAction.Warn
-        );
+            const isAllowed = !(
+              scanResult.recommendedAction === RecommendedAction.Block ||
+              scanResult.recommendedAction === RecommendedAction.Warn
+            );
+
+            scannedDomainsRef.current[hostname] = isAllowed;
+            return isAllowed;
+          } finally {
+            // Clean up the ongoing scan reference
+            ongoingScanRef.current[hostname] = null;
+          }
+        })();
+
+        // Store the promise for reuse
+        ongoingScanRef.current[hostname] = scanPromise;
+        return scanPromise;
       }
+
+      // Non-scanning path: Use local check only
       // Fire-and-forget update.
       PhishingController.maybeUpdateState();
       const testResult = PhishingController.test(urlOrigin);
 
       if (testResult.result && testResult.name) {
         blockListType.current = testResult.name;
+        scannedDomainsRef.current[hostname] = false;
         return false;
       }
 
+      scannedDomainsRef.current[hostname] = true;
       return true;
     },
     [whitelist, productSafetyDappScanningEnabled],
@@ -471,17 +506,27 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     setIsResolvedIpfsUrl(false);
     const prefixedUrl = prefixUrlWithProtocol(initialUrl);
     const { origin: urlOrigin } = new URLParse(prefixedUrl);
+    const hostname = new URLParse(urlOrigin).hostname;
 
-    isAllowedOrigin(urlOrigin).then((isAllowed) => {
-      if (isAllowed) {
-        setAllowedInitialUrl(prefixedUrl);
-        setFirstUrlLoaded(true);
-        setProgress(0);
-        return;
-      }
+    // Check if we already know from the cache that this URL is not allowed
+    if (scannedDomainsRef.current[hostname] === false) {
       handleNotAllowedUrl(prefixedUrl);
       return;
-    });
+    }
+
+    // Allow the URL to load while we scan in the background
+    setAllowedInitialUrl(prefixedUrl);
+    setFirstUrlLoaded(true);
+    setProgress(0);
+
+    // Start or continue the scan in the background if needed
+    if (scannedDomainsRef.current[hostname] === undefined && !ongoingScanRef.current[hostname]) {
+      isAllowedOrigin(urlOrigin).then((isAllowed) => {
+        if (!isAllowed) {
+          handleNotAllowedUrl(prefixedUrl);
+        }
+      });
+    }
   }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
 
   /**
@@ -613,7 +658,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
+      updateTabInfo(`Can't Open Page` as string, tabId);
       Logger.log(webViewError);
     },
     [
@@ -715,7 +760,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current) as string,
         tabId,
       );
 
@@ -748,24 +793,81 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     url: string;
   }) => {
     const { origin: urlOrigin } = new URLParse(urlToLoad);
+    const hostname = new URLParse(urlOrigin).hostname;
 
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
       requested: true,
     };
 
-    // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(urlOrigin)) {
+    // Check if we already know this domain is not allowed (from cache)
+    if (scannedDomainsRef.current[hostname] === false) {
       handleNotAllowedUrl(urlOrigin);
       return false;
     }
 
+    // If we're in the middle of scanning or haven't scanned yet,
+    // allow the site to load but start/continue the scan in background
+    if (
+      scannedDomainsRef.current[hostname] === undefined ||
+      ongoingScanRef.current[hostname]
+    ) {
+      // If we're not already scanning, start a new scan
+      if (!ongoingScanRef.current[hostname]) {
+        // Start the scan and handle the result in the background
+        isAllowedOrigin(urlOrigin).then((isAllowed) => {
+          if (!isAllowed) {
+            // If the domain is found to be unsafe, show the phishing modal
+            handleNotAllowedUrl(urlOrigin);
+            // We'll need to navigate back or block future navigation
+            if (webviewRef.current) {
+              webviewRef.current.stopLoading();
+            }
+          }
+        });
+      }
+      
+      // Allow the load to continue while we check in the background
+      if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
+        setIpfsBannerVisible(true);
+        return false;
+      }
+      
+      // Continue with the other checks for protocols
+      const { protocol } = new URLParse(urlToLoad);
+      if (protocolAllowList.includes(protocol)) return true;
+      Logger.log(`Protocol not allowed ${protocol}`);
+      
+      if (trustedProtocolToDeeplink.includes(protocol)) {
+        allowLinkOpen(urlToLoad);
+        return false;
+      }
+      
+      const alertMsg = getAlertMessage(protocol, strings);
+      
+      Alert.alert(strings('onboarding.warning_title'), alertMsg, [
+        {
+          text: strings('browser.protocol_alert_options.ignore'),
+          onPress: () => null,
+          style: 'cancel',
+        },
+        {
+          text: strings('browser.protocol_alert_options.allow'),
+          onPress: () => allowLinkOpen(urlToLoad),
+          style: 'default',
+        },
+      ]);
+      
+      return false;
+    }
+
+    // We know this domain is safe from previous scans
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
       return false;
     }
 
-    // Continue request loading it the protocol is whitelisted
+    // Continue request loading if the protocol is whitelisted
     const { protocol } = new URLParse(urlToLoad);
     if (protocolAllowList.includes(protocol)) return true;
     Logger.log(`Protocol not allowed ${protocol}`);
@@ -951,16 +1053,31 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     async ({ nativeEvent }: WebViewNavigationEvent) => {
       // Use URL to produce real url. This should be the actual website that the user is viewing.
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
+      const hostname = new URLParse(urlOrigin).hostname;
 
       webStates.current[nativeEvent.url] = {
         ...webStates.current[nativeEvent.url],
         started: true,
       };
 
-      // Cancel loading the page if we detect its a phishing page
-      if (!isAllowedOrigin(urlOrigin)) {
-        handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
+      // Check if we already know this domain is not allowed (from cache)
+      if (scannedDomainsRef.current[hostname] === false) {
+        handleNotAllowedUrl(urlOrigin);
         return false;
+      }
+
+      // If we're in the middle of scanning or haven't scanned yet,
+      // start or continue the scan in the background
+      if (scannedDomainsRef.current[hostname] === undefined && !ongoingScanRef.current[hostname]) {
+        isAllowedOrigin(urlOrigin).then((isAllowed) => {
+          if (!isAllowed) {
+            // If the site is found to be unsafe later, show the phishing modal
+            handleNotAllowedUrl(urlOrigin);
+            if (webviewRef.current) {
+              webviewRef.current.stopLoading();
+            }
+          }
+        });
       }
 
       sendActiveAccount();
