@@ -9,6 +9,10 @@ pipelines:
   create_qa_builds_pipeline:
     stages:
       - create_build_qa: {}
+  #Creates MetaMask-QA Flask apps and stores apk/ipa in Bitrise & browserstack
+  create_qa_flask_builds_pipeline:
+    stages:
+      - create_build_qa_flask: {}
   #Builds MetaMask, MetaMask-QA apps and stores apk/ipa in Bitrise
   build_all_targets_pipeline:
     stages:
@@ -134,6 +138,10 @@ stages:
       - build_android_qa: {}
       - build_ios_devbuild: {}
       - build_ios_qa: {}
+  create_build_qa_flask:
+    workflows:
+      - build_android_qa_flask: {}
+      - build_ios_qa_flask: {}
   create_build_qa:
     workflows:
       - build_android_qa: {}
@@ -1401,50 +1409,139 @@ workflows:
             inputs:
               - ndk_version: $NDK_VERSION
               - gradlew_path: $PROJECT_LOCATION/gradlew
-
-        - script@1:
-            inputs:
-              - content: |-
-                  #!/usr/bin/env bash
-                  node -v
-                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-            title: Build Android Pre-Release Bundle
-            is_always_run: false
-        - save-gradle-cache@1: {}
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-            title: Bitrise Deploy APK
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-            title: Bitrise Deploy Checksum
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-            title: Bitrise ProGuard Map Files
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-            title: Bitrise Deploy AAB
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: sourcemaps/android/index.js.map
-            title: Bitrise Deploy Sourcemaps
-      meta:
-        bitrise.io:
-          stack: linux-docker-android-22.04
-          machine_type_id: elite-xl
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
+      - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+          title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+          title: Bitrise Deploy Checksum
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+          title: Bitrise ProGuard Map Files
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+          title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: sourcemaps/android/index.js.map
+          title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_flask:
+    before_run:
+      - code_setup
+    after_run:
+      - _upload_apk_to_browserstack_flask
+      - notify_failure
+    steps:
+      - change-android-versioncode-and-versionname@1:
+          inputs:
+            - new_version_name: $FLASK_VERSION_NAME
+            - new_version_code: $FLASK_VERSION_NUMBER
+            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+            - destination: android/keystores/internalRelease.keystore
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_version: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                export METAMASK_ENVIRONMENT='qa'
+                export METAMASK_BUILD_TYPE='flask'
+                GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:android:pre-release:bundle:flask
+          title: Build Android Flask Pre-Release Bundle
+          is_always_run: false
+      - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+          title: Bitrise Deploy Flask APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt
+          title: Bitrise Deploy Flask Checksum
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt
+          title: Bitrise Deploy Flask ProGuard Map Files
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
+          title: Bitrise Deploy Flask AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: sourcemaps/android/index.js.map
+          title: Bitrise Deploy Flask Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  _upload_apk_to_browserstack_flask:
+    steps:
+      - script@1:
+          title: Upload Flask APK to Browserstack
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                set -o pipefail
+                APK_PATH=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+                CUSTOM_ID="flask-$BITRISE_GIT_BRANCH-$FLASK_VERSION_NAME-$FLASK_VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_FLASK_APP_URL
+                APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/"$CUSTOM_ID".apk
+                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_flask_apps.json:BROWSERSTACK_UPLOADED_FLASK_APPS_LIST
+          title: Save Browserstack uploaded Flask apps JSON
   _upload_apk_to_browserstack:
     steps:
       - script@1:
@@ -1784,6 +1881,187 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_apps.json
           title: Bitrise Deploy Browserstack Uploaded Apps
+  build_ios_flask_release:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $FLASK_VERSION_NAME
+            - build_version: $FLASK_VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:ios:pre-flask
+          title: iOS Sourcemaps & Build
+          is_always_run: false
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask-Flask.ipa
+          title: Deploy iOS IPA
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: ios/build/MetaMask-Flask.xcarchive:BITRISE_APP_STORE_XCARCHIVE_PATH
+          title: Deploy Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Source Map
+  build_ios_qa_flask:
+    envs:
+      - NO_FLIPPER: '1'
+    before_run:
+      - code_setup
+    after_run:
+      - _upload_ipa_to_browserstack_flask
+      - notify_failure
+    steps:
+      - certificate-and-profile-installer@1: {}
+      - set-xcode-build-number@1:
+          inputs:
+            - build_short_version_string: $FLASK_VERSION_NAME
+            - build_version: $FLASK_VERSION_NUMBER
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-Flask-Info.plist
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-flask
+          title: iOS Flask Sourcemaps & Build
+          is_always_run: false
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: ios/build/output/MetaMask-Flask.ipa:BITRISE_APP_STORE_FLASK_IPA_PATH
+            - deploy_path: ios/build/output/MetaMask-Flask.ipa
+          title: Deploy iOS Flask IPA
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: ios/build/MetaMask-Flask.xcarchive
+          title: Deploy Flask Symbols File
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_FLASK_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/ios/index.js.map
+          title: Deploy Flask Source Map
+  _upload_ipa_to_browserstack_flask:
+    steps:
+      - script@1:
+          title: Upload Flask IPA to Browserstack
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                set -e
+                set -x
+                set -o pipefail
+                CUSTOM_ID="flask-$BITRISE_GIT_BRANCH-$FLASK_VERSION_NAME-$FLASK_VERSION_NUMBER"
+                CUSTOM_ID=${CUSTOM_ID////-}
+                IPA_PATH=ios/build/output/MetaMask-Flask.ipa
+                IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_FLASK_APP_URL
+                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
+                curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
+      - share-pipeline-variable@1:
+          title: Persist BROWSERSTACK_IOS_FLASK_APP_URL across all stages
+          inputs:
+            - variables: |-
+                BROWSERSTACK_IOS_FLASK_APP_URL
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - deploy_path: browserstack_uploaded_flask_apps.json
+          title: Bitrise Deploy Browserstack Uploaded Flask Apps
+  build_android_flask_release:
+    before_run:
+      - code_setup
+    after_run:
+      - notify_failure
+    steps:
+      - change-android-versioncode-and-versionname@1:
+          inputs:
+            - new_version_name: $FLASK_VERSION_NAME
+            - new_version_code: $FLASK_VERSION_NUMBER
+            - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
+      - file-downloader@1:
+          inputs:
+            - source: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+            - destination: android/keystores/flaskRelease.keystore
+      - restore-gradle-cache@2: {}
+      - install-missing-android-tools@3:
+          inputs:
+            - ndk_revision: $NDK_VERSION
+            - gradlew_path: $PROJECT_LOCATION/gradlew
+
+      - script@1:
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                node -v
+                METAMASK_BUILD_TYPE='flask' METAMASK_ENVIRONMENT='production' yarn build:android:pre-release:bundle:flask
+          title: Build Android Pre-Release Bundle
+          is_always_run: false
+      - save-gradle-cache@1: {}
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk:BITRISE_PLAY_STORE_APK_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/app-flask-release.apk
+          title: Bitrise Deploy APK
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt:BITRISE_PLAY_STORE_SHA512SUMS_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/flask/release/sha512sums.txt
+          title: Bitrise Deploy Checksum
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt:BITRISE_PLAY_STORE_MAPPING_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/flaskRelease/mapping.txt
+          title: Bitrise ProGuard Map Files
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab:BITRISE_PLAY_STORE_ABB_PATH
+            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/flaskRelease/app-flask-release.aab
+          title: Bitrise Deploy AAB
+      - deploy-to-bitrise-io@2.2.3:
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: /bitrise/src/sourcemaps/android/index.js.map:BITRISE_PLAY_STORE_SOURCEMAP_PATH
+            - deploy_path: sourcemaps/android/index.js.map
+          title: Bitrise Deploy Sourcemaps
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
 app:
   envs:
     - opts:
@@ -1842,13 +2120,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.99
+      VERSION_NAME: 7.42.1
     - opts:
         is_expand: false
       VERSION_NUMBER: 1623
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.99
+      FLASK_VERSION_NAME: 7.42.1
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 1623

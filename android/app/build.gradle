@@ -255,7 +255,12 @@ android {
             dimension "version"
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
-            signingConfig signingConfigs.flask
+            // Use the appropriate signing config based on environment
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.flask
+            }
           }
     	  }
 
