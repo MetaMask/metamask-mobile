@@ -87,6 +87,10 @@ class Browser {
     return Matchers.getElementByID(BrowserViewSelectorsIDs.ADD_NEW_TAB);
   }
 
+  get DefaultAvatarImageForLocalHost() {
+    return Matchers.getElementByLabel('L');
+  }
+
   get networkAvatarButton() {
     return device.getPlatform() === 'ios'
       ? Matchers.getElementByID(BrowserViewSelectorsIDs.AVATAR_IMAGE)
@@ -123,6 +127,10 @@ class Browser {
 
   async tapUrlInputBox() {
     await Gestures.waitAndTap(this.addressBar);
+  }
+
+  async tapLocalHostDefaultAvatar() {
+    await Gestures.waitAndTap(this.DefaultAvatarImageForLocalHost);
   }
 
   async tapBottomSearchBar() {
