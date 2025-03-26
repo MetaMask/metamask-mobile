@@ -4,8 +4,9 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { BigNumber, constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
+
 // Mock dependencies
-jest.mock('../../../util/notifications/methods/common', () => ({
+jest.mock('../../../../../util/notifications/methods/common', () => ({
   getProviderByChainId: jest.fn(),
 }));
 

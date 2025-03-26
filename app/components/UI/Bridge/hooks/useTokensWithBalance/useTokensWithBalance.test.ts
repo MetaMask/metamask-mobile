@@ -6,13 +6,13 @@ import { Hex } from '@metamask/utils';
 import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 // Mock dependencies
-jest.mock('../../../util/networks', () => ({
-  ...jest.requireActual('../../../util/networks'),
+jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   isPortfolioViewEnabled: jest.fn().mockReturnValue(true),
 }));
 
-jest.mock('../Tokens/util', () => ({
-  ...jest.requireActual('../Tokens/util'),
+jest.mock('../../../Tokens/util', () => ({
+  ...jest.requireActual('../../../Tokens/util'),
   sortAssets: jest.fn().mockImplementation((assets) => assets),
 }));
 
