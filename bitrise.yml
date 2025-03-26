@@ -258,9 +258,7 @@ stages:
   build_e2e_flask_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build: {}
       - ios_e2e_build_flask: {}
-      - android_e2e_build: {}
       - android_e2e_build_flask: {}
   run_e2e_flask_stage:
     workflows:
