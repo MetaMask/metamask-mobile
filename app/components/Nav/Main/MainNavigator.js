@@ -90,7 +90,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
-import BridgeView from '../../UI/Bridge';
+import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -736,16 +736,6 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
-const Bridge = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="BridgeView"
-      component={BridgeView}
-      options={BridgeView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -850,7 +840,12 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name={Routes.BRIDGE} component={Bridge} />
+    <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+    <Stack.Screen
+      name={Routes.BRIDGE.MODALS.ROOT}
+      component={BridgeModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
