@@ -256,25 +256,12 @@ stages:
   build_e2e_flask_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build:
-          envs:
-            - METAMASK_BUILD_TYPE: 'flask'
-            - METAMASK_ENVIRONMENT: 'local'
-      - android_e2e_build:
-          envs:
-            - METAMASK_BUILD_TYPE: 'flask'
-            - METAMASK_ENVIRONMENT: 'local'
+      - ios_e2e_build: {}
+      - android_e2e_build: {}
   run_e2e_flask_stage:
     workflows:
-      - ios_e2e_test:
-          envs:
-            - METAMASK_BUILD_TYPE: 'flask'
-            - METAMASK_ENVIRONMENT: 'local'
-      - android_e2e_test:
-          envs:
-            - METAMASK_BUILD_TYPE: 'flask'
-            - METAMASK_ENVIRONMENT: 'local'
-
+      - ios_e2e_test: {}
+      - android_e2e_test: {}
 workflows:
   # Code Setups
   setup:
