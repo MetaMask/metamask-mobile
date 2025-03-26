@@ -47,7 +47,7 @@ jest.mock("../Permissions", () => ({
 
 jest.mock("../../selectors/networkController", () => ({
 	selectNetworkConfigurations: jest.fn().mockReturnValue({}),
-	selectProviderConfig: jest.fn().mockReturnValue({ chainId: "0x1" }),
+	selectProviderConfig: jest.fn().mockReturnValue({ chainId: "0x1" }) as jest.Mock,
 }));
 
 jest.mock("../RPCMethods/lib/ethereum-chain-utils", () => ({
@@ -60,9 +60,9 @@ jest.mock("../SDKConnect/utils/DevLogger", () => ({
 }));
 
 jest.mock("qs", () => ({
-	parse: jest.fn((queryString) => {
+	parse: jest.fn((queryString: string) => {
 		if (!queryString) return {};
-		const params = {};
+		const params: { [key: string]: string } = {};
 		const pairs = queryString.slice(1).split("&");
 		pairs.forEach((pair) => {
 			const [key, value] = pair.split("=");
@@ -81,7 +81,7 @@ jest.mock("@walletconnect/utils", () => ({
 }));
 
 describe("WalletConnect Utils", () => {
-	let mockNavigation: NavigationContainerRef;
+	let mockNavigation: jest.Mocked<NavigationContainerRef>;
 	const mockStore = (StoreModule as any).store;
 
 	beforeEach(() => {
@@ -90,7 +90,7 @@ describe("WalletConnect Utils", () => {
 			navigate: jest.fn(),
 			goBack: jest.fn(),
 			canGoBack: jest.fn().mockReturnValue(true),
-		} as unknown as NavigationContainerRef;
+		} as unknown as jest.Mocked<NavigationContainerRef>;
 
 		mockStore.getState.mockReturnValue({
 			networkOnboarded: {
@@ -137,6 +137,7 @@ describe("WalletConnect Utils", () => {
 		it("navigates back from SDK_LOADING sheet", () => {
 			mockNavigation.getCurrentRoute.mockReturnValue({
 				name: Routes.SHEET.SDK_LOADING,
+				key: "123",
 			});
 			hideWCLoadingState({ navigation: mockNavigation });
 			expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -145,6 +146,7 @@ describe("WalletConnect Utils", () => {
 		it("navigates back from RETURN_TO_DAPP_MODAL", () => {
 			mockNavigation.getCurrentRoute.mockReturnValue({
 				name: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+				key: "123",
 			});
 			hideWCLoadingState({ navigation: mockNavigation });
 			expect(mockNavigation.goBack).toHaveBeenCalled();
@@ -249,7 +251,7 @@ describe("WalletConnect Utils", () => {
 		});
 
 		it("switches network when chainIds differ", async () => {
-			selectProviderConfig.mockReturnValue({ chainId: "0x2" });
+			(selectProviderConfig as unknown as jest.Mock).mockReturnValue({ chainId: "0x2" });
 			await checkWCPermissions({
 				origin: "test",
 				caip2ChainId: "eip155:1",
