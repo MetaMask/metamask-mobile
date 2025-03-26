@@ -95,8 +95,7 @@ export const TokenListControlBar = ({
             style={
               isEvmSelected
                 ? styles.controlIconButton
-                : // eslint-disable-next-line react-native/no-inline-styles
-                  { ...styles.controlIconButton, opacity: 0.5 }
+                : styles.controlIconButtonDisabled
             }
             disabled={!isEvmSelected}
           />
