@@ -7,7 +7,7 @@ import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controll
 import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
 import Segment from './segment';
-import { Display, FlexDirection } from '../../../Box/box.types';
+import { FlexDirection } from '../../../Box/box.types';
 
 const getTxIndex = (srcTxStatus: StatusTypes) => {
   if (srcTxStatus === StatusTypes.PENDING) {
@@ -65,7 +65,7 @@ export default function BridgeActivityItemTxSegments({
   return (
     <Box flexDirection={FlexDirection.Column} gap={2}>
       <Text color={TextColor.Alternative}>Transaction {txIndex} of 2</Text>
-      <Box gap={2}>
+      <Box gap={2} flexDirection={FlexDirection.Row}>
         <Segment type={srcTxStatus} />
         <Segment type={destTxStatus} />
       </Box>
