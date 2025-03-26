@@ -13,6 +13,12 @@ jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
   useAlertsConfirmed: jest.fn(),
 }));
 
+jest.mock('../../hooks/useConfirmationAlertMetric', () => ({
+  useConfirmationAlertMetric: jest.fn(() => ({
+    trackAlertRendered: jest.fn(),
+  })),
+}));
+
 describe('AlertsContext', () => {
   const dangerAlertMock: Alert = {
     key: 'alert1',
