@@ -228,24 +228,22 @@ class WalletConnect2Session {
       this.redirect(`needsRedirect_${id}`);
     }
   };
-  
-  isHandlingRequest = () => {
-    return this._isHandlingRequest;
-  };
+
+  isHandlingRequest = () => this._isHandlingRequest;
 
   emitEvent = async (eventName: string, data: unknown) => {
-    console.log("🔵 emitEvent", eventName, data);
+    console.log('🔵 emitEvent', eventName, data);
     const res = await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
       chainId: `eip155:${data}`,
     });
-    console.log("🔵 emitEvent res", res);
+    console.log('🔵 emitEvent res', res);
   };
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
-    console.log("🔴 handleChainChange chainIdDecimal", chainIdDecimal);
+    console.log('🔴 handleChainChange chainIdDecimal', chainIdDecimal);
 
     if (this.isHandlingChainChange) return;
     this.isHandlingChainChange = true;
@@ -310,7 +308,7 @@ class WalletConnect2Session {
     ) {
       const chainIdHex = initialRequest.params.request.params[0].chainId;
       const chainIdDecimal = parseInt(chainIdHex, 16);
-      console.log("👉👉👉 approveRequest chainIdDecimal", chainIdDecimal);
+      console.log('👉👉👉 approveRequest chainIdDecimal', chainIdDecimal);
       await this.handleChainChange(chainIdDecimal);
     }
 
@@ -384,7 +382,7 @@ class WalletConnect2Session {
     chainId: number;
     accounts?: string[];
   }) => {
-    console.log("🔴 updateSession accounts", JSON.stringify(accounts, null, 2));
+    console.log('🔴 updateSession accounts', JSON.stringify(accounts, null, 2));
     try {
       if (!accounts) {
         DevLogger.log(
@@ -395,7 +393,7 @@ class WalletConnect2Session {
 
       // const origin = normalizeOrigin(this.session.peer.metadata.url);
       const origin = this.session.peer.metadata.url;
-      console.log("🔴 updateSession origin", origin);
+      console.log('🔴 updateSession origin', origin);
       DevLogger.log(
         `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
       );
@@ -428,17 +426,17 @@ class WalletConnect2Session {
 
       const namespaces = await getScopedPermissions({ origin });
       DevLogger.log(`🔴🔴 WC2::updateSession updating with namespaces`, namespaces);
- 
+
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
         namespaces,
       });
 
       // console.log("🔴🔴🔴 updateSession acknowledged", acknowledged);
-      
+
       // await acknowledged();
-      
-      console.log("🔴🔴🔴 updateSession emitEvent");
+
+      console.log('🔴🔴🔴 updateSession emitEvent');
       await this.emitEvent('chainChanged', chainId);
     } catch (err) {
       console.warn(
@@ -525,7 +523,7 @@ class WalletConnect2Session {
       await this.handleSendTransaction(requestEvent, methodParams, origin);
       return;
     }
-    
+
     if (method === 'eth_signTypedData') {
       await this.backgroundBridge.onMessage({
         name: 'walletconnect-provider',
