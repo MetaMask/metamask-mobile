@@ -181,42 +181,36 @@ export const checkActiveAccountAndChainId = async ({
     let activeChainId;
 
     if (hostname) {
-      // eslint-disable-next-line no-console
-      console.log('>>> selecting per origin chainId', hostname);
       const perOriginChainId = selectPerOriginChainId(
         store.getState(),
         hostname,
       );
-      // eslint-disable-next-line no-console
-      console.log('>>>  perOriginChainId', perOriginChainId);
 
       activeChainId = perOriginChainId;
-    } else {
-      if (isInitialNetwork) {
-        activeChainId = ChainId[networkType as keyof typeof ChainId];
-      } else if (networkType === RPC) {
-        activeChainId = providerConfig.chainId;
-      }
+    } else if (isInitialNetwork) {
+      activeChainId = ChainId[networkType as keyof typeof ChainId];
+    } else if (networkType === RPC) {
+      activeChainId = providerConfig.chainId;
+    }
 
-      if (activeChainId && !activeChainId.startsWith('0x')) {
-        // Convert to hex
-        activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
-      }
+    if (activeChainId && !activeChainId.startsWith('0x')) {
+      // Convert to hex
+      activeChainId = `0x${parseInt(activeChainId, 10).toString(16)}`;
+    }
 
-      let chainIdRequest = String(chainId);
-      if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
-        // Convert to hex
-        chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
-      }
+    let chainIdRequest = String(chainId);
+    if (chainIdRequest && !chainIdRequest.startsWith('0x')) {
+      // Convert to hex
+      chainIdRequest = `0x${parseInt(chainIdRequest, 10).toString(16)}`;
+    }
 
-      if (activeChainId !== chainIdRequest) {
-        Alert.alert(
-          `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
-        );
-        throw rpcErrors.invalidParams({
-          message: `Invalid parameters: active chainId is different than the one provided.`,
-        });
-      }
+    if (activeChainId !== chainIdRequest) {
+      Alert.alert(
+        `Active chainId is ${activeChainId} but received ${chainIdRequest}`,
+      );
+      throw rpcErrors.invalidParams({
+        message: `Invalid parameters: active chainId is different than the one provided.`,
+      });
     }
   }
 };
