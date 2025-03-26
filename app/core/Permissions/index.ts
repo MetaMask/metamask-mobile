@@ -5,7 +5,6 @@ import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { PermissionKeys } from './specifications';
-import { normalizeOrigin } from '../WalletConnect/wc-utils';
 import { EVM_IDENTIFIER } from '../Multichain/constants';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
