@@ -179,7 +179,7 @@ export const parseTypedDataMessage = (dataToParse: string) => {
   return result;
 };
 
-export const parseTypedSignDataMessage = (dataToParse: string) => {
+export const parseSignTypedDataMessage = (dataToParse: string) => {
   const { message, primaryType, types } = JSON.parse(dataToParse);
   return sanitizeParsedMessage(message, primaryType, types);
 };
