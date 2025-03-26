@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
@@ -24,12 +24,13 @@ import { useLatestBalance } from './useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectDestChainId,
+  selectSelectedDestChainId,
   selectSourceToken,
   selectDestToken,
   setSourceAmount,
   resetBridgeState,
-  switchTokens,
+  setSourceToken,
+  setDestToken,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -42,6 +43,7 @@ import Engine from '../../../core/Engine';
 import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -124,7 +126,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const destChainId = useSelector(selectDestChainId);
+  const destChainId = useSelector(selectSelectedDestChainId);
 
   // Add state for slippage
   const [slippage, setSlippage] = useState('0.5');
@@ -178,21 +180,35 @@ const BridgeView = () => {
   };
 
   const handleArrowPress = () => {
-    if (destChainId && destToken) {
-      dispatch(switchTokens());
+    // Switch tokens
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(destToken));
+      dispatch(setDestToken(sourceToken));
     }
   };
 
   // Add function to navigate to slippage modal
   const handleSlippagePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SLIPPAGE_MODAL,
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
       params: {
         selectedSlippage: slippage,
         onSelectSlippage: setSlippage,
       },
     });
   };
+
+  const handleSourceTokenPress = () => 
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+      params: {},
+    });
+
+  const handleDestTokenPress = () => 
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      params: {},
+    });
 
   const renderBottomContent = () => {
     if (
@@ -248,24 +264,27 @@ const BridgeView = () => {
             isReadonly
             testID="source-token-area"
             tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
           />
           <Box style={styles.arrowContainer}>
-            <TouchableOpacity
-              onPress={handleArrowPress}
-              disabled={!destChainId || !destToken}
-              style={styles.arrowCircle}
-            >
-              <Text style={styles.arrow}>↓</Text>
-            </TouchableOpacity>
+            <Box style={styles.arrowCircle}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Down}
+                onPress={handleArrowPress}
+                disabled={!destChainId || !destToken}
+                testID="arrow-button"
+              />
+            </Box>
           </Box>
           <TokenInputArea
             amount={destAmount}
             token={destToken}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={destChainId ? getNetworkImageSource({ chainId: destChainId as Hex }) : undefined}
+            networkImageSource={destToken ? getNetworkImageSource({ chainId: destToken?.chainId as Hex }) : undefined}
             isReadonly
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
           />
         </Box>
         <Button
