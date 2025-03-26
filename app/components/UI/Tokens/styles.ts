@@ -225,6 +225,9 @@ const createStyles = (colors: Colors) =>
     privacyIcon: {
       marginLeft: 8,
     },
+    loaderWrapper: {
+      paddingLeft: 40,
+    },
     portfolioButtonContainer: {
       alignItems: 'center',
     },
