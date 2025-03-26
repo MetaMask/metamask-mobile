@@ -8,7 +8,10 @@ import type {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from '@metamask/utils';
-import { requestPermissionsHandler } from '@metamask/eip1193-permission-middleware';
+import {
+  getPermissionsHandler,
+  requestPermissionsHandler,
+} from '@metamask/eip1193-permission-middleware';
 import {
   type JsonRpcError,
   providerErrors,
@@ -20,7 +23,6 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
-  PermissionConstraint,
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
@@ -46,12 +48,17 @@ import {
 import { ProviderConfig } from '../../selectors/networkController';
 
 jest.mock('@metamask/eip1193-permission-middleware', () => ({
+  getPermissionsHandler: { implementation: jest.fn() },
   requestPermissionsHandler: {
     implementation: jest.fn(),
   },
 }));
-const mockPermissionHandlerImplementation =
+
+const mockRequestPermissionHandlerImplementation =
   requestPermissionsHandler.implementation as jest.Mock;
+
+const mockGetPermissionHandlerImplementation =
+  getPermissionsHandler.implementation as jest.Mock;
 
 jest.mock('./spam');
 
@@ -740,7 +747,7 @@ describe('getRpcMethodMiddleware', () => {
     };
 
     it('should call eip1193-method-middleware requestPermissionHandler implementation with expected arguments', async () => {
-      mockPermissionHandlerImplementation.mockImplementation(
+      mockRequestPermissionHandlerImplementation.mockImplementation(
         (_req, _res, _next, callback) => {
           callback(null);
           return Promise.resolve();
@@ -749,7 +756,7 @@ describe('getRpcMethodMiddleware', () => {
 
       const response = await callMiddleware({ middleware, request });
 
-      expect(mockPermissionHandlerImplementation).toHaveBeenCalledWith(
+      expect(mockRequestPermissionHandlerImplementation).toHaveBeenCalledWith(
         request,
         response,
         expect.any(Function),
@@ -765,7 +772,7 @@ describe('getRpcMethodMiddleware', () => {
 
     it('should call implementation with expected arguments and receive an error if call throws', async () => {
       const mockError = new Error('error');
-      mockPermissionHandlerImplementation.mockImplementation(
+      mockRequestPermissionHandlerImplementation.mockImplementation(
         (_req, _res, _next, callback) => {
           callback(mockError);
           return Promise.resolve();
@@ -783,7 +790,7 @@ describe('getRpcMethodMiddleware', () => {
         }),
       });
 
-      expect(mockPermissionHandlerImplementation).toHaveBeenCalledWith(
+      expect(mockRequestPermissionHandlerImplementation).toHaveBeenCalledWith(
         request,
         response,
         expect.any(Function),
@@ -799,43 +806,38 @@ describe('getRpcMethodMiddleware', () => {
   });
 
   describe('wallet_getPermissions', () => {
-    it('can getPermissions', async () => {
-      const mockOrigin = 'example.metamask.io';
-      const mockPermission: Awaited<
-        ReturnType<
-          typeof MockEngine.context.PermissionController.getPermissions
-        >
-      > = {
-        eth_accounts: {
-          id: 'id',
-          date: 1,
-          invoker: mockOrigin,
-          parentCapability: 'eth_accounts',
-          caveats: [
-            {
-              type: 'restrictReturnedAccounts',
-              value: [addressMock],
-            },
-          ],
+    it('should call eip1193-method-middleware getPermissionHandler implementation with expected arguments', async () => {
+      mockGetPermissionHandlerImplementation.mockImplementation(
+        (_req, _res, _next, callback) => {
+          callback(null);
+          return Promise.resolve();
         },
-      };
-      MockEngine.context.PermissionController.getPermissions.mockImplementation(
-        () => mockPermission,
       );
+
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
       });
+
       const request = {
         jsonrpc,
         id: 1,
         method: 'wallet_getPermissions',
         params: [],
       };
+
       const response = await callMiddleware({ middleware, request });
-      expect(
-        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
-      ).toEqual([mockPermission.eth_accounts]);
+
+      expect(mockGetPermissionHandlerImplementation).toHaveBeenCalledWith(
+        request,
+        response,
+        expect.any(Function),
+        expect.any(Function),
+        expect.objectContaining({
+          getAccounts: expect.any(Function),
+          getPermissionsForOrigin: expect.any(Function),
+        }),
+      );
     });
   });
 
