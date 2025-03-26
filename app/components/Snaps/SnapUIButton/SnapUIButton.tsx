@@ -1,6 +1,12 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import {
+  TouchableOpacity,
+  StyleSheet,
+  View,
+  ViewStyle,
+  StyleProp,
+} from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Text, {
   TextColor,
@@ -16,7 +22,7 @@ export interface SnapUIButtonProps {
   form?: string;
   variant: keyof typeof COLORS;
   textVariant?: TextVariant;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
   disabled?: boolean;
   onPress?: () => void;
   children?: React.ReactNode;
@@ -66,7 +72,8 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   const isIcon =
     React.isValidElement(children) &&
     (children.props?.type === 'Icon' ||
-      (children.type as any)?.displayName === 'Icon');
+      (children.type as React.ComponentType<unknown> & { displayName?: string })
+        ?.displayName === 'Icon');
 
   const styles = StyleSheet.create({
     button: {
@@ -76,7 +83,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      ...style,
+      ...(style as ViewStyle),
     },
     content: {
       flexDirection: 'row',
@@ -98,6 +105,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
           source={{ uri: './loading.json' }}
           autoPlay
           loop
+          // eslint-disable-next-line react-native/no-inline-styles
           style={{
             width: 24,
             height: 24,
