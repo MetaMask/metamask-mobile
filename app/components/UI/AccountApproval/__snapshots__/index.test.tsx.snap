@@ -34,7 +34,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
           }
         }
         useNativeDriver={true}
@@ -80,7 +80,7 @@ exports[`AccountApproval should render correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                 },
               ]
             }
@@ -108,7 +108,7 @@ exports[`AccountApproval should render correctly 1`] = `
               "fontSize": 15,
             },
             {
-              "color": "#141618",
+              "color": "#121314",
               "marginRight": 5,
             },
             {
@@ -125,7 +125,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 14,
             "fontWeight": "600",
@@ -160,7 +160,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -178,7 +178,7 @@ exports[`AccountApproval should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "Euclid Circular B",
         "fontSize": 18,
         "fontWeight": "700",
@@ -196,7 +196,7 @@ exports[`AccountApproval should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "Euclid Circular B",
         "fontSize": 16,
         "fontWeight": "400",
@@ -222,7 +222,7 @@ exports[`AccountApproval should render correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 10,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -234,7 +234,7 @@ exports[`AccountApproval should render correctly 1`] = `
       <View
         placeholderStyle={
           {
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
           }
         }
         useNativeDriver={true}
@@ -285,7 +285,7 @@ exports[`AccountApproval should render correctly 1`] = `
                   "backgroundColor": "#eee",
                 },
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                 },
               ]
             }
@@ -318,7 +318,7 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               {
                 "0": {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
@@ -326,7 +326,7 @@ exports[`AccountApproval should render correctly 1`] = `
                   "maxWidth": "45%",
                 },
                 "1": undefined,
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -343,14 +343,14 @@ exports[`AccountApproval should render correctly 1`] = `
             style={
               {
                 "0": {
-                  "color": "#141618",
+                  "color": "#121314",
                   "flexGrow": 1,
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 16,
                   "fontWeight": "600",
                 },
                 "1": undefined,
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -371,13 +371,13 @@ exports[`AccountApproval should render correctly 1`] = `
             {
               "0": {
                 "alignSelf": "flex-start",
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "100",
               },
               "1": undefined,
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -406,126 +406,61 @@ exports[`AccountApproval should render correctly 1`] = `
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
-      activeOpacity={0.2}
+      activeOpacity={1}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 100,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "#ffffff",
-              "borderColor": "#6a737d",
-              "borderWidth": 1,
-            },
-            [
-              {
-                "flex": 1,
-              },
-              {
-                "marginRight": 8,
-              },
-            ],
-          ],
-          null,
-        ]
+        {
+          "0": {
+            "flex": 1,
+          },
+          "1": {
+            "marginRight": 8,
+          },
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 20,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
       }
       testID="cancel-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
-            [
-              {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "600",
-                "textAlign": "center",
-              },
-              {
-                "color": "#6a737d",
-              },
-              undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Cancel
-      </Text>
-    </TouchableOpacity>
+    />
     <TouchableOpacity
       accessibilityRole="button"
       accessible={true}
-      activeOpacity={0.2}
+      activeOpacity={1}
       disabled={false}
       onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
-        [
-          [
-            {
-              "borderRadius": 100,
-              "justifyContent": "center",
-              "padding": 15,
-            },
-            {
-              "backgroundColor": "#0376c9",
-              "minHeight": 50,
-            },
-            [
-              {
-                "flex": 1,
-              },
-              {
-                "marginLeft": 8,
-              },
-              false,
-            ],
-          ],
-          null,
-        ]
+        {
+          "0": {
+            "flex": 1,
+          },
+          "1": {
+            "marginLeft": 8,
+          },
+          "2": false,
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 20,
+          "flexDirection": "row",
+          "height": 40,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
       }
       testID="connect-button"
-    >
-      <Text
-        style={
-          [
-            {
-              "color": "#007aff",
-              "fontSize": 17,
-              "fontWeight": "500",
-              "textAlign": "center",
-            },
-            null,
-            [
-              {
-                "fontFamily": "EuclidCircularB-Bold",
-                "fontSize": 14,
-                "fontWeight": "600",
-                "textAlign": "center",
-              },
-              {
-                "color": "#ffffff",
-              },
-              undefined,
-            ],
-            null,
-          ]
-        }
-      >
-        Connect
-      </Text>
-    </TouchableOpacity>
+    />
   </View>
 </View>
 `;

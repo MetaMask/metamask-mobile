@@ -6,7 +6,9 @@ import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
 import NotificationManager from '../../../core/NotificationManager';
 import AccountInfoCard from '../AccountInfoCard';
-import StyledButton from '../StyledButton';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 import TransactionHeader from '../TransactionHeader';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -377,21 +379,21 @@ class AccountApproval extends PureComponent {
           </View>
         )}
         <View style={styles.actionContainer}>
-          <StyledButton
-            type={'cancel'}
+          <Button
+            variant={ButtonVariants.Secondary}
             onPress={this.onCancel}
-            containerStyle={[styles.button, styles.cancel]}
+            style={[styles.button, styles.cancel]}
             testID={CommonSelectorsIDs.CANCEL_BUTTON}
           >
             {currentPageInformation.reconnect
               ? strings('accountApproval.disconnect')
               : strings('accountApproval.cancel')}
-          </StyledButton>
-          <StyledButton
-            disabled={this.state.otp && this.state.confirmDisabled}
-            type={'confirm'}
+          </Button>
+          <Button
+            variant={ButtonVariants.Primary}
+            isDisabled={this.state.otp && this.state.confirmDisabled}
             onPress={this.onConfirm}
-            containerStyle={[
+            style={[
               styles.button,
               styles.confirm,
               isUrlFlaggedAsPhishing && styles.warningButton,
@@ -401,7 +403,7 @@ class AccountApproval extends PureComponent {
             {currentPageInformation.reconnect
               ? strings('accountApproval.resume')
               : strings('accountApproval.connect')}
-          </StyledButton>
+          </Button>
         </View>
       </View>
     );
