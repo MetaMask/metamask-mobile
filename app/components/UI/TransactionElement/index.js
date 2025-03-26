@@ -37,6 +37,11 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../reducers/swaps';
+import { FINAL_NON_CONFIRMED_STATUSES, useBridgeTxHistoryData } from '../../../util/bridge/hooks/useBridgeTxHistoryData';
+import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetails/bridge-activity-item-tx-segments';
+import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../constants/bridge';
+import { decimalToHex } from '../../../util/conversions';
+import { addHexPrefix } from '../../../util/number';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -161,6 +166,7 @@ class TransactionElement extends PureComponent {
     isQRHardwareAccount: PropTypes.bool,
     isLedgerAccount: PropTypes.bool,
     signLedgerTransaction: PropTypes.func,
+    bridgeTxHistoryData: PropTypes.object,
   };
 
   state = {
@@ -322,9 +328,10 @@ class TransactionElement extends PureComponent {
       isQRHardwareAccount,
       isLedgerAccount,
       i,
-      tx: { time, status, isSmartTransaction },
+      tx: { time, status, isSmartTransaction, type },
     } = this.props;
-    const isBridgeTransaction = this.props.tx.type === 'bridge';
+    const isBridgeTransaction = type === 'bridge';
+    const { bridgeTxHistoryItem, isBridgeComplete } = this.props?.bridgeTxHistoryData;    
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -336,6 +343,12 @@ class TransactionElement extends PureComponent {
       status === 'approved' && isQRHardwareAccount;
     const renderLedgerActions = status === 'approved' && isLedgerAccount;
     const accountImportTime = selectedInternalAccount?.metadata.importTime;
+    let title  = actionKey;
+    if (isBridgeTransaction && bridgeTxHistoryItem) {
+      const hexDestChainId = addHexPrefix(decimalToHex(bridgeTxHistoryItem.quote.destChainId));
+      const destChainName = NETWORK_TO_SHORT_NETWORK_NAME_MAP[hexDestChainId];
+      title = destChainName ? `${actionKey} to ${destChainName}` : title;
+    }
     return (
       <>
         {accountImportTime > time && this.renderImportTime()}
@@ -349,13 +362,23 @@ class TransactionElement extends PureComponent {
             </ListItem.Icon>
             <ListItem.Body>
               <ListItem.Title numberOfLines={1} style={styles.listItemTitle}>
-                {actionKey}
+                {title}
               </ListItem.Title>
-              <StatusText
-                testID={`transaction-status-${i}`}
-                status={status}
-                style={styles.listItemStatus}
-              />
+              { !FINAL_NON_CONFIRMED_STATUSES.includes(status) && 
+                isBridgeTransaction &&
+                !isBridgeComplete ? (
+                  <BridgeActivityItemTxSegments
+                    bridgeTxHistoryItem={bridgeTxHistoryItem}
+                    transaction={this.props.tx}
+                  />
+                ) : (
+                  <StatusText
+                    testID={`transaction-status-${i}`}
+                    status={status}
+                    style={styles.listItemStatus}
+                  />
+                )
+              }
             </ListItem.Body>
             {Boolean(value) && (
               <ListItem.Amounts>
@@ -623,4 +646,11 @@ const mapStateToProps = (state) => ({
 
 TransactionElement.contextType = ThemeContext;
 
-export default connect(mapStateToProps)(TransactionElement);
+// Create a wrapper functional component
+const TransactionElementWithBridge = (props) => {
+  const bridgeTxHistoryData = useBridgeTxHistoryData({txMeta: props.tx});
+  
+  return <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />;
+};
+
+export default connect(mapStateToProps)(TransactionElementWithBridge);

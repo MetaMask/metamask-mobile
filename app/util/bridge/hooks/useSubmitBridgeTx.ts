@@ -4,16 +4,23 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { zeroAddress } from 'ethereumjs-util';
 import useAddToken from './useAddToken';
+import Engine from '../../../core/Engine/Engine';
+import { useSelector } from 'react-redux';
+import { getQuoteRequest } from '../../../selectors/bridgeController';
+import { serializeQuoteMetadata } from '..';
+import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadataSerialized } from '@metamask/bridge-status-controller';
 
 export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();
   const { handleApprovalTx } = useHandleApprovalTx();
   const { addSourceToken, addDestToken } = useAddToken();
+  const { slippage } = useSelector(getQuoteRequest);
 
   const submitBridgeTx = async ({
     quoteResponse,
   }: {
-    quoteResponse: QuoteResponse;
+    quoteResponse: QuoteResponse & QuoteMetadata;
   }) => {
     let approvalTxMeta: TransactionMeta | undefined;
     if (quoteResponse.approval) {
@@ -23,6 +30,31 @@ export default function useSubmitBridgeTx() {
       });
     }
     const txResult = await handleBridgeTx({ quoteResponse, approvalTxId: approvalTxMeta?.id });
+
+    // Start polling for tx history
+    // TESTING: Add mocked quote metadata
+    const quoteMetadata = {} as QuoteMetadataSerialized;
+    if (quoteMetadata) {
+      Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
+        bridgeTxMeta: txResult,
+        statusRequest: {
+          bridgeId: quoteResponse.quote.bridgeId,
+          bridge: quoteResponse.quote.bridges[0],
+          srcChainId: quoteResponse.quote.srcChainId,
+          destChainId: quoteResponse.quote.destChainId,
+          quote: quoteResponse.quote,
+          refuel: Boolean(quoteResponse.quote.refuel),
+          srcTxHash: txResult.hash, // This might be undefined for STX
+        },
+        // quoteResponse: serializeQuoteMetadata(quoteResponse),
+        quoteResponse: {
+          ...quoteResponse,
+          ...quoteMetadata,
+        },
+        slippagePercentage: slippage ?? 0,
+        startTime: txResult.time,
+      });
+    }
 
     // Add tokens if not the native gas token
     if (quoteResponse.quote.srcAsset.address !== zeroAddress()) {
