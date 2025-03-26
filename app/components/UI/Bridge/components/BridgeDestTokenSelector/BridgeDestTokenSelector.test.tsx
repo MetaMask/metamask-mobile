@@ -4,7 +4,7 @@ import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setDestToken } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -41,8 +41,8 @@ describe('BridgeDestTokenSelector', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockSourceChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockDestChainId)]: { isActiveSrc: true, isActiveDest: true },
               },
             },
           },
