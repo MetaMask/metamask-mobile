@@ -1627,48 +1627,30 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
+                  <TouchableOpacity
+                    accessibilityLabel="submit"
+                    accessibilityRole="button"
                     accessible={true}
                     disabled={false}
-                    id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
                     padding={0}
                     style={
                       {
-                        "backgroundColor": "transparent",
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderRadius": 8,
+                        "flexDirection": "row",
+                        "justifyContent": "center",
+                        "paddingVertical": 8,
                       }
                     }
-                    suppressHighlighting={true}
                   >
                     <Text
-                      accessibilityRole="text"
-                      style={
-                        {
-                          "color": "#0376c9",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
-                        }
-                      }
+                      color="inherit"
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -2668,47 +2650,29 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
+            <TouchableOpacity
+              accessibilityLabel="submit"
+              accessibilityRole="button"
               accessible={true}
               disabled={false}
-              id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
-                  "backgroundColor": "transparent",
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "paddingVertical": 8,
                 }
               }
-              suppressHighlighting={true}
             >
               <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
-                  }
-                }
+                color="inherit"
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
