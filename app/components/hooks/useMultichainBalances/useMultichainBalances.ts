@@ -1,7 +1,7 @@
 /* eslint-disable arrow-body-style */
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
-import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,

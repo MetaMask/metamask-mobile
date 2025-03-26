@@ -21,7 +21,6 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
 import Icon, {
   IconSize,
   IconName,
