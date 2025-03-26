@@ -443,7 +443,8 @@
         "image-size>queue>inherits": true,
         "rimraf>glob>minimatch": true,
         "rimraf>glob>once": true,
-        "rimraf>glob>path-is-absolute": true
+        "rimraf>glob>path-is-absolute": true,
+        "inherits": true
       }
     },
     "graceful-fs": {
