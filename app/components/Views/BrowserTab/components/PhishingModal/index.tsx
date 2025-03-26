@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PhishingModalUI from '../../../../UI/PhishingModal';
 import URLParse from 'url-parse';
 import {
@@ -11,6 +11,8 @@ import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
 import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PhishingModalProps {
   blockedUrl?: string;
@@ -39,6 +41,21 @@ const PhishingModal = ({
     styles,
     theme: { colors },
   } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  useEffect(() => {
+    if (showPhishingModal && blockedUrl) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
+          .addProperties({
+            url: blockedUrl,
+            reason: 'eth-phishing-detect',
+          })
+          .build(),
+      );
+    }
+  }, [showPhishingModal, blockedUrl, trackEvent, createEventBuilder]);
+
   /**
    * Go to eth-phishing-detect page
    */
@@ -52,6 +69,13 @@ const PhishingModal = ({
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PROCEED_ANYWAY_CLICKED)
+        .addProperties({
+          url: blockedUrl,
+        })
+        .build(),
+    );
     const { origin: urlOrigin } = new URLParse(blockedUrl);
 
     addToWhitelist(urlOrigin);
