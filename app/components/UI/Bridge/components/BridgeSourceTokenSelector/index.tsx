@@ -4,14 +4,14 @@ import { useNavigation } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken } from '../../../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
 import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from '../BridgeSourceNetworksBar';
 import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
-import { useSourceTokens } from '../../hooks/useSourceTokens';
+import { useTokens } from '../../hooks/useTokens';
 
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
@@ -21,7 +21,13 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const selectedSourceToken = useSelector(selectSourceToken);
-  const tokensList = useSourceTokens({ chainId: selectedSourceToken?.chainId as Hex });
+  const selectedDestToken = useSelector(selectDestToken);
+
+  const tokensList = useTokens({
+    topTokensChainId: selectedSourceToken?.chainId as Hex,
+    balanceChainIds: selectedSourceChainIds as Hex[],
+    tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
+  });
 
   const renderItem = useCallback(({ item }: { item: TokenIWithFiatAmount }) => {
     const handleTokenPress = (token: TokenI) => {

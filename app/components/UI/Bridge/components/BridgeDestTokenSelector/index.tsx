@@ -4,18 +4,17 @@ import { useNavigation } from '@react-navigation/native';
 import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectDestToken, setDestToken } from '../../../../../core/redux/slices/bridge';
+import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
 import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
-import { useDestinationTokens } from '../../hooks/useDestinationTokens';
 import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
 import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
 import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
-
+import { useTokens } from '../../hooks/useTokens';
 const createStyles = () => StyleSheet.create({
   infoButton: {
     marginRight: 12,
@@ -26,8 +25,15 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const tokensList = useDestinationTokens();
   const selectedDestToken = useSelector(selectDestToken);
+
+  const selectedDestChainId = useSelector(selectSelectedDestChainId);
+  const selectedSourceToken = useSelector(selectSourceToken);
+  const tokensList = useTokens({
+    topTokensChainId: selectedDestChainId as Hex,
+    balanceChainIds: [selectedDestChainId as Hex],
+    tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
+  });
   const handleTokenPress = useCallback(
     (token: TokenI) => {
       dispatch(setDestToken(token));
