@@ -106,7 +106,7 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
   });
 
   it('adds `MegaEth Testnet` as default network to state', () => {
-    const oldState = createTestState()
+    const oldState = createTestState();
     const megaethTestnetChainId = ChainId[BuiltInNetworkName.MegaETHTestnet];
     const defaultState = getDefaultNetworkControllerState([megaethTestnetChainId]);
     const expectedData = {

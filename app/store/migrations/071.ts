@@ -1,4 +1,3 @@
-
 import { captureException } from '@sentry/react-native';
 import { getDefaultNetworkControllerState } from '@metamask/network-controller';
 import { hasProperty, isObject } from '@metamask/utils';
@@ -25,13 +24,23 @@ const migration = (state: unknown): unknown => {
       hasProperty(state.engine, 'backgroundState') &&
       hasProperty(state.engine.backgroundState, 'NetworkController') &&
       isObject(state.engine.backgroundState.NetworkController) &&
-      isObject(state.engine.backgroundState.NetworkController.networkConfigurationsByChainId)
+      isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+      )
     ) {
       const megaethTestnetChainId = ChainId[BuiltInNetworkName.MegaETHTestnet];
 
-      const defaultState = getDefaultNetworkControllerState([megaethTestnetChainId]);
+      const defaultState = getDefaultNetworkControllerState([
+        megaethTestnetChainId,
+      ]);
 
-      if (!hasProperty(defaultState.networkConfigurationsByChainId, megaethTestnetChainId)) {
+      if (
+        !hasProperty(
+          defaultState.networkConfigurationsByChainId,
+          megaethTestnetChainId,
+        )
+      ) {
         throw new Error(
           `MegaETH Testnet configuration not found from getDefaultNetworkControllerState()`,
         );

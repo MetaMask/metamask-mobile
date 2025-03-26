@@ -327,13 +327,9 @@ export class Engine {
         btoa,
         fetch,
       }),
-      defaultNetworks: [
-        ChainId.mainnet,
-        ChainId['linea-mainnet'],
-        ChainId.sepolia,
-        ChainId['linea-sepolia'],
+      additionalDefaultNetworks: [
         ChainId['megaeth-testnet'],
-      ] 
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
