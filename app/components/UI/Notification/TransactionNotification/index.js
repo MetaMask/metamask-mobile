@@ -461,7 +461,7 @@ const mapStateToProps = (state) => {
     ] || [];
 
   const currentTransactionMetadata = selectCurrentTransactionMetadata(state);
-  console.log('>>> currentTransactionMetadata', currentTransactionMetadata);
+  // console.log('>>> currentTransactionMetadata', currentTransactionMetadata);
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),

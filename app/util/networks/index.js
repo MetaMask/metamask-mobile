@@ -298,11 +298,11 @@ export function isPrivateConnection(hostname) {
  * @param {object} networkConfigurations
  */
 export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
-  console.log('>>> findBlockExplorerForRpc rpcTargetUrl', rpcTargetUrl);
-  console.log(
-    '>>> findBlockExplorerForRpc networkConfigurations',
-    networkConfigurations,
-  );
+  // console.log('>>> findBlockExplorerForRpc rpcTargetUrl', rpcTargetUrl);
+  // console.log(
+  //   '>>> findBlockExplorerForRpc networkConfigurations',
+  //   networkConfigurations,
+  // );
   const networkConfiguration = Object.values(networkConfigurations).find(
     ({ rpcEndpoints }) => rpcEndpoints?.some(({ url }) => url === rpcTargetUrl),
   );
