@@ -136,6 +136,7 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  handleFetch,
   toChecksumHexAddress,
   type ChainId,
 } from '@metamask/controller-utils';
@@ -976,7 +977,7 @@ export class Engine {
         allowedEvents: [],
       }),
       clientId: BridgeClientId.MOBILE,
-      fetchFn: fetch,
+      fetchFn: handleFetch,
     });
 
     const existingControllersByName = {
