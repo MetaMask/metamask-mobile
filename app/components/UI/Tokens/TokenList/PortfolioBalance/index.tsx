@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../../hooks/useMetrics';
@@ -165,7 +165,7 @@ export const PortfolioBalance = React.memo(() => {
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={{ paddingLeft: 40 }}>
+            <View style={styles.loaderWrapper}>
               <Loader />
             </View>
           )}
