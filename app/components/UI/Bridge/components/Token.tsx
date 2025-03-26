@@ -4,18 +4,18 @@ import {
   ImageSourcePropType,
   TouchableOpacity,
 } from 'react-native';
-import Text from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
-import { Box } from '../Box/Box';
-import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
+import Text from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
+import { Box } from '../../Box/Box';
+import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import TokenIcon from '../Swaps/components/TokenIcon';
+} from '../../../../component-library/components/Badges/Badge';
+import TokenIcon from '../../Swaps/components/TokenIcon';
 
 interface TokenProps {
   symbol?: string;

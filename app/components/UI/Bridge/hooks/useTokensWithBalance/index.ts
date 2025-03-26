@@ -1,15 +1,15 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { TokenI } from '../Tokens/types';
-import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
-import { selectCurrencyRates, selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { deriveBalanceFromAssetMarketDetails, sortAssets } from '../Tokens/util';
-import { selectTokenSortConfig } from '../../../selectors/preferencesController';
-import { selectAccountTokensAcrossChains } from '../../../selectors/multichain';
+import { TokenI } from '../../../Tokens/types';
+import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { selectCurrencyRates, selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { deriveBalanceFromAssetMarketDetails, sortAssets } from '../../../Tokens/util';
+import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
+import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
 
 export type TokenIWithFiatAmount = TokenI & { tokenFiatAmount: number };
 

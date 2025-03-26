@@ -1,16 +1,16 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TokenI } from '../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectDestToken, setDestToken } from '../../../core/redux/slices/bridge';
-import { getNetworkImageSource } from '../../../util/networks';
-import { TokenSelectorItem } from './TokenSelectorItem';
-import { TokenIWithFiatAmount } from './useTokensWithBalance';
-import { BridgeDestNetworksBar } from './BridgeDestNetworksBar';
-import { useDestinationTokens } from './useDestinationTokens';
-import { BridgeTokenSelectorBase } from './BridgeTokenSelectorBase';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectDestToken, setDestToken } from '../../../../../core/redux/slices/bridge';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { TokenSelectorItem } from '../TokenSelectorItem';
+import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
+import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
+import { useDestinationTokens } from '../../hooks/useDestinationTokens';
+import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
 
 export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();

@@ -4,10 +4,10 @@ import { abiERC20 } from '@metamask/metamask-eth-abis';
 import { Web3Provider } from '@ethersproject/providers';
 import { formatUnits, getAddress, parseUnits } from 'ethers/lib/utils';
 import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { getProviderByChainId } from '../../../util/notifications/methods/common';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
+import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
-import usePrevious from '../../hooks/usePrevious';
+import usePrevious from '../../../../hooks/usePrevious';
 
 export async function fetchAtomicTokenBalance(
   address: string,

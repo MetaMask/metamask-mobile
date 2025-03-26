@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Box } from '../Box/Box';
-import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
-import { FlexDirection, AlignItems } from '../Box/box.types';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
-import { getNetworkImageSource } from '../../../util/networks';
+import { Box } from '../../Box/Box';
+import Text, { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
+import { FlexDirection, AlignItems } from '../../Box/box.types';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
+import { getNetworkImageSource } from '../../../../util/networks';
 import { Hex } from '@metamask/utils';
 
 const createStyles = () => StyleSheet.create({

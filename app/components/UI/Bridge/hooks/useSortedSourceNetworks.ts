@@ -2,10 +2,10 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectEnabledSourceChains,
-} from '../../../core/redux/slices/bridge';
-import { useGetFormattedTokensPerChain } from '../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+} from '../../../../core/redux/slices/bridge';
+import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
+import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export const useSortedSourceNetworks = () => {

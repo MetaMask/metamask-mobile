@@ -1,6 +1,6 @@
 import { useTokensWithBalance, TokenIWithFiatAmount } from './useTokensWithBalance';
 import { useSelector } from 'react-redux';
-import { selectSelectedDestChainId, selectSourceToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedDestChainId, selectSourceToken } from '../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 

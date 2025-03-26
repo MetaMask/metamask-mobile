@@ -1,27 +1,27 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType, View } from 'react-native';
-import AssetElement from '../AssetElement';
+import AssetElement from '../../AssetElement';
 import BadgeWrapper, {
   BadgePosition,
-} from '../../../component-library/components/Badges/BadgeWrapper';
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+} from '../../../../component-library/components/Badges/Badge';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
   TextColor,
-} from '../../../component-library/components/Texts/Text';
-import TokenIcon from '../Swaps/components/TokenIcon';
-import { Box } from '../Box/Box';
-import { AlignItems, FlexDirection, JustifyContent } from '../Box/box.types';
-import { TokenIWithFiatAmount } from './useTokensWithBalance';
-import ButtonIcon, { ButtonIconSizes } from '../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../component-library/components/Icons/Icon';
+} from '../../../../component-library/components/Texts/Text';
+import TokenIcon from '../../Swaps/components/TokenIcon';
+import { Box } from '../../Box/Box';
+import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
+import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
+import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
+import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
 
 const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boolean } }) =>
   StyleSheet.create({

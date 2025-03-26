@@ -2,29 +2,29 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '../Box/Box';
-import { useStyles } from '../../../component-library/hooks';
+import { Box } from '../../../Box/Box';
+import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectEnabledSourceChains,
   selectSelectedSourceChainIds,
   setSelectedSourceChainIds
-} from '../../../core/redux/slices/bridge';
-import { strings } from '../../../../locales/i18n';
-import { useGetFormattedTokensPerChain } from '../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+} from '../../../../../core/redux/slices/bridge';
+import { strings } from '../../../../../../locales/i18n';
+import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
+import { useGetTotalFiatBalanceCrossChains } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { addCurrencySymbol, renderNumber } from '../../../util/number';
-import Button, { ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
-import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
-import ListItem from '../../../component-library/components/List/ListItem/ListItem';
-import { VerticalAlignment } from '../../../component-library/components/List/ListItem/ListItem.types';
-import { useSortedSourceNetworks } from './useSortedSourceNetworks';
-import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
-import { NetworkRow } from './NetworkRow';
-import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
-import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { addCurrencySymbol, renderNumber } from '../../../../../util/number';
+import Button, { ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
+import Checkbox from '../../../../../component-library/components/Checkbox/Checkbox';
+import ListItem from '../../../../../component-library/components/List/ListItem/ListItem';
+import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem/ListItem.types';
+import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
+import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
+import { NetworkRow } from '../NetworkRow';
+import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const createStyles = () => StyleSheet.create({
   listContent: {

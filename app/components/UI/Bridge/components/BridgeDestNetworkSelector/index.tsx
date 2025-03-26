@@ -2,17 +2,17 @@ import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '../Box/Box';
-import { useStyles } from '../../../component-library/hooks';
+import { Box } from '../../../Box/Box';
+import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectEnabledDestChains,
   setSelectedDestChainId,
-} from '../../../core/redux/slices/bridge';
-import ListItem from '../../../component-library/components/List/ListItem/ListItem';
-import { VerticalAlignment } from '../../../component-library/components/List/ListItem/ListItem.types';
+} from '../../../../../core/redux/slices/bridge';
+import ListItem from '../../../../../component-library/components/List/ListItem/ListItem';
+import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem/ListItem.types';
 import { Hex } from '@metamask/utils';
-import { BridgeNetworkSelectorBase } from './BridgeNetworkSelectorBase';
-import { NetworkRow } from './NetworkRow';
+import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
+import { NetworkRow } from '../NetworkRow';
 
 const createStyles = () => StyleSheet.create({
     listContent: {

@@ -1,6 +1,6 @@
-import { getDisplayFiatValue } from './TokenInputArea';
+import { getDisplayFiatValue } from '.';
 import { Hex } from '@metamask/utils';
-import { TokenI } from '../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 
 describe('getDisplayFiatValue', () => {
   const mockChainId = '0x1' as Hex;

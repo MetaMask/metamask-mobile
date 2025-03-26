@@ -1,16 +1,16 @@
 import React from 'react';
 import { StyleSheet, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useStyles } from '../../../component-library/hooks';
-import { Box } from '../Box/Box';
-import Text, { TextColor } from '../../../component-library/components/Texts/Text';
-import Input from '../../../component-library/components/Form/TextField/foundation/Input';
-import { Token } from './Token';
-import { selectCurrentCurrency, selectCurrencyRates } from '../../../selectors/currencyRateController';
-import { renderNumber, addCurrencySymbol, balanceToFiatNumber } from '../../../util/number';
-import { selectTokenMarketData } from '../../../selectors/tokenRatesController';
-import { TokenI } from '../Tokens/types';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { useStyles } from '../../../../../component-library/hooks';
+import { Box } from '../../../Box/Box';
+import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
+import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
+import { Token } from '../Token';
+import { selectCurrentCurrency, selectCurrencyRates } from '../../../../../selectors/currencyRateController';
+import { renderNumber, addCurrencySymbol, balanceToFiatNumber } from '../../../../../util/number';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+import { TokenI } from '../../../Tokens/types';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 

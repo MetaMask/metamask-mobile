@@ -1,17 +1,17 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { TokenI } from '../Tokens/types';
+import { TokenI } from '../../../Tokens/types';
 import { Hex } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken } from '../../../core/redux/slices/bridge';
-import { getNetworkImageSource } from '../../../util/networks';
-import { TokenSelectorItem } from './TokenSelectorItem';
-import { TokenIWithFiatAmount } from './useTokensWithBalance';
-import { useSortedSourceNetworks } from './useSortedSourceNetworks';
-import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from './BridgeSourceNetworksBar';
-import { BridgeTokenSelectorBase } from './BridgeTokenSelectorBase';
-import { useSourceTokens } from './useSourceTokens';
+import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken } from '../../../../../core/redux/slices/bridge';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { TokenSelectorItem } from '../TokenSelectorItem';
+import { TokenIWithFiatAmount } from '../../hooks/useTokensWithBalance';
+import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
+import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from '../BridgeSourceNetworksBar';
+import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
+import { useSourceTokens } from '../../hooks/useSourceTokens';
 
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();

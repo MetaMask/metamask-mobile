@@ -1,6 +1,6 @@
-import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
-import { useLatestBalance } from './useLatestBalance';
-import { getProviderByChainId } from '../../../util/notifications/methods/common';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import { useLatestBalance } from '.';
+import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';

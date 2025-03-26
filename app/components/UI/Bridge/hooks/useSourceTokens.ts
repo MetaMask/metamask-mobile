@@ -1,6 +1,6 @@
 import { TokenIWithFiatAmount, useTokensWithBalance } from './useTokensWithBalance';
 import { useSelector } from 'react-redux';
-import { selectSelectedSourceChainIds, selectDestToken } from '../../../core/redux/slices/bridge';
+import { selectSelectedSourceChainIds, selectDestToken } from '../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 // TODO get top tokens from BridgeController

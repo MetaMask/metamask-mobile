@@ -1,15 +1,15 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Box } from '../Box/Box';
-import Text, { TextVariant } from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import Icon, { IconName } from '../../../component-library/components/Icons/Icon';
-import { IconSize } from '../../../component-library/components/Icons/Icon/Icon.types';
-import { strings } from '../../../../locales/i18n';
-import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
+import { Box } from '../../Box/Box';
+import Text, { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
+import Icon, { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconSize } from '../../../../component-library/components/Icons/Icon/Icon.types';
+import { strings } from '../../../../../locales/i18n';
+import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
 import { useNavigation } from '@react-navigation/native';
 
 const createStyles = (params: { theme: Theme }) => {

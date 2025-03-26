@@ -1,9 +1,9 @@
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { BridgeSourceTokenSelector } from './BridgeSourceTokenSelector';
-import Routes from '../../../constants/navigation/Routes';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
+import { BridgeDestTokenSelector } from '.';
+import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
-import { setSourceToken } from '../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../../core/redux/slices/bridge';
 import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
@@ -23,13 +23,14 @@ jest.mock('../../../core/redux/slices/bridge', () => {
     __esModule: true,
     ...actual,
     default: actual.default,
-    setSourceToken: jest.fn(actual.setSourceToken),
+    setDestToken: jest.fn(actual.setDestToken),
   };
 });
 
-describe('BridgeSourceTokenSelector', () => {
+describe('BridgeDestTokenSelector', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
-  const mockChainId = '0x1' as Hex;
+  const mockSourceChainId = '0x1' as Hex;
+  const mockDestChainId = '0xa' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -49,19 +50,18 @@ describe('BridgeSourceTokenSelector', () => {
         TokenBalancesController: {
           tokenBalances: {
             [mockAddress]: {
-              [mockChainId]: {
+              [mockSourceChainId]: {
                 [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
-                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
               },
-              '0xa': {
-                [token1Address]: '0x4563918244f40000' as Hex, // 5 TOKEN1 on Optimism
+              [mockDestChainId]: {
+                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO on Optimism
               },
             },
           },
         },
         TokensController: {
           allTokens: {
-            [mockChainId]: {
+            [mockSourceChainId]: {
               [mockAddress]: [
                 {
                   address: token1Address,
@@ -71,6 +71,10 @@ describe('BridgeSourceTokenSelector', () => {
                   name: 'Token One',
                   aggregators: ['1inch'],
                 },
+              ],
+            },
+            [mockDestChainId]: {
+              [mockAddress]: [
                 {
                   address: token2Address,
                   symbol: 'HELLO',
@@ -116,8 +120,8 @@ describe('BridgeSourceTokenSelector', () => {
             },
           },
           networkConfigurationsByChainId:  {
-            '0x1': {
-              chainId: '0x1' as Hex,
+            [mockSourceChainId]: {
+              chainId: mockSourceChainId,
               rpcEndpoints: [
                 {
                   networkClientId: 'selectedNetworkClientId',
@@ -125,9 +129,10 @@ describe('BridgeSourceTokenSelector', () => {
               ],
               defaultRpcEndpointIndex: 0,
               nativeCurrency: 'ETH',
+              name: 'Ethereum',
             },
-            '0xa': {
-              chainId: '0xa' as Hex,
+            [mockDestChainId]: {
+              chainId: mockDestChainId,
               rpcEndpoints: [
                 {
                   networkClientId: 'optimismNetworkClientId',
@@ -135,10 +140,11 @@ describe('BridgeSourceTokenSelector', () => {
               ],
               defaultRpcEndpointIndex: 0,
               nativeCurrency: 'ETH',
+              name: 'Optimism',
             },
           },
           providerConfig: {
-            chainId: mockChainId,
+            chainId: mockSourceChainId,
             ticker: 'ETH',
             rpcPrefs: { blockExplorerUrl: 'https://etherscan.io' },
             type: 'infura',
@@ -151,12 +157,12 @@ describe('BridgeSourceTokenSelector', () => {
             },
           },
           accountsByChainId: {
-            [mockChainId]: {
+            [mockSourceChainId]: {
               [mockAddress]: {
                 balance: '0x29a2241af62c0000' as Hex, // 3 ETH
               },
             },
-            '0xa': {
+            [mockDestChainId]: {
               [mockAddress]: {
                 balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
               },
@@ -191,23 +197,18 @@ describe('BridgeSourceTokenSelector', () => {
         },
         TokenRatesController: {
           marketData: {
-            [mockChainId]: {
+            [mockSourceChainId]: {
               [token1Address]: {
                 tokenAddress: token1Address,
                 currency: 'ETH',
                 price: 10, // 1 TOKEN1 = 10 ETH
               },
+            },
+            [mockDestChainId]: {
               [token2Address]: {
                 tokenAddress: token2Address,
                 currency: 'ETH',
-                price: 50, // 1 TOKEN2 = 5 ETH
-              },
-            },
-            '0xa': {
-              [token1Address]: {
-                tokenAddress: token1Address,
-                currency: 'ETH',
-                price: 8, // 1 TOKEN1 = 8 ETH on Optimism
+                price: 5, // 1 TOKEN2 = 5 ETH on Optimism
               },
             },
           },
@@ -238,18 +239,9 @@ describe('BridgeSourceTokenSelector', () => {
             },
           },
           tokensChainsCache: {
-            [mockChainId]: {
+            [mockDestChainId]: {
               timestamp: Date.now(),
               data: {
-                [token1Address]: {
-                  name: 'Token One',
-                  symbol: 'TOKEN1',
-                  decimals: 18,
-                  address: token1Address,
-                  iconUrl: 'https://token1.com/logo.png',
-                  occurrences: 1,
-                  aggregators: [],
-                },
                 [token2Address]: {
                   name: 'Hello Token',
                   symbol: 'HELLO',
@@ -266,10 +258,10 @@ describe('BridgeSourceTokenSelector', () => {
     bridge: {
       sourceAmount: undefined,
       destAmount: undefined,
-      destChainId: undefined,
       sourceToken: undefined,
       destToken: undefined,
-      selectedSourceChainIds: undefined,
+      selectedSourceChainIds: [mockSourceChainId, mockDestChainId],
+      selectedDestChainId: mockDestChainId,
     },
   };
 
@@ -279,9 +271,9 @@ describe('BridgeSourceTokenSelector', () => {
 
   it('renders with initial state and displays tokens', async () => {
     const { getByText, toJSON } = renderScreen(
-      BridgeSourceTokenSelector,
+      BridgeDestTokenSelector,
       {
-        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -289,19 +281,9 @@ describe('BridgeSourceTokenSelector', () => {
     // Header should be visible
     expect(getByText('Select token')).toBeTruthy();
 
-    // Native token (ETH) should be visible with correct balance
+    // Tokens for destination chain should be visible
     await waitFor(() => {
-      expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('$6000')).toBeTruthy();
-    });
-
-    // ERC20 tokens should be visible with correct balances
-    await waitFor(() => {
-      expect(getByText('1 TOKEN1')).toBeTruthy();
-      expect(getByText('$20000')).toBeTruthy();
-
-      expect(getByText('2 HELLO')).toBeTruthy();
-      expect(getByText('$200000')).toBeTruthy();
+      expect(getByText('HELLO')).toBeTruthy();
     });
 
     expect(toJSON()).toMatchSnapshot();
@@ -309,42 +291,79 @@ describe('BridgeSourceTokenSelector', () => {
 
   it('handles token selection correctly', async () => {
     const { getByText } = renderScreen(
-      BridgeSourceTokenSelector,
+      BridgeDestTokenSelector,
       {
-        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
 
     await waitFor(() => {
-      const token1Element = getByText('1 TOKEN1');
+      const token1Element = getByText('HELLO');
       fireEvent.press(token1Element);
     });
 
-    expect(setSourceToken).toHaveBeenCalledWith({
-      address: token1Address,
-      aggregators: ['1inch'],
-      balance: '1',
-      balanceFiat: '$20000',
-      chainId: '0x1',
+    expect(setDestToken).toHaveBeenCalledWith(expect.objectContaining({
+      address: token2Address,
+      aggregators: ['uniswap'],
+      balance: '2',
+      chainId: mockDestChainId,
       decimals: 18,
-      image: 'https://token1.com/logo.png',
-      isETH: false,
-      isNative: false,
-      isStaked: false,
-      name: 'Token One',
-      symbol: 'TOKEN1',
-      token: 'Token One',
-      tokenFiatAmount: 20000,
-    });
+      image: 'https://token2.com/logo.png',
+      name: 'Hello Token',
+      symbol: 'HELLO',
+    }));
     expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('handles info button click correctly, navigates to Asset screen', async () => {
+    const { getAllByTestId, getByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    await waitFor(() => {
+      expect(getByText('ETH')).toBeTruthy();
+    });
+
+    // Get the info button using its test ID
+    const infoButton = getAllByTestId('token-info-button')[0];
+
+    // Ensure we found the info button
+    expect(infoButton).toBeTruthy();
+
+    // Press the info button
+    fireEvent.press(infoButton);
+
+    // Verify navigation to Asset screen with the correct token params
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.objectContaining({
+      address: '0x0000000000000000000000000000000000000000',
+      aggregators: [],
+      balance: '20',
+      balanceFiat: '$40000',
+      chainId: '0xa',
+      decimals: 18,
+      image: '',
+      isETH: true,
+      isNative: true,
+      isStaked: false,
+      logo: '../images/eth-logo-new.png',
+      name: 'Ethereum',
+      stakedBalance: '0x0',
+      symbol: 'ETH',
+      ticker: 'ETH',
+      tokenFiatAmount: 40000
+    }));
   });
 
   it('handles close button correctly', () => {
     const { getByTestId } = renderScreen(
-      BridgeSourceTokenSelector,
+      BridgeDestTokenSelector,
       {
-        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -357,43 +376,41 @@ describe('BridgeSourceTokenSelector', () => {
 
   it('handles token search functionality correctly', async () => {
     const { getByTestId, getByText, queryByText } = renderScreen(
-      BridgeSourceTokenSelector,
+      BridgeDestTokenSelector,
       {
-        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
 
     // Initially all tokens should be visible
     await waitFor(() => {
-      expect(getByText('3 ETH')).toBeTruthy();
-      expect(getByText('1 TOKEN1')).toBeTruthy();
-      expect(getByText('2 HELLO')).toBeTruthy();
+      expect(getByText('HELLO')).toBeTruthy();
     });
 
     // Search for TOKEN1
     const searchInput = getByTestId('bridge-token-search-input');
     fireEvent.changeText(searchInput, 'HELLO');
 
-    // Should only show HELLO, not TOKEN1
+    // Should only show HELLO, not ETH
     await waitFor(() => {
-      expect(getByText('2 HELLO')).toBeTruthy();
-      expect(queryByText('1 TOKEN1')).toBeNull();
+      expect(getByText('HELLO')).toBeTruthy();
+      expect(queryByText('ETH')).toBeNull();
     });
 
     // Search should be case-insensitive
     fireEvent.changeText(searchInput, 'hello');
     await waitFor(() => {
-      expect(getByText('2 HELLO')).toBeTruthy();
-      expect(queryByText('1 TOKEN1')).toBeNull();
+      expect(getByText('HELLO')).toBeTruthy();
+      expect(queryByText('ETH')).toBeNull();
     });
   });
 
   it('displays empty state when no tokens match search', async () => {
     const { getByTestId, getByText } = renderScreen(
-      BridgeSourceTokenSelector,
+      BridgeDestTokenSelector,
       {
-        name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
       { state: initialState }
     );
@@ -403,6 +420,23 @@ describe('BridgeSourceTokenSelector', () => {
 
     await waitFor(() => {
       expect(getByText('No tokens match', { exact: false })).toBeTruthy();
+    });
+  });
+
+  it('navigates to destination network selector when See all is pressed', async () => {
+    const { getByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState }
+    );
+
+    const seeAllButton = getByText('See all');
+    fireEvent.press(seeAllButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
     });
   });
 });

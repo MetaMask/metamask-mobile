@@ -1,21 +1,21 @@
 import React, { useCallback } from 'react';
 import { StyleSheet } from 'react-native';
-import { Box } from '../Box/Box';
-import Text, { TextColor, TextVariant } from '../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../component-library/hooks';
-import { Theme } from '../../../util/theme/models';
+import { Box } from '../../Box/Box';
+import Text, { TextColor, TextVariant } from '../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../component-library/hooks';
+import { Theme } from '../../../../util/theme/models';
 import { Hex } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
-import { getNetworkImageSource } from '../../../util/networks';
-import { FlexDirection, AlignItems, JustifyContent } from '../Box/box.types';
-import { strings } from '../../../../locales/i18n';
-import { selectEnabledSourceChains } from '../../../core/redux/slices/bridge';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import Button, { ButtonVariants } from '../../../component-library/components/Buttons/Button';
-import Routes from '../../../constants/navigation/Routes';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
+import { getNetworkImageSource } from '../../../../util/networks';
+import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
+import { strings } from '../../../../../locales/i18n';
+import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import Button, { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import AvatarNetwork from '../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
