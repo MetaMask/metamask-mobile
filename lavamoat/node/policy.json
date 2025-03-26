@@ -1,0 +1,1217 @@
+{
+  "resources": {
+    "@babel/code-frame": {
+      "globals": {
+        "console.warn": true,
+        "process": true
+      },
+      "packages": {
+        "@babel/code-frame>@babel/helper-validator-identifier": true,
+        "@babel/code-frame>js-tokens": true,
+        "@babel/code-frame>picocolors": true
+      }
+    },
+    "@babel/generator": {
+      "globals": {
+        "console.error": true,
+        "console.warn": true
+      },
+      "packages": {
+        "@babel/types": true,
+        "@babel/generator>@jridgewell/gen-mapping": true,
+        "@babel/generator>@jridgewell/trace-mapping": true,
+        "@babel/generator>jsesc": true
+      }
+    },
+    "@babel/template": {
+      "packages": {
+        "@babel/code-frame": true,
+        "@babel/parser": true,
+        "@babel/types": true
+      }
+    },
+    "@babel/traverse": {
+      "globals": {
+        "console.log": true
+      },
+      "packages": {
+        "@babel/code-frame": true,
+        "@babel/generator": true,
+        "@babel/parser": true,
+        "@babel/template": true,
+        "@babel/types": true,
+        "@babel/core>debug": true,
+        "@babel/traverse>globals": true
+      }
+    },
+    "@babel/types": {
+      "globals": {
+        "console.warn": true,
+        "process.env": true
+      },
+      "packages": {
+        "@babel/types>@babel/helper-string-parser": true,
+        "@babel/code-frame>@babel/helper-validator-identifier": true
+      }
+    },
+    "@babel/generator>@jridgewell/gen-mapping": {
+      "packages": {
+        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/set-array": true,
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true,
+        "@babel/generator>@jridgewell/trace-mapping": true
+      }
+    },
+    "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": {
+      "globals": {
+        "Buffer": true,
+        "TextDecoder": true
+      }
+    },
+    "@babel/generator>@jridgewell/trace-mapping": {
+      "packages": {
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/resolve-uri": true,
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true
+      }
+    },
+    "accepts": {
+      "packages": {
+        "mime-types": true,
+        "accepts>negotiator": true
+      }
+    },
+    "chalk>ansi-styles": {
+      "packages": {
+        "chalk>ansi-styles>color-convert": true
+      }
+    },
+    "metro-file-map>anymatch": {
+      "packages": {
+        "metro-file-map>anymatch>normalize-path": true,
+        "metro-file-map>anymatch>picomatch": true
+      }
+    },
+    "rimraf>glob>minimatch>brace-expansion": {
+      "packages": {
+        "rimraf>glob>minimatch>brace-expansion>balanced-match": true,
+        "rimraf>glob>minimatch>brace-expansion>concat-map": true
+      }
+    },
+    "metro-file-map>micromatch>braces": {
+      "globals": {
+        "console.log": true
+      },
+      "packages": {
+        "metro-file-map>micromatch>braces>fill-range": true
+      }
+    },
+    "metro-file-map>fb-watchman>bser": {
+      "builtin": {
+        "assert": true,
+        "events.EventEmitter": true,
+        "os.endianness": true,
+        "util.inherits": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.byteLength": true,
+        "Buffer.isBuffer": true,
+        "process.nextTick": true
+      },
+      "packages": {
+        "metro-file-map>fb-watchman>bser>node-int64": true
+      }
+    },
+    "ws>bufferutil": {
+      "globals": {
+        "__dirname": true
+      },
+      "packages": {
+        "ws>bufferutil>node-gyp-build": true
+      }
+    },
+    "metro-config>cosmiconfig>import-fresh>caller-path>caller-callsite": {
+      "packages": {
+        "metro-config>cosmiconfig>import-fresh>caller-path>caller-callsite>callsites": true
+      }
+    },
+    "metro-config>cosmiconfig>import-fresh>caller-path": {
+      "packages": {
+        "metro-config>cosmiconfig>import-fresh>caller-path>caller-callsite": true
+      }
+    },
+    "chalk": {
+      "packages": {
+        "chalk>ansi-styles": true,
+        "chalk>supports-color": true
+      }
+    },
+    "ci-info": {
+      "globals": {
+        "process.env": true
+      }
+    },
+    "yargs>cliui": {
+      "globals": {
+        "process": true
+      }
+    },
+    "chalk>ansi-styles>color-convert": {
+      "packages": {
+        "chalk>ansi-styles>color-convert>color-name": true
+      }
+    },
+    "connect": {
+      "builtin": {
+        "events.EventEmitter.prototype": true,
+        "http.Server": true,
+        "http.createServer": true
+      },
+      "globals": {
+        "console.error": true,
+        "process.env.NODE_ENV": true,
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "connect>debug": true,
+        "connect>finalhandler": true,
+        "connect>parseurl": true,
+        "utils-merge": true
+      }
+    },
+    "metro-config>cosmiconfig": {
+      "builtin": {
+        "fs.readFile": true,
+        "fs.readFileSync": true,
+        "os.homedir": true,
+        "path.basename": true,
+        "path.dirname": true,
+        "path.extname": true,
+        "path.join": true,
+        "path.resolve": true
+      },
+      "globals": {
+        "process.cwd": true
+      },
+      "packages": {
+        "metro-config>cosmiconfig>import-fresh": true,
+        "metro-config>cosmiconfig>is-directory": true,
+        "metro-config>cosmiconfig>js-yaml": true,
+        "metro-config>cosmiconfig>parse-json": true
+      }
+    },
+    "debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "@babel/core>debug": {
+      "builtin": {
+        "tty.isatty": true,
+        "util.deprecate": true,
+        "util.formatWithOptions": true,
+        "util.inspect": true
+      },
+      "globals": {
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "connect>debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "connect>finalhandler>debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "metro-file-map>debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "metro-inspector-proxy>debug": {
+      "builtin": {
+        "fs.SyncWriteStream": true,
+        "net.Socket": true,
+        "tty.WriteStream": true,
+        "tty.isatty": true,
+        "util": true
+      },
+      "globals": {
+        "chrome": true,
+        "console": true,
+        "document": true,
+        "localStorage": true,
+        "navigator": true,
+        "process": true
+      },
+      "packages": {
+        "ms": true
+      }
+    },
+    "denodeify": {
+      "globals": {
+        "define": true
+      }
+    },
+    "metro-config>cosmiconfig>parse-json>error-ex": {
+      "builtin": {
+        "util.inherits": true
+      },
+      "packages": {
+        "metro-config>cosmiconfig>parse-json>error-ex>is-arrayish": true
+      }
+    },
+    "error-stack-parser": {
+      "globals": {
+        "define": true
+      },
+      "packages": {
+        "error-stack-parser>stackframe": true
+      }
+    },
+    "yargs>escalade": {
+      "builtin": {
+        "fs": true,
+        "path": true
+      }
+    },
+    "metro-config>cosmiconfig>js-yaml>esprima": {
+      "globals": {
+        "define": true
+      }
+    },
+    "metro-file-map>fb-watchman": {
+      "builtin": {
+        "child_process.spawn": true,
+        "events.EventEmitter": true,
+        "net.createConnection": true,
+        "util.inherits": true
+      },
+      "globals": {
+        "console.error": true,
+        "process.env.WATCHMAN_SOCK": true
+      },
+      "packages": {
+        "metro-file-map>fb-watchman>bser": true
+      }
+    },
+    "metro-file-map>micromatch>braces>fill-range": {
+      "builtin": {
+        "util.inspect": true
+      },
+      "packages": {
+        "metro-file-map>micromatch>braces>fill-range>to-regex-range": true
+      }
+    },
+    "connect>finalhandler": {
+      "globals": {
+        "Buffer.byteLength": true,
+        "process.env.NODE_ENV": true,
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "connect>finalhandler>debug": true,
+        "connect>finalhandler>encodeurl": true,
+        "connect>finalhandler>escape-html": true,
+        "connect>finalhandler>on-finished": true,
+        "connect>parseurl": true,
+        "connect>finalhandler>statuses": true,
+        "connect>finalhandler>unpipe": true
+      }
+    },
+    "rimraf>glob>fs.realpath": {
+      "builtin": {
+        "fs.lstat": true,
+        "fs.lstatSync": true,
+        "fs.readlink": true,
+        "fs.readlinkSync": true,
+        "fs.realpath": true,
+        "fs.realpathSync": true,
+        "fs.stat": true,
+        "fs.statSync": true,
+        "path.normalize": true,
+        "path.resolve": true
+      },
+      "globals": {
+        "console.error": true,
+        "console.trace": true,
+        "process.env.NODE_DEBUG": true,
+        "process.nextTick": true,
+        "process.noDeprecation": true,
+        "process.platform": true,
+        "process.throwDeprecation": true,
+        "process.traceDeprecation": true,
+        "process.version": true
+      }
+    },
+    "metro-file-map>fsevents": {
+      "globals": {
+        "process.platform": true
+      },
+      "native": true
+    },
+    "rimraf>glob": {
+      "builtin": {
+        "assert": true,
+        "events.EventEmitter": true,
+        "fs": true,
+        "path.join": true,
+        "path.resolve": true,
+        "util": true
+      },
+      "globals": {
+        "console.error": true,
+        "process.cwd": true,
+        "process.nextTick": true,
+        "process.platform": true
+      },
+      "packages": {
+        "rimraf>glob>fs.realpath": true,
+        "rimraf>glob>inflight": true,
+        "image-size>queue>inherits": true,
+        "rimraf>glob>minimatch": true,
+        "rimraf>glob>once": true,
+        "rimraf>glob>path-is-absolute": true
+      }
+    },
+    "graceful-fs": {
+      "builtin": {
+        "assert.equal": true,
+        "constants.O_SYMLINK": true,
+        "constants.O_WRONLY": true,
+        "constants.hasOwnProperty": true,
+        "fs": true,
+        "stream.Stream.call": true,
+        "util": true
+      },
+      "globals": {
+        "clearTimeout": true,
+        "console.error": true,
+        "process": true,
+        "setTimeout": true
+      }
+    },
+    "chalk>supports-color>has-flag": {
+      "globals": {
+        "process.argv": true
+      }
+    },
+    "image-size": {
+      "builtin": {
+        "fs.closeSync": true,
+        "fs.fstatSync": true,
+        "fs.openSync": true,
+        "fs.promises.open": true,
+        "fs.readSync": true,
+        "fs.statSync": true,
+        "path.resolve": true
+      },
+      "globals": {
+        "TextDecoder": true,
+        "process.nextTick": true
+      },
+      "packages": {
+        "image-size>queue": true
+      }
+    },
+    "metro-config>cosmiconfig>import-fresh": {
+      "builtin": {
+        "path.dirname": true
+      },
+      "packages": {
+        "metro-config>cosmiconfig>import-fresh>caller-path": true,
+        "metro-config>cosmiconfig>import-fresh>resolve-from": true
+      }
+    },
+    "rimraf>glob>inflight": {
+      "globals": {
+        "process.nextTick": true
+      },
+      "packages": {
+        "rimraf>glob>once": true,
+        "rimraf>glob>inflight>wrappy": true
+      }
+    },
+    "image-size>queue>inherits": {
+      "builtin": {
+        "util.inherits": true
+      }
+    },
+    "invariant": {
+      "globals": {
+        "process.env.NODE_ENV": true
+      }
+    },
+    "metro-config>cosmiconfig>is-directory": {
+      "builtin": {
+        "fs.stat": true,
+        "fs.statSync": true
+      }
+    },
+    "metro-file-map>jest-regex-util": {
+      "builtin": {
+        "path.sep": true
+      }
+    },
+    "metro-config>jest-validate": {
+      "globals": {
+        "console.warn": true
+      },
+      "packages": {
+        "metro-config>jest-validate>camelcase": true,
+        "chalk": true,
+        "metro-config>jest-validate>jest-get-type": true,
+        "metro-config>jest-validate>leven": true,
+        "metro-config>jest-validate>pretty-format": true
+      }
+    },
+    "jest-worker": {
+      "builtin": {
+        "child_process": true,
+        "os": true,
+        "path": true,
+        "stream": true,
+        "worker_threads": true
+      },
+      "globals": {
+        "__dirname": true,
+        "clearTimeout": true,
+        "process": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "jest-worker>merge-stream": true,
+        "jest-worker>supports-color": true
+      }
+    },
+    "metro-config>cosmiconfig>js-yaml": {
+      "globals": {
+        "esprima": true
+      },
+      "packages": {
+        "metro-config>cosmiconfig>js-yaml>esprima": true
+      }
+    },
+    "@babel/generator>jsesc": {
+      "globals": {
+        "Buffer": true
+      }
+    },
+    "lodash.throttle": {
+      "globals": {
+        "clearTimeout": true,
+        "setTimeout": true
+      }
+    },
+    "metro-file-map>walker>makeerror": {
+      "globals": {
+        "Components": true,
+        "chrome": true,
+        "process": true
+      },
+      "packages": {
+        "tmpl": true
+      }
+    },
+    "jest-worker>merge-stream": {
+      "builtin": {
+        "stream.PassThrough": true
+      }
+    },
+    "metro": {
+      "builtin": {
+        "assert": true,
+        "crypto": true,
+        "events.EventEmitter": true,
+        "fs.createWriteStream": true,
+        "fs.existsSync": true,
+        "fs.lstatSync": true,
+        "fs.readFile": true,
+        "fs.readFileSync": true,
+        "fs.readdir": true,
+        "fs.realpath": true,
+        "fs.realpathSync": true,
+        "fs.statSync": true,
+        "fs.watchFile": true,
+        "fs.writeFile": true,
+        "http.createServer": true,
+        "https.createServer": true,
+        "net.createServer": true,
+        "os": true,
+        "path": true,
+        "querystring": true,
+        "url.format": true,
+        "url.parse": true,
+        "util.format": true,
+        "util.promisify": true
+      },
+      "globals": {
+        "Buffer.byteLength": true,
+        "Buffer.concat": true,
+        "Buffer.from": true,
+        "URL": true,
+        "clearTimeout": true,
+        "console": true,
+        "process.env": true,
+        "process.exitCode": "write",
+        "process.hrtime": true,
+        "process.nextTick": true,
+        "process.stdout": true,
+        "setImmediate": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "@babel/code-frame": true,
+        "@babel/parser": true,
+        "@babel/template": true,
+        "@babel/types": true,
+        "accepts": true,
+        "chalk": true,
+        "ci-info": true,
+        "connect": true,
+        "debug": true,
+        "denodeify": true,
+        "error-stack-parser": true,
+        "graceful-fs": true,
+        "image-size": true,
+        "invariant": true,
+        "jest-worker": true,
+        "jsc-safe-url": true,
+        "lodash.throttle": true,
+        "metro-cache": true,
+        "metro-cache-key": true,
+        "metro-config": true,
+        "metro-core": true,
+        "metro-file-map": true,
+        "metro-inspector-proxy": true,
+        "metro-resolver": true,
+        "metro-source-map": true,
+        "metro-symbolicate": true,
+        "metro-transform-plugins": true,
+        "mime-types": true,
+        "nullthrows": true,
+        "serialize-error": true,
+        "strip-ansi": true,
+        "throat": true,
+        "ws": true,
+        "yargs": true
+      }
+    },
+    "metro-cache": {
+      "builtin": {
+        "crypto.createHash": true,
+        "fs.mkdirSync": true,
+        "fs.promises.readFile": true,
+        "fs.promises.writeFile": true,
+        "fs.readdirSync": true,
+        "fs.statSync": true,
+        "fs.unlinkSync": true,
+        "http": true,
+        "https": true,
+        "path.dirname": true,
+        "path.join": true,
+        "path.sep": true,
+        "url.parse": true,
+        "zlib.createGunzip": true,
+        "zlib.createGzip": true
+      },
+      "globals": {
+        "Buffer": true,
+        "console.warn": true,
+        "process.emitWarning": true,
+        "process.nextTick": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "metro-core": true,
+        "rimraf": true
+      }
+    },
+    "metro-cache-key": {
+      "builtin": {
+        "crypto.createHash": true,
+        "fs.readFileSync": true
+      }
+    },
+    "metro-config": {
+      "builtin": {
+        "fs.existsSync": true,
+        "fs.lstatSync": true,
+        "os.tmpdir": true,
+        "path.dirname": true,
+        "path.isAbsolute": true,
+        "path.join": true,
+        "path.resolve": true,
+        "path.sep": true
+      },
+      "globals": {
+        "__dirname": true,
+        "process.cwd": true,
+        "process.stdout": true
+      },
+      "packages": {
+        "metro-config>cosmiconfig": true,
+        "metro-config>jest-validate": true,
+        "metro": true,
+        "metro-cache": true,
+        "metro-core": true
+      }
+    },
+    "metro-core": {
+      "builtin": {
+        "events.EventEmitter": true,
+        "os.hostname": true,
+        "readline.clearLine": true,
+        "readline.moveCursor": true,
+        "tty.WriteStream": true,
+        "util.format": true
+      },
+      "globals": {
+        "process.hrtime": true
+      },
+      "packages": {
+        "lodash.throttle": true,
+        "metro-resolver": true
+      }
+    },
+    "metro-file-map": {
+      "builtin": {
+        "assert": true,
+        "child_process.execFile": true,
+        "child_process.spawn": true,
+        "crypto.createHash": true,
+        "events": true,
+        "fs": true,
+        "os.platform": true,
+        "os.tmpdir": true,
+        "path": true,
+        "perf_hooks.performance.now": true,
+        "perf_hooks.performance.timeOrigin": true,
+        "util.promisify": true,
+        "v8.deserialize": true,
+        "v8.serialize": true
+      },
+      "globals": {
+        "__dirname": true,
+        "clearInterval": true,
+        "clearTimeout": true,
+        "console": true,
+        "process.nextTick": true,
+        "process.pid": true,
+        "setInterval": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "metro-file-map>anymatch": true,
+        "metro-file-map>debug": true,
+        "metro-file-map>fb-watchman": true,
+        "metro-file-map>fsevents": true,
+        "graceful-fs": true,
+        "invariant": true,
+        "metro-file-map>jest-regex-util": true,
+        "jest-worker": true,
+        "metro-file-map>micromatch": true,
+        "metro-file-map>node-abort-controller": true,
+        "nullthrows": true,
+        "walker": true
+      }
+    },
+    "metro-inspector-proxy": {
+      "builtin": {
+        "fs": true,
+        "http.createServer": true,
+        "path": true,
+        "url.parse": true
+      },
+      "globals": {
+        "Buffer": true,
+        "URL": true,
+        "console.error": true,
+        "setInterval": true
+      },
+      "packages": {
+        "connect": true,
+        "metro-inspector-proxy>debug": true,
+        "node-fetch": true,
+        "metro-inspector-proxy>ws": true
+      }
+    },
+    "metro-resolver": {
+      "builtin": {
+        "path": true
+      }
+    },
+    "metro-source-map": {
+      "builtin": {
+        "path.basename": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "process.hrtime": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "@babel/traverse": true,
+        "@babel/types": true,
+        "invariant": true,
+        "metro-symbolicate": true,
+        "nullthrows": true,
+        "metro-source-map>ob1": true,
+        "source-map": true,
+        "metro-source-map>source-map": true,
+        "metro-source-map>vlq": true
+      }
+    },
+    "metro-symbolicate": {
+      "builtin": {
+        "fs.existsSync": true,
+        "fs.readFileSync": true,
+        "fs.writeFileSync": true,
+        "path.join": true,
+        "path.relative": true,
+        "path.resolve": true
+      },
+      "packages": {
+        "invariant": true,
+        "metro-source-map": true,
+        "nullthrows": true,
+        "metro-source-map>vlq": true
+      }
+    },
+    "metro-transform-plugins": {
+      "globals": {
+        "__filename": true
+      },
+      "packages": {
+        "@babel/template": true,
+        "@babel/traverse": true,
+        "nullthrows": true
+      }
+    },
+    "metro-file-map>micromatch": {
+      "builtin": {
+        "util.inspect": true
+      },
+      "packages": {
+        "metro-file-map>micromatch>braces": true,
+        "picomatch": true,
+        "metro-file-map>anymatch>picomatch": true
+      }
+    },
+    "mime-types": {
+      "builtin": {
+        "path.extname": true
+      },
+      "packages": {
+        "mime-types>mime-db": true
+      }
+    },
+    "rimraf>glob>minimatch": {
+      "builtin": {
+        "path": true
+      },
+      "globals": {
+        "console": true
+      },
+      "packages": {
+        "rimraf>glob>minimatch>brace-expansion": true
+      }
+    },
+    "metro-file-map>node-abort-controller": {
+      "builtin": {
+        "events.EventEmitter": true
+      },
+      "globals": {
+        "setTimeout": true
+      }
+    },
+    "node-fetch": {
+      "builtin": {
+        "http": true,
+        "https": true,
+        "stream": true,
+        "url": true,
+        "zlib": true
+      },
+      "globals": {
+        "Buffer": true,
+        "clearTimeout": true,
+        "require": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "node-fetch>whatwg-url": true
+      }
+    },
+    "ws>bufferutil>node-gyp-build": {
+      "builtin": {
+        "fs.existsSync": true,
+        "fs.readdirSync": true,
+        "os.arch": true,
+        "os.platform": true,
+        "path.dirname": true,
+        "path.join": true,
+        "path.resolve": true
+      },
+      "globals": {
+        "__non_webpack_require__": true,
+        "__webpack_require__": true,
+        "process": true
+      }
+    },
+    "metro-file-map>fb-watchman>bser>node-int64": {
+      "globals": {
+        "Buffer": true
+      }
+    },
+    "connect>finalhandler>on-finished": {
+      "globals": {
+        "process.nextTick": true,
+        "setImmediate": true
+      },
+      "packages": {
+        "connect>finalhandler>on-finished>ee-first": true
+      }
+    },
+    "rimraf>glob>once": {
+      "packages": {
+        "rimraf>glob>inflight>wrappy": true
+      }
+    },
+    "metro-config>cosmiconfig>parse-json": {
+      "packages": {
+        "metro-config>cosmiconfig>parse-json>error-ex": true,
+        "metro-config>cosmiconfig>parse-json>json-parse-better-errors": true
+      }
+    },
+    "connect>parseurl": {
+      "builtin": {
+        "url.Url": true,
+        "url.parse": true
+      }
+    },
+    "rimraf>glob>path-is-absolute": {
+      "globals": {
+        "process.platform": true
+      }
+    },
+    "@babel/code-frame>picocolors": {
+      "globals": {
+        "process": true
+      }
+    },
+    "metro-file-map>anymatch>picomatch": {
+      "builtin": {
+        "path.basename": true,
+        "path.sep": true
+      },
+      "globals": {
+        "process.platform": true,
+        "process.version.slice": true
+      }
+    },
+    "metro-config>jest-validate>pretty-format": {
+      "packages": {
+        "metro-config>jest-validate>pretty-format>ansi-styles": true,
+        "metro-config>jest-validate>pretty-format>react-is": true
+      }
+    },
+    "image-size>queue": {
+      "builtin": {
+        "events.EventEmitter": true
+      },
+      "globals": {
+        "clearTimeout": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "image-size>queue>inherits": true
+      }
+    },
+    "metro-config>jest-validate>pretty-format>react-is": {
+      "globals": {
+        "console": true,
+        "process.env.NODE_ENV": true
+      }
+    },
+    "metro-config>cosmiconfig>import-fresh>resolve-from": {
+      "builtin": {
+        "module._nodeModulePaths": true,
+        "module._resolveFilename": true,
+        "path.join": true,
+        "path.resolve": true
+      }
+    },
+    "rimraf": {
+      "builtin": {
+        "assert": true,
+        "fs": true,
+        "path.join": true
+      },
+      "globals": {
+        "process.platform": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "rimraf>glob": true
+      }
+    },
+    "error-stack-parser>stackframe": {
+      "globals": {
+        "define": true
+      }
+    },
+    "strip-ansi": {
+      "packages": {
+        "strip-ansi>ansi-regex": true
+      }
+    },
+    "chalk>supports-color": {
+      "builtin": {
+        "os.release": true,
+        "tty.isatty": true
+      },
+      "globals": {
+        "process.env": true,
+        "process.platform": true
+      },
+      "packages": {
+        "chalk>supports-color>has-flag": true
+      }
+    },
+    "jest-worker>supports-color": {
+      "globals": {
+        "navigator.userAgent": true
+      }
+    },
+    "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
+      "packages": {
+        "metro-file-map>micromatch>braces>fill-range>to-regex-range>is-number": true
+      }
+    },
+    "node-fetch>whatwg-url>tr46": {
+      "builtin": {
+        "punycode.toASCII": true,
+        "punycode.toUnicode": true
+      }
+    },
+    "ws>utf-8-validate": {
+      "globals": {
+        "__dirname": true
+      },
+      "packages": {
+        "ws>bufferutil>node-gyp-build": true
+      }
+    },
+    "metro-file-map>walker": {
+      "builtin": {
+        "events.EventEmitter": true,
+        "fs.lstat": true,
+        "fs.readdir": true,
+        "path.join": true,
+        "util.inherits": true
+      },
+      "packages": {
+        "makeerror": true
+      }
+    },
+    "node-fetch>whatwg-url": {
+      "builtin": {
+        "punycode.ucs2.decode": true
+      },
+      "globals": {
+        "Buffer": true
+      },
+      "packages": {
+        "node-fetch>whatwg-url>tr46": true,
+        "node-fetch>whatwg-url>webidl-conversions": true
+      }
+    },
+    "ws": {
+      "builtin": {
+        "crypto.createHash": true,
+        "crypto.randomBytes": true,
+        "crypto.randomFillSync": true,
+        "events": true,
+        "http.STATUS_CODES": true,
+        "http.createServer": true,
+        "http.get": true,
+        "https": true,
+        "net": true,
+        "stream.Duplex": true,
+        "stream.Readable": true,
+        "stream.Writable": true,
+        "tls": true,
+        "url.URL": true,
+        "zlib.Z_DEFAULT_WINDOWBITS": true,
+        "zlib.Z_SYNC_FLUSH": true,
+        "zlib.createDeflateRaw": true,
+        "zlib.createInflateRaw": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.allocUnsafe": true,
+        "Buffer.byteLength": true,
+        "Buffer.from": true,
+        "Buffer.isBuffer": true,
+        "clearTimeout": true,
+        "process.nextTick": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "ws>bufferutil": true,
+        "ws>utf-8-validate": true
+      }
+    },
+    "metro-inspector-proxy>ws": {
+      "builtin": {
+        "crypto.createHash": true,
+        "crypto.randomBytes": true,
+        "crypto.randomFillSync": true,
+        "events": true,
+        "http.STATUS_CODES": true,
+        "http.createServer": true,
+        "http.get": true,
+        "https": true,
+        "net": true,
+        "stream.Duplex": true,
+        "stream.Readable": true,
+        "stream.Writable": true,
+        "tls": true,
+        "url.URL": true,
+        "zlib.Z_DEFAULT_WINDOWBITS": true,
+        "zlib.Z_SYNC_FLUSH": true,
+        "zlib.createDeflateRaw": true,
+        "zlib.createInflateRaw": true
+      },
+      "globals": {
+        "Buffer.alloc": true,
+        "Buffer.allocUnsafe": true,
+        "Buffer.byteLength": true,
+        "Buffer.from": true,
+        "Buffer.isBuffer": true,
+        "clearTimeout": true,
+        "process.nextTick": true,
+        "setTimeout": true
+      },
+      "packages": {
+        "ws>bufferutil": true,
+        "ws>utf-8-validate": true
+      }
+    },
+    "yargs>y18n": {
+      "builtin": {
+        "fs": true,
+        "path": true,
+        "util": true
+      }
+    },
+    "yargs": {
+      "builtin": {
+        "assert": true,
+        "fs": true,
+        "path": true,
+        "url": true,
+        "util": true
+      },
+      "globals": {
+        "console.error": true,
+        "console.log": true,
+        "console.warn": true,
+        "process": true,
+        "require": true
+      },
+      "packages": {
+        "yargs>cliui": true,
+        "yargs>escalade": true,
+        "yargs>y18n": true,
+        "yargs>yargs-parser": true
+      }
+    },
+    "yargs>yargs-parser": {
+      "builtin": {
+        "fs": true,
+        "path": true,
+        "util": true
+      },
+      "globals": {
+        "process": true,
+        "require": true
+      }
+    }
+  },
+  "root": {
+    "usePolicy": "metro"
+  }
+}
