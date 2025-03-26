@@ -1175,7 +1175,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Handle autocomplete selection
    */
-  const onSelect = (item: AutocompleteSearchResult) => {
+  const onSelect = useCallback((item: AutocompleteSearchResult) => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
 
@@ -1187,41 +1187,42 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     } else {
       onSubmitEditing(item.url);
     }
-  };
+  }, [onSubmitEditing, navigation]);
 
   /**
    * Handle autocomplete dismissal
    */
-  const onDismissAutocomplete = () => {
+  const onDismissAutocomplete = useCallback(() => {
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, []);
 
   /**
    * Hide the autocomplete results
    */
-  const hideAutocomplete = () => autocompleteRef.current?.hide();
+  const hideAutocomplete = useCallback(() => autocompleteRef.current?.hide(), []);
 
-  const onCancelUrlBar = () => {
+  const onCancelUrlBar = useCallback(() => {
     hideAutocomplete();
     // Reset the url bar to the current url
     const hostName =
       new URLParse(resolvedUrlRef.current).hostname || resolvedUrlRef.current;
     urlBarRef.current?.setNativeProps({ text: hostName });
-  };
+  }, [hideAutocomplete]);
 
-  const onFocusUrlBar = () => {
+  const onFocusUrlBar = useCallback(() => {
     // Show the autocomplete results
     autocompleteRef.current?.show();
     urlBarRef.current?.setNativeProps({ text: resolvedUrlRef.current });
-  };
+  }, []);
 
-  const onChangeUrlBar = (text: string) =>
+  const onChangeUrlBar = useCallback((text: string) => {
     // Search the autocomplete results
     autocompleteRef.current?.search(text);
+  }, []);
 
   const handleWebviewNavigationChange = useCallback(
     (eventName: WebViewNavigationEventName) =>
