@@ -1,4 +1,3 @@
-import { ACTIONS, PREFIXES } from '../../../constants/deeplinks';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { handleCodeFlow } from '../../Oauth2Login/utils';
 import DeeplinkManager from '../DeeplinkManager';
