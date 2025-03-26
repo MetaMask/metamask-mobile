@@ -4,7 +4,6 @@ import {
 	showWCLoadingState,
 	isValidWCURI,
 	waitForNetworkModalOnboarding,
-	normalizeOrigin,
 	getApprovedSessionMethods,
 	getScopedPermissions,
 	checkWCPermissions,
@@ -201,19 +200,6 @@ describe("WalletConnect Utils", () => {
 			await expect(
 				waitForNetworkModalOnboarding({ chainId: "1" }),
 			).rejects.toThrow("Timeout error");
-		});
-	});
-
-	describe("normalizeOrigin", () => {
-		it("normalizes URL correctly", () => {
-			expect(normalizeOrigin("https://example.com/")).toBe("example.com");
-			expect(normalizeOrigin("http://test.com")).toBe("test.com");
-		});
-
-		it("handles errors gracefully", () => {
-			const invalidOrigin = null as unknown as string;
-			expect(normalizeOrigin(invalidOrigin)).toBe(invalidOrigin);
-			expect(DevLogger.log).toBeCalled();
 		});
 	});
 
