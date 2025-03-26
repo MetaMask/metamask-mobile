@@ -138,8 +138,12 @@ const AccountActions = () => {
       }
       return undefined;
     }
-    return undefined;
-  }, [networkConfigurations, providerConfig, selectedAccount]);
+  }, [
+    networkConfigurations,
+    providerConfig.rpcUrl,
+    providerConfig.type,
+    selectedAccount,
+  ]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
