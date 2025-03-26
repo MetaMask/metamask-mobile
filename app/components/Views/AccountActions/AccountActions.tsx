@@ -95,10 +95,16 @@ const AccountActions = () => {
     if (selectedAccount) {
       if (isEvmAccountType(selectedAccount.type)) {
         if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+          // eslint-disable-next-line no-console
           const explorer = findBlockExplorerForRpc(
             providerConfig.rpcUrl,
             networkConfigurations,
           );
+
+          if (!explorer) {
+            return undefined;
+          }
+          // eslint-disable-next-line no-console
           return {
             url: `${explorer}/address/${selectedAccount.address}`,
             title: new URL(explorer).hostname,
@@ -133,12 +139,7 @@ const AccountActions = () => {
       return undefined;
     }
     return undefined;
-  }, [
-    networkConfigurations,
-    providerConfig.rpcUrl,
-    providerConfig.type,
-    selectedAccount,
-  ]);
+  }, [networkConfigurations, providerConfig, selectedAccount]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
