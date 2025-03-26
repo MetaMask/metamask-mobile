@@ -43,12 +43,14 @@ const PhishingModal = ({
   } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
 
+
   useEffect(() => {
     if (showPhishingModal && blockedUrl) {
+      const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
           .addProperties({
-            url: blockedUrl,
+            url: hostname,
             reason: 'eth-phishing-detect',
           })
           .build(),
