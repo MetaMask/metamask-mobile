@@ -146,7 +146,8 @@
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
-    "metro/image-size": "^1.2.1"
+    "metro/image-size": "^1.2.1",
+    "ansi-styles": "^6"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
