@@ -47,9 +47,7 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
 });
 
 jest.mock('../../../core/Multichain/utils', () => ({
-  getAddressUrl: jest.fn(
-    () => 'https://explorer.solana.com/address/testaddress',
-  ),
+  getAddressUrl: jest.fn(() => 'https://solscan.io/account/testaddress'),
   nonEvmNetworkChainIdByAccountAddress: jest.fn(() => 'solana:mainnet'),
 }));
 
