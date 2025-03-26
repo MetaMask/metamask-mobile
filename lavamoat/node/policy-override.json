@@ -623,6 +623,7 @@
         "URL": true,
         "clearTimeout": true,
         "console": true,
+        "process": true,
         "process.env": true,
         "process.exitCode": "write",
         "process.hrtime": true,
