@@ -87,7 +87,8 @@
     "metro-file-map>anymatch": {
       "packages": {
         "metro-file-map>anymatch>normalize-path": true,
-        "metro-file-map>anymatch>picomatch": true
+        "metro-file-map>anymatch>picomatch": true,
+        "picomatch": true
       }
     },
     "rimraf>glob>minimatch>brace-expansion": {
