@@ -49,7 +49,6 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { PermissionKeys } from '../Permissions/specifications.js';
-import { findExistingNetwork, switchToNetwork } from './lib/ethereum-chain-utils.js';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
