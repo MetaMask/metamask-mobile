@@ -352,13 +352,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             return null;
           }
         } else if (type === 'swarm-ns') {
-          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.SWARM_DEFAULT_GATEWAY_URL}${hash}${pathname || '/'
+            }${query || ''}`;
         } else if (type === 'ipns-ns') {
-          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${
-            pathname || '/'
-          }${query || ''}`;
+          gatewayUrl = `${AppConstants.IPNS_DEFAULT_GATEWAY_URL}${hostname}${pathname || '/'
+            }${query || ''}`;
         }
         return {
           url: gatewayUrl,
@@ -542,8 +540,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const disctinctId = await getMetaMetricsId();
       const homepageScripts = `
               window.__mmFavorites = ${JSON.stringify(
-                injectedBookmarks || bookmarks,
-              )};
+        injectedBookmarks || bookmarks,
+      )};
               window.__mmSearchEngine = "${searchEngine}";
               window.__mmMetametrics = ${analyticsEnabled};
               window.__mmDistinctId = "${disctinctId}";
@@ -1072,8 +1070,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
         if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
             'Error in onSubmitEditing',
           );
           return;
