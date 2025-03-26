@@ -155,7 +155,7 @@ const selectNonEvmCachedBalance = createDeepEqualSelector(
     const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
     const balancesForAccount = multichainBalances?.[selectedInternalAccount.id];
     const balanceOfAsset = balancesForAccount?.[asset];
-    return balanceOfAsset?.amount ?? 0;
+    return balanceOfAsset?.amount ?? undefined;
   },
 );
 
@@ -247,7 +247,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
       .map((assetId) => {
         const { chainId, assetNamespace } = parseCaipAssetType(assetId);
         const isNative = assetNamespace === 'slip44';
-        const balance = balances?.[assetId] || { amount: '0', unit: '' };
+        const balance = balances?.[assetId] || { amount: undefined, unit: '' };
         const rate = assetsRates?.[assetId]?.rate || '0';
         const balanceInFiat = new BigNumber(balance.amount).times(rate);
 

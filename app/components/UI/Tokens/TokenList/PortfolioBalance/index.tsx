@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useMetrics } from '../../../../hooks/useMetrics';
@@ -32,6 +32,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
+import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -138,28 +139,36 @@ export const PortfolioBalance = React.memo(() => {
     <View style={styles.portfolioBalance}>
       <View>
         <View>
-          <View style={styles.balanceContainer}>
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-              variant={TextVariant.DisplayMD}
-            >
-              {multichainBalances.displayBalance}
-            </SensitiveText>
-            <TouchableOpacity
-              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID="balance-container"
-            >
-              <Icon
-                style={styles.privacyIcon}
-                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-                color={colors.text.muted}
-                testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
-              />
-            </TouchableOpacity>
-          </View>
+          {multichainBalances?.displayBalance ? (
+            <View style={styles.balanceContainer}>
+              <SensitiveText
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Long}
+                testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+                variant={TextVariant.DisplayMD}
+              >
+                {multichainBalances.displayBalance}
+              </SensitiveText>
+              <TouchableOpacity
+                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+                testID="balance-container"
+              >
+                <Icon
+                  style={styles.privacyIcon}
+                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                  size={IconSize.Md}
+                  color={colors.text.muted}
+                  testID={
+                    privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={{ paddingLeft: 40 }}>
+              <Loader />
+            </View>
+          )}
 
           {renderAggregatedPercentage()}
         </View>

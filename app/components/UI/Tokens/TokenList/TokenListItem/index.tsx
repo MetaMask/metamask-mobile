@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
 import { useTheme } from '../../../../../util/theme';
-import { TOKEN_RATE_UNDEFINED } from '../../constants';
+import { TOKEN_BALANCE_LOADING, TOKEN_RATE_UNDEFINED } from '../../constants';
 import { deriveBalanceFromAssetMarketDetails } from '../../util/deriveBalanceFromAssetMarketDetails';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
@@ -131,18 +131,22 @@ export const TokenListItem = React.memo(
               currentCurrency || '',
             )
           : {
-              balanceFiat: formatWithThreshold(
-                parseFloat(asset.balanceFiat),
-                oneHundredths,
-                I18n.locale,
-                { style: 'currency', currency: currentCurrency },
-              ),
-              balanceValueFormatted: formatWithThreshold(
-                parseFloat(asset.balance),
-                oneHundredThousandths,
-                I18n.locale,
-                { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-              ),
+              balanceFiat: asset?.balanceFiat
+                ? formatWithThreshold(
+                    parseFloat(asset.balanceFiat),
+                    oneHundredths,
+                    I18n.locale,
+                    { style: 'currency', currency: currentCurrency },
+                  )
+                : TOKEN_BALANCE_LOADING,
+              balanceValueFormatted: asset?.balance
+                ? formatWithThreshold(
+                    parseFloat(asset.balance),
+                    oneHundredThousandths,
+                    I18n.locale,
+                    { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+                  )
+                : TOKEN_BALANCE_LOADING,
             },
       [
         isEvmNetworkSelected,

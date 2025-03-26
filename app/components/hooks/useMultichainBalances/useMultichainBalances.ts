@@ -131,6 +131,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       return getMultiChainFiatBalance(currentCurrency);
     }
 
+    if (!multichainSelectedAccountCachedBalance) {
+      return undefined;
+    }
+
     // default to native token symbol
     return `${multichainSelectedAccountCachedBalance} ${symbol}`;
   };
