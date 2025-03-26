@@ -46,7 +46,7 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectNativeCurrencyByChainId,
-  selectProviderTypeByChainId
+  selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
@@ -63,6 +63,9 @@ import { SendViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/S
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
 import { toLowerCaseEquals } from '../../../../../util/general';
 import { selectAddressBook } from '../../../../../selectors/addressBookController';
+import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
+import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
+import { store } from '../../../../../store';
 
 const dummy = () => true;
 
@@ -144,6 +147,10 @@ class SendFlow extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Send flow contextual chain id
+     */
+    sendFlowContextualChainId: PropTypes.string,
   };
 
   addressToInputRef = React.createRef();
@@ -172,6 +179,9 @@ class SendFlow extends PureComponent {
         route,
         colors,
         resetTransaction,
+        null,
+        false,
+        true,
       ),
     );
   };
@@ -207,11 +217,49 @@ class SendFlow extends PureComponent {
     // Disabling back press for not be able to exit the send flow without reseting the transaction object
     this.hardwareBackPress = () => true;
     BackHandler.addEventListener('hardwareBackPress', this.hardwareBackPress);
+
+    // Check initial value before setting
+    const initialContextualChainId = selectSendFlowContextualChainId(
+      store.getState(),
+    );
+    console.log(
+      '>>> SendTo initial contextualChainId before setting:',
+      initialContextualChainId,
+    );
+
+    // Initialize contextual chain ID with global chain ID
+    this.props.dispatch(
+      setTransactionSendFlowContextualChainId(this.props.globalChainId),
+    );
+
+    console.log(
+      '>>> SendTo initializing contextual chainId with global:',
+      this.props.globalChainId,
+    );
+
+    // Verify the state was set by checking selector directly
+    const contextualChainId = selectSendFlowContextualChainId(store.getState());
+    console.log(
+      '>>> SendTo after dispatch - globalChainId:',
+      this.props.globalChainId,
+      'contextualChainId:',
+      contextualChainId,
+    );
   };
 
-  componentDidUpdate = () => {
+  componentDidUpdate(prevProps) {
     this.updateNavBar();
-  };
+
+    if (
+      prevProps.sendFlowContextualChainId !==
+      this.props.sendFlowContextualChainId
+    ) {
+      console.log(
+        '>>> SendTo sendFlowContextualChainId:',
+        this.props.sendFlowContextualChainId,
+      );
+    }
+  }
 
   componentWillUnmount() {
     BackHandler.removeEventListener(
@@ -389,8 +437,8 @@ class SendFlow extends PureComponent {
     return networkAddressBook[checksummedAddress]
       ? networkAddressBook[checksummedAddress].name
       : matchingAccount
-        ? matchingAccount.metadata.name
-        : null;
+      ? matchingAccount.metadata.name
+      : null;
   };
 
   validateAddressOrENSFromInput = async (toAccount) => {
@@ -704,6 +752,7 @@ const mapStateToProps = (state) => {
       getRampNetworks(state),
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
+    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
   };
 };
 
@@ -729,7 +778,11 @@ const mapDispatchToProps = (dispatch) => ({
   setSelectedAsset: (selectedAsset) =>
     dispatch(setSelectedAsset(selectedAsset)),
   showAlert: (config) => dispatch(showAlert(config)),
-  resetTransaction: () => dispatch(resetTransaction()),
+  resetTransaction: () => {
+    dispatch(setTransactionSendFlowContextualChainId(null));
+    dispatch(resetTransaction());
+  },
+  dispatch: dispatch,
 });
 
 export default connect(
