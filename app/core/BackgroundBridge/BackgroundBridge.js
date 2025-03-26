@@ -54,7 +54,7 @@ import {
   Caip25EndowmentPermissionName,
   setEthAccounts,
   setPermittedEthChainIds,
-} from '@metamask/multichain';
+} from '@metamask/chain-agnostic-permission';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -521,117 +521,114 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
-    console.log('creating eip1193 middleware');
-
     // TODO: remove this try catch after we have things figured out
     try {
-    engine.push(
-      createEip1193MethodMiddleware({
-        metamaskState: this.getState(), // FIX: this isn't correctly shaped for these handlers
-        // Permission-related
-        getAccounts: (...args) =>
-          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
-        getCaip25PermissionFromLegacyPermissionsForOrigin:
-          this.getCaip25PermissionFromLegacyPermissions.bind(this, origin),
-        getPermissionsForOrigin: PermissionController.getPermissions.bind(
-          PermissionController,
-          origin,
-        ),
-        requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-          Engine.requestPermittedChainsPermissionIncremental({
-            ...options,
+      engine.push(
+        createEip1193MethodMiddleware({
+          metamaskState: this.getState(), // TODO FIX: [jiexi] this isn't correctly shaped for these handlers
+          // Permission-related
+          getAccounts: (...args) =>
+            getPermittedAccounts(
+              this.isMMSDK ? this.channelId : origin,
+              ...args,
+            ),
+          getCaip25PermissionFromLegacyPermissionsForOrigin:
+            this.getCaip25PermissionFromLegacyPermissions.bind(this, origin),
+          getPermissionsForOrigin: PermissionController.getPermissions.bind(
+            PermissionController,
             origin,
-          }),
-        requestPermissionsForOrigin: (requestedPermissions) =>
-          PermissionController.requestPermissions(
-            { origin },
-            requestedPermissions,
           ),
-        revokePermissionsForOrigin: (permissionKeys) => {
-          try {
-            PermissionController.revokePermissions({
-              [origin]: permissionKeys,
-            });
-          } catch (e) {
-            // we dont want to handle errors here because
-            // the revokePermissions api method should just
-            // return `null` if the permissions were not
-            // successfully revoked or if the permissions
-            // for the origin do not exist
-          }
-        },
-        getCaveat: ({ target, caveatType }) => {
-          try {
-            return PermissionController.getCaveat(origin, target, caveatType);
-          } catch (e) {
-            if (e instanceof PermissionDoesNotExistError) {
-              // suppress expected error in case that the origin
-              // does not have the target permission yet
-            } else {
-              throw e;
+          requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
+            Engine.requestPermittedChainsPermissionIncremental({
+              ...options,
+              origin,
+            }),
+          requestPermissionsForOrigin: (requestedPermissions) =>
+            PermissionController.requestPermissions(
+              { origin },
+              requestedPermissions,
+            ),
+          revokePermissionsForOrigin: (permissionKeys) => {
+            try {
+              PermissionController.revokePermissions({
+                [origin]: permissionKeys,
+              });
+            } catch (e) {
+              // we dont want to handle errors here because
+              // the revokePermissions api method should just
+              // return `null` if the permissions were not
+              // successfully revoked or if the permissions
+              // for the origin do not exist
             }
-          }
+          },
+          getCaveat: ({ target, caveatType }) => {
+            try {
+              return PermissionController.getCaveat(origin, target, caveatType);
+            } catch (e) {
+              if (e instanceof PermissionDoesNotExistError) {
+                // suppress expected error in case that the origin
+                // does not have the target permission yet
+              } else {
+                throw e;
+              }
+            }
 
-          return undefined;
-        },
+            return undefined;
+          },
 
-        // network configuration-related
-        setActiveNetwork: async (networkClientId) => {
-          await NetworkController.setActiveNetwork(networkClientId);
-          // if the origin has the CAIP-25 permission
-          // we set per dapp network selection state
-          if (
-            PermissionController.hasPermission(
-              origin,
-              Caip25EndowmentPermissionName,
-            )
-          ) {
-            SelectedNetworkController.setNetworkClientIdForDomain(
-              origin,
-              networkClientId,
-            );
-          }
-        },
-        getCurrentChainIdForDomain: (domain) => {
-          const networkClientId =
-            SelectedNetworkController.getNetworkClientIdForDomain(domain);
-          const { chainId } =
-            NetworkController.getNetworkConfigurationByNetworkClientId(
-              networkClientId,
-            );
-          return chainId;
-        },
-        addNetwork: NetworkController.addNetwork.bind(
-          NetworkController,
-        ),
-        updateNetwork: NetworkController.updateNetwork.bind(
-          NetworkController,
-        ),
-        getNetworkConfigurationByChainId:
-          NetworkController.getNetworkConfigurationByChainId.bind(
-            NetworkController,
+          // network configuration-related
+          setActiveNetwork: async (networkClientId) => {
+            await NetworkController.setActiveNetwork(networkClientId);
+            // if the origin has the CAIP-25 permission
+            // we set per dapp network selection state
+            if (
+              PermissionController.hasPermission(
+                origin,
+                Caip25EndowmentPermissionName,
+              )
+            ) {
+              SelectedNetworkController.setNetworkClientIdForDomain(
+                origin,
+                networkClientId,
+              );
+            }
+          },
+          getCurrentChainIdForDomain: (domain) => {
+            const networkClientId =
+              SelectedNetworkController.getNetworkClientIdForDomain(domain);
+            const { chainId } =
+              NetworkController.getNetworkConfigurationByNetworkClientId(
+                networkClientId,
+              );
+            return chainId;
+          },
+          addNetwork: NetworkController.addNetwork.bind(NetworkController),
+          updateNetwork:
+            NetworkController.updateNetwork.bind(NetworkController),
+          getNetworkConfigurationByChainId:
+            NetworkController.getNetworkConfigurationByChainId.bind(
+              NetworkController,
+            ),
+          requestUserApproval:
+            ApprovalController.addAndShowApprovalRequest.bind(
+              ApprovalController,
+            ),
+          hasApprovalRequestsForOrigin: () =>
+            ApprovalController.has({ origin }),
+          updateCaveat: PermissionController.updateCaveat.bind(
+            PermissionController,
+            origin,
           ),
-        requestUserApproval: ApprovalController.addAndShowApprovalRequest.bind(
-          ApprovalController,
-        ),
-        hasApprovalRequestsForOrigin: () => ApprovalController.has({ origin }),
-        updateCaveat: PermissionController.updateCaveat.bind(
-          PermissionController,
-          origin,
-        ),
-        // TODO: Fix these
-        getUnlockPromise: () => {},
-        rejectApprovalRequestsForOrigin: () => {},
-        handleWatchAssetRequest: () => {},
-        setTokenNetworkFilter: () => {},
-
-      }),
-    );
+          // TODO: [jiexi] Fix these
+          getUnlockPromise: () => {},
+          rejectApprovalRequestsForOrigin: () => {},
+          handleWatchAssetRequest: () => {},
+          setTokenNetworkFilter: () => {},
+        }),
+      );
     } catch (err) {
       console.error(err);
     }
-
-    console.log('created eip1193 middleware');
 
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
@@ -649,7 +646,9 @@ export class BackgroundBridge extends EventEmitter {
     if (this.isMMSDK || this.isWalletConnect) {
       engine.push((req, _res, next, end) => {
         if (['wallet_snap'].includes(req.method)) {
-          return end(rpcErrors.methodNotFound({ data: { method: req.method } }));
+          return end(
+            rpcErrors.methodNotFound({ data: { method: req.method } }),
+          );
         }
         return next();
       });

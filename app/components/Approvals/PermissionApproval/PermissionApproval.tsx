@@ -8,7 +8,7 @@ import { selectAccountsLength } from '../../../selectors/accountTrackerControlle
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import useOriginSource from '../../hooks/useOriginSource';
 import Logger from '../../../util/Logger';
-import { Caip25EndowmentPermissionName } from '@metamask/multichain';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 export interface PermissionApprovalProps {
   // TODO: Replace "any" with type

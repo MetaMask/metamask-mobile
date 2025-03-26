@@ -197,7 +197,11 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BRIDGE_DEV_API_BASE_URL, BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BridgeClientId,
+  BridgeController,
+} from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -207,7 +211,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   setPermittedEthChainIds,
-} from '@metamask/multichain';
+} from '@metamask/chain-agnostic-permission';
 import { isSnapId } from '@metamask/snaps-utils';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
@@ -783,13 +787,13 @@ export class Engine {
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
         // TODO: try to change this to bind? Will require reordering these controller instantiations :/
-        listAccounts: (...args) => this.accountsController.listAccounts(...args),
+        listAccounts: (...args) =>
+          this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
           networkController.findNetworkClientIdByChainId.bind(
             networkController,
           ),
       }),
-      // @ts-expect-error Typecast permissionType from getPermissionSpecifications to be of type PermissionType.RestrictedMethod
       permissionSpecifications: {
         ...getPermissionSpecifications(),
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -961,8 +965,8 @@ export class Engine {
         }) as any,
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
-      }
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1783,7 +1787,7 @@ export class Engine {
    */
   removeAccount = async (address: string) => {
     // Remove all associated permissions
-    await removeAccountsFromPermissions([address]);
+    await removeAccountsFromPermissions([address as Hex]); //TODO: [ffmcgee] address typecasting
     // Remove account from the keyring
     await this.keyringController.removeAccount(address as Hex);
   };
@@ -1997,6 +2001,7 @@ export class Engine {
         requiredScopes: {},
         optionalScopes: {},
         isMultichainOrigin: false,
+        sessionProperties: {}
       },
       [chainId],
     );

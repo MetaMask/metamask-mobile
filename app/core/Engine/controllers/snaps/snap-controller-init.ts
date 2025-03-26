@@ -20,7 +20,7 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { Caip25EndowmentPermissionName } from '@metamask/multichain';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 /**
  * Initialize the Snap controller.

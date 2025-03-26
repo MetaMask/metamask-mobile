@@ -31,14 +31,12 @@ import {
   selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
-import { PermissionKeys } from '../../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../../core/Permissions/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
 import { addPermittedChains, getCaip25Caveat } from '../../../../core/Permissions';
-import { getPermittedEthChainIds } from '@metamask/multichain';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({

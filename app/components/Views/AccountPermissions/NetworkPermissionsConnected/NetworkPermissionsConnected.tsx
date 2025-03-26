@@ -27,9 +27,6 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../component-library/components/Buttons/ButtonIcon';
 import NetworkSelectorList from '../../../../components/UI/NetworkSelectorList/NetworkSelectorList';
-import Engine from '../../../../core/Engine';
-import { PermissionKeys } from '../../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../../core/Permissions/constants';
 import Logger from '../../../../util/Logger';
 
 // Internal dependencies.
@@ -51,7 +48,7 @@ import Button, {
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Network/NetworkNonPemittedBottomSheet.selectors';
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 import { getCaip25Caveat } from '../../../../core/Permissions';
-import { getPermittedEthChainIds } from '@metamask/multichain';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
 
 const NetworkPermissionsConnected = ({
@@ -73,10 +70,8 @@ const NetworkPermissionsConnected = ({
   // Get permitted chain IDs
   const getPermittedChainIds = () => {
     try {
-      const caveat = getCaip25Caveat(
-        hostname,
-      );
-      return getPermittedEthChainIds(caveat.value)
+      const caveat = getCaip25Caveat(hostname);
+      return getPermittedEthChainIds(caveat.value);
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }

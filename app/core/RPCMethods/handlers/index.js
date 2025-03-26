@@ -5,7 +5,7 @@ import wallet_watchAsset from '../wallet_watchAsset.ts';
 import ethAccounts from '../eth_accounts';
 import { MESSAGE_TYPE } from '../../createTracingMiddleware';
 
-// TODO: Store these handlers elsewhere
+// TODO: [ffmcgee] Store these handlers elsewhere
 const addEthereumChainHandler = {
   methodNames: [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN],
   implementation: wallet_addEthereumChain,

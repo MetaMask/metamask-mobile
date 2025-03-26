@@ -28,7 +28,7 @@ import {
   PermissionControllerState,
   PermissionConstraint,
 } from '@metamask/permission-controller';
-import { Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds } from '@metamask/multichain';
+import { Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 
 interface SDKSessionsManagerProps {
   navigation: NavigationProp<ParamListBase>;

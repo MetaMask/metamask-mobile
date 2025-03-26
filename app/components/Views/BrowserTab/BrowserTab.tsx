@@ -75,8 +75,6 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { PermissionKeys } from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
 import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
@@ -109,7 +107,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPermittedEthChainIds } from '@metamask/multichain';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
 
 /**

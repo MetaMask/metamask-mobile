@@ -1,14 +1,21 @@
 import { captureException } from '@sentry/react-native';
-import { errorCodes as rpcErrorCodes } from '@metamask/rpc-errors';
-import { RestrictedMethods, CaveatTypes } from './constants';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
-import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { Caip25CaveatType, Caip25EndowmentPermissionName, getEthAccounts, getPermittedEthChainIds, setEthAccounts, setPermittedEthChainIds } from '@metamask/multichain';
-import { CaveatConstraint, PermissionDoesNotExistError } from '@metamask/permission-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getEthAccounts,
+  getPermittedEthChainIds,
+  setEthAccounts,
+  setPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
+import {
+  CaveatConstraint,
+  PermissionDoesNotExistError,
+} from '@metamask/permission-controller';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -20,13 +27,17 @@ const Engine = ImportedEngine as any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
   const caveats =
-  subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
+    subject.permissions?.[Caip25EndowmentPermissionName]?.caveats || [];
 
-  const caveat = caveats.find(({ type }: CaveatConstraint) => type === Caip25CaveatType);
+  const caveat = caveats.find(
+    ({ type }: CaveatConstraint) => type === Caip25CaveatType,
+  );
   if (caveat) {
     const ethAccounts = getEthAccounts(caveat.value);
-    const lowercasedEthAccounts = ethAccounts.map((address: string) => address.toLowerCase())
-    return sortAccountsByLastSelected(lowercasedEthAccounts as Hex[])
+    const lowercasedEthAccounts = ethAccounts.map((address: string) =>
+      address.toLowerCase(),
+    );
+    return sortAccountsByLastSelected(lowercasedEthAccounts as Hex[]);
   }
 
   return [];
@@ -55,75 +66,69 @@ export const getPermittedAccountsByHostname = (
   return accountsByHostname?.[hostname] || [];
 };
 
-  // Returns the CAIP-25 caveat or undefined if it does not exist
-  export const getCaip25Caveat = (origin: string) => {
-    let caip25Caveat;
-    try {
-      caip25Caveat = Engine.context.PermissionController.getCaveat(
-        origin,
-        Caip25EndowmentPermissionName,
-        Caip25CaveatType,
-      );
-    } catch (err) {
-      if (err instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-      } else {
-        throw err;
-      }
+// Returns the CAIP-25 caveat or undefined if it does not exist
+export const getCaip25Caveat = (origin: string) => {
+  let caip25Caveat;
+  try {
+    caip25Caveat = Engine.context.PermissionController.getCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+    } else {
+      throw err;
     }
-    return caip25Caveat;
-  };
-
+  }
+  return caip25Caveat;
+};
 
 export const addPermittedAccounts = (
   origin: string,
   accounts: Hex[],
 ): string => {
   const caip25Caveat = getCaip25Caveat(origin);
-    if (!caip25Caveat) {
-      throw new Error(
-        `Cannot add account permissions for origin "${origin}": no permission currently exists for this origin.`,
-      );
-    }
-
-    const ethAccounts = getEthAccounts(caip25Caveat.value);
-
-    const updatedEthAccounts = Array.from(
-      new Set([...ethAccounts, ...accounts]),
+  if (!caip25Caveat) {
+    throw new Error(
+      `Cannot add account permissions for origin "${origin}": no permission currently exists for this origin.`,
     );
+  }
 
-    // TODO: This was copied over from the old implementation. Why have this check?..
-    // No change in permitted account addresses
-    if (ethAccounts.length === updatedEthAccounts.length) {
-      console.error(
-        `eth_accounts permission for hostname: (${origin}) already exists for account addresses: (${updatedEthAccounts}).`,
-      );
+  const ethAccounts = getEthAccounts(caip25Caveat.value);
 
-      // TODO: why return the first account?...
-      return ethAccounts[0];
-    }
+  const updatedEthAccounts = Array.from(new Set([...ethAccounts, ...accounts]));
 
-    const updatedCaveatValue = setEthAccounts(
-      caip25Caveat.value,
-      updatedEthAccounts,
-    );
-
-    Engine.context.PermissionController.updateCaveat(
-      origin,
-      Caip25EndowmentPermissionName,
-      Caip25CaveatType,
-      updatedCaveatValue,
+  // TODO: This was copied over from the old implementation. Why have this check?..
+  // No change in permitted account addresses
+  if (ethAccounts.length === updatedEthAccounts.length) {
+    console.error(
+      `eth_accounts permission for hostname: (${origin}) already exists for account addresses: (${updatedEthAccounts}).`,
     );
 
     // TODO: why return the first account?...
-    return updatedEthAccounts[0];
+    return ethAccounts[0];
+  }
+
+  const updatedCaveatValue = setEthAccounts(
+    caip25Caveat.value,
+    updatedEthAccounts,
+  );
+
+  Engine.context.PermissionController.updateCaveat(
+    origin,
+    Caip25EndowmentPermissionName,
+    Caip25CaveatType,
+    updatedCaveatValue,
+  );
+
+  // TODO: why return the first account?...
+  return updatedEthAccounts[0];
 };
 
-export const removePermittedAccounts = (
-  origin: string,
-  accounts: Hex[],
-) => {
+export const removePermittedAccounts = (origin: string, accounts: Hex[]) => {
   const { PermissionController } = Engine.context;
 
   const caip25Caveat = getCaip25Caveat(origin);
@@ -136,7 +141,7 @@ export const removePermittedAccounts = (
   const existingAccounts = getEthAccounts(caip25Caveat.value);
 
   const remainingAccounts = existingAccounts.filter(
-    (existingAccount) => !accounts.includes(existingAccount)
+    (existingAccount) => !accounts.includes(existingAccount),
   );
 
   if (remainingAccounts.length === existingAccounts.length) {
@@ -186,9 +191,7 @@ export const addPermittedChains = (origin: string, chainIds: Hex[]) => {
 
   const ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
 
-  const updatedEthChainIds = Array.from(
-    new Set([...ethChainIds, ...chainIds]),
-  );
+  const updatedEthChainIds = Array.from(new Set([...ethChainIds, ...chainIds]));
 
   const caveatValueWithChains = setPermittedEthChainIds(
     caip25Caveat.value,
@@ -228,7 +231,8 @@ const captureKeyringTypesWithMissingIdentities = (
       ),
   );
   const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
-    (address) => Engine.context.KeyringController.getAccountKeyringType(address),
+    (address) =>
+      Engine.context.KeyringController.getAccountKeyringType(address),
   );
 
   const internalAccountCount = internalAccounts.length;
@@ -244,99 +248,97 @@ const captureKeyringTypesWithMissingIdentities = (
   );
 };
 
-  /**
-   * Sorts a list of evm account addresses by most recently selected by using
-   * the lastSelected value for the matching InternalAccount object stored in state.
-   *
-   * @param accounts - The list of evm accounts addresses to sort.
-   * @returns The sorted evm accounts addresses.
-   */
+/**
+ * Sorts a list of evm account addresses by most recently selected by using
+ * the lastSelected value for the matching InternalAccount object stored in state.
+ *
+ * @param accounts - The list of evm accounts addresses to sort.
+ * @returns The sorted evm accounts addresses.
+ */
 export const sortAccountsByLastSelected = (accounts: Hex[]) => {
-    const internalAccounts: InternalAccount[] = Engine.context.AccountsController.listAccounts();
+  const internalAccounts: InternalAccount[] =
+    Engine.context.AccountsController.listAccounts();
 
-    return accounts.sort((firstAddress, secondAddress) => {
-      const firstAccount = internalAccounts.find(
-        (internalAccount) =>
-          internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
-      );
+  return accounts.sort((firstAddress, secondAddress) => {
+    const firstAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+    );
 
-      const secondAccount = internalAccounts.find(
-        (internalAccount) =>
-          internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
-      );
+    const secondAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    );
 
-      if (!firstAccount) {
-        captureKeyringTypesWithMissingIdentities(
-          internalAccounts,
-          accounts,
-        );
-        throw new Error(`Missing identity for address: "${firstAddress}".`);
-      } else if (!secondAccount) {
-        captureKeyringTypesWithMissingIdentities(
-          internalAccounts,
-          accounts,
-        );
-        throw new Error(`Missing identity for address: "${secondAddress}".`);
-      } else if (
-        firstAccount.metadata.lastSelected ===
-        secondAccount.metadata.lastSelected
-      ) {
-        return 0;
-      } else if (firstAccount.metadata.lastSelected === undefined) {
-        return 1;
-      } else if (secondAccount.metadata.lastSelected === undefined) {
-        return -1;
-      }
-
-      return (
-        secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
-      );
-    });
-  };
-
-  /**
-   * Gets the sorted permitted accounts for the specified origin. Returns an empty
-   * array if no accounts are permitted or the wallet is locked. Returns any permitted
-   * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
-   * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
-   * return permissioned accounts to the dapp when the wallet is locked.
-   *
-   * @param {string} origin - The origin whose exposed accounts to retrieve.
-   * @param {object} [options] - The options object
-   * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
-   * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
-   * array.
-   */
-  export const getPermittedAccounts = (origin: string, { ignoreLock }: { ignoreLock?: boolean } = {}) => {
-  const { AccountsController, PermissionController, KeyringController } = Engine.context;
-
-    let caveat;
-    try {
-      if (INTERNAL_ORIGINS.includes(origin)) {
-        const selectedAccountAddress =
-          AccountsController.getSelectedAccount().address;
-
-        return [selectedAccountAddress];
-      }
-
-      caveat = PermissionController.getCaveat(
-        origin,
-        Caip25EndowmentPermissionName,
-        Caip25CaveatType,
-      );
-    } catch (err) {
-      if (err instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-        return [];
-      }
-      throw err;
+    if (!firstAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${firstAddress}".`);
+    } else if (!secondAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${secondAddress}".`);
+    } else if (
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
+    ) {
+      return 0;
+    } else if (firstAccount.metadata.lastSelected === undefined) {
+      return 1;
+    } else if (secondAccount.metadata.lastSelected === undefined) {
+      return -1;
     }
 
-    if (!KeyringController.isUnlocked() && !ignoreLock) {
+    return (
+      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+    );
+  });
+};
+
+/**
+ * Gets the sorted permitted accounts for the specified origin. Returns an empty
+ * array if no accounts are permitted or the wallet is locked. Returns any permitted
+ * accounts if the wallet is locked and `ignoreLock` is true. This lock bypass is needed
+ * for the `eth_requestAccounts` & `wallet_getPermission` handlers both of which
+ * return permissioned accounts to the dapp when the wallet is locked.
+ *
+ * @param {string} origin - The origin whose exposed accounts to retrieve.
+ * @param {object} [options] - The options object
+ * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
+ * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
+ * array.
+ */
+export const getPermittedAccounts = (
+  origin: string,
+  { ignoreLock }: { ignoreLock?: boolean } = {},
+) => {
+  const { AccountsController, PermissionController, KeyringController } =
+    Engine.context;
+
+  let caveat;
+  try {
+    if (INTERNAL_ORIGINS.includes(origin)) {
+      const selectedAccountAddress =
+        AccountsController.getSelectedAccount().address;
+
+      return [selectedAccountAddress];
+    }
+
+    caveat = PermissionController.getCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
       return [];
     }
+    throw err;
+  }
 
-    const ethAccounts = getEthAccounts(caveat.value);
-    return sortAccountsByLastSelected(ethAccounts);
-  };
+  if (!KeyringController.isUnlocked() && !ignoreLock) {
+    return [];
+  }
+
+  const ethAccounts = getEthAccounts(caveat.value);
+  return sortAccountsByLastSelected(ethAccounts);
+};

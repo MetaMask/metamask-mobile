@@ -2,7 +2,7 @@ import {
   getPermissionsHandler,
   requestPermissionsHandler,
   revokePermissionsHandler,
-} from '@metamask/multichain';
+} from '@metamask/eip1193-permission-middleware';
 import { makeMethodMiddlewareMaker } from '../utils';
 import { localHandlers, eip1193OnlyHandlers } from '../handlers';
 

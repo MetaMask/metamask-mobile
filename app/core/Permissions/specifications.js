@@ -5,7 +5,7 @@ import {
 } from '@metamask/snaps-rpc-methods';
 ///: END:ONLY_INCLUDE_IF
 import {  RestrictedMethods } from './constants';
-import { caip25CaveatBuilder, Caip25CaveatType, caip25EndowmentBuilder, createCaip25Caveat } from '@metamask/multichain';
+import { caip25CaveatBuilder, Caip25CaveatType, caip25EndowmentBuilder, createCaip25Caveat } from '@metamask/chain-agnostic-permission';
 
 /**
  * This file contains the specifications of the permissions and caveats
