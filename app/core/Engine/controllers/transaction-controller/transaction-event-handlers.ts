@@ -1,59 +1,27 @@
 import { merge } from 'lodash';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+
 import { MetaMetrics } from '../../../Analytics';
-import {
-  JsonMap,
-  IMetaMetricsEvent,
-} from '../../../Analytics/MetaMetrics.types';
+import { generateDefaultTransactionMetrics, generateEvent } from './utils';
+import type { TransactionMetricRequest } from './types';
 
-// In order to not import from redux slice, type is defined here
-export interface TransactionMetrics {
-  properties: JsonMap;
-  sensitiveProperties: JsonMap;
-}
-
-interface TransactionMetricRequest {
-  getTransactionMetricProperties: (id: string) => TransactionMetrics;
-}
-
-function generateEvent({
-  metametricsEvent,
-  properties,
-  sensitiveProperties,
-}: {
-  metametricsEvent: IMetaMetricsEvent;
-  properties?: JsonMap;
-  sensitiveProperties?: JsonMap;
-}) {
-  return MetricsEventBuilder.createEventBuilder(metametricsEvent)
-    .addProperties(properties ?? {})
-    .addSensitiveProperties(sensitiveProperties ?? {})
-    .build();
-}
-
-function generateDefaultTransactionMetrics(
-  metametricsEvent: IMetaMetricsEvent,
+export const handleTransactionAdded = (
   transactionMeta: TransactionMeta,
-  { getTransactionMetricProperties }: TransactionMetricRequest,
-) {
-  const { chainId, id, type } = transactionMeta;
-
-  const mergedDefaultProperties = merge(
-    {
-      metametricsEvent,
-      properties: {
-        chain_id: chainId,
-        transaction_internal_id: id,
-        transaction_type: type,
-      },
-    },
-    getTransactionMetricProperties(id),
+  transactionMetricRequest: TransactionMetricRequest,
+) => {
+  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
+    TRANSACTION_EVENTS.TRANSACTION_ADDED,
+    transactionMeta,
+    transactionMetricRequest,
   );
 
-  return mergedDefaultProperties;
-}
+  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
+
+  const event = generateEvent(mergedEventProperties);
+
+  MetaMetrics.getInstance().trackEvent(event);
+};
 
 export const handleTransactionApproved = (
   transactionMeta: TransactionMeta,
@@ -76,8 +44,10 @@ export const handleTransactionConfirmed = (
   transactionMeta: TransactionMeta,
   transactionMetricRequest: TransactionMetricRequest,
 ) => {
+  // Intentionally using TRANSACTION_FINALIZED for confirmed transactions
+  // as unified type for all finalized transactions
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_CONFIRMED,
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
     transactionMetricRequest,
   );
@@ -93,8 +63,10 @@ export const handleTransactionDropped = (
   transactionMeta: TransactionMeta,
   transactionMetricRequest: TransactionMetricRequest,
 ) => {
+  // Intentionally using TRANSACTION_FINALIZED for dropped transactions
+  // as unified type for all finalized transactions
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_DROPPED,
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
     transactionMetricRequest,
   );
@@ -110,8 +82,10 @@ export const handleTransactionFailed = (
   transactionMeta: TransactionMeta,
   transactionMetricRequest: TransactionMetricRequest,
 ) => {
+  // Intentionally using TRANSACTION_FINALIZED for failed transactions
+  // as unified type for all finalized transactions
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FAILED,
+    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
     transactionMetricRequest,
   );
@@ -146,23 +120,6 @@ export const handleTransactionSubmitted = (
 ) => {
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
     TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleUnapprovedTransactionAdded = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.UNAPPROVED_TRANSACTION_ADDED,
     transactionMeta,
     transactionMetricRequest,
   );
