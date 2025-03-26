@@ -7,17 +7,16 @@ import {
   MM_ETHERSCAN_URL,
   MM_BLOCKLIST_ISSUE_URL,
 } from '../../../../../constants/urls';
+import { HOMEPAGE_URL } from '../../constants';
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
-import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
 
 interface PhishingModalProps {
   blockedUrl?: string;
   showPhishingModal: boolean;
   setShowPhishingModal: (show: boolean) => void;
   setBlockedUrl: (url: string | undefined) => void;
-  urlBarRef: React.RefObject<BrowserUrlBarRef>;
   addToWhitelist: (hostname: string) => void;
   activeUrl: string;
   blockListType: React.MutableRefObject<string>;
@@ -29,7 +28,6 @@ const PhishingModal = ({
   showPhishingModal,
   setShowPhishingModal,
   setBlockedUrl,
-  urlBarRef,
   addToWhitelist,
   activeUrl,
   blockListType,
@@ -86,11 +84,11 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl });
 
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
+      goToUrl(HOMEPAGE_URL);
     }, 500);
   };
 
