@@ -11,12 +11,15 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 
-export const selectSmartTransactionsEnabled = (state: RootState) => {
+export const selectSmartTransactionsEnabled = (
+  state: RootState,
+  providedChainId?: string,
+) => {
   const selectedAddress = selectSelectedInternalAccountFormattedAddress(state);
   const addrIshardwareAccount = selectedAddress
     ? isHardwareAccount(selectedAddress)
     : false;
-  const chainId = selectChainId(state);
+  const chainId = providedChainId || selectChainId(state);
   const providerConfigRpcUrl = selectProviderConfig(state).rpcUrl;
 
   const isAllowedNetwork =
@@ -43,8 +46,14 @@ export const selectSmartTransactionsEnabled = (state: RootState) => {
       smartTransactionsLiveness,
   );
 };
-export const selectShouldUseSmartTransaction = (state: RootState) => {
-  const isSmartTransactionsEnabled = selectSmartTransactionsEnabled(state);
+export const selectShouldUseSmartTransaction = (
+  state: RootState,
+  providedChainId?: string,
+) => {
+  const isSmartTransactionsEnabled = selectSmartTransactionsEnabled(
+    state,
+    providedChainId,
+  );
   const smartTransactionsOptInStatus =
     selectSmartTransactionsOptInStatus(state);
 
