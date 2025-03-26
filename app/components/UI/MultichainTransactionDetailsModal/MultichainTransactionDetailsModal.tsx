@@ -101,9 +101,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             style={style.linkContainer}
             onPress={() => viewOnBlockExplorer(label)}
           >
-            <Text style={style.linkText}>
-              {formatAddress(value, 'short')}
-            </Text>
+            <Text style={style.linkText}>{formatAddress(value, 'short')}</Text>
             <Icon
               name="external-link"
               size={16}
@@ -152,16 +150,15 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
         <View style={style.content}>
           {renderDetailRow(TransactionDetailRow.Status, capitalize(status))}
           {renderDetailRow(TransactionDetailRow.TransactionID, id, true)}
-          {renderDetailRow(
-            TransactionDetailRow.From,
-            from?.address || '',
-            true,
-          )}
-          {renderDetailRow(TransactionDetailRow.To, to?.address || '', true)}
-          {renderDetailRow(
-            TransactionDetailRow.Amount,
-            `${asset?.amount} ${asset?.unit}`,
-          )}
+          {from?.address &&
+            renderDetailRow(TransactionDetailRow.From, from?.address, true)}
+          {to?.address &&
+            renderDetailRow(TransactionDetailRow.To, to?.address, true)}
+          {asset &&
+            renderDetailRow(
+              TransactionDetailRow.Amount,
+              `${asset?.amount} ${asset?.unit}`,
+            )}
           {baseFee &&
             renderDetailRow(
               TransactionDetailRow.NetworkFee,
