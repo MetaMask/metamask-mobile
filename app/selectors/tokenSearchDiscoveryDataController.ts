@@ -1,6 +1,6 @@
-import { createSelector } from 'reselect';
-import { RootState } from '../reducers';
 import { Hex } from '@metamask/utils';
+import { createDeepEqualSelector } from './util';
+import { RootState } from '../reducers';
 import { selectCurrentCurrency } from './currencyRateController';
 
 export const isAssetFromSearch = (asset: unknown) => typeof asset === 'object' && asset !== null && 'isFromSearch' in asset && asset.isFromSearch === true;
@@ -8,7 +8,7 @@ export const isAssetFromSearch = (asset: unknown) => typeof asset === 'object' &
 const selectTokenSearchDiscoveryDataControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenSearchDiscoveryDataController;
 
-export const selectTokenDisplayData = createSelector(
+export const selectTokenDisplayData = createDeepEqualSelector(
   selectTokenSearchDiscoveryDataControllerState,
   selectCurrentCurrency,
   (_state: RootState, chainId: Hex) => chainId,
@@ -16,12 +16,12 @@ export const selectTokenDisplayData = createSelector(
   (state, currentCurrency, chainId, address) => state?.tokenDisplayData.find(d => d.chainId === chainId && d.address === address && d.currency === currentCurrency)
 );
 
-export const selectSupportedSwapTokenAddressesByChainId = createSelector(
+export const selectSupportedSwapTokenAddressesByChainId = createDeepEqualSelector(
   selectTokenSearchDiscoveryDataControllerState,
   (state) => state?.swapsTokenAddressesByChainId,
 );
 
-export const selectSupportedSwapTokenAddressesForChainId = createSelector(
+export const selectSupportedSwapTokenAddressesForChainId = createDeepEqualSelector(
   selectTokenSearchDiscoveryDataControllerState,
   (_state: RootState, chainId: Hex) => chainId,
   (state, chainId) => state?.swapsTokenAddressesByChainId[chainId]?.addresses,
