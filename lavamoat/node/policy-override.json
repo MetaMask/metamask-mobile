@@ -126,7 +126,8 @@
         "__dirname": true
       },
       "packages": {
-        "ws>bufferutil>node-gyp-build": true
+        "ws>bufferutil>node-gyp-build": true,
+        "node-gyp-build": true
       }
     },
     "metro-config>cosmiconfig>import-fresh>caller-path>caller-callsite": {
