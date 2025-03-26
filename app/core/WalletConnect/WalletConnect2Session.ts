@@ -469,7 +469,7 @@ class WalletConnect2Session {
     hideWCLoadingState({ navigation: this.navigation });
 
     const verified = requestEvent.verifyContext?.verified;
-    const origin = verified?.origin;
+    const origin = verified?.origin ?? this.session.peer.metadata.url;
     const method = requestEvent.params.request.method;
     const caip2ChainId = method === 'wallet_switchEthereumChain' ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId;
     const methodParams = requestEvent.params.request.params;
