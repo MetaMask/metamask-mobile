@@ -83,7 +83,7 @@ export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
 
 /**
  * This is a recursive method accepts a parsed, signTypedData message. It removes message params
- * that do not have associated, valid type definitions.
+ * that do not have associated, valid type definitions. It also strips multiple new lines in strings.
  */
 export const sanitizeParsedMessage = (
   message: FieldValue,
@@ -180,7 +180,8 @@ export const parseTypedDataMessage = (dataToParse: string) => {
 };
 
 export const parseSignTypedDataMessage = (dataToParse: string) => {
-  const { message, primaryType, types } = JSON.parse(dataToParse);
+  const { message, primaryType, types } = parseTypedDataMessage(dataToParse);
+  // need to double check after coercing values, typedef still matches
   return sanitizeParsedMessage(message, primaryType, types);
 };
 
