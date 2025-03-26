@@ -4,6 +4,18 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 
+// Mock the store
+jest.mock('../../../store', () => ({
+  default: {
+    getState: jest.fn(() => ({}))
+  }
+}));
+
+// Mock the settings selector
+jest.mock('../../../selectors/settings', () => ({
+  selectBasicFunctionalityEnabled: jest.fn(() => true)
+}));
+
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
