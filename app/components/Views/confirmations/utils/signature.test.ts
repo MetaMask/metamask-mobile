@@ -3,7 +3,7 @@ import {
   isRecognizedPermit,
   isTypedSignV3V4Request,
   isRecognizedOrder,
-  sanitizeMessage,
+  sanitizeParsedMessage,
   parseTypedSignDataMessage,
   parseTypedDataMessageFromSignatureRequest,
   parseSanitizeTypedDataMessage,
@@ -295,24 +295,24 @@ describe('Signature Utils', () => {
     });
   });
 
-  describe('sanitizeMessage', () => {
+  describe('sanitizeParsedMessage', () => {
     it('throws an error if types is undefined', () => {
       const { message, primaryType } = mockTypedSignV3Message;
-      expect(() => sanitizeMessage(message, primaryType, undefined)).toThrow(
+      expect(() => sanitizeParsedMessage(message, primaryType, undefined)).toThrow(
         'Invalid types definition',
       );
     });
 
     it('throws an error if base type is not defined', () => {
       const { message, types } = mockTypedSignV3Message;
-      expect(() => sanitizeMessage(message, '', types)).toThrow(
+      expect(() => sanitizeParsedMessage(message, '', types)).toThrow(
         'Invalid primary type definition',
       );
     });
 
     it('returns the message data without extraneous params missing matching type definitions', () => {
       const { message, primaryType, types } = mockTypedSignV3Message;
-      const result = sanitizeMessage(message, primaryType, types);
+      const result = sanitizeParsedMessage(message, primaryType, types);
       expect(result).toStrictEqual({
         value: {
           from: {

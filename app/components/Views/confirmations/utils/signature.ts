@@ -81,7 +81,11 @@ export const isTypedSignV3V4Request = (signatureRequest?: SignatureRequest) => {
   );
 };
 
-export const sanitizeMessage = (
+/**
+ * This is a recursive method accepts a parsed, signTypedData message. It removes message params
+ * that do not have associated, valid type definitions.
+ */
+export const sanitizeParsedMessage = (
   message: FieldValue,
   primaryType: string,
   types: Record<string, BaseType[]> | undefined,
@@ -96,7 +100,7 @@ export const sanitizeMessage = (
     return {
       value: (message as string[]).map(
         (value: string): ValueType =>
-          sanitizeMessage(value, stripOneLayerofNesting(primaryType), types),
+          sanitizeParsedMessage(value, stripOneLayerofNesting(primaryType), types),
       ),
       type: primaryType,
     };
@@ -128,7 +132,7 @@ export const sanitizeMessage = (
       return;
     }
 
-    (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeMessage(
+    (sanitizedStruct as Record<string, ValueType>)[msgKey] = sanitizeParsedMessage(
       (message as Record<string, string>)[msgKey],
       definedType.type,
       types,
@@ -177,7 +181,7 @@ export const parseTypedDataMessage = (dataToParse: string) => {
 
 export const parseTypedSignDataMessage = (dataToParse: string) => {
   const { message, primaryType, types } = JSON.parse(dataToParse);
-  return sanitizeMessage(message, primaryType, types);
+  return sanitizeParsedMessage(message, primaryType, types);
 };
 
 export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
@@ -188,7 +192,7 @@ export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
   const { domain, message, primaryType, types } =
     parseTypedDataMessage(dataToParse);
 
-  const sanitizedMessage = sanitizeMessage(message, primaryType, types);
+  const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
   return { sanitizedMessage, primaryType, domain };
 };
 
