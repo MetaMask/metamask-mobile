@@ -117,6 +117,9 @@ export const TokenListItem = React.memo(
     const conversionRate =
       multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
 
+    const oneHundredths = 0.01;
+    const oneHundredThousandths = 0.00001;
+
     const { balanceFiat, balanceValueFormatted } = useMemo(
       () =>
         isEvmNetworkSelected
@@ -130,13 +133,13 @@ export const TokenListItem = React.memo(
           : {
               balanceFiat: formatWithThreshold(
                 parseFloat(asset.balanceFiat),
-                0.01,
+                oneHundredths,
                 I18n.locale,
                 { style: 'currency', currency: currentCurrency },
               ),
               balanceValueFormatted: formatWithThreshold(
                 parseFloat(asset.balance),
-                0.00001,
+                oneHundredThousandths,
                 I18n.locale,
                 { minimumFractionDigits: 0, maximumFractionDigits: 5 },
               ),
@@ -154,7 +157,7 @@ export const TokenListItem = React.memo(
     const tokenPercentageChange = asset.address
       ? multiChainMarketData?.[chainId as Hex]?.[asset.address as Hex]
           ?.pricePercentChange1d
-      : 0;
+      : undefined;
 
     const pricePercentChange1d = asset.isNative
       ? multiChainMarketData?.[chainId as Hex]?.[
@@ -315,7 +318,6 @@ export const TokenListItem = React.memo(
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={networkBadgeSource(chainId as Hex)}
-                name=""
               />
             }
           >
