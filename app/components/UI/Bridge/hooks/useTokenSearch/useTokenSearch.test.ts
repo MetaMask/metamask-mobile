@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useTokenSearch } from './useTokenSearch';
-import { TokenIWithFiatAmount } from './useTokensWithBalance';
+import { useTokenSearch } from '.';
+import { TokenIWithFiatAmount } from '../useTokensWithBalance';
 
 describe('useTokenSearch', () => {
   // Mock token data
