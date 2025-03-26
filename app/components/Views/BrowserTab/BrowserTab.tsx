@@ -109,6 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 /**
  * Tab component for the in-app browser
@@ -207,9 +208,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const isFocused = useIsFocused();
 
   // Basic functionality setting from app settings
-  const basicFunctionalityEnabled = useSelector(
-    (state: RootState) => state.settings?.basicFunctionalityEnabled
-  );
+  const basicFunctionalityEnabled = useSelector(selectBasicFunctionalityEnabled);
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -301,7 +300,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     (urlOrigin: string) => {
       const { PhishingController } = Engine.context;
 
-      // Check if basic functionality is disabled
       if (!basicFunctionalityEnabled) {
         return true;
       }
