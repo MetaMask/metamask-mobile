@@ -5,6 +5,7 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+**/*.snap                          @MetaMask/design-system-engineers
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
