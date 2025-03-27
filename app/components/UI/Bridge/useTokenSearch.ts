@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
-import { TokenIWithFiatAmount } from './useSourceTokens';
+import { TokenIWithFiatAmount } from './useTokensWithBalance';
 const MAX_TOKENS_RESULTS = 20;
 
 interface UseTokenSearchProps {
