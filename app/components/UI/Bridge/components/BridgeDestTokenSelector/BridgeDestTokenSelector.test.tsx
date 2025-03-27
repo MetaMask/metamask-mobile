@@ -305,7 +305,6 @@ describe('BridgeDestTokenSelector', () => {
 
     expect(setDestToken).toHaveBeenCalledWith(expect.objectContaining({
       address: token2Address,
-      aggregators: ['uniswap'],
       balance: '2',
       chainId: mockDestChainId,
       decimals: 18,
@@ -341,20 +340,13 @@ describe('BridgeDestTokenSelector', () => {
     // Verify navigation to Asset screen with the correct token params
     expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.objectContaining({
       address: '0x0000000000000000000000000000000000000000',
-      aggregators: [],
       balance: '20',
       balanceFiat: '$40000',
       chainId: '0xa',
       decimals: 18,
       image: '',
-      isETH: true,
-      isNative: true,
-      isStaked: false,
-      logo: '../images/eth-logo-new.png',
       name: 'Ethereum',
-      stakedBalance: '0x0',
       symbol: 'ETH',
-      ticker: 'ETH',
       tokenFiatAmount: 40000
     }));
   });
