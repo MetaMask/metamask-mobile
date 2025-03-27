@@ -8,7 +8,16 @@ import {
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 
-// TODO: [ffmcgee] docs
+/**
+ * Switch chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns Nothing.
+ */
 const wallet_switchEthereumChain = async ({
   req,
   res,

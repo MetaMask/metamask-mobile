@@ -37,7 +37,18 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
-// TODO: [ffmcgee] docs
+/**
+ * Add chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.startApprovalFlow - Flow to trigger at approval start.
+ * @param params.endApprovalFlow - Flow to trigger at approval end.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns Nothing.
+ */
 const wallet_addEthereumChain = async ({
   req,
   res,
