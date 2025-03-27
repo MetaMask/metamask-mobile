@@ -1,7 +1,6 @@
-import { VAULT_BACKUP_FAILED } from '../../constants/error';
 import { backupVault } from './backupVault';
+import { VAULT_BACKUP_FAILED_UNDEFINED } from '../../constants/error';
 import { KeyringControllerState } from '@metamask/keyring-controller';
-import { setInternetCredentials } from 'react-native-keychain';
 
 //TODO Mock the react-native-keychain module test the other functions inside backupVault
 /*
@@ -13,30 +12,7 @@ import { setInternetCredentials } from 'react-native-keychain';
  More information on the issue can be found here: https://github.com/oblador/react-native-keychain/issues/460
 */
 describe('backupVault', () => {
-  it('should throw when vault backup fails', async () => {
-    // Mock the setInternetCredentials function to return false, which simulates a failed vault backup
-    (setInternetCredentials as jest.Mock).mockResolvedValue(false);
-
-    const keyringState: KeyringControllerState = {
-      vault: undefined,
-      keyrings: [],
-      isUnlocked: false,
-      keyringsMetadata: [],
-    };
-
-    expect(async () => await backupVault(keyringState)).rejects.toThrow(
-      VAULT_BACKUP_FAILED,
-    );
-  });
-
-  it('should return success response when vault backup succeeds', async () => {
-    const mockedSuccessResponse = { success: true };
-
-    // Mock the setInternetCredentials function to return a success response, which simulates a successful vault backup
-    (setInternetCredentials as jest.Mock).mockResolvedValue(
-      mockedSuccessResponse,
-    );
-
+  it('should return an error response when the vault is undefined', async () => {
     const keyringState: KeyringControllerState = {
       vault: undefined,
       keyrings: [],
@@ -45,7 +21,8 @@ describe('backupVault', () => {
     };
 
     const response = await backupVault(keyringState);
+    expect(response.success).toBe(false);
 
-    expect(response).toEqual(mockedSuccessResponse);
+    expect(response.error).toBe(VAULT_BACKUP_FAILED_UNDEFINED);
   });
 });

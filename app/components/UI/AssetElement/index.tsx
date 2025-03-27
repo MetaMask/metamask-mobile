@@ -8,6 +8,7 @@ import generateTestId from '../../../../wdio/utils/generateTestId';
 import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
   TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../Tokens/constants';
 import { Colors } from '../../../util/theme/models';
@@ -103,7 +104,8 @@ const AssetElement: React.FC<AssetElementProps> = ({
             length={SensitiveTextLength.Medium}
             testID={FIAT_BALANCE_TEST_ID}
           >
-            {balance === TOKEN_BALANCE_LOADING ? (
+            {balance === TOKEN_BALANCE_LOADING ||
+            balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               balance
@@ -118,7 +120,8 @@ const AssetElement: React.FC<AssetElementProps> = ({
             length={SensitiveTextLength.Short}
             testID={MAIN_BALANCE_TEST_ID}
           >
-            {mainBalance === TOKEN_BALANCE_LOADING ? (
+            {mainBalance === TOKEN_BALANCE_LOADING ||
+            mainBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
               <SkeletonText thin style={styles.skeleton} />
             ) : (
               mainBalance

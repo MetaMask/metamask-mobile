@@ -1118,7 +1118,6 @@
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Schalten Sie Smart Transactions für zuverlässigere und sicherere Transaktionen im Ethereum Mainnet ein.",
     "smart_transactions_learn_more": "Erfahren Sie mehr.",
     "simulation_details": "Geschätzte Kontostandänderungen",
     "simulation_details_description": "Schalten Sie dies ein, um die Kontostandänderungen von Transaktionen zu schätzen, bevor Sie sie bestätigen. Dies ist keine Garantie für das endgültige Ergebnis Ihrer Transaktionen. ",

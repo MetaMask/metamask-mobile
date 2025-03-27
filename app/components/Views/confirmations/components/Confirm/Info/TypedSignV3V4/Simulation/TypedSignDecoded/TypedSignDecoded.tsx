@@ -125,6 +125,7 @@ const StateChangeRow = ({
         <SimulationValueDisplay
           modalHeaderText={changeType}
           tokenContract={contractAddress}
+          allowed={amount}
           value={amount}
           chainId={chainId}
           tokenId={tokenID}

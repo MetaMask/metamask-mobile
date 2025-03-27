@@ -5,25 +5,27 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
+import { UnstakeConfirmationViewProps } from '../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
-import { LedgerContextProvider } from '../context/LedgerContext';
-import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
 import Title from '../components/Confirm/Title';
-import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
-import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
+import { LedgerContextProvider } from '../context/LedgerContext';
+import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmActions } from '../hooks/useConfirmActions';
+import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
+import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
 
 const ConfirmWrapped = ({
   styles,
+  route,
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
+  route?: UnstakeConfirmationViewProps['route'];
 }) => (
   <QRHardwareContextProvider>
     <LedgerContextProvider>
@@ -32,7 +34,7 @@ const ConfirmWrapped = ({
         <TouchableWithoutFeedback>
           <>
             <SignatureBlockaidBanner />
-            <Info />
+            <Info route={route} />
           </>
         </TouchableWithoutFeedback>
       </ScrollView>
@@ -41,7 +43,11 @@ const ConfirmWrapped = ({
   </QRHardwareContextProvider>
 );
 
-export const Confirm = () => {
+interface ConfirmProps {
+  route?: UnstakeConfirmationViewProps['route'];
+}
+
+export const Confirm = ({ route }: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFlatConfirmation } = useFlatConfirmation();
   const { isRedesignedEnabled } = useConfirmationRedesignEnabled();
@@ -56,7 +62,7 @@ export const Confirm = () => {
   if (isFlatConfirmation) {
     return (
       <View style={styles.flatContainer} testID="flat-confirmation-container">
-        <ConfirmWrapped styles={styles} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     );
   }
@@ -68,7 +74,7 @@ export const Confirm = () => {
       testID="modal-confirmation-container"
     >
       <View testID={approvalRequest?.type} style={styles.confirmContainer}>
-        <ConfirmWrapped styles={styles} />
+        <ConfirmWrapped styles={styles} route={route} />
       </View>
     </BottomSheet>
   );

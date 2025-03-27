@@ -1,16 +1,27 @@
-import { calculateScryptKey, generateKeyHash } from './calculate-scrypt-key';
-import storageWrapper from '../../../../store/storage-wrapper';
+import { calculateScryptKey } from './calculate-scrypt-key';
 import { scrypt } from 'react-native-fast-crypto';
+import { getGenericPassword, setGenericPassword } from 'react-native-keychain';
 import Logger from '../../../../util/Logger';
 
 // we are using this node import for testing purposes
 // eslint-disable-next-line import/no-nodejs-modules
 import mockCrypto from 'crypto';
+
 jest.mock('react-native-quick-crypto', () => ({
   createHash: (algorithm: string) => mockCrypto.createHash(algorithm),
 }));
 
-jest.mock('../../../../store/storage-wrapper');
+jest.mock('react-native-keychain', () => ({
+  ACCESSIBLE: {
+    WHEN_UNLOCKED_THIS_DEVICE_ONLY: 'MOCK_AccessibleWhenUnlockedThisDeviceOnly',
+  },
+  setGenericPassword: jest.fn().mockResolvedValue({
+    service: 'mockService',
+    storage: 'mockStorage',
+  }),
+  getGenericPassword: jest.fn().mockResolvedValue(false),
+}));
+
 jest.mock('react-native-fast-crypto', () => ({
   scrypt: jest.fn(),
 }));
@@ -34,27 +45,24 @@ describe('calculateScryptKey', () => {
   };
 
   const arrangeMocks = () => {
-    const mockGetItem = jest.mocked(storageWrapper.getItem);
-    const mockSetItem = jest.mocked(storageWrapper.setItem);
+    const mockGetGenericPassword = jest.mocked(getGenericPassword);
+    const mockSetGenericPassword = jest.mocked(setGenericPassword);
 
     const mockScryptResult = new Uint8Array([1, 3, 3, 7]);
     const mockScrypt = jest.mocked(scrypt).mockResolvedValue(mockScryptResult);
-    return { mockGetItem, mockSetItem, mockScrypt, mockScryptResult };
+    return {
+      mockGetGenericPassword,
+      mockSetGenericPassword,
+      mockScrypt,
+      mockScryptResult,
+    };
   };
 
   const arrange = () => {
     const inputs = arrangeInputs();
     const mocks = arrangeMocks();
-    const cacheHash = generateKeyHash(
-      inputs.passwd,
-      inputs.salt,
-      inputs.N,
-      inputs.r,
-      inputs.p,
-      inputs.size,
-    );
     const cachedResultStr = Buffer.from(mocks.mockScryptResult).toString('hex');
-    return { inputs, mocks, cacheHash, cachedResultStr };
+    return { inputs, mocks, cachedResultStr };
   };
 
   type Arrange = ReturnType<typeof arrange>;
@@ -82,26 +90,28 @@ describe('calculateScryptKey', () => {
   });
 
   it('returns cached key if available', async () => {
-    const result = await arrangeAct(({ mocks, cacheHash, cachedResultStr }) => {
-      mocks.mockGetItem.mockResolvedValue(
-        JSON.stringify({ cacheHash, key: cachedResultStr }),
-      );
+    const result = await arrangeAct(({ mocks, cachedResultStr }) => {
+      mocks.mockGetGenericPassword.mockResolvedValue({
+        password: cachedResultStr,
+        service: 'mockService',
+        storage: 'MOCK_keychain',
+        username: 'mockUser',
+      });
     });
-
     // Assert - Storage called & new scrypt key not generated
-    expect(result.mocks.mockGetItem).toHaveBeenCalled();
+    expect(result.mocks.mockGetGenericPassword).toHaveBeenCalled();
     expect(result.mocks.mockScrypt).not.toHaveBeenCalled();
   });
 
   it('computes new key if no cache is available', async () => {
     const result = await arrangeAct(({ mocks }) => {
-      mocks.mockGetItem.mockResolvedValue(null);
+      mocks.mockGetGenericPassword.mockResolvedValue(false);
     });
 
     // Assert - Script key generated
-    expect(result.mocks.mockGetItem).toHaveBeenCalled();
+    expect(result.mocks.mockGetGenericPassword).toHaveBeenCalled();
     expect(result.mocks.mockScrypt).toHaveBeenCalled();
-    expect(result.mocks.mockSetItem).toHaveBeenCalled();
+    expect(result.mocks.mockSetGenericPassword).toHaveBeenCalled();
   });
 
   it('logs error if fails to get cache', async () => {
@@ -109,13 +119,13 @@ describe('calculateScryptKey', () => {
       .spyOn(Logger, 'error')
       .mockImplementation(jest.fn());
     const result = await arrangeAct(({ mocks }) => {
-      mocks.mockGetItem.mockRejectedValue(new Error('TEST ERROR'));
+      mocks.mockGetGenericPassword.mockRejectedValue(new Error('TEST ERROR'));
     });
 
     // Assert - Scrypt key generated & Error Logged
-    expect(result.mocks.mockGetItem).toHaveBeenCalled();
+    expect(result.mocks.mockGetGenericPassword).toHaveBeenCalled();
     expect(result.mocks.mockScrypt).toHaveBeenCalled();
-    expect(result.mocks.mockSetItem).toHaveBeenCalled();
+    expect(result.mocks.mockSetGenericPassword).toHaveBeenCalled();
     expect(mockLogError).toHaveBeenCalled();
   });
 
@@ -124,13 +134,14 @@ describe('calculateScryptKey', () => {
       .spyOn(Logger, 'error')
       .mockImplementation(jest.fn());
     const result = await arrangeAct(({ mocks }) => {
-      mocks.mockSetItem.mockRejectedValue(new Error('TEST ERROR'));
+      mocks.mockGetGenericPassword.mockResolvedValue(false);
+      mocks.mockSetGenericPassword.mockRejectedValue(new Error('TEST ERROR'));
     });
 
     // Assert - Scrypt key generated & Error Logged
-    expect(result.mocks.mockGetItem).toHaveBeenCalled();
+    expect(result.mocks.mockGetGenericPassword).toHaveBeenCalled();
     expect(result.mocks.mockScrypt).toHaveBeenCalled();
-    expect(result.mocks.mockSetItem).toHaveBeenCalled();
+    expect(result.mocks.mockSetGenericPassword).toHaveBeenCalled();
     expect(mockLogError).toHaveBeenCalled();
   });
 });

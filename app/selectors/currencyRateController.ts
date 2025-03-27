@@ -4,7 +4,7 @@ import { RootState } from '../reducers';
 import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
-  selectTicker,
+  selectEvmTicker,
 } from './networkController';
 import { isTestNet } from '../../app/util/networks';
 
@@ -14,7 +14,7 @@ const selectCurrencyRateControllerState = (state: RootState) =>
 export const selectConversionRate = createSelector(
   selectCurrencyRateControllerState,
   selectEvmChainId,
-  selectTicker,
+  selectEvmTicker,
   (state: RootState) => state.settings.showFiatOnTestnets,
   (
     currencyRateControllerState: CurrencyRateState,

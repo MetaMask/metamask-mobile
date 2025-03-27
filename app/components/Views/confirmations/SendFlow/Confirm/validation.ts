@@ -4,7 +4,7 @@ import {
   decodeTransferData,
 } from '../../../../../util/transactions';
 import { strings } from '../../../../../../locales/i18n';
-import { BN } from 'ethereumjs-util';
+import type BN4 from 'bnjs4';
 
 interface SelectedAsset {
   address: string;
@@ -13,8 +13,8 @@ interface SelectedAsset {
 }
 
 export const generateInsufficientBalanceMessage = (
-  weiBalance: BN,
-  transactionValue: BN,
+  weiBalance: BN4,
+  transactionValue: BN4,
   ticker: string,
 ) => {
   const amount = renderFromWei(transactionValue.sub(weiBalance));
@@ -25,7 +25,7 @@ export const generateInsufficientBalanceMessage = (
   });
 };
 
-export const validateBalance = (weiBalance: BN, transactionValue: BN) =>
+export const validateBalance = (weiBalance: BN4, transactionValue: BN4) =>
   !weiBalance.gte(transactionValue) || weiBalance.isZero();
 
 export const validateSufficientTokenBalance = (
@@ -49,8 +49,8 @@ export const validateSufficientTokenBalance = (
 };
 
 export const validateSufficientBalance = (
-  weiBalance: BN,
-  totalTransactionValue: BN,
+  weiBalance: BN4,
+  totalTransactionValue: BN4,
   ticker: string,
 ) => {
   if (validateBalance(weiBalance, totalTransactionValue)) {

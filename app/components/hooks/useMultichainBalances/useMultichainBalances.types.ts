@@ -3,6 +3,7 @@ import { AggregatedPercentageCrossChainsProps } from '../../../component-library
 
 export interface MultichainBalancesData {
   displayBalance: string;
+  displayCurrency: string;
   tokenFiatBalancesCrossChains: AggregatedPercentageCrossChainsProps['tokenFiatBalancesCrossChains'];
   totalFiatBalance: number;
   totalTokenFiat: number;

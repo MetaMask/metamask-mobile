@@ -12,7 +12,7 @@ import Button, {
   ButtonSize,
 } from '../../../../../component-library/components/Buttons/Button';
 import {
-  selectTicker,
+  selectEvmTicker,
   selectProviderConfig,
 } from '../../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
@@ -31,7 +31,7 @@ export const ScamWarningModal = ({
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   const { rpcUrl } = useSelector(selectProviderConfig);
 
   const styles = createStyles(colors);

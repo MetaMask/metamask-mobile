@@ -3,10 +3,12 @@ import {
   InputElement,
   JSXElement,
   CheckboxElement,
+  SelectorElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
 import { checkbox as checkboxFn } from './checkbox';
+import { selector as selectorFn } from './selector';
 import { UIComponentFactory, UIComponentParams } from './types';
 
 export const field: UIComponentFactory<FieldElement> = ({
@@ -20,6 +22,13 @@ export const field: UIComponentFactory<FieldElement> = ({
     children as JSXElement[],
   );
   const child = children[primaryChildIndex] as JSXElement;
+
+  // Fields have special styling that let's developers place two of them next to each other taking up 50% space.
+  const style = {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: '50%',
+  };
 
   switch (child.type) {
     case 'Input': {
@@ -60,6 +69,7 @@ export const field: UIComponentFactory<FieldElement> = ({
           form,
           error: e.props.error,
           disabled: child.props.disabled,
+          style,
         },
         propComponents: {
           startAccessory: leftAccessoryMapped && {
@@ -93,6 +103,27 @@ export const field: UIComponentFactory<FieldElement> = ({
           form,
           error: e.props.error,
           disabled: child.props.disabled,
+          style,
+        },
+      };
+    }
+
+    case 'Selector': {
+      const selector = child as SelectorElement;
+      const selectorMapped = selectorFn({
+        ...params,
+        element: selector,
+      } as UIComponentParams<SelectorElement>);
+      return {
+        ...selectorMapped,
+        element: 'SnapUISelector',
+        props: {
+          ...selectorMapped.props,
+          label: e.props.label,
+          form,
+          error: e.props.error,
+          disabled: child.props.disabled,
+          style,
         },
       };
     }

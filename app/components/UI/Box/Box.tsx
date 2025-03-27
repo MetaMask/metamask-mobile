@@ -61,9 +61,9 @@ export interface BoxProps extends ViewProps {
 export const Box: React.FC<BoxProps> = React.forwardRef(
   ({ children, ...props }, ref) => (
     <View
+      {...props}
       ref={ref}
       style={[getBoxStyles(props).dynamicStyles, props.style]}
-      {...props}
       testID={props.testID}
     >
       {children}

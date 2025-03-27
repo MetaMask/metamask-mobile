@@ -297,6 +297,65 @@ describe('Amount', () => {
     expect(setMaxValueMode).toHaveBeenCalled();
   });
 
+  it('sets correct fiat amount for max native token', async () => {
+    const { getByText, getByTestId } = renderComponent({
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountTrackerController: {
+            accounts: {
+              [CURRENT_ACCOUNT]: {
+                balance: '4563918244F40000', // 5 ETH in hex
+              },
+            },
+          },
+          CurrencyRateController: {
+            currentCurrency: 'usd',
+            currencyRates: {
+              ETH: {
+                conversionRate: 1000, // 1 ETH = $1000
+              },
+            },
+          },
+        },
+      },
+      settings: {
+        ...initialState.settings,
+        primaryCurrency: 'Fiat',
+      },
+      transaction: {
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
+        transaction: {
+          from: CURRENT_ACCOUNT,
+        },
+      },
+    });
+
+    // Wait for the gas estimation to complete
+    const nextButton = getByTestId(AmountViewSelectorsIDs.NEXT_BUTTON);
+    await waitFor(() => expect(nextButton.props.disabled).toBe(false));
+
+    const useMaxButton = getByText(/Use max/);
+    await act(async () => {
+      fireEvent.press(useMaxButton);
+    });
+
+    // The conversion should happen and update the input
+    const amountInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    expect(amountInput.props.value).toBeDefined();
+    expect(typeof amountInput.props.value).toBe('string');
+    expect(amountInput.props.value).toBe('5000'); // $5000 from 5 ETH at $1000/ETH
+  });
+
   it('should proceed if balance is sufficient while on Native primary currency is ETH', async () => {
     const { getByText, getByTestId, toJSON } = renderComponent({
       ...initialState,

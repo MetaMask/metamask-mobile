@@ -13,7 +13,7 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -75,6 +75,7 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   swapsIsLive?: boolean;
+  networkName?: string;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -82,6 +83,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   swapsIsLive,
+  networkName,
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
@@ -104,7 +106,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenBalances = useSelector(selectContractBalances);
   const selectedChainId = useSelector(selectEvmChainId);
 
-  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
+  const selectedTicker = useSelector((state: RootState) =>
+    selectEvmTicker(state),
+  );
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -160,6 +164,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
+      networkName,
     });
   };
 
@@ -359,12 +364,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   if (asset.isETH || asset.isNative) {
     balance = renderFromWei(
       //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(
       hexToBN(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
       ),
       conversionRate,
       currentCurrency,

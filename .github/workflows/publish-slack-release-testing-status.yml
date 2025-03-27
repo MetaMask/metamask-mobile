@@ -10,9 +10,10 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@557025430e5f4d9a581083cabb02b9546d989afc
+    uses: MetaMask/github-tools/.github/workflows/publish-slack-release-testing-status.yml@a5e7d8cd879d2161c8049724263b1e93ea1a2f2c
     with:
       platform: 'mobile'
+      test-only: 'true'
       google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ'
     secrets:
       slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}

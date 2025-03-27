@@ -436,38 +436,6 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
-      - script@1:
-          is_always_run: true
-          title: Label PR with success
-          inputs:
-          - content: |-
-              #!/usr/bin/env bash
-              # Define label data
-              LABELS_JSON='{"labels":["bitrise-result-ready"]}'
-              	
-              # API URL to add labels to a PR
-              API_URL="https://api.github.com/repos/$BITRISEIO_GIT_REPOSITORY_OWNER/$BITRISEIO_GIT_REPOSITORY_SLUG/issues/$GITHUB_PR_NUMBER/labels"
-
-              # Perform the curl request and capture the HTTP status code
-              HTTP_RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST -H "Authorization: token $GITHUB_ACCESS_TOKEN" -H "Accept: application/vnd.github.v3+json" -d "$LABELS_JSON" "$API_URL")
-              	
-              # Output the HTTP status code
-              echo "HTTP Response Code: $HTTP_RESPONSE"	
-              
-              # Optionally check the response
-              echo "HTTP Response Code: $HTTP_RESPONSE"
-
-              if [ "$HTTP_RESPONSE" -ne 200 ]; then
-                  echo "Failed to apply label. Status code: $HTTP_RESPONSE"
-                  cat response.txt  # Show error message from GitHub if any
-              else
-                  echo "Label applied successfully."
-              fi
-
-              # Clean up the response file
-              rm response.txt
-                	
-
   # Send a Slack message when workflow fails
   notify_failure:
     before_run:
@@ -1834,7 +1802,7 @@ app:
       PROJECT_LOCATION: android
     - opts:
         is_expand: false
-      NDK_VERSION: 24.0.8215888
+      NDK_VERSION: 26.1.10909125
     - opts:
         is_expand: false
       QA_APK_NAME: app-qa-release
@@ -1861,16 +1829,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.1
+      VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1637
+      VERSION_NUMBER: 1656
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.1
+      FLASK_VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1637
+      FLASK_VERSION_NUMBER: 1656
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
@@ -1906,9 +1874,5 @@ trigger_map:
     pipeline: app_launch_times_and_expo_pipeline
   - tag: 'qa-*'
     pipeline: create_qa_builds_pipeline
-  - tag: 'dev-e2e-*'
-    pipeline: pr_smoke_e2e_pipeline
-  - tag: 'v*.*.*-RC-*'
-    pipeline: release_e2e_pipeline
-  - push_branch: detox/address-regression-tests-slowdown
-    pipeline: multichain_permissions_e2e_pipeline
+  - tag: 'v*.*.*'
+    pipeline: create_qa_builds_pipeline

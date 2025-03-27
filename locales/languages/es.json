@@ -1118,7 +1118,6 @@
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
-    "smart_transactions_opt_in_desc": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras en la red principal de Ethereum.",
     "smart_transactions_learn_more": "Más información.",
     "simulation_details": "Estimar cambios de saldo",
     "simulation_details_description": "Active esta opción para estimar los cambios de saldo de las transacciones antes de confirmarlas. Esto no garantiza el resultado final de sus transacciones. ",

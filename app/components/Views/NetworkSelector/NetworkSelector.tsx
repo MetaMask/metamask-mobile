@@ -99,7 +99,6 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Device from '../../../util/device';
 import {
   selectIsEvmNetworkSelected,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -188,7 +187,6 @@ const NetworkSelector = () => {
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
 
-  const KEYBOARD_OFFSET = 120;
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
     ? 'networks.additional_network_information_title'
@@ -302,7 +300,7 @@ const NetworkSelector = () => {
   };
   /**
    * This is used to check if the network has multiple RPC endpoints
-   * We need to check if the network is non-EVM because we don't support multiple RPC endpoints for EVM networks and the rpc is handled by the snap
+   * We need to check if the network is non-EVM because we don't support multiple RPC endpoints for non-EVM networks and the rpc is handled by the snap
    */
   const showRpcSelector = Object.values(networkConfigurations)
     .filter(
@@ -1018,8 +1016,8 @@ const NetworkSelector = () => {
           />
         </View>
         <KeyboardAvoidingView
-          behavior={Device.isIos() ? undefined : 'height'}
-          keyboardVerticalOffset={KEYBOARD_OFFSET}
+          behavior="height"
+          style={styles.keyboardView}
           enabled
         >
           <ScrollView

@@ -39,6 +39,8 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations   @MetaMask/confirmations
+app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
+app/core/Analytics/events/confirmations   @MetaMask/confirmations
 ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
@@ -76,6 +78,8 @@ app/actions/identity @MetaMask/identity
 app/util/identity @MetaMask/identity
 app/components/UI/ProfileSyncing @MetaMask/identity
 e2e/specs/identity @MetaMask/identity
+**/Identity/** @MetaMask/identity
+**/identity/** @MetaMask/identity
 
 # LavaMoat Team
 ses.cjs                              @MetaMask/supply-chain
@@ -89,11 +93,17 @@ app/core/Engine/controllers/TokenSearchDiscoveryController @MetaMask/portfolio
 **/snaps/**                          @MetaMask/snaps-devs
 **/Snaps/**                          @MetaMask/snaps-devs
 
+# Co-owned by Confirmations team and Snaps team
+app/components/UI/TemplateRenderer   @MetaMask/confirmations @MetaMask/snaps-devs
+
 # Wallet API Platform Team
  app/core/RPCMethods/                @MetaMask/wallet-api-platform-engineers
 
 # Staking Team
 app/components/UI/Stake              @MetaMask/metamask-staking
+app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
+app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
+app/selectors/earnController         @MetaMask/metamask-staking
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -146,3 +156,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/transactions @MetaMask/transactions

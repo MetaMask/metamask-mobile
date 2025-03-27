@@ -1118,7 +1118,6 @@
     "security_alerts": "Peringatan keamanan",
     "security_alerts_desc": "Fitur ini memperingatkan Anda tentang aktivitas berbahaya dengan meninjau permintaan transaksi dan tanda tangan secara lokal. Selalu lakukan uji tuntas sendiri sebelum menyetujui permintaan. Tidak ada jaminan bahwa fitur ini akan mendeteksi semua aktivitas berbahaya. Dengan mengaktifkan fitur ini, Anda menyetujui persyaratan penggunaan penyedia.",
     "smart_transactions_opt_in_heading": "Transaksi Pintar",
-    "smart_transactions_opt_in_desc": "Aktifkan Transaksi Pintar untuk transaksi yang lebih andal dan aman di Mainnet Ethereum.",
     "smart_transactions_learn_more": "Selengkapnya.",
     "simulation_details": "Estimasikan perubahan saldo",
     "simulation_details_description": "Aktifkan ini untuk mengestimasikan perubahan saldo transaksi sebelum Anda mengonfirmasikannya. Ini tidak menjamin hasil akhir transaksi Anda. ",

@@ -141,6 +141,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -156,6 +157,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -169,6 +171,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -191,6 +194,7 @@ describe('AssetOverview', () => {
         displayBuyButton
         displaySwapsButton
         swapsIsLive
+        networkName="Ethereum Mainnet"
       />,
       { state: mockInitialState },
     );
@@ -342,6 +346,26 @@ describe('AssetOverview', () => {
 
     const buyButton = queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     expect(buyButton).toBeNull();
+  });
+
+  it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
+    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+
+    const container = renderWithProvider(
+      <AssetOverview
+        asset={{
+          ...asset,
+          chainId: '0x2',
+          isNative: true,
+        }}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(container).toMatchSnapshot();
   });
 
   describe('Portfolio view network switching', () => {

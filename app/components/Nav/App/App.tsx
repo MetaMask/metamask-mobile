@@ -10,12 +10,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import {
-  Linking,
-  ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  View,
-  ///: END:ONLY_INCLUDE_IF
-} from 'react-native';
+import { Linking } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import Login from '../../Views/Login';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
@@ -121,9 +116,6 @@ import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapsExecutionWebView } from '../../../lib/snaps';
-///: END:ONLY_INCLUDE_IF
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../../components/UI/FoxLoader';
 import { AppStateEventProcessor } from '../../../core/AppStateEventListener';
@@ -142,6 +134,7 @@ import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 import NavigationService from '../../../core/NavigationService';
+import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -462,6 +455,10 @@ const RootModalFlow = () => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
+    <Stack.Screen
+      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
+      component={BridgeTokenSelector}
+    />
   </Stack.Navigator>
 );
 
@@ -917,15 +914,6 @@ const App: React.FC = () => {
 
   return (
     <>
-      {
-        ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      }
-      <View>
-        <SnapsExecutionWebView />
-      </View>
-      {
-        ///: END:ONLY_INCLUDE_IF
-      }
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />

@@ -1,10 +1,18 @@
 import Crypto from 'react-native-quick-crypto';
 import { scrypt } from 'react-native-fast-crypto';
-import storageWrapper from '../../../../store/storage-wrapper';
-import { SCRYPT_COMPUTED_KEY } from '../../../../constants/storage';
+import {
+  ACCESSIBLE,
+  getGenericPassword,
+  setGenericPassword,
+} from 'react-native-keychain';
 import Logger from '../../../../util/Logger';
 
-export const generateKeyHash = (
+const LOCAL_KEY_PERSISTENCE = 'com.metamask.local-key-cache';
+const defaultKeychainOptions = {
+  accessible: ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+};
+
+const cacheKeyFromParams = (
   passwd: Uint8Array,
   salt: Uint8Array,
   N: number,
@@ -17,9 +25,20 @@ export const generateKeyHash = (
     ...salt,
     ...new Uint8Array([N, r, p, size]),
   ]);
-  return Crypto.createHash('sha256').update(combined).digest('hex');
+  const paramHash = Crypto.createHash('sha256').update(combined).digest('hex');
+  return `${LOCAL_KEY_PERSISTENCE}.${paramHash}`;
 };
 
+/**
+ * Computes a scrypt key from a password and salt, and caches the result in the Keychain
+ * for future reuse.
+ * @param passwd - The password to derive the key from
+ * @param salt - The salt to use in the derivation
+ * @param N - CPU/memory cost parameter (must be a power of 2, > 1) - see https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#scrypt
+ * @param r - Block size parameter - usually 8
+ * @param p - Parallelization parameter
+ * @param size - The size of the derived key (bytes)
+ */
 export async function calculateScryptKey(
   passwd: Uint8Array,
   salt: Uint8Array,
@@ -28,20 +47,15 @@ export async function calculateScryptKey(
   p: number,
   size: number,
 ): Promise<Uint8Array> {
-  const generateNewKey = (): string =>
-    generateKeyHash(passwd, salt, N, r, p, size);
-
-  // Get persisted key
+  // Generate a hash of the parameters which acts as a cache key
+  const cacheKey = cacheKeyFromParams(passwd, salt, N, r, p, size);
+  // Try to get a previously derived Key from the Keychain
   try {
-    const persistedKey: string | null = await storageWrapper.getItem(
-      SCRYPT_COMPUTED_KEY,
-    );
-    const data: { cacheHash: string; key: string } | null = persistedKey
-      ? JSON.parse(persistedKey)
-      : null;
-    const newKeyHash = generateNewKey();
-    if (data?.cacheHash === newKeyHash) {
-      return Uint8Array.from(Buffer.from(data.key, 'hex'));
+    const persistedKey = await getGenericPassword({
+      service: cacheKey,
+    });
+    if (persistedKey) {
+      return Uint8Array.from(Buffer.from(persistedKey.password, 'hex'));
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -51,16 +65,16 @@ export async function calculateScryptKey(
     );
   }
 
-  const result = await scrypt(passwd, salt, N, r, p, size);
+  // If no key is found, derive it
+  const derivedKey: Uint8Array = await scrypt(passwd, salt, N, r, p, size);
 
-  // Set Persisted Key
+  // and persist the derived Key in the Keychain
   try {
-    const newKeyHash = generateNewKey();
-    const resultStr = Buffer.from(result).toString('hex');
-    await storageWrapper.setItem(
-      SCRYPT_COMPUTED_KEY,
-      JSON.stringify({ cacheHash: newKeyHash, key: resultStr }),
-    );
+    const resultStr = Buffer.from(derivedKey).toString('hex');
+    await setGenericPassword('metamask-user', resultStr, {
+      service: cacheKey,
+      ...defaultKeychainOptions,
+    });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     Logger.error(
@@ -69,5 +83,5 @@ export async function calculateScryptKey(
     );
   }
 
-  return result;
+  return derivedKey;
 }

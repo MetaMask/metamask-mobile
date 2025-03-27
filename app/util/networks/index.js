@@ -159,6 +159,13 @@ export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
+/**
+ * Converts a hexadecimal or decimal chain ID to a base 10 number as a string.
+ * If the input is in CAIP-2 format (e.g., `eip155:1` or `eip155:137`), the function returns the input string as is.
+ *
+ * @param chainId - The chain ID to be converted. It can be in hexadecimal, decimal, or CAIP-2 format.
+ * @returns - The chain ID converted to a base 10 number as a string, or the original input if it is in CAIP-2 format.
+ */
 export const getDecimalChainId = (chainId) => {
   if (
     !chainId ||

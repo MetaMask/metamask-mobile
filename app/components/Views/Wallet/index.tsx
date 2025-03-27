@@ -49,7 +49,7 @@ import {
   selectNetworkClientId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectNetworkName,
@@ -212,7 +212,7 @@ const Wallet = ({
   /**
    * Current provider ticker
    */
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
   /**
    * Current onboarding wizard step
    */

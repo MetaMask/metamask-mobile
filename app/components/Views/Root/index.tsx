@@ -14,6 +14,9 @@ import { RootProps } from './types';
 import NavigationProvider from '../../Nav/NavigationProvider';
 import ControllersGate from '../../Nav/ControllersGate';
 import { isTest } from '../../../util/test/utils';
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import { SnapsExecutionWebView } from '../../../lib/snaps';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Top level of the component hierarchy
@@ -59,6 +62,12 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+            <SnapsExecutionWebView />
+            ///: END:ONLY_INCLUDE_IF
+          }
           <ThemeProvider>
             <NavigationProvider>
               <ControllersGate>

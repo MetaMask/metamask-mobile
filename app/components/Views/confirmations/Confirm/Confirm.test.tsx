@@ -1,17 +1,16 @@
+import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { act } from '@testing-library/react-native';
-
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
   securityAlertResponse,
   stakingDepositConfirmationState,
+  stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
 } from '../../../../util/test/confirm-data-helpers';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
-
 import { Confirm } from './Confirm';
 
 jest.mock('@react-navigation/native', () => ({
@@ -22,6 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
     removeListener: jest.fn(),
+    setOptions: jest.fn(),
   }),
 }));
 
@@ -86,17 +86,11 @@ jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: jest.fn(),
-    addListener: jest.fn(),
-    dispatch: jest.fn(),
-    setOptions: jest.fn(),
-  }),
-}));
-
 describe('Confirm', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders modal confirmation', async () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: typedSignV1ConfirmationState,
@@ -107,6 +101,13 @@ describe('Confirm', () => {
   it('renders a flat confirmation for specified type(s): staking deposit', () => {
     const { getByTestId } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
+    });
+    expect(getByTestId('flat-confirmation-container')).toBeDefined();
+  });
+
+  it('renders a flat confirmation for specified type(s): staking withdrawal', () => {
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stakingWithdrawalConfirmationState,
     });
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
@@ -162,6 +163,17 @@ describe('Confirm', () => {
     expect(getByText('Advanced details')).toBeDefined();
   });
 
+  it('renders correct information for staking withdrawal', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingWithdrawalConfirmationState,
+    });
+    expect(getByText('Withdrawal time')).toBeDefined();
+    expect(getByText('Unstaking to')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+  });
+
   it('renders a blockaid banner if the confirmation has blockaid error response', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: {
@@ -170,7 +182,9 @@ describe('Confirm', () => {
       },
     });
 
-    await act(async () => undefined);
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(getByText('Signature request')).toBeDefined();
     expect(getByText('This is a deceptive request')).toBeDefined();

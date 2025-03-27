@@ -119,6 +119,7 @@ export function getQuotesNavigationsParams(route) {
  * @param {string} sourceAmount Amount in minimal token units of sourceToken to be swapped
  * @param {string} fromAddress Current address attempting to swap
  * @param {string} networkClientId Current network client ID
+ * @param {boolean} enableGasIncludedQuotes Enable quotes with gas included
  */
 export function getFetchParams({
   slippage = 1,
@@ -127,6 +128,7 @@ export function getFetchParams({
   sourceAmount,
   walletAddress,
   networkClientId,
+  enableGasIncludedQuotes,
 }) {
   return {
     slippage,
@@ -139,6 +141,7 @@ export function getFetchParams({
       destinationTokenInfo: destinationToken,
       networkClientId,
     },
+    enableGasIncludedQuotes,
   };
 }
 
@@ -232,4 +235,29 @@ export function getQuotesSourceMessage(type) {
       ];
     }
   }
+}
+
+/**
+ * Determines whether to show the max balance link in Swaps
+ * @param {object} params - Function parameters
+ * @param {object} params.sourceToken - Source token object
+ * @param {boolean} params.shouldUseSmartTransaction - Whether smart transactions are enabled
+ * @param {boolean} params.hasBalance - Whether the user has a balance of the source token
+ * @return {boolean} Whether to show the max balance link
+ */
+export function shouldShowMaxBalanceLink({
+  sourceToken,
+  shouldUseSmartTransaction,
+  hasBalance,
+}) {
+  if (!sourceToken?.symbol || !hasBalance) {
+    return false;
+  }
+
+  const isNonDefaultFromToken = !isSwapsNativeAsset(sourceToken);
+  const isTokenEligibleForMaxBalance =
+    shouldUseSmartTransaction ||
+    (!shouldUseSmartTransaction && isNonDefaultFromToken);
+
+  return isTokenEligibleForMaxBalance;
 }

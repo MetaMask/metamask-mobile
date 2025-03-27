@@ -21,7 +21,7 @@ describe('AccountNetworkInfoExpanded', () => {
     mockIsPortfolioViewEnabled.mockReturnValue(false);
   });
 
-  it('should match snapshot when isPortfolioVieEnabled is true', () => {
+  it('should match snapshot when isPortfolioViewEnabled is true', () => {
     mockIsPortfolioViewEnabled.mockReturnValue(true);
     const { toJSON, getByText } = renderWithProvider(
       <AccountNetworkInfoExpanded />,
@@ -34,17 +34,17 @@ describe('AccountNetworkInfoExpanded', () => {
     expect(getByText('Account')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
-    expect(getByText('$0')).toBeDefined();
+    expect(getByText('$0.00')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
 
-  it('should render correctly when isPortfolioVieEnabled is false', async () => {
+  it('should render correctly when isPortfolioViewEnabled is false', async () => {
     const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
       state: personalSignatureConfirmationState,
     });
 
-    expect(getByText('$10')).toBeDefined();
+    expect(getByText('$10.00')).toBeDefined();
     expect(getByText('Account')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
     expect(getByText('Network')).toBeDefined();

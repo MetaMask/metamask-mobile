@@ -31,6 +31,10 @@ import { calcTokenAmount } from '../../../../../../../../../../util/transactions
 import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
+import {
+  isPermitDaiRevoke,
+  isPermitDaiUnlimited,
+} from '../../../../../../../utils/signature';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
 import BottomModal from '../../../../../../UI/BottomModal';
 
@@ -58,6 +62,9 @@ interface SimulationValueDisplayParams {
   tokenContract: Hex | string | undefined;
 
   // Optional
+
+  /** Value for backwards compatibility DAI EIP-2612 support while it is being depreacted */
+  allowed?: boolean | number | string;
 
   /** Whether a large amount can be substituted by "Unlimited" */
   canDisplayValueAsUnlimited?: boolean;
@@ -88,6 +95,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   value,
   credit,
   debit,
+  allowed,
   canDisplayValueAsUnlimited = false,
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
@@ -115,14 +123,30 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     tokenDetails as TokenDetailsERC20,
   );
 
+  /** Temporary error capturing as we are building out Permit Simulations */
+  if (!tokenContract) {
+    Logger.error(
+      new Error(
+        `SimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
+      ),
+    );
+    return null;
+  }
+
   const isNFT = tokenId !== undefined && tokenId !== '0';
+  const isDaiUnlimited = isPermitDaiUnlimited(tokenContract, allowed);
+  const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed, value);
+  const isRevoke =
+    isDaiRevoke || modalHeaderText === strings('confirm.title.permit_revoke');
 
   const tokenAmount =
     isNumberValue(value) && !tokenId
       ? calcTokenAmount(value as number | string, tokenDecimals)
       : null;
+
   const isValidTokenAmount =
     !isNFT &&
+    !isRevoke &&
     tokenAmount !== null &&
     tokenAmount !== undefined &&
     tokenAmount instanceof BigNumber;
@@ -135,53 +159,54 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   const tokenValue = isValidTokenAmount
     ? formatAmount('en-US', tokenAmount)
     : null;
+
   const tokenValueMaxPrecision = isValidTokenAmount
     ? formatAmountMaxPrecision('en-US', tokenAmount)
     : null;
 
-  const shouldShowUnlimitedValue =
-    canDisplayValueAsUnlimited &&
-    Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
-
-  /** Temporary error capturing as we are building out Permit Simulations */
-  if (!tokenContract) {
-    Logger.error(
-      new Error(
-        `SimulationValueDisplay: Token contract address is missing where primaryType === ${primaryType}`,
-      ),
-    );
-    return null;
-  }
+  const showUnlimitedValue =
+    isDaiUnlimited ||
+    (canDisplayValueAsUnlimited &&
+      Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD);
 
   // Avoid empty button pill container
-  const showValueButtonPill = Boolean(isPendingTokenDetails
-    || shouldShowUnlimitedValue
-    || (tokenValue !== null || tokenId));
+  const showValueButtonPill = Boolean(
+    isPendingTokenDetails ||
+      showUnlimitedValue ||
+      tokenValue !== null ||
+      tokenId,
+  );
 
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
 
-    return (
-      <View style={styles.wrapper}>
-        <View style={styles.flexRowTokenValueAndAddress}>
-          <View style={styles.valueAndAddress}>
-            {showValueButtonPill &&
-              <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
-                <ButtonPill
-                  isDisabled={isNFT}
-                  onPress={handlePressTokenValue}
-                  onPressIn={handlePressTokenValue}
-                  onPressOut={handlePressTokenValue}
-                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-                >
-                  {isPendingTokenDetails ?
-                    <View style={styles.loaderButtonPillEmptyContent} />
-                  :
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.flexRowTokenValueAndAddress}>
+        <View style={styles.valueAndAddress}>
+          {showValueButtonPill && (
+            <AnimatedPulse
+              isPulsing={isPendingTokenDetails}
+              testID="simulation-value-display-loader"
+            >
+              <ButtonPill
+                isDisabled={isNFT || tokenValueMaxPrecision === null}
+                onPress={handlePressTokenValue}
+                onPressIn={handlePressTokenValue}
+                onPressOut={handlePressTokenValue}
+                style={[
+                  credit && styles.valueIsCredit,
+                  debit && styles.valueIsDebit,
+                ]}
+              >
+                {isPendingTokenDetails ? (
+                  <View style={styles.loaderButtonPillEmptyContent} />
+                ) : (
                   <Text>
                     {credit && '+ '}
                     {debit && '- '}
-                    {shouldShowUnlimitedValue
+                    {showUnlimitedValue
                       ? strings('confirm.unlimited')
                       : tokenValue !== null &&
                         shortenString(tokenValue || '', {
@@ -192,10 +217,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                         })}
                     {tokenId && `#${tokenId}`}
                   </Text>
-                }
+                )}
               </ButtonPill>
             </AnimatedPulse>
-          }
+          )}
           <View style={styles.marginStart4}>
             <Address address={tokenContract} chainId={chainId} />
           </View>
