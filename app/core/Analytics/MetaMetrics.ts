@@ -655,11 +655,11 @@ class MetaMetrics implements IMetaMetrics {
    * @param event - Analytics event built with {@link MetricsEventBuilder}
    * @param saveDataRecording - param to skip saving the data recording flag (optional)
    */
-  trackEvent(
+  trackEvent = (
     // New signature
     event: ITrackingEvent,
     saveDataRecording: boolean = true,
-  ): void {
+  ): void => {
     if (!this.enabled) {
       return;
     }
@@ -695,7 +695,7 @@ class MetaMetrics implements IMetaMetrics {
         saveDataRecording,
       );
     }
-  }
+  };
 
   /**
    * Clear the internal state of the library for the current user and reset the user ID

@@ -1,5 +1,7 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { Alert, Severity } from '../../types/alerts';
+import MultipleAlertModal from '../MultipleAlertModal';
+import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 
 export interface AlertsContextParams {
   alertKey: string;
@@ -13,6 +15,12 @@ export interface AlertsContextParams {
   hideAlertModal: () => void;
   setAlertKey: (key: string) => void;
   showAlertModal: () => void;
+  hasUnconfirmedDangerAlerts: boolean;
+  hasUnconfirmedFieldDangerAlerts: boolean;
+  isAlertConfirmed: (key: string) => boolean;
+  setAlertConfirmed: (key: string, confirmed: boolean) => void;
+  unconfirmedDangerAlerts: Alert[];
+  unconfirmedFieldDangerAlerts: Alert[];
 }
 
 const AlertsContext = React.createContext<AlertsContextParams>({
@@ -27,6 +35,12 @@ const AlertsContext = React.createContext<AlertsContextParams>({
   hideAlertModal: () => undefined,
   setAlertKey: () => undefined,
   showAlertModal: () => undefined,
+  hasUnconfirmedDangerAlerts: false,
+  hasUnconfirmedFieldDangerAlerts: false,
+  isAlertConfirmed: () => false,
+  setAlertConfirmed: () => undefined,
+  unconfirmedDangerAlerts: [],
+  unconfirmedFieldDangerAlerts: [],
 });
 
 interface AlertsContextProviderProps {
@@ -62,6 +76,15 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
 
   const [alertKey, setAlertKey] = useState(initialAlertKey);
 
+  const {
+    hasUnconfirmedDangerAlerts,
+    hasUnconfirmedFieldDangerAlerts,
+    isAlertConfirmed,
+    setAlertConfirmed,
+    unconfirmedDangerAlerts,
+    unconfirmedFieldDangerAlerts
+  } = useAlertsConfirmed(fieldAlerts);
+
   const contextValue = useMemo(() => ({
     alertKey,
     alertModalVisible,
@@ -74,11 +97,31 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     hideAlertModal: () => setAlertModalVisible(false),
     setAlertKey: (key: string) => setAlertKey(key),
     showAlertModal: () => setAlertModalVisible(true),
-  }), [alertKey, alertModalVisible, alertsMemo, dangerAlerts, fieldAlerts, generalAlerts]);
+    hasUnconfirmedDangerAlerts,
+    hasUnconfirmedFieldDangerAlerts,
+    isAlertConfirmed,
+    setAlertConfirmed,
+    unconfirmedDangerAlerts,
+    unconfirmedFieldDangerAlerts,
+  }), [
+    alertKey,
+    alertModalVisible,
+    alertsMemo,
+    dangerAlerts,
+    fieldAlerts,
+    generalAlerts,
+    hasUnconfirmedDangerAlerts,
+    hasUnconfirmedFieldDangerAlerts,
+    isAlertConfirmed,
+    setAlertConfirmed,
+    unconfirmedDangerAlerts,
+    unconfirmedFieldDangerAlerts,
+  ]);
 
   return (
     <AlertsContext.Provider value={contextValue}>
       {children}
+      <MultipleAlertModal />
     </AlertsContext.Provider>
   );
 };

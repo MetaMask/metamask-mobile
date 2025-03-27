@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.42.1]
+
+### Fixed
+
+- fix: Manage order for app services initialization ([#13912](https://github.com/MetaMask/metamask-mobile/pull/13912))
+- fix: #9487 Remove false vault back up failure log ([#14038](https://github.com/MetaMask/metamask-mobile/pull/14038))
+
 ## [7.42.0]
 
 ### Added
