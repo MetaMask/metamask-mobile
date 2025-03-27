@@ -2031,16 +2031,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.999
+      VERSION_NAME: 7.42.1
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1655
+      VERSION_NUMBER: 1637
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.999
+      FLASK_VERSION_NAME: 7.42.1
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1655
+      FLASK_VERSION_NUMBER: 1637
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
