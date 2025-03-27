@@ -25,18 +25,6 @@ export interface BottomSheetFooterProps extends ViewProps {
    * Array of buttons that will be displayed in the footer.
    */
   buttonPropsArray: ButtonProps[];
-  /**
-   * Whether the button hides Snap branding.
-   */
-  hideSnapBranding?: boolean;
-  /**
-   * Whether the button is destructive.
-   */
-  destructive?: boolean;
-  /**
-   * Whether the button is a Snap action.
-   */
-  isSnapAction?: boolean;
 }
 
 /**
@@ -44,5 +32,5 @@ export interface BottomSheetFooterProps extends ViewProps {
  */
 export type BottomSheetFooterStyleSheetVars = Pick<
   BottomSheetFooterProps,
-  'style' | 'buttonsAlignment' | 'hideSnapBranding' | 'destructive' | 'isSnapAction'
+  'style' | 'buttonsAlignment'
 >;

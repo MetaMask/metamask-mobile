@@ -66,10 +66,18 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
 
   const { styles } = useStyles(styleSheet, {
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
-    hideSnapBranding,
-    destructive: snapVariant === 'destructive',
-    isSnapAction,
   });
+
+  // Override and use custom styles for Snap action buttons
+  const customButtonStyles = {
+    ...styles,
+    button: {
+      ...styles.button,
+      ...(isSnapAction && !hideSnapBranding && snapVariant !== 'destructive'
+        ? { backgroundColor: theme.colors.icon.default }
+        : {}),
+    },
+  };
 
   const handleSnapAction = () => {
     handleEvent({
@@ -130,7 +138,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       isDisabled={disabled}
       label={buttonLabel()}
       size={ButtonSize.Lg}
-      style={styles.button}
+      style={customButtonStyles.button}
       isDanger={snapVariant === 'destructive'}
     />
   );
