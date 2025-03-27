@@ -117,7 +117,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-
+        await TestHelpers.delay(2000);
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);

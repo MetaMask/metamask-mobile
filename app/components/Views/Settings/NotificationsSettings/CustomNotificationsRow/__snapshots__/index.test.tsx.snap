@@ -11,7 +11,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
   }
 >
   <SvgMock
-    color="#141618"
+    color="#121314"
     height={24}
     name="Sparkle"
     style={
@@ -35,7 +35,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
@@ -51,7 +51,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
@@ -69,7 +69,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
     onChange={[Function]}
     onResponderTerminationRequest={[Function]}
     onStartShouldSetResponder={[Function]}
-    onTintColor="#0376c9"
+    onTintColor="#4459ff"
     style={
       [
         {
@@ -81,7 +81,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
             "alignSelf": "flex-start",
           },
           {
-            "backgroundColor": "#BBC0C566",
+            "backgroundColor": "#b7bbc866",
             "borderRadius": 16,
           },
         ],
@@ -89,7 +89,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
     }
     testID="custom-notifications-row--switch"
     thumbTintColor="#ffffff"
-    tintColor="#BBC0C566"
+    tintColor="#b7bbc866"
     value={false}
   />
 </View>
