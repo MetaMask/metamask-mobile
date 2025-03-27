@@ -1072,8 +1072,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
         if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
             'Error in onSubmitEditing',
           );
           return;
