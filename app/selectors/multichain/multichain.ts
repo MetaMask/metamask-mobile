@@ -13,10 +13,7 @@ import {
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../currencyRateController';
+import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
@@ -27,7 +24,6 @@ import {
 } from '../multichainNetworkController';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
-import BigNumberJS from 'bignumber.js';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -349,118 +345,5 @@ export const selectSolanaAccountTransactions = createDeepEqualSelector(
     return nonEvmTransactions[selectedAccount.id] || [];
   },
 );
-
-/**
- * Get non-EVM account balance by address - doesn't rely on selected account
- *
- * @param state - Root redux state
- * @param address - Account address to get balance for
- * @returns Account balance for the specified address
- */
-export const selectNonEvmAccountBalanceByAddress = (
-  state: RootState,
-  address: string,
-) => {
-  const multichainBalances = selectMultichainBalances(state);
-  const nonEvmChainIds = Object.keys(MULTICHAIN_NETWORK_TO_ASSET_TYPES);
-
-  // Find the account ID that matches the provided address
-  const accountsController = state.engine.backgroundState.AccountsController;
-  const internalAccountsMap =
-    accountsController?.internalAccounts?.accounts || {};
-
-  // Find account with matching address
-  let matchingAccount;
-  for (const accountId in internalAccountsMap) {
-    const account = internalAccountsMap[accountId];
-    if (account && account.address.toLowerCase() === address.toLowerCase()) {
-      matchingAccount = account;
-      break;
-    }
-  }
-
-  if (!matchingAccount) {
-    return undefined;
-  }
-
-  const accountId = matchingAccount.id;
-  const balancesForAccount = multichainBalances?.[accountId];
-
-  if (!balancesForAccount) {
-    return undefined;
-  }
-
-  // For each non-EVM network, get the native asset and its balance
-  const balances: Record<
-    string,
-    { amount: string; unit: string; chainId: string }
-  > = {};
-
-  for (const chainId of nonEvmChainIds) {
-    const assets = MULTICHAIN_NETWORK_TO_ASSET_TYPES[chainId] || [];
-    for (const asset of assets) {
-      const balance = balancesForAccount[asset];
-      if (balance) {
-        balances[chainId] = {
-          amount: balance.amount,
-          unit: balance.unit,
-          chainId,
-        };
-      }
-    }
-  }
-
-  return balances;
-};
-
-export const selectAccountAggregatedFiatBalance = (
-  state: RootState,
-  accountId: string,
-) => {
-  if (!accountId) {
-    return { totalFiatBalance: 0, totalTokenFiat: 0 };
-  }
-
-  const multichainBalances = selectMultichainBalances(state);
-  const multichainAssets = selectMultichainAssets(state);
-  const multichainAssetsRates = selectMultichainAssetsRates(state);
-  const currentCurrency = selectCurrentCurrency(state);
-
-  const balancesForAccount = multichainBalances?.[accountId];
-  const assetIds = multichainAssets?.[accountId] || [];
-
-  if (!balancesForAccount || assetIds.length === 0) {
-    return { totalFiatBalance: 0, totalTokenFiat: 0 };
-  }
-
-  let totalFiatValue = new BigNumberJS(0);
-  let totalTokenFiat = new BigNumberJS(0);
-
-  for (const assetId of assetIds) {
-    try {
-      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
-      const balance = balancesForAccount[assetId] || { amount: '0', unit: '' };
-      const rate = multichainAssetsRates?.[assetId]?.rate || '0';
-
-      // Calculate fiat value for this asset
-      const balanceInFiat = new BigNumberJS(balance.amount || '0').times(rate);
-
-      // Add to appropriate total based on whether it's a native token
-      if (assetNamespace === 'slip44') {
-        totalFiatValue = totalFiatValue.plus(balanceInFiat);
-      } else {
-        totalTokenFiat = totalTokenFiat.plus(balanceInFiat);
-      }
-    } catch (error) {
-      // Skip invalid asset IDs
-      continue;
-    }
-  }
-
-  return {
-    totalFiatBalance: totalFiatValue.plus(totalTokenFiat).toNumber(),
-    totalTokenFiat: totalTokenFiat.toNumber(),
-  };
-};
 
 ///: END:ONLY_INCLUDE_IF

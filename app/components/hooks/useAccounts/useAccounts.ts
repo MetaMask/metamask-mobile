@@ -40,7 +40,6 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { getAccountBalances } from './utils';
-import { RootState } from '../../../reducers';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -63,7 +62,6 @@ const useAccounts = ({
   const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
-  const rootState = useSelector((state: RootState) => state);
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -164,25 +162,17 @@ const useAccounts = ({
 
           // TODO - Improve UI to either include loading and/or balance load failures.
           // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
-          const {
-            balanceETH,
-            balanceFiat,
-            balanceWeiHex,
-            nonEvmBalance,
-            tokenUnit,
-          } = getAccountBalances({
-            internalAccount,
-            accountInfoByAddress,
-            totalFiatBalancesCrossChain,
-            conversionRate,
-            currentCurrency,
-            state: rootState,
-          });
+          const { balanceETH, balanceFiat, balanceWeiHex } = getAccountBalances(
+            {
+              internalAccount,
+              accountInfoByAddress,
+              totalFiatBalancesCrossChain,
+              conversionRate,
+              currentCurrency,
+            },
+          );
 
-          // Get appropriate ticker for display (use tokenUnit for non-EVM)
-          const balanceTicker = nonEvmBalance
-            ? tokenUnit || ''
-            : getTicker(ticker);
+          const balanceTicker = getTicker(ticker);
           const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
           const balanceError = checkBalanceError?.(balanceWeiHex);
           const isBalanceAvailable =
@@ -230,7 +220,6 @@ const useAccounts = ({
       isMultiAccountBalancesEnabled,
       internalAccounts,
       checkBalanceError,
-      rootState,
     ],
   );
 
