@@ -38,7 +38,7 @@ import PercentageChange from '../../../../../component-library/components-temp/P
 import AssetElement from '../../../AssetElement';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import { TokenI } from '../../types';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { ScamWarningIcon } from '../ScamWarningIcon';
 import { ScamWarningModal } from '../ScamWarningModal';
 import { StakeButton } from '../../../Stake/components/StakeButton';
@@ -53,8 +53,6 @@ import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainN
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
-// eslint-disable-next-line import/no-extraneous-dependencies
-import I18n from 'i18n-js';
 
 interface TokenListItemProps {
   asset: TokenI;
