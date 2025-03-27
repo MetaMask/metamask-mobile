@@ -528,7 +528,7 @@ describe('WC2Manager', () => {
   describe('WC2Manager session proposal handling', () => {
     it('should handle session proposal rejection', async () => {
       const mockPermissionController = Engine.context.PermissionController;
-      mockPermissionController.requestPermissions.mockRejectedValueOnce(new Error('User rejected'));
+      (mockPermissionController.requestPermissions as jest.Mock).mockRejectedValueOnce(new Error('User rejected'));
 
       const mockSessionProposal = {
         id: 1,
@@ -551,7 +551,25 @@ describe('WC2Manager', () => {
               events: ['chainChanged'],
             },
           },
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          expiryTimestamp: 10000000,
+          relays: [{
+            protocol: 'irn',
+          }]
         },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com'
+          }
+        }
       };
 
       const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
@@ -582,12 +600,30 @@ describe('WC2Manager', () => {
           },
           requiredNamespaces: {
             eip155: {
-              chains: ['eip155:999999'], // Invalid chain
+              chains: ['eip155:1'],
               methods: ['eth_sendTransaction'],
               events: ['chainChanged'],
             },
           },
+          optionalNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          expiryTimestamp: 10000000,
+          relays: [{
+            protocol: 'irn',
+          }]
         },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com'
+          }
+        }
       };
 
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
