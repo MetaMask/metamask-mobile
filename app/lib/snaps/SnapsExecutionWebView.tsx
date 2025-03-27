@@ -121,8 +121,10 @@ export class SnapsExecutionWebView extends Component {
             originWhitelist={['*']}
             javaScriptEnabled
             cacheEnabled
-            cacheMode={'LOAD_CACHE_ELSE_NETWORK'}
             androidLayerType="hardware"
+            renderToHardwareTextureAndroid
+            startInLoadingState={false}
+            domStorageEnabled={false}
           />
         ))}
       </View>
