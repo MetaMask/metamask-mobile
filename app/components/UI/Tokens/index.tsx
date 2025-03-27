@@ -81,9 +81,21 @@ const Tokens = memo(() => {
   ///: END:ONLY_INCLUDE_IF
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-  const tokenList = isEvmSelected ? evmTokens : nonEvmTokens;
+  const tokenListData = isEvmSelected ? evmTokens : nonEvmTokens;
 
   const styles = createStyles(colors);
+
+  // we need to calculate fiat balances here in order to sort by descending fiat amount
+  const tokensWithBalances = useMemo(
+    () =>
+      tokenListData.map((token, i) => ({
+        ...token,
+        tokenFiatAmount: isEvmSelected
+          ? tokenFiatBalances[i]
+          : token.balanceFiat,
+      })),
+    [tokenListData, tokenFiatBalances, isEvmSelected],
+  );
 
   const tokensList = useMemo((): TokenI[] => {
     trace({
@@ -91,18 +103,12 @@ const Tokens = memo(() => {
       tags: getTraceTags(store.getState()),
     });
 
-    // we need to calculate fiat balances here in order to sort by descending fiat amount
-    const tokensWithBalances = tokenList.map((token, i) => ({
-      ...token,
-      tokenFiatAmount: isEvmSelected ? tokenFiatBalances[i] : token.balanceFiat,
-    }));
-
     const tokensSorted = sortAssets(tokensWithBalances, tokenSortConfig);
     endTrace({
       name: TraceName.Tokens,
     });
     return tokensSorted;
-  }, [isEvmSelected, tokenFiatBalances, tokenList, tokenSortConfig]);
+  }, [tokenSortConfig, tokensWithBalances]);
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {
