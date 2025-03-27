@@ -59,7 +59,10 @@ export const text: UIComponentFactory<TextElement> = ({
   element: 'Text',
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    params,
+    {
+      size: e.props.size,
+      ...params,
+    },
   ),
   props: {
     variant: e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,

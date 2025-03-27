@@ -694,7 +694,7 @@ exports[`Confirm should render correctly 1`] = `
                                             "alignItems": "center",
                                             "backgroundColor": "#ffffff",
                                             "borderColor": "#ffffff",
-                                            "borderRadius": 16,
+                                            "borderRadius": 8,
                                             "borderWidth": 2,
                                             "height": 32,
                                             "justifyContent": "center",

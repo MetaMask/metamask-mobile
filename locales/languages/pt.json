@@ -1118,7 +1118,6 @@
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
-    "smart_transactions_opt_in_desc": "Ative as transações inteligentes para fazer transações mais confiáveis ​​e seguras na Mainnet da Ethereum.",
     "smart_transactions_learn_more": "Saiba mais.",
     "simulation_details": "Estimar alterações de saldo",
     "simulation_details_description": "Ative esta opção para estimar as alterações de saldo pelas transações antes de confirmá-las. Isso não garante o resultado de suas transações. ",

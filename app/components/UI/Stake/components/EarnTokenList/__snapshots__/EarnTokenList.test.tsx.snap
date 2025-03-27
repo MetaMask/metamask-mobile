@@ -363,17 +363,17 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         {
                           "alignItems": "center",
                           "aspectRatio": 1,
+                          "bottom": 0,
                           "height": 0,
                           "justifyContent": "center",
                           "position": "absolute",
                           "right": 0,
-                          "top": 0,
                           "transform": [
                             {
                               "translateX": 0,
                             },
                             {
-                              "translateY": -0,
+                              "translateY": 0,
                             },
                           ],
                         }
@@ -400,7 +400,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 16,
+                              "borderRadius": 8,
                               "borderWidth": 2,
                               "height": 32,
                               "justifyContent": "center",
@@ -567,17 +567,17 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         {
                           "alignItems": "center",
                           "aspectRatio": 1,
+                          "bottom": 0,
                           "height": 0,
                           "justifyContent": "center",
                           "position": "absolute",
                           "right": 0,
-                          "top": 0,
                           "transform": [
                             {
                               "translateX": 0,
                             },
                             {
-                              "translateY": -0,
+                              "translateY": 0,
                             },
                           ],
                         }
@@ -604,7 +604,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 16,
+                              "borderRadius": 8,
                               "borderWidth": 2,
                               "height": 32,
                               "justifyContent": "center",
@@ -771,17 +771,17 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         {
                           "alignItems": "center",
                           "aspectRatio": 1,
+                          "bottom": 0,
                           "height": 0,
                           "justifyContent": "center",
                           "position": "absolute",
                           "right": 0,
-                          "top": 0,
                           "transform": [
                             {
                               "translateX": 0,
                             },
                             {
-                              "translateY": -0,
+                              "translateY": 0,
                             },
                           ],
                         }
@@ -808,7 +808,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 16,
+                              "borderRadius": 8,
                               "borderWidth": 2,
                               "height": 32,
                               "justifyContent": "center",
@@ -975,17 +975,17 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         {
                           "alignItems": "center",
                           "aspectRatio": 1,
+                          "bottom": 0,
                           "height": 0,
                           "justifyContent": "center",
                           "position": "absolute",
                           "right": 0,
-                          "top": 0,
                           "transform": [
                             {
                               "translateX": 0,
                             },
                             {
-                              "translateY": -0,
+                              "translateY": 0,
                             },
                           ],
                         }
@@ -1012,7 +1012,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                               "alignItems": "center",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 16,
+                              "borderRadius": 8,
                               "borderWidth": 2,
                               "height": 32,
                               "justifyContent": "center",

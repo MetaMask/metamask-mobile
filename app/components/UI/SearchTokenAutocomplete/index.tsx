@@ -19,7 +19,7 @@ import NotificationManager from '../../../core/NotificationManager';
 import { useTheme } from '../../../util/theme';
 import {
   selectChainId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
@@ -92,7 +92,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
 
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
   const chainId = useSelector(selectChainId);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   const setFocusState = useCallback(
     (isFocused: boolean) => {

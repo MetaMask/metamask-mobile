@@ -5,18 +5,9 @@ import AlertModal from './AlertModal';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../types/alerts';
-import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
-
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(),
-}));
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
-  useAlertsConfirmed: jest.fn(),
 }));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -55,17 +46,14 @@ const mockAlerts = [
 
 describe('AlertModal', () => {
   const baseMockUseAlerts = {
+    alertKey: 'alert1',
     alerts: mockAlerts,
     fieldAlerts: mockAlerts,
     hideAlertModal: jest.fn(),
     alertModalVisible: true,
-  };
-
-  const baseMockUseAlertsConfirmed = {
-    alertKey: 'alert1',
+    setAlertKey: jest.fn(),
     isAlertConfirmed: jest.fn().mockReturnValue(false),
     setAlertConfirmed: jest.fn(),
-    setAlertKey: jest.fn(),
     unconfirmedDangerAlerts: [],
     unconfirmedFieldDangerAlerts: [],
     hasUnconfirmedDangerAlerts: false,
@@ -74,7 +62,6 @@ describe('AlertModal', () => {
 
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
-    (useAlertsConfirmed as jest.Mock).mockReturnValue(baseMockUseAlertsConfirmed);
     jest.clearAllMocks();
   });
 
@@ -93,8 +80,8 @@ describe('AlertModal', () => {
     expect(icon).toBeDefined();
     expect(icon.props.name).toBe(IconName.Danger);
 
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({
-      ...baseMockUseAlertsConfirmed,
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
       alertKey: 'alert3', // Info
     });
     const { getByTestId: getByTestIdInfo } = render(<AlertModal />);
@@ -103,20 +90,16 @@ describe('AlertModal', () => {
   });
 
   it('handles checkbox click correctly', async () => {
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({
-      ...baseMockUseAlertsConfirmed,
-      alertKey: 'alert2',
-    });
     const setAlertConfirmed = jest.fn();
-    (useAlertsConfirmed as jest.Mock).mockReturnValueOnce({
-      ...baseMockUseAlertsConfirmed,
-      setAlertConfirmed,
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
       alertKey: 'alert2',
+      setAlertConfirmed,
     });
 
-    const { getByText } = render(<AlertModal />);
+    const { getByTestId } = render(<AlertModal />);
 
-    const checkbox = getByText(CHECKBOX_LABEL);
+    const checkbox = getByTestId('alert-modal-checkbox');
 
     await act(async () => {
       fireEvent.press(checkbox);
@@ -171,8 +154,8 @@ describe('AlertModal', () => {
   });
 
   it('does not render the checkbox if the severity is not Danger', () => {
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({
-      ...baseMockUseAlertsConfirmed,
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
       alertKey: 'alert1',
     });
     const { queryByText } = render(<AlertModal />);
@@ -180,8 +163,8 @@ describe('AlertModal', () => {
   });
 
   it('renders checkbox if the severity is Danger', async () => {
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({
-      ...baseMockUseAlertsConfirmed,
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
       alertKey: 'alert2',
     });
     const { queryByText } = render(<AlertModal />);
@@ -210,5 +193,46 @@ describe('AlertModal', () => {
     });
     const { queryByText } = render(<AlertModal />);
     expect(queryByText(CHECKBOX_LABEL)).toBeNull();
+  });
+
+  it('renders header accessory when provided', () => {
+    const headerAccessory = <Text>Header Accessory</Text>;
+    const { getByText } = render(<AlertModal headerAccessory={headerAccessory} />);
+    expect(getByText('Header Accessory')).toBeDefined();
+  });
+
+  it('calls onAcknowledgeClick when modal is closed', async () => {
+    const onAcknowledgeClick = jest.fn();
+    const { getByText } = render(<AlertModal onAcknowledgeClick={onAcknowledgeClick} />);
+    await act(async () => {
+      fireEvent.press(getByText('Got it'));
+    });
+    expect(onAcknowledgeClick).toHaveBeenCalled();
+  });
+
+  it('renders default title when alert title is not provided', () => {
+    const alertWithoutTitle = {
+      ...mockAlerts[0],
+      title: undefined,
+    };
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      fieldAlerts: [alertWithoutTitle],
+    });
+    const { getByText } = render(<AlertModal />);
+    expect(getByText('Alert')).toBeDefined();
+  });
+
+  it('handles alert without message correctly', () => {
+    const alertWithoutMessage = {
+      ...mockAlerts[0],
+      message: undefined,
+    };
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      fieldAlerts: [alertWithoutMessage],
+    });
+    const { queryByText } = render(<AlertModal />);
+    expect(queryByText(ALERT_MESSAGE_MOCK)).toBeNull();
   });
 });

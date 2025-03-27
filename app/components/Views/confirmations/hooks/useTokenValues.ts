@@ -6,14 +6,22 @@ import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRe
 import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
 import I18n from '../../../../../locales/i18n';
 import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
-import { fromWei, hexToBN } from '../../../../util/number';
+import { fromWei, hexToBN, toBigNumber } from '../../../../util/number';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { RootState } from '../../../../reducers';
 
 // TODO: This hook will be extended to calculate token and fiat information from transaction metadata on upcoming redesigned confirmations
-export const useTokenValues = () => {
+export const useTokenValues = ({ amountWei }: { amountWei?: string } = {}) => {
+
   const transactionMetadata = useTransactionMetadataRequest();
-  const ethAmountInWei = hexToBN(transactionMetadata?.txParams?.value);
+
+  let ethAmountInWei;
+  if (amountWei) {
+    ethAmountInWei = toBigNumber.dec(amountWei);
+  } else {
+    ethAmountInWei = hexToBN(transactionMetadata?.txParams?.value);
+  }
+
   const ethAmountInBN = new BigNumber(fromWei(ethAmountInWei, 'ether'));
 
   const tokenAmountValue = ethAmountInBN.toFixed();

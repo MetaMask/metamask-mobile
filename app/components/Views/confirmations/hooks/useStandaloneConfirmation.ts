@@ -3,6 +3,8 @@ import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRe
 
 const STANDALONE_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
   TransactionType.stakingDeposit,
+  TransactionType.stakingUnstake,
+  TransactionType.stakingClaim,
 ];
 
 export const useStandaloneConfirmation = () => {

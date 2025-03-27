@@ -691,8 +691,20 @@ function decodeSwapsTx(args) {
     tx,
     contractExchangeRates,
     assetSymbol,
+    chainId,
   } = args;
-  const swapTransaction = swapsTransactions?.[id] || {};
+  // If the tx was a swaps smart transaction, the swapsTransactions id is the stx.uuid, rather than tx.id
+  // We need use the tx.hash and look up the stx with the same hash
+  const smartTransaction =
+    Engine.context.SmartTransactionsController.state.smartTransactionsState.smartTransactions[
+      chainId
+    ]?.find((stx) => stx.txHash === hash);
+
+  const swapTransaction =
+    swapsTransactions?.[id] ||
+    swapsTransactions?.[smartTransaction?.uuid] ||
+    {};
+
   const totalGas = calculateTotalGas({
     ...txParams,
     gas: swapTransaction.gasUsed || gas,

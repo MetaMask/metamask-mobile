@@ -106,6 +106,8 @@ export function useEnableNotifications(props = { nudgeEnablePush: true }) {
 
   return {
     enableNotifications,
+    isEnablingNotifications: loading,
+    isEnablingPushNotifications: pushLoading,
     loading: loading && pushLoading,
     error,
     data,

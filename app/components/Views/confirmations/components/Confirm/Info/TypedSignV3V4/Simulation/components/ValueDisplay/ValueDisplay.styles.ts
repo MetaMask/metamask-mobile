@@ -23,6 +23,7 @@ const styleSheet = (colors: Theme['colors']) =>
       borderColor: importedColors.transparent,
       borderWidth: 0,
       padding: 0,
+      flexWrap: 'wrap',
     },
     loadingFiatValue: {
       height: 24,
@@ -44,10 +45,12 @@ const styleSheet = (colors: Theme['colors']) =>
     valueAndAddress: {
       paddingVertical: 4,
       paddingLeft: 8,
-      gap: 5,
+      columnGap: 5,
+      rowGap: 8,
       flexDirection: 'row',
       alignItems: 'center',
-      alignSelf: 'center',
+      justifyContent: 'flex-end',
+      flexWrap: 'wrap',
     },
     valueIsCredit: {
       backgroundColor: colors.success.muted,
@@ -83,7 +86,6 @@ const styleSheet = (colors: Theme['colors']) =>
       color: colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '700',
       textAlign: 'center',
       width: '100%',
       // height of header icon

@@ -40,7 +40,6 @@ export const icon: UIComponentFactory<IconElement> = ({ element }) => {
       case 'md':
         return IconSize.Md;
       default:
-        // TODO: In the extension this inherits the size of the parent.
         return IconSize.Sm;
     }
   };

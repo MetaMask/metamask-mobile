@@ -22,7 +22,7 @@ const stateChangesApprove = [
     changeType: DecodingDataChangeType.Approve,
     address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
     amount: '12345',
-    contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+    contractAddress: '0x514910771af9ca656af840dff83e8264ecf986ca',
   },
 ];
 
@@ -90,6 +90,26 @@ const stateChangesNftBidding: DecodingDataStateChanges = [
   },
 ];
 
+const stateChangesApproveDAI: DecodingDataStateChanges = [
+  {
+    assetType: 'ERC20',
+    changeType: DecodingDataChangeType.Approve,
+    address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+    amount: '1461501637330902918203684832716283019655932542975',
+    contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  },
+];
+
+const stateChangesRevokeDAI: DecodingDataStateChanges = [
+  {
+    assetType: 'ERC20',
+    changeType: DecodingDataChangeType.Revoke,
+    address: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+    amount: '0',
+    contractAddress: '0x6b175474e89094c44da98b954eedeac495271d0f',
+  },
+];
+
 const mockState = (
   mockStateChanges: DecodingDataStateChanges,
   stubDecodingLoading: boolean = false,
@@ -122,15 +142,15 @@ describe('DecodedSimulation', () => {
     await waitFor(() => expect(getByText('12,345')).toBeDefined());
   });
 
-  it('renders for ERC20 revoke', async () => {
-    const { getByText } = renderWithProvider(<TypedSignDecoded />, {
+  it('renders for ERC20 revoke', () => {
+    const { queryByText } = renderWithProvider(<TypedSignDecoded />, {
       state: mockState(stateChangesRevoke),
     });
 
-    expect(await getByText('Estimated changes')).toBeDefined();
-    expect(await getByText('Revoke')).toBeDefined();
+    expect(queryByText('Estimated changes')).toBeDefined();
+    expect(queryByText('Revoke')).toBeDefined();
 
-    await waitFor(() => expect(getByText('12,345')).toBeDefined());
+    expect(queryByText('Unlimited')).toBeNull();
   });
 
   it('renders "Unlimited" for large values', async () => {
@@ -145,6 +165,24 @@ describe('DecodedSimulation', () => {
     expect(await getByText('Spending cap')).toBeDefined();
 
     await waitFor(() => expect(getByText('Unlimited')).toBeDefined());
+  });
+
+  it('renders "Unlimited" for backwards compatibility approve DAI', () => {
+    const { queryByText } = renderWithProvider(<TypedSignDecoded />, {
+      state: mockState(stateChangesApproveDAI),
+    });
+
+    expect(queryByText('Spending cap')).toBeTruthy();
+    expect(queryByText('Unlimited')).toBeNull();
+  });
+
+  it('renders backwards compatibility revoke DAI', () => {
+    const { queryByText } = renderWithProvider(<TypedSignDecoded />, {
+      state: mockState(stateChangesRevokeDAI),
+    });
+
+    expect(queryByText('Revoke')).toBeTruthy();
+    expect(queryByText('Unlimited')).toBeNull();
   });
 
   it('renders for ERC712 token', async () => {

@@ -27,12 +27,11 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
-import { selectAllTokensFlat, selectTokens } from '../../../selectors/tokensController';
+import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { store } from '../../../store';
 import { NETWORK_ID_LOADING } from '../../../core/redux/slices/inpageProvider';
-import { selectPendingSmartTransactionsBySender } from '../../../selectors/smartTransactionsController';
-import { selectNonReplacedTransactions } from '../../../selectors/transactionController';
+import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const styles = StyleSheet.create({
@@ -108,7 +107,6 @@ const TransactionsView = ({
 
         return filter;
       });
-
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
         if (!toLowerCaseEquals(from, selectedAddress)) {
@@ -155,8 +153,14 @@ const TransactionsView = ({
     so the effect will not be noticeable if the user is in this screen.
     */
     InteractionManager.runAfterInteractions(() => {
-      const { networkId } = store.getState().inpageProvider;
-      filterTransactions(networkId);
+      const state = store.getState();
+      const networkId =
+        state?.engine?.backgroundState?.NetworkController
+          ?.selectedNetworkClientId;
+
+      if (networkId) {
+        filterTransactions(networkId);
+      }
     });
   }, [filterTransactions]);
 
@@ -215,22 +219,12 @@ TransactionsView.propTypes = {
 const mapStateToProps = (state) => {
   const chainId = selectChainId(state);
 
-  // Remove duplicate confirmed STX
-  // for replaced txs, only hide the ones that are confirmed
-  const nonReplacedTransactions = selectNonReplacedTransactions(state);
-
-  const pendingSmartTransactions =
-    selectPendingSmartTransactionsBySender(state);
-
   return {
     conversionRate: selectConversionRate(state),
     currentCurrency: selectCurrentCurrency(state),
     tokens: selectTokens(state),
     selectedInternalAccount: selectSelectedInternalAccount(state),
-    transactions: [
-      ...nonReplacedTransactions,
-      ...pendingSmartTransactions,
-    ].sort((a, b) => b.time - a.time),
+    transactions: selectSortedTransactions(state),
     networkType: selectProviderType(state),
     chainId,
   };

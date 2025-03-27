@@ -18,12 +18,14 @@ const TRANSACTION_ID_MOCK = '123';
 jest.mock('../../../../../selectors/smartTransactionsController', () => ({
   selectSmartTransactionsEnabled: () => false,
   selectShouldUseSmartTransaction: () => false,
+  selectPendingSmartTransactionsBySender: () => [],
 }));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsBannerDismissed: () => false,
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
+  selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
 }));
 
 jest.mock('../../../../../core/GasPolling/GasPolling', () => ({
@@ -57,7 +59,9 @@ jest.mock('../../../../../core/Engine', () => ({
       getOrAddQRKeyring: jest.fn(),
     },
     TransactionController: {
-      getNonceLock: jest.fn().mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
+      getNonceLock: jest
+        .fn()
+        .mockResolvedValue({ nextNonce: 2, releaseLock: jest.fn() }),
     },
   },
 }));
@@ -170,22 +174,24 @@ describe('Approve', () => {
   });
 
   it('navigates on confirm to the change in simulation modal when the transaction marked with isUpdatedAfterSecurityCheck as true', async () => {
-    const storeWithUpdatedTransaction = mockStore(merge({}, store.getState(), {
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [
-              {
-                id: TRANSACTION_ID_MOCK,
-                simulationData: {
-                  isUpdatedAfterSecurityCheck: true,
+    const storeWithUpdatedTransaction = mockStore(
+      merge({}, store.getState(), {
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: TRANSACTION_ID_MOCK,
+                  simulationData: {
+                    isUpdatedAfterSecurityCheck: true,
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-    }));
+      }),
+    );
 
     renderComponent({ store: storeWithUpdatedTransaction });
 
@@ -202,37 +208,47 @@ describe('Approve', () => {
   });
 
   it('displays the latest nonce from transaction.transaction when showCustomNonce is true', async () => {
-    const getNetworkNonceSpy = jest.spyOn(TransactionController, 'getNetworkNonce');
+    const getNetworkNonceSpy = jest.spyOn(
+      TransactionController,
+      'getNetworkNonce',
+    );
 
-    const storeWithTransaction = mockStore(merge({}, store.getState(), {
-      settings: {
-        showCustomNonce: true,
-      },
-      engine: {
-        backgroundState: {
-          TransactionController: {
-            transactions: [{
-              id: TRANSACTION_ID_MOCK,
-              transaction: {
-                from: '0xfrom',
-                to: '0xto',
-                nonce: '0x2',
-              },
-              mode: 'edit',
-            }],
+    const storeWithTransaction = mockStore(
+      merge({}, store.getState(), {
+        settings: {
+          showCustomNonce: true,
+        },
+        engine: {
+          backgroundState: {
+            TransactionController: {
+              transactions: [
+                {
+                  id: TRANSACTION_ID_MOCK,
+                  transaction: {
+                    from: '0xfrom',
+                    to: '0xto',
+                    nonce: '0x2',
+                  },
+                  mode: 'edit',
+                },
+              ],
+            },
           },
         },
-      },
-      transaction: {
-        mode: 'edit' // Add mode to transaction state
-      }
-    }));
+        transaction: {
+          mode: 'edit', // Add mode to transaction state
+        },
+      }),
+    );
 
     renderComponent({
       store: storeWithTransaction,
     });
 
-    expect(getNetworkNonceSpy).toHaveBeenCalledWith({'id': TRANSACTION_ID_MOCK, 'mode': 'edit'}, undefined);
+    expect(getNetworkNonceSpy).toHaveBeenCalledWith(
+      { id: TRANSACTION_ID_MOCK, mode: 'edit' },
+      undefined,
+    );
     const nonceSpyResult = await getNetworkNonceSpy.mock.results[0].value;
     expect(nonceSpyResult).toBe(2);
 

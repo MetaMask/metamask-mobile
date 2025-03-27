@@ -50,13 +50,14 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
     }),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
 const mockPooledStakeData = MOCK_GET_POOLED_STAKES_API_RESPONSE.accounts[0];
 const mockExchangeRate = MOCK_GET_POOLED_STAKES_API_RESPONSE.exchangeRate;
 
-const mockVaultData = MOCK_GET_VAULT_RESPONSE;
+const mockVaultMetadata = MOCK_GET_VAULT_RESPONSE;
 // Mock hooks
 jest.mock('../../hooks/usePooledStakes', () => ({
   __esModule: true,
@@ -84,11 +85,11 @@ jest.mock('../../hooks/useStakingEligibility', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useVaultData', () => ({
+jest.mock('../../hooks/useVaultMetadata', () => ({
   __esModule: true,
   default: () => ({
-    vaultData: mockVaultData,
-    loading: false,
+    vaultMetadata: mockVaultMetadata,
+    isLoadingVaultMetadata: false,
     error: null,
     annualRewardRate: '2.5%',
     annualRewardRateDecimal: 0.025,

@@ -19,11 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 8,
       paddingVertical: 16,
     },
-    headerTitle: {
-      color: theme.colors.text.default,
-      fontSize: 14,
-      fontWeight: '500',
-    },
     icon: {
       color: theme.colors.text.muted,
     },

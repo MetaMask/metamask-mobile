@@ -1,5 +1,5 @@
 import { swapsUtils } from '@metamask/swaps-controller';
-import { BN } from 'ethereumjs-util';
+import BN from 'bnjs4';
 
 /* eslint-disable-next-line import/no-namespace */
 import * as controllerUtilsModule from '@metamask/controller-utils';

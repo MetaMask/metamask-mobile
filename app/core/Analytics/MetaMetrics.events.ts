@@ -5,7 +5,7 @@
 
 import { IMetaMetricsEvent } from './MetaMetrics.types';
 
-const generateOpt = (
+export const generateOpt = (
   name: EVENT_NAME,
   action?: ACTIONS,
   description?: DESCRIPTION,
@@ -76,6 +76,7 @@ enum EVENT_NAME {
   COLLECTIBLE_ADDED = 'Collectible Added',
   COLLECTIBLE_DETAILS_OPENED = 'Collectible Details Opened',
   COLLECTIBLE_REMOVED = 'Collectible Removed',
+  TOKEN_LIST_ITEM_PRESSED = 'Token List Item Pressed',
 
   // Network
   NETWORK_SWITCHED = 'Network Switched',
@@ -272,6 +273,9 @@ enum EVENT_NAME {
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
+
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
 
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
@@ -912,6 +916,11 @@ const events = {
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
   CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
 
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED: generateOpt(
+    EVENT_NAME.EARN_EMPTY_STATE_CTA_CLICKED,
+  ),
+
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REVIEW_STAKE_BUTTON_CLICKED,
@@ -995,6 +1004,7 @@ const events = {
   EARN_TOKEN_LIST_ITEM_CLICKED: generateOpt(
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
+  TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
 };
 
 /**

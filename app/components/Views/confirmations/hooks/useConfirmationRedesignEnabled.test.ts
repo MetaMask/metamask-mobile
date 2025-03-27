@@ -3,7 +3,10 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
 // eslint-disable-next-line import/no-namespace
-import { isHardwareAccount } from '../../../../util/address';
+import {
+  isExternalHardwareAccount,
+  isHardwareAccount,
+} from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -14,6 +17,7 @@ import { useConfirmationRedesignEnabled } from './useConfirmationRedesignEnabled
 jest.mock('../../../../util/address', () => ({
   ...jest.requireActual('../../../../util/address'),
   isHardwareAccount: jest.fn(),
+  isExternalHardwareAccount: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -42,6 +46,18 @@ describe('useConfirmationRedesignEnabled', () => {
       );
 
       expect(result.current.isRedesignedEnabled).toBe(true);
+    });
+
+    it('returns false for external accounts', async () => {
+      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
+      const { result } = renderHookWithProvider(
+        useConfirmationRedesignEnabled,
+        {
+          state: personalSignatureConfirmationState,
+        },
+      );
+
+      expect(result.current.isRedesignedEnabled).toBe(false);
     });
 
     it('returns false when remote flag is disabled', async () => {

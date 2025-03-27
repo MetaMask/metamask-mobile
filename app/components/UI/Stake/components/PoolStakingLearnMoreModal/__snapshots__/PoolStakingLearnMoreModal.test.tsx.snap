@@ -441,7 +441,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                       }
                     >
                       <RNSVGPath
-                        d="M0,44.85025249125118L50,35.255971425324546L100,20L150,31.229371496223877L200,45.39613604488909L250,49.50466282315335L300,40.850895011093414L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
+                        d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80L300,80L250,80L200,80L150,80L100,80L50,80L0,80Z"
                         fill={
                           {
                             "brushRef": "dataGradient",
@@ -455,7 +455,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                       />
                       <RNSVGPath
-                        d="M0,44.85025249125118L50,35.255971425324546L100,20L150,31.229371496223877L200,45.39613604488909L250,49.50466282315335L300,40.850895011093414"
+                        d="M0,80L50,80L100,80L150,80L200,80L250,80L300,80"
                         fill={null}
                         opacity={1}
                         propList={

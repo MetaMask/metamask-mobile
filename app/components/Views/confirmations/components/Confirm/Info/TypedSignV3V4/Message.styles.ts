@@ -17,9 +17,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     title: {
       color: theme.colors.text.default,
-      ...fontStyles.normal,
+      ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '500',
       marginBottom: 16,
     },
   });

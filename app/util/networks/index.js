@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -44,8 +45,11 @@ import {
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { SolScope } from '@metamask/keyring-api';
 import { store } from '../../store';
-import { selectNonEvmNetworkConfigurationsByChainId } from '../../selectors/multichainNetworkController';
-
+import {
+  selectSelectedNonEvmNetworkChainId,
+  selectMultichainNetworkControllerState,
+} from '../../selectors/multichainNetworkController';
+import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 /**
  * List of the supported networks
  * including name, id, and color
@@ -159,6 +163,13 @@ export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
+/**
+ * Converts a hexadecimal or decimal chain ID to a base 10 number as a string.
+ * If the input is in CAIP-2 format (e.g., `eip155:1` or `eip155:137`), the function returns the input string as is.
+ *
+ * @param chainId - The chain ID to be converted. It can be in hexadecimal, decimal, or CAIP-2 format.
+ * @returns - The chain ID converted to a base 10 number as a string, or the original input if it is in CAIP-2 format.
+ */
 export const getDecimalChainId = (chainId) => {
   if (
     !chainId ||
@@ -295,20 +306,69 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
 
   return undefined;
 }
+
 /**
  * Returns block explorer for non-evm chain id
  *
- * @param {string} chainId - Chain ID of the network
- * @returns {string} - Block explorer url
+ * @param {object} internalAccount - Internal account object
+ * @returns {string} - Block explorer url or undefined if not found
  */
 export function findBlockExplorerForNonEvmChainId(chainId) {
-  const nonEvmNetworks = selectNonEvmNetworkConfigurationsByChainId(
+  const blockExplorerUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  return blockExplorerUrls?.url;
+}
+
+/**
+ * Returns block explorer for non-evm account
+ *
+ * @param {object} internalAccount - Internal account object
+ * @returns {string} - Block explorer url or undefined if not found
+ */
+export function findBlockExplorerForNonEvmAccount(internalAccount) {
+  let scope;
+
+  const selectedNonEvmNetworkChainId = selectSelectedNonEvmNetworkChainId(
     store.getState(),
   );
-  const network = Object.values(nonEvmNetworks).find(
-    (network) => network.chainId === chainId,
+  // Check if the selectedNonEvmNetworkChainId exists in the scopes array
+  if (
+    selectedNonEvmNetworkChainId &&
+    internalAccount.scopes?.includes(selectedNonEvmNetworkChainId)
+  ) {
+    // Prioritize the selected chain ID if it's in the scopes array
+    scope = selectedNonEvmNetworkChainId;
+  } else {
+    // Fall back to a scope that is matching of our networks
+    const nonEvmNetworks = selectMultichainNetworkControllerState(
+      store.getState(),
+    );
+    const networkConfigs =
+      nonEvmNetworks.multichainNetworkConfigurationsByChainId;
+    const matchingNetwork = Object.values(networkConfigs || {}).find(
+      (network) => internalAccount.scopes.includes(network.chainId),
+    );
+
+    if (matchingNetwork) {
+      scope = matchingNetwork.chainId;
+    }
+  }
+  // If we couldn't determine a scope, return undefined
+  if (!scope) {
+    return undefined;
+  }
+
+  const blockExplorerFormatUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[scope];
+
+  if (!blockExplorerFormatUrls) {
+    return undefined;
+  }
+
+  return formatBlockExplorerAddressUrl(
+    blockExplorerFormatUrls,
+    internalAccount.address,
   );
-  return network?.blockExplorers?.urls[network?.blockExplorers?.defaultIndex];
 }
 
 /**

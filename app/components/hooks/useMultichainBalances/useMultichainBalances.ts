@@ -2,12 +2,11 @@
 import { useSelector } from 'react-redux';
 import Engine from '../../../core/Engine';
 import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
-import { renderFiat } from '../../../util/number';
 import {
   selectChainId,
   selectIsPopularNetwork,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
@@ -18,16 +17,18 @@ import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCros
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import useIsOriginalNativeTokenSymbol from '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { UseMultichainBalancesHook } from './useMultichainBalances.types';
-
+import { formatWithThreshold } from '../../../util/assets';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import {
   selectMultichainSelectedAccountCachedBalance,
   selectMultichainDefaultToken,
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
+  selectMultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
+import I18n from '../../../../locales/i18n';
 
 /**
  * Hook to manage portfolio balance data across chains.
@@ -45,7 +46,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const { type } = useSelector(selectProviderConfig);
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   // Production hooks (EVM)
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
@@ -73,6 +74,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const { symbol } = useSelector(selectMultichainDefaultToken);
   const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
   const multichainConversionRate = useSelector(selectMultichainConversionRate);
+  const multichainBalance = useSelector(
+    selectMultichainNetworkAggregatedBalance,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   // Production balance calculation (EVM)
@@ -99,18 +103,23 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       total = balance?.tokenFiat ?? 0;
     }
 
-    return renderFiat(total, currentCurrency);
+    return formatWithThreshold(total, 0, I18n.locale, {
+      style: 'currency',
+      currency: currentCurrency.toUpperCase(),
+    });
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const getMultiChainFiatBalance = (
-    nativeTokenBalance: string,
-    conversionRate: number,
-    currency: string,
-  ) => {
-    const multichainBalance = Number(nativeTokenBalance);
-    const fiatBalance = multichainBalance * conversionRate;
-    return renderFiat(fiatBalance, currency);
+  const getMultiChainFiatBalance = (currency: string) => {
+    return formatWithThreshold(
+      parseFloat(multichainBalance.totalBalanceFiat),
+      0,
+      I18n.locale,
+      {
+        style: 'currency',
+        currency: currency.toUpperCase(),
+      },
+    );
   };
 
   const getNonEvmDisplayBalance = () => {
@@ -118,11 +127,11 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       return `${multichainSelectedAccountCachedBalance} ${symbol}`;
     }
     if (multichainSelectedAccountCachedBalance && multichainConversionRate) {
-      return getMultiChainFiatBalance(
-        multichainSelectedAccountCachedBalance,
-        multichainConversionRate,
-        currentCurrency,
-      );
+      return getMultiChainFiatBalance(currentCurrency);
+    }
+
+    if (!multichainSelectedAccountCachedBalance) {
+      return undefined;
     }
 
     // default to native token symbol
@@ -161,6 +170,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   return {
     multichainBalances: {
       displayBalance: getDisplayBalance(),
+      displayCurrency: currentCurrency,
       tokenFiatBalancesCrossChains:
         totalFiatBalancesCrossChain[selectedInternalAccount?.address as string]
           ?.tokenFiatBalancesCrossChains ?? [],

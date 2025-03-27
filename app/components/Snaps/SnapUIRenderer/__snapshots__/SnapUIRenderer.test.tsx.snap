@@ -3,18 +3,24 @@
 exports[`SnapUIRenderer adds a footer if required 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -38,7 +44,10 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -71,15 +80,21 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "alignItems": "center",
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -87,7 +102,6 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -111,7 +125,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#ffffff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -135,18 +149,24 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
 exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -170,7 +190,10 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -247,18 +270,24 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -282,7 +311,10 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -418,18 +450,24 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -453,7 +491,10 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -589,18 +630,24 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 exports[`SnapUIRenderer renders basic UI 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -624,7 +671,10 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -663,18 +713,24 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
 exports[`SnapUIRenderer renders complex nested components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -698,7 +754,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -731,8 +790,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   "flexDirection": "row",
                   "flexWrap": "wrap",
                   "justifyContent": "space-between",
-                  "paddingBottom": 8,
+                  "marginLeft": -8,
+                  "marginRight": -8,
+                  "paddingBottom": 0,
                   "paddingHorizontal": 8,
+                  "paddingTop": 0,
                 }
               }
               testID="info-row"
@@ -753,12 +815,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "alignItems": "center",
                       "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
-                      "justifyContent": "center",
                       "letterSpacing": 0,
                       "lineHeight": 22,
                     }
@@ -768,58 +828,50 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 </Text>
               </View>
               <View
+                alignItems="center"
+                flexDirection="row"
+                gap={4}
                 style={
-                  {
-                    "marginLeft": "auto",
-                  }
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    },
+                    undefined,
+                  ]
                 }
               >
-                <View
-                  alignItems="center"
-                  flexDirection="row"
-                  gap={4}
+                <Text
+                  accessibilityRole="text"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "flexDirection": "row",
-                        "gap": 4,
-                      },
-                      undefined,
-                    ]
+                    {
+                      "color": "#9fa6ae",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#9fa6ae",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
+                  Extra
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#141618",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
                     }
-                  >
-                    Extra
-                  </Text>
-                  <Text
-                    accessibilityRole="text"
-                    style={
-                      {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                  >
-                    Value
-                  </Text>
-                </View>
+                  }
+                >
+                  Value
+                </Text>
               </View>
             </View>
             <View
@@ -833,7 +885,9 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     "flexDirection": "row",
                     "justifyContent": "space-between",
                   },
-                  undefined,
+                  {
+                    "flex": 1,
+                  },
                 ]
               }
               testID="snaps-ui-card"
@@ -853,6 +907,45 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   ]
                 }
               >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  onLayout={[Function]}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      [
+                        {
+                          "borderRadius": 0,
+                          "overflow": "hidden",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  testID="snaps-ui-image"
+                  width={32}
+                  xml="<svg />"
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  />
+                </RNSVGSvgView>
                 <View
                   flexDirection="column"
                   style={
@@ -954,14 +1047,20 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -969,7 +1068,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -993,7 +1091,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1010,7 +1108,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1018,7 +1115,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1102,18 +1199,24 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
 exports[`SnapUIRenderer renders footers 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1137,7 +1240,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1170,14 +1276,20 @@ exports[`SnapUIRenderer renders footers 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -1185,7 +1297,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1209,7 +1320,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1226,7 +1337,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -1234,7 +1344,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1325,18 +1435,24 @@ exports[`SnapUIRenderer renders loading state 1`] = `
 exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1360,7 +1476,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1381,7 +1500,11 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
               style={
                 [
                   {},
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1390,9 +1513,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1424,7 +1547,45 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     }
                   }
                   testID="textfield-startacccessory"
-                />
+                >
+                  <RNSVGSvgView
+                    bbHeight="100%"
+                    bbWidth="100%"
+                    focusable={false}
+                    onLayout={[Function]}
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        [
+                          {
+                            "borderRadius": 0,
+                            "overflow": "hidden",
+                          },
+                          undefined,
+                        ],
+                        {
+                          "flex": 0,
+                          "height": "100%",
+                          "width": "100%",
+                        },
+                      ]
+                    }
+                    testID="snaps-ui-image"
+                    xml="<svg />"
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    />
+                  </RNSVGSvgView>
+                </View>
                 <View
                   style={
                     {
@@ -1526,18 +1687,24 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 exports[`SnapUIRenderer supports forms with fields 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1561,7 +1728,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1582,7 +1752,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               style={
                 [
                   {},
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1591,9 +1765,9 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1660,7 +1834,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "flexDirection": "column",
                   },
-                  undefined,
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
                 ]
               }
             >
@@ -1669,9 +1847,9 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "400",
+                    "fontWeight": "500",
                     "letterSpacing": 0,
                     "lineHeight": 22,
                   }
@@ -1747,6 +1925,749 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </TouchableOpacity>
             </View>
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#141618",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Selector
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#BBC0C566",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": "auto",
+                    "justifyContent": "center",
+                    "maxHeight": 64,
+                    "minHeight": 48,
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 16,
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "paddingTop": 8,
+                  }
+                }
+              >
+                <View
+                  alignItems="center"
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                  testID="snaps-ui-card"
+                >
+                  <View
+                    alignItems="center"
+                    flexDirection="row"
+                    gap={16}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 16,
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    <View
+                      flexDirection="column"
+                      style={
+                        [
+                          {
+                            "flexDirection": "column",
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "EuclidCircularB-Medium",
+                            "fontSize": 14,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        CardTitle2
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        style={
+                          {
+                            "color": "#6a737d",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        CardDescription2
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    flexDirection="column"
+                    style={
+                      [
+                        {
+                          "flexDirection": "column",
+                          "textAlign": "right",
+                        },
+                        undefined,
+                      ]
+                    }
+                    textAlign="right"
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      style={
+                        {
+                          "color": "#141618",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      CardValue2
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      style={
+                        {
+                          "color": "#6a737d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      CardExtra2
+                    </Text>
+                  </View>
+                </View>
+                <SvgMock
+                  color="#141618"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 8,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <Modal
+              animationType="none"
+              deviceHeight={null}
+              deviceWidth={null}
+              hardwareAccelerated={false}
+              hideModalContentWhileAnimating={false}
+              onBackdropPress={[Function]}
+              onModalHide={[Function]}
+              onModalWillHide={[Function]}
+              onModalWillShow={[Function]}
+              onRequestClose={[Function]}
+              onSwipeComplete={[Function]}
+              panResponderThreshold={4}
+              scrollHorizontal={false}
+              scrollOffset={0}
+              scrollOffsetMax={0}
+              scrollTo={null}
+              statusBarTranslucent={false}
+              supportedOrientations={
+                [
+                  "portrait",
+                  "landscape",
+                ]
+              }
+              swipeDirection="down"
+              swipeThreshold={100}
+              transparent={true}
+              visible={true}
+            >
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "backgroundColor": "#00000099",
+                    "bottom": 0,
+                    "height": 1334,
+                    "left": 0,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                    "width": 750,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                deviceHeight={null}
+                deviceWidth={null}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onMoveShouldSetResponder={[Function]}
+                onMoveShouldSetResponderCapture={[Function]}
+                onResponderEnd={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderReject={[Function]}
+                onResponderRelease={[Function]}
+                onResponderStart={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onStartShouldSetResponderCapture={[Function]}
+                onSwipeComplete={[Function]}
+                panResponderThreshold={4}
+                pointerEvents="box-none"
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "flex-end",
+                    "left": 0,
+                    "margin": 0,
+                    "top": 0,
+                    "transform": [
+                      {
+                        "translateY": 1334,
+                      },
+                    ],
+                  }
+                }
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeDirection="down"
+                swipeThreshold={100}
+              >
+                <View
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderTopLeftRadius": 24,
+                      "borderTopRightRadius": 24,
+                      "minHeight": 300,
+                      "overflow": "hidden",
+                      "paddingBottom": 20,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flexDirection": "row",
+                          "padding": 16,
+                        },
+                        false,
+                      ]
+                    }
+                    testID="header"
+                  >
+                    <View
+                      style={
+                        {
+                          "width": undefined,
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                      >
+                        <TouchableOpacity
+                          accessible={true}
+                          activeOpacity={1}
+                          disabled={false}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 8,
+                              "height": 24,
+                              "justifyContent": "center",
+                              "opacity": 1,
+                              "width": 24,
+                            }
+                          }
+                        >
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="ArrowLeft"
+                            style={
+                              {
+                                "height": 16,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "marginHorizontal": 16,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#141618",
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 16,
+                            "fontWeight": "700",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="header-title"
+                      >
+                        Select an option
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "width": undefined,
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                      />
+                    </View>
+                  </View>
+                  <RCTScrollView>
+                    <View>
+                      <View
+                        flexDirection="column"
+                        gap={8}
+                        style={
+                          [
+                            {
+                              "flexDirection": "column",
+                              "gap": 8,
+                            },
+                            {
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                            },
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "transparent",
+                              "borderRadius": 8,
+                              "flexDirection": "row",
+                              "height": "auto",
+                              "justifyContent": "center",
+                              "maxHeight": 64,
+                              "minHeight": 48,
+                              "paddingBottom": 8,
+                              "paddingHorizontal": 16,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            }
+                          }
+                        >
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
+                            }
+                            testID="snaps-ui-card"
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={16}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardTitle1
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardDescription1
+                                </Text>
+                              </View>
+                            </View>
+                            <View
+                              flexDirection="column"
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "column",
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              textAlign="right"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardValue1
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#6a737d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardExtra1
+                              </Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "transparent",
+                              "borderRadius": 8,
+                              "flexDirection": "row",
+                              "height": "auto",
+                              "justifyContent": "center",
+                              "maxHeight": 64,
+                              "minHeight": 48,
+                              "paddingBottom": 8,
+                              "paddingHorizontal": 16,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            }
+                          }
+                        >
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
+                            }
+                            testID="snaps-ui-card"
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={16}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#141618",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardTitle2
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#6a737d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardDescription2
+                                </Text>
+                              </View>
+                            </View>
+                            <View
+                              flexDirection="column"
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "column",
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              textAlign="right"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#141618",
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardValue2
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#6a737d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardExtra2
+                              </Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </RCTScrollView>
+                </View>
+              </View>
+            </Modal>
             <Text
               accessibilityRole="link"
               accessible={true}
@@ -1803,18 +2724,24 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
 exports[`SnapUIRenderer supports interactive inputs 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1838,7 +2765,10 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1915,18 +2845,24 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
 exports[`SnapUIRenderer supports the onCancel prop 1`] = `
 <View
   style={
-    {
-      "flexGrow": 1,
-      "minHeight": 667,
-    }
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
   }
 >
   <View
     style={
-      {
-        "flex": 1,
-        "flexDirection": "column",
-      }
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
     }
   >
     <RCTScrollView
@@ -1950,7 +2886,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 "gap": 8,
                 "justifyContent": "flex-start",
               },
-              undefined,
+              {
+                "gap": 16,
+                "margin": 16,
+              },
             ]
           }
         >
@@ -1983,14 +2922,20 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
       gap={16}
       padding={16}
       style={
-        {
-          "bottom": 0,
-          "height": 80,
-          "justifyContent": "space-evenly",
-          "paddingVertical": 16,
-          "position": "absolute",
-          "width": "100%",
-        }
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
       }
     >
       <TouchableOpacity
@@ -1998,7 +2943,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[MockFunction]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -2022,7 +2966,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -2039,7 +2983,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         accessible={true}
         activeOpacity={1}
         disabled={false}
-        loading={false}
         onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
@@ -2047,7 +2990,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",

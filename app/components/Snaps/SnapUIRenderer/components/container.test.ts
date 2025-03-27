@@ -52,7 +52,12 @@ describe('container', () => {
                 "Hello",
               ],
               "element": "text",
-              "props": {},
+              "props": {
+                "style": {
+                  "gap": 16,
+                  "margin": 16,
+                },
+              },
             },
             "element": "ScrollView",
             "key": "default-scrollview",
@@ -66,8 +71,8 @@ describe('container', () => {
         "element": "Box",
         "props": {
           "style": {
-            "flex": 1,
             "flexDirection": "column",
+            "flexGrow": 1,
           },
         },
       }
@@ -110,8 +115,10 @@ describe('container', () => {
             "style": {
               "alignItems": "center",
               "bottom": 0,
+              "gap": 16,
               "height": 80,
               "justifyContent": "space-evenly",
+              "margin": 16,
               "paddingVertical": 16,
               "position": "absolute",
               "width": "100%",

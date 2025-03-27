@@ -12,6 +12,7 @@ import { debounce } from 'lodash';
 import {
   selectIsFeatureAnnouncementsEnabled,
   selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsLoading,
   selectIsUpdatingMetamaskNotifications,
   selectIsUpdatingMetamaskNotificationsAccount,
 } from '../../../selectors/notifications';
@@ -113,7 +114,9 @@ export function useFetchAccountNotifications(accounts: string[]) {
       return;
     }
     const memoAccounts: string[] = JSON.parse(jsonAccounts);
-    update(memoAccounts);
+    if (memoAccounts.length > 0) {
+      update(memoAccounts);
+    }
   }, [jsonAccounts, isEnabled, update]);
 
   return {
@@ -162,22 +165,26 @@ export function useAccountNotificationsToggle() {
 }
 
 export function useSwitchNotificationLoadingText(): string | undefined {
+  // Notification Settings
   const notificationsLoading = useSelector(
     selectIsUpdatingMetamaskNotifications,
   );
-  const notificationEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+
+  // Push Notification Settings
+  const pushNotificationsLoading = useSelector(
+    selectIsMetaMaskPushNotificationsLoading,
+  );
+
   const accountsLoading = useSelector(
     selectIsUpdatingMetamaskNotificationsAccount,
   );
 
-  if (notificationsLoading) {
-    return notificationEnabled
-      ? strings('app_settings.disabling_notifications')
-      : strings('app_settings.enabling_notifications');
-  }
-
   if (accountsLoading.length > 0) {
     return strings('app_settings.updating_account_settings');
+  }
+
+  if (notificationsLoading || pushNotificationsLoading) {
+    return strings('app_settings.updating_notifications');
   }
 
   return undefined;

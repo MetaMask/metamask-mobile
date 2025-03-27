@@ -4,17 +4,40 @@ import { Token, getNativeTokenAddress } from '@metamask/assets-controllers';
 import {
   selectSelectedInternalAccountFormattedAddress,
   selectSelectedInternalAccount,
+  selectSelectedInternalAccountAddress,
 } from '../accountsController';
 import { selectAllTokens } from '../tokensController';
-import { selectAccountsByChainId } from '../accountTrackerController';
-import { selectEvmNetworkConfigurationsByChainId } from '../networkController';
+import {
+  selectAccountBalanceByChainId,
+  selectAccountsByChainId,
+} from '../accountTrackerController';
+import {
+  selectChainId,
+  selectEvmNetworkConfigurationsByChainId,
+  selectEvmTicker,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectNetworkConfigurations,
+} from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
 import { hexToBN, toHex } from '@metamask/controller-utils';
 import {
+  selectConversionRate,
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../currencyRateController';
+import { createDeepEqualSelector } from '../util';
+import { getTicker } from '../../util/transactions';
+import { zeroAddress } from 'ethereumjs-util';
+import { selectHideZeroBalanceTokens } from '../settings';
+import { selectTokensBalances } from '../tokenBalancesController';
+import { isZero } from '../../util/lodash';
+import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../preferencesController';
+import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
+import { isTestNet } from '../../util/networks';
+import { selectTokenMarketData } from '../tokenRatesController';
+import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
 
 interface NativeTokenBalance {
   balance: string;
@@ -172,13 +195,11 @@ export const selectNativeTokensAcrossChains = createSelector(
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createSelector(
-  [
-    selectSelectedInternalAccount,
-    selectAllTokens,
-    selectEvmNetworkConfigurationsByChainId,
-    selectNativeTokensAcrossChains,
-  ],
+export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+  selectSelectedInternalAccount,
+  selectAllTokens,
+  selectEvmNetworkConfigurationsByChainId,
+  selectNativeTokensAcrossChains,
   (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
     const selectedAddress = selectedAccount?.address;
     const tokensByChain: {
@@ -217,4 +238,189 @@ export const selectAccountTokensAcrossChains = createSelector(
 
     return tokensByChain;
   },
+);
+
+export const selectNativeEvmAsset = createDeepEqualSelector(
+  selectAccountBalanceByChainId,
+  selectEvmTicker,
+  selectConversionRate,
+  selectCurrentCurrency,
+  (accountBalanceByChainId, ticker, conversionRate, currentCurrency) => {
+    if (!accountBalanceByChainId) {
+      return;
+    }
+    return {
+      decimals: 18,
+      name: getTicker(ticker) === 'ETH' ? 'Ethereum' : ticker,
+      symbol: getTicker(ticker),
+      isETH: true,
+      balance: renderFromWei(accountBalanceByChainId.balance),
+      balanceFiat: weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(accountBalanceByChainId.balance) as any,
+        conversionRate,
+        currentCurrency,
+      ),
+      logo: '../images/eth-logo-new.png',
+      address: zeroAddress(),
+    };
+  },
+);
+
+export const selectStakedEvmAsset = createDeepEqualSelector(
+  selectAccountBalanceByChainId,
+  selectConversionRate,
+  selectCurrentCurrency,
+  selectNativeEvmAsset,
+  (accountBalanceByChainId, conversionRate, currentCurrency, nativeAsset) => {
+    if (!accountBalanceByChainId) {
+      return;
+    }
+    if (!accountBalanceByChainId.stakedBalance) {
+      return;
+    }
+    if (hexToBN(accountBalanceByChainId.stakedBalance).isZero()) {
+      return;
+    }
+    if (!nativeAsset) {
+      return;
+    }
+    return {
+      ...nativeAsset,
+      name: 'Staked Ethereum',
+      isStaked: true,
+      balance: renderFromWei(accountBalanceByChainId.stakedBalance),
+      balanceFiat: weiToFiat(
+        // TODO: Replace "any" with type
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        hexToBN(accountBalanceByChainId.stakedBalance) as any,
+        conversionRate,
+        currentCurrency,
+      ),
+    };
+  },
+);
+
+export const selectEvmTokensWithZeroBalanceFilter = createDeepEqualSelector(
+  selectHideZeroBalanceTokens,
+  selectAccountTokensAcrossChains,
+  selectTokensBalances,
+  selectSelectedInternalAccountAddress,
+  selectIsTokenNetworkFilterEqualCurrentNetwork,
+  (
+    hideZeroBalanceTokens,
+    selectedAccountTokensChains,
+    multiChainTokenBalance,
+    selectedInternalAccountAddress,
+    isUserOnCurrentNetwork,
+  ) => {
+    const allTokens = Object.values(
+      selectedAccountTokensChains,
+    ).flat() as TokenI[];
+
+    let tokensToDisplay: TokenI[] = allTokens;
+
+    // Respect zero balance filtering settings
+    if (hideZeroBalanceTokens) {
+      tokensToDisplay = allTokens.filter((token) => {
+        const multiChainTokenBalances =
+          multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+            token.chainId as Hex
+          ];
+        const balance =
+          multiChainTokenBalances?.[token.address as Hex] || token.balance;
+
+        return (
+          !isZero(balance) ||
+          (isUserOnCurrentNetwork && (token.isNative || token.isStaked))
+        );
+      });
+    }
+    return tokensToDisplay;
+  },
+);
+
+export const selectEvmTokens = createDeepEqualSelector(
+  selectEvmTokensWithZeroBalanceFilter,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectIsEvmNetworkSelected,
+  selectChainId,
+  (
+    tokensToDisplay,
+    isAllNetworks,
+    isPopularNetwork,
+    isEvmSelected,
+    currentChainId,
+  ) => {
+    // Apply network filtering
+    const filteredTokens =
+      isAllNetworks && isPopularNetwork && isEvmSelected
+        ? tokensToDisplay
+        : tokensToDisplay.filter((token) => token.chainId === currentChainId);
+
+    // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
+    const nativeTokens: TokenI[] = [];
+    const nonNativeTokens: TokenI[] = [];
+
+    for (const currToken of filteredTokens) {
+      const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
+
+      // Categorize tokens as native or non-native
+      if (token.isNative) {
+        nativeTokens.push(token);
+      } else {
+        nonNativeTokens.push(token);
+      }
+    }
+
+    return [...nativeTokens, ...nonNativeTokens];
+  },
+);
+
+export const selectEvmTokenFiatBalances = createDeepEqualSelector(
+  selectEvmTokens,
+  selectTokenMarketData,
+  selectTokensBalances,
+  selectSelectedInternalAccountAddress,
+  selectNetworkConfigurations,
+  selectCurrencyRates,
+  selectCurrentCurrency,
+  (
+    evmTokens,
+    multiChainMarketData,
+    multiChainTokenBalance,
+    selectedInternalAccountAddress,
+    networkConfigurationsByChainId,
+    multiChainCurrencyRates,
+    currentCurrency,
+  ) =>
+    evmTokens.map((token) => {
+      const chainId = token.chainId as Hex;
+      const multiChainExchangeRates = multiChainMarketData?.[chainId];
+      const multiChainTokenBalances =
+        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+          chainId
+        ];
+      const nativeCurrency =
+        networkConfigurationsByChainId[chainId].nativeCurrency;
+      const multiChainConversionRate =
+        multiChainCurrencyRates?.[nativeCurrency]?.conversionRate || 0;
+
+      return token.isETH || token.isNative
+        ? parseFloat(token.balance) * multiChainConversionRate
+        : deriveBalanceFromAssetMarketDetails(
+            token,
+            multiChainExchangeRates || {},
+            multiChainTokenBalances || {},
+            multiChainConversionRate || 0,
+            currentCurrency || '',
+          ).balanceFiatCalculation;
+    }),
 );

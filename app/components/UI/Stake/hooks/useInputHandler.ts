@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -15,19 +15,19 @@ import {
 import { strings } from '../../../../../locales/i18n';
 
 interface InputHandlerParams {
-  balance: BN;
+  balance: BN4;
 }
 const MAX_DIGITS = 12;
 const useInputHandler = ({ balance }: InputHandlerParams) => {
   const [amountEth, setAmountEth] = useState('0');
-  const [amountWei, setAmountWei] = useState<BN>(new BN(0));
+  const [amountWei, setAmountWei] = useState<BN4>(new BN4(0));
   const [fiatAmount, setFiatAmount] = useState('0');
   const [isEth, setIsEth] = useState<boolean>(true);
 
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector(selectConversionRate) || 1;
 
-  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN(0)), [amountWei]);
+  const isNonZeroAmount = useMemo(() => amountWei.gt(new BN4(0)), [amountWei]);
 
   const isOverMaximum = useMemo(
     () => amountWei.gt(balance),
@@ -96,7 +96,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   const handleQuickAmountPress = useCallback(
     ({ value }: { value: number }) => {
       const percentage = value * 100;
-      const amountPercentage = balance.mul(new BN(percentage)).div(new BN(100));
+      const amountPercentage = balance.mul(new BN4(percentage)).div(new BN4(100));
 
       let newEthAmount;
       try {
@@ -118,7 +118,7 @@ const useInputHandler = ({ balance }: InputHandlerParams) => {
   );
 
   const handleMaxInput = useCallback(
-    (maxStakeableWei: BN) => {
+    (maxStakeableWei: BN4) => {
       setAmountWei(maxStakeableWei);
 
       let ethValue;

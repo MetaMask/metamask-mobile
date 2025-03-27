@@ -113,9 +113,9 @@ const createStyles = (colors) =>
       marginRight: 24,
       marginBottom: 24,
     },
-    blockAidBannerContainer: {
+    blockaidBannerContainer: {
       marginHorizontal: 16,
-      marginBottom: -8,
+      marginBottom: 8,
     },
     smartTransactionsMigrationBanner: {
       marginHorizontal: 16,
@@ -596,10 +596,9 @@ class TransactionReview extends PureComponent {
                       sdkDappMetadata={sdkDappMetadata}
                       url={url}
                     />
-                    <View style={styles.blockAidBannerContainer}>
+                    <View style={styles.blockaidBannerContainer}>
                       <TransactionBlockaidBanner
                         transactionId={transactionId}
-                        style={styles.blockaidWarning}
                         onContactUsClicked={this.onContactUsClicked}
                       />
                     </View>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
@@ -68,6 +69,7 @@ jest.mock('@react-navigation/native', () => {
         pop: mockPop,
       }),
     }),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -292,6 +294,28 @@ describe('Quotes', () => {
     });
   });
 
+  it('calls hardware back handler ', async () => {
+    const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
+    const removeMock = jest.fn();
+
+    backHandlerMock.mockImplementation((event, handler) => {
+      if (event === 'hardwareBackPress') {
+        handler();
+        return { remove: removeMock } as NativeEventSubscription;
+      }
+      return { remove: jest.fn() } as NativeEventSubscription;
+    });
+
+    const { unmount } = render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    backHandlerMock.mock.calls[0][1]();
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+    backHandlerMock.mockRestore();
+  });
+
   const simulateQuoteSelection = async (
     browser: ProviderBuyFeatureBrowserEnum,
   ) => {
@@ -364,6 +388,9 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -394,6 +421,9 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
@@ -430,6 +460,9 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
@@ -460,6 +493,9 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
@@ -570,6 +606,7 @@ describe('Quotes', () => {
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_onramp_best_price": "Banxa (Staging)",
             "provider_onramp_first": "Banxa (Staging)",
             "provider_onramp_last": "Transak (Staging)",
             "provider_onramp_list": [
@@ -577,6 +614,7 @@ describe('Quotes', () => {
               "MoonPay (Staging)",
               "Transak (Staging)",
             ],
+            "provider_onramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
             "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
@@ -619,6 +657,7 @@ describe('Quotes', () => {
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",
             "provider_offramp_last": "Transak (Staging)",
             "provider_offramp_list": [
@@ -626,6 +665,7 @@ describe('Quotes', () => {
               "MoonPay (Staging)",
               "Transak (Staging)",
             ],
+            "provider_offramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
             "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [

@@ -4,7 +4,7 @@ import { QuoteSelectors } from '../../selectors/Ramps/Quotes.selectors';
 
 class QuotesView {
   get selectAQuoteLabel() {
-    return Matchers.getElementByText(QuoteSelectors.SELECT_A_QUOTE);
+    return Matchers.getElementByText(QuoteSelectors.RECOMMENDED_QUOTE);
   }
 
   get quoteAmountLabel() {

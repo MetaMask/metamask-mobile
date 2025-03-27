@@ -1,6 +1,7 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
 import { getTicker } from '../../../util/transactions';
@@ -9,7 +10,7 @@ import {
   renderFromWei,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { selectTicker } from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -27,7 +28,7 @@ const useAddressBalance = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const ticker = useSelector(selectTicker);
+  const ticker = useSelector(selectEvmTicker);
 
   useEffect(() => {
     if (asset && !asset.isETH && !asset.tokenId) {
@@ -110,7 +111,8 @@ const useAddressBalance = (
               address,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
-              fromAccBalance || '0',
+              // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
+              new BN4(fromAccBalance?.toString(10) || '0', 10),
               decimals,
             )} ${symbol}`;
             setAddressBalance(fromAccBalance);

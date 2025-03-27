@@ -1,11 +1,11 @@
+import { remove0x } from '@metamask/utils';
 import { isBN, hexToBN } from '../number';
 import { safeToChecksumAddress } from '../address';
 import Engine from '../../core/Engine';
 import TransactionTypes from '../../core/TransactionTypes';
 import { toLowerCaseEquals } from '../general';
 import { strings } from '../../../locales/i18n';
-import { BN } from 'ethereumjs-util';
-import { lt } from '../lodash';
+import BN4 from 'bnjs4';
 import { estimateGas as controllerEstimateGas } from '../transaction-controller';
 
 interface opts {
@@ -25,8 +25,8 @@ interface Transaction {
   data: string;
   ensRecipient: string | undefined;
   from: string;
-  gas: BN;
-  gasPrice: BN;
+  gas: BN4;
+  gasPrice: BN4;
   id: string;
   networkClientId: string;
   nonce: string | undefined;
@@ -98,7 +98,7 @@ export const estimateGas = async (
  * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
  */
 export const validateEtherAmount = (
-  value: BN,
+  value: BN4,
   from: string,
   allowEmpty = true,
 ): string | undefined => {
@@ -116,6 +116,32 @@ interface ContractBalances {
   [key: string]: string;
 }
 
+const getTokenBalance = async (
+  from: string,
+  selectedAsset: SelectedAsset,
+  selectedAddress: string,
+  contractBalances: ContractBalances,
+): Promise<BN4 | undefined> => {
+  const checksummedFrom = safeToChecksumAddress(from) || '';
+  if (selectedAddress === from && contractBalances[selectedAsset.address]) {
+    return hexToBN(
+      remove0x(contractBalances[selectedAsset.address].toString()),
+    );
+  }
+  try {
+    const { AssetsContractController } = Engine.context;
+    // TODO: Roundtrip string conversion can be removed when bn.js v4 is superseded with v5
+    const contractBalanceForAddress = await AssetsContractController.getERC20BalanceOf(
+        selectedAsset.address,
+        checksummedFrom,
+      );
+    const contractBalanceForAddressBN = hexToBN(contractBalanceForAddress.toString(16));
+    return contractBalanceForAddressBN;
+  } catch (e) {
+    // Don't validate balance if error
+  }
+};
+
 /**
  * Validates asset (ERC20) transaction amount
  *
@@ -123,8 +149,8 @@ interface ContractBalances {
  * @returns {string} - String containing error message whether the Ether transaction amount is valid or not
  */
 export const validateTokenAmount = async (
-  value: BN,
-  gas: BN,
+  value: BN4,
+  gas: BN4,
   from: string,
   selectedAsset: SelectedAsset,
   selectedAddress: string,
@@ -132,7 +158,6 @@ export const validateTokenAmount = async (
   allowEmpty = true,
 ): Promise<string | undefined> => {
   if (!allowEmpty) {
-    const checksummedFrom = safeToChecksumAddress(from) || '';
 
     if (!value) {
       return strings('transaction.invalid_amount');
@@ -145,33 +170,15 @@ export const validateTokenAmount = async (
     if (!from) {
       return strings('transaction.invalid_from_address');
     }
-    // If user trying to send a token that doesn't own, validate balance querying contract
-    // If it fails, skip validation
-    let contractBalanceForAddress: BN | undefined | number;
-    if (selectedAddress === from && contractBalances[selectedAsset.address]) {
-      contractBalanceForAddress = hexToBN(
-        contractBalances[selectedAsset.address].toString(),
-      );
-    } else {
-      try {
-        const { AssetsContractController } = Engine.context;
-        contractBalanceForAddress =
-          await AssetsContractController.getERC20BalanceOf(
-            selectedAsset.address,
-            checksummedFrom,
-          );
-      } catch (e) {
-        // Don't validate balance if error
-      }
+
+    if (value && !isBN(value)) {
+      return strings('transaction.invalid_amount');
     }
-    if (value && !isBN(value)) return strings('transaction.invalid_amount');
-    const validateAssetAmount =
-      contractBalanceForAddress &&
-      lt(
-        contractBalanceForAddress as unknown as number,
-        value as unknown as number,
-      );
-    if (validateAssetAmount) return strings('transaction.insufficient');
+
+    const contractBalanceForAddress = await getTokenBalance(from, selectedAsset, selectedAddress, contractBalances);
+    if (contractBalanceForAddress?.lt(value)) {
+      return strings('transaction.insufficient');
+    }
   }
 };
 
@@ -217,10 +224,10 @@ export const validateAmount = async (
   const { value, from, gas, selectedAsset } = transaction;
 
   const validations: Validations = {
-    ETH: () => validateEtherAmount(value as unknown as BN, from, allowEmpty),
+    ETH: () => validateEtherAmount(value as unknown as BN4, from, allowEmpty),
     ERC20: async () =>
       await validateTokenAmount(
-        value as unknown as BN,
+        value as unknown as BN4,
         gas,
         from,
         selectedAsset,
@@ -277,8 +284,8 @@ type setTransactionObjectType = (
  * @param {function} setTransactionObject - Sets any attribute in transaction object
  */
 export const handleGasFeeSelection = (
-  gasLimit: BN,
-  gasPrice: BN,
+  gasLimit: BN4,
+  gasPrice: BN4,
   setTransactionObject: setTransactionObjectType,
 ): void => {
   const transactionObject = {
@@ -298,5 +305,5 @@ export const handleGetGasLimit = async (
 ): Promise<void> => {
   if (!Object.keys(transaction.selectedAsset).length) return;
   const { gas } = await estimateGas({}, transaction);
-  setTransactionObject({ gas: hexToBN(gas) as BN });
+  setTransactionObject({ gas: hexToBN(gas) as BN4 });
 };

@@ -19,6 +19,7 @@ import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectIsEvmNetworkSelected,
   selectSelectedNonEvmNetworkChainId,
+  selectSelectedNonEvmNetworkSymbol,
 } from './multichainNetworkController';
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 
@@ -128,9 +129,17 @@ export const selectProviderConfig = createDeepEqualSelector(
   },
 );
 
-export const selectTicker = createSelector(
+export const selectEvmTicker = createSelector(
   selectProviderConfig,
   (providerConfig) => providerConfig?.ticker,
+);
+
+export const selectTicker = createSelector(
+  selectEvmTicker,
+  selectSelectedNonEvmNetworkSymbol,
+  selectIsEvmNetworkSelected,
+  (evmTicker, nonEvmTicker, isEvmSelected) =>
+    isEvmSelected ? evmTicker : nonEvmTicker,
 );
 
 export const selectEvmChainId = createSelector(
@@ -185,6 +194,20 @@ export const selectNetworkConfigurations = createSelector(
       ...nonEvmNetworkConfigurationsByChainId,
     };
     return networkConfigurationsByChainId;
+  },
+);
+
+export const selectNativeNetworkCurrencies = createDeepEqualSelector(
+  selectNetworkConfigurations,
+  (networkConfigurationsByChainId) => {
+    const nativeCurrencies = [
+      ...new Set(
+        Object.values(networkConfigurationsByChainId).map(
+          (n) => n.nativeCurrency,
+        ),
+      ),
+    ];
+    return nativeCurrencies;
   },
 );
 

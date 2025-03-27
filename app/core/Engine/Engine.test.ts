@@ -16,17 +16,36 @@ import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { RootState } from '../../reducers';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
+import { KeyringControllerState } from '@metamask/keyring-controller';
+import { backupVault } from '../BackupVault';
 
+jest.mock('../BackupVault', () => ({
+  backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
+}));
 jest.unmock('./Engine');
 jest.mock('../../store', () => ({
   store: { getState: jest.fn(() => ({ engine: {} })) },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
   selectShouldUseSmartTransaction: jest.fn().mockReturnValue(false),
+  selectSmartTransactionsEnabled: jest.fn().mockReturnValue(false),
+  selectPendingSmartTransactionsBySender: jest.fn().mockReturnValue([]),
 }));
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
+
+jest.mock('@metamask/assets-controllers', () => {
+  const actualControllers = jest.requireActual('@metamask/assets-controllers');
+  // Mock the RatesController start method since it takes a while to run and causes timeouts in tests
+  class MockRatesController extends actualControllers.RatesController {
+    start = jest.fn().mockImplementation(() => Promise.resolve());
+  }
+  return {
+    ...actualControllers,
+    RatesController: MockRatesController,
+  };
+});
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -35,6 +54,7 @@ describe('Engine', () => {
 
   afterEach(() => {
     jest.restoreAllMocks();
+    (backupVault as jest.Mock).mockReset();
   });
 
   it('should expose an API', () => {
@@ -67,12 +87,56 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('RatesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
+    expect(engine.context).toHaveProperty('BridgeController');
+    expect(engine.context).toHaveProperty('BridgeStatusController');
+    expect(engine.context).toHaveProperty('EarnController');
+    expect(engine.context).toHaveProperty('MultichainTransactionsController');
   });
 
   it('calling Engine.init twice returns the same instance', () => {
     const engine = Engine.init({});
     const newEngine = Engine.init({});
     expect(engine).toStrictEqual(newEngine);
+  });
+
+  it('should backup vault when Engine is initialized and vault exists', () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init({});
+    const newEngine = Engine.init({});
+    expect(engine).toStrictEqual(newEngine);
+    engine.controllerMessenger.publish(
+      'KeyringController:stateChange',
+      {
+        vault: 'vault',
+        isUnlocked: false,
+        keyrings: [],
+        keyringsMetadata: [],
+      } as KeyringControllerState,
+      [],
+    );
+    expect(backupVault).toHaveBeenCalled();
+  });
+
+  it('should not backup vault when Engine is initialized and vault is empty', () => {
+    // backupVault will not be called so return value doesn't matter here
+    (backupVault as jest.Mock).mockResolvedValue(undefined);
+    const engine = Engine.init({});
+    const newEngine = Engine.init({});
+    expect(engine).toStrictEqual(newEngine);
+    engine.controllerMessenger.publish(
+      'KeyringController:stateChange',
+      {
+        vault: undefined,
+        isUnlocked: false,
+        keyrings: [],
+        keyringsMetadata: [],
+      } as KeyringControllerState,
+      [],
+    );
+    expect(backupVault).not.toHaveBeenCalled();
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {

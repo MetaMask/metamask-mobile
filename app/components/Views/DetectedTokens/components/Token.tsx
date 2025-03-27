@@ -27,7 +27,9 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { Colors } from '../../../../util/theme/models';
 import { Hex } from '@metamask/utils';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
@@ -169,6 +171,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
   return (
     <View style={styles.tokenContainer}>
       <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}

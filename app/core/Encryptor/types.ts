@@ -1,5 +1,6 @@
 import { Json } from '@metamask/utils';
 import type { KeyDerivationOptions } from '@metamask/browser-passworder';
+import { ExportableKeyEncryptor } from '@metamask/keyring-controller';
 
 /** Key derivation function options. */
 export type { KeyDerivationOptions };
@@ -123,7 +124,7 @@ export interface GenericEncryptor<Data = Json> {
  * An encryptor interface that supports encrypting and decrypting
  * serializable data with a password, and exporting and importing keys.
  */
-export type WithKeyEncryptor<Key, Data> = GenericEncryptor<Data> & {
+export type WithKeyEncryptor<Key, Data> = ExportableKeyEncryptor & {
   /**
    * Encrypts the given object with the given encryption key.
    *

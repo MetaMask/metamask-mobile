@@ -479,6 +479,11 @@ exports[`Network Selector renders correctly 1`] = `
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -537,7 +542,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -659,7 +664,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -756,7 +761,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -853,7 +858,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -950,7 +955,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -1148,7 +1153,7 @@ exports[`Network Selector renders correctly 1`] = `
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 16,
+                                              "borderRadius": 8,
                                               "height": 32,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -1793,6 +1798,11 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                           </View>
                           <View
                             onLayout={[Function]}
+                            style={
+                              {
+                                "minHeight": 667,
+                              }
+                            }
                           >
                             <RCTScrollView
                               collapsable={false}
@@ -1897,7 +1907,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2143,7 +2153,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2361,7 +2371,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2579,7 +2589,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -2797,7 +2807,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                               {
                                                 "alignItems": "center",
                                                 "backgroundColor": "#ffffff",
-                                                "borderRadius": 12,
+                                                "borderRadius": 8,
                                                 "height": 24,
                                                 "justifyContent": "center",
                                                 "marginRight": 16,
@@ -3218,7 +3228,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "marginRight": 16,
@@ -3379,7 +3389,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3526,7 +3536,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3673,7 +3683,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3820,7 +3830,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
@@ -3967,7 +3977,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                             {
                                               "alignItems": "center",
                                               "backgroundColor": "#ffffff",
-                                              "borderRadius": 12,
+                                              "borderRadius": 8,
                                               "height": 24,
                                               "justifyContent": "center",
                                               "overflow": "hidden",
