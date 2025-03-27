@@ -333,18 +333,13 @@ describe('BridgeSourceTokenSelector', () => {
 
     expect(setSourceToken).toHaveBeenCalledWith({
       address: token1Address,
-      aggregators: ['1inch'],
       balance: '1',
       balanceFiat: '$20000',
       chainId: '0x1',
       decimals: 18,
       image: 'https://token1.com/logo.png',
-      isETH: false,
-      isNative: false,
-      isStaked: false,
       name: 'Token One',
       symbol: 'TOKEN1',
-      token: 'Token One',
       tokenFiatAmount: 20000,
     });
     expect(mockGoBack).toHaveBeenCalled();
