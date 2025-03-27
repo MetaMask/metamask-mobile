@@ -216,6 +216,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    */
   decrypt = async (password: string, text: string): Promise<unknown> => {
     const payload = JSON.parse(text);
+    const { salt, keyMetadata, lib } = payload;
 
     // NOTE: We use metadata coming from the payload itself as the encryption
     // scheme/parameters could be different:
@@ -225,10 +226,11 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     //   * use a different number of iterations for the KDF
     const key = await this.keyFromPassword(
       password,
-      payload.salt,
+      salt,
       false,
-      payload.keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
-      payload.lib,
+      // If the keyMetadata is not present, we can assume the key was derived using the legacy options
+      keyMetadata || LEGACY_DERIVATION_OPTIONS,
+      lib,
     );
 
     return await this.decryptWithKey(key, payload);
