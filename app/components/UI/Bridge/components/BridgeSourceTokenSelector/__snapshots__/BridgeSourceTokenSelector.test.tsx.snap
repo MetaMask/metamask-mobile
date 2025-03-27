@@ -324,7 +324,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#BBC0C566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#BBC0C566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,7 +491,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "flex": 1,
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
@@ -525,7 +525,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         testID="bridge-token-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#141618"
+                                          color="#121314"
                                           height={16}
                                           name="Close"
                                           style={
@@ -579,7 +579,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#BBC0C566",
+                                    "borderColor": "#b7bbc866",
                                     "borderRadius": 20,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -696,7 +696,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -709,7 +709,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   </Text>
                                 </View>
                                 <SvgMock
-                                  color="#0376c9"
+                                  color="#4459ff"
                                   height={16}
                                   name="ArrowDown"
                                   style={
@@ -727,7 +727,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#848c96",
+                                    "borderColor": "#b7bbc8",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -747,7 +747,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                   testID="textfield-startacccessory"
                                 >
                                   <SvgMock
-                                    color="#141618"
+                                    color="#121314"
                                     height={16}
                                     name="Search"
                                     style={
@@ -778,7 +778,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1029,7 +1029,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001A",
+                                                  "shadowColor": "#0000001a",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -1081,7 +1081,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1096,7 +1096,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1121,7 +1121,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1137,7 +1137,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1311,7 +1311,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001A",
+                                                  "shadowColor": "#0000001a",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -1363,7 +1363,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1378,7 +1378,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1403,7 +1403,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1419,7 +1419,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1562,7 +1562,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001A",
+                                                  "shadowColor": "#0000001a",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -1614,7 +1614,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1629,7 +1629,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1654,7 +1654,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1670,7 +1670,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1705,7 +1705,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           "justifyContent": "space-between",
                                         },
                                         {
-                                          "backgroundColor": "#0376C91A",
+                                          "backgroundColor": "#4459ff1a",
                                           "padding": 4,
                                         },
                                       ]
@@ -1714,7 +1714,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     <View
                                       style={
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "borderRadius": 8,
                                           "height": "100%",
                                           "width": 4,
@@ -1854,7 +1854,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001A",
+                                                  "shadowColor": "#0000001a",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -1906,7 +1906,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1921,7 +1921,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1946,7 +1946,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1962,7 +1962,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",

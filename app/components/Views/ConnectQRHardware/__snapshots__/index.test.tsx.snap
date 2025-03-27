@@ -27,7 +27,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontSize": 42,
             },
             {
@@ -66,7 +66,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 "fontSize": 15,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 28,
               },
               {
@@ -109,7 +109,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
           <Text
             style={
               {
-                "color": "#6a737d",
+                "color": "#686e7d",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 24,
                 "fontWeight": "400",
@@ -132,7 +132,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -147,14 +147,14 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
               style={
                 [
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "marginBottom": 24,
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontWeight": "600",
                   },
@@ -166,7 +166,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -179,7 +179,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontSize": 24,
                   "height": 48,
                 }
@@ -200,14 +200,14 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "marginBottom": 24,
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
@@ -224,14 +224,14 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "marginBottom": 24,
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
@@ -244,7 +244,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontSize": 24,
                   "height": 48,
                 }
@@ -265,14 +265,14 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "marginBottom": 24,
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
@@ -289,14 +289,14 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                 style={
                   [
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "marginBottom": 24,
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontWeight": "600",
                     },
@@ -332,7 +332,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "minHeight": 50,
                 },
                 undefined,
