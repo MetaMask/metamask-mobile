@@ -113,6 +113,7 @@ import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import NonEvmTokens from '../../UI/NonEvmTokens';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
@@ -700,6 +701,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          <SolanaNewFeatureContent />
+          ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );
