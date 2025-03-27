@@ -22,7 +22,7 @@ export interface BottomSheetFooterProps extends ViewProps {
    */
   buttonsAlignment?: ButtonsAlignment;
   /**
-   * Array of buttons that will be displayed in the footer.
+   * Array of buttons that will be displayed in the footer
    */
   buttonPropsArray: ButtonProps[];
 }
