@@ -4563,10 +4563,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
   integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
 
-"@metamask/earn-controller@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.8.0.tgz#766798c60468279a9f4081bd960a8c502238c0b9"
-  integrity sha512-USRDcBNZr3h7K05lvswizryEOJM2f1iQvbztWzwB6gVipA345lZqapiUuzhPYDH8Ej3T4yfbyRCG5BN4m6i6Sg==
+"@metamask/earn-controller@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.10.0.tgz#890587d9e51e4fbaa8e85f09077c040e85a99462"
+  integrity sha512-vhywGCsaQphYyDwYksjk7+DZMQAeeC94lpDs6xUEV3xr0l1rG3NR5Ubqhl29oFwYsPV/0HGAbiGW9i3UYOBvkQ==
   dependencies:
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
