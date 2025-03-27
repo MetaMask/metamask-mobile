@@ -206,6 +206,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { SnapInterfaceController } from '@metamask/snaps-controllers';
 
 const NON_EMPTY = 'NON_EMPTY';
 

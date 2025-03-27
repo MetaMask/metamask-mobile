@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { pooledStakingSelectors } from '../../../../selectors/earnController';
-import { DEFAULT_VAULT_APY_AVERAGES } from '../constants';
 
 const useVaultApyAverages = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,10 +25,7 @@ const useVaultApyAverages = () => {
   };
 
   return {
-    vaultApyAverages:
-      Object.keys(vaultApyAverages).length === 0
-        ? DEFAULT_VAULT_APY_AVERAGES
-        : vaultApyAverages,
+    vaultApyAverages,
     refreshVaultApyAverages: fetchVaultAprs,
     isLoadingVaultApyAverages: isLoading,
     error,
