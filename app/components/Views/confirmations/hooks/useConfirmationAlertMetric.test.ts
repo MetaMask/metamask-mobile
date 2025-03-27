@@ -18,6 +18,7 @@ jest.mock('./useConfirmationMetricEvents', () => ({
 }));
 
 describe('useConfirmationAlertMetric', () => {
+  const ALERT_FIELD_FROM_MOCK = 'from';
   const mockSetConfirmationMetric = jest.fn();
   const mockUseAlerts = {
     alerts: [
@@ -65,12 +66,13 @@ describe('useConfirmationAlertMetric', () => {
 
     const { result } = renderHook(() => useConfirmationAlertMetric());
 
-    result.current.trackInlineAlertClicked();
+    result.current.trackInlineAlertClicked(ALERT_FIELD_FROM_MOCK);
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
         ...baseAlertProperties,
         alert_key_clicked: [AlertKeys.DomainMismatch],
+        alert_field_clicked: [ALERT_FIELD_FROM_MOCK],
       },
     });
   });
@@ -136,7 +138,7 @@ describe('useConfirmationAlertMetric', () => {
 
     const { result } = renderHook(() => useConfirmationAlertMetric());
 
-    result.current.trackInlineAlertClicked();
+    result.current.trackInlineAlertClicked(ALERT_FIELD_FROM_MOCK);
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
     expect(mockSetConfirmationMetric).toHaveBeenNthCalledWith(2, {
@@ -146,6 +148,7 @@ describe('useConfirmationAlertMetric', () => {
         alert_resolved_count: 0,
         alert_resolved: [],
         alert_key_clicked: [UNKNOWN_ALERT_KEY_MOCK],
+        alert_field_clicked: [ALERT_FIELD_FROM_MOCK],
       },
     });
   });
@@ -189,6 +192,7 @@ describe('useConfirmationAlertMetric', () => {
       properties: {
         ...baseAlertProperties,
         alert_key_clicked: [AlertKeys.DomainMismatch],
+        alert_field_clicked: [],
       },
     });
   });

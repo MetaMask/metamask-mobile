@@ -117,5 +117,6 @@ describe('AlertRow', () => {
     expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
     expect(mockShowAlertModal).toHaveBeenCalled();
     expect(mockTrackInlineAlertClicked).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(ALERT_FIELD_DANGER);
   });
 });

@@ -43,17 +43,22 @@ export function useConfirmationAlertMetric() {
   }, [alertProperties, setConfirmationMetric]);
 
   const trackers = useMemo(() => {
-    const trackInlineAlertClicked = () => {
+    const trackInlineAlertClicked = (alertField?: string) => {
       if (confirmationMetrics.properties) {
         const alertKeyClicked = uniqueFreshArrayPush(
           (confirmationMetrics.properties.alert_key_clicked as string[]) ?? [],
           getAlertName(alertKey)
         );
+        const alertFieldClickedMetrics = confirmationMetrics.properties.alert_field_clicked as string[] ?? [];
+        const alertFieldClicked = alertField ? uniqueFreshArrayPush(
+          alertFieldClickedMetrics,
+          alertField) : alertFieldClickedMetrics;
 
         setConfirmationMetric({
           properties: {
             ...alertProperties,
             alert_key_clicked: alertKeyClicked,
+            alert_field_clicked: alertFieldClicked,
           },
         });
       }

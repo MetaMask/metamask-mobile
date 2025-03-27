@@ -34,7 +34,7 @@ const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps
     if(!alertSelected) return;
     setAlertKey(alertSelected.key);
     showAlertModal();
-    trackInlineAlertClicked();
+    trackInlineAlertClicked(alertSelected.field);
   };
 
   if (!alertSelected && isShownWithAlertsOnly) {
