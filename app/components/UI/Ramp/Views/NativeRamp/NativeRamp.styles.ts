@@ -31,6 +31,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       borderRadius: 8,
       padding: 12,
       fontSize: 16,
+      color: _params.theme.colors.text.default,
     },
     inputContainerWrapper: {
       marginVertical: 16,
@@ -41,6 +42,11 @@ const styleSheet = (_params: { theme: Theme }) =>
       alignItems: 'center',
     },
     textInput: {
+      fontSize: 44,
+      textAlign: 'center',
+      color: _params.theme.colors.text.default,
+    },
+    amountInput: {
       fontSize: 44,
       textAlign: 'center',
       color: _params.theme.colors.text.default,
@@ -110,6 +116,7 @@ const styleSheet = (_params: { theme: Theme }) =>
       padding: 12,
       marginTop: 4,
       width: '100%',
+      color: _params.theme.colors.text.default,
     },
     successIconContainer: {
       alignItems: 'center',

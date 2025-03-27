@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
@@ -50,7 +50,8 @@ function NativeRamp() {
   const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [amount, setAmount] = useState('0');
+  const [amount, setAmount] = useState();
+  const amountInputRef = useRef<TextInput>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [forms, setForms] = useState<KycForm[]>([]);
@@ -96,6 +97,10 @@ function NativeRamp() {
           return 'Enter your email';
         case 4:
           return 'Enter six-digit code';
+        case 5:
+          return 'Verify your identity';
+        case 5.5:
+          return 'Verify your identity';
         case 6:
           return 'Verification Complete';
         case 7:
@@ -111,6 +116,12 @@ function NativeRamp() {
       getNativeRampNavigationOptions(getScreenTitle(), colors, navigation),
     );
   }, [navigation, colors, currentStep]);
+
+  useEffect(() => {
+    if (currentStep === 1) {
+      amountInputRef.current?.focus();
+    }
+  }, [currentStep]);
 
   // This is a helper function just for the POC to be able to identify errors
   const getErrorMessage = (error: any): string => {
@@ -522,11 +533,13 @@ function NativeRamp() {
       <View style={styles.inputContainerWrapper}>
         <View style={styles.inputContainer}>
           <TextInput
+            ref={amountInputRef}
             style={styles.textInput}
             value={amount}
             onChangeText={setAmount}
+            placeholder="0"
+            placeholderTextColor={colors.text.default}
             keyboardType={'numeric'}
-            placeholderTextColor={colors.text.muted}
             testID={AmountViewSelectorsIDs.AMOUNT_INPUT}
           />
           <Text style={styles.currencyText}>EUR</Text>
