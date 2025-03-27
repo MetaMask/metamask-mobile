@@ -143,7 +143,7 @@
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
-    "@metamask/network-controller/@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-f09aaadc"
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-f09aaadc"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -161,7 +161,7 @@
     "@metamask/bridge-controller": "^7.0.0",
     "@metamask/bridge-status-controller": "^7.0.0",
     "@metamask/composable-controller": "^11.0.0",
-    "@metamask/controller-utils": "^11.3.0",
+    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-f09aaadc",
     "@metamask/design-tokens": "^5.0.0",
     "@metamask/earn-controller": "^0.10.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
