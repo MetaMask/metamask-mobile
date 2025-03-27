@@ -612,6 +612,7 @@ workflows:
       - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
@@ -635,6 +636,7 @@ workflows:
 
   run_ios_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
@@ -1592,7 +1594,7 @@ workflows:
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
-                yarn test:wdio:android:browserstack $TEST_TYPE
+                yarn test:wdio:android:browserstack "$TEST_SUITE_FOLDER" "$TEST_TYPE"
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -1632,7 +1634,7 @@ workflows:
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
-                yarn test:wdio:ios:browserstack $TEST_TYPE
+                yarn test:wdio:ios:browserstack "$TEST_SUITE_FOLDER" "$TEST_TYPE"
       - script@1:
           is_always_run: true
           is_skippable: false
