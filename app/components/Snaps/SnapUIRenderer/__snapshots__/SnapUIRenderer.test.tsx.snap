@@ -1115,11 +1115,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-<<<<<<< HEAD
-            "backgroundColor": "#141618",
-=======
-            "backgroundColor": "#4459ff",
->>>>>>> 26a0b40fe3 (feat: upgrading design token colors to brand evolution)
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1348,11 +1344,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-<<<<<<< HEAD
-            "backgroundColor": "#141618",
-=======
-            "backgroundColor": "#4459ff",
->>>>>>> 26a0b40fe3 (feat: upgrading design token colors to brand evolution)
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -2998,11 +2990,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-<<<<<<< HEAD
-            "backgroundColor": "#141618",
-=======
-            "backgroundColor": "#4459ff",
->>>>>>> 26a0b40fe3 (feat: upgrading design token colors to brand evolution)
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
