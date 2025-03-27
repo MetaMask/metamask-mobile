@@ -1,0 +1,17 @@
+diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.cjs b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
+index 78d4c28..cf25873 100644
+--- a/node_modules/@metamask/network-controller/dist/NetworkController.cjs
++++ b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
+@@ -128,6 +128,12 @@ function getDefaultNetworkConfigurationsByChainId(additionalDefaultNetworks = []
+  */
+ function getDefaultInfuraNetworkConfigurationsByChainId() {
+     return Object.values(controller_utils_1.InfuraNetworkType).reduce((obj, infuraNetworkType) => {
++        if (
++            infuraNetworkType === controller_utils_1.InfuraNetworkType.goerli ||
++            infuraNetworkType === controller_utils_1.InfuraNetworkType['linea-goerli']
++        ) {
++            return obj;
++        }
+         const chainId = controller_utils_1.ChainId[infuraNetworkType];
+         const rpcEndpointUrl =
+         // This ESLint rule mistakenly produces an error.
