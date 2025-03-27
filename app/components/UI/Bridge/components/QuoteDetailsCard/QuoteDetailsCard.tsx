@@ -77,7 +77,7 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
 };
 
 // Using first quote from mock data
-const quoteDetails = mockQuotes[0] as unknown as QuoteResponse;
+const quoteDetails = mockQuotes[0] as unknown as QuoteResponse; //TODO: Remove this once we have a real quote from the controller MMS-1886
 
 const QuoteDetailsCard = () => {
   const theme = useTheme();
