@@ -60,6 +60,7 @@ import {
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
 import {
+  ChainId,
   NetworksTicker,
   isSafeChainId,
   toHex,
@@ -1187,6 +1188,7 @@ export class NetworkSettings extends PureComponent {
     const { MAINNET, LINEA_MAINNET } = CHAIN_IDS;
     const MAINNET_NAME = 'Mainnet';
     const LINEA_NAME = 'Linea Mainnet';
+    const MEGAETH_TESTNET = 'Mega Testnet';
 
     if (!useSafeChainsListValidation) {
       return;
@@ -1208,7 +1210,11 @@ export class NetworkSettings extends PureComponent {
       nameToUse =
         // eslint-disable-next-line eqeqeq
         name === nickname || nickname == LINEA_NAME ? undefined : name;
-    } else {
+    } else if (chainId === ChainId['megaeth-testnet']) {
+      // Allow 'Mega Testnet' or nickname for MegaEth Testnet
+      name === nickname || nickname == MEGAETH_TESTNET ? undefined : name;
+    }
+    else {
       // For other chains, check if name matches the nickname
       nameToUse = name === nickname ? undefined : name;
     }
