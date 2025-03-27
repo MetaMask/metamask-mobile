@@ -49,7 +49,6 @@ export class WC2Manager {
   private static _initialized = false;
   private navigation?: NavigationContainerRef;
   private web3Wallet: IWalletKit;
-  private sessions: { [topic: string]: WalletConnect2Session } = {};
   private deeplinkSessions: {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
@@ -60,6 +59,7 @@ export class WC2Manager {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
     navigation: NavigationContainerRef,
+    private sessions: { [topic: string]: WalletConnect2Session } = {},
   ) {
     this.web3Wallet = web3Wallet;
     this.deeplinkSessions = deeplinkSessions;
@@ -192,8 +192,10 @@ export class WC2Manager {
 
   public static async init({
     navigation,
+    sessions = {},
   }: {
     navigation: NavigationContainerRef;
+    sessions?: { [topic: string]: WalletConnect2Session };
   }) {
     if (!navigation) {
       console.warn(`WC2::init missing navigation --- SKIP INIT`);
@@ -272,7 +274,7 @@ export class WC2Manager {
     try {
       // Add delay before returning instance
       await wait(1000);
-      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation);
+      this.instance = new WC2Manager(web3Wallet, deeplinkSessions, navigation, sessions);
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }

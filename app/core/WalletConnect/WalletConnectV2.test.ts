@@ -1,4 +1,4 @@
-import { WC2Manager } from './WalletConnectV2';
+import { ERROR_MESSAGES, WC2Manager } from './WalletConnectV2';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Ignoring the import error for testing purposes
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -7,6 +7,8 @@ import StorageWrapper from '../../store/storage-wrapper';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import { IWalletKit } from '@reown/walletkit';
+import WalletConnect from './WalletConnect';
+import WalletConnect2Session from './WalletConnect2Session';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -49,6 +51,25 @@ jest.mock('@reown/walletkit', () => {
     }),
     on: jest.fn(),
     respondSessionRequest: jest.fn(),
+    core: {
+      pairing: {
+        pair: jest.fn().mockResolvedValue({
+          topic: 'test-topic',
+          expiry: 10000000,
+          relay: {
+            protocol: 'irn'
+          },
+          active: true,
+          peerMetadata: {
+            name: 'Test App',
+            description: 'Test App Description',
+            url: 'https://example.com',
+            icons: ['https://example.com/icon.png'],
+          },
+          methods: ['eth_sendTransaction'],
+        })
+      }
+    }
   };
 
   return {
@@ -115,6 +136,8 @@ jest.mock('./WalletConnect2Session', () => ({
     updateSession: jest.fn(),
     handleRequest: jest.fn(),
     removeListeners: jest.fn(),
+    setDeeplink: jest.fn(),
+    isHandlingRequest: jest.fn().mockReturnValue(false),
   })),
 }));
 
@@ -125,7 +148,7 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
   })),
 }));
 
-jest.mock('@walletconnect/client', () => ({
+jest.mock('./WalletConnect', () => ({
   newSession: jest.fn().mockResolvedValue({}),
 }));
 
@@ -133,6 +156,7 @@ describe('WC2Manager', () => {
   let manager: WC2Manager;
   let mockNavigation: NavigationContainerRef;
   let mockApproveSession: jest.SpyInstance;
+  let sessions: { [topic: string]: WalletConnect2Session } = {};
 
   beforeEach(async () => {
     mockNavigation = {
@@ -140,7 +164,7 @@ describe('WC2Manager', () => {
       navigate: jest.fn(),
     } as unknown as NavigationContainerRef;
 
-    const initResult = await WC2Manager.init({ navigation: mockNavigation });
+    const initResult = await WC2Manager.init({ navigation: mockNavigation, sessions });
     if (!initResult) {
       throw new Error('Failed to initialize WC2Manager');
     }
@@ -234,6 +258,222 @@ describe('WC2Manager', () => {
     });
   });
 
+  describe('WC2Manager connect', () => {
+    it('should handle v2 URIs correctly', async () => {
+      const mockWcUri = 'wc://testv2uri';
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const pairedSessions = manager.getSessions();
+      expect(pairedSessions.length).toBeGreaterThan(0);
+    });
+
+    it('should not connect if URI is invalid', async () => {
+      const mockWcUri = 'invalid-uri';
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const sessions = manager.getSessions();
+      expect(sessions.length).toBe(1);
+    });
+
+    it('should handle deeplink sessions correctly', async () => {
+      const mockWcUri = 'wc:7f6e504bfad60b485450578e05678441fa7a8ea2b3d7d678ef6c72a2efe0f6ad@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303';
+
+      const storageSpy = jest.spyOn(StorageWrapper, 'setItem');
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      const pairedSessions = manager.getSessions();
+      expect(pairedSessions.length).toBeGreaterThan(0);
+
+      expect(storageSpy).toHaveBeenCalledWith(
+        AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
+        expect.any(String),
+      );
+    });
+
+    it('should handle existing sessionTopic connections', async () => {
+      const mockWcUri = 'wc://test@2?sessionTopic=test-topic';
+      const showLoadingSpy = jest.spyOn(require('./wc-utils'), 'showWCLoadingState');
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+      });
+
+      expect(showLoadingSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle WalletConnect v1 URIs', async () => {
+      const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
+      const WalletConnectSpy = jest.spyOn(WalletConnect, 'newSession');
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: 'qrcode',
+      });
+
+      expect(WalletConnectSpy).toHaveBeenCalledWith(
+        mockWcUri,
+        'https://example.com',
+        false,
+        'qrcode'
+      );
+    });
+
+    it('should handle invalid URIs', async () => {
+      const mockWcUri = 'invalid:uri';
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+      await manager.connect({
+        wcUri: mockWcUri,
+        redirectUrl: 'https://example.com',
+        origin: 'qrcode',
+      });
+
+      expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('WC2Manager session request handling', () => {
+    let mockWeb3Wallet: IWalletKit;
+
+    beforeEach(() => {
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+    });
+
+    it('should handle session requests through event emission', async () => {
+      // Get the callback that was registered for 'session_request'
+      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
+        ([event]) => event === 'session_request'
+      )?.[1];
+
+      expect(sessionRequestCallback).toBeDefined();
+
+      const mockRequest = {
+        topic: 'test-topic',
+        id: 1,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [],
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com'
+          }
+        }
+      };
+
+      // Call the callback directly
+      await sessionRequestCallback(mockRequest);
+      
+      const session = manager.getSession('test-topic');
+      expect(session).toBeDefined();
+    });
+
+    it('should reject invalid session requests through event emission', async () => {
+      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
+        ([event]) => event === 'session_request'
+      )?.[1];
+
+      expect(sessionRequestCallback).toBeDefined();
+
+      const mockRequest = {
+        topic: 'invalid-topic',
+        id: 1,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [],
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com'
+          }
+        }
+      };
+
+      const respondSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest');
+
+      // Call the callback directly
+      await sessionRequestCallback(mockRequest);
+
+      expect(respondSpy).toHaveBeenCalledWith({
+        topic: 'invalid-topic',
+        response: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID },
+        },
+      });
+    });
+
+    it('should handle errors during session request processing', async () => {
+      const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
+        ([event]) => event === 'session_request'
+      )?.[1];
+
+      const mockRequest = {
+        topic: 'test-topic',
+        id: 1,
+        params: {
+          request: {
+            method: 'eth_sendTransaction',
+            params: [],
+          },
+        },
+        verifyContext: {
+          verified: {
+            verifyUrl: 'https://example.com',
+            validation: 'VALID' as const,
+            origin: 'https://example.com'
+          }
+        }
+      };
+
+      // Mock an error in session handling
+      const session = manager.getSession('test-topic');
+      if (session) {
+        const mockSession = sessions[session.topic];
+        mockSession.handleRequest = jest.fn().mockRejectedValue(new Error('Test error'));
+      }
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      await sessionRequestCallback(mockRequest);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'WC2::onSessionRequest() Error while handling request',
+        expect.any(Error)
+      );
+
+      consoleSpy.mockRestore();
+    });
+  });
+
   describe('WC2Manager removeSession', () => {
     it('should correctly remove a session and revoke permissions', async () => {
       const session = manager.getSession('test-topic');
@@ -273,51 +513,92 @@ describe('WC2Manager', () => {
     });
   });
 
-  describe('WC2Manager connect', () => {
-    it('should handle v2 URIs correctly', async () => {
-      const mockWcUri = 'wc://testv2uri';
-
-      await manager.connect({
-        wcUri: mockWcUri,
-        redirectUrl: 'https://example.com',
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      });
-
-      const pairedSessions = manager.getSessions();
-      expect(pairedSessions.length).toBeGreaterThan(0);
+  describe('WC2Manager isWalletConnect', () => {
+    it('should return true for valid WalletConnect origins', () => {
+      const result = manager.isWalletConnect('https://example.com');
+      expect(result).toBe(true);
     });
 
-    it('should not connect if URI is invalid', async () => {
-      const mockWcUri = 'invalid-uri';
+    it('should return false for invalid WalletConnect origins', () => {
+      const result = manager.isWalletConnect('https://invalid.com');
+      expect(result).toBe(false);
+    });
+  });
 
-      await manager.connect({
-        wcUri: mockWcUri,
-        redirectUrl: 'https://example.com',
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+  describe('WC2Manager session proposal handling', () => {
+    it('should handle session proposal rejection', async () => {
+      const mockPermissionController = Engine.context.PermissionController;
+      mockPermissionController.requestPermissions.mockRejectedValueOnce(new Error('User rejected'));
+
+      const mockSessionProposal = {
+        id: 1,
+        params: {
+          id: 1,
+          pairingTopic: 'test-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+        },
+      };
+
+      const mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession');
+
+      await manager.onSessionProposal(mockSessionProposal);
+
+      expect(rejectSessionSpy).toHaveBeenCalledWith({
+        id: 1,
+        reason: expect.any(Object),
       });
-
-      const sessions = manager.getSessions();
-      expect(sessions.length).toBe(1);
     });
 
-    it('should handle deeplink sessions correctly', async () => {
-      const mockWcUri = 'wc://testv2deeplinkuri';
+    it('should handle session proposal with invalid wallet status', async () => {
+      const mockSessionProposal = {
+        id: 1,
+        params: {
+          id: 1,
+          pairingTopic: 'test-pairing',
+          proposer: {
+            publicKey: 'test-public-key',
+            metadata: {
+              name: 'Test App',
+              description: 'Test App',
+              url: 'https://example.com',
+              icons: ['https://example.com/icon.png'],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:999999'], // Invalid chain
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+        },
+      };
 
-      const storageSpy = jest.spyOn(StorageWrapper, 'setItem');
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      
+      await manager.onSessionProposal(mockSessionProposal);
 
-      await manager.connect({
-        wcUri: mockWcUri,
-        redirectUrl: 'https://example.com',
-        origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
-      });
-
-      const pairedSessions = manager.getSessions();
-      expect(pairedSessions.length).toBeGreaterThan(0);
-
-      expect(storageSpy).toHaveBeenCalledWith(
-        AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
-        expect.any(String),
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'invalid wallet status',
+        expect.any(Error)
       );
+      consoleSpy.mockRestore();
     });
   });
 });
