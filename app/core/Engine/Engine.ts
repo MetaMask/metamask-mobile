@@ -327,6 +327,21 @@ export class Engine {
 
     networkController.initializeProvider();
 
+    const multichainNetworkControllerMessenger =
+      this.controllerMessenger.getRestricted({
+        name: 'MultichainNetworkController',
+        allowedActions: [
+          'NetworkController:setActiveNetwork',
+          'NetworkController:getState',
+        ],
+        allowedEvents: ['AccountsController:selectedAccountChange'],
+      });
+
+    const multichainNetworkController = createMultichainNetworkController({
+      messenger: multichainNetworkControllerMessenger,
+      initialState: initialState.MultichainNetworkController,
+    });
+
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
@@ -1266,6 +1281,7 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
+      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
@@ -1482,18 +1498,20 @@ export class Engine {
   handleVaultBackup() {
     this.controllerMessenger.subscribe(
       AppConstants.KEYRING_STATE_CHANGE_EVENT,
-      (state: KeyringControllerState) =>
+      (state: KeyringControllerState) => {
+        if (!state.vault) {
+          return;
+        }
+
+        // Back up vault if it exists
         backupVault(state)
-          .then((result) => {
-            if (result.success) {
-              Logger.log('Engine', 'Vault back up successful');
-            } else {
-              Logger.log('Engine', 'Vault backup failed', result.error);
-            }
+          .then(() => {
+            Logger.log('Engine', 'Vault back up successful');
           })
           .catch((error) => {
             Logger.error(error, 'Engine Vault backup failed');
-          }),
+          });
+      },
     );
   }
 

@@ -31,7 +31,10 @@ import { calcTokenAmount } from '../../../../../../../../../../util/transactions
 import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
-import { isPermitDaiRevoke, isPermitDaiUnlimited } from '../../../../../../../utils/signature';
+import {
+  isPermitDaiRevoke,
+  isPermitDaiUnlimited,
+} from '../../../../../../../utils/signature';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
 import BottomModal from '../../../../../../UI/BottomModal';
 
@@ -133,7 +136,8 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   const isNFT = tokenId !== undefined && tokenId !== '0';
   const isDaiUnlimited = isPermitDaiUnlimited(tokenContract, allowed);
   const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed, value);
-  const isRevoke = isDaiRevoke || modalHeaderText === strings('confirm.title.permit_revoke');
+  const isRevoke =
+    isDaiRevoke || modalHeaderText === strings('confirm.title.permit_revoke');
 
   const tokenAmount =
     isNumberValue(value) && !tokenId
@@ -160,35 +164,53 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     ? formatAmountMaxPrecision('en-US', tokenAmount)
     : null;
 
-  const showUnlimitedValue = isDaiUnlimited ||
+  const showUnlimitedValue =
+    isDaiUnlimited ||
     (canDisplayValueAsUnlimited &&
-    Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD);
+      Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD);
 
   // Avoid empty button pill container
-  const showValueButtonPill = Boolean(isPendingTokenDetails
-    || showUnlimitedValue
-    || (tokenValue !== null || tokenId));
+  const showValueButtonPill = Boolean(
+    isPendingTokenDetails ||
+      showUnlimitedValue ||
+      tokenValue !== null ||
+      tokenId,
+  );
+
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(
+    isPendingTokenDetails ||
+      shouldShowUnlimitedValue ||
+      tokenValue !== null ||
+      tokenId,
+  );
 
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
 
-    return (
-      <View style={styles.wrapper}>
-        <View style={styles.flexRowTokenValueAndAddress}>
-          <View style={styles.valueAndAddress}>
-            {showValueButtonPill &&
-              <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
-                <ButtonPill
-                  isDisabled={isNFT || tokenValueMaxPrecision === null}
-                  onPress={handlePressTokenValue}
-                  onPressIn={handlePressTokenValue}
-                  onPressOut={handlePressTokenValue}
-                  style={[credit && styles.valueIsCredit, debit && styles.valueIsDebit]}
-                >
-                  {isPendingTokenDetails ?
-                    <View style={styles.loaderButtonPillEmptyContent} />
-                  :
+  return (
+    <View style={styles.wrapper}>
+      <View style={styles.flexRowTokenValueAndAddress}>
+        <View style={styles.valueAndAddress}>
+          {showValueButtonPill && (
+            <AnimatedPulse
+              isPulsing={isPendingTokenDetails}
+              testID="simulation-value-display-loader"
+            >
+              <ButtonPill
+                isDisabled={isNFT || tokenValueMaxPrecision === null}
+                onPress={handlePressTokenValue}
+                onPressIn={handlePressTokenValue}
+                onPressOut={handlePressTokenValue}
+                style={[
+                  credit && styles.valueIsCredit,
+                  debit && styles.valueIsDebit,
+                ]}
+              >
+                {isPendingTokenDetails ? (
+                  <View style={styles.loaderButtonPillEmptyContent} />
+                ) : (
                   <Text>
                     {credit && '+ '}
                     {debit && '- '}
@@ -203,10 +225,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                         })}
                     {tokenId && `#${tokenId}`}
                   </Text>
-                }
+                )}
               </ButtonPill>
             </AnimatedPulse>
-          }
+          )}
           <View style={styles.marginStart4}>
             <Address address={tokenContract} chainId={chainId} />
           </View>

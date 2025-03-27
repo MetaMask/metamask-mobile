@@ -25,7 +25,10 @@ const useVaultApyAverages = () => {
   };
 
   return {
-    vaultApyAverages,
+    vaultApyAverages:
+      Object.keys(vaultApyAverages).length === 0
+        ? DEFAULT_VAULT_APY_AVERAGES
+        : vaultApyAverages,
     refreshVaultApyAverages: fetchVaultAprs,
     isLoadingVaultApyAverages: isLoading,
     error,

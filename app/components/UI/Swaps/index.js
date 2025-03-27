@@ -737,7 +737,7 @@ function SwapsAmountView({
                   strings('swaps.available_to_swap', {
                     asset: `${balance} ${sourceToken.symbol}`,
                   })}
-                {showMaxBalanceLink && (
+                {!isSwapsNativeAsset(sourceToken) && hasBalance && (
                   <Text style={styles.linkText} onPress={handleUseMax}>
                     {' '}
                     {strings('swaps.use_max')}
