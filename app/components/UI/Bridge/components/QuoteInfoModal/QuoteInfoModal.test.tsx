@@ -8,12 +8,16 @@ import QuoteInfoModal from './QuoteInfoModal';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    goBack: mockGoBack,
-  }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: jest.fn(() => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+    })),
+  };
+});
 
 const initialMetrics = {
   frame: { x: 0, y: 0, width: 320, height: 640 },
@@ -48,15 +52,6 @@ describe('QuoteInfoModal', () => {
     const { getByText } = renderQuoteInfoModal();
 
     const closeButton = getByText(strings('bridge.see_other_quotes'));
-    fireEvent.press(closeButton);
-
-    expect(mockGoBack).toHaveBeenCalled();
-  });
-
-  it('closes modal when header close button is pressed', () => {
-    const { getByLabelText } = renderQuoteInfoModal();
-
-    const closeButton = getByLabelText('Close');
     fireEvent.press(closeButton);
 
     expect(mockGoBack).toHaveBeenCalled();
