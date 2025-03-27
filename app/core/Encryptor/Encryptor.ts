@@ -308,7 +308,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       password,
       salt,
       true,
-      keyMetadata ?? DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+      // If the keyMetadata is not present, we can assume the key was derived using the legacy options
+      keyMetadata || LEGACY_DERIVATION_OPTIONS,
       payload.lib,
     );
     const exportedKeyString = await this.exportKey(key);
