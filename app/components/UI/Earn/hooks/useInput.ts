@@ -31,17 +31,17 @@ const useInputHandler = ({
   exchangeRate = 1,
   conversionRate,
 }: InputHandlerParams) => {
-  // the asset ui amount
+  // the asset ui amount, lowest possible amount is < 0.00001 which is NaN
   const [amountToken, setAmountToken] = useState('0');
-  // the asset minimal unit amount
+  // the asset minimal unit amount, regardless of the ui amount, this will be most accurate
   const [amountTokenMinimalUnit, setAmountTokenMinimalUnit] = useState<BN4>(
     new BN4(0),
   );
-  // the converted fiat number amount
+  // the converted fiat number string i.e. 2.12
   const [amountFiatNumber, setAmountFiatNumber] = useState('0');
-  // currency toggle fiat / token
+  // currency toggle between fiat / token as primary
   const [isFiat, setIsFiat] = useState<boolean>(false);
-  // the current selected currency
+  // the current selected currency in app settings
   const currentCurrency = useSelector(selectCurrentCurrency);
   // the current selected chain id
   const chainId = useSelector(selectChainId);

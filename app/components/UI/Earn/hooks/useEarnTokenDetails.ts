@@ -1,21 +1,22 @@
+import { hexToBN } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
+import BigNumber from 'bignumber.js';
 import BN4 from 'bnjs4';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { TokenI } from '../../Tokens/types';
-import { Hex } from '@metamask/utils';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
-import { selectNetworkConfigurations } from '../../../../selectors/networkController';
-import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
-import { hexToBN } from '@metamask/controller-utils';
-import useBalance from '../../Stake/hooks/useBalance';
-import BigNumber from 'bignumber.js';
+import { addCurrencySymbol } from '../../../../util/number';
 import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import useBalance from '../../Stake/hooks/useBalance';
+import { TokenI } from '../../Tokens/types';
+import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -90,32 +91,44 @@ export const useEarnTokenDetails = () => {
           .toNumber();
         if (
           !Number.isNaN(estimatedAnnualRewardsDecimal) &&
-          assetBalanceFiatNumber > 0
+          estimatedAnnualRewardsDecimal > 0
         ) {
           // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
           const numDecimalPlacesToShow =
             estimatedAnnualRewardsDecimal > 1 ? 0 : 2;
 
-          estimatedAnnualRewardsFormatted = `$${new BigNumber(
-            estimatedAnnualRewardsDecimal,
-          ).toFixed(numDecimalPlacesToShow, BigNumber.ROUND_UP)}`;
+          estimatedAnnualRewardsFormatted = `${addCurrencySymbol(
+            new BigNumber(estimatedAnnualRewardsDecimal).toFixed(
+              numDecimalPlacesToShow,
+              BigNumber.ROUND_UP,
+            ),
+            currentCurrency,
+          )}`;
         }
       }
 
       return {
         ...token,
-        // minimal unit balance of the asset
+        // minimal unit balance of the asset, the most accurate
+        // i.e. 1000000 would = 1 USDC with 6 decimals
         balanceMinimalUnit: new BN4(
           tokenBalanceMinimalUnit.toString(),
         ).toString(),
-        // formatted balance of the asset
+        // formatted ui balance of the asset with ticker
+        // i.e. 1 ETH or 100.12345 USDC or < 0.00001 ETH
         balanceFormatted: balanceValueFormatted,
-        // fiat balance of the asset
+        // formatted ui fiat balance of the asset
+        // i.e. $100.12 USD or < $0.01 USD
         balanceFiat,
-        // fiat balance of the asset in number format
+        // fiat balance of the asset in number format, the most accurate
+        // i.e. 100.12345
         balanceFiatNumber: assetBalanceFiatNumber,
         // asset apr info
+        // i.e. 4.5%
         apr,
+        // estimated annual rewards
+        // formatted with currency symbol for current currency
+        // i.e. $2.12 or £0.00
         estimatedAnnualRewardsFormatted,
       };
     },

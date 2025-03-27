@@ -211,17 +211,43 @@ describe('useEarnTokenDetails', () => {
   });
 
   it('returns estimatedAnnualRewardsFormatted as empty string when token balance is empty', () => {
-    const usdcTokenWithEmptyBalance = {
-      ...mockUSDCToken,
-      balanceFiat: '',
-    };
-
     const { result } = renderHookWithProvider(() => useEarnTokenDetails(), {
-      state: mockInitialState,
+      state: {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            TokenBalancesController: {
+              ...mockInitialState.engine.backgroundState
+                .TokenBalancesController,
+              tokenBalances: {
+                ...mockInitialState.engine.backgroundState
+                  .TokenBalancesController.tokenBalances,
+                [mockAddress]: {
+                  ...mockInitialState.engine.backgroundState
+                    .TokenBalancesController.tokenBalances[mockAddress],
+                  [CHAIN_IDS.MAINNET]: {
+                    ...mockInitialState.engine.backgroundState
+                      .TokenBalancesController.tokenBalances[mockAddress][
+                      CHAIN_IDS.MAINNET
+                    ],
+                    [usdcAddress]: '0x0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     });
 
     const { estimatedAnnualRewardsFormatted } =
-      result.current.getTokenWithBalanceAndApr(usdcTokenWithEmptyBalance);
+      result.current.getTokenWithBalanceAndApr({
+        ...mockUSDCToken,
+        balance: '',
+        balanceFiat: '',
+      });
 
     expect(estimatedAnnualRewardsFormatted).toBe('');
   });

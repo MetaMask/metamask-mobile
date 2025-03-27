@@ -66,7 +66,12 @@ const EarnInputView = () => {
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token.chainId as Hex),
   );
-  const exchangeRate = contractExchangeRates?.[token.address as Hex]?.price;
+
+  // if token is ETH, use 1 as the exchange rate
+  // otherwise, use the contract exchange rate or 0 if undefined
+  const exchangeRate = token.isETH
+    ? 1
+    : contractExchangeRates?.[token.address as Hex]?.price ?? 0;
 
   // other hooks
   const { styles, theme } = useStyles(styleSheet, {});
