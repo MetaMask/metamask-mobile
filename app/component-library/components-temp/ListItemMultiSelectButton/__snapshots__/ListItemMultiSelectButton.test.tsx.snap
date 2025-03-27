@@ -77,7 +77,7 @@ exports[`ListItemMultiSelectButton should render correctly with default props 1`
       testID="button-menu-select-test-id"
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={16}
         name="MoreVertical"
         style={

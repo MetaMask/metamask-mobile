@@ -30,7 +30,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
       size={30}
       style={
         {
-          "color": "#9fa6ae",
+          "color": "#9ca1af",
           "flex": 1,
         }
       }
@@ -38,7 +38,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
@@ -80,7 +80,7 @@ exports[`ExpandedMessage should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "600",
