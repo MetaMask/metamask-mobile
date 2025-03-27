@@ -13,7 +13,7 @@ describe('InfoRowDivider', () => {
       <View
         style={
           {
-            "backgroundColor": "#BBC0C566",
+            "backgroundColor": "#b7bbc866",
             "height": 1,
             "marginLeft": -8,
             "marginRight": -8,

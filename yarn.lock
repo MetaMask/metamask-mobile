@@ -4558,10 +4558,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
-  integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
+"@metamask/design-tokens@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.1.0.tgz#0ee1cfc147aac08b73e2c12ec6d9063302dd643c"
+  integrity sha512-wMt9kYA0JTColhEKA8bq9GoUvJ83/7Q0UVMyi1oyxM0UfBudhSXxULR9FdBo/KVxXpOa0fKJC6ZyzuJkGgxKtg==
 
 "@metamask/earn-controller@^0.10.0":
   version "0.10.0"
