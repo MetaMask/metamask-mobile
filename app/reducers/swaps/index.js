@@ -245,6 +245,9 @@ export const swapsTokensSelector = createSelector(
 export const topAssets = (state) =>
   state.engine.backgroundState.SwapsController.topAssets;
 
+export const selectChainCache = (state) =>
+  state.engine.backgroundState.SwapsController.chainCache;
+
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
  * and undefined as value. Useful to check if a token is supported by swaps.
