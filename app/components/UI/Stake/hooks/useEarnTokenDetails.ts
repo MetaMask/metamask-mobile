@@ -26,7 +26,7 @@ interface EarnTokenDetails extends TokenI {
   apr: string;
   estimatedAnnualRewardsFormatted: string;
   tokenBalanceFormatted: string;
-  balanceFiat: string | undefined;
+  balanceFiat?: string;
 }
 
 export const useEarnTokenDetails = () => {
