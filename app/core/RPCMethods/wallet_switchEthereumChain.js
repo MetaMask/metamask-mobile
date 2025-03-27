@@ -8,11 +8,22 @@ import {
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
 
+/**
+ * Switch chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns Nothing.
+ */
 const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
+  hooks,
 }) => {
   const {
     CurrencyRateController,
@@ -61,6 +72,15 @@ const wallet_switchEthereumChain = async ({
       return;
     }
 
+    const currentChainIdForOrigin = hooks.getCurrentChainIdForDomain(origin);
+
+    const fromNetworkConfiguration = hooks.getNetworkConfigurationByChainId(
+      currentChainIdForOrigin,
+    );
+
+    const toNetworkConfiguration =
+      hooks.getNetworkConfigurationByChainId(chainId);
+
     await switchToNetwork({
       network: existingNetwork,
       chainId: _chainId,
@@ -74,6 +94,11 @@ const wallet_switchEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow: false,
+      hooks: {
+        toNetworkConfiguration,
+        fromNetworkConfiguration,
+        ...hooks,
+      },
     });
 
     res.result = null;

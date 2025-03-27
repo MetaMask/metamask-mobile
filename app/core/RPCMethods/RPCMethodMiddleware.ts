@@ -14,8 +14,13 @@ import { RPC } from '../../constants/network';
 import { ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
-  permissionRpcMethods,
+  PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
+import {
+  getPermissionsHandler,
+  requestPermissionsHandler,
+  revokePermissionsHandler,
+} from '@metamask/eip1193-permission-middleware';
 import { blockTagParamIndex, getAllNetworks } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import {
@@ -48,8 +53,7 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
-import { PermissionKeys } from '../Permissions/specifications.js';
-
+import { Hex } from '@metamask/utils';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -293,6 +297,64 @@ const generateRawSignature = async ({
   return rawSig;
 };
 
+// TODO: [ffmcgee] docs (and return type)
+const getRpcMethodMiddlewareHooks = (origin: string) => ({
+  getCaveat: ({
+    target,
+    caveatType,
+  }: {
+    target: string;
+    caveatType: string;
+  }) => {
+    try {
+      return Engine.context.PermissionController.getCaveat(
+        origin,
+        target,
+        caveatType,
+      );
+    } catch (e) {
+      if (e instanceof PermissionDoesNotExistError) {
+        // suppress expected error in case that the origin
+        // does not have the target permission yet
+      } else {
+        throw e;
+      }
+    }
+
+    return undefined;
+  },
+  requestPermittedChainsPermissionIncrementalForOrigin: (options: {
+    origin: string;
+    chainId: Hex;
+    autoApprove: boolean;
+  }) =>
+    Engine.requestPermittedChainsPermissionIncremental({
+      ...options,
+      origin,
+    }),
+  hasApprovalRequestsForOrigin: () =>
+    Engine.context.ApprovalController.has({ origin }),
+  toNetworkConfiguration: Engine.controllerMessenger.call.bind(
+    Engine.controllerMessenger,
+    'NetworkController:getNetworkConfigurationByChainId',
+  ),
+  getCurrentChainIdForDomain: (domain: string) => {
+    const networkClientId =
+      Engine.context.SelectedNetworkController.getNetworkClientIdForDomain(
+        domain,
+      );
+    const { chainId } =
+      Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+        networkClientId,
+      );
+    return chainId;
+  },
+  getNetworkConfigurationByChainId:
+    Engine.context.NetworkController.getNetworkConfigurationByChainId.bind(
+      Engine.context.NetworkController,
+    ),
+});
+
 /**
  * Handle RPC methods called by dapps
  */
@@ -334,6 +396,7 @@ export const getRpcMethodMiddleware = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
+    // TODO: Check on this
     const getEthAccounts = async () => {
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
@@ -398,11 +461,7 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    const [
-      requestPermissionsHandler,
-      getPermissionsHandler,
-      revokePermissionsHandler,
-    ] = permissionRpcMethods.handlers;
+    const hooks = getRpcMethodMiddlewareHooks(origin);
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -420,28 +479,8 @@ export const getRpcMethodMiddleware = ({
           {
             revokePermissionsForOrigin: (permissionKeys) => {
               try {
-                /**
-                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both.
-                 * This manual filtering will be handled / refactored once we implement [CAIP-25 permissions](https://github.com/MetaMask/MetaMask-planning/issues/4129)
-                 */
-                const caip25EquivalentPermissions: string[] = [
-                  PermissionKeys.eth_accounts,
-                  PermissionKeys.permittedChains,
-                ];
-
-                const keysToRevoke = permissionKeys.some((key) =>
-                  caip25EquivalentPermissions.includes(key),
-                )
-                  ? Array.from(
-                      new Set([
-                        ...caip25EquivalentPermissions,
-                        ...permissionKeys,
-                      ]),
-                    )
-                  : permissionKeys;
-
                 Engine.context.PermissionController.revokePermissions({
-                  [origin]: keysToRevoke,
+                  [origin]: permissionKeys,
                 });
               } catch (e) {
                 // we dont want to handle errors here because
@@ -465,6 +504,7 @@ export const getRpcMethodMiddleware = ({
               resolve(undefined);
             },
             {
+              getAccounts: (...args) => getPermittedAccounts(origin, ...args),
               getPermissionsForOrigin:
                 Engine.context.PermissionController.getPermissions.bind(
                   Engine.context.PermissionController,
@@ -492,6 +532,14 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
+                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getCaip25PermissionFromLegacyPermissionsForOrigin: (
+                  requestedPermissions,
+                ) =>
+                  Engine.getCaip25PermissionFromLegacyPermissions(
+                    origin,
+                    requestedPermissions,
+                  ),
                 requestPermissionsForOrigin:
                   Engine.context.PermissionController.requestPermissions.bind(
                     Engine.context.PermissionController,
@@ -544,6 +592,7 @@ export const getRpcMethodMiddleware = ({
       eth_requestAccounts: async () => {
         const { params } = req;
 
+        // TODO: Investigate this later
         const permittedAccounts = await getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {
@@ -551,6 +600,7 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
+            // TODO: This is definitely not right
             await Engine.context.PermissionController.requestPermissions(
               { origin },
               { eth_accounts: {} },
@@ -938,6 +988,7 @@ export const getRpcMethodMiddleware = ({
           },
           startApprovalFlow,
           endApprovalFlow,
+          hooks,
         });
       },
 
@@ -951,6 +1002,7 @@ export const getRpcMethodMiddleware = ({
             request_source: getSource(),
             request_platform: analytics?.platform,
           },
+          hooks,
         });
       },
     };

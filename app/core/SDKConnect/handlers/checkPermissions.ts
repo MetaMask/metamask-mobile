@@ -88,6 +88,7 @@ export const checkPermissions = async ({
       return allowed;
     }
 
+    // TODO: this isn't right
     const accountPermission = permissionsController.getPermission(
       connection.channelId,
       'eth_accounts',

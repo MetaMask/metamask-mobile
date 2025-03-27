@@ -1,4 +1,9 @@
-import type { Json, JsonRpcParams, JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import type {
+  Json,
+  JsonRpcParams,
+  JsonRpcRequest,
+  PendingJsonRpcResponse,
+} from '@metamask/utils';
 import { trace, TraceName } from '../../util/trace';
 
 export const MESSAGE_TYPE = {
@@ -7,6 +12,10 @@ export const MESSAGE_TYPE = {
   ETH_SIGN_TYPED_DATA_V3: 'eth_signTypedData_v3',
   ETH_SIGN_TYPED_DATA_V4: 'eth_signTypedData_v4',
   PERSONAL_SIGN: 'personal_sign',
+  ADD_ETHEREUM_CHAIN: 'wallet_addEthereumChain',
+  SWITCH_ETHEREUM_CHAIN: 'wallet_switchEthereumChain',
+  WATCH_ASSET: 'wallet_watchAsset',
+  ETH_REQUEST_ACCOUNTS: 'eth_requestAccounts',
 };
 
 const METHOD_TYPE_TO_TRACE_NAME: Record<string, TraceName> = {

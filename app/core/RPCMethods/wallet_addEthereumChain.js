@@ -37,6 +37,18 @@ const addOrUpdateIndex = (array, value, comparator) => {
   return { updatedArray: array, index };
 };
 
+/**
+ * Add chain implementation to be used in JsonRpcEngine middleware.
+ *
+ * @param params.req - The JsonRpcEngine request.
+ * @param params.res - The JsonRpcEngine result object.
+ * @param params.requestUserApproval - The callback to trigger user approval flow.
+ * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param params.startApprovalFlow - Flow to trigger at approval start.
+ * @param params.endApprovalFlow - Flow to trigger at approval end.
+ * @param params.hooks - Method hooks passed to the method implementation.
+ * @returns Nothing.
+ */
 const wallet_addEthereumChain = async ({
   req,
   res,
@@ -44,6 +56,7 @@ const wallet_addEthereumChain = async ({
   analytics,
   startApprovalFlow,
   endApprovalFlow,
+  hooks,
 }) => {
   const {
     NetworkController,
@@ -68,6 +81,14 @@ const wallet_addEthereumChain = async ({
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
+    // TODO: [ffmcgee] check impl from extension, for now we default to true ? We need to come back to this
+    const shouldAddOrUpdateNetwork = true;
+    // const shouldAddOrUpdateNetwork =
+    //   !existingNetwork ||
+    //   rpcIndex !== existingNetwork.defaultRpcEndpointIndex ||
+    //   (firstValidBlockExplorerUrl &&
+    //     blockExplorerIndex !== existingNetwork.defaultBlockExplorerUrlIndex);
+
     await switchToNetwork({
       network: [networkClientId, network],
       chainId,
@@ -80,6 +101,10 @@ const wallet_addEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow,
+      hooks: {
+        autoApprove: shouldAddOrUpdateNetwork,
+        ...hooks,
+      },
     });
   };
 
