@@ -1236,7 +1236,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\nfind \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
+			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\n\nif [ \"${CONFIGURATION}\" = \"Release\" ]; then\n  find \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n";
 		};
 		B04B18D72D8B34BE00C5C2CE /* Strip Bitcode */ = {
 			isa = PBXShellScriptBuildPhase;
