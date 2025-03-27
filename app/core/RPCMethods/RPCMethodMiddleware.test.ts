@@ -30,6 +30,7 @@ import { RootState } from 'app/reducers';
 import { addTransaction } from '../../util/transaction-controller';
 import { Messenger } from '@metamask/base-controller';
 import {
+  PermissionKeys,
   getCaveatSpecifications,
   getPermissionSpecifications,
   unrestrictedMethods,
@@ -594,7 +595,7 @@ describe('getRpcMethodMiddleware', () => {
   }
 
   describe('wallet_revokePermissions', () => {
-    it('revokes eth_accounts and endowment:permitted-chains permissions if eth_accounts permission key is passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permissions if ${PermissionKeys.eth_accounts} permission key is passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -604,17 +605,17 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ eth_accounts: {} }],
+        params: [{ [PermissionKeys.eth_accounts]: {} }],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts and endowment:permitted-chains permissions if endowment:permitted-chains permission key is passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permission if ${PermissionKeys.permittedChains} permission key is passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -624,17 +625,17 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ 'endowment:permitted-chains': {} }],
+        params: [{ [PermissionKeys.permittedChains]: {} }],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts and endowment:permitted-chains permissions if both permission keys are passed', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} permission if both ${PermissionKeys.eth_accounts} and ${PermissionKeys.permittedChains} permission keys are passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -644,17 +645,22 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ eth_accounts: {}, 'endowment:permitted-chains': {} }],
+        params: [
+          {
+            [PermissionKeys.eth_accounts]: {},
+            [PermissionKeys.permittedChains]: {},
+          },
+        ],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('revokes eth_accounts, endowment:permitted-chains, and other permissions, either is passed alongside other permissions', async () => {
+    it(`revokes ${Caip25EndowmentPermissionName} and other permissions, if ${PermissionKeys.eth_accounts} and ${PermissionKeys.permittedChains} passed alongside other permissions`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -664,17 +670,24 @@ describe('getRpcMethodMiddleware', () => {
         jsonrpc,
         id: 1,
         method: 'wallet_revokePermissions',
-        params: [{ 'endowment:permitted-chains': {}, a: {}, b: {} }],
+        params: [
+          {
+            [PermissionKeys.eth_accounts]: {},
+            [PermissionKeys.permittedChains]: {},
+            a: {},
+            b: {},
+          },
+        ],
       };
       await callMiddleware({ middleware, request });
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: ['eth_accounts', 'endowment:permitted-chains', 'a', 'b'],
+        [hostname]: [Caip25EndowmentPermissionName],
       });
     });
 
-    it('will revoke other permissions if neither eth_accounts or endowment:permitted-chains keys are passed', async () => {
+    it(`will revoke other permissions if ${Caip25EndowmentPermissionName} is not passed`, async () => {
       const hostname = 'example.metamask.io';
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -729,7 +742,7 @@ describe('getRpcMethodMiddleware', () => {
         >
       >[0] = {
         [Caip25EndowmentPermissionName]: {
-          parentCapability: 'eth_accounts',
+          parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
           date: 1,
           invoker: mockOrigin,
@@ -775,7 +788,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 'id',
         date: 1,
         invoker: mockOrigin,
-        parentCapability: 'eth_accounts',
+        parentCapability: PermissionKeys.eth_accounts,
       };
 
       const middleware = getRpcMethodMiddleware({
@@ -788,7 +801,7 @@ describe('getRpcMethodMiddleware', () => {
         method: 'wallet_requestPermissions',
         params: [
           {
-            eth_accounts: {},
+            [PermissionKeys.eth_accounts]: {},
           },
         ],
       };
@@ -808,7 +821,7 @@ describe('getRpcMethodMiddleware', () => {
         >
       >[0] = {
         [Caip25EndowmentPermissionName]: {
-          parentCapability: 'eth_accounts',
+          parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
           date: 1,
           invoker: mockOrigin,
@@ -839,7 +852,7 @@ describe('getRpcMethodMiddleware', () => {
         id: 'id',
         date: 1,
         invoker: mockOrigin,
-        parentCapability: 'eth_accounts',
+        parentCapability: PermissionKeys.eth_accounts,
         caveats: [
           {
             type: CaveatTypes.restrictReturnedAccounts,
