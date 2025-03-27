@@ -10,7 +10,7 @@ jest.mock('../../../../../../../util/networks', () => ({
 }));
 
 jest.mock('../../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
 }));
 
 describe('AccountNetworkInfoExpanded', () => {

@@ -277,7 +277,7 @@ describe('Engine', () => {
     });
   });
 
-  describe('getTotalFiatAccountBalance', () => {
+  describe('getTotalEvmFiatAccountBalance', () => {
     let engine: EngineClass;
     afterEach(() => engine?.destroyEngineInstance());
 
@@ -323,7 +323,7 @@ describe('Engine', () => {
 
     it('calculates when theres no balances', () => {
       engine = Engine.init(state);
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       expect(totalFiatBalance).toStrictEqual({
         ethFiat: 0,
         ethFiat1dAgo: 0,
@@ -348,7 +348,7 @@ describe('Engine', () => {
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
       expect(totalFiatBalance).toStrictEqual({
@@ -413,7 +413,7 @@ describe('Engine', () => {
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
 
       const ethFiat = ethBalance * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
@@ -505,7 +505,7 @@ describe('Engine', () => {
         },
       });
 
-      const totalFiatBalance = engine.getTotalFiatAccountBalance();
+      const totalFiatBalance = engine.getTotalEvmFiatAccountBalance();
       const ethFiat = (ethBalance + stakedEthBalance) * ethConversionRate;
       const [tokenFiat, tokenFiat1dAgo] = tokens.reduce(
         ([fiat, fiat1d], token) => {

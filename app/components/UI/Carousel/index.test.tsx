@@ -7,7 +7,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
@@ -46,7 +46,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
 }));
 
 const selectShowFiatInTestnets = jest.fn();

@@ -12,7 +12,7 @@ import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 const { PreferencesController } = Engine.context;
 
 jest.mock('../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {
       ignoreTokens: jest.fn(() => Promise.resolve()),
