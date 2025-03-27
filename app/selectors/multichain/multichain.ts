@@ -13,7 +13,10 @@ import {
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { selectConversionRate } from '../currencyRateController';
+import {
+  selectConversionRate,
+  selectCurrentCurrency,
+} from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
 import { selectShowFiatInTestnets } from '../settings';
@@ -24,6 +27,7 @@ import {
 } from '../multichainNetworkController';
 import { parseCaipAssetType } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
+import BigNumberJS from 'bignumber.js';
 
 /**
  * @deprecated TEMPORARY SOURCE OF TRUTH TBD
@@ -407,6 +411,56 @@ export const selectNonEvmAccountBalanceByAddress = (
   }
 
   return balances;
+};
+
+export const selectAccountAggregatedFiatBalance = (
+  state: RootState,
+  accountId: string,
+) => {
+  if (!accountId) {
+    return { totalFiatBalance: 0, totalTokenFiat: 0 };
+  }
+
+  const multichainBalances = selectMultichainBalances(state);
+  const multichainAssets = selectMultichainAssets(state);
+  const multichainAssetsRates = selectMultichainAssetsRates(state);
+  const currentCurrency = selectCurrentCurrency(state);
+
+  const balancesForAccount = multichainBalances?.[accountId];
+  const assetIds = multichainAssets?.[accountId] || [];
+
+  if (!balancesForAccount || assetIds.length === 0) {
+    return { totalFiatBalance: 0, totalTokenFiat: 0 };
+  }
+
+  let totalFiatValue = new BigNumberJS(0);
+  let totalTokenFiat = new BigNumberJS(0);
+
+  for (const assetId of assetIds) {
+    try {
+      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
+      const balance = balancesForAccount[assetId] || { amount: '0', unit: '' };
+      const rate = multichainAssetsRates?.[assetId]?.rate || '0';
+
+      // Calculate fiat value for this asset
+      const balanceInFiat = new BigNumberJS(balance.amount || '0').times(rate);
+
+      // Add to appropriate total based on whether it's a native token
+      if (assetNamespace === 'slip44') {
+        totalFiatValue = totalFiatValue.plus(balanceInFiat);
+      } else {
+        totalTokenFiat = totalTokenFiat.plus(balanceInFiat);
+      }
+    } catch (error) {
+      // Skip invalid asset IDs
+      continue;
+    }
+  }
+
+  return {
+    totalFiatBalance: totalFiatValue.plus(totalTokenFiat).toNumber(),
+    totalTokenFiat: totalTokenFiat.toNumber(),
+  };
 };
 
 ///: END:ONLY_INCLUDE_IF
