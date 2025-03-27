@@ -147,6 +147,7 @@ const Routes = {
       SLIPPAGE_MODAL: 'SlippageModal',
       DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
       DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
+      QUOTE_INFO_MODAL: 'QuoteInfoModal',
     },
   },
   LOCK_SCREEN: 'LockScreen',
