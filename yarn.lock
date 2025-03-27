@@ -4563,10 +4563,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
   integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
 
-"@metamask/earn-controller@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.8.0.tgz#766798c60468279a9f4081bd960a8c502238c0b9"
-  integrity sha512-USRDcBNZr3h7K05lvswizryEOJM2f1iQvbztWzwB6gVipA345lZqapiUuzhPYDH8Ej3T4yfbyRCG5BN4m6i6Sg==
+"@metamask/earn-controller@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.10.0.tgz#890587d9e51e4fbaa8e85f09077c040e85a99462"
+  integrity sha512-vhywGCsaQphYyDwYksjk7+DZMQAeeC94lpDs6xUEV3xr0l1rG3NR5Ubqhl29oFwYsPV/0HGAbiGW9i3UYOBvkQ==
   dependencies:
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
@@ -4880,12 +4880,12 @@
     "@noble/hashes" "^1.3.2"
     "@scure/base" "^1.0.0"
 
-"@metamask/keyring-api@^17.0.0", "@metamask/keyring-api@^17.2.0", "@metamask/keyring-api@^17.2.1":
-  version "17.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-17.2.1.tgz#315e14063abbe07b85a90d2933535d281ac7ec47"
-  integrity sha512-VfFfIsLvGTMtHgyB4lPHxUSo6iumlYwKSBsFtz+9kUk4+Dx3OA9osPN+Xtse+bUWOu5VtOepk0L1MbajEvbLQA==
+"@metamask/keyring-api@^17.0.0", "@metamask/keyring-api@^17.2.0", "@metamask/keyring-api@^17.2.1", "@metamask/keyring-api@^17.3.0":
+  version "17.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-17.3.0.tgz#4fff3a1eec954bfe140baccb0113c61535a34b26"
+  integrity sha512-pTcRyGAEQM7eTpbG/FKYh7wH3ZVAGicexs3VN2BnmqzPMAJe2GCqx8LnNpRrz9GWr9zx7qwL5xanMR2tiV+WvQ==
   dependencies:
-    "@metamask/keyring-utils" "^2.3.1"
+    "@metamask/keyring-utils" "^3.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
@@ -5310,10 +5310,10 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.5.0.tgz#3a5078d698c1e603e51c4d3f155ce9d228ae07ea"
-  integrity sha512-r+t/t3jKjpsVdoOVWWt6ulZHRhQn8gAMLID1l0QvQgmzQy87ayTDU7WAnyw+jFyO4z+OA/uCwj4EwN+M2rPXgA==
+"@metamask/remote-feature-flag-controller@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.6.0.tgz#138c0a841e52b00efb704c892fa5915fbe9ef1d8"
+  integrity sha512-yMHHTR4lT38HQ8rl8qakX2eXUztudqk2GaGiumlT7D6tdROo96Oc6sU6ZQlYohIVJ1OH6TNP8ucKKlJ2GDtTHQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
@@ -5560,10 +5560,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.13.0":
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.13.0.tgz#fe4eb7fe96ed7a3b7c7226bf1e1a2b1bbda27036"
-  integrity sha512-z2DKPYdR03xicxfTuyV6YSc/GdI9jXwzE+ARLNF/C44rnO6YmLjL9R7qy32VCB1jbt1L93CYYPoM2tW/2nlF8w==
+"@metamask/solana-wallet-snap@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.16.0.tgz#5b4945748b97951a8129cc6247d665a02143559a"
+  integrity sha512-mwzxgMXOtmJPpa4Jw9SpkwaCVThUaYtpDtvB1NqcFBR1h4cZjSyePFgphITGJSmMULEiRrjn6vZyMcadVX32qw==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
