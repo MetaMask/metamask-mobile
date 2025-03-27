@@ -815,74 +815,46 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                 [
                                   {
                                     "address": "0x0000000000000000000000000000000000000002",
-                                    "aggregators": [
-                                      "uniswap",
-                                    ],
                                     "balance": "2",
                                     "balanceFiat": "$200000",
                                     "chainId": "0x1",
                                     "decimals": 18,
                                     "image": "https://token2.com/logo.png",
-                                    "isETH": false,
-                                    "isNative": false,
-                                    "isStaked": false,
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
-                                    "token": "Hello Token",
                                     "tokenFiatAmount": 200000,
                                   },
                                   {
                                     "address": "0x0000000000000000000000000000000000000000",
-                                    "aggregators": [],
                                     "balance": "20",
                                     "balanceFiat": "$40000",
                                     "chainId": "0xa",
                                     "decimals": 18,
                                     "image": "",
-                                    "isETH": true,
-                                    "isNative": true,
-                                    "isStaked": false,
-                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ethereum",
-                                    "stakedBalance": "0x0",
                                     "symbol": "ETH",
-                                    "ticker": "ETH",
                                     "tokenFiatAmount": 40000,
                                   },
                                   {
                                     "address": "0x0000000000000000000000000000000000000001",
-                                    "aggregators": [
-                                      "1inch",
-                                    ],
                                     "balance": "1",
                                     "balanceFiat": "$20000",
                                     "chainId": "0x1",
                                     "decimals": 18,
                                     "image": "https://token1.com/logo.png",
-                                    "isETH": false,
-                                    "isNative": false,
-                                    "isStaked": false,
                                     "name": "Token One",
                                     "symbol": "TOKEN1",
-                                    "token": "Token One",
                                     "tokenFiatAmount": 20000,
                                   },
                                   {
                                     "address": "0x0000000000000000000000000000000000000000",
-                                    "aggregators": [],
                                     "balance": "3",
                                     "balanceFiat": "$6000",
                                     "chainId": "0x1",
                                     "decimals": 18,
                                     "image": "",
-                                    "isETH": true,
-                                    "isNative": true,
-                                    "isStaked": false,
-                                    "logo": "../images/eth-logo-new.png",
                                     "name": "Ethereum",
-                                    "stakedBalance": "0x0",
                                     "symbol": "ETH",
-                                    "ticker": "ETH",
                                     "tokenFiatAmount": 6000,
                                   },
                                 ]
@@ -1222,13 +1194,14 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     "height": 24,
                                                     "width": 24,
                                                   },
-                                                  undefined,
-                                                  false,
-                                                  false,
                                                   {
-                                                    "height": 40,
-                                                    "width": 40,
+                                                    "borderRadius": 18,
+                                                    "height": 36,
+                                                    "width": 36,
                                                   },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
                                                 ]
                                               }
                                               testID="network-logo-ETH"
@@ -1250,9 +1223,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 40,
-                                                      "width": 40,
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
                                                     },
                                                     {
                                                       "backgroundColor": "#eee",
@@ -1765,13 +1738,14 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                     "height": 24,
                                                     "width": 24,
                                                   },
-                                                  undefined,
-                                                  false,
-                                                  false,
                                                   {
-                                                    "height": 40,
-                                                    "width": 40,
+                                                    "borderRadius": 18,
+                                                    "height": 36,
+                                                    "width": 36,
                                                   },
+                                                  undefined,
+                                                  undefined,
+                                                  undefined,
                                                 ]
                                               }
                                               testID="network-logo-ETH"
@@ -1793,9 +1767,9 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                                 style={
                                                   [
                                                     {
-                                                      "borderRadius": 12,
-                                                      "height": 40,
-                                                      "width": 40,
+                                                      "borderRadius": 18,
+                                                      "height": 36,
+                                                      "width": 36,
                                                     },
                                                     {
                                                       "backgroundColor": "#eee",
