@@ -58,7 +58,7 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import useGoToBridge from '../Bridge/hooks/useGoToBridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
