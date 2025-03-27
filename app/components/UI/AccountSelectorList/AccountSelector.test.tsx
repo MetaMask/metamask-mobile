@@ -1,10 +1,10 @@
 import React from 'react';
 // eslint-disable-next-line @typescript-eslint/no-shadow
 import { waitFor, within } from '@testing-library/react-native';
+import { Alert, AlertButton, View } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import AccountSelectorList from './AccountSelectorList';
 import { useAccounts } from '../../../components/hooks/useAccounts';
-import { View } from 'react-native';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { regex } from '../../../../app/util/regex';
@@ -17,9 +17,12 @@ import {
 import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AccountSelectorListProps } from './AccountSelectorList.types';
+import Engine from '../../../core/Engine';
+import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 
 // eslint-disable-next-line import/no-namespace
 import * as Utils from '../../hooks/useAccounts/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const BUSINESS_ACCOUNT = '0xC4955C0d639D99699Bfd7Ec54d9FaFEe40e4D272';
 const PERSONAL_ACCOUNT = '0xd018538C87232FF95acbCe4870629b75640a78E7';
@@ -44,6 +47,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+}));
+
+// Mock Engine
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    KeyringController: {
+      removeAccount: jest.fn(),
+    },
+    PermissionController: {
+      state: {
+        subjects: {},
+      },
+    },
+  },
 }));
 
 const initialState = {
@@ -295,5 +312,123 @@ describe('AccountSelectorList', () => {
 
       expect(within(businessAccountItem).getByText('••••••')).toBeDefined();
     });
+  });
+  it('allows account removal for simple keyring type', async () => {
+    const mockAlert = jest.spyOn(Alert, 'alert');
+    mockAlert.mockImplementation(
+      (_title, _message, buttons?: AlertButton[]) => {
+        // Simulate user clicking "Yes, remove it"
+        buttons?.[1]?.onPress?.();
+      },
+    );
+
+    // Create a state with a simple keyring account
+    const mockAccountsWithSimple = createMockAccountsControllerState([
+      BUSINESS_ACCOUNT,
+    ]);
+    const accountUuid = Object.keys(
+      mockAccountsWithSimple.internalAccounts.accounts,
+    )[0];
+    mockAccountsWithSimple.internalAccounts.accounts[accountUuid].metadata = {
+      ...mockAccountsWithSimple.internalAccounts.accounts[accountUuid].metadata,
+      keyring: {
+        type: KeyringTypes.simple,
+      },
+    };
+
+    const stateWithSimpleAccount = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: mockAccountsWithSimple,
+        },
+      },
+    };
+
+    const { getAllByTestId } = renderComponent(stateWithSimpleAccount);
+
+    // Find all cell elements with the select-with-menu test ID
+    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+    // Trigger long press on the first cell (since we only have one account in this test)
+    cells[0].props.onLongPress();
+
+    await waitFor(() => {
+      // Verify Alert was shown with correct text
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Account removal',
+        'Do you really want to remove this account?',
+        expect.any(Array),
+        { cancelable: false },
+      );
+
+      // Verify onRemoveImportedAccount was called with correct parameters
+      expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+        removedAddress: BUSINESS_ACCOUNT,
+      });
+
+      // Verify KeyringController.removeAccount was called
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).toHaveBeenCalledWith(BUSINESS_ACCOUNT);
+    });
+
+    mockAlert.mockRestore();
+  });
+  it('allows account removal for snap keyring type', async () => {
+    const mockAlert = jest.spyOn(Alert, 'alert');
+    mockAlert.mockImplementation(
+      (_title, _message, buttons?: AlertButton[]) => {
+        // Simulate user clicking "Yes, remove it"
+        buttons?.[1]?.onPress?.();
+      },
+    );
+
+    const mockAccountsWithSnap = createMockAccountsControllerStateWithSnap(
+      [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+      'MetaMask Simple Snap Keyring',
+    );
+
+    const stateWithSnapAccount = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          AccountsController: mockAccountsWithSnap,
+        },
+      },
+    };
+
+    const { getAllByTestId } = renderComponent(stateWithSnapAccount);
+
+    // Find all cell elements with the select-with-menu test ID
+    const cells = getAllByTestId(CellComponentSelectorsIDs.SELECT_WITH_MENU);
+    // Trigger long press on the first cell that should correspond to MOCK_ADDRESS_1
+    cells[0].props.onLongPress();
+
+    await waitFor(() => {
+      // Verify Alert was shown with correct text
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Account removal',
+        'Do you really want to remove this account?',
+        expect.any(Array),
+        { cancelable: false },
+      );
+
+      // Verify onRemoveImportedAccount was called with correct parameters
+      expect(onRemoveImportedAccount).toHaveBeenCalledWith({
+        removedAddress: MOCK_ADDRESS_1,
+        nextActiveAddress: MOCK_ADDRESS_2,
+      });
+
+      // Verify KeyringController.removeAccount was called
+      expect(
+        Engine.context.KeyringController.removeAccount,
+      ).toHaveBeenCalledWith(MOCK_ADDRESS_1);
+    });
+
+    mockAlert.mockRestore();
   });
 });

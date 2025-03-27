@@ -22,7 +22,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -47,7 +47,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -84,7 +84,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -109,7 +109,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -146,7 +146,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -171,7 +171,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",

@@ -46,7 +46,7 @@ export const snapControllerInit: ControllerInitFunction<
   });
 
   // Async because `SnapController` expects a promise.
-  async function getMnemonic() {
+  async function getMnemonicSeed() {
     const keyrings = initMessenger.call(
       'KeyringController:getKeyringsByType',
       KeyringTypes.hd,
@@ -54,13 +54,13 @@ export const snapControllerInit: ControllerInitFunction<
 
     if (
       !keyrings[0] ||
-      !hasProperty(keyrings[0], 'mnemonic') ||
-      !(keyrings[0].mnemonic instanceof Uint8Array)
+      !hasProperty(keyrings[0], 'seed') ||
+      !(keyrings[0].seed instanceof Uint8Array)
     ) {
       throw new Error('Primary keyring mnemonic unavailable.');
     }
 
-    return keyrings[0].mnemonic;
+    return keyrings[0].seed;
   }
 
   /**
@@ -105,7 +105,7 @@ export const snapControllerInit: ControllerInitFunction<
     // TODO: Look into the type mismatch.
     encryptor,
 
-    getMnemonic,
+    getMnemonicSeed,
 
     // @ts-expect-error: `PREINSTALLED_SNAPS` is readonly, but the controller
     // expects a mutable array.

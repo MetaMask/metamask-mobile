@@ -34,7 +34,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#00000099",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -81,14 +81,14 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
           [
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#BBC0C566",
+              "borderColor": "#b7bbc866",
               "borderTopLeftRadius": 8,
               "borderTopRightRadius": 8,
               "borderWidth": 1,
               "maxHeight": 1334,
               "overflow": "hidden",
               "paddingBottom": 0,
-              "shadowColor": "#0000001A",
+              "shadowColor": "#0000001a",
               "shadowOffset": {
                 "height": 2,
                 "width": 0,
@@ -144,7 +144,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 16,
                     "fontWeight": "700",
@@ -185,7 +185,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={16}
                     name="Close"
                     style={
@@ -220,7 +220,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#f3f5f9",
                     "borderRadius": 32,
                     "height": 36,
                     "justifyContent": "center",
@@ -233,7 +233,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -263,7 +263,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -293,7 +293,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -323,7 +323,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -349,7 +349,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c8234",
+                    "color": "#1c7e33",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontSize": 24,
                     "fontWeight": "700",
@@ -364,7 +364,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
@@ -467,7 +467,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4280058420,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -479,7 +479,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              857506356,
+                              857505331,
                               1,
                               872415231,
                             ]
@@ -511,7 +511,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -526,7 +526,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -542,7 +542,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -557,7 +557,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -573,7 +573,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -588,7 +588,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -604,7 +604,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-RegularItalic",
                   "fontSize": 12,
                   "fontStyle": "italic",
@@ -641,7 +641,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 "alignItems": "center",
                 "alignSelf": "flex-start",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
+                "borderColor": "#4459ff",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flex": 1,
@@ -657,7 +657,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -680,7 +680,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 24,
                 "flex": 1,
                 "flexDirection": "row",

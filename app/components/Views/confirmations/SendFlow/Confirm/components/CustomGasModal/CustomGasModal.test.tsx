@@ -73,6 +73,9 @@ const customGasModalSharedProps = {
   updateGasState,
   onGasChanged: (gas: string) => mockedAction(gas),
   onGasCanceled: (gas: string) => mockedAction(gas),
+  animateOnChange: false,
+  EIP1559GasData: eip1559GasData,
+  EIP1559GasTxn: eip1559GasTxn,
 };
 
 describe('CustomGasModal', () => {
@@ -109,6 +112,7 @@ describe('CustomGasModal', () => {
       <CustomGasModal
         {...customGasModalSharedProps}
         legacy={false}
+        legacyGasData={legacyGasData}
         EIP1559GasData={eip1559GasData}
         EIP1559GasTxn={eip1559GasTxn}
       />,

@@ -90,7 +90,7 @@ export type BrowserTabProps = {
   /**
    * Function to update the tab information
    */
-  updateTabInfo: (url: string, tabID: number) => void;
+  updateTabInfo: (tabID: number, info: { url?: string, isArchived?: boolean, image?: string }) => void;
   /**
    * Function to update the tab information
    */

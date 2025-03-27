@@ -26,10 +26,12 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
+import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
+
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { MultichainSettingsState } from '../actions/multichain/state';
 import multichainReducer from './multichain';
@@ -119,10 +121,11 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
-  transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
+  confirmationMetrics: StateFromReducer<typeof confirmationMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
+  banners: BannersState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: MultichainSettingsState;
   ///: END:ONLY_INCLUDE_IF
@@ -161,10 +164,11 @@ const rootReducer = combineReducers<RootState, any>({
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
-  transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
+  banners: bannersReducer,
+  confirmationMetrics: confirmationMetricsReducer,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: multichainReducer,
   ///: END:ONLY_INCLUDE_IF

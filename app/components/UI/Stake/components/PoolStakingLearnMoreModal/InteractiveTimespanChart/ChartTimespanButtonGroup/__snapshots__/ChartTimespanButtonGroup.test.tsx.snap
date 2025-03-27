@@ -18,7 +18,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 32,
         "height": 36,
         "justifyContent": "center",
@@ -31,7 +31,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -61,7 +61,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -91,7 +91,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -121,7 +121,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",

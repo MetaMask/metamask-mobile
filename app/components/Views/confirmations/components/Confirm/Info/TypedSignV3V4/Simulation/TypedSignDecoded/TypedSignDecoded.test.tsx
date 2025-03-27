@@ -129,12 +129,9 @@ const mockState = (
 
 describe('DecodedSimulation', () => {
   it('renders for ERC20 approval', async () => {
-    const { getByText, getByTestId } = renderWithProvider(
-      <TypedSignDecoded />,
-      {
-        state: mockState(stateChangesApprove),
-      },
-    );
+    const { getByText, getByTestId } = renderWithProvider(<TypedSignDecoded />, {
+      state: mockState(stateChangesApprove),
+    });
 
     expect(await getByText('Estimated changes')).toBeDefined();
     expect(await getByText('Spending cap')).toBeDefined();
@@ -158,12 +155,10 @@ describe('DecodedSimulation', () => {
 
   it('renders "Unlimited" for large values', async () => {
     const { getByText } = renderWithProvider(<TypedSignDecoded />, {
-      state: mockState([
-        {
-          ...stateChangesApprove[0],
-          amount: '1461501637330902918203684832716283019655932542975',
-        },
-      ]),
+      state: mockState([{
+        ...stateChangesApprove[0],
+        amount: '1461501637330902918203684832716283019655932542975',
+      }]),
     });
 
     expect(await getByText('Estimated changes')).toBeDefined();

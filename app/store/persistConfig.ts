@@ -7,8 +7,17 @@ import { version, migrations } from './migrations';
 import Logger from '../util/Logger';
 import Device from '../util/device';
 import { UserState } from '../reducers/user';
+import { debounce } from 'lodash';
 
 const TIMEOUT = 40000;
+const STORAGE_DEBOUNCE_DELAY = 200;
+
+const debouncedSetItem = debounce(
+  async (key: string, value: string) =>
+    await FilesystemStorage.setItem(key, value, Device.isIos()),
+  STORAGE_DEBOUNCE_DELAY,
+  { leading: false, trailing: true },
+);
 
 const MigratedStorage = {
   async getItem(key: string) {
@@ -38,7 +47,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
-      return await FilesystemStorage.setItem(key, value, Device.isIos());
+      return await debouncedSetItem(key, value);
     } catch (error) {
       Logger.error(error as Error, {
         message: `Failed to set item for ${key}`,
@@ -114,7 +123,7 @@ const persistConfig = {
     'rpcEvents',
     'accounts',
     'multichainSettings',
-    'transactionMetrics',
+    'confirmationMetrics',
   ],
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
