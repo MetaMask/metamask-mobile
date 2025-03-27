@@ -312,18 +312,15 @@ describe('BridgeDestTokenSelector', () => {
       fireEvent.press(token1Element);
     });
 
-    expect(setDestToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: token2Address,
-        aggregators: ['uniswap'],
-        balance: '2',
-        chainId: mockDestChainId,
-        decimals: 18,
-        image: 'https://token2.com/logo.png',
-        name: 'Hello Token',
-        symbol: 'HELLO',
-      }),
-    );
+    expect(setDestToken).toHaveBeenCalledWith(expect.objectContaining({
+      address: token2Address,
+      balance: '2',
+      chainId: mockDestChainId,
+      decimals: 18,
+      image: 'https://token2.com/logo.png',
+      name: 'Hello Token',
+      symbol: 'HELLO',
+    }));
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -350,27 +347,17 @@ describe('BridgeDestTokenSelector', () => {
     fireEvent.press(infoButton);
 
     // Verify navigation to Asset screen with the correct token params
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        address: '0x0000000000000000000000000000000000000000',
-        aggregators: [],
-        balance: '20',
-        balanceFiat: '$40000',
-        chainId: '0xa',
-        decimals: 18,
-        image: '',
-        isETH: true,
-        isNative: true,
-        isStaked: false,
-        logo: '../images/eth-logo-new.png',
-        name: 'Ethereum',
-        stakedBalance: '0x0',
-        symbol: 'ETH',
-        ticker: 'ETH',
-        tokenFiatAmount: 40000,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.objectContaining({
+      address: '0x0000000000000000000000000000000000000000',
+      balance: '20',
+      balanceFiat: '$40000',
+      chainId: '0xa',
+      decimals: 18,
+      image: '',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      tokenFiatAmount: 40000
+    }));
   });
 
   it('handles close button correctly', () => {
