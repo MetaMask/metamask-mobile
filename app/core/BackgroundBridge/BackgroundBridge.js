@@ -45,16 +45,7 @@ import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMe
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
-import { pick } from 'lodash';
-import { CaveatTypes, RestrictedMethods } from '../Permissions/constants';
-import { PermissionKeys } from '../Permissions/specifications';
-import { isSnapId } from '@metamask/snaps-utils';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-  setEthAccounts,
-  setPermittedEthChainIds,
-} from '@metamask/chain-agnostic-permission';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
