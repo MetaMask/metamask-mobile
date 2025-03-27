@@ -5,6 +5,8 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+# Allows the design system and mobile platform team to review and approve all snapshot changes. This allows for system wide design token changes to color, typography, etc.
+**/*.snap                            @MetaMask/design-system-engineers @MetaMask/mobile-platform
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
@@ -32,6 +34,9 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
+
+# Platform & Snaps Code Fencing File
+metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
 
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp

@@ -3,13 +3,13 @@ import { MetaMetrics } from '../../../Analytics';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
+  handleTransactionAdded,
   handleTransactionApproved,
   handleTransactionConfirmed,
   handleTransactionDropped,
   handleTransactionFailed,
   handleTransactionRejected,
   handleTransactionSubmitted,
-  handleUnapprovedTransactionAdded,
 } from './transaction-event-handlers';
 
 // Mock dependencies
@@ -71,6 +71,11 @@ describe('Transaction Event Handlers', () => {
 
   const handlerTestCases = [
     {
+      handlerName: 'handleTransactionAdded',
+      handler: handleTransactionAdded,
+      event: TRANSACTION_EVENTS.TRANSACTION_ADDED,
+    },
+    {
       handlerName: 'handleTransactionApproved',
       handler: handleTransactionApproved,
       event: TRANSACTION_EVENTS.TRANSACTION_APPROVED,
@@ -81,7 +86,7 @@ describe('Transaction Event Handlers', () => {
         const expectedProperties = {
           chain_id: '0x1',
           transaction_internal_id: 'test-id',
-          transaction_type: 'standard',
+          transaction_type: 'unknown',
           test_property: 'test_value',
         };
 
@@ -96,17 +101,17 @@ describe('Transaction Event Handlers', () => {
     {
       handlerName: 'handleTransactionConfirmed',
       handler: handleTransactionConfirmed,
-      event: TRANSACTION_EVENTS.TRANSACTION_CONFIRMED,
+      event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     },
     {
       handlerName: 'handleTransactionDropped',
       handler: handleTransactionDropped,
-      event: TRANSACTION_EVENTS.TRANSACTION_DROPPED,
+      event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     },
     {
       handlerName: 'handleTransactionFailed',
       handler: handleTransactionFailed,
-      event: TRANSACTION_EVENTS.TRANSACTION_FAILED,
+      event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     },
     {
       handlerName: 'handleTransactionRejected',
@@ -117,11 +122,6 @@ describe('Transaction Event Handlers', () => {
       handlerName: 'handleTransactionSubmitted',
       handler: handleTransactionSubmitted,
       event: TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-    },
-    {
-      handlerName: 'handleUnapprovedTransactionAdded',
-      handler: handleUnapprovedTransactionAdded,
-      event: TRANSACTION_EVENTS.UNAPPROVED_TRANSACTION_ADDED,
     },
   ];
 

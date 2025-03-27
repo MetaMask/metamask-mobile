@@ -109,11 +109,9 @@ describe('AddAccountActions', () => {
     ).toBeDefined();
 
     // Check for multichain options
-    expect(screen.getByText('Add a new Solana Account (Beta)')).toBeDefined();
-    expect(screen.getByText('Add a new Bitcoin Account (Beta)')).toBeDefined();
-    expect(
-      screen.getByText('Add a new Bitcoin Account (Testnet)'),
-    ).toBeDefined();
+    expect(screen.getByText('Solana account')).toBeDefined();
+    expect(screen.getByText('Bitcoin account')).toBeDefined();
+    expect(screen.getByText('Bitcoin testnet account ')).toBeDefined();
   });
 
   it('creates new ETH account when clicking add new account', async () => {
@@ -210,7 +208,7 @@ describe('AddAccountActions', () => {
     );
 
     expect(hardwareWalletButton.findByType(Text).props.children).toBe(
-      'Add hardware wallet',
+      'Hardware wallet',
     );
     fireEvent.press(hardwareWalletButton);
 
@@ -271,9 +269,7 @@ describe('AddAccountActions', () => {
       const solButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
       );
-      expect(solButton.findByType(Text).props.children).toBe(
-        'Add a new Solana Account (Beta)',
-      );
+      expect(solButton.findByType(Text).props.children).toBe('Solana account');
       expect(solButton.props.disabled).toBe(false);
     });
 
@@ -311,9 +307,7 @@ describe('AddAccountActions', () => {
       const btcButton = screen.getByTestId(
         AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
       );
-      expect(btcButton.findByType(Text).props.children).toBe(
-        'Add a new Bitcoin Account (Beta)',
-      );
+      expect(btcButton.findByType(Text).props.children).toBe('Bitcoin account');
       expect(btcButton.props.disabled).toBe(true);
     });
 
