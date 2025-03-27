@@ -6,6 +6,7 @@ import {
   View,
   ViewStyle,
   StyleProp,
+  TouchableOpacityProps,
 } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import Text, {
@@ -15,7 +16,7 @@ import Text, {
 import AnimatedLottieView from 'lottie-react-native';
 import { useTheme } from '../../../util/theme';
 
-export interface SnapUIButtonProps {
+export interface SnapUIButtonProps extends TouchableOpacityProps {
   name?: string;
   loading?: boolean;
   type?: ButtonType;
@@ -26,6 +27,7 @@ export interface SnapUIButtonProps {
   disabled?: boolean;
   onPress?: () => void;
   children?: React.ReactNode;
+  testID?: string;
 }
 
 const COLORS = {
@@ -45,6 +47,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   textVariant = TextVariant.BodyMDMedium,
   style,
   onPress,
+  testID,
   ...props
 }) => {
   const { handleEvent } = useSnapInterfaceContext();
@@ -137,6 +140,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       accessible
       accessibilityRole="button"
       accessibilityLabel={typeof children === 'string' ? children : name}
+      testID={testID}
       {...props}
     >
       {renderContent()}
