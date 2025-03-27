@@ -1115,7 +1115,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1344,7 +1344,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -2990,7 +2990,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#141618",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
