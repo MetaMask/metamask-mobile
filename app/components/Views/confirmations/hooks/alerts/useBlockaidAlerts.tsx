@@ -38,31 +38,29 @@ const getTitle = (reason: Reason): string =>
 const getConfirmModalDescription = (reason: Reason) => {
   let copy;
   switch (reason) {
-    case Reason.rawSignatureFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message');
-      break;
     case Reason.approvalFarming:
     case Reason.permitFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message2');
+      copy = strings('alert_system.confirm_modal.blockaid.message1');
       break;
     case Reason.transferFarming:
     case Reason.transferFromFarming:
     case Reason.rawNativeTokenTransfer:
-      copy = strings('alert_system.confirm_modal.blockaid.message3');
+      copy = strings('alert_system.confirm_modal.blockaid.message2');
       break;
     case Reason.seaportFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message4');
+      copy = strings('alert_system.confirm_modal.blockaid.message3');
       break;
     case Reason.blurFarming:
-      copy = strings('alert_system.confirm_modal.blockaid.message5');
+      copy = strings('alert_system.confirm_modal.blockaid.message4');
       break;
     case Reason.maliciousDomain:
-      copy = strings('alert_system.confirm_modal.blockaid.message6');
+      copy = strings('alert_system.confirm_modal.blockaid.message5');
       break;
     case Reason.tradeOrderFarming:
+    case Reason.rawSignatureFarming:
     case Reason.other:
     default:
-      copy = strings('alert_system.confirm_modal.blockaid.message7');
+      copy = strings('alert_system.confirm_modal.blockaid.message');
   }
 
   return copy;

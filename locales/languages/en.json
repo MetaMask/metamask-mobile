@@ -13,13 +13,12 @@
       "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
       "title_blockaid": "Your assets may be at risk",
       "blockaid": {
-        "message": "A third party known for scams has access to this site. If you proceed, you'll lose assets.",
-        "message2": "The site may look safe, but a third party might have access to its information. If you sign in, your assets could get stolen.",
-        "message3": "If you confirm, you could lose all your funds and assets.",
-        "message4": "If you sign in, any or all assets you've listed on OpenSea are at risk.",
-        "message5": "If you sign in, any or all assets you've listed on Blur are at risk.",
-        "message6": "This site is recognized as a malicious domain. If you sign in, you will lose funds and assets. We strongly suggest you cancel this request.",
-        "message7": "If you sign in, you could lose all your assets. We recommend you cancel this request."
+        "message": "If you confirm this request, you could lose your assets. We recommend that you cancel this request.",
+        "message1": "If you confirm this request, you’re allowing a scammer to withdraw and spend your assets. You won’t get them back.",
+        "message2": "You’re sending your assets to a scammer. If you continue, you’ll lose those assets.",
+        "message3": "If you continue, all the assets you’ve listed on OpenSea could be at risk.",
+        "message4": "If you continue, all the assets you’ve listed on Blur could be at risk.",
+        "message5": "You’re interacting with a malicious site. If you continue, you will lose your assets."
       }
     },
     "inline_alert_label": "Alert",

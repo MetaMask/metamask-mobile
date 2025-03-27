@@ -84,23 +84,24 @@ describe('useBlockaidAlerts', () => {
     expect(result.current).toEqual([]);
   });
 
+  const EXPECTED_MESSAGE_BLOCKAID_ALERT = 'If you confirm this request, you could lose your assets. We recommend that you cancel this request.';
   const testCases = [
     {
       resultType: BlockaidResultType.Malicious,
       expectedSeverity: Severity.Danger,
-      expectedMessage: 'If you sign in, you could lose all your assets. We recommend you cancel this request.',
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
       description: 'Malicious result type',
     },
     {
       resultType: BlockaidResultType.Warning,
       expectedSeverity: Severity.Warning,
-      expectedMessage: 'If you sign in, you could lose all your assets. We recommend you cancel this request.',
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
       description: 'Warning result type',
     },
     {
       resultType: 'unknown',
       expectedSeverity: Severity.Info,
-      expectedMessage: 'If you sign in, you could lose all your assets. We recommend you cancel this request.',
+      expectedMessage: EXPECTED_MESSAGE_BLOCKAID_ALERT,
       description: 'default result type',
     },
   ];
@@ -146,16 +147,16 @@ describe('useBlockaidAlerts', () => {
   it.each`
   reason                          | expectedMessageKey
   ${Reason.rawSignatureFarming}   | ${'alert_system.confirm_modal.blockaid.message'}
-  ${Reason.approvalFarming}       | ${'alert_system.confirm_modal.blockaid.message2'}
-  ${Reason.permitFarming}         | ${'alert_system.confirm_modal.blockaid.message2'}
-  ${Reason.transferFarming}       | ${'alert_system.confirm_modal.blockaid.message3'}
-  ${Reason.transferFromFarming}   | ${'alert_system.confirm_modal.blockaid.message3'}
-  ${Reason.rawNativeTokenTransfer}| ${'alert_system.confirm_modal.blockaid.message3'}
-  ${Reason.seaportFarming}        | ${'alert_system.confirm_modal.blockaid.message4'}
-  ${Reason.blurFarming}           | ${'alert_system.confirm_modal.blockaid.message5'}
-  ${Reason.maliciousDomain}       | ${'alert_system.confirm_modal.blockaid.message6'}
-  ${Reason.tradeOrderFarming}     | ${'alert_system.confirm_modal.blockaid.message7'}
-  ${Reason.other}                 | ${'alert_system.confirm_modal.blockaid.message7'}
+  ${Reason.approvalFarming}       | ${'alert_system.confirm_modal.blockaid.message1'}
+  ${Reason.permitFarming}         | ${'alert_system.confirm_modal.blockaid.message1'}
+  ${Reason.transferFarming}       | ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.transferFromFarming}   | ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.rawNativeTokenTransfer}| ${'alert_system.confirm_modal.blockaid.message2'}
+  ${Reason.seaportFarming}        | ${'alert_system.confirm_modal.blockaid.message3'}
+  ${Reason.blurFarming}           | ${'alert_system.confirm_modal.blockaid.message4'}
+  ${Reason.maliciousDomain}       | ${'alert_system.confirm_modal.blockaid.message5'}
+  ${Reason.tradeOrderFarming}     | ${'alert_system.confirm_modal.blockaid.message'}
+  ${Reason.other}                 | ${'alert_system.confirm_modal.blockaid.message'}
 `('returns the correct description for $reason', ({ reason, expectedMessageKey }) => {
     (useSecurityAlertResponse as jest.Mock).mockReturnValue({
       securityAlertResponse: { ...mockSecurityAlertResponse, reason },
