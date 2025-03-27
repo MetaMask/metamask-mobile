@@ -1,11 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
-import { BridgeDestTokenSelector } from './BridgeDestTokenSelector';
-import { BridgeSourceTokenSelector } from './BridgeSourceTokenSelector';
+import { BridgeDestTokenSelector } from './components/BridgeDestTokenSelector';
+import { BridgeSourceTokenSelector } from './components/BridgeSourceTokenSelector';
 import SlippageModal from './components/SlippageModal';
-import { BridgeSourceNetworkSelector } from './BridgeSourceNetworkSelector';
-import { BridgeDestNetworkSelector } from './BridgeDestNetworkSelector';
+import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
+import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
 import BridgeView from '.';
 import QuoteInfoModal from './components/QuoteInfoModal';
 

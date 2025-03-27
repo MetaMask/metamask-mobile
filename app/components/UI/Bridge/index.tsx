@@ -3,7 +3,7 @@ import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
-import { TokenInputArea, TokenInputAreaType } from './TokenInputArea';
+import { TokenInputArea, TokenInputAreaType } from './components/TokenInputArea';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -19,7 +19,7 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
-import { useLatestBalance } from './useLatestBalance';
+import { useLatestBalance } from './hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
