@@ -33,6 +33,10 @@ export interface BottomSheetFooterProps extends ViewProps {
    * Whether the button is destructive.
    */
   destructive?: boolean;
+  /**
+   * Whether the button is a Snap action.
+   */
+  isSnapAction?: boolean;
 }
 
 /**
@@ -40,5 +44,5 @@ export interface BottomSheetFooterProps extends ViewProps {
  */
 export type BottomSheetFooterStyleSheetVars = Pick<
   BottomSheetFooterProps,
-  'style' | 'buttonsAlignment' | 'hideSnapBranding' | 'destructive'
+  'style' | 'buttonsAlignment' | 'hideSnapBranding' | 'destructive' | 'isSnapAction'
 >;

@@ -68,6 +68,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
     buttonsAlignment: DEFAULT_BOTTOMSHEETFOOTER_BUTTONSALIGNMENT,
     hideSnapBranding,
     destructive: snapVariant === 'destructive',
+    isSnapAction,
   });
 
   const handleSnapAction = () => {

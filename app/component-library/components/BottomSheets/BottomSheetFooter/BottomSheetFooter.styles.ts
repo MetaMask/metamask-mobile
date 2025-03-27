@@ -23,13 +23,13 @@ const styleSheet = (params: {
   vars: BottomSheetFooterStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, buttonsAlignment, hideSnapBranding, destructive } = vars;
+  const { style, buttonsAlignment, hideSnapBranding, destructive, isSnapAction } = vars;
   const buttonStyle: ViewStyle =
     buttonsAlignment === ButtonsAlignment.Horizontal
       ? { flex: 1 }
       : { alignSelf: 'stretch' };
 
-  if (!hideSnapBranding && !destructive) {
+  if (isSnapAction && !hideSnapBranding && !destructive) {
     buttonStyle.backgroundColor = theme.colors.icon.default;
   }
 
