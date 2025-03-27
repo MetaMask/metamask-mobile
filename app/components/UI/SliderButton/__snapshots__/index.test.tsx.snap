@@ -7,7 +7,7 @@ exports[`SliderButton should render correctly 1`] = `
     [
       {
         "elevation": 0,
-        "shadowColor": "#0376C933",
+        "shadowColor": "#4459ff33",
         "shadowOffset": {
           "height": 2,
           "width": 0,
@@ -23,7 +23,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#0260a4",
+        "backgroundColor": "#2c3dc5",
         "borderRadius": 60,
         "height": 60,
         "justifyContent": "center",
@@ -91,7 +91,7 @@ exports[`SliderButton should render correctly 1`] = `
     collapsable={false}
     style={
       {
-        "backgroundColor": "rgba(2, 96, 164, 1)",
+        "backgroundColor": "rgba(44, 61, 197, 1)",
         "borderRadius": 60,
         "height": "100%",
         "overflow": "hidden",
@@ -147,7 +147,7 @@ exports[`SliderButton should render correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#0260a4",
+        "borderColor": "#2c3dc5",
         "borderRadius": 60,
         "borderWidth": 9.6,
         "height": 60,
