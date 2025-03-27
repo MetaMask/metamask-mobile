@@ -68,8 +68,8 @@ while true; do
     
     # Show matching builds on this page
     MATCHING_BUILD=$(echo "$RESPONSE" | \
-        jq --arg workflow "$ANDROID_WORKFLOW_ID" --arg tag "$TAG" \
-        '.data[] | select(.triggered_workflow == $workflow and .tag == $tag) | {workflow: .triggered_workflow, tag: .tag, slug: .slug}')
+        jq --arg workflow "$ANDROID_WORKFLOW_ID" --arg tag "$TAG" --arg commit_hash "$COMMIT_HASH" \
+        '.data[] | select(.triggered_workflow == $workflow and .tag == $tag and .commit_hash == $commit_hash) | {workflow: .triggered_workflow, tag: .tag, slug: .slug}')
     
     if [[ -n "$MATCHING_BUILD" ]]; then
         echo "Found matching build:"
