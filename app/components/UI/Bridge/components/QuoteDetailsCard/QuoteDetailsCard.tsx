@@ -27,7 +27,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Box } from '../../../Box/Box';
-import { FlexDirection, AlignItems } from '../../../Box/box.types';
+import {
+  FlexDirection,
+  AlignItems,
+  JustifyContent,
+} from '../../../Box/box.types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BadgeVariant } from '../../../../../component-library/components/Badges/Badge/Badge.types';
 import Badge from '../../../../../component-library/components/Badges/Badge';
@@ -36,8 +40,11 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
 import { QuoteResponse } from '@metamask/bridge-controller';
 import { useSelector } from 'react-redux';
-import { selectSlippage } from '../../../../../core/redux/slices/bridge';
-import { toHex } from '@metamask/controller-utils';
+import {
+  selectDestToken,
+  selectSlippage,
+  selectSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 // Enable Layout Animation on Android
@@ -87,6 +94,8 @@ const QuoteDetailsCard = () => {
   const rotationValue = useSharedValue(0);
 
   const slippage = useSelector(selectSlippage);
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
 
   const toggleAccordion = useCallback(() => {
     LayoutAnimation.configureNext(
@@ -123,64 +132,69 @@ const QuoteDetailsCard = () => {
     });
   };
 
-  if (!quoteDetails) {
+  if (!quoteDetails || !sourceToken?.chainId || !destToken?.chainId) {
     return null;
   }
 
+  const isSameChainId = sourceToken.chainId === destToken.chainId;
+
   const { quote, estimatedProcessingTimeInSeconds } = quoteDetails;
-  const { srcAsset, destAsset } = quote;
 
   // Format the data for display
   const quoteData = {
     networkFee: '$0.01', // TODO: Calculate from quote.feeData
     estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
-    rate: `1 ${srcAsset.symbol} = ${(
+    rate: `1 ${sourceToken.symbol} = ${(
       Number(quote.destTokenAmount) / Number(quote.srcTokenAmount)
-    ).toFixed(1)} ${destAsset.symbol}`,
+    ).toFixed(1)} ${destToken.symbol}`,
     priceImpact: '-0.06%', // TODO: Calculate from quote data
     slippage: `${slippage}%`, // TODO: Get from bridge settings
-    srcChainId: toHex(srcAsset.chainId),
-    destChainId: toHex(destAsset.chainId),
+    srcChainId: sourceToken.chainId,
+    destChainId: destToken.chainId,
   };
 
   return (
     <Box style={styles.container}>
-      <KeyValueRow
-        field={{
-          label: (
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={2}
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.spaceBetween}
+      >
+        {!isSameChainId ? (
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            style={styles.networkContainer}
+          >
+            <NetworkBadge chainId={quoteData.srcChainId} />
+            <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
+            <NetworkBadge chainId={quoteData.destChainId} />
+          </Box>
+        ) : (
+          <Box>
+            <></>
+          </Box>
+        )}
+        <Box>
+          <Animated.View style={arrowStyle}>
+            <TouchableOpacity
+              onPress={toggleAccordion}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isExpanded ? 'Collapse quote details' : 'Expand quote details'
+              }
+              testID="expand-quote-details"
             >
-              <NetworkBadge chainId={quoteData.srcChainId} />
-              <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-              <NetworkBadge chainId={quoteData.destChainId} />
-            </Box>
-          ),
-        }}
-        value={{
-          label: (
-            <Animated.View style={arrowStyle}>
-              <TouchableOpacity
-                onPress={toggleAccordion}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  isExpanded ? 'Collapse quote details' : 'Expand quote details'
-                }
-                testID="expand-quote-details"
-              >
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Sm}
-                  color={theme.colors.icon.muted}
-                />
-              </TouchableOpacity>
-            </Animated.View>
-          ),
-        }}
-      />
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Sm}
+                color={theme.colors.icon.muted}
+              />
+            </TouchableOpacity>
+          </Animated.View>
+        </Box>
+      </Box>
 
       {/* Always visible content */}
       <KeyValueRow

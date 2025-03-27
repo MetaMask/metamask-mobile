@@ -15,6 +15,7 @@ import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import { ChainId } from '@metamask/controller-utils';
+import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -25,6 +26,11 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 describe('QuoteDetailsCard', () => {
+  const mockAccount = createMockInternalAccount(
+    '0x1234567890123456789012345678901234567890',
+    'Test Account',
+  );
+
   const initialState: DeepPartial<RootState> = {
     engine: {
       backgroundState: {
@@ -55,6 +61,14 @@ describe('QuoteDetailsCard', () => {
         },
         MultichainNetworkController: {
           multichainNetworkConfigurationsByChainId: {},
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [mockAccount.id]: mockAccount,
+            },
+            selectedAccount: mockAccount.id,
+          },
         },
       },
     },
@@ -173,7 +187,7 @@ describe('QuoteDetailsCard', () => {
     fireEvent.press(editButton);
 
     // Check if navigation was called with correct params
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
     });
   });

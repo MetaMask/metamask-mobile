@@ -320,278 +320,233 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                       }
                     >
                       <View
+                        alignItems="center"
+                        flexDirection="row"
+                        justifyContent="space-between"
                         style={
                           [
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
                               "justifyContent": "space-between",
-                              "overflow": "hidden",
                             },
-                            [
-                              undefined,
-                            ],
+                            undefined,
                           ]
                         }
                       >
                         <View
+                          alignItems="center"
+                          flexDirection="row"
                           style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
+                            [
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <View
-                                alignItems="center"
-                                flexDirection="row"
-                                gap={2}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 2,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={2}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 2,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                    style={{}}
-                                    testID="badgenetwork"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#ffffff",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1.5,
-                                          "height": 24,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
-                                          "shadowOffset": {
-                                            "height": 2,
-                                            "width": 0,
-                                          },
-                                          "shadowOpacity": 1,
-                                          "shadowRadius": 4,
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                </View>
-                                <SvgMock
-                                  color="#141618"
-                                  height={16}
-                                  name="Arrow2Right"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={2}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 2,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                    style={{}}
-                                    testID="badgenetwork"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#ffffff",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1.5,
-                                          "height": 24,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
-                                          "shadowOffset": {
-                                            "height": 2,
-                                            "width": 0,
-                                          },
-                                          "shadowOpacity": 1,
-                                          "shadowRadius": 4,
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Linea
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
+                              },
+                              {
+                                "flexDirection": "row",
+                                "flexWrap": "wrap",
+                                "maxWidth": "80%",
+                              },
+                            ]
                           }
                         >
                           <View
+                            alignItems="center"
+                            flexDirection="row"
+                            gap={2}
                             style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
+                              [
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                }
-                              }
+                                  "gap": 2,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                              style={{}}
+                              testID="badgenetwork"
                             >
                               <View
                                 style={
                                   {
-                                    "transform": [
-                                      {
-                                        "rotate": "undefineddeg",
-                                      },
-                                    ],
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1.5,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "shadowColor": "#0000001A",
+                                    "shadowOffset": {
+                                      "height": 2,
+                                      "width": 0,
+                                    },
+                                    "shadowOpacity": 1,
+                                    "shadowRadius": 4,
+                                    "width": 24,
                                   }
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityLabel="Collapse quote details"
-                                  accessibilityRole="button"
-                                  activeOpacity={0.7}
-                                  onPress={[Function]}
-                                  testID="expand-quote-details"
-                                >
-                                  <SvgMock
-                                    color="#9fa6ae"
-                                    height={16}
-                                    name="ArrowDown"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
                                     }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                  }
+                                  testID="network-avatar-image"
+                                />
                               </View>
                             </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Ethereum
+                            </Text>
+                          </View>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Arrow2Right"
+                            style={
+                              {
+                                "height": 16,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            gap={2}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 2,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                              style={{}}
+                              testID="badgenetwork"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1.5,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "shadowColor": "#0000001A",
+                                    "shadowOffset": {
+                                      "height": 2,
+                                      "width": 0,
+                                    },
+                                    "shadowOpacity": 1,
+                                    "shadowRadius": 4,
+                                    "width": 24,
+                                  }
+                                }
+                              >
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  testID="network-avatar-image"
+                                />
+                              </View>
+                            </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Linea
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {},
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "transform": [
+                                  {
+                                    "rotate": "undefineddeg",
+                                  },
+                                ],
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              accessibilityLabel="Collapse quote details"
+                              accessibilityRole="button"
+                              activeOpacity={0.7}
+                              onPress={[Function]}
+                              testID="expand-quote-details"
+                            >
+                              <SvgMock
+                                color="#9fa6ae"
+                                height={16}
+                                name="ArrowDown"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>
@@ -1535,278 +1490,233 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                       }
                     >
                       <View
+                        alignItems="center"
+                        flexDirection="row"
+                        justifyContent="space-between"
                         style={
                           [
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
                               "justifyContent": "space-between",
-                              "overflow": "hidden",
                             },
-                            [
-                              undefined,
-                            ],
+                            undefined,
                           ]
                         }
                       >
                         <View
+                          alignItems="center"
+                          flexDirection="row"
                           style={
-                            {
-                              "alignItems": "flex-start",
-                              "flex": 1,
-                            }
-                          }
-                        >
-                          <View
-                            style={
+                            [
                               {
                                 "alignItems": "center",
                                 "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                }
-                              }
-                            >
-                              <View
-                                alignItems="center"
-                                flexDirection="row"
-                                gap={2}
-                                style={
-                                  [
-                                    {
-                                      "alignItems": "center",
-                                      "flexDirection": "row",
-                                      "gap": 2,
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={2}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 2,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                    style={{}}
-                                    testID="badgenetwork"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#ffffff",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1.5,
-                                          "height": 24,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
-                                          "shadowOffset": {
-                                            "height": 2,
-                                            "width": 0,
-                                          },
-                                          "shadowOpacity": 1,
-                                          "shadowRadius": 4,
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Ethereum
-                                  </Text>
-                                </View>
-                                <SvgMock
-                                  color="#141618"
-                                  height={16}
-                                  name="Arrow2Right"
-                                  style={
-                                    {
-                                      "height": 16,
-                                      "width": 16,
-                                    }
-                                  }
-                                  width={16}
-                                />
-                                <View
-                                  alignItems="center"
-                                  flexDirection="row"
-                                  gap={2}
-                                  style={
-                                    [
-                                      {
-                                        "alignItems": "center",
-                                        "flexDirection": "row",
-                                        "gap": 2,
-                                      },
-                                      undefined,
-                                    ]
-                                  }
-                                >
-                                  <View
-                                    onLayout={[Function]}
-                                    style={{}}
-                                    testID="badgenetwork"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#ffffff",
-                                          "borderColor": "#ffffff",
-                                          "borderRadius": 8,
-                                          "borderWidth": 1.5,
-                                          "height": 24,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "shadowColor": "#0000001A",
-                                          "shadowOffset": {
-                                            "height": 2,
-                                            "width": 0,
-                                          },
-                                          "shadowOpacity": 1,
-                                          "shadowRadius": 4,
-                                          "width": 24,
-                                        }
-                                      }
-                                    >
-                                      <Image
-                                        onError={[Function]}
-                                        resizeMode="contain"
-                                        source={1}
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        testID="network-avatar-image"
-                                      />
-                                    </View>
-                                  </View>
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Medium",
-                                        "fontSize": 14,
-                                        "fontWeight": "500",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Linea
-                                  </Text>
-                                </View>
-                              </View>
-                            </View>
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
+                              },
+                              {
+                                "flexDirection": "row",
+                                "flexWrap": "wrap",
+                                "maxWidth": "80%",
+                              },
+                            ]
                           }
                         >
                           <View
+                            alignItems="center"
+                            flexDirection="row"
+                            gap={2}
                             style={
-                              {
-                                "alignItems": "center",
-                                "flexDirection": "row",
-                                "gap": 8,
-                              }
-                            }
-                          >
-                            <View
-                              style={
+                              [
                                 {
                                   "alignItems": "center",
                                   "flexDirection": "row",
-                                }
-                              }
+                                  "gap": 2,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                              style={{}}
+                              testID="badgenetwork"
                             >
                               <View
                                 style={
                                   {
-                                    "transform": [
-                                      {
-                                        "rotate": "undefineddeg",
-                                      },
-                                    ],
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1.5,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "shadowColor": "#0000001A",
+                                    "shadowOffset": {
+                                      "height": 2,
+                                      "width": 0,
+                                    },
+                                    "shadowOpacity": 1,
+                                    "shadowRadius": 4,
+                                    "width": 24,
                                   }
                                 }
                               >
-                                <TouchableOpacity
-                                  accessibilityLabel="Expand quote details"
-                                  accessibilityRole="button"
-                                  activeOpacity={0.7}
-                                  onPress={[Function]}
-                                  testID="expand-quote-details"
-                                >
-                                  <SvgMock
-                                    color="#9fa6ae"
-                                    height={16}
-                                    name="ArrowDown"
-                                    style={
-                                      {
-                                        "height": 16,
-                                        "width": 16,
-                                      }
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
                                     }
-                                    width={16}
-                                  />
-                                </TouchableOpacity>
+                                  }
+                                  testID="network-avatar-image"
+                                />
                               </View>
                             </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Ethereum
+                            </Text>
+                          </View>
+                          <SvgMock
+                            color="#141618"
+                            height={16}
+                            name="Arrow2Right"
+                            style={
+                              {
+                                "height": 16,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            gap={2}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "gap": 2,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              onLayout={[Function]}
+                              style={{}}
+                              testID="badgenetwork"
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#ffffff",
+                                    "borderColor": "#ffffff",
+                                    "borderRadius": 8,
+                                    "borderWidth": 1.5,
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                    "overflow": "hidden",
+                                    "shadowColor": "#0000001A",
+                                    "shadowOffset": {
+                                      "height": 2,
+                                      "width": 0,
+                                    },
+                                    "shadowOpacity": 1,
+                                    "shadowRadius": 4,
+                                    "width": 24,
+                                  }
+                                }
+                              >
+                                <Image
+                                  onError={[Function]}
+                                  resizeMode="contain"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 24,
+                                      "width": 24,
+                                    }
+                                  }
+                                  testID="network-avatar-image"
+                                />
+                              </View>
+                            </View>
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#141618",
+                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Linea
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            [
+                              {},
+                              undefined,
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "transform": [
+                                  {
+                                    "rotate": "undefineddeg",
+                                  },
+                                ],
+                              }
+                            }
+                          >
+                            <TouchableOpacity
+                              accessibilityLabel="Expand quote details"
+                              accessibilityRole="button"
+                              activeOpacity={0.7}
+                              onPress={[Function]}
+                              testID="expand-quote-details"
+                            >
+                              <SvgMock
+                                color="#9fa6ae"
+                                height={16}
+                                name="ArrowDown"
+                                style={
+                                  {
+                                    "height": 16,
+                                    "width": 16,
+                                  }
+                                }
+                                width={16}
+                              />
+                            </TouchableOpacity>
                           </View>
                         </View>
                       </View>

@@ -20,6 +20,11 @@ const createStyles = ({ colors }: Theme) =>
       right: 0,
       height: 30,
     },
+    networkContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      maxWidth: '80%',
+    },
   });
 
 export default createStyles;
