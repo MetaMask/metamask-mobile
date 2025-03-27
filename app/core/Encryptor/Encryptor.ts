@@ -3,7 +3,6 @@ import {
   KeyDerivationIteration,
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
-  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
   LEGACY_DERIVATION_OPTIONS,
 } from './constants';
 import type {

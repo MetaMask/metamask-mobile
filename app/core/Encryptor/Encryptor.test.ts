@@ -440,7 +440,7 @@ describe('Encryptor', () => {
 
       // Verify the exported key uses legacy derivation options
       const importedKey = await encryptor.importKey(result.exportedKeyString);
-      expect(importedKey.keyMetadata).toEqual(DERIVATION_OPTIONS_MINIMUM_OWASP2023);
+      expect(importedKey.keyMetadata).toEqual(LEGACY_DERIVATION_OPTIONS);
     });
   });
 
