@@ -23,6 +23,8 @@ jest.mock('../Engine', () => ({
 }));
 
 // Type assertion for mocked Engine
+// Use any here to avoid type errors
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as jest.Mocked<any>;
 
 // Mock normalizeOrigin from wc-utils

@@ -11,15 +11,13 @@ import {
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
+// eslint-disable-next-line import/no-namespace
 import * as StoreModule from '../../../app/store';
 import { selectProviderConfig } from '../../selectors/networkController';
 import {
 	findExistingNetwork,
 	switchToNetwork,
 } from '../RPCMethods/lib/ethereum-chain-utils';
-import DevLogger from '../SDKConnect/utils/DevLogger';
-import qs from 'qs';
-import { parseRelayParams } from '@walletconnect/utils';
 
 // Mock dependencies
 jest.mock('../Engine', () => ({
@@ -80,6 +78,7 @@ jest.mock('@walletconnect/utils', () => ({
 
 describe('WalletConnect Utils', () => {
 	let mockNavigation: jest.Mocked<NavigationContainerRef>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const mockStore = (StoreModule as any).store;
 
 	beforeEach(() => {

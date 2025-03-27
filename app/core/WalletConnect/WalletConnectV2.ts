@@ -15,14 +15,13 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getPermittedAccounts, getPermittedChains } from '../Permissions';
+import { getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
 import extractApprovedAccounts from './extractApprovedAccounts';
 import WalletConnect from './WalletConnect';
 import {
-  getApprovedSessionMethods,
   getScopedPermissions,
   hideWCLoadingState,
   parseWalletConnectUri,
@@ -49,6 +48,7 @@ export class WC2Manager {
   private static _initialized = false;
   private navigation?: NavigationContainerRef;
   private web3Wallet: IWalletKit;
+  private sessions: { [topic: string]: WalletConnect2Session };
   private deeplinkSessions: {
     [pairingTopic: string]: { redirectUrl?: string; origin: string };
   } = {};
@@ -59,11 +59,12 @@ export class WC2Manager {
       [topic: string]: { redirectUrl?: string; origin: string };
     },
     navigation: NavigationContainerRef,
-    private sessions: { [topic: string]: WalletConnect2Session } = {},
+    sessions: { [topic: string]: WalletConnect2Session } = {},
   ) {
     this.web3Wallet = web3Wallet;
     this.deeplinkSessions = deeplinkSessions;
     this.navigation = navigation;
+    this.sessions = sessions;
 
     DevLogger.log(`WC2Manager::constructor()`, navigation);
 

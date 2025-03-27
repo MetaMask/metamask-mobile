@@ -233,7 +233,7 @@ class WalletConnect2Session {
 
   emitEvent = async (eventName: string, data: unknown) => {
     //console.log('🔵 emitEvent', eventName, data);
-    const res = await this.web3Wallet.emitSessionEvent({
+    await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
       chainId: `eip155:${data}`,

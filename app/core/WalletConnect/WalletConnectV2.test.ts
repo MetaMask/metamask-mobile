@@ -9,6 +9,8 @@ import Engine from '../Engine';
 import { IWalletKit } from '@reown/walletkit';
 import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
+// eslint-disable-next-line import/no-namespace
+import * as wcUtils from './wc-utils';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -156,7 +158,7 @@ describe('WC2Manager', () => {
   let manager: WC2Manager;
   let mockNavigation: NavigationContainerRef;
   let mockApproveSession: jest.SpyInstance;
-  let sessions: { [topic: string]: WalletConnect2Session } = {};
+  const _sessions: { [topic: string]: WalletConnect2Session } = {};
 
   beforeEach(async () => {
     mockNavigation = {
@@ -164,7 +166,7 @@ describe('WC2Manager', () => {
       navigate: jest.fn(),
     } as unknown as NavigationContainerRef;
 
-    const initResult = await WC2Manager.init({ navigation: mockNavigation, sessions });
+    const initResult = await WC2Manager.init({ navigation: mockNavigation, sessions: _sessions });
     if (!initResult) {
       throw new Error('Failed to initialize WC2Manager');
     }
@@ -307,7 +309,7 @@ describe('WC2Manager', () => {
 
     it('should handle existing sessionTopic connections', async () => {
       const mockWcUri = 'wc://test@2?sessionTopic=test-topic';
-      const showLoadingSpy = jest.spyOn(require('./wc-utils'), 'showWCLoadingState');
+      const showLoadingSpy = jest.spyOn(wcUtils, 'showWCLoadingState');
 
       await manager.connect({
         wcUri: mockWcUri,
@@ -457,7 +459,7 @@ describe('WC2Manager', () => {
       // Mock an error in session handling
       const session = manager.getSession('test-topic');
       if (session) {
-        const mockSession = sessions[session.topic];
+        const mockSession = _sessions[session.topic];
         mockSession.handleRequest = jest.fn().mockRejectedValue(new Error('Test error'));
       }
 

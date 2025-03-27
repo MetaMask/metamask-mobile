@@ -261,20 +261,6 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
   };
 };
 
-const requestUserApproval = (origin: string) => async ({
-  type = '',
-}: { type: string; requestData: Record<string, unknown> }) => {
-  //console.log('🟢 requestUserApproval', JSON.stringify({ origin, type }, null, 2));
-  await Engine.context.ApprovalController.clear(
-    providerErrors.userRejectedRequest(),
-  );
-  const responseData = await Engine.context.ApprovalController.add({
-    origin,
-    type,
-  });
-  return responseData;
-};
-
 export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
@@ -330,11 +316,12 @@ export const checkWCPermissions = async ({
   //console.log('🟢 checkWCPermissions caip2ChainId !== activeCaip2ChainId', caip2ChainId !== activeCaip2ChainId);
   if (caip2ChainId !== activeCaip2ChainId) {
     try {
-      const result = await switchToNetwork({
+      await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
         controllers: Engine.context,
         // requestUserApproval: requestUserApproval(origin),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         requestUserApproval: async (args: any) => {
           //console.log('🟢 requestUserApproval', JSON.stringify({args}, null, 2));
           await Engine.context.ApprovalController.clear(
