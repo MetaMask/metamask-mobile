@@ -69,7 +69,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock useLatestBalance hook
-jest.mock('./useLatestBalance', () => ({
+jest.mock('./hooks/useLatestBalance', () => ({
   useLatestBalance: jest.fn().mockImplementation(({
     address,
     chainId,
