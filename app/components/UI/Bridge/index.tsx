@@ -43,6 +43,7 @@ import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import QuoteDetailsCard from './components/QuoteDetailsCard';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -293,6 +294,9 @@ const BridgeView = () => {
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
           />
+          <Box style={styles.quoteContainer}>
+            <QuoteDetailsCard />
+          </Box>
         </Box>
 
         <Box style={styles.bottomSection}>
