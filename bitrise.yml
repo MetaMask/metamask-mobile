@@ -74,11 +74,10 @@ pipelines:
   paralellism_e2e_pipeline:
     workflows:
       ios_e2e_build: {}
-      android_e2e_build: {}
+      android_e2e_regression_tests: {}
       run-tests:
         depends_on: [ios_e2e_build]
         parallel: 5
-      run_tag_smoke_accounts_android: {}
       # report-results:
       #   depends_on: [run-tests]
   multichain_permissions_e2e_pipeline:
@@ -555,6 +554,16 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - ios_e2e_test
+  android_e2e_regression_tests:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE: 'Regression'
+    after_run:
+      - android_e2e_build
+      - android_e2e_test
   android_build_regression_tests:
     meta:
       bitrise.io:
@@ -562,8 +571,6 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
