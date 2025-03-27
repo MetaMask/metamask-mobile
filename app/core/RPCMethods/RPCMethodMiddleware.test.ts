@@ -1,5 +1,6 @@
 import { JsonRpcEngine, JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import type {
+  CaipAccountId,
   Hex,
   Json,
   JsonRpcFailure,
@@ -8,10 +9,6 @@ import type {
   JsonRpcResponse,
   JsonRpcSuccess,
 } from '@metamask/utils';
-import {
-  getPermissionsHandler,
-  requestPermissionsHandler,
-} from '@metamask/eip1193-permission-middleware';
 import {
   type JsonRpcError,
   providerErrors,
@@ -23,6 +20,7 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
+  PermissionConstraint,
   PermissionController,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
@@ -46,19 +44,11 @@ import {
   OriginThrottlingState,
 } from '../redux/slices/originThrottling';
 import { ProviderConfig } from '../../selectors/networkController';
-
-jest.mock('@metamask/eip1193-permission-middleware', () => ({
-  getPermissionsHandler: { implementation: jest.fn() },
-  requestPermissionsHandler: {
-    implementation: jest.fn(),
-  },
-}));
-
-const mockRequestPermissionHandlerImplementation =
-  requestPermissionsHandler.implementation as jest.Mock;
-
-const mockGetPermissionHandlerImplementation =
-  getPermissionsHandler.implementation as jest.Mock;
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { CaveatTypes } from '../Permissions/constants';
 
 jest.mock('./spam');
 
@@ -731,113 +721,147 @@ describe('getRpcMethodMiddleware', () => {
   });
 
   describe('wallet_requestPermissions', () => {
-    const middleware = getRpcMethodMiddleware({
-      ...getMinimalOptions(),
-      hostname: 'example.metamask.io',
-    });
-    const request = {
-      jsonrpc,
-      id: 1,
-      method: 'wallet_requestPermissions',
-      params: [
-        {
-          eth_accounts: {},
+    it('can requestPermissions for eth_accounts', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.requestPermissions
+        >
+      >[0] = {
+        [Caip25EndowmentPermissionName]: {
+          parentCapability: 'eth_accounts',
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'wallet:eip155': {
+                    accounts: [`wallet:eip155:${addressMock}` as CaipAccountId], // TODO: [ffmcgee] typecasting
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
+            },
+          ],
         },
-      ],
-    };
+      };
 
-    it('should call eip1193-method-middleware requestPermissionHandler implementation with expected arguments', async () => {
-      mockRequestPermissionHandlerImplementation.mockImplementation(
-        (_req, _res, _next, callback) => {
-          callback(null);
-          return Promise.resolve();
-        },
+      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+      MockEngine.context.PermissionController.requestPermissions.mockImplementation(
+        async () => [
+          mockPermission,
+          {
+            id: 'id',
+            origin: mockOrigin,
+          },
+        ],
+      );
+      MockEngine.getCaip25PermissionFromLegacyPermissions.mockImplementation(
+        () => mockPermission, // TODO: [ffmcgee] resolve typescript
       );
 
-      const response = await callMiddleware({ middleware, request });
-
-      expect(mockRequestPermissionHandlerImplementation).toHaveBeenCalledWith(
-        request,
-        response,
-        expect.any(Function),
-        expect.any(Function),
-        expect.objectContaining({
-          getAccounts: expect.any(Function),
-          getCaip25PermissionFromLegacyPermissionsForOrigin:
-            expect.any(Function),
-          requestPermissionsForOrigin: expect.any(Function),
-        }),
-      );
-    });
-
-    it('should call implementation with expected arguments and receive an error if call throws', async () => {
-      const mockError = new Error('error');
-      mockRequestPermissionHandlerImplementation.mockImplementation(
-        (_req, _res, _next, callback) => {
-          callback(mockError);
-          return Promise.resolve();
-        },
-      );
-
-      const response = await callMiddleware({ middleware, request });
-
-      expect(response).toStrictEqual({
-        id: request.id,
-        jsonrpc: request.jsonrpc,
-        error: expect.objectContaining({
-          code: -32603,
-          message: 'error',
-        }),
-      });
-
-      expect(mockRequestPermissionHandlerImplementation).toHaveBeenCalledWith(
-        request,
-        response,
-        expect.any(Function),
-        expect.any(Function),
-        expect.objectContaining({
-          getAccounts: expect.any(Function),
-          getCaip25PermissionFromLegacyPermissionsForOrigin:
-            expect.any(Function),
-          requestPermissionsForOrigin: expect.any(Function),
-        }),
-      );
-    });
-  });
-
-  describe('wallet_getPermissions', () => {
-    it('should call eip1193-method-middleware getPermissionHandler implementation with expected arguments', async () => {
-      mockGetPermissionHandlerImplementation.mockImplementation(
-        (_req, _res, _next, callback) => {
-          callback(null);
-          return Promise.resolve();
-        },
-      );
+      const expectedEthAccountsPermission = {
+        caveats: [
+          {
+            type: CaveatTypes.restrictReturnedAccounts,
+            value: [addressMock],
+          },
+        ],
+        id: 'id',
+        date: 1,
+        invoker: mockOrigin,
+        parentCapability: 'eth_accounts',
+      };
 
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
         hostname: 'example.metamask.io',
       });
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'wallet_requestPermissions',
+        params: [
+          {
+            eth_accounts: {},
+          },
+        ],
+      };
+      const response = await callMiddleware({ middleware, request });
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([expectedEthAccountsPermission]);
+    });
+  });
 
+  describe('wallet_getPermissions', () => {
+    it('can getPermissions', async () => {
+      const mockOrigin = 'example.metamask.io';
+      const mockPermission: Awaited<
+        ReturnType<
+          typeof MockEngine.context.PermissionController.requestPermissions
+        >
+      >[0] = {
+        [Caip25EndowmentPermissionName]: {
+          parentCapability: 'eth_accounts',
+          id: 'id',
+          date: 1,
+          invoker: mockOrigin,
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: {
+                requiredScopes: {},
+                optionalScopes: {
+                  'wallet:eip155': {
+                    accounts: [`wallet:eip155:${addressMock}` as CaipAccountId], // TODO: [ffmcgee] typecasting
+                  },
+                },
+                sessionProperties: {},
+                isMultichainOrigin: false,
+              },
+            },
+          ],
+        },
+      };
+
+      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+      MockEngine.context.PermissionController.getPermissions.mockImplementation(
+        () => mockPermission, // TODO: [ffmcgee] resolve typescript
+      );
+
+      const expectedEthAccountsPermission = {
+        id: 'id',
+        date: 1,
+        invoker: mockOrigin,
+        parentCapability: 'eth_accounts',
+        caveats: [
+          {
+            type: CaveatTypes.restrictReturnedAccounts,
+            value: [addressMock],
+          },
+        ],
+      };
+
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
       const request = {
         jsonrpc,
         id: 1,
         method: 'wallet_getPermissions',
         params: [],
       };
-
       const response = await callMiddleware({ middleware, request });
-
-      expect(mockGetPermissionHandlerImplementation).toHaveBeenCalledWith(
-        request,
-        response,
-        expect.any(Function),
-        expect.any(Function),
-        expect.objectContaining({
-          getAccounts: expect.any(Function),
-          getPermissionsForOrigin: expect.any(Function),
-        }),
-      );
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([expectedEthAccountsPermission]);
     });
   });
 
