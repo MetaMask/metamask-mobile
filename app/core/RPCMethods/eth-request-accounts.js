@@ -94,7 +94,8 @@ async function requestEthereumAccountsHandler(
   // first time connection to dapp will lead to no log in the permissionHistory
   // and if user has connected to dapp before, the dapp origin will be included in the permissionHistory state
   // we will leverage that to identify `is_first_visit` for metrics
-  // TODO: FIX THIS. metamaskState does not have a metaMetricsId property.
+  // TODO: [jiexi] FIX THIS. metamaskState does not have a metaMetricsId property.
+  // should fix broken unit test `emits the dapp viewed metrics event when shouldEmitDappViewedEvent returns true`.
   // if (shouldEmitDappViewedEvent(metamaskState.metaMetricsId)) {
   //   trackDappViewedEvent(origin, ethAccounts.length);
   // }
