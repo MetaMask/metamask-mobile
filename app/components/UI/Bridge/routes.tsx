@@ -7,6 +7,7 @@ import SlippageModal from './components/SlippageModal';
 import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSelector';
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
 import BridgeView from '.';
+import QuoteInfoModal from './components/QuoteInfoModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -19,10 +20,7 @@ const clearStackNavigatorOptions = {
 const Stack = createStackNavigator();
 export const BridgeScreenStack = () => (
   <Stack.Navigator>
-    <Stack.Screen
-      name="BridgeView"
-      component={BridgeView}
-    />
+    <Stack.Screen name="BridgeView" component={BridgeView} />
   </Stack.Navigator>
 );
 
@@ -51,6 +49,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
       component={SlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL}
+      component={QuoteInfoModal}
     />
   </ModalStack.Navigator>
 );

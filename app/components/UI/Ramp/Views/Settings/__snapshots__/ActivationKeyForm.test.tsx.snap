@@ -137,7 +137,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -409,7 +409,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 16,
                                   "fontWeight": "500",
@@ -436,7 +436,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -453,7 +453,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -487,7 +487,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -519,7 +519,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -536,7 +536,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -572,7 +572,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -615,7 +615,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
                                     "backgroundColor": "transparent",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderRadius": 24,
                                     "borderWidth": 1,
                                     "flex": 1,
@@ -630,7 +630,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -654,7 +654,7 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#0376c9",
+                                    "backgroundColor": "#4459ff",
                                     "borderRadius": 24,
                                     "flex": 1,
                                     "flexDirection": "row",

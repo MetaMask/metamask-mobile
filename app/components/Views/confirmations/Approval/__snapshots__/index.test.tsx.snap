@@ -353,7 +353,7 @@ exports[`Approval render matches snapshot 1`] = `
                         onStartShouldSetResponder={[Function]}
                         style={
                           {
-                            "backgroundColor": "#00000099",
+                            "backgroundColor": "#00000066",
                             "bottom": 0,
                             "height": 1334,
                             "left": 0,
@@ -617,10 +617,10 @@ exports[`Approval render matches snapshot 1`] = `
                                                         style={
                                                           {
                                                             "alignItems": "center",
-                                                            "borderColor": "#848c96",
+                                                            "borderColor": "#b7bbc8",
                                                             "borderRadius": 12,
                                                             "borderWidth": 1,
-                                                            "color": "#141618",
+                                                            "color": "#121314",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 10,
                                                             "fontWeight": "400",
@@ -635,7 +635,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                       <Text
                                                         style={
                                                           {
-                                                            "color": "#141618",
+                                                            "color": "#121314",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 44,
                                                             "fontWeight": "400",
@@ -659,7 +659,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                       style={
                                                         [
                                                           {
-                                                            "borderColor": "#BBC0C566",
+                                                            "borderColor": "#b7bbc866",
                                                             "borderRadius": 8,
                                                             "borderWidth": 1,
                                                             "padding": 16,
@@ -710,7 +710,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                               style={
                                                                 [
                                                                   {
-                                                                    "color": "#141618",
+                                                                    "color": "#121314",
                                                                     "fontFamily": "EuclidCircularB-Regular",
                                                                     "fontSize": 30,
                                                                     "fontWeight": "400",
@@ -730,7 +730,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                                   false,
                                                                   undefined,
                                                                   {
-                                                                    "color": "#141618",
+                                                                    "color": "#121314",
                                                                   },
                                                                   undefined,
                                                                   undefined,
@@ -776,7 +776,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                                         "fontSize": 13,
                                                                       },
                                                                       {
-                                                                        "color": "#9fa6ae",
+                                                                        "color": "#9ca1af",
                                                                       },
                                                                       {
                                                                         "fontFamily": "Material Design Icons",
@@ -1025,8 +1025,8 @@ exports[`Approval render matches snapshot 1`] = `
                                                       style={
                                                         {
                                                           "alignItems": "center",
-                                                          "backgroundColor": "#D738471A",
-                                                          "borderColor": "#d73847",
+                                                          "backgroundColor": "#ca35421a",
+                                                          "borderColor": "#ca3542",
                                                           "borderRadius": 8,
                                                           "borderWidth": 1,
                                                           "justifyContent": "center",
@@ -1040,7 +1040,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                       <Text
                                                         style={
                                                           {
-                                                            "color": "#141618",
+                                                            "color": "#121314",
                                                             "fontFamily": "EuclidCircularB-Regular",
                                                             "fontSize": 12,
                                                             "fontWeight": "400",
@@ -1070,7 +1070,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                           style={
                                                             {
                                                               "alignSelf": "center",
-                                                              "color": "#0376c9",
+                                                              "color": "#4459ff",
                                                               "fontFamily": "EuclidCircularB-Bold",
                                                               "fontSize": 12,
                                                               "fontWeight": "600",
@@ -1113,7 +1113,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                     },
                                                     {
                                                       "backgroundColor": "#ffffff",
-                                                      "borderColor": "#6a737d",
+                                                      "borderColor": "#686e7d",
                                                       "borderWidth": 1,
                                                     },
                                                     [
@@ -1148,7 +1148,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                         "textAlign": "center",
                                                       },
                                                       {
-                                                        "color": "#6a737d",
+                                                        "color": "#686e7d",
                                                       },
                                                       undefined,
                                                     ],
@@ -1173,7 +1173,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                       "padding": 15,
                                                     },
                                                     {
-                                                      "backgroundColor": "#0376c9",
+                                                      "backgroundColor": "#4459ff",
                                                       "minHeight": 50,
                                                     },
                                                     [
@@ -1282,7 +1282,7 @@ exports[`Approval render matches snapshot 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#141618",
+                                                "color": "#121314",
                                                 "fontSize": 24,
                                               },
                                               undefined,
@@ -1302,7 +1302,7 @@ exports[`Approval render matches snapshot 1`] = `
                                         style={
                                           {
                                             "alignSelf": "center",
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
@@ -1335,7 +1335,7 @@ exports[`Approval render matches snapshot 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
@@ -1349,7 +1349,7 @@ exports[`Approval render matches snapshot 1`] = `
                                     <View
                                       style={
                                         {
-                                          "borderColor": "#848c96",
+                                          "borderColor": "#b7bbc8",
                                           "borderRadius": 8,
                                           "borderWidth": 1,
                                           "flex": 1,
@@ -1361,7 +1361,7 @@ exports[`Approval render matches snapshot 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
@@ -1432,7 +1432,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                 style={
                                                   {
                                                     "backgroundColor": "#ffffff",
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 14,
                                                     "fontWeight": "400",

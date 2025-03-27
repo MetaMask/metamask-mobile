@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.42.99",
+  "version": "7.43.0",
   "private": true,
   "scripts": {
     "audit:ci": "./scripts/yarn-audit.sh",
@@ -163,7 +163,7 @@
     "@metamask/bridge-status-controller": "^7.0.0",
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.3.0",
-    "@metamask/design-tokens": "^5.0.0",
+    "@metamask/design-tokens": "^5.1.0",
     "@metamask/earn-controller": "^0.10.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",

@@ -159,7 +159,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
         : null,
   };
 
-  const hasAssetBalance = parseFloatSafe(asset.balanceFiat) > 0;
+  const hasAssetBalance =
+    asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
 
   return (
     <View style={styles.tokenDetailsContainer}>

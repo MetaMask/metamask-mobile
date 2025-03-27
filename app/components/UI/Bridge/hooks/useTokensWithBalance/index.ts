@@ -6,8 +6,14 @@ import { selectTokensBalances } from '../../../../../selectors/tokenBalancesCont
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectCurrencyRates, selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { deriveBalanceFromAssetMarketDetails, sortAssets } from '../../../Tokens/util';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import {
+  deriveBalanceFromAssetMarketDetails,
+  sortAssets,
+} from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
 import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
 
@@ -17,7 +23,9 @@ interface CalculateFiatBalancesParams {
   assets: TokenI[];
   multiChainMarketData: ReturnType<typeof selectTokenMarketData>;
   multiChainTokenBalance: ReturnType<typeof selectTokensBalances>;
-  networkConfigurationsByChainId: ReturnType<typeof selectNetworkConfigurations>;
+  networkConfigurationsByChainId: ReturnType<
+    typeof selectNetworkConfigurations
+  >;
   multiChainCurrencyRates: ReturnType<typeof selectCurrencyRates>;
   currentCurrency: string;
   selectedAddress: Hex;
@@ -48,19 +56,17 @@ export const calculateBalances = ({
   networkConfigurationsByChainId,
   multiChainCurrencyRates,
   currentCurrency,
-  selectedAddress
+  selectedAddress,
 }: CalculateFiatBalancesParams): {
   tokenFiatAmount: number;
   balance: string;
-  balanceFiat: string;
+  balanceFiat?: string;
 }[] =>
   assets.map((token) => {
     const chainId = token.chainId as Hex;
     const multiChainExchangeRates = multiChainMarketData?.[chainId];
     const multiChainTokenBalances =
-      multiChainTokenBalance?.[selectedAddress]?.[
-        chainId
-      ];
+      multiChainTokenBalance?.[selectedAddress]?.[chainId];
     const nativeCurrency =
       networkConfigurationsByChainId[chainId].nativeCurrency;
     const multiChainConversionRate =
@@ -104,7 +110,9 @@ export const useTokensWithBalance: ({
 }) => TokenIWithFiatAmount[] = ({ chainIds }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const selectedInternalAccountAddress = useSelector(selectSelectedInternalAccountAddress) as Hex;
+  const selectedInternalAccountAddress = useSelector(
+    selectSelectedInternalAccountAddress,
+  ) as Hex;
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
@@ -115,14 +123,15 @@ export const useTokensWithBalance: ({
 
   // All tokens across chains and their balances
   // Includes native and non-native tokens
-  const accountTokensAcrossChains = useSelector(selectAccountTokensAcrossChains);
+  const accountTokensAcrossChains = useSelector(
+    selectAccountTokensAcrossChains,
+  );
   const multiChainTokenBalance = useSelector(selectTokensBalances);
 
   const sortedTokens = useMemo(() => {
     const allAccountTokens = (
       Object.values(accountTokensAcrossChains).flat() as TokenI[]
-    )
-    .filter((token) => chainIds.includes(token.chainId as Hex));
+    ).filter((token) => chainIds.includes(token.chainId as Hex));
 
     const balances = calculateBalances({
       assets: allAccountTokens,

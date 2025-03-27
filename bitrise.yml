@@ -612,6 +612,7 @@ workflows:
       - android_e2e_build
   run_android_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
@@ -635,6 +636,7 @@ workflows:
 
   run_ios_app_launch_times_appium_test:
     envs:
+      - TEST_SUITE_FOLDER: './wdio/features/Performance/*'
       - TEST_TYPE: 'performance'
     meta:
       bitrise.io:
@@ -1409,49 +1411,49 @@ workflows:
             inputs:
               - ndk_version: $NDK_VERSION
               - gradlew_path: $PROJECT_LOCATION/gradlew
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-          title: Build Android Pre-Release Bundle
-          is_always_run: false
-      - save-gradle-cache@1: {}
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-          title: Bitrise Deploy APK
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-          title: Bitrise Deploy Checksum
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-          title: Bitrise ProGuard Map Files
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-          title: Bitrise Deploy AAB
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: sourcemaps/android/index.js.map
-          title: Bitrise Deploy Sourcemaps
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
+        - script@1:
+            inputs:
+              - content: |-
+                  #!/usr/bin/env bash
+                  node -v
+                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
+            title: Build Android Pre-Release Bundle
+            is_always_run: false
+        - save-gradle-cache@1: {}
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
+            title: Bitrise Deploy APK
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
+            title: Bitrise Deploy Checksum
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
+            title: Bitrise ProGuard Map Files
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
+            title: Bitrise Deploy AAB
+        - deploy-to-bitrise-io@2.2.3:
+            is_always_run: false
+            is_skippable: true
+            inputs:
+              - deploy_path: sourcemaps/android/index.js.map
+            title: Bitrise Deploy Sourcemaps
+      meta:
+        bitrise.io:
+          stack: linux-docker-android-22.04
+          machine_type_id: elite-xl
   build_android_qa_flask:
     before_run:
       - code_setup
@@ -1592,7 +1594,7 @@ workflows:
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
-                yarn test:wdio:android:browserstack $TEST_TYPE
+                yarn test:wdio:android:browserstack "$TEST_SUITE_FOLDER" "$TEST_TYPE"
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -1632,7 +1634,7 @@ workflows:
                 elif [ "$TEST_TYPE" = "performance" ]; then
                   TEST_TYPE="--performance"
                 fi
-                yarn test:wdio:ios:browserstack $TEST_TYPE
+                yarn test:wdio:ios:browserstack "$TEST_SUITE_FOLDER" "$TEST_TYPE"
       - script@1:
           is_always_run: true
           is_skippable: false
@@ -2120,16 +2122,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.42.1
+      VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1623
+      VERSION_NUMBER: 1656
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.42.1
+      FLASK_VERSION_NAME: 7.43.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1623
+      FLASK_VERSION_NUMBER: 1656
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

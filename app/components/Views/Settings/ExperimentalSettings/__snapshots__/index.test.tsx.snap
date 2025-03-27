@@ -17,7 +17,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
@@ -32,7 +32,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -56,7 +56,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "stretch",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 24,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -71,7 +71,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -87,7 +87,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 24,
             "fontWeight": "700",
@@ -120,7 +120,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -136,7 +136,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -148,13 +148,13 @@ exports[`ExperimentalSettings should render correctly 1`] = `
                     "alignSelf": "flex-end",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
               ]
             }
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={false}
           />
         </View>
@@ -162,7 +162,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
+              "color": "#686e7d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -197,7 +197,7 @@ exports[`ExperimentalSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
