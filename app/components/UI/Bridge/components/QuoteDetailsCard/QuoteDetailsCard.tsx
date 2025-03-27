@@ -112,13 +112,13 @@ const QuoteDetailsCard = () => {
   });
 
   const handleQuoteInfoPress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
     });
   };
 
   const handleSlippagePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
     });
   };
