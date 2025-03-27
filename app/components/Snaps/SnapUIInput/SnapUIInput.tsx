@@ -58,7 +58,15 @@ export const SnapUIInput = ({
   };
 
   const handleFocus = () => setCurrentFocusedInput(name);
-  const handleBlur = () => setCurrentFocusedInput(null);
+
+  const handleBlur = () => {
+    const trimmedText = value.trim();
+    if (trimmedText !== value) {
+      setValue(trimmedText);
+      handleInputChange(name, trimmedText, form);
+    }
+    setCurrentFocusedInput(null);
+  };
 
   return (
     <Box style={style}>
