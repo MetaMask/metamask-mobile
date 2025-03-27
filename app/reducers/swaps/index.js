@@ -242,7 +242,7 @@ export const swapsTokensSelector = createSelector(
   },
 );
 
-const topAssets = (state) =>
+export const topAssets = (state) =>
   state.engine.backgroundState.SwapsController.topAssets;
 
 /**
