@@ -60,7 +60,7 @@ export const calculateBalances = ({
 }: CalculateFiatBalancesParams): {
   tokenFiatAmount: number;
   balance: string;
-  balanceFiat: string | undefined;
+  balanceFiat?: string;
 }[] =>
   assets.map((token) => {
     const chainId = token.chainId as Hex;
