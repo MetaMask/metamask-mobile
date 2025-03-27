@@ -239,49 +239,53 @@ export const selectMultichainTokenList = createDeepEqualSelector(
     const assetIds = assets?.[selectedAccountAddress.id] || [];
     const balances = multichainBalances?.[selectedAccountAddress.id];
 
-    return assetIds
-      .filter((assetId) => {
-        const { chainId } = parseCaipAssetType(assetId);
-        return chainId === nonEvmNetworkChainId;
-      })
-      .map((assetId) => {
-        const { chainId, assetNamespace } = parseCaipAssetType(assetId);
-        const isNative = assetNamespace === 'slip44';
-        const balance = balances?.[assetId] || { amount: undefined, unit: '' };
-        const rate = assetsRates?.[assetId]?.rate || '0';
-        const balanceInFiat = balance.amount
-          ? new BigNumber(balance.amount).times(rate)
-          : undefined;
+    const tokens = [];
 
-        const assetMetadataFallback = {
-          name: balance.unit || '',
-          symbol: balance.unit || '',
-          fungible: true,
-          units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
-        };
+    for (const assetId of assetIds) {
+      const { chainId, assetNamespace } = parseCaipAssetType(assetId);
 
-        const metadata = assetsMetadata[assetId] || assetMetadataFallback;
-        const decimals = metadata.units[0]?.decimals || 0;
+      if (chainId !== nonEvmNetworkChainId) {
+        continue;
+      }
 
-        return {
-          name: metadata?.name,
-          address: assetId,
-          symbol: metadata?.symbol,
-          image: metadata?.iconUrl,
-          logo: metadata?.iconUrl,
-          decimals,
-          chainId,
-          isNative,
-          balance: balance.amount,
-          secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
-          string: '',
-          balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
-          isStakeable: false,
-          aggregators: [],
-          isETH: false,
-          ticker: metadata.symbol,
-        };
+      const isNative = assetNamespace === 'slip44';
+      const balance = balances?.[assetId] || { amount: undefined, unit: '' };
+      const rate = assetsRates?.[assetId]?.rate || '0';
+      const balanceInFiat = balance.amount
+        ? new BigNumber(balance.amount).times(rate)
+        : undefined;
+
+      const assetMetadataFallback = {
+        name: balance.unit || '',
+        symbol: balance.unit || '',
+        fungible: true,
+        units: [{ name: assetId, symbol: balance.unit || '', decimals: 0 }],
+      };
+
+      const metadata = assetsMetadata[assetId] || assetMetadataFallback;
+      const decimals = metadata.units[0]?.decimals || 0;
+
+      tokens.push({
+        name: metadata?.name,
+        address: assetId,
+        symbol: metadata?.symbol,
+        image: metadata?.iconUrl,
+        logo: metadata?.iconUrl,
+        decimals,
+        chainId,
+        isNative,
+        balance: balance.amount,
+        secondary: balanceInFiat ? balanceInFiat.toString() : undefined,
+        string: '',
+        balanceFiat: balanceInFiat ? balanceInFiat.toString() : undefined,
+        isStakeable: false,
+        aggregators: [],
+        isETH: false,
+        ticker: metadata.symbol,
       });
+    }
+
+    return tokens;
   },
 );
 
@@ -305,28 +309,28 @@ export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
     const assetIds = assets?.[selectedAccountAddress.id] || [];
     const balances = multichainBalances?.[selectedAccountAddress.id];
 
-    return assetIds
-      .filter((assetId) => {
-        const { chainId } = parseCaipAssetType(assetId);
-        return chainId === nonEvmNetworkChainId;
-      })
-      .reduce(
-        (acc, assetId) => {
-          const balance = balances?.[assetId] || { amount: '0', unit: '' };
-          const rate = assetsRates?.[assetId]?.rate || '0';
-          const balanceInFiat = new BigNumber(balance.amount).times(rate);
+    let totalBalance = new BigNumber(0);
+    let totalBalanceFiat = new BigNumber(0);
 
-          acc.totalBalance = new BigNumber(acc.totalBalance)
-            .plus(balance.amount)
-            .toString();
-          acc.totalBalanceFiat = new BigNumber(acc.totalBalanceFiat)
-            .plus(balanceInFiat)
-            .toString();
+    for (const assetId of assetIds) {
+      const { chainId } = parseCaipAssetType(assetId);
 
-          return acc;
-        },
-        { totalBalance: '0', totalBalanceFiat: '0' },
-      );
+      if (chainId !== nonEvmNetworkChainId) {
+        continue;
+      }
+
+      const balance = balances?.[assetId] || { amount: '0', unit: '' };
+      const rate = assetsRates?.[assetId]?.rate || '0';
+      const balanceInFiat = new BigNumber(balance.amount).times(rate);
+
+      totalBalance = totalBalance.plus(balance.amount);
+      totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
+    }
+
+    return {
+      totalBalance: totalBalance.toString(),
+      totalBalanceFiat: totalBalanceFiat.toString(),
+    };
   },
 );
 
