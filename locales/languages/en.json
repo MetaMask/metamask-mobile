@@ -972,6 +972,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",

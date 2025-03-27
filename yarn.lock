@@ -5310,10 +5310,10 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.5.0.tgz#3a5078d698c1e603e51c4d3f155ce9d228ae07ea"
-  integrity sha512-r+t/t3jKjpsVdoOVWWt6ulZHRhQn8gAMLID1l0QvQgmzQy87ayTDU7WAnyw+jFyO4z+OA/uCwj4EwN+M2rPXgA==
+"@metamask/remote-feature-flag-controller@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.6.0.tgz#138c0a841e52b00efb704c892fa5915fbe9ef1d8"
+  integrity sha512-yMHHTR4lT38HQ8rl8qakX2eXUztudqk2GaGiumlT7D6tdROo96Oc6sU6ZQlYohIVJ1OH6TNP8ucKKlJ2GDtTHQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
