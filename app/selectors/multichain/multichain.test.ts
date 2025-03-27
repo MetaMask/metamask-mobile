@@ -14,7 +14,7 @@ import {
   MULTICHAIN_NETWORK_TO_ASSET_TYPES,
   selectMultichainTransactions,
   selectMultichainTokenList,
-  selectMultichainNetworkAggregatedBalance,
+  selectSelectedAccountMultichainNetworkAggregatedBalance,
   selectSolanaAccountTransactions,
 } from './multichain';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -742,9 +742,10 @@ describe('MultichainNonEvm Selectors', () => {
       mockState.engine.backgroundState.MultichainAssetsRatesController.conversionRates =
         mockAssetsRates;
 
-      const result = selectMultichainNetworkAggregatedBalance(mockState);
+      const result =
+        selectSelectedAccountMultichainNetworkAggregatedBalance(mockState);
 
-      expect(result.totalBalance).toEqual('30');
+      expect(result.totalNativeTokenBalance.amount).toEqual('30');
       expect(result.totalBalanceFiat).toEqual('40000');
     });
   });

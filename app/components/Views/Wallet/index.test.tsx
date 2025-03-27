@@ -24,7 +24,7 @@ jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
-    getTotalFiatAccountBalance: jest.fn(),
+    getTotalEvmFiatAccountBalance: jest.fn(),
     context: {
       NftController: {
         allNfts: {
