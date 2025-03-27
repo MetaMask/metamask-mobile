@@ -272,8 +272,10 @@ describe('StakeInputView', () => {
   const mockIsStablecoinLendingFeatureEnabled = jest.mocked(
     isStablecoinLendingFeatureEnabled,
   );
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     mockIsStablecoinLendingFeatureEnabled.mockReturnValue(false);
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
@@ -334,17 +336,17 @@ describe('StakeInputView', () => {
       });
 
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
-        'Deposit USDC',
+        'Deposit',
         expect.anything(),
         expect.anything(),
         expect.anything(),
         expect.anything(),
       );
-      expect(getByText('Balance: 1 USDC')).toBeTruthy();
-      expect(getByText('0 USD')).toBeTruthy();
+      expect(getByText('1 USDC')).toBeTruthy();
+      expect(getByText('$0')).toBeTruthy();
 
       fireEvent.press(getByText('1'));
-      expect(getByText('1 USD')).toBeTruthy();
+      expect(getByText('$1')).toBeTruthy();
     });
   });
 
@@ -479,6 +481,7 @@ describe('StakeInputView', () => {
 
         fireEvent.press(getByText(strings('stake.review')));
 
+        jest.useRealTimers();
         // Wait for approval to be processed
         await flushPromises();
 

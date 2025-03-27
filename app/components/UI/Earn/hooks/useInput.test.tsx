@@ -9,6 +9,12 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import useInputHandler, { InputHandlerParams } from './useInput';
+import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+
+// mock stablecoin lending feature flag
+jest.mock('../../Stake/constants', () => ({
+  isStablecoinLendingFeatureEnabled: jest.fn(() => false),
+}));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
@@ -90,6 +96,21 @@ describe('useInputHandler', () => {
     expect(result.current.isFiat).toBe(false);
     expect(result.current.isNonZeroAmount).toBe(false);
     expect(result.current.currentCurrency).toBe('USD');
+    expect(result.current.currencyToggleValue).toBe('0 USD');
+  });
+
+  it('should initialize with default values with stablecoin lending enabled', () => {
+    jest.mocked(isStablecoinLendingFeatureEnabled).mockReturnValue(true);
+
+    const { result } = renderHook();
+
+    expect(result.current.amountToken).toBe('0');
+    expect(result.current.amountTokenMinimalUnit).toEqual(new BN4(0));
+    expect(result.current.amountFiatNumber).toBe('0');
+    expect(result.current.isFiat).toBe(false);
+    expect(result.current.isNonZeroAmount).toBe(false);
+    expect(result.current.currentCurrency).toBe('USD');
+    expect(result.current.currencyToggleValue).toBe('$0');
   });
 
   it('should handle token input correctly', () => {

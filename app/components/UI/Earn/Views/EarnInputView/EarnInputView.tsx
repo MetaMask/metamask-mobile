@@ -252,30 +252,75 @@ const EarnInputView = () => {
     }, []),
   );
 
+  const stakingNavBarOptions = {
+    hasCancelButton: true,
+    hasBackButton: false,
+  };
+  const stakingNavBarEventOptions = {
+    cancelButtonEvent: {
+      event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+      },
+    },
+  };
+  const earnNavBarOptions = {
+    hasCancelButton: false,
+    hasBackButton: true,
+    hasIconButton: true,
+    // TODO: STAKE-967
+    // handleIconPress: navigateToLearnMoreModal,
+  };
+  const earnNavBarEventOptions = {
+    backButtonEvent: {
+      event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+      },
+    },
+    // TODO: STAKE-967
+    // iconButtonEvent: {
+    //   event: MetaMetricsEvents.TOOLTIP_OPENED,
+    //   properties: {
+    //     selected_provider: EVENT_PROVIDERS.CONSENSYS,
+    //     text: 'Tooltip Opened',
+    //     location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
+    //     tooltip_name: 'MetaMask Earn Estimated Rewards',
+    //   },
+    // },
+  };
+  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+  const navBarOptions = isStablecoinLendingEnabled
+    ? earnNavBarOptions
+    : stakingNavBarOptions;
+  const navBarEventOptions = isStablecoinLendingEnabled
+    ? earnNavBarEventOptions
+    : stakingNavBarEventOptions;
+  const title = isStablecoinLendingEnabled
+    ? getEarnInputViewTitle(action)
+    : strings('stake.stake_eth');
+
   useEffect(() => {
-    const title = isStablecoinLendingFeatureEnabled()
-      ? getEarnInputViewTitle(action, token.symbol, token.isETH)
-      : strings('stake.stake_eth');
     navigation.setOptions(
       getStakingNavbar(
         title,
         navigation,
         theme.colors,
-        {
-          hasBackButton: false,
-        },
-        {
-          cancelButtonEvent: {
-            event: MetaMetricsEvents.STAKE_CANCEL_CLICKED,
-            properties: {
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              location: EVENT_LOCATIONS.STAKE_INPUT_VIEW,
-            },
-          },
-        },
+        navBarOptions,
+        navBarEventOptions,
       ),
     );
-  }, [navigation, action, token, theme.colors]);
+  }, [
+    navigation,
+    action,
+    token,
+    theme.colors,
+    navBarEventOptions,
+    navBarOptions,
+    title,
+  ]);
 
   useEffect(() => {
     calculateEstimatedAnnualRewards();

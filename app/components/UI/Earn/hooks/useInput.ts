@@ -11,6 +11,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
+import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 
 export interface InputHandlerParams {
   balance: string;
@@ -177,13 +178,29 @@ const useInputHandler = ({
     [conversionRate, decimals, exchangeRate],
   );
 
-  const currencyToggleValue = useMemo(
-    () =>
-      isFiat
-        ? `${amountToken} ${ticker}`
-        : `${amountFiatNumber} ${currentCurrency.toUpperCase()}`,
-    [isFiat, amountToken, ticker, amountFiatNumber, currentCurrency],
-  );
+  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+
+  const currencyToggleValue = useMemo(() => {
+    const upperCaseCurrentCurrency = currentCurrency.toUpperCase();
+    let currencySymbol = '';
+    let currencyTicker = ` ${currentCurrency.toUpperCase()}`;
+    if (upperCaseCurrentCurrency === 'USD') {
+      currencySymbol = '$';
+      currencyTicker = '';
+    }
+    const amountTokenText = `${amountToken} ${ticker}`;
+    const amountFiatText = isStablecoinLendingEnabled
+      ? `${currencySymbol}${amountFiatNumber}${currencyTicker}`
+      : `${amountFiatNumber} ${currentCurrency.toUpperCase()}`;
+    return isFiat ? amountTokenText : amountFiatText;
+  }, [
+    isFiat,
+    amountToken,
+    ticker,
+    amountFiatNumber,
+    currentCurrency,
+    isStablecoinLendingEnabled,
+  ]);
 
   useEffect(() => {
     setAmountToken('0');

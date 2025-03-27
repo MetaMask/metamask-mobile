@@ -40,6 +40,7 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();
@@ -103,27 +104,63 @@ const EarnWithdrawInputView = () => {
 
   const buttonLabel = getButtonLabel();
 
+  const stakingNavBarOptions = {
+    hasCancelButton: true,
+    hasBackButton: false,
+  };
+  const stakingNavBarEventOptions = {
+    cancelButtonEvent: {
+      event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+      },
+    },
+  };
+  const earnNavBarOptions = {
+    hasCancelButton: false,
+    hasBackButton: true,
+    hasIconButton: true,
+    // TODO: STAKE-903
+    // handleIconPress: ???,
+  };
+  const earnNavBarEventOptions = {
+    backButtonEvent: {
+      event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
+      },
+    },
+    // TODO: STAKE-903
+    // iconButtonEvent: {
+    //   event: MetaMetricsEvents.TOOLTIP_OPENED,
+    //   properties: {
+    //     selected_provider: EVENT_PROVIDERS.CONSENSYS,
+    //     text: 'Tooltip Opened',
+    //     location: EVENT_LOCATIONS.UNSTAKE_CANCEL_CLICKED,
+    //     tooltip_name: '???',
+    //   },
+    // },
+  };
+  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+  const navBarOptions = isStablecoinLendingEnabled
+    ? earnNavBarOptions
+    : stakingNavBarOptions;
+  const navBarEventOptions = isStablecoinLendingEnabled
+    ? earnNavBarEventOptions
+    : stakingNavBarEventOptions;
   useEffect(() => {
     navigation.setOptions(
       getStakingNavbar(
         title,
         navigation,
         theme.colors,
-        {
-          hasBackButton: false,
-        },
-        {
-          cancelButtonEvent: {
-            event: MetaMetricsEvents.UNSTAKE_CANCEL_CLICKED,
-            properties: {
-              selected_provider: EVENT_PROVIDERS.CONSENSYS,
-              location: EVENT_LOCATIONS.UNSTAKE_INPUT_VIEW,
-            },
-          },
-        },
+        navBarOptions,
+        navBarEventOptions,
       ),
     );
-  }, [navigation, theme.colors, title]);
+  }, [navigation, theme.colors, title, navBarOptions, navBarEventOptions]);
 
   const [
     isSubmittingStakeWithdrawalTransaction,

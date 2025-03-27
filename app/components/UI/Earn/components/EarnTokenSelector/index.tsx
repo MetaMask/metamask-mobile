@@ -82,7 +82,7 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
       >
         {renderTokenAvatar()}
       </BadgeWrapper>
-      <Text variant={TextVariant.BodyMD} style={styles.tokenText}>
+      <Text variant={TextVariant.BodyMDMedium} style={styles.tokenText}>
         {token.name}
       </Text>
     </View>
@@ -90,11 +90,11 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
 
   const renderEndAccessory = () => (
     <View style={styles.endAccessoryContainer}>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Success}>
+      <Text variant={TextVariant.BodyMDMedium} color={TextColor.Success}>
         {`${tokenDetails.apr}% APR`}
       </Text>
       {tokenDetails.balanceFormatted !== undefined && (
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+        <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {tokenDetails.balanceFormatted}
         </Text>
       )}

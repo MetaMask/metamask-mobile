@@ -182,9 +182,9 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             style={
               {
                 "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
                 "marginLeft": 8,
@@ -241,9 +241,9 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             style={
               {
                 "color": "#1c8234",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
-                "fontWeight": "400",
+                "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -256,11 +256,11 @@ exports[`EarnTokenSelector renders correctly 1`] = `
             style={
               {
                 "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
-                "fontWeight": "400",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 12,
+                "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 20,
               }
             }
           >

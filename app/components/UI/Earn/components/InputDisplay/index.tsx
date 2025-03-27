@@ -1,13 +1,14 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { strings } from '../../../../../../locales/i18n';
-import CurrencyToggle from '../../../Stake/components/CurrencySwitch';
-import type { Colors } from '../../../../../util/theme/models';
 import { useTheme } from '../../../../../util/theme';
+import type { Colors } from '../../../../../util/theme/models';
+import CurrencyToggle from '../CurrencySwitch';
+import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -26,6 +27,8 @@ export interface InputDisplayProps {
   currencyToggleValue: string;
 }
 
+const { View: AnimatedView } = Animated;
+
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     inputContainer: {
@@ -40,6 +43,23 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       flexDirection: 'row',
       gap: 4,
+    },
+    amountText: isStablecoinLendingFeatureEnabled()
+      ? {
+          fontSize: 40,
+          lineHeight: 50,
+          letterSpacing: 0,
+          fontWeight: '500',
+        }
+      : {},
+    amountCursor: {
+      width: 1,
+      height: 32,
+      marginTop: 2,
+      marginLeft: 5,
+      marginRight: 5,
+      opacity: 0.6,
+      backgroundColor: colors.border.default,
     },
   });
 
@@ -57,6 +77,27 @@ const InputDisplay = ({
 }: InputDisplayProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
+  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+
+  useEffect(() => {
+    const blinkAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(cursorOpacity, {
+          toValue: 0,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cursorOpacity, {
+          toValue: 0.6,
+          duration: 500,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+
+    blinkAnimation.start();
+  }, [cursorOpacity]);
 
   const getBalanceText = () => {
     if (isOverMaximum.isOverMaximumToken) {
@@ -65,8 +106,11 @@ const InputDisplay = ({
     if (isOverMaximum.isOverMaximumEth) {
       return strings('stake.not_enough_eth');
     }
+    if (isStablecoinLendingEnabled) return '\u00A0';
     return `${balanceText}: ${balanceValue}`;
   };
+
+  const balanceInfo = getBalanceText();
 
   return (
     <View style={styles.inputContainer}>
@@ -79,14 +123,27 @@ const InputDisplay = ({
               : undefined
           }
         >
-          {getBalanceText()}
+          {balanceInfo}
         </Text>
       </View>
       <View style={styles.amountRow}>
-        <Text color={TextColor.Default} variant={TextVariant.DisplayMD}>
+        <Text
+          style={styles.amountText}
+          color={TextColor.Default}
+          variant={TextVariant.DisplayMD}
+        >
           {isFiat ? amountFiatNumber : amountToken}
         </Text>
-        <Text color={TextColor.Muted} variant={TextVariant.DisplayMD}>
+        {isStablecoinLendingEnabled ? (
+          <AnimatedView
+            style={[styles.amountCursor, { opacity: cursorOpacity }]}
+          />
+        ) : null}
+        <Text
+          style={styles.amountText}
+          color={TextColor.Muted}
+          variant={TextVariant.DisplayMD}
+        >
           {isFiat ? currentCurrency.toUpperCase() : ticker}
         </Text>
       </View>

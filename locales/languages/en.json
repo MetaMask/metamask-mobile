@@ -3546,6 +3546,7 @@
     "not_enough_token": "Not enough {{ticker}}",
     "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
+    "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
     "no_minimum_required": "No minimum required.",
     "earn_eth_rewards": "Earn ETH rewards.",
