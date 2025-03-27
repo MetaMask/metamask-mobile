@@ -268,6 +268,7 @@ export async function switchToNetwork({
   let ethChainIds;
 
   if (caip25Caveat) {
+    console.log({ caip25Caveat, getPermittedEthChainIds });
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
 
     if (!ethChainIds.includes(chainId)) {
@@ -317,6 +318,8 @@ export async function switchToNetwork({
           caveats: [
             {
               type: Caip25CaveatType,
+              // TODO: [ffmcgee] if we trigger L280, we should add the newly granted chain that wasn't in `chainIds` here.
+              // Look last test case `wallet_switchEthereumChain` and confirm with Jiexi ?
               value: caip25Caveat.value,
             },
           ],
