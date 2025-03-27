@@ -1,5 +1,5 @@
 import { AccountsControllerMessenger } from '@metamask/accounts-controller';
-import { SnapControllerStateChangeEvent } from '../../controllers/SnapController/constants';
+import { SnapControllerStateChangeEvent } from '../../controllers/snaps';
 import { BaseControllerMessenger } from '../../types';
 import {
   SnapKeyringAccountAssetListUpdatedEvent,

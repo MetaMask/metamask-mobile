@@ -23,6 +23,7 @@ export interface MapToTemplateParams {
   onConfirm?: () => void;
   t?: (key: string) => string;
   theme: Theme;
+  size?: string;
 }
 
 /**
@@ -127,11 +128,13 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel' | 'theme'>,
+  params: Pick<
+    MapToTemplateParams,
+    'map' | 'useFooter' | 'onCancel' | 'theme' | 'size'
+  >,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
-      // React Native cannot render strings directly, so we map to an element where we control the props.
       const text = unescapeFn(e);
       const key = generateKey(params.map, Text({ children: text }));
       return {
@@ -141,7 +144,19 @@ export const mapTextToTemplate = (
         props: { color: 'inherit' },
       };
     }
-    return mapToTemplate({ ...params, element: e });
+    return mapToTemplate({
+      ...params,
+      element:
+        e.type === 'Icon'
+          ? ({
+              ...e,
+              props: {
+                size: params.size,
+                ...e.props,
+              },
+            } as JSXElement)
+          : e,
+    });
   }) as NonEmptyArray<UIComponent | string>;
 
 /**

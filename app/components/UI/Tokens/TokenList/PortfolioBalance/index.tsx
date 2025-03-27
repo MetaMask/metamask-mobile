@@ -21,7 +21,6 @@ import { TextVariant } from '../../../../../component-library/components/Texts/T
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import AggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage';
 import Icon, {
   IconSize,
   IconName,
@@ -32,6 +31,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import { useMultichainBalances } from '../../../../hooks/useMultichainBalances';
+import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -104,25 +104,13 @@ export const PortfolioBalance = React.memo(() => {
       return null;
     }
 
-    if (multichainBalances.isPortfolioVieEnabled) {
-      return (
-        <AggregatedPercentageCrossChains
-          privacyMode={privacyMode}
-          totalFiatCrossChains={multichainBalances.totalFiatBalance}
-          tokenFiatBalancesCrossChains={
-            multichainBalances.tokenFiatBalancesCrossChains
-          }
-        />
-      );
-    }
-
     return (
-      <AggregatedPercentage
+      <AggregatedPercentageCrossChains
         privacyMode={privacyMode}
-        ethFiat={multichainBalances.aggregatedBalance.ethFiat}
-        tokenFiat={multichainBalances.aggregatedBalance.tokenFiat}
-        tokenFiat1dAgo={multichainBalances.aggregatedBalance.tokenFiat1dAgo}
-        ethFiat1dAgo={multichainBalances.aggregatedBalance.ethFiat1dAgo}
+        totalFiatCrossChains={multichainBalances.totalFiatBalance}
+        tokenFiatBalancesCrossChains={
+          multichainBalances.tokenFiatBalancesCrossChains
+        }
       />
     );
   };
@@ -138,28 +126,36 @@ export const PortfolioBalance = React.memo(() => {
     <View style={styles.portfolioBalance}>
       <View>
         <View>
-          <View style={styles.balanceContainer}>
-            <SensitiveText
-              isHidden={privacyMode}
-              length={SensitiveTextLength.Long}
-              testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
-              variant={TextVariant.DisplayMD}
-            >
-              {multichainBalances.displayBalance}
-            </SensitiveText>
-            <TouchableOpacity
-              onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-              testID="balance-container"
-            >
-              <Icon
-                style={styles.privacyIcon}
-                name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                size={IconSize.Md}
-                color={colors.text.muted}
-                testID={privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID}
-              />
-            </TouchableOpacity>
-          </View>
+          {multichainBalances?.displayBalance ? (
+            <View style={styles.balanceContainer}>
+              <SensitiveText
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Long}
+                testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
+                variant={TextVariant.DisplayMD}
+              >
+                {multichainBalances.displayBalance}
+              </SensitiveText>
+              <TouchableOpacity
+                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+                testID="balance-container"
+              >
+                <Icon
+                  style={styles.privacyIcon}
+                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
+                  size={IconSize.Md}
+                  color={colors.text.muted}
+                  testID={
+                    privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.loaderWrapper}>
+              <Loader />
+            </View>
+          )}
 
           {renderAggregatedPercentage()}
         </View>

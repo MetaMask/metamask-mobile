@@ -246,9 +246,11 @@ const BuildQuote = () => {
     selectedAddress,
   );
 
-  const { balanceFiat, balanceBN } = useBalance(
+  const { balanceFiat, balanceBN, balance } = useBalance(
     selectedAsset
       ? {
+          chainId: selectedAsset.network.chainId,
+          assetId: selectedAsset.assetId,
           address: selectedAsset.address,
           decimals: selectedAsset.decimals,
         }
@@ -822,7 +824,7 @@ const BuildQuote = () => {
                   color={TextColor.Alternative}
                 >
                   {strings('fiat_on_ramp_aggregator.current_balance')}:{' '}
-                  {addressBalance}
+                  {selectedAsset?.assetId && balance ? balance : addressBalance}
                   {balanceFiat ? ` ≈ ${balanceFiat}` : null}
                 </Text>
               </Row>

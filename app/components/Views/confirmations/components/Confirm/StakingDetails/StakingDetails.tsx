@@ -23,31 +23,29 @@ const StakingDetails = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <InfoSection
-        testID={ConfirmationPageSectionsSelectorIDs.STAKING_DETAILS_SECTION}
+    <InfoSection
+      testID={ConfirmationPageSectionsSelectorIDs.STAKING_DETAILS_SECTION}
+    >
+      <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
+      <InfoRow label={strings('stake.estimated_annual_reward')}>
+        <View style={styles.valueContainer}>
+          <Text style={styles.secondaryValue}>{annualRewardsFiat}</Text>
+          <Text style={styles.primaryValue}>{annualRewardsETH}</Text>
+        </View>
+      </InfoRow>
+      <InfoRow
+        label={strings('stake.reward_frequency')}
+        tooltip={strings('stake.reward_frequency_tooltip', {
+          frequency: strings('stake.12_hours'),
+        })}
+        onTooltipPress={handleRewardFreqTooltipClickedEvent}
       >
-        <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
-        <InfoRow label={strings('stake.estimated_annual_reward')}>
-          <View style={styles.valueContainer}>
-            <Text style={styles.secondaryValue}>{annualRewardsFiat}</Text>
-            <Text style={styles.primaryValue}>{annualRewardsETH}</Text>
-          </View>
-        </InfoRow>
-        <InfoRow
-          label={strings('stake.reward_frequency')}
-          tooltip={strings('stake.reward_frequency_tooltip', {
-            frequency: strings('stake.12_hours'),
-          })}
-          onTooltipPress={handleRewardFreqTooltipClickedEvent}
-        >
-          {strings('stake.12_hours')}
-        </InfoRow>
-        <InfoRow label={strings('stake.withdrawal_time')}>
-          {strings('stake.estimated_unstaking_time')}
-        </InfoRow>
-      </InfoSection>
-    </View>
+        {strings('stake.12_hours')}
+      </InfoRow>
+      <InfoRow label={strings('stake.withdrawal_time')}>
+        {strings('stake.estimated_unstaking_time')}
+      </InfoRow>
+    </InfoSection>
   );
 };
 

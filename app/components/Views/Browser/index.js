@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -17,7 +17,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { useAccounts } from '../../../components/hooks/useAccounts';
+import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
 import { getPermittedAccounts } from '../../../core/Permissions';
@@ -26,12 +26,15 @@ import getAccountNameWithENS from '../../../util/accounts';
 import Tabs from '../../UI/Tabs';
 import BrowserTab from '../BrowserTab/BrowserTab';
 import URL from 'url-parse';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-import { THUMB_WIDTH, THUMB_HEIGHT } from './constants';
+import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
+import Routes from '../../../constants/navigation/Routes';
+
+const MAX_BROWSER_TABS = 5;
 
 /**
  * Component that wraps all the browser
@@ -58,6 +61,7 @@ export const Browser = (props) => {
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
   const { evmAccounts: accounts, ensByAccountAddress } = useAccounts();
+  const [_tabIdleTimes, setTabIdleTimes] = useState({});
   const accountAvatarType = useSelector((state) =>
     state.settings.useBlockieIcon
       ? AvatarAccountType.Blockies
@@ -67,21 +71,27 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  const homePageUrl = () =>
+  const homePageUrl = useCallback(() =>
     appendURLParams(AppConstants.HOMEPAGE_URL, {
       metricsEnabled: isEnabled(),
       marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href;
+    }).href,
+    [isEnabled, isDataCollectionForMarketingEnabled],
+  );
 
-  const newTab = (url, linkType) => {
-    // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-    createNewTab(url || homePageUrl(), linkType);
-  };
+  const newTab = useCallback((url, linkType) => {
+    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+    if (tabs.length >= MAX_BROWSER_TABS) {
+      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+    } else {
+      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+      createNewTab(url || homePageUrl(), linkType);
+    }
+  }, [tabs, navigation, homePageUrl, createNewTab]);
 
-  const updateTabInfo = (url, tabID) =>
-    updateTab(tabID, {
-      url,
-    });
+  const updateTabInfo = useCallback((tabID, info) => {
+    updateTab(tabID, info);
+  }, [updateTab]);
 
   const hideTabsAndUpdateUrl = (url) => {
     navigation.setParams({
@@ -97,10 +107,49 @@ export const Browser = (props) => {
     );
     setActiveTab(tab.id);
     hideTabsAndUpdateUrl(tab.url);
-    updateTabInfo(tab.url, tab.id);
+    updateTabInfo(tab.id, {
+      url: tab.url,
+      isArchived: false,
+    });
   };
 
   const hasAccounts = useRef(Boolean(accounts.length));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // every so often calc each tab's idle time
+      setTabIdleTimes((prevIdleTimes) => {
+        const newIdleTimes = { ...prevIdleTimes };
+        // for each existing tab
+        tabs.forEach((tab) => {
+          // if it isn't the active tab
+          if (tab.id !== activeTabId) {
+            // add idle time for each non-active tab
+            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
+            // if the tab has surpassed the maximum
+            if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
+              // then "archive" it
+              updateTab(tab.id, {
+                isArchived: true,
+              });
+            }
+          } else {
+            // set any active tab as NOT "archived"
+            // this can mean "unarchiving" a tab so that, for example,
+            // the actual browser tab window is mounted again
+            updateTab(tab.id, {
+              isArchived: false,
+            });
+            // also set new tab idle time back to zero
+            newIdleTimes[tab.id] = 0;
+          }
+        });
+        return newIdleTimes;
+      });
+    }, IDLE_TIME_CALC_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [tabs, activeTabId, updateTab]);
 
   useEffect(() => {
     const checkIfActiveAccountChanged = async () => {
@@ -208,7 +257,7 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = (url, tabID) =>
+  const takeScreenshot = useCallback((url, tabID) =>
     new Promise((resolve, reject) => {
       captureScreen({
         format: 'jpg',
@@ -228,9 +277,11 @@ export const Browser = (props) => {
           reject(error);
         },
       );
-    });
+    }),
+    [updateTab],
+  );
 
-  const showTabs = async () => {
+  const showTabs = useCallback(async () => {
     try {
       const activeTab = tabs.find((tab) => tab.id === activeTabId);
       await takeScreenshot(activeTab.url, activeTab.id);
@@ -242,7 +293,7 @@ export const Browser = (props) => {
       ...route.params,
       showTabs: true,
     });
-  };
+  }, [tabs, activeTabId, route.params, navigation, takeScreenshot]);
 
   const closeAllTabs = () => {
     if (tabs.length) {
@@ -293,7 +344,7 @@ export const Browser = (props) => {
     }
   };
 
-  const renderTabsView = () => {
+  const renderTabList = () => {
     const showTabs = route.params?.showTabs;
     if (showTabs) {
       return (
@@ -311,28 +362,28 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabs = () =>
-    tabs.map((tab) => (
-      <BrowserTab
-        id={tab.id}
-        key={`tab_${tab.id}`}
-        initialUrl={tab.url}
-        linkType={tab.linkType}
-        updateTabInfo={updateTabInfo}
-        showTabs={showTabs}
-        newTab={newTab}
-        isInTabsView={route.params?.showTabs}
-        homePageUrl={homePageUrl()}
-      />
-    ));
+  const renderBrowserTabWindows = useCallback(() => tabs.filter((tab) => !tab.isArchived).map((tab) => (
+    <BrowserTab
+      id={tab.id}
+      key={`tab_${tab.id}`}
+      initialUrl={tab.url}
+      linkType={tab.linkType}
+      updateTabInfo={updateTabInfo}
+      showTabs={showTabs}
+      newTab={newTab}
+      isInTabsView={route.params?.showTabs}
+      homePageUrl={homePageUrl()}
+    />
+  )), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
+
 
   return (
     <View
       style={styles.browserContainer}
       testID={BrowserViewSelectorsIDs.BROWSER_SCREEN_ID}
     >
-      {renderBrowserTabs()}
-      {renderTabsView()}
+      {renderBrowserTabWindows()}
+      {renderTabList()}
     </View>
   );
 };

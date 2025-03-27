@@ -718,6 +718,32 @@ export const stakingWithdrawalConfirmationState = merge(
   },
 );
 
+export const stakingClaimConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingClaim },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
 export enum SignTypedDataMockType {
   BATCH = 'BATCH',
   DAI = 'DAI',

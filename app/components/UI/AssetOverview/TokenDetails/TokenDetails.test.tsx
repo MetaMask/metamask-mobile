@@ -16,6 +16,9 @@ import {
 } from '../../../../selectors/networkController';
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
+// eslint-disable-next-line import/no-namespace
+import * as StakeConstants from '../../Stake/constants';
+import { strings } from '../../../../../locales/i18n';
 jest.mock('../../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
   context: {
@@ -27,6 +30,18 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
 }));
+
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+    }),
+  };
+});
 
 const initialState = {
   engine: {
@@ -53,6 +68,7 @@ const mockDAI = {
   symbol: 'DAI',
   isETH: false,
   hasBalanceError: false,
+  chainId: '0x1',
 };
 const mockAssets = {
   '0x6b175474e89094c44da98b954eedeac495271d0f': mockDAI,
@@ -115,11 +131,19 @@ const mockTokenMarketDataByChainId: Record<
   },
 };
 
+let isStablecoinLendingFeatureEnabledSpy: jest.SpyInstance;
+
 describe('TokenDetails', () => {
   beforeAll(() => {
     jest.resetAllMocks();
   });
-  it('should render correctly', () => {
+  beforeEach(() => {
+    isStablecoinLendingFeatureEnabledSpy = jest
+      .spyOn(StakeConstants, 'isStablecoinLendingFeatureEnabled')
+      .mockReturnValue(false);
+  });
+
+  const mockSelectors = () => {
     const useSelectorSpy = jest.spyOn(reactRedux, 'useSelector');
     useSelectorSpy.mockImplementation((selectorOrCallback) => {
       const SELECTOR_MOCKS = {
@@ -151,6 +175,10 @@ describe('TokenDetails', () => {
           return undefined;
       }
     });
+  };
+
+  it('should render correctly', () => {
+    mockSelectors();
 
     const { toJSON, getByText } = renderWithProvider(
       <TokenDetails asset={mockDAI} />,
@@ -270,5 +298,56 @@ describe('TokenDetails', () => {
     );
     expect(queryByText('Token details')).toBeNull();
     expect(getByText('Market details')).toBeDefined();
+  });
+
+  it('renders EarnEmptyStateCta if asset can be lent and balance is not zero', () => {
+    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(true);
+
+    mockSelectors();
+
+    const { getByText } = renderWithProvider(<TokenDetails asset={mockDAI} />, {
+      state: initialState,
+    });
+
+    expect(
+      getByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeDefined();
+    expect(
+      getByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeDefined();
+  });
+
+  it('does not render EarnEmptyCta if asset can be lent but balance is zero', () => {
+    isStablecoinLendingFeatureEnabledSpy.mockReturnValue(true);
+
+    mockSelectors();
+
+    const mockDaiWithoutBalance = {
+      ...mockDAI,
+      balanceFiat: '$0.00',
+      balance: '0',
+    };
+
+    const { queryByText } = renderWithProvider(
+      <TokenDetails asset={mockDaiWithoutBalance} />,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByText(
+        strings('earn.empty_state_cta.heading', {
+          tokenSymbol: mockDAI.symbol,
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      queryByText(strings('earn.empty_state_cta.start_earning')),
+    ).toBeNull();
   });
 });

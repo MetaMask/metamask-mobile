@@ -33,9 +33,3 @@ export const selectIsSignedIn = createSelector(
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.isSignedIn,
 );
-
-export const selectSessionData = createSelector(
-  selectAuthenticationControllerState,
-  (authenticationControllerState: AuthenticationState) =>
-    authenticationControllerState.sessionData,
-);

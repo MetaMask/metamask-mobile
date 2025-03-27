@@ -1,32 +1,33 @@
 /* eslint-disable react/prop-types */
-import React, { useState } from 'react';
-import { View, Pressable } from 'react-native';
 import {
-  SimulationErrorCode,
   SimulationError,
+  SimulationErrorCode,
   TransactionMeta,
 } from '@metamask/transaction-controller';
+import React, { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import InfoModal from '../../../components/UI/Swaps/components/InfoModal';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
+import { TooltipModal } from '../../Views/confirmations/components/UI/Tooltip/Tooltip';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
-import useBalanceChanges from './useBalanceChanges';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';
+import useBalanceChanges from './useBalanceChanges';
 import { useSimulationMetrics } from './useSimulationMetrics';
 
 export interface SimulationDetailsProps {
   transaction: TransactionMeta;
   enableMetrics: boolean;
+  isTransactionsRedesign?: boolean;
 }
 
 /**
@@ -36,8 +37,8 @@ export interface SimulationDetailsProps {
  * @param error.code - The error code.
  * @returns The error content.
  */
-const ErrorContent: React.FC<{ error: SimulationError }> = ({ error }) => {
-  const { styles } = useStyles(styleSheet, {});
+const ErrorContent: React.FC<{ error: SimulationError, isTransactionsRedesign: boolean }> = ({ error, isTransactionsRedesign }) => {
+  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
 
   function getMessage() {
     return error.code === SimulationErrorCode.Reverted
@@ -74,16 +75,12 @@ const EmptyContent: React.FC = () => (
  * @param children - The children to render in the header.
  * @returns The header layout.
  */
-const HeaderLayout: React.FC = ({ children }) => {
+const HeaderLayout: React.FC<{ isTransactionsRedesign: boolean }> = ({ children, isTransactionsRedesign }) => {
   const {
     styles,
     theme: { colors },
-  } = useStyles(styleSheet, {});
+  } = useStyles(styleSheet, { isTransactionsRedesign });
   const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const toggleModal = () => {
-    setIsModalVisible(!isModalVisible);
-  };
 
   return (
     <View style={styles.headerContainer}>
@@ -91,7 +88,7 @@ const HeaderLayout: React.FC = ({ children }) => {
         <Text variant={TextVariant.BodyMDMedium}>
           {strings('simulation_details.title')}
         </Text>
-        <Pressable onPress={toggleModal}>
+        <Pressable onPress={() => setIsModalVisible(true)}>
           <Icon
             size={IconSize.Sm}
             name={IconName.Info}
@@ -99,13 +96,11 @@ const HeaderLayout: React.FC = ({ children }) => {
           />
         </Pressable>
         {isModalVisible ? (
-          <InfoModal
-            isVisible={isModalVisible}
+          <TooltipModal
+            open={isModalVisible}
+            setOpen={setIsModalVisible}
+            content={strings('simulation_details.tooltip_description')}
             title={strings('simulation_details.title')}
-            body={
-              <Text>{strings('simulation_details.tooltip_description')}</Text>
-            }
-            toggleModal={toggleModal}
           />
         ) : null}
       </View>
@@ -122,11 +117,12 @@ const HeaderLayout: React.FC = ({ children }) => {
  */
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
-}> = ({ inHeader, children }) => {
-  const { styles } = useStyles(styleSheet, {});
+  isTransactionsRedesign: boolean;
+}> = ({ inHeader, children, isTransactionsRedesign }) => {
+  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   return (
     <View style={styles.container}>
-      <HeaderLayout>{inHeader}</HeaderLayout>
+      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>{inHeader}</HeaderLayout>
       {children}
     </View>
   );
@@ -141,8 +137,9 @@ const SimulationDetailsLayout: React.FC<{
 export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   transaction,
   enableMetrics = false,
+  isTransactionsRedesign = false,
 }: SimulationDetailsProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   const { chainId, id: transactionId, simulationData } = transaction;
   const balanceChangesResult = useBalanceChanges({ chainId, simulationData });
   const loading = !simulationData || balanceChangesResult.pending;
@@ -164,6 +161,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
             size={SpinnerSize.SM}
           />
         }
+        isTransactionsRedesign={isTransactionsRedesign}
       />
     );
   }
@@ -181,8 +179,8 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
 
   if (error) {
     return (
-      <SimulationDetailsLayout>
-        <ErrorContent error={error} />
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
+        <ErrorContent error={error} isTransactionsRedesign={isTransactionsRedesign} />
       </SimulationDetailsLayout>
     );
   }
@@ -191,7 +189,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const empty = balanceChanges.length === 0;
   if (empty) {
     return (
-      <SimulationDetailsLayout>
+      <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
         <EmptyContent />
       </SimulationDetailsLayout>
     );
@@ -201,7 +199,7 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   const incoming = balanceChanges.filter((bc) => !bc.amount.isNegative());
 
   return (
-    <SimulationDetailsLayout>
+    <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
       <View style={styles.changeListContainer}>
         <BalanceChangeList
           testID="simulation-details-balance-change-list-outgoing"
