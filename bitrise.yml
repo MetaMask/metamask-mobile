@@ -1491,11 +1491,13 @@ workflows:
                 set -e
                 set -x
                 set -o pipefail
-               
                 APK_PATH="$PROJECT_LOCATION/app/build/outputs/apk/qa/release/app-qa-release.apk"
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"                
                 CUSTOM_ID=${CUSTOM_ID////-}
 
+                mv "$APK_PATH" "$PROJECT_LOCATION/app/build/outputs/apk/qa/release/$CUSTOM_ID.apk"
+                
                 # Upload to app-automate
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
                     -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
@@ -1784,8 +1786,12 @@ workflows:
                 set -x
                 set -o pipefail
 
+                IPA_PATH="ios/build/output/MetaMask-QA.ipa"
+
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
+
+                mv "$IPA_PATH" "ios/build/output/$CUSTOM_ID.ipa"
                 IPA_PATH="ios/build/output/$CUSTOM_ID.ipa"
 
                 # Upload to app-automate
