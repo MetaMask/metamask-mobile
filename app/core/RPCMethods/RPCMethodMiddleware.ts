@@ -54,7 +54,6 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
-import { PermissionKeys } from '../Permissions/specifications.js';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -480,28 +479,8 @@ export const getRpcMethodMiddleware = ({
           {
             revokePermissionsForOrigin: (permissionKeys) => {
               try {
-                /**
-                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both.
-                 * This manual filtering will be handled / refactored once we implement [CAIP-25 permissions](https://github.com/MetaMask/MetaMask-planning/issues/4129)
-                 */
-                const caip25EquivalentPermissions: string[] = [
-                  PermissionKeys.eth_accounts,
-                  PermissionKeys.permittedChains,
-                ];
-
-                const keysToRevoke = permissionKeys.some((key) =>
-                  caip25EquivalentPermissions.includes(key),
-                )
-                  ? Array.from(
-                      new Set([
-                        ...caip25EquivalentPermissions,
-                        ...permissionKeys,
-                      ]),
-                    )
-                  : permissionKeys;
-
                 Engine.context.PermissionController.revokePermissions({
-                  [origin]: keysToRevoke,
+                  [origin]: permissionKeys,
                 });
               } catch (e) {
                 // we dont want to handle errors here because
