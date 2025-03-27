@@ -327,21 +327,6 @@ export class Engine {
 
     networkController.initializeProvider();
 
-    const multichainNetworkControllerMessenger =
-      this.controllerMessenger.getRestricted({
-        name: 'MultichainNetworkController',
-        allowedActions: [
-          'NetworkController:setActiveNetwork',
-          'NetworkController:getState',
-        ],
-        allowedEvents: ['AccountsController:selectedAccountChange'],
-      });
-
-    const multichainNetworkController = createMultichainNetworkController({
-      messenger: multichainNetworkControllerMessenger,
-      initialState: initialState.MultichainNetworkController,
-    });
-
     const assetsContractController = new AssetsContractController({
       messenger: this.controllerMessenger.getRestricted({
         name: 'AssetsContractController',
@@ -1281,7 +1266,6 @@ export class Engine {
       UserStorageController: userStorageController,
       NotificationServicesController: notificationServicesController,
       NotificationServicesPushController: notificationServicesPushController,
-      SnapInterfaceController: snapInterfaceController,
       ///: END:ONLY_INCLUDE_IF
       AccountsController: accountsController,
       PPOMController: new PPOMController({
