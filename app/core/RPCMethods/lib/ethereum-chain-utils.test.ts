@@ -21,6 +21,14 @@ describe('switchToNetwork', () => {
       build: jest.fn().mockReturnValue(mockMetricsBuilderBuild),
     });
 
+    const mockHooks = {
+      getCaveat: jest.fn(),
+      requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
+      hasApprovalRequestsForOrigin: jest.fn(),
+      toNetworkConfiguration: jest.fn(),
+      fromNetworkConfiguration: jest.fn(),
+    };
+
     const chainId = '0x1';
     const {
       selectedNetworkClientId: networkClientId,
@@ -62,6 +70,7 @@ describe('switchToNetwork', () => {
       analytics,
       origin,
       isAddNetworkFlow,
+      hooks: mockHooks,
     });
 
     expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
