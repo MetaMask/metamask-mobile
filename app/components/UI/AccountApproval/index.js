@@ -36,6 +36,8 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { selectProductSafetyDappScanningEnabled } from '../../../selectors/featureFlagController';
+import { store } from '../../../store';
 
 /**
  * Account access approval component
@@ -287,12 +289,21 @@ class AccountApproval extends PureComponent {
 
   checkUrlFlaggedAsPhishing = (hostname) => {
     const { PhishingController } = Engine.context;
+    const productSafetyDappScanningEnabled = selectProductSafetyDappScanningEnabled(store.getState());
+    if (productSafetyDappScanningEnabled) {
+      // eslint-disable-next-line no-console
+      console.log('Real time dapp scanning enabled');
+      this.setState({
+        isUrlFlaggedAsPhishing: false,
+      });
+    } else {
     PhishingController.maybeUpdateState();
-    const phishingControllerTestResult = PhishingController.test(hostname);
+      const phishingControllerTestResult = PhishingController.test(hostname);
 
-    this.setState({
-      isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
-    });
+      this.setState({
+        isUrlFlaggedAsPhishing: phishingControllerTestResult.result,
+      });
+    }
   };
 
   render = () => {

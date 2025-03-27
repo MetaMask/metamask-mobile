@@ -78,7 +78,7 @@ import {
   deprecatedGetNetworkId,
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
-import { store } from '../../store';
+import { store } from '../../store/index';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -207,6 +207,7 @@ import {
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
+import { selectProductSafetyDappScanningEnabled } from '../../selectors/featureFlagController';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
@@ -433,7 +434,11 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+
+    const productSafetyDappScanningEnabled = selectProductSafetyDappScanningEnabled(store.getState());
+    if (!productSafetyDappScanningEnabled) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
