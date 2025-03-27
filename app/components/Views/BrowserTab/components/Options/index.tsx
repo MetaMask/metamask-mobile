@@ -18,7 +18,6 @@ import {
   ADD_FAVORITES_OPTION,
   MENU_ID,
   NEW_TAB_OPTION,
-  OPEN_FAVORITES_OPTION,
   OPEN_IN_BROWSER_OPTION,
   RELOAD_OPTION,
   SHARE_OPTION,
@@ -26,7 +25,6 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import Logger from '../../../../../util/Logger';
-import { OLD_HOMEPAGE_URL_HOST } from '../../constants';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation } from '@react-navigation/native';
 import { SessionENSNames } from '../../types';
@@ -44,7 +42,6 @@ interface OptionsProps {
   activeUrl: string;
   isHomepage: () => boolean;
   getMaskedUrl: (urlToMask: string, sessionENSNames: SessionENSNames) => string;
-  onSubmitEditing: (url: string) => void;
   title: MutableRefObject<string>;
   reload: () => void;
   sessionENSNames: SessionENSNames;
@@ -62,7 +59,6 @@ const Options = ({
   activeUrl,
   isHomepage,
   getMaskedUrl,
-  onSubmitEditing,
   title,
   reload,
   sessionENSNames,
@@ -91,16 +87,6 @@ const Options = ({
     );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.DAPP_OPEN_IN_BROWSER).build(),
-    );
-  };
-  /**
-   * Go to favorites page
-   */
-  const goToFavorites = async () => {
-    toggleOptionsIfNeeded();
-    onSubmitEditing(OLD_HOMEPAGE_URL_HOST);
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.DAPP_GO_TO_FAVORITES).build(),
     );
   };
 
@@ -160,24 +146,6 @@ const Options = ({
       createEventBuilder(MetaMetricsEvents.DAPP_ADD_TO_FAVORITE).build(),
     );
   };
-
-  /**
-   * Renders Go to Favorites option
-   */
-  const renderGoToFavorites = () => (
-    <Button onPress={goToFavorites} style={styles.option}>
-      <View style={styles.optionIconWrapper}>
-        <Icon name="star" size={16} style={styles.optionIcon} />
-      </View>
-      <Text
-        style={styles.optionText}
-        numberOfLines={2}
-        {...generateTestId(Platform, OPEN_FAVORITES_OPTION)}
-      >
-        {strings('browser.go_to_favorites')}
-      </Text>
-    </Button>
-  );
 
   /**
    * Handles reload button press
@@ -265,7 +233,7 @@ const Options = ({
    * Render non-homepage options menu
    */
   const renderNonHomeOptions = () => {
-    if (isHomepage()) return renderGoToFavorites();
+    if (isHomepage()) return null;
     return (
       <React.Fragment>
         {renderReloadOption()}
@@ -283,7 +251,6 @@ const Options = ({
             </Text>
           </Button>
         )}
-        {renderGoToFavorites()}
         {renderShareOption()}
         <Button onPress={openInBrowser} style={styles.option}>
           <View style={styles.optionIconWrapper}>
