@@ -46,6 +46,7 @@ export const PortfolioBalance = React.memo(() => {
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
   const { multichainBalances } = useMultichainBalances();
+  console.log('multichainBalances', JSON.stringify(multichainBalances));
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
