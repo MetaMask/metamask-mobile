@@ -1,7 +1,7 @@
 import { isString } from '../lodash';
 
 /**
- * The method escapes LTR and RTL unicode characters in the string
+ * The method escapes LTR and RTL override unicode in the string
  *
  * @param {string} str
  * @returns {(string|*)} escaped string or original param value
