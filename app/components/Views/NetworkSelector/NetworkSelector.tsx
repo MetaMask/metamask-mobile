@@ -105,7 +105,7 @@ import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types
 import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
 ///: END:ONLY_INCLUDE_IF
 import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
-import { useSwitchNetworks } from '../../UI/Bridge/hooks/useSwitchNetworks';
+import { useSwitchNetworks } from './useSwitchNetworks';
 
 interface infuraNetwork {
   name: string;
