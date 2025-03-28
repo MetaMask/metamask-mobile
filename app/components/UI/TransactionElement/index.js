@@ -205,8 +205,7 @@ class TransactionElement extends PureComponent {
     const { tx, i, onPressItem } = this.props;
     onPressItem(tx.id, i);
     if (tx.type === 'bridge') {
-      const { bridgeTxHistoryItem } = this.props?.bridgeTxHistoryData;
-      this.props.navigation.navigate('BridgeTransactionDetails', {
+      this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
         tx: tx,
       });
     } else {
