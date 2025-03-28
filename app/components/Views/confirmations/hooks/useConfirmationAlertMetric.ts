@@ -43,37 +43,38 @@ export function useConfirmationAlertMetric() {
   }, [alertProperties, setConfirmationMetric]);
 
   const trackers = useMemo(() => {
-    const trackInlineAlertClicked = () => {
-      if (confirmationMetrics.properties) {
-        const alertKeyClicked = uniqueFreshArrayPush(
-          (confirmationMetrics.properties.alert_key_clicked as string[]) ?? [],
-          getAlertName(alertKey)
-        );
+    const trackInlineAlertClicked = (alertField?: string) => {
+      const alertKeyClicked = uniqueFreshArrayPush(
+        (confirmationMetrics?.properties?.alert_key_clicked as string[]) ?? [],
+        getAlertName(alertKey)
+      );
+      const alertFieldClickedMetrics = confirmationMetrics?.properties?.alert_field_clicked as string[] ?? [];
+      const alertFieldClicked = alertField ? uniqueFreshArrayPush(
+        alertFieldClickedMetrics,
+        alertField) : alertFieldClickedMetrics;
 
-        setConfirmationMetric({
-          properties: {
-            ...alertProperties,
-            alert_key_clicked: alertKeyClicked,
-          },
-        });
-      }
+      setConfirmationMetric({
+        properties: {
+          ...alertProperties,
+          alert_key_clicked: alertKeyClicked,
+          alert_field_clicked: alertFieldClicked,
+        },
+      });
     };
 
     const trackAlertRendered = () => {
-      if (confirmationMetrics.properties) {
-        const alertVisualized = uniqueFreshArrayPush(
-          (confirmationMetrics.properties.alert_visualized as string[]) ?? [],
-          getAlertName(alertKey)
-        );
+      const alertVisualized = uniqueFreshArrayPush(
+        (confirmationMetrics?.properties?.alert_visualized as string[]) ?? [],
+        getAlertName(alertKey)
+      );
 
-        setConfirmationMetric({
-          properties: {
-            ...alertProperties,
-            alert_visualized: alertVisualized,
-            alert_visualized_count: alertVisualized.length,
-          },
-        });
-      }
+      setConfirmationMetric({
+        properties: {
+          ...alertProperties,
+          alert_visualized: alertVisualized,
+          alert_visualized_count: alertVisualized.length,
+        },
+      });
     };
 
     return {

@@ -15,7 +15,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -60,7 +60,7 @@ exports[`AssetDetails renders correctly 1`] = `
         <View
           placeholderStyle={
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
             }
           }
           useNativeDriver={true}
@@ -72,7 +72,7 @@ exports[`AssetDetails renders correctly 1`] = `
             onLoadEnd={[Function]}
             placeholderStyle={
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#f3f5f9",
               }
             }
             source={
@@ -123,7 +123,7 @@ exports[`AssetDetails renders correctly 1`] = `
                     "backgroundColor": "#eee",
                   },
                   {
-                    "backgroundColor": "#f2f4f6",
+                    "backgroundColor": "#f3f5f9",
                   },
                 ]
               }
@@ -134,7 +134,7 @@ exports[`AssetDetails renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -148,7 +148,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -172,7 +172,7 @@ exports[`AssetDetails renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -186,7 +186,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -220,7 +220,7 @@ exports[`AssetDetails renders correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -238,7 +238,7 @@ exports[`AssetDetails renders correctly 1`] = `
               "fontSize": 16,
             },
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "marginLeft": 4,
             },
             {
@@ -257,7 +257,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -273,7 +273,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -292,7 +292,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -308,7 +308,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -327,7 +327,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 16,
             "fontWeight": "600",
@@ -343,7 +343,7 @@ exports[`AssetDetails renders correctly 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",
@@ -377,7 +377,7 @@ exports[`AssetDetails renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#d73847",
+            "color": "#ca3542",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 16,
             "fontWeight": "400",

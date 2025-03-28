@@ -13,7 +13,7 @@ exports[`AggregatedPercentageCrossChains should match snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Medium",
         "fontSize": 14,
         "fontWeight": "500",
@@ -29,7 +29,7 @@ exports[`AggregatedPercentageCrossChains should match snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Medium",
         "fontSize": 14,
         "fontWeight": "500",
