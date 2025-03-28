@@ -36,7 +36,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     selectedNetworkName,
   });
 
-  const tokensList = useTokens({
+  const { tokens: tokensList, pending } = useTokens({
     topTokensChainId: selectedSourceToken?.chainId as Hex,
     balanceChainIds: selectedSourceChainIds as Hex[],
     tokensToExclude: selectedDestToken ? [selectedDestToken] : [],
@@ -89,6 +89,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       }
       renderTokenItem={renderItem}
       tokensList={tokensList}
+      pending={pending}
     />
   );
 };

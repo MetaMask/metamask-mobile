@@ -22,12 +22,12 @@ export function useTokens({
   topTokensChainId,
   balanceChainIds,
   tokensToExclude
-}: UseTokensProps): BridgeToken[] {
+}: UseTokensProps): { tokens: BridgeToken[], pending: boolean } {
   const tokensWithBalance = useTokensWithBalance({
     chainIds: balanceChainIds as Hex[]
   });
 
-  const { topTokens } = useTopTokens({ chainId: topTokensChainId });
+  const { topTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
   const topTokensFiltered = useMemo(() =>
     topTokens
@@ -54,5 +54,5 @@ export function useTokens({
     [uniqueTokens, tokensToExclude]
   );
 
-  return filteredTokens;
+  return { tokens: filteredTokens, pending };
 }
