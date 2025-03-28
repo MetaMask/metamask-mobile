@@ -898,6 +898,7 @@ const App: React.FC = () => {
                   url: network.rpcUrl,
                   name: network.nickname,
                   type: RpcEndpointType.Custom,
+                  failoverUrls: [],
                 },
               ],
             });
