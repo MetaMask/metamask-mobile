@@ -109,5 +109,5 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
 
   console.log('topTokens', topTokens, bridgeTokens, swapsTopAssets);
 
-  return { topTokens, pending: bridgeTokensPending || swapsTopAssetsPending };
+  return { topTokens, pending: Boolean(bridgeTokensPending || swapsTopAssetsPending) };
 };
