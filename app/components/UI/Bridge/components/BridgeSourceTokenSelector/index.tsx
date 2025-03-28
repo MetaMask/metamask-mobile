@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
@@ -11,16 +11,31 @@ import { BridgeSourceNetworksBar, MAX_NETWORK_ICONS } from '../BridgeSourceNetwo
 import { BridgeTokenSelectorBase } from '../BridgeTokenSelectorBase';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken } from '../../types';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const evmNetworkConfigurations = useSelector(selectEvmNetworkConfigurationsByChainId);
+  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const selectedSourceToken = useSelector(selectSourceToken);
   const selectedDestToken = useSelector(selectDestToken);
+
+  const origin = '';
+  const {
+    chainId: selectedChainId,
+    domainIsConnectedDapp,
+    networkName: selectedNetworkName,
+  } = useNetworkInfo(origin);
+  const { onSetRpcTarget } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId,
+    selectedNetworkName,
+  });
 
   const tokensList = useTokens({
     topTokensChainId: selectedSourceToken?.chainId as Hex,
@@ -29,8 +44,15 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   });
 
   const renderItem = useCallback(({ item }: { item: BridgeToken }) => {
-    const handleTokenPress = (token: BridgeToken) => {
+    const handleTokenPress = async (token: BridgeToken) => {
       dispatch(setSourceToken(token));
+
+      // Switch to the chain of the selected token
+      const networkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
+      if (networkConfiguration) {
+        await onSetRpcTarget(networkConfiguration);
+      }
+
       navigation.goBack();
     };
 
@@ -38,7 +60,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       <TokenSelectorItem
         token={item}
         onPress={handleTokenPress}
-        networkName={networkConfigurations[item.chainId as Hex].name}
+        networkName={allNetworkConfigurations[item.chainId as Hex].name}
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
         isSelected={
@@ -47,7 +69,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         }
       />
     );
-  }, [dispatch, navigation, networkConfigurations, selectedSourceToken]);
+  }, [dispatch, navigation, evmNetworkConfigurations, allNetworkConfigurations, selectedSourceToken, onSetRpcTarget]);
 
   const networksToShow = useMemo(() =>
     sortedSourceNetworks
@@ -61,7 +83,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       networksBar={
         <BridgeSourceNetworksBar
           networksToShow={networksToShow}
-          networkConfigurations={networkConfigurations}
+          networkConfigurations={allNetworkConfigurations}
           selectedSourceChainIds={selectedSourceChainIds as Hex[]}
           enabledSourceChains={enabledSourceChains}
         />
