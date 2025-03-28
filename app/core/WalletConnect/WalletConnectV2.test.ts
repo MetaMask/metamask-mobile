@@ -36,6 +36,7 @@ jest.mock('@reown/walletkit', () => {
     rejectRequest: jest.fn(),
     updateSession: jest.fn().mockResolvedValue(true),
     getPendingSessionRequests: jest.fn(),
+    getPendingSessionProposals: jest.fn(),
     getActiveSessions: jest.fn().mockReturnValue({
       'test-topic': {
         topic: 'test-topic',
@@ -637,6 +638,175 @@ describe('WC2Manager', () => {
         expect.any(Error)
       );
       consoleSpy.mockRestore();
+    });
+  });
+
+  describe('WC2Manager removePendings', () => {
+    let mockWeb3Wallet: IWalletKit;
+    let consoleSpy: jest.SpyInstance;
+    const mockPendingProposalData = {
+      expiryTimestamp: 10000000,
+      relays: [{
+        protocol: 'irn'
+      }],
+      proposer: {
+        publicKey: 'test-public-key',
+        metadata: {
+          name: 'Test App',
+          description: 'Test App',
+          url: 'https://example.com',
+          icons: ['https://example.com/icon.png'],
+        }
+      },
+      requiredNamespaces: {
+        eip155: {
+          methods: ['eth_sendTransaction'],
+          events: ['chainChanged'],
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
+        }
+      },
+      optionalNamespaces: {
+        eip155: {
+          methods: ['eth_sendTransaction'],
+          events: ['chainChanged'],
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
+        }
+      },
+      pairingTopic: 'test-pairing'
+     }
+
+    beforeEach(() => {
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    });
+
+    afterEach(() => {
+      consoleSpy.mockRestore();
+    });
+
+    it('should remove all pending session proposals', async () => {
+      const mockPendingProposals = {
+        '1': { 
+          id: 1,
+          ...mockPendingProposalData
+        },
+        '2': { 
+          id: 2,
+          ...mockPendingProposalData
+        }
+      };
+
+      // Mock getPendingSessionProposals to return our test data
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+        .mockReturnValue(mockPendingProposals);
+
+      const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession')
+        .mockResolvedValue(undefined);
+      
+      rejectSessionSpy.mockClear();
+
+      await manager.removePendings();
+
+      expect(rejectSessionSpy).toHaveBeenCalledTimes(2);
+      expect(rejectSessionSpy).toHaveBeenCalledWith({
+        id: 1,
+        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE }
+      });
+      expect(rejectSessionSpy).toHaveBeenCalledWith({
+        id: 2,
+        reason: { code: 1, message: ERROR_MESSAGES.AUTO_REMOVE }
+      });
+    });
+
+    it('should handle errors when removing pending session proposals', async () => {
+      const mockPendingProposals = {
+        '1': { id: 1, ...mockPendingProposalData }
+      };
+
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+        .mockReturnValue(mockPendingProposals);
+
+      jest.spyOn(mockWeb3Wallet, 'rejectSession')
+        .mockRejectedValue(new Error('Test error'));
+
+      await manager.removePendings();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Can't remove pending session 1",
+        expect.any(Error)
+      );
+    });
+
+    it('should remove all pending session requests', async () => {
+      const mockPendingRequests = [
+        { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } },
+        { id: 2, topic: 'topic2', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
+      ];
+
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+        .mockReturnValue(mockPendingRequests);
+
+      const respondSessionRequestSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest')
+        .mockResolvedValue(undefined);
+
+      respondSessionRequestSpy.mockClear();
+
+      await manager.removePendings();
+
+      expect(respondSessionRequestSpy).toHaveBeenCalledTimes(2);
+      expect(respondSessionRequestSpy).toHaveBeenCalledWith({
+        topic: 'topic1',
+        response: {
+          id: 1,
+          jsonrpc: '2.0',
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
+        }
+      });
+      expect(respondSessionRequestSpy).toHaveBeenCalledWith({
+        topic: 'topic2',
+        response: {
+          id: 2,
+          jsonrpc: '2.0',
+          error: { code: 1, message: ERROR_MESSAGES.INVALID_ID }
+        }
+      });
+    });
+
+    it('should handle errors when removing pending session requests', async () => {
+      const mockPendingRequests = [
+        { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
+      ];
+
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+        .mockReturnValue(mockPendingRequests);
+
+      jest.spyOn(mockWeb3Wallet, 'respondSessionRequest')
+        .mockRejectedValue(new Error('Test error'));
+
+      await manager.removePendings();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Can't remove request 1",
+        expect.any(Error)
+      );
+    });
+
+    it('should handle empty pending proposals and requests', async () => {
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
+        .mockReturnValue({});
+      jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
+        .mockReturnValue([]);
+
+      const rejectSessionSpy = jest.spyOn(mockWeb3Wallet, 'rejectSession');
+      const respondSessionRequestSpy = jest.spyOn(mockWeb3Wallet, 'respondSessionRequest');
+
+      rejectSessionSpy.mockClear();
+      respondSessionRequestSpy.mockClear();
+
+      await manager.removePendings();
+
+      expect(rejectSessionSpy).not.toHaveBeenCalled();
+      expect(respondSessionRequestSpy).not.toHaveBeenCalled();
     });
   });
 });
