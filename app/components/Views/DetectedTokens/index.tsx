@@ -293,6 +293,7 @@ const DetectedTokens = () => {
       ignoredTokens,
       selectedNetworkClientId,
       allNetworks,
+      getTokenAddedAnalyticsParams,
     ],
   );
 

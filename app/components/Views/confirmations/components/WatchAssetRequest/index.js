@@ -21,6 +21,7 @@ import { isEqual } from 'lodash';
 import { AssetWatcherSelectorsIDs } from '../../../../../../e2e/selectors/Transactions/AssetWatcher.selectors';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import Logger from '../../../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -126,18 +127,14 @@ const WatchAssetRequest = ({
         source: 'Dapp suggested (watchAsset)',
       };
     } catch (error) {
-      Logger.error(
-        error,
-        'WatchAssetRequest.getTokenAddedAnalyticsParams',
-      );
-      return undefined
+      Logger.error(error, 'WatchAssetRequest.getTokenAddedAnalyticsParams');
+      return undefined;
     }
   };
 
   const onConfirmPress = async () => {
     await onConfirm();
     InteractionManager.runAfterInteractions(() => {
-
       const analyticsParams = getTokenAddedAnalyticsParams();
 
       if (analyticsParams) {

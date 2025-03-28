@@ -42,6 +42,7 @@ import Banner, {
   BannerVariant,
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
+import Logger from '../../../util/Logger';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -176,7 +177,7 @@ class AddCustomToken extends PureComponent {
         source: 'Custom token',
       };
     } catch (error) {
-      Logger.error(error, 'AddCustomToken.getTokenAddedAnalyticsParams error')
+      Logger.error(error, 'AddCustomToken.getTokenAddedAnalyticsParams error');
       return undefined;
     }
   };
