@@ -40,6 +40,8 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { getAccountBalances } from './utils';
+import { useMultichainBalances } from '../useMultichainBalances';
+import { fiatNumberToWei, safeBNToHex } from '../../../util/number';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -62,6 +64,13 @@ const useAccounts = ({
   const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+
+  const { multichainBalancesForAllAccounts } = useMultichainBalances();
+
+  console.log(
+    'multichainBalancesForAllAccounts',
+    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -162,19 +171,30 @@ const useAccounts = ({
 
           // TODO - Improve UI to either include loading and/or balance load failures.
           // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
-          const { balanceETH, balanceFiat, balanceWeiHex } = getAccountBalances(
-            {
-              internalAccount,
-              accountInfoByAddress,
-              totalFiatBalancesCrossChain,
-              conversionRate,
-              currentCurrency,
-            },
-          );
+          const { balanceETH, balanceFiat, balanceWH } = getAccountBalances({
+            internalAccount,
+            accountInfoByAddress,
+            totalFiatBalancesCrossChain,
+            conversionRate,
+            currentCurrency,
+          });
 
           const balanceTicker = getTicker(ticker);
           const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
+          console.log('balanceLabel', balanceLabel);
+
+          const balanceWeiHex = safeBNToHex(
+            fiatNumberToWei(
+              multichainBalancesForAllAccounts?.[internalAccount.id]
+                .totalFiatBalance,
+              multichainBalancesForAllAccounts?.[internalAccount.id]
+                .conversionRate,
+            ),
+          );
           const balanceError = checkBalanceError?.(balanceWeiHex);
+          const displayBalance =
+            multichainBalancesForAllAccounts?.[internalAccount.id]
+              ?.displayBalance;
           const isBalanceAvailable =
             isMultiAccountBalancesEnabled || isSelected;
           const mappedAccount: Account = {
@@ -185,9 +205,12 @@ const useAccounts = ({
             isSelected,
             // TODO - Also fetch assets. Reference AccountList component.
             // assets
-            assets: isBalanceAvailable
-              ? { fiatBalance: balanceLabel }
-              : undefined,
+            assets:
+              isBalanceAvailable && displayBalance
+                ? {
+                    fiatBalance: displayBalance,
+                  }
+                : undefined,
             balanceError,
           };
           // Calculate height of the account item.

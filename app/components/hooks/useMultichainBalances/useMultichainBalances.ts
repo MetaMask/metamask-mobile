@@ -212,6 +212,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(),
+            conversionRate: multichainConversionRate ?? 1,
           },
         }),
         {} as Record<string, MultichainBalancesData>,
@@ -224,6 +225,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       getShouldShowAggregatedPercentage,
       getAggregatedBalance,
       isPortfolioEnabled,
+      multichainConversionRate,
     ],
   );
 
@@ -245,6 +247,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(),
+            conversionRate: multichainConversionRate ?? 1,
           }
         : {
             displayBalance: undefined,
@@ -255,6 +258,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(),
+            conversionRate: multichainConversionRate ?? 1,
           },
     [
       selectedInternalAccount,
@@ -264,6 +268,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       getShouldShowAggregatedPercentage,
       getAggregatedBalance,
       isPortfolioEnabled,
+      multichainConversionRate,
     ],
   );
 
