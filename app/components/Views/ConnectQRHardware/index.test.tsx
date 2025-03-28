@@ -99,8 +99,7 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
       getOrAddQRKeyring: jest.fn(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withKeyring: (_selector: any, operation: any) =>
+      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({
           keyring: {
             cancelSync: jest.fn(),

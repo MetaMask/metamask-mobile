@@ -27,8 +27,7 @@ jest.mock('../../core/Engine', () => ({
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
         mockAddNewKeyring(keyringType, args),
       getKeyringsByType: () => mockGetKeyringsByType(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withKeyring: (_selector: any, operation: any) =>
+      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
   },
