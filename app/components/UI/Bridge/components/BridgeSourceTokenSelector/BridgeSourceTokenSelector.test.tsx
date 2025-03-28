@@ -227,6 +227,10 @@ describe('BridgeSourceTokenSelector', () => {
             key: 'tokenFiatAmount',
             order: 'dsc' as const,
           },
+          tokenNetworkFilter: {
+            '0x1': 'true',
+            '0xa': 'true',
+          },
         },
         TokenListController: {
           tokenList: {
@@ -268,6 +272,26 @@ describe('BridgeSourceTokenSelector', () => {
                   iconUrl: 'https://token2.com/logo.png',
                 },
               },
+            },
+          },
+        },
+        SwapsController: {
+          chainCache: {
+            [mockChainId]: {
+              aggregatorMetadata: null,
+              tokens: null,
+              topAssets: null,
+              aggregatorMetadataLastFetched: 0,
+              topAssetsLastFetched: 0,
+              tokensLastFetched: 0,
+            },
+            '0xa': {
+              aggregatorMetadata: null,
+              tokens: null,
+              topAssets: null,
+              aggregatorMetadataLastFetched: 0,
+              topAssetsLastFetched: 0,
+              tokensLastFetched: 0,
             },
           },
         },
