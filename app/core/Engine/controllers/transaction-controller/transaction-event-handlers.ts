@@ -2,131 +2,81 @@ import { merge } from 'lodash';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import { MetaMetrics } from '../../../Analytics';
+import { BaseControllerMessenger } from '../../types';
 import { generateDefaultTransactionMetrics, generateEvent } from './utils';
-import type { TransactionMetricRequest } from './types';
+import type { TransactionEventHandlerRequest } from './types';
 
-export const handleTransactionAdded = (
+// Generic handler for simple transaction events
+const createTransactionEventHandler = (
+  eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS],
+) => (
+    transactionMeta: TransactionMeta,
+    transactionEventHandlerRequest: TransactionEventHandlerRequest,
+  ) => {
+    const defaultTransactionMetricProperties =
+      generateDefaultTransactionMetrics(
+        eventType,
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+
+    const event = generateEvent(defaultTransactionMetricProperties);
+    MetaMetrics.getInstance().trackEvent(event);
+  };
+
+// Simple handlers - no unique properties / actions
+export const handleTransactionAdded = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_ADDED,
+);
+export const handleTransactionApproved = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_APPROVED,
+);
+export const handleTransactionRejected = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
+);
+export const handleTransactionSubmitted = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
+);
+
+// Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
+// as unified type for all finalized transactions.
+// Status could be derived from transactionMeta.status
+export async function handleTransactionFinalized(
   transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_ADDED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  const { getState, initMessenger, smartTransactionsController } =
+    transactionEventHandlerRequest;
 
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionApproved = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_APPROVED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionConfirmed = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  // Intentionally using TRANSACTION_FINALIZED for confirmed transactions
-  // as unified type for all finalized transactions
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionDropped = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  // Intentionally using TRANSACTION_FINALIZED for dropped transactions
-  // as unified type for all finalized transactions
   const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
     TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     transactionMeta,
-    transactionMetricRequest,
+    transactionEventHandlerRequest,
   );
 
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
+  let stxMetricsProperties = {};
+
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(getState());
+  if (shouldUseSmartTransaction) {
+    stxMetricsProperties = await getSmartTransactionMetricsProperties(
+      smartTransactionsController,
+      transactionMeta,
+      true,
+      initMessenger as unknown as BaseControllerMessenger,
+    );
+  }
+
+  const mergedEventProperties = merge(
+    {
+      properties: stxMetricsProperties,
+    },
+    defaultTransactionMetricProperties,
+  );
 
   const event = generateEvent(mergedEventProperties);
 
   MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionFailed = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  // Intentionally using TRANSACTION_FINALIZED for failed transactions
-  // as unified type for all finalized transactions
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionRejected = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_REJECTED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
-
-export const handleTransactionSubmitted = (
-  transactionMeta: TransactionMeta,
-  transactionMetricRequest: TransactionMetricRequest,
-) => {
-  const defaultTransactionMetricProperties = generateDefaultTransactionMetrics(
-    TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-    transactionMeta,
-    transactionMetricRequest,
-  );
-
-  const mergedEventProperties = merge({}, defaultTransactionMetricProperties);
-
-  const event = generateEvent(mergedEventProperties);
-
-  MetaMetrics.getInstance().trackEvent(event);
-};
+}

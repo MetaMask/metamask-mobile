@@ -50,7 +50,7 @@ exports[`BlockingActionModal should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
-        "backgroundColor": "#00000099",
+        "backgroundColor": "#00000066",
         "bottom": 0,
         "height": 1334,
         "left": 0,
