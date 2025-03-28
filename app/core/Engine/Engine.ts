@@ -24,8 +24,9 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
+  isConnectionError,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -115,7 +116,7 @@ import {
   SignatureController,
   SignatureControllerOptions,
 } from '@metamask/signature-controller';
-import { Hex, Json } from '@metamask/utils';
+import { Hex, hexToNumber, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
 import { PPOM, ppomInit } from '../../lib/ppom/PPOMView';
@@ -135,9 +136,9 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  ChainId,
   handleFetch,
   toChecksumHexAddress,
-  type ChainId,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
@@ -207,6 +208,8 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import onlyKeepHost from '../../util/onlyKeepHost';
+import { QUICKNODE_URLS_BY_INFURA_NETWORK_NAME } from '../../util/networks/customNetworks';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -310,22 +313,113 @@ export class Engine {
       },
     });
 
+    const networkControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'NetworkController',
+      allowedEvents: [],
+      allowedActions: [],
+    });
+
+    // eslint-disable-next-line
+    console.log(
+      'Initial network controller state',
+      JSON.stringify(initialState.NetworkController),
+    );
+
+    let initialNetworkControllerState = initialState.NetworkController;
+    if (!initialNetworkControllerState) {
+      initialNetworkControllerState = getDefaultNetworkControllerState();
+
+      // Add failovers for default Infura RPC endpoints
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].rpcEndpoints[0].failoverUrls = QUICKNODE_URLS_BY_INFURA_NETWORK_NAME[
+        'ethereum-mainnet'
+      ]
+        ? [QUICKNODE_URLS_BY_INFURA_NETWORK_NAME['ethereum-mainnet']]
+        : [];
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].rpcEndpoints[0].failoverUrls = QUICKNODE_URLS_BY_INFURA_NETWORK_NAME[
+        'linea-mainnet'
+      ]
+        ? [QUICKNODE_URLS_BY_INFURA_NETWORK_NAME['linea-mainnet']]
+        : [];
+    }
+
+    const infuraProjectId = process.env.MM_INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
-        allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      // Metrics event tracking is handled in this repository instead
-      // TODO: Use events for controller metric events
-      trackMetaMetricsEvent: () => {
-        // noop
-      },
+      infuraProjectId,
+      state: initialNetworkControllerState,
+      messenger: networkControllerMessenger,
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
     };
     const networkController = new NetworkController(networkControllerOpts);
-
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointUnavailable',
+      async ({ chainId, endpointUrl, error }) => {
+        const isInfuraEndpointUrl = new RegExp(
+          `https://[^.]+.infura.io/v3/${infuraProjectId}`,
+          'u',
+        ).test(endpointUrl);
+        const isQuicknodeEndpointUrl = Object.values(
+          QUICKNODE_URLS_BY_INFURA_NETWORK_NAME,
+        ).includes(endpointUrl);
+        if (
+          (isInfuraEndpointUrl || isQuicknodeEndpointUrl) &&
+          !isConnectionError(error)
+        ) {
+          Logger.log(
+            `Creating Segment event "${
+              MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE
+            }" with chain_id_caip: "eip155:${hexToNumber(
+              chainId,
+            )}", rpc_endpoint_url: ${onlyKeepHost(endpointUrl)}`,
+          );
+          const metricsEvent = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+          )
+            .addProperties({
+              chain_id_caip: `eip155:${hexToNumber(chainId)}`,
+              rpc_endpoint_url: onlyKeepHost(endpointUrl),
+            })
+            .build();
+          MetaMetrics.getInstance().trackEvent(metricsEvent);
+        }
+      },
+    );
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointDegraded',
+      async ({ chainId, endpointUrl }) => {
+        const isInfuraEndpointUrl = new RegExp(
+          `https://[^.]+.infura.io/v3/${infuraProjectId}`,
+          'u',
+        ).test(endpointUrl);
+        const isQuicknodeEndpointUrl = Object.values(
+          QUICKNODE_URLS_BY_INFURA_NETWORK_NAME,
+        ).includes(endpointUrl);
+        if (isInfuraEndpointUrl || isQuicknodeEndpointUrl) {
+          Logger.log(
+            `Creating Segment event "${
+              MetaMetricsEvents.RPC_SERVICE_DEGRADED
+            }" with chain_id_caip: "eip155:${chainId}", rpc_endpoint_url: ${onlyKeepHost(
+              endpointUrl,
+            )}`,
+          );
+          const metricsEvent = MetricsEventBuilder.createEventBuilder(
+            MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+          )
+            .addProperties({
+              chain_id_caip: `eip155:${chainId}`,
+              rpc_endpoint_url: onlyKeepHost(endpointUrl),
+            })
+            .build();
+          MetaMetrics.getInstance().trackEvent(metricsEvent);
+        }
+      },
+    );
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({

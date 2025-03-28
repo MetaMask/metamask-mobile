@@ -14,7 +14,9 @@ import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
 import Avatar from '../../../component-library/components/Avatars/Avatar';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SIZE,
@@ -86,6 +88,22 @@ const CellSelectWithMenu = ({
                     style={styles.arrowStyle}
                   />
                 )}
+              </TouchableOpacity>
+            </TouchableWithoutFeedback>
+          )}
+          {!!tertiaryText && (
+            <TouchableWithoutFeedback>
+              <TouchableOpacity
+                style={styles.containerRow}
+                onPress={props.onTextClick}
+              >
+                <Text
+                  numberOfLines={1}
+                  variant={TextVariant.BodySM}
+                  style={styles.tertiaryText}
+                >
+                  {tertiaryText}
+                </Text>
               </TouchableOpacity>
             </TouchableWithoutFeedback>
           )}
