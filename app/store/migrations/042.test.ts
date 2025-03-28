@@ -226,7 +226,7 @@ function createMockAccountsControllerState(selectedAccount = 'id1') {
   };
 }
 
-describe('Migration #042', () => {
+describe('Migration #42', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });

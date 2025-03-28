@@ -86,6 +86,7 @@ describe('CollectibleModal', () => {
       state: mockInitialState,
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(await findAllByText('#6904')).toBeDefined();
     expect(await findAllByText('Leopard')).toBeDefined();
   });

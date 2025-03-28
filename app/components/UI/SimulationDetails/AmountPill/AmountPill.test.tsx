@@ -110,12 +110,14 @@ describe('AmountPill', () => {
       {
         amount: new BigNumber(-1),
         expected: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           text: '- #2748',
         },
       },
       {
         amount: new BigNumber(1),
         expected: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           text: '+ #2748',
         },
       },
@@ -134,18 +136,21 @@ describe('AmountPill', () => {
       {
         amount: new BigNumber(-3),
         expected: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           text: '- 3 #2748',
         },
       },
       {
         amount: new BigNumber(8),
         expected: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           text: '+ 8 #2748',
         },
       },
       {
         amount: new BigNumber(-12),
         expected: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
           text: '- 12 #2748',
         },
       },

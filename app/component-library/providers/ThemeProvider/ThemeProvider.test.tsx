@@ -1,5 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
+import { brandColors } from '@metamask/design-tokens';
 
 // External dependencies
 import { ThemeContext } from '../../../util/theme';
@@ -36,6 +37,6 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     );
 
-    expect(themeValue.brandColors.black).toStrictEqual('#000000');
+    expect(themeValue.brandColors.black).toStrictEqual(brandColors.black);
   });
 });

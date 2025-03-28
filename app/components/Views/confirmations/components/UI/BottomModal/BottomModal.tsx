@@ -6,11 +6,9 @@ import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BottomModal.styles';
 
-const OPAQUE_GRAY = '#414141';
 interface BottomModalProps {
   children: ReactChild;
   onClose?: () => void;
-  hideBackground?: boolean;
   testID?: string;
   visible?: boolean;
 }
@@ -21,7 +19,6 @@ interface BottomModalProps {
  */
 const BottomModal = ({
   children,
-  hideBackground,
   onClose,
   testID,
   visible = true,
@@ -35,7 +32,7 @@ const BottomModal = ({
       animationIn="slideInUp"
       animationOut="slideOutDown"
       style={styles.bottomModal}
-      backdropColor={hideBackground ? OPAQUE_GRAY : colors.overlay.default}
+      backdropColor={colors.overlay.default}
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}

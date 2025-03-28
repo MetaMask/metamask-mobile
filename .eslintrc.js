@@ -68,12 +68,6 @@ module.exports = {
       },
     },
     {
-      files: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'off',
-      },
-    },
-    {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
         'app/components/UI/SimulationDetails/**/*.{js,ts,tsx}',
@@ -243,7 +237,7 @@ module.exports = {
     'react/no-string-refs': 2,
     'react/no-unused-prop-types': 2,
     'react/prefer-es6-class': 2,
-    '@metamask/design-tokens/color-no-hex': 'warn',
+    '@metamask/design-tokens/color-no-hex': 'error',
     radix: 0,
   },
 

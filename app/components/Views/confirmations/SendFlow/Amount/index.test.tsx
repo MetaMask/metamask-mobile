@@ -20,7 +20,7 @@ const MOCK_NFTS = [
     favorite: false,
     image: 'https://image.com/113',
     isCurrentlyOwned: true,
-    name: 'My Nft #113',
+    name: 'My Nft 113',
     standard: 'ERC721',
     tokenId: '113',
     tokenURI:
@@ -32,7 +32,7 @@ const MOCK_NFTS = [
     favorite: false,
     image: 'https://image.com/114',
     isCurrentlyOwned: true,
-    name: 'My Nft #114',
+    name: 'My Nft 114',
     standard: 'ERC721',
     tokenId: '114',
     tokenURI:
@@ -350,7 +350,9 @@ describe('Amount', () => {
     });
 
     // The conversion should happen and update the input
-    const amountInput = getByTestId(AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT);
+    const amountInput = getByTestId(
+      AmountViewSelectorsIDs.TRANSACTION_AMOUNT_INPUT,
+    );
     expect(amountInput.props.value).toBeDefined();
     expect(typeof amountInput.props.value).toBe('string');
     expect(amountInput.props.value).toBe('5000'); // $5000 from 5 ETH at $1000/ETH
@@ -919,8 +921,8 @@ describe('Amount', () => {
       },
       settings: {
         ...initialState.settings,
-        primaryCurrency: 'Fiat'
-      }
+        primaryCurrency: 'Fiat',
+      },
     });
 
     const textInput = getByTestId(

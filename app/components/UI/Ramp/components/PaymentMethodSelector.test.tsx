@@ -4,7 +4,7 @@ import PaymentMethodSelector from './PaymentMethodSelector';
 import { Image } from 'react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
-
+import { lightTheme } from '@metamask/design-tokens';
 const defaultState = {
   engine: {
     backgroundState,
@@ -14,8 +14,8 @@ const defaultState = {
 jest.mock('../../../../util/theme', () => ({
   useTheme: jest.fn().mockReturnValue({
     colors: {
-      icon: { default: '#000' },
-      border: { muted: '#ccc' },
+      icon: { default: lightTheme.colors.icon.default },
+      border: { muted: lightTheme.colors.border.muted },
     },
   }),
 }));
