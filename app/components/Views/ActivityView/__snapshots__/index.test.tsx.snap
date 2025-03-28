@@ -407,20 +407,22 @@ exports[`ActivityView should render correctly 1`] = `
                   >
                     <View
                       style={
-                        {
-                          "backgroundColor": "#ffffff",
-                          "flexDirection": "row",
-                          "marginTop": 0,
-                          "paddingHorizontal": 16,
-                        }
+                        [
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flexDirection": "row",
+                            "paddingHorizontal": 16,
+                          },
+                          {
+                            "marginTop": 0,
+                          },
+                        ]
                       }
                     >
                       <Text
                         style={
                           {
-                            "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 20,
-                            "fontWeight": "600",
                             "marginTop": 20,
                           }
                         }
