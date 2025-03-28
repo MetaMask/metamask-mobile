@@ -19,7 +19,6 @@ import { selectAccountsByChainId } from '../../../selectors/accountTrackerContro
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useParams } from '../../../util/navigation/navUtils';
-import HeaderBase from '../../../component-library/components/HeaderBase';
 import { createTokenBottomSheetFilterNavDetails } from '../../UI/Tokens/TokensBottomSheet';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -34,10 +33,13 @@ import { selectNetworkName } from '../../../selectors/networkInfos';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
-import { fontStyles } from '../../../styles/common';
+import { typography } from '@metamask/design-tokens';
+import { useStyles } from '../../hooks/useStyles';
 
-const createStyles = (colors, insets) =>
-  StyleSheet.create({
+const createStyles = (params) => {
+  const { theme } = params;
+  const { colors } = theme;
+  return StyleSheet.create({
     wrapper: {
       flex: 1,
     },
@@ -70,16 +72,17 @@ const createStyles = (colors, insets) =>
     header: {
       backgroundColor: colors.background.default,
       flexDirection: 'row',
-      marginTop: insets.top,
       paddingHorizontal: 16,
     },
-    title: { marginTop: 20, fontSize: 20, ...fontStyles.bold },
+    title: { marginTop: 20, fontSize: 20, ...typography.headingMd },
   });
+};
 
 const ActivityView = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+
+  const { styles } = useStyles(createStyles, { style: { colors, insets } });
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
@@ -156,7 +159,7 @@ const ActivityView = () => {
 
   return (
     <ErrorBoundary navigation={navigation} view="ActivityView">
-      <View style={styles.header}>
+      <View style={[styles.header, { marginTop: insets.top }]}>
         <Text
           style={styles.title}
           variant={DEFAULT_HEADERBASE_TITLE_TEXTVARIANT}
