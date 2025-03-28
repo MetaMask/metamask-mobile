@@ -34,6 +34,7 @@ jest.mock('../../../../hooks/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -41,6 +42,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
@@ -90,6 +92,7 @@ describe('StakingDeposit', () => {
     expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Stake',
       onReject: mockOnReject,
+      addBackButton: true,
     });
   });
 
@@ -98,17 +101,10 @@ describe('StakingDeposit', () => {
       state: stakingDepositConfirmationState,
     });
 
-    fireEvent.press(getByText('Advanced details'));
-
     expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isExpanded: true,
-      }),
-    );
-
-    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    // 2 calls here, 1st call is for the setting transaction_amount_eth
+    // 2nd call is for the setting advanced_details_viewed
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(2);
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
       expect.objectContaining({
         properties: expect.objectContaining({
@@ -117,5 +113,35 @@ describe('StakingDeposit', () => {
         }),
       }),
     );
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: false,
+        }),
+      }),
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackAdvancedDetailsToggledEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isExpanded: true,
+      }),
+    );
+
+    // Last call is for the advanced details view
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          advanced_details_viewed: true,
+        }),
+      }),
+    );
+
+    fireEvent.press(getByText('Advanced details'));
+
+    // Collapse toggle should not set advanced_details_viewed
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(3);
   });
 });

@@ -15,7 +15,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "center",
         "backgroundColor": "#ffffff",
-        "borderColor": "#848c96",
+        "borderColor": "#b7bbc8",
         "borderRadius": 99,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -61,7 +61,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "flexShrink": 1,
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
@@ -78,7 +78,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#848c96",
+        "borderColor": "#b7bbc8",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -303,12 +303,12 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -345,7 +345,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -369,7 +369,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "700",
@@ -388,7 +388,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
@@ -404,7 +404,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "700",
@@ -434,7 +434,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
     style={
       {
         "backgroundColor": "#ffffff",
-        "borderColor": "#848c96",
+        "borderColor": "#b7bbc8",
         "borderRadius": 4,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -659,12 +659,12 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -701,7 +701,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -725,7 +725,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 14,
                   "fontWeight": "700",
@@ -744,7 +744,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
@@ -760,7 +760,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 14,
               "fontWeight": "700",

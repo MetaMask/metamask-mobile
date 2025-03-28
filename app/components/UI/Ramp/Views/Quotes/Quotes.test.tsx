@@ -1,4 +1,5 @@
 import React from 'react';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
@@ -68,6 +69,7 @@ jest.mock('@react-navigation/native', () => {
         pop: mockPop,
       }),
     }),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -294,6 +296,28 @@ describe('Quotes', () => {
     act(() => {
       jest.useRealTimers();
     });
+  });
+
+  it('calls hardware back handler ', async () => {
+    const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
+    const removeMock = jest.fn();
+
+    backHandlerMock.mockImplementation((event, handler) => {
+      if (event === 'hardwareBackPress') {
+        handler();
+        return { remove: removeMock } as NativeEventSubscription;
+      }
+      return { remove: jest.fn() } as NativeEventSubscription;
+    });
+
+    const { unmount } = render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    backHandlerMock.mock.calls[0][1]();
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+    backHandlerMock.mockRestore();
   });
 
   const simulateQuoteSelection = async (

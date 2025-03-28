@@ -1,0 +1,1108 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Carousel should only render fund banner when all banners are dismissed 1`] = `
+<View
+  style={
+    {
+      "alignSelf": "center",
+      "height": 77,
+      "overflow": "visible",
+      "width": 728,
+    }
+  }
+  testID="carousel-container"
+>
+  <View
+    style={
+      {
+        "height": 59,
+        "overflow": "visible",
+      }
+    }
+  >
+    <RCTScrollView
+      data={
+        [
+          {
+            "description": "banner.fund.subtitle",
+            "id": "fund",
+            "navigation": {
+              "navigate": [Function],
+              "type": "function",
+            },
+            "testID": "carousel-second-slide",
+            "testIDCloseButton": "carousel-second-slide-close-button",
+            "testIDTitle": "carousel-second-slide-title",
+            "title": "banner.fund.title",
+            "undismissable": true,
+          },
+        ]
+      }
+      getItem={[Function]}
+      getItemCount={[Function]}
+      horizontal={true}
+      keyExtractor={[Function]}
+      onContentSizeChange={[Function]}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={true}
+      removeClippedSubviews={false}
+      renderItem={[Function]}
+      scrollEventThrottle={50}
+      showsHorizontalScrollIndicator={false}
+      stickyHeaderIndices={[]}
+      viewabilityConfigCallbackPairs={[]}
+    >
+      <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-second-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-second-slide-title"
+                  >
+                    banner.fund.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.fund.subtitle
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</View>
+`;
+
+exports[`Carousel should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignSelf": "center",
+      "height": 77,
+      "overflow": "visible",
+      "width": 728,
+    }
+  }
+  testID="carousel-container"
+>
+  <View
+    style={
+      {
+        "height": 59,
+        "overflow": "visible",
+      }
+    }
+  >
+    <RCTScrollView
+      data={
+        [
+          {
+            "description": "banner.card.subtitle",
+            "id": "card",
+            "navigation": {
+              "href": "https://portfolio.metamask.io/card",
+              "type": "url",
+            },
+            "testID": "carousel-first-slide",
+            "testIDCloseButton": "carousel-first-slide-close-button",
+            "testIDTitle": "carousel-first-slide-title",
+            "title": "banner.card.title",
+            "undismissable": false,
+          },
+          {
+            "description": "banner.fund.subtitle",
+            "id": "fund",
+            "navigation": {
+              "navigate": [Function],
+              "type": "function",
+            },
+            "testID": "carousel-second-slide",
+            "testIDCloseButton": "carousel-second-slide-close-button",
+            "testIDTitle": "carousel-second-slide-title",
+            "title": "banner.fund.title",
+            "undismissable": true,
+          },
+          {
+            "description": "banner.cashout.subtitle",
+            "id": "cashout",
+            "navigation": {
+              "navigate": [Function],
+              "type": "function",
+            },
+            "testID": "carousel-third-slide",
+            "testIDCloseButton": "carousel-third-slide-close-button",
+            "testIDTitle": "carousel-third-slide-title",
+            "title": "banner.cashout.title",
+            "undismissable": false,
+          },
+          {
+            "description": "banner.aggregated.subtitle",
+            "id": "aggregated",
+            "navigation": {
+              "navigationStack": "SettingsView",
+              "route": "GeneralSettings",
+              "type": "route",
+            },
+            "testID": "carousel-fourth-slide",
+            "testIDCloseButton": "carousel-fourth-slide-close-button",
+            "testIDTitle": "carousel-fourth-slide-title",
+            "title": "banner.aggregated.title",
+            "undismissable": false,
+          },
+        ]
+      }
+      getItem={[Function]}
+      getItemCount={[Function]}
+      horizontal={true}
+      keyExtractor={[Function]}
+      onContentSizeChange={[Function]}
+      onLayout={[Function]}
+      onMomentumScrollBegin={[Function]}
+      onMomentumScrollEnd={[Function]}
+      onScroll={[Function]}
+      onScrollBeginDrag={[Function]}
+      onScrollEndDrag={[Function]}
+      pagingEnabled={true}
+      removeClippedSubviews={false}
+      renderItem={[Function]}
+      scrollEventThrottle={50}
+      showsHorizontalScrollIndicator={false}
+      stickyHeaderIndices={[]}
+      viewabilityConfigCallbackPairs={[]}
+    >
+      <View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-first-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-first-slide-title"
+                  >
+                    banner.card.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.card.subtitle
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 26,
+                    "justifyContent": "center",
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
+                  }
+                }
+                testID="carousel-first-slide-close-button"
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-second-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-second-slide-title"
+                  >
+                    banner.fund.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.fund.subtitle
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-third-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-third-slide-title"
+                  >
+                    banner.cashout.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.cashout.subtitle
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 26,
+                    "justifyContent": "center",
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
+                  }
+                }
+                testID="carousel-third-slide-close-button"
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View
+          onFocusCapture={[Function]}
+          onLayout={[Function]}
+          style={
+            [
+              {
+                "flexDirection": "row",
+              },
+              null,
+            ]
+          }
+        >
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessibilityValue={
+              {
+                "max": undefined,
+                "min": undefined,
+                "now": undefined,
+                "text": undefined,
+              }
+            }
+            accessible={true}
+            collapsable={false}
+            focusable={true}
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "height": 59,
+                  "marginHorizontal": 5,
+                  "position": "relative",
+                  "width": 718,
+                },
+                false,
+              ]
+            }
+            testID="carousel-fourth-slide"
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "height": "100%",
+                  "width": "100%",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 59,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "width": 60,
+                  }
+                }
+              >
+                <Image
+                  resizeMode="contain"
+                  source={
+                    {
+                      "uri": "aggregated-image",
+                    }
+                  }
+                  style={
+                    {
+                      "height": 59,
+                      "width": 60,
+                    }
+                  }
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "display": "flex",
+                      "flexDirection": "column",
+                      "gap": 0,
+                      "width": 658,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                        "marginLeft": 14,
+                      }
+                    }
+                    testID="carousel-fourth-slide-title"
+                  >
+                    banner.aggregated.title
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 10.4,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "marginLeft": 14,
+                        "marginTop": -4,
+                      }
+                    }
+                  >
+                    banner.aggregated.subtitle
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "height": 26,
+                    "justifyContent": "center",
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
+                  }
+                }
+                testID="carousel-fourth-slide-close-button"
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "flex-end",
+        "flexDirection": "row",
+        "gap": 8,
+        "height": 18,
+        "justifyContent": "center",
+      }
+    }
+    testID="progress-dots"
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          {
+            "backgroundColor": "#121314",
+          },
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          false,
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          false,
+        ]
+      }
+    />
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#9ca1af",
+            "borderRadius": 3,
+            "height": 6,
+            "margin": 0,
+            "width": 6,
+          },
+          false,
+        ]
+      }
+    />
+  </View>
+</View>
+`;
