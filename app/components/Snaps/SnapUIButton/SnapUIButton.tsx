@@ -71,12 +71,6 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
   const overriddenVariant = disabled ? 'disabled' : variant;
   const color = COLORS[overriddenVariant as keyof typeof COLORS];
 
-  const isIcon =
-    React.isValidElement(children) &&
-    (children.props?.type === 'Icon' ||
-      (children.type as React.ComponentType<unknown> & { displayName?: string })
-        ?.displayName === 'Icon');
-
   const styles = StyleSheet.create({
     button: {
       backgroundColor: colors.background.default,
@@ -124,7 +118,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       );
     }
 
-    if (React.isValidElement(children) && children.props?.sections) {
+    if (React.isValidElement(children) && 'sections' in children.props) {
       try {
         const modifiedSections = children.props.sections.map((section: any) => {
           if (section.element === 'RNText') {
@@ -142,12 +136,12 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
           return section;
         });
 
+        type SectionProps = { sections: Array<any> };
         return React.cloneElement(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          children as React.ReactElement<{ sections: any }>,
+          children as React.ReactElement<SectionProps>,
           {
             sections: modifiedSections,
-          },
+          } as Partial<SectionProps>,
         );
       } catch (error) {
         console.log('Error modifying sections:', error);
