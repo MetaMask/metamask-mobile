@@ -6,7 +6,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeState, setDestToken, setSourceToken } from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
 // TODO remove this mock once we have a real implementation
@@ -101,8 +101,8 @@ describe('BridgeView', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
               },
             },
           },
@@ -506,28 +506,20 @@ describe('BridgeView', () => {
           aggregators: [],
           balance: '0.31281',
           balanceFiat: '930.56676 cad',
-          chainId: '0x1',
+          chainId: '0x1' as Hex,
           decimals: 18,
           image: '',
-          isETH: true,
-          isNative: true,
-          isStaked: false,
-          logo: '../images/eth-logo-new.png',
           name: 'Ethereum',
           symbol: 'ETH',
-          ticker: 'ETH',
         },
         destToken: {
           address: token2Address,
           aggregators: [],
           balance: '7.75388',
           balanceFiat: '11.07915 cad',
-          chainId: '0x1',
+          chainId: '0x1' as Hex,
           decimals: 6,
           image: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          isETH: false,
-          isNative: false,
-          isStaked: false,
           symbol: 'USDC',
         },
       },
