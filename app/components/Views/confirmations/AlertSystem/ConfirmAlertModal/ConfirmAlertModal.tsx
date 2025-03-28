@@ -11,6 +11,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useAlerts } from '../context';
 import ButtonLink from '../../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import styleSheet from './ConfirmAlertModal.styles';
+import { AlertKeys } from '../../constants/alerts';
 
 export interface ConfirmAlertModalProps {
   /** Callback function that is called when the reject button is clicked. */
@@ -22,11 +23,14 @@ export interface ConfirmAlertModalProps {
 const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfirm }) => {
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {});
-  const { showAlertModal, fieldAlerts, hasUnconfirmedFieldDangerAlerts, alertModalVisible } = useAlerts();
+  const { showAlertModal, fieldAlerts, hasUnconfirmedFieldDangerAlerts, alertModalVisible, generalAlerts } = useAlerts();
 
   const [confirmCheckbox, setConfirmCheckbox] = useState<boolean>(false);
 
   const hasFieldAlerts = fieldAlerts.length > 0;
+  const blockaidAlert = generalAlerts.find((selectedAlert) => selectedAlert.key === AlertKeys.Blockaid);
+
+  const onlyBlockaidAlert = !hasFieldAlerts && blockaidAlert;
 
   const handleConfirmCheckbox = useCallback(() => {
     setConfirmCheckbox(!confirmCheckbox);
@@ -46,35 +50,35 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({ onReject, onConfi
   }
 
   return (
-    <BottomModal onClose={handleReject}>
-      <View style={styles.modalContainer}>
+    <BottomModal onClose={handleReject} >
+      <View style={styles.modalContainer} testID="confirm-alert-modal" >
         <View>
           <Icon name={IconName.Danger} size={IconSize.Xl} color={colors.error.default} />
         </View>
         <View style={styles.headerContainer}>
           <Text style={styles.headerText} variant={TextVariant.BodyMDBold}>
-            {strings('alert_system.confirm_modal.title')}
+            {onlyBlockaidAlert ? strings('alert_system.confirm_modal.title_blockaid') : strings('alert_system.confirm_modal.title')}
           </Text>
         </View>
-          <Text style={styles.message}>
-            {strings('alert_system.confirm_modal.message')}
-          </Text>
-          {hasFieldAlerts && (<ButtonLink
-            style={styles.reviewAlertsLink}
-            onPress={showAlertModal}
-            label={strings('alert_system.confirm_modal.review_alerts')}
-            startIconName={IconName.SecuritySearch}
-            width={ButtonWidthTypes.Auto}
-            size={ButtonSize.Lg}
-            labelTextVariant={TextVariant.BodyMD}
-          />
-          )}
+        <Text style={styles.message}>
+          {onlyBlockaidAlert ? blockaidAlert.message : strings('alert_system.confirm_modal.message')}
+        </Text>
+        {hasFieldAlerts && (<ButtonLink
+          style={styles.reviewAlertsLink}
+          onPress={showAlertModal}
+          label={strings('alert_system.confirm_modal.review_alerts')}
+          startIconName={IconName.SecuritySearch}
+          width={ButtonWidthTypes.Auto}
+          size={ButtonSize.Lg}
+          labelTextVariant={TextVariant.BodyMD}
+        />
+        )}
         <TouchableOpacity
           style={styles.checkboxContainer}
           onPress={handleConfirmCheckbox}
           activeOpacity={1}
         >
-          <Checkbox onPress={handleConfirmCheckbox} isChecked={confirmCheckbox} testID="confirm-alert-checkbox"/>
+          <Checkbox onPress={handleConfirmCheckbox} isChecked={confirmCheckbox} testID="confirm-alert-checkbox" />
           <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
         </TouchableOpacity>
         <View style={styles.buttonsContainer}>
