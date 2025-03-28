@@ -109,8 +109,8 @@ export function useSwitchNetworks({
       }
 
       setTokenNetworkFilter(chainId);
-      if (!(domainIsConnectedDapp && isMultichainV1Enabled()) && dismissModal)
-        dismissModal();
+      if (!(domainIsConnectedDapp && isMultichainV1Enabled()))
+        dismissModal?.();
       endTrace({ name: TraceName.SwitchCustomNetwork });
       endTrace({ name: TraceName.NetworkSwitch });
       trackEvent(
