@@ -51,7 +51,7 @@ const slice = createSlice({
       state.selectedDestChainId = action.payload;
     },
     resetBridgeState: () => initialState,
-    setSourceToken: (state, action: PayloadAction<BridgeToken>) => {
+    setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = action.payload;
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
