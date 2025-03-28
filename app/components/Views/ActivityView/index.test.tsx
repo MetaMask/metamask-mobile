@@ -18,6 +18,17 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../hooks/useStyles', () => ({
+  useStyles: () => ({
+    styles: {},
+    theme: {
+      colors: {
+        icon: {},
+      },
+    },
+  }),
+}));
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>

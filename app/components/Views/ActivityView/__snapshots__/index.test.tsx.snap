@@ -408,11 +408,7 @@ exports[`ActivityView should render correctly 1`] = `
                     <View
                       style={
                         [
-                          {
-                            "backgroundColor": "#ffffff",
-                            "flexDirection": "row",
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                           {
                             "marginTop": 0,
                           },
@@ -420,35 +416,13 @@ exports[`ActivityView should render correctly 1`] = `
                       }
                     >
                       <Text
-                        style={
-                          {
-                            "fontSize": 20,
-                            "marginTop": 20,
-                          }
-                        }
                         variant="sHeadingSM"
                       >
                         Transactions
                       </Text>
                     </View>
-                    <View
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
-                      <View
-                        style={
-                          {
-                            "flexDirection": "row",
-                            "justifyContent": "space-between",
-                            "paddingHorizontal": 8,
-                            "paddingVertical": 16,
-                            "width": "100%",
-                          }
-                        }
-                      >
+                    <View>
+                      <View>
                         <TouchableOpacity
                           accessibilityRole="button"
                           accessible={true}
@@ -459,17 +433,11 @@ exports[`ActivityView should render correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#ffffff",
-                              "borderColor": "#BBC0C566",
+                              "backgroundColor": "#f2f4f6",
                               "borderRadius": 20,
-                              "borderStyle": "solid",
-                              "borderWidth": 1,
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
-                              "maxWidth": "60%",
                               "paddingHorizontal": 16,
                             }
                           }
