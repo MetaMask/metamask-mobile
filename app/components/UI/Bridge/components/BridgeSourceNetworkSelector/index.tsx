@@ -106,7 +106,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
 
     // Return to previous screen with selected networks
     navigation.goBack();
-  }, [navigation, dispatch, candidateSourceChainIds]);
+  }, [navigation, dispatch, candidateSourceChainIds, evmNetworkConfigurations, onSetRpcTarget]);
 
   // Toggle chain selection
   const toggleChain = useCallback((chainId: string) => {
