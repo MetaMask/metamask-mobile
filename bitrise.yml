@@ -256,7 +256,7 @@ stages:
     envs:
        - METAMASK_BUILD_TYPE: 'flask'
     workflows:
-      - ios_e2e_test_: {}
+      - ios_e2e_test: {}
       - android_e2e_test: {}
   create_build_flask_release:
     workflows:
