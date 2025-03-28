@@ -19,6 +19,7 @@ describe('getNotificationServicesControllerMessenger', () => {
     expect(mockGetRestricted).toHaveBeenCalledWith({
       name: 'NotificationServicesController',
       allowedActions: [
+        'KeyringController:withKeyring',
         'KeyringController:getState',
         'KeyringController:getAccounts',
         'AuthenticationController:getBearerToken',
