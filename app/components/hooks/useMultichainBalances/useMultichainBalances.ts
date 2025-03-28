@@ -31,6 +31,7 @@ import {
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
   selectMultichainNetworkAggregatedBalanceForAllAccounts,
+  selectSelectedAccountMultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
@@ -80,11 +81,19 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const multichainBalancesForAllAccounts = useSelector(
     selectMultichainNetworkAggregatedBalanceForAllAccounts,
   );
+  const multichainBalancesForSelectedAccount = useSelector(
+    selectSelectedAccountMultichainNetworkAggregatedBalance,
+  );
   ///: END:ONLY_INCLUDE_IF
 
   console.log(
     'multichainBalancesForAllAccounts',
     JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  );
+
+  console.log(
+    'multichainBalancesForSelectedAccount',
+    JSON.stringify(multichainBalancesForSelectedAccount, null, 2),
   );
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
