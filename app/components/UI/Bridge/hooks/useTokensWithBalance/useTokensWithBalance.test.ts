@@ -3,7 +3,7 @@ import { useTokensWithBalance } from '.';
 import { constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 
 // Mock dependencies
 jest.mock('../../../../../util/networks', () => ({
@@ -31,8 +31,8 @@ describe('useTokensWithBalance', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
               },
             },
           },

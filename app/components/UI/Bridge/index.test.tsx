@@ -6,7 +6,7 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeState, setDestToken, setSourceToken } from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
 // TODO remove this mock once we have a real implementation
@@ -101,8 +101,8 @@ describe('BridgeView', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
               },
             },
           },

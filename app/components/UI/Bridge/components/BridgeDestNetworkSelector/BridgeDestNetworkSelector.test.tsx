@@ -4,7 +4,7 @@ import { BridgeDestNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedDestChainId } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,9 +39,9 @@ describe('BridgeDestNetworkSelector', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
-                '0x2105': { isActiveSrc: false, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(baseChainId)]: { isActiveSrc: false, isActiveDest: true },
               },
             },
           },
@@ -143,9 +143,9 @@ describe('BridgeDestNetworkSelector', () => {
             bridgeFeatureFlags: {
               [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
                 chains: {
-                  '0x1': { isActiveSrc: true, isActiveDest: false }, // Set Ethereum to inactive as dest
-                  '0xa': { isActiveSrc: true, isActiveDest: true },
-                  '0x2105': { isActiveSrc: false, isActiveDest: true },
+                  [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: false }, // Set Ethereum to inactive as dest
+                  [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
+                  [formatChainIdToCaip(baseChainId)]: { isActiveSrc: false, isActiveDest: true },
                 },
               },
             },
