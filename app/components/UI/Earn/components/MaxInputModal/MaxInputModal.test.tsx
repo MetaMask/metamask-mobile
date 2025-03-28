@@ -81,23 +81,4 @@ describe('MaxInputModal', () => {
     );
     expect(ethDescriptionText).toBeTruthy();
   });
-
-  it('displays the correct content when asset is not ETH', () => {
-    const ticker = 'USDC';
-    mockUseRoute.mockReturnValue({
-      params: {
-        isEth: false,
-        ticker,
-        handleMaxPress: mockHandleMaxPress,
-      },
-    });
-
-    const { getByText } = renderMaxInputModal();
-
-    getByText(
-      strings('stake.max_modal.token.description', {
-        ticker,
-      }),
-    );
-  });
 });

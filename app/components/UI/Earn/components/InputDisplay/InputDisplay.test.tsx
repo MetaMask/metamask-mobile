@@ -39,6 +39,10 @@ const renderComponent = (props: InputDisplayProps = defaultProps) =>
   });
 
 describe('InputDisplay', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   it('renders balance text correctly', () => {
     const { getByText } = renderComponent();
 

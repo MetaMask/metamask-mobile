@@ -347,6 +347,10 @@ describe('StakeInputView', () => {
 
       fireEvent.press(getByText('1'));
       expect(getByText('$1')).toBeTruthy();
+
+      fireEvent.press(getByText('Max'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

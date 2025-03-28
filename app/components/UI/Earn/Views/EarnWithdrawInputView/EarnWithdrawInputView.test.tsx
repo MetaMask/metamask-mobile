@@ -136,6 +136,10 @@ jest.mock('../../../../../selectors/featureFlagController', () => ({
 }));
 
 describe('UnstakeInputView', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
   it('render matches snapshot', () => {
     render(EarnWithdrawInputView);
     expect(screen.toJSON()).toMatchSnapshot();
@@ -230,6 +234,7 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('Review'));
 
+      jest.useRealTimers();
       // Wait for the async operation to complete
       await new Promise((resolve) => setTimeout(resolve, 0));
 

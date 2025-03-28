@@ -222,15 +222,19 @@ const EarnInputView = () => {
     attemptDepositTransaction,
   ]);
 
+  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+
   const handleMaxButtonPress = () => {
-    navigation.navigate('StakeModals', {
-      screen: Routes.STAKING.MODALS.MAX_INPUT,
-      params: {
-        isEth: earnToken.isETH,
-        ticker: earnToken.ticker ?? earnToken.symbol,
-        handleMaxPress: handleMax,
-      },
-    });
+    if (!isStablecoinLendingEnabled || token.isETH) {
+      navigation.navigate('StakeModals', {
+        screen: Routes.STAKING.MODALS.MAX_INPUT,
+        params: {
+          handleMaxPress: handleMax,
+        },
+      });
+    } else {
+      handleMax();
+    }
   };
 
   const getButtonLabel = () => {
@@ -296,7 +300,6 @@ const EarnInputView = () => {
     //   },
     // },
   };
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;

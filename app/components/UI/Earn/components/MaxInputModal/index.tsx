@@ -20,8 +20,6 @@ const styles = createMaxInputModalStyles();
 
 interface MaxInputModalRouteParams {
   handleMaxPress: () => void;
-  isEth: boolean;
-  ticker: string;
 }
 
 const MaxInputModal = () => {
@@ -29,7 +27,7 @@ const MaxInputModal = () => {
     useRoute<RouteProp<{ params: MaxInputModalRouteParams }, 'params'>>();
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  const { handleMaxPress, isEth, ticker } = route.params;
+  const { handleMaxPress } = route.params;
 
   const handleCancel = () => {
     sheetRef.current?.onCloseBottomSheet();
@@ -50,11 +48,7 @@ const MaxInputModal = () => {
         </BottomSheetHeader>
         <View style={styles.textContainer}>
           <Text variant={TextVariant.BodyMD}>
-            {isEth
-              ? strings('stake.max_modal.eth.description')
-              : strings('stake.max_modal.token.description', {
-                  ticker,
-                })}
+            {strings('stake.max_modal.eth.description')}
           </Text>
         </View>
       </View>

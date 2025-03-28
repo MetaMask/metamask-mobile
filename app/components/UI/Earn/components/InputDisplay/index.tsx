@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -58,7 +58,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 2,
       marginLeft: 5,
       marginRight: 5,
-      opacity: 0.6,
+      opacity: 1,
       backgroundColor: colors.border.default,
     },
   });
@@ -85,12 +85,14 @@ const InputDisplay = ({
       Animated.sequence([
         Animated.timing(cursorOpacity, {
           toValue: 0,
-          duration: 500,
+          duration: 800,
+          easing: () => Easing.bounce(1),
           useNativeDriver: true,
         }),
         Animated.timing(cursorOpacity, {
-          toValue: 0.6,
-          duration: 500,
+          toValue: 1,
+          easing: () => Easing.bounce(1),
+          duration: 800,
           useNativeDriver: true,
         }),
       ]),

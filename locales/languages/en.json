@@ -3609,9 +3609,6 @@
       "title": "Max",
       "eth": {
         "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
-      },
-      "token": {
-        "description": "Max is the total amount of {{ticker}} you have to deposit, not including the ETH gas fee. It’s a good idea to keep some extra ETH in your wallet for future transactions."
       }
     },
     "use_max": "Use max",
