@@ -30,10 +30,24 @@ const StakingDeposit = () => {
     });
   }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
-  useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-  
+  useEffect(() => {
+    trackPageViewedEvent();
+    setConfirmationMetric({
+      properties: {
+        advanced_details_viewed: false,
+      },
+    });
+  }, [trackPageViewedEvent, setConfirmationMetric]);
+
   const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
     trackAdvancedDetailsToggledEvent({ isExpanded });
+    if (isExpanded) {
+      setConfirmationMetric({
+        properties: {
+          advanced_details_viewed: true,
+        },
+      });
+    }
   };
 
   return (

@@ -274,6 +274,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
+
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
   REVIEW_STAKE_BUTTON_CLICKED = 'Review Stake Button Clicked',
@@ -390,10 +393,6 @@ enum EVENT_NAME {
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
-
-  // Transactions
-  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
-  TRANSACTION_FINALIZED = 'Transaction Finalized',
 
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
@@ -888,8 +887,6 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
-  // Transactions
-  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
@@ -914,6 +911,11 @@ const events = {
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
   CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
+
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED: generateOpt(
+    EVENT_NAME.EARN_EMPTY_STATE_CTA_CLICKED,
+  ),
 
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(

@@ -147,9 +147,6 @@ describe('Footer', () => {
       alertModalVisible: true,
       setAlertKey: jest.fn(),
       hasDangerAlerts: true,
-    };
-
-    const baseMockUseAlertsConfirmed = {
       isAlertConfirmed: jest.fn().mockReturnValue(false),
       setAlertConfirmed: jest.fn(),
       unconfirmedDangerAlerts: [],
@@ -160,7 +157,6 @@ describe('Footer', () => {
 
     beforeEach(() => {
       (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
-      (useAlertsConfirmed as jest.Mock).mockReturnValue(baseMockUseAlertsConfirmed);
       jest.clearAllMocks();
     });
 
@@ -225,9 +221,6 @@ describe('Footer', () => {
       (useAlerts as jest.Mock).mockReturnValue({
         ...baseMockUseAlerts,
         fieldAlerts,
-      });
-      (useAlertsConfirmed as jest.Mock).mockReturnValue({
-        ...baseMockUseAlertsConfirmed,
         hasUnconfirmedDangerAlerts: true,
       });
 

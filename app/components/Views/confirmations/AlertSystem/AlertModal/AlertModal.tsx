@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, ViewStyle } from 'react-native';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { useAlerts } from '../context';
 import BottomModal from '../../components/UI/BottomModal';
@@ -11,7 +11,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './AlertModal.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Severity } from '../../types/alerts';
-import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 import { getSeverityStyle } from '../utils';
 
 interface HeaderProps {
@@ -81,14 +80,14 @@ const AlertCheckbox: React.FC<CheckboxProps> = ({ selectedAlert, isConfirmed, on
   }
 
   return (
-    <View style={styles.checkboxContainer}>
-      <Checkbox
-        isChecked={isConfirmed}
-        onPress={() => onCheckboxClick(isConfirmed)}
-        label={strings('alert_system.alert_modal.checkbox_label')}
-        style={styles.checkboxLabel}
-      />
-    </View>
+    <TouchableOpacity
+      style={styles.checkboxContainer}
+      onPress={() => onCheckboxClick(isConfirmed)}
+      activeOpacity={1}
+    >
+      <Checkbox onPress={() => onCheckboxClick(isConfirmed)} isChecked={isConfirmed} testID="alert-modal-checkbox"/>
+      <Text style={styles.checkboxText}>{strings('alert_system.confirm_modal.checkbox_label')}</Text>
+    </TouchableOpacity>
   );
 };
 
@@ -97,9 +96,10 @@ interface ButtonsProps {
   hideAlertModal: () => void;
   onHandleActionClick: (callback: () => void) => void;
   styles: Record<string, ViewStyle>;
+  isConfirmed: boolean;
 }
 
-const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHandleActionClick }) => (
+const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHandleActionClick, isConfirmed }) => (
   <View style={styles.buttonsContainer}>
     <Button
       onPress={hideAlertModal}
@@ -108,6 +108,8 @@ const Buttons: React.FC<ButtonsProps> = ({ hideAlertModal, action, styles, onHan
       size={ButtonSize.Lg}
       variant={action ? ButtonVariants.Secondary : ButtonVariants.Primary}
       width={ButtonWidthTypes.Full}
+      isDisabled={!isConfirmed}
+      testID="alert-modal-got-it-button"
     />
     {action ? (
       <>
@@ -130,11 +132,10 @@ interface AlertModalProps {
   onAcknowledgeClick?: () => void;
 }
 
-const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeClick}) => {
+const AlertModal: React.FC<AlertModalProps> = ({ headerAccessory, onAcknowledgeClick }) => {
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
-  const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey } = useAlerts();
-  const { isAlertConfirmed, setAlertConfirmed } = useAlertsConfirmed(fieldAlerts);
+  const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey, isAlertConfirmed, setAlertConfirmed } = useAlerts();
 
   const handleClose = useCallback(
     () => {
@@ -198,6 +199,7 @@ const AlertModal: React.FC<AlertModalProps> = ({headerAccessory, onAcknowledgeCl
           action={selectedAlert.action}
           styles={styles}
           onHandleActionClick={handleActionClick}
+          isConfirmed={isConfirmed}
         />
       </View>
     </BottomModal>
