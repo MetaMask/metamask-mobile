@@ -4,12 +4,7 @@ import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-  BRIDGE_PROD_API_BASE_URL,
-} from '@metamask/bridge-controller';
-import nock from 'nock';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip, } from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,63 +34,84 @@ jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
   }),
 }));
 
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    SwapsController: {
+      fetchTopAssetsWithCache: jest.fn().mockResolvedValue([
+        {
+          address: '0x0000000000000000000000000000000000000001',
+          symbol: 'TOKEN1',
+        },
+        {
+          address: '0x0000000000000000000000000000000000000002',
+          symbol: 'HELLO',
+        },
+        {
+          address: '0x0000000000000000000000000000000000000003',
+          symbol: 'FOO',
+        },
+        {
+          address: '0x0000000000000000000000000000000000000004',
+          symbol: 'BAR',
+        },
+      ]),
+    },
+  },
+}));
+
+const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
+const mockChainId = '0x1' as Hex;
+const optimismChainId = '0xa' as Hex;
+const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
+const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
+const token3Address = '0x0000000000000000000000000000000000000003' as Hex;
+const token4Address = '0x0000000000000000000000000000000000000004' as Hex;
+
+jest.mock('@metamask/bridge-controller', () => ({
+  ...jest.requireActual('@metamask/bridge-controller'),
+  fetchBridgeTokens: jest.fn().mockResolvedValue({
+    [token1Address]: {
+      address: token1Address,
+      symbol: 'TOKEN1',
+      name: 'Token One',
+      decimals: 18,
+      chainId: mockChainId,
+      iconUrl: 'https://token1.com/logo.png',
+    },
+    [token2Address]: {
+      address: token2Address,
+      symbol: 'HELLO',
+      name: 'Hello Token',
+      decimals: 18,
+      chainId: mockChainId,
+      iconUrl: 'https://token2.com/logo.png',
+    },
+    [token3Address]: {
+      address: token3Address,
+      symbol: 'FOO',
+      name: 'Foo Token',
+      decimals: 18,
+      chainId: mockChainId,
+      iconUrl: 'https://token3.com/logo.png',
+    },
+    [token4Address]: {
+      address: token4Address,
+      symbol: 'BAR',
+      name: 'Bar Token',
+      decimals: 18,
+      chainId: mockChainId,
+      iconUrl: 'https://token4.com/logo.png',
+    },
+  }),
+}));
+
 describe('BridgeSourceTokenSelector', () => {
   // Fix ReferenceError: You are trying to access a property or method of the Jest environment after it has been torn down.
   jest.useFakeTimers();
 
-  const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
-  const mockChainId = '0x1' as Hex;
-  const optimismChainId = '0xa' as Hex;
-  const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
-  const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    nock.cleanAll();
   });
-
-  afterEach(() => {
-    nock.cleanAll();
-  });
-
-  // Mock any bridge tokens API call
-  nock(BRIDGE_PROD_API_BASE_URL)
-    .persist()
-    .get(/\/getTokens/)
-    .query({ chainId: mockChainId })
-    .reply(200, {
-      [token1Address]: {
-        address: token1Address,
-        symbol: 'TOKEN1',
-        name: 'Token One',
-        decimals: 18,
-        chainId: mockChainId,
-        iconUrl: 'https://token1.com/logo.png',
-      },
-      [token2Address]: {
-        address: token2Address,
-        symbol: 'HELLO',
-        name: 'Hello Token',
-        decimals: 18,
-        chainId: mockChainId,
-        iconUrl: 'https://token2.com/logo.png',
-      },
-    });
-
-  // Mock the swaps top assets API call
-  nock('https://swap.api.cx.metamask.io')
-    .persist()
-    .get(/\/networks\/.*\/topAssets/)
-    .reply(200, [
-      {
-        address: token1Address,
-        symbol: 'TOKEN1',
-      },
-      {
-        address: token2Address,
-        symbol: 'HELLO',
-      },
-    ]);
 
   const initialState = {
     engine: {
