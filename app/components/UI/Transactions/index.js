@@ -79,6 +79,7 @@ import { selectGasFeeEstimates } from '../../../selectors/confirmTransaction';
 import { decGWEIToHexWEI } from '../../../util/conversions';
 import { ActivitiesViewSelectorsIDs } from '../../../../e2e/selectors/Transactions/ActivitiesView.selectors';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
+import { selectSelectedAccountMultichainTransactions } from '../../../selectors/multichainTransactionController';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -220,6 +221,10 @@ class Transactions extends PureComponent {
      * Chain ID of the token
      */
     tokenChainId: PropTypes.string,
+    /**
+     * Non-EVM transactions
+     */
+    nonEvmTransactions: PropTypes.object,
   };
 
   static defaultProps = {
@@ -380,6 +385,10 @@ class Transactions extends PureComponent {
   };
 
   renderEmpty = () => {
+    console.log(
+      'nonEvmTransactions',
+      JSON.stringify(this.props.nonEvmTransactions, null, 2),
+    );
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     if (this.props.tokenChainId !== this.props.chainId) {
@@ -942,6 +951,7 @@ const mapStateToProps = (state) => ({
   tokens: selectTokensByAddress(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
+  nonEvmTransactions: selectSelectedAccountMultichainTransactions(state),
 });
 
 Transactions.contextType = ThemeContext;
