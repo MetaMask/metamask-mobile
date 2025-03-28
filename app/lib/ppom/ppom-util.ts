@@ -18,7 +18,6 @@ import {
 import { WALLET_CONNECT_ORIGIN } from '../../util/walletconnect';
 import AppConstants from '../../core/AppConstants';
 import {
-  isSecurityAlertsAPIEnabled,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 import { PPOMController } from '@metamask/ppom-validator';
@@ -111,9 +110,7 @@ async function validateRequest(req: PPOMRequest, transactionId?: string) {
 
     const normalizedRequest = normalizeRequest(req);
 
-    securityAlertResponse = isSecurityAlertsAPIEnabled()
-      ? await validateWithAPI(ppomController, chainId, normalizedRequest)
-      : await validateWithController(ppomController, normalizedRequest);
+    securityAlertResponse = await validateWithAPI(ppomController, chainId, normalizedRequest);
 
     securityAlertResponse = {
       ...securityAlertResponse,
