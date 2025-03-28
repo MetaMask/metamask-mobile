@@ -810,6 +810,17 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     "tokenFiatAmount": 200000,
                                   },
                                   {
+                                    "address": "0x0000000000000000000000000000000000000003",
+                                    "balance": "5",
+                                    "balanceFiat": "$80000",
+                                    "chainId": "0xa",
+                                    "decimals": 18,
+                                    "image": "https://token3.com/logo.png",
+                                    "name": "Foo Token",
+                                    "symbol": "FOO",
+                                    "tokenFiatAmount": 80000,
+                                  },
+                                  {
                                     "address": "0x0000000000000000000000000000000000000000",
                                     "balance": "20",
                                     "balanceFiat": "$40000",
@@ -1107,6 +1118,257 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           testID="secondary-balance-test-id"
                                         >
                                           2 HELLO
+                                        </Text>
+                                      </View>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    justifyContent="space-between"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "justifyContent": "space-between",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onLongPress={[Function]}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-FOO"
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignSelf": "flex-start",
+                                            "position": "relative",
+                                          }
+                                        }
+                                        testID="badge-wrapper-badge"
+                                      >
+                                        <View>
+                                          <View
+                                            style={
+                                              {
+                                                "backgroundColor": "#ffffff",
+                                                "borderRadius": 16,
+                                                "height": 32,
+                                                "overflow": "hidden",
+                                                "width": 32,
+                                              }
+                                            }
+                                          >
+                                            <Image
+                                              onError={[Function]}
+                                              resizeMode="contain"
+                                              source={
+                                                {
+                                                  "uri": "https://token3.com/logo.png",
+                                                }
+                                              }
+                                              style={
+                                                {
+                                                  "flex": 1,
+                                                  "height": undefined,
+                                                  "width": undefined,
+                                                }
+                                              }
+                                              testID="token-avatar-image"
+                                            />
+                                          </View>
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "aspectRatio": 1,
+                                              "bottom": 0,
+                                              "height": 0,
+                                              "justifyContent": "center",
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "transform": [
+                                                {
+                                                  "translateX": 0,
+                                                },
+                                                {
+                                                  "translateY": 0,
+                                                },
+                                              ],
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "height": "50%",
+                                                "justifyContent": "center",
+                                                "maxHeight": 24,
+                                                "minHeight": 8,
+                                                "opacity": 0,
+                                              }
+                                            }
+                                            testID="badgenetwork"
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderColor": "#ffffff",
+                                                  "borderRadius": 8,
+                                                  "borderWidth": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "overflow": "hidden",
+                                                  "shadowColor": "#0000001A",
+                                                  "shadowOffset": {
+                                                    "height": 2,
+                                                    "width": 0,
+                                                  },
+                                                  "shadowOpacity": 1,
+                                                  "shadowRadius": 4,
+                                                  "transform": [
+                                                    {
+                                                      "scale": 1,
+                                                    },
+                                                  ],
+                                                  "width": 32,
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={1}
+                                                style={
+                                                  {
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  }
+                                                }
+                                                testID="network-avatar-image"
+                                              />
+                                            </View>
+                                          </View>
+                                        </View>
+                                      </View>
+                                      <View
+                                        flexDirection="column"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "flexDirection": "column",
+                                              "gap": 4,
+                                            },
+                                            {
+                                              "flex": 1,
+                                              "marginLeft": 8,
+                                            },
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          FOO
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#6a737d",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Foo Token
+                                        </Text>
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                            "alignSelf": "flex-end",
+                                            "flex": 1,
+                                          }
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                          testID="balance-test-id"
+                                        >
+                                          $80000
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#6a737d",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                              "paddingHorizontal": 0,
+                                              "textTransform": "uppercase",
+                                            }
+                                          }
+                                          testID="secondary-balance-test-id"
+                                        >
+                                          5 FOO
                                         </Text>
                                       </View>
                                     </TouchableOpacity>
