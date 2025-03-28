@@ -14,16 +14,22 @@ const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
 const mockGetAccounts = jest.fn();
 
+const hdKeyring = {
+  getAccounts: () => {
+    mockGetAccounts();
+    return ['0x123'];
+  },
+};
+
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
         mockAddNewKeyring(keyringType, args),
       getKeyringsByType: () => mockGetKeyringsByType(),
-      withKeyring: () => {
-        mockGetAccounts();
-        return ['0x123'];
-      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      withKeyring: (_selector: any, operation: any) =>
+        operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
