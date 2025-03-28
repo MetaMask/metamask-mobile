@@ -116,6 +116,9 @@ import NonEvmTokens from '../../UI/NonEvmTokens';
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectIsSolanaSupportEnabled,
+  ///: END:ONLY_INCLUDE_IF
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
@@ -195,6 +198,10 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Object containing the balance of the current selected account
@@ -703,7 +710,7 @@ const Wallet = ({
           {renderTokensContent()}
           {
           ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          <SolanaNewFeatureContent />
+          isSolanaSupportEnabled && <SolanaNewFeatureContent />
           ///: END:ONLY_INCLUDE_IF
           }
         </>

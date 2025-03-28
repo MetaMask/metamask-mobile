@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { View, Text } from 'react-native';
 import Modal from 'react-native-modal';
+import { KeyringClient } from '@metamask/keyring-snap-client';
+import { SolScope } from '@metamask/keyring-api';
+import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
+import Logger from '../../../util/Logger';
 import { ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button';
 import Button from '../../../component-library/components/Buttons/Button';
 import FeatureItem from './FeatureItem';
@@ -19,6 +23,20 @@ const SolanaNewFeatureContent = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const hasExistingSolanaAccount = useSelector(selectHasCreatedSolanaMainnetAccount);
+
+  const createSolanaAccount = async () => {
+    try {
+      const client = new KeyringClient(new SolanaWalletSnapSender());
+
+      await client.createAccount({
+        scope: SolScope.Mainnet,
+      });
+    } catch (error) {
+      Logger.error(error as Error, 'Solana account creation failed');
+    } finally {
+      handleClose();
+    }
+  };
 
   useEffect(() => {
     const checkModalStatus = async () => {
@@ -86,7 +104,7 @@ const SolanaNewFeatureContent = () => {
             ? 'solana_new_feature_content.got_it'
             : 'solana_new_feature_content.create_solana_account'
         )}
-        onPress={handleClose}
+        onPress={hasExistingSolanaAccount ? handleClose : createSolanaAccount}
         width={ButtonWidthTypes.Full}
       />
 
