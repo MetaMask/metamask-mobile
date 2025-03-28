@@ -17,7 +17,10 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
 } from '@metamask/transaction-controller';
-import { SmartTransactionsControllerSmartTransactionEvent } from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsControllerSmartTransactionEvent,
+  SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
+} from '@metamask/smart-transactions-controller';
 
 type MessengerActions =
   | ApprovalControllerActions
@@ -35,7 +38,8 @@ type MessengerEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerUnapprovedTransactionAddedEvent
   | NetworkControllerStateChangeEvent
-  | SmartTransactionsControllerSmartTransactionEvent;
+  | SmartTransactionsControllerSmartTransactionEvent
+  | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
 
 export type TransactionControllerInitMessenger = ReturnType<
   typeof getTransactionControllerInitMessenger
@@ -71,6 +75,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:transactionSubmitted',
       'TransactionController:unapprovedTransactionAdded',
       'SmartTransactionsController:smartTransaction',
+      'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
     allowedActions: [
       'ApprovalController:addRequest',

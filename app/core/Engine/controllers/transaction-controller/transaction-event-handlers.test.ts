@@ -1,16 +1,24 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
+import { merge } from 'lodash';
+
 import { MetaMetrics } from '../../../Analytics';
 import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
 import {
   handleTransactionAdded,
   handleTransactionApproved,
-  handleTransactionConfirmed,
-  handleTransactionDropped,
-  handleTransactionFailed,
+  handleTransactionFinalized,
   handleTransactionRejected,
   handleTransactionSubmitted,
 } from './transaction-event-handlers';
+import { TransactionEventHandlerRequest } from './types';
+import {
+  disabledSmartTransactionsState,
+  enabledSmartTransactionsState,
+} from './data-helpers';
+
+jest.mock('../../../../util/smart-transactions');
 
 // Mock dependencies
 jest.mock('../../../Analytics', () => ({
@@ -26,6 +34,13 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
 }));
 
 describe('Transaction Event Handlers', () => {
+  const mockGetSmartTransactionMetricsProperties = jest.mocked(
+    getSmartTransactionMetricsProperties,
+  );
+  const mockGetState = jest.fn();
+  const mockInitMessenger = jest.fn();
+  const mockSmartTransactionsController = jest.fn();
+
   const mockTransactionMeta = {
     id: 'test-id',
     chainId: '0x1',
@@ -35,16 +50,16 @@ describe('Transaction Event Handlers', () => {
     txParams: {},
   } as unknown as TransactionMeta;
 
-  const mockTransactionMetrics = {
-    properties: { test_property: 'test_value' },
-    sensitiveProperties: { sensitive_property: 'sensitive_value' },
+  const mockSmartTransactionMetricsProperties = {
+    smart_transaction_timed_out: false,
+    smart_transaction_proxied: false,
   };
 
   const mockTransactionMetricRequest = {
-    getTransactionMetricProperties: jest
-      .fn()
-      .mockReturnValue(mockTransactionMetrics),
-  };
+    getState: mockGetState,
+    initMessenger: mockInitMessenger,
+    smartTransactionsController: mockSmartTransactionsController,
+  } as unknown as TransactionEventHandlerRequest;
 
   const mockEventBuilder = {
     addProperties: jest.fn().mockReturnThis(),
@@ -67,6 +82,23 @@ describe('Transaction Event Handlers', () => {
     (MetaMetrics.getInstance as jest.Mock).mockReturnValue(
       mockMetaMetricsInstance,
     );
+
+    mockGetSmartTransactionMetricsProperties.mockResolvedValue(
+      mockSmartTransactionMetricsProperties,
+    );
+
+    mockGetState.mockReturnValue(
+      merge({}, enabledSmartTransactionsState, {
+        confirmationMetrics: {
+          metricsById: {
+            [mockTransactionMeta.id]: {
+              properties: { test_property: 'test_value' },
+              sensitiveProperties: { sensitive_property: 'sensitive_value' },
+            },
+          },
+        },
+      }),
+    );
   });
 
   const handlerTestCases = [
@@ -79,38 +111,10 @@ describe('Transaction Event Handlers', () => {
       handlerName: 'handleTransactionApproved',
       handler: handleTransactionApproved,
       event: TRANSACTION_EVENTS.TRANSACTION_APPROVED,
-      extraAssertions: (
-        eventBuilder: jest.Mocked<MetricsEventBuilder>,
-        _transactionMeta: TransactionMeta,
-      ) => {
-        const expectedProperties = {
-          chain_id: '0x1',
-          transaction_internal_id: 'test-id',
-          transaction_type: 'unknown',
-          test_property: 'test_value',
-        };
-
-        expect(eventBuilder.addProperties).toHaveBeenCalledWith(
-          expect.objectContaining(expectedProperties),
-        );
-        expect(eventBuilder.addSensitiveProperties).toHaveBeenCalledWith(
-          expect.objectContaining({ sensitive_property: 'sensitive_value' }),
-        );
-      },
     },
     {
-      handlerName: 'handleTransactionConfirmed',
-      handler: handleTransactionConfirmed,
-      event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    },
-    {
-      handlerName: 'handleTransactionDropped',
-      handler: handleTransactionDropped,
-      event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
-    },
-    {
-      handlerName: 'handleTransactionFailed',
-      handler: handleTransactionFailed,
+      handlerName: 'handleTransactionFinalized',
+      handler: handleTransactionFinalized,
       event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     },
     {
@@ -127,34 +131,24 @@ describe('Transaction Event Handlers', () => {
 
   it.each(handlerTestCases)(
     '$handlerName should generate and track event with correct properties',
-    ({ handler, event, extraAssertions }) => {
-      handler(mockTransactionMeta, mockTransactionMetricRequest);
+    async ({ handler, event }) => {
+      await handler(mockTransactionMeta, mockTransactionMetricRequest);
 
-      expect(
-        mockTransactionMetricRequest.getTransactionMetricProperties,
-      ).toHaveBeenCalledWith('test-id');
       expect(MetricsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         event,
       );
 
-      if (extraAssertions) {
-        extraAssertions(
-          mockEventBuilder as unknown as jest.Mocked<MetricsEventBuilder>,
-          mockTransactionMeta,
-        );
-      }
-
       expect(mockEventBuilder.build).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
     },
   );
 
   it('handles missing transaction metrics properties', () => {
-    mockTransactionMetricRequest.getTransactionMetricProperties.mockReturnValueOnce(
-      {
-        properties: {},
-        sensitiveProperties: {},
+    mockGetState.mockReturnValueOnce({
+      confirmationMetrics: {
+        metricsById: {},
       },
-    );
+    });
 
     handleTransactionApproved(
       mockTransactionMeta,
@@ -166,9 +160,11 @@ describe('Transaction Event Handlers', () => {
   });
 
   it('handles undefined transaction metrics', () => {
-    mockTransactionMetricRequest.getTransactionMetricProperties.mockReturnValueOnce(
-      undefined,
-    );
+    mockGetState.mockReturnValueOnce({
+      confirmationMetrics: {
+        metricsById: {},
+      },
+    });
 
     expect(() => {
       handleTransactionApproved(
@@ -176,5 +172,43 @@ describe('Transaction Event Handlers', () => {
         mockTransactionMetricRequest,
       );
     }).not.toThrow();
+  });
+
+  describe('handleTransactionFinalized', () => {
+    it('adds STX metrics properties if smart transactions are enabled', async () => {
+      await handleTransactionFinalized(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining(mockSmartTransactionMetricsProperties),
+      );
+    });
+
+    it('does not add STX metrics properties if smart transactions are not enabled', async () => {
+      mockGetState.mockReturnValue(
+        merge({}, disabledSmartTransactionsState, {
+          confirmationMetrics: {
+            metricsById: {
+              [mockTransactionMeta.id]: {
+                properties: { test_property: 'test_value' },
+                sensitiveProperties: { sensitive_property: 'sensitive_value' },
+              },
+            },
+          },
+        }),
+      );
+
+      await handleTransactionFinalized(
+        mockTransactionMeta,
+        mockTransactionMetricRequest,
+      );
+
+      expect(mockEventBuilder.addProperties).toHaveBeenCalled();
+      expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+        expect.objectContaining(mockSmartTransactionMetricsProperties),
+      );
+    });
   });
 });
