@@ -4386,10 +4386,10 @@
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/accounts-controller@^27.0.0":
-  version "27.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-27.0.0.tgz#555b58337e1f9e323fa2c6635136b585f0810fb3"
-  integrity sha512-RwtBQtXTRs0lpHaxgQgYpJCam0PaRzX+H1ZaS9jlvADZMaY74xP4iKZPPpbLaVHY4gJH2/YW02CNXyFuSEkrFQ==
+"@metamask/accounts-controller@^26.0.0":
+  version "26.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-26.1.0.tgz#6ec75237b4a9472da5e6decd097909d980b2ce81"
+  integrity sha512-KFQU3QpXz/8dZxP4Fxw3lsaZoOmACa7r+z52ntm8AqSwiM1Ev8zTJIKSnF63Ud25c0N8LiJSKYtHcicEkQ1U2g==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.0"
@@ -4397,6 +4397,7 @@
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/keyring-internal-api" "^6.0.0"
     "@metamask/keyring-utils" "^3.0.0"
+    "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
@@ -5024,7 +5025,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^22.1.0":
+"@metamask/network-controller@^22.1.0", "@metamask/network-controller@^22.2.1":
   version "22.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.2.1.tgz#6141c6c1ac26be1e78381f1d77804030e0e769ea"
   integrity sha512-jqfhqWcZgoLxCQqc890YwlCOKB+SlKqGEWKfJA3gZ3f8fuHSXCzIgin0vw5MLPtFTXCMUSuTTbohtXjedbaqIQ==
