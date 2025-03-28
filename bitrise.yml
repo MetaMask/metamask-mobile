@@ -248,7 +248,7 @@ stages:
   build_e2e_flask_stage:
     abort_on_fail: true
     envs:
-       - METAMASK_BUILD_TYPE: 'flask'
+      - METAMASK_BUILD_TYPE: 'flask'
     workflows:
       - ios_e2e_build: {}
       - android_e2e_build: {}
