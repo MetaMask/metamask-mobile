@@ -309,13 +309,18 @@ export const selectMultichainTokenList = createDeepEqualSelector(
   },
 );
 
-const deriveMultichainNetworkAggregatedBalance = (
+interface MultichainNetworkAggregatedBalance {
+  totalBalance: string;
+  totalBalanceFiat: string;
+}
+
+const getMultichainNetworkAggregatedBalance = (
   account: InternalAccount,
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
   nonEvmChainId: SupportedCaipChainId,
-) => {
+): MultichainNetworkAggregatedBalance => {
   const assetIds = multichainAssets?.[account.id] || [];
   const balances = multichainBalances?.[account.id];
 
@@ -356,11 +361,11 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
       assets,
       assetsRates,
       nonEvmNetworkChainId,
-    ) => {
+    ): MultichainNetworkAggregatedBalance => {
       if (!selectedAccount) {
         return { totalBalance: '0', totalBalanceFiat: '0' };
       }
-      return deriveMultichainNetworkAggregatedBalance(
+      return getMultichainNetworkAggregatedBalance(
         selectedAccount,
         multichainBalances,
         assets,
@@ -369,6 +374,10 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
       );
     },
   );
+
+interface MultichainNetworkAggregatedBalanceForAllAccounts {
+  [accountId: InternalAccount['id']]: MultichainNetworkAggregatedBalance;
+}
 
 export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
   createDeepEqualSelector(
@@ -383,7 +392,7 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
       assets,
       assetsRates,
       nonEvmNetworkChainId,
-    ) => {
+    ): undefined | MultichainNetworkAggregatedBalanceForAllAccounts => {
       if (!internalAccounts) {
         return undefined;
       }
@@ -391,7 +400,7 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
       return internalAccounts.reduce(
         (acc, account) => ({
           ...acc,
-          [account.id]: deriveMultichainNetworkAggregatedBalance(
+          [account.id]: getMultichainNetworkAggregatedBalance(
             account,
             multichainBalances,
             assets,
