@@ -356,7 +356,7 @@ const NetworkSelector = () => {
     origin,
     selectedChainId,
     selectedNetworkName,
-    dismissModal: sheetRef.current?.dismissModal,
+    dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
   });
