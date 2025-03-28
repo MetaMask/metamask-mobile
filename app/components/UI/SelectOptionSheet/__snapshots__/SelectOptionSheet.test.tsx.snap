@@ -24,7 +24,7 @@ exports[`SelectOptionSheet render matches the snapshot 1`] = `
         style={
           {
             "alignSelf": "flex-start",
-            "color": "#141618",
+            "color": "#121314",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -42,7 +42,7 @@ exports[`SelectOptionSheet render matches the snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontSize": 24,
             },
             {

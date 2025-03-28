@@ -52,7 +52,7 @@ exports[`HintModal should render correctly 1`] = `
         size={12}
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontSize": 16,
           }
         }
@@ -65,7 +65,7 @@ exports[`HintModal should render correctly 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#d73847",
+          "color": "#ca3542",
         }
       }
       testID="skip-backup-warning"
@@ -73,7 +73,7 @@ exports[`HintModal should render correctly 1`] = `
     <Text
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 24,
           "fontWeight": "600",
@@ -108,8 +108,8 @@ exports[`HintModal should render correctly 1`] = `
         testID="skip-backup-check"
         tintColors={
           {
-            "false": "#848c96",
-            "true": "#0376c9",
+            "false": "#b7bbc8",
+            "true": "#4459ff",
           }
         }
         value={false}
@@ -118,7 +118,7 @@ exports[`HintModal should render correctly 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
