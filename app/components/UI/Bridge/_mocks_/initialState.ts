@@ -261,7 +261,16 @@ export const initialState = {
           [ethChainId]: {
             aggregatorMetadata: null,
             tokens: null,
-            topAssets: null,
+            topAssets: [
+              {
+                address: ethToken1Address,
+                symbol: 'TOKEN1',
+              },
+              {
+                address: ethToken2Address,
+                symbol: 'HELLO',
+              },
+            ],
             aggregatorMetadataLastFetched: 0,
             topAssetsLastFetched: 0,
             tokensLastFetched: 0,

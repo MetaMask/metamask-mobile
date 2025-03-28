@@ -20,7 +20,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
     [chainId, swapsChainCache],
   );
-  const swapsTopAssetsPending = swapsTopAssets;
+  const swapsTopAssetsPending = !swapsTopAssets;
   const networkConfigurationsByChainId = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   const cachedBridgeTokens = useRef<Record<string, Record<string, BridgeToken>>>({});
@@ -106,6 +106,8 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     return top;
   }, [bridgeTokens, swapsTopAssets]);
 
+  console.log('topTokens', topTokens.length, bridgeTokensPending, swapsTopAssetsPending);
 
-  return { topTokens, pending: Boolean(bridgeTokensPending || swapsTopAssetsPending) };
+
+  return { topTokens, pending: bridgeTokensPending || swapsTopAssetsPending };
 };
