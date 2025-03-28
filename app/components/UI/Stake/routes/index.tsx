@@ -1,17 +1,17 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import StakeInputView from '../Views/StakeInputView/StakeInputView';
 import Routes from '../../../../constants/navigation/Routes';
 import { Confirm } from '../../../Views/confirmations/Confirm/Confirm';
 import StakeConfirmationView from '../Views/StakeConfirmationView/StakeConfirmationView';
-import UnstakeInputView from '../Views/UnstakeInputView/UnstakeInputView';
 import UnstakeConfirmationView from '../Views/UnstakeConfirmationView/UnstakeConfirmationView';
 import { StakeSDKProvider } from '../sdk/stakeSdkProvider';
-import MaxInputModal from '../components/MaxInputModal';
+import MaxInputModal from '../../Earn/components/MaxInputModal';
 import GasImpactModal from '../components/GasImpactModal';
 import StakeEarningsHistoryView from '../Views/StakeEarningsHistoryView/StakeEarningsHistoryView';
 import PoolStakingLearnMoreModal from '../components/PoolStakingLearnMoreModal';
-import EarnTokenList from '../components/EarnTokenList';
+import EarnTokenList from '../../Earn/components/EarnTokenList';
+import EarnInputView from '../../Earn/Views/EarnInputView/EarnInputView';
+import EarnWithdrawInputView from '../../Earn/Views/EarnWithdrawInputView/EarnWithdrawInputView';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -28,10 +28,10 @@ const clearStackNavigatorOptions = {
 const StakeScreenStack = () => (
   <StakeSDKProvider>
     <Stack.Navigator>
-      <Stack.Screen name={Routes.STAKING.STAKE} component={StakeInputView} />
+      <Stack.Screen name={Routes.STAKING.STAKE} component={EarnInputView} />
       <Stack.Screen
         name={Routes.STAKING.UNSTAKE}
-        component={UnstakeInputView}
+        component={EarnWithdrawInputView}
       />
       <Stack.Screen
         name={Routes.STAKING.STAKE_CONFIRMATION}

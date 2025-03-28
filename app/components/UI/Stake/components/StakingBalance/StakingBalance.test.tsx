@@ -17,7 +17,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -161,7 +161,7 @@ describe('StakingBalance', () => {
       screen: Routes.STAKING.STAKE,
       params: {
         token: MOCK_ETH_MAINNET_ASSET,
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
       },
     });
   });
@@ -179,6 +179,9 @@ describe('StakingBalance', () => {
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.UNSTAKE,
+      params: {
+        token: MOCK_STAKED_ETH_MAINNET_ASSET,
+      },
     });
   });
 

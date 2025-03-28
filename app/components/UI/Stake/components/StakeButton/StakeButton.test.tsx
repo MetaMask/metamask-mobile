@@ -13,7 +13,7 @@ import useStakingEligibility from '../../hooks/useStakingEligibility';
 import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 const mockNavigate = jest.fn();
 
@@ -173,7 +173,7 @@ describe('StakeButton', () => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: MOCK_ETH_MAINNET_ASSET,
-          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     });
@@ -230,7 +230,7 @@ describe('StakeButton', () => {
         screen: Routes.STAKING.STAKE,
         params: {
           token: MOCK_ETH_MAINNET_ASSET,
-          action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+          action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         },
       });
     });

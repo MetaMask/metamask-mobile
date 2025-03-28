@@ -26,7 +26,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     chainId,
     name,
     symbol,
-    address = '0xabc',
+    address = '0xaBc',
     decimals = 0,
     isStaked = false,
     ticker = '',

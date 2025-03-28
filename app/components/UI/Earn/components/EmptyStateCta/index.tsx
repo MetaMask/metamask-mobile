@@ -18,9 +18,9 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Stake/Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../Tokens/types';
-import { useEarnTokenDetails } from '../../../Stake/hooks/useEarnTokenDetails';
+import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
@@ -61,7 +61,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
 
     navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE,
-      params: { token, action: STAKE_INPUT_VIEW_ACTIONS.LEND },
+      params: { token, action: EARN_INPUT_VIEW_ACTIONS.LEND },
     });
   };
 

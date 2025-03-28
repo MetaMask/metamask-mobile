@@ -16,7 +16,7 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
-import { STAKE_INPUT_VIEW_ACTIONS } from '../../../Views/StakeInputView/StakeInputView.types';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -120,7 +120,7 @@ describe('StakingButtons', () => {
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
       params: {
-        action: STAKE_INPUT_VIEW_ACTIONS.STAKE,
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
         token: MOCK_ETH_MAINNET_ASSET,
       },
     });
@@ -148,6 +148,9 @@ describe('StakingButtons', () => {
       Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        token: MOCK_ETH_MAINNET_ASSET,
+      },
       screen: Routes.STAKING.UNSTAKE,
     });
   });
