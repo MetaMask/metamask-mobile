@@ -18,6 +18,7 @@ import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
+import XRPLEVM_TESTNET from './xrplevm.png';
 
 export default {
   PALM,
@@ -42,4 +43,5 @@ export default {
   FOX_LOGO,
   BTC,
   BASE,
+  'XRPLEVM-TESTNET': XRPLEVM_TESTNET,
 };
