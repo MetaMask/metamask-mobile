@@ -795,22 +795,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                               </View>
                             </View>
                             <RCTScrollView
-                              ListEmptyComponent={
-                                <ForwardRef
-                                  style={
-                                    {
-                                      "marginHorizontal": 24,
-                                      "marginVertical": 10,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    color="Alternative"
-                                  >
-                                    No tokens match “”
-                                  </Text>
-                                </ForwardRef>
-                              }
+                              ListEmptyComponent={[Function]}
                               data={
                                 [
                                   {

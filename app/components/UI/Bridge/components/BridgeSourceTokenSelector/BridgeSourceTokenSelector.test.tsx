@@ -37,7 +37,7 @@ jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     SwapsController: {
-      fetchTopAssetsWithCache: jest.fn().mockResolvedValue([
+      fetchTopAssetsWithCache: jest.fn().mockReturnValue([
         {
           address: '0x0000000000000000000000000000000000000001',
           symbol: 'TOKEN1',
@@ -69,7 +69,7 @@ const token4Address = '0x0000000000000000000000000000000000000004' as Hex;
 
 jest.mock('@metamask/bridge-controller', () => ({
   ...jest.requireActual('@metamask/bridge-controller'),
-  fetchBridgeTokens: jest.fn().mockResolvedValue({
+  fetchBridgeTokens: jest.fn().mockReturnValue({
     [token1Address]: {
       address: token1Address,
       symbol: 'TOKEN1',
