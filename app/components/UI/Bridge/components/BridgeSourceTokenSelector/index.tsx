@@ -25,12 +25,11 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const selectedSourceToken = useSelector(selectSourceToken);
   const selectedDestToken = useSelector(selectDestToken);
 
-  const origin = '';
   const {
     chainId: selectedChainId,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
-  } = useNetworkInfo(origin);
+  } = useNetworkInfo();
   const { onSetRpcTarget } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
