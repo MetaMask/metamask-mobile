@@ -4424,10 +4424,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^55.0.1":
-  version "55.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-55.0.1.tgz#43a29b363e603d5e96c273f4dddbb9867d0d68da"
-  integrity sha512-cZKT5KUv5u6YJcsZOx15gqVQkgSTL00+UxF/v+zvEA50bzy6kCYl1quRmgtG4LD7ejLMrGjfoZMEqZstl15MYQ==
+"@metamask/assets-controllers@^53.0.0":
+  version "53.1.1"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-53.1.1.tgz#87e00c362247e0c0a4f3df8bd124d6e5bb0bb16c"
+  integrity sha512-AmB5/MoqCr+JJXZm0M1lmO1AUrkmSRWaVqGauBszQeXcd3aVmycZHMWEIFKNgo0bf5kX5xIkFg2CVLaMlsv+Xg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4442,7 +4442,7 @@
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/polling-controller" "^12.0.3"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
@@ -4884,7 +4884,7 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.0", "@metamask/keyring-controller@^21.0.1":
+"@metamask/keyring-controller@^21.0.1":
   version "21.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
   integrity sha512-WvLZ7/C+wZsMLK6+D138ai9mlJesYdLuMOY6me4ClHJ24HALTgaZmCtsJ5wXcl4FR00fWucsn9TgayennrYAWg==
@@ -5024,7 +5024,7 @@
     immer "^9.0.6"
     uuid "^8.3.2"
 
-"@metamask/network-controller@^22.1.0", "@metamask/network-controller@^22.2.1":
+"@metamask/network-controller@^22.1.0":
   version "22.2.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-controller/-/network-controller-22.2.1.tgz#6141c6c1ac26be1e78381f1d77804030e0e769ea"
   integrity sha512-jqfhqWcZgoLxCQqc890YwlCOKB+SlKqGEWKfJA3gZ3f8fuHSXCzIgin0vw5MLPtFTXCMUSuTTbohtXjedbaqIQ==
@@ -5151,18 +5151,6 @@
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
 
-"@metamask/polling-controller@^13.0.0":
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-13.0.0.tgz#3116fec7c8785b1aa112dbdc9f803aadec8e3f4a"
-  integrity sha512-wdhCxjvWt0B2KYtn9z+s4uSLfGwRET7NOJ7HnxJOgJ0vBPqdBn61FjYkd+gVF5ZNELiKD/De/o2+uMSmJJKrjA==
-  dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
-    "@metamask/utils" "^11.2.0"
-    "@types/uuid" "^8.3.0"
-    fast-json-stable-stringify "^2.1.0"
-    uuid "^8.3.2"
-
 "@metamask/post-message-stream@^9.0.0":
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/post-message-stream/-/post-message-stream-9.0.0.tgz#1b1249eb7d378cc1eda8abe6b2f882f6dd923c46"
@@ -5193,15 +5181,13 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-10.1.0.tgz#8fbb21711cc34c30aa04ee534aef315c4b2f4a91"
-  integrity sha512-vgtksldFNiPrwHDYashUSYWSGFlY9lIvJgTXKz+btTXWFTNTYIdZGEmutyAgKJaP/qBOmNJW7gHXRvziNfYXhQ==
+"@metamask/profile-sync-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-11.0.0.tgz#d51709ae4d0cb6cd593aab9532ca0c4b6468f33e"
+  integrity sha512-fHzo5E09G4P39UyfBZsnOzcr2Pbji3WvsVJKya6kPt0F2lBjjmD1sYGTQ+n3qv6vjID4CwsHOVDliWox6UCEXw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/keyring-api" "^17.2.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@noble/ciphers" "^0.5.2"
@@ -5353,10 +5339,10 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/signature-controller@^27.0.0":
-  version "27.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-27.0.0.tgz#a4f74bd33ec1afc8f537531d19a547abb4b2e60e"
-  integrity sha512-TOxWaTPkKHmc0x/7+jzDfS29aScV18QjSlSvGtRxWqareQjaCHMMWE+EychprZAb26h1/8IQNqyjDbKbDSoJhw==
+"@metamask/signature-controller@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-25.0.0.tgz#05105413417fc968ad69facee3ecbdf4b93c75f0"
+  integrity sha512-npkXSMdM/QVLeETBzjOkHXH0ZRCtm8/imP5ngGhv4zC1bOlOUuItOhRB06UlivztLKANwyvtoeP7Fs330e2+Ew==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
