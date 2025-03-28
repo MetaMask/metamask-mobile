@@ -71,9 +71,7 @@ export async function handleTransactionFinalized(
 
   const mergedEventProperties = merge(
     {
-      properties: {
-        ...stxMetricsProperties,
-      },
+      properties: stxMetricsProperties,
     },
     defaultTransactionMetricProperties,
   );
