@@ -23,7 +23,6 @@ import RemoteImage from '../../../../Base/RemoteImage';
 import TagColored from '../../../../../component-library/components-temp/TagColored';
 import styleSheet from './CustomAction.styles';
 import { useStyles } from '../../../../../component-library/hooks';
-import { RampType } from '../../types';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 
 interface Props {
@@ -34,7 +33,6 @@ interface Props {
   highlighted?: boolean;
   isLoading?: boolean;
   showInfo: () => void;
-  rampType: RampType;
 }
 
 const animationConfig: WithTimingConfig = {
