@@ -120,6 +120,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
 
     if (React.isValidElement(children) && 'sections' in children.props) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const modifiedSections = children.props.sections.map((section: any) => {
           if (section.element === 'RNText') {
             return {
@@ -137,7 +138,8 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
         });
 
         interface SectionProps {
-          sections: Array<any>;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          sections: any[];
         }
 
         return React.cloneElement(
@@ -147,7 +149,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
           } as Partial<SectionProps>,
         );
       } catch (error) {
-        console.log('Error modifying sections:', error);
+        console.error('Error modifying sections:', error);
       }
     }
 
