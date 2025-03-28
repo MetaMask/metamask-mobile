@@ -972,6 +972,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",
@@ -1740,6 +1741,9 @@
     "sent_collectible": "Sent Collectible",
     "sent": "Sent",
     "received": "Received",
+    "receive": "Receive",
+    "swap": "Swap",
+    "send": "Send",
     "contract_deploy": "Contract Deployment",
     "to_contract": "New Contract",
     "tx_details_free": "Free",
@@ -1763,6 +1767,7 @@
     "gas_price": "Gas Price (GWEI)",
     "base_fee": "Base Fee (GWEI)",
     "priority_fee": "Priority Fee (GWEI)",
+    "multichain_priority_fee": "Priority Fee",
     "max_fee": "Max Fee Per Gas",
     "total": "Total",
     "view_on": "VIEW ON",
@@ -1786,6 +1791,7 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
+    "transaction_id": "Transaction ID",
     "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
@@ -3803,8 +3809,15 @@
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
-    "slippage": "Slippage",
+    "select_network": "Select network",
+    "all_networks": "All networks",
+    "num_networks": "{{numNetworks}} networks",
+    "one_network": "1 network",
+    "select_all_networks": "Select all",
+    "deselect_all_networks": "Deselect all",
+    "see_all": "See all",
     "apply": "Apply",
+    "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
-    }
+  }
 }

@@ -187,8 +187,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.42.1"
-        versionCode 1637
+        versionName "7.42.99"
+        versionCode 1623
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -276,7 +276,12 @@ android {
             dimension "version"
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
-            signingConfig signingConfigs.flask
+            // Use the appropriate signing config based on environment
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.flask
+            }
           }
     	  }
 
