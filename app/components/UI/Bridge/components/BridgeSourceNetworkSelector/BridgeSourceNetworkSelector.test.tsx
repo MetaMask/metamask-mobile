@@ -4,7 +4,7 @@ import { BridgeSourceNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const mockNavigate = jest.fn();
@@ -43,8 +43,8 @@ describe('BridgeSourceNetworkSelector', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
               },
             },
           },
