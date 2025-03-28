@@ -81,19 +81,11 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const multichainBalancesForAllAccounts = useSelector(
     selectMultichainNetworkAggregatedBalanceForAllAccounts,
   );
-  const multichainBalancesForSelectedAccount = useSelector(
-    selectSelectedAccountMultichainNetworkAggregatedBalance,
-  );
   ///: END:ONLY_INCLUDE_IF
 
   console.log(
     'multichainBalancesForAllAccounts',
     JSON.stringify(multichainBalancesForAllAccounts, null, 2),
-  );
-
-  console.log(
-    'multichainBalancesForSelectedAccount',
-    JSON.stringify(multichainBalancesForSelectedAccount, null, 2),
   );
 
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
@@ -134,9 +126,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     (account: InternalAccount) => {
       const accountBalance = multichainBalancesForAllAccounts?.[account.id];
       if (!shouldShowFiat) {
-        return `${accountBalance?.totalBalance} ${symbol}`;
+        return `${accountBalance?.totalNativeTokenBalance} ${symbol}`;
       }
-      if (accountBalance?.totalBalance && multichainConversionRate) {
+      if (accountBalance?.totalBalanceFiat && multichainConversionRate) {
         return formatWithThreshold(
           parseFloat(accountBalance.totalBalanceFiat),
           0,
@@ -148,11 +140,11 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         );
       }
 
-      if (!accountBalance?.totalBalance) {
+      if (!accountBalance?.totalNativeTokenBalance) {
         return undefined;
       }
 
-      return `${accountBalance.totalBalance} ${symbol}`;
+      return `${accountBalance.totalNativeTokenBalance} ${symbol}`;
     },
     [
       multichainBalancesForAllAccounts,
@@ -256,7 +248,6 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(),
-            conversionRate: multichainConversionRate ?? 1,
           }
         : {
             displayBalance: undefined,
@@ -267,7 +258,6 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(),
-            conversionRate: multichainConversionRate ?? 1,
           },
     [
       selectedInternalAccount,
@@ -277,7 +267,6 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       getShouldShowAggregatedPercentage,
       getAggregatedBalance,
       isPortfolioEnabled,
-      multichainConversionRate,
     ],
   );
 

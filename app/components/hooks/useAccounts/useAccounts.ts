@@ -67,10 +67,10 @@ const useAccounts = ({
 
   const { multichainBalancesForAllAccounts } = useMultichainBalances();
 
-  console.log(
-    'multichainBalancesForAllAccounts',
-    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
-  );
+  // console.log(
+  //   'multichainBalancesForAllAccounts',
+  //   JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  // );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,

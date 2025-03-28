@@ -310,8 +310,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
 );
 
 interface MultichainNetworkAggregatedBalance {
-  totalBalance: string;
+  totalNativeTokenBalance: string;
   totalBalanceFiat: string;
+  tokenBalances: Record<string, { amount: string; unit: string }>;
 }
 
 const getMultichainNetworkAggregatedBalance = (
@@ -321,10 +322,18 @@ const getMultichainNetworkAggregatedBalance = (
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
   nonEvmChainId: SupportedCaipChainId,
 ): MultichainNetworkAggregatedBalance => {
+  console.log(
+    'multichainBalances',
+    JSON.stringify(multichainBalances, null, 2),
+  );
+  console.log('multichainAssets', JSON.stringify(multichainAssets, null, 2));
   const assetIds = multichainAssets?.[account.id] || [];
-  const balances = multichainBalances?.[account.id];
+  const balances = multichainBalances?.[account.id] || {};
 
-  let totalBalance = new BigNumber(0);
+  // Find the native asset for this chain
+  const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
+
+  let totalNativeTokenBalance = new BigNumber(0);
   let totalBalanceFiat = new BigNumber(0);
 
   for (const assetId of assetIds) {
@@ -334,17 +343,23 @@ const getMultichainNetworkAggregatedBalance = (
       continue;
     }
 
-    const balance = balances?.[assetId] || { amount: '0', unit: '' };
+    const balance = balances[assetId] || { amount: '0', unit: '' };
     const rate = multichainAssetsRates?.[assetId]?.rate || '0';
     const balanceInFiat = new BigNumber(balance.amount).times(rate);
 
-    totalBalance = totalBalance.plus(balance.amount);
+    // Only add to native token balance if this is the native asset
+    if (assetId === nativeAsset) {
+      totalNativeTokenBalance = new BigNumber(balance.amount);
+    }
+
+    // Always add to total fiat balance
     totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
   }
 
   return {
-    totalBalance: totalBalance.toString(),
+    totalNativeTokenBalance: totalNativeTokenBalance.toString(),
     totalBalanceFiat: totalBalanceFiat.toString(),
+    tokenBalances: balances || {},
   };
 };
 
@@ -363,7 +378,11 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
       nonEvmNetworkChainId,
     ): MultichainNetworkAggregatedBalance => {
       if (!selectedAccount) {
-        return { totalBalance: '0', totalBalanceFiat: '0' };
+        return {
+          totalNativeTokenBalance: '0',
+          totalBalanceFiat: '0',
+          tokenBalances: {},
+        };
       }
       return getMultichainNetworkAggregatedBalance(
         selectedAccount,
