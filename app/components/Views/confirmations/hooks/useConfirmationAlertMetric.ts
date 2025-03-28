@@ -44,41 +44,37 @@ export function useConfirmationAlertMetric() {
 
   const trackers = useMemo(() => {
     const trackInlineAlertClicked = (alertField?: string) => {
-      if (confirmationMetrics.properties) {
-        const alertKeyClicked = uniqueFreshArrayPush(
-          (confirmationMetrics.properties.alert_key_clicked as string[]) ?? [],
-          getAlertName(alertKey)
-        );
-        const alertFieldClickedMetrics = confirmationMetrics.properties.alert_field_clicked as string[] ?? [];
-        const alertFieldClicked = alertField ? uniqueFreshArrayPush(
-          alertFieldClickedMetrics,
-          alertField) : alertFieldClickedMetrics;
+      const alertKeyClicked = uniqueFreshArrayPush(
+        (confirmationMetrics?.properties?.alert_key_clicked as string[]) ?? [],
+        getAlertName(alertKey)
+      );
+      const alertFieldClickedMetrics = confirmationMetrics?.properties?.alert_field_clicked as string[] ?? [];
+      const alertFieldClicked = alertField ? uniqueFreshArrayPush(
+        alertFieldClickedMetrics,
+        alertField) : alertFieldClickedMetrics;
 
-        setConfirmationMetric({
-          properties: {
-            ...alertProperties,
-            alert_key_clicked: alertKeyClicked,
-            alert_field_clicked: alertFieldClicked,
-          },
-        });
-      }
+      setConfirmationMetric({
+        properties: {
+          ...alertProperties,
+          alert_key_clicked: alertKeyClicked,
+          alert_field_clicked: alertFieldClicked,
+        },
+      });
     };
 
     const trackAlertRendered = () => {
-      if (confirmationMetrics.properties) {
-        const alertVisualized = uniqueFreshArrayPush(
-          (confirmationMetrics.properties.alert_visualized as string[]) ?? [],
-          getAlertName(alertKey)
-        );
+      const alertVisualized = uniqueFreshArrayPush(
+        (confirmationMetrics?.properties?.alert_visualized as string[]) ?? [],
+        getAlertName(alertKey)
+      );
 
-        setConfirmationMetric({
-          properties: {
-            ...alertProperties,
-            alert_visualized: alertVisualized,
-            alert_visualized_count: alertVisualized.length,
-          },
-        });
-      }
+      setConfirmationMetric({
+        properties: {
+          ...alertProperties,
+          alert_visualized: alertVisualized,
+          alert_visualized_count: alertVisualized.length,
+        },
+      });
     };
 
     return {

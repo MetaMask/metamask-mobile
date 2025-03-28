@@ -196,4 +196,21 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
   });
+
+  it('handles undefined properties in selectConfirmationMetricsById', () => {
+    (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
+    (useSelector as jest.Mock).mockReturnValue({});
+
+    const { result } = renderHook(() => useConfirmationAlertMetric());
+
+    result.current.trackInlineAlertClicked();
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
+      properties: {
+        ...baseAlertProperties,
+        alert_key_clicked: [AlertKeys.DomainMismatch],
+        alert_field_clicked: [],
+      },
+    });
+  });
 });
