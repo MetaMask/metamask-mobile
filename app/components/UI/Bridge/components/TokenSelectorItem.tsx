@@ -21,6 +21,7 @@ import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
 import { TokenI } from '../../Tokens/types';
 import { ethers } from 'ethers';
+
 const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boolean } }) =>
   StyleSheet.create({
     tokenInfo: {
