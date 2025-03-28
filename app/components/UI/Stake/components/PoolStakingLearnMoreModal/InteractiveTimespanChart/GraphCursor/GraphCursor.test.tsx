@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import GraphCursor, { GraphCursorProps } from '.';
+import { lightTheme } from '@metamask/design-tokens';
 
 describe('GraphCursor', () => {
   const MOCK_DATA = [
@@ -11,7 +12,7 @@ describe('GraphCursor', () => {
   const MOCK_CURRENT_X = 2;
   const MOCK_X = () => 73;
   const MOCK_Y = () => 33.17441726994484;
-  const MOCK_COLOR = '#1c8234';
+  const MOCK_COLOR = lightTheme.colors.success.default;
 
   it('render matches snapshot', () => {
     const props: GraphCursorProps = {

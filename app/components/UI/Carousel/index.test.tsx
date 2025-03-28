@@ -5,6 +5,7 @@ import { Linking } from 'react-native';
 import Carousel from './';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { backgroundState } from '../../../util/test/initial-root-state';
+import { lightTheme } from '@metamask/design-tokens';
 
 jest.mock('../../../core/Engine', () => ({
   getTotalFiatAccountBalance: jest.fn(),
@@ -55,19 +56,19 @@ jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
       background: {
-        alternative: '#F2F4F6',
-        alternativePressed: '#E7E9EB',
-        default: '#FFFFFF',
+        alternative: lightTheme.colors.background.alternative,
+        alternativePressed: lightTheme.colors.background.alternativePressed,
+        default: lightTheme.colors.background.default,
       },
       border: {
-        muted: '#BBC0C5',
+        muted: lightTheme.colors.border.muted,
       },
       icon: {
-        default: '#24272A',
-        muted: '#BBC0C5',
+        default: lightTheme.colors.icon.default,
+        muted: lightTheme.colors.icon.muted,
       },
       text: {
-        default: '#24272A',
+        default: lightTheme.colors.text.default,
       },
     },
   }),

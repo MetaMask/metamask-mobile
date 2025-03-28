@@ -7,6 +7,7 @@ import { onNavigationReady } from '../../../actions/navigation';
 import NavigationService from '../../../core/NavigationService';
 import { NavigationContainerRef } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { lightTheme } from '@metamask/design-tokens';
 
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
@@ -32,7 +33,7 @@ jest.mock('../../../util/theme', () => ({
   useTheme: jest.fn().mockReturnValue({
     colors: {
       background: {
-        default: '#FFFFFF',
+        default: lightTheme.colors.background.default,
       },
     },
   }),

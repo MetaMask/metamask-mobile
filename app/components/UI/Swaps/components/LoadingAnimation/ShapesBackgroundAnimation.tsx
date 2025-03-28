@@ -1,3 +1,4 @@
+/* eslint-disable @metamask/design-tokens/color-no-hex */
 import React, { useEffect } from 'react';
 import { Animated, Easing, StyleSheet } from 'react-native';
 import Svg, { Path, LinearGradient, Stop, Defs } from 'react-native-svg';

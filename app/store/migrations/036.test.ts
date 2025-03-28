@@ -90,7 +90,7 @@ function createMockState(
   };
 }
 
-describe('Migration #036', () => {
+describe('Migration #36', () => {
   describe('createDefaultAccountsController', () => {
     beforeEach(() => {
       mockedCaptureException.mockReset();

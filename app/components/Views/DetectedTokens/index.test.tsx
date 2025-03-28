@@ -13,6 +13,7 @@ import {
 import { selectTokensBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import { ThemeContext } from '../../../util/theme';
+import { lightTheme } from '@metamask/design-tokens';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -30,10 +31,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
     colors: {
-      background: { default: '#fff' },
-      border: { default: '#ccc' },
-      text: { default: '#000' },
-      primary: { default: '#f00' },
+      background: { default: lightTheme.colors.background.default },
+      border: { default: lightTheme.colors.border.default },
+      text: { default: lightTheme.colors.text.default },
+      primary: { default: lightTheme.colors.primary.default },
     },
   })),
 }));

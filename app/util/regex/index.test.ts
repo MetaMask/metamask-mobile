@@ -66,7 +66,9 @@ describe('REGEX :: REGEX_6400_USD', () => {
 describe('REGEX :: regex.accountBalance', () => {
   it(`should match "${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}"`, () => {
     expect(
-      regex.accountBalance.test(AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID),
+      regex.accountBalance.test(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID,
+      ),
     ).toEqual(true);
   });
 
@@ -411,6 +413,7 @@ describe('REGEX :: regex.trailingZero', () => {
 
 describe('REGEX :: regex.transactionNonce', () => {
   it('should match a string starting with a pound sign', () => {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(regex.transactionNonce.test('#123')).toEqual(true);
   });
 
@@ -419,6 +422,7 @@ describe('REGEX :: regex.transactionNonce', () => {
   });
 
   it('should not match a string with a pound sign in the middle', () => {
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(regex.transactionNonce.test('hello#123')).toEqual(false);
   });
 });

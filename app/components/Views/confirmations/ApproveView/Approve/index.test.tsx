@@ -170,6 +170,7 @@ describe('Approve', () => {
 
     expect(await findByText('Transaction Details')).toBeTruthy();
     expect(await findByText('Approve asset:')).toBeTruthy();
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     expect(await findByText('undefined (#1110)')).toBeTruthy();
   });
 

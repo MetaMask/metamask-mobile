@@ -49,7 +49,7 @@ const initialState = {
                 favorite: false,
                 image: 'https://image.com/113',
                 isCurrentlyOwned: true,
-                name: 'My Nft #113',
+                name: 'My Nft 113',
                 standard: 'ERC721',
                 tokenId: '113',
                 tokenURI:
