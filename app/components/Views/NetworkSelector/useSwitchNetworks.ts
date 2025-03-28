@@ -1,23 +1,23 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../core/Engine';
-import { isMultichainV1Enabled, getDecimalChainId } from '../../../../util/networks';
+import Engine from '../../../core/Engine';
+import { isMultichainV1Enabled, getDecimalChainId } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { InfuraNetworkType, BUILT_IN_NETWORKS } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import Logger from '../../../../util/Logger';
-import { updateIncomingTransactions } from '../../../../util/transaction-controller';
+import Logger from '../../../util/Logger';
+import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../../../../util/networks/customNetworks';
-import { selectEvmNetworkConfigurationsByChainId, selectIsAllNetworks } from '../../../../selectors/networkController';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { PopularList } from '../../../util/networks/customNetworks';
+import { selectEvmNetworkConfigurationsByChainId, selectIsAllNetworks } from '../../../selectors/networkController';
+import { useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   TraceName,
   TraceOperation,
   endTrace,
   trace,
-} from '../../../../util/trace';
+} from '../../../util/trace';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
