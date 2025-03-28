@@ -4,7 +4,7 @@ import { Hex } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../types';
 import { useEffect, useMemo, useRef } from 'react';
-import Engine from '../../../../core/Engine/Engine';
+import Engine from '../../../../core/Engine';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
