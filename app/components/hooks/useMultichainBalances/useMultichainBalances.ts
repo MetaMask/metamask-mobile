@@ -6,7 +6,6 @@ import { isTestNet, isPortfolioViewEnabled } from '../../../util/networks';
 import {
   selectChainId,
   selectIsPopularNetwork,
-  selectProviderConfig,
   selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
@@ -19,7 +18,6 @@ import { getChainIdsToPoll } from '../../../selectors/tokensController';
 import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import useIsOriginalNativeTokenSymbol from '../useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import {
   UseMultichainBalancesHook,
   MultichainBalancesData,
@@ -29,11 +27,16 @@ import { formatWithThreshold } from '../../../util/assets';
 import {
   selectMultichainShouldShowFiat,
   selectMultichainConversionRate,
-  selectMultichainNetworkAggregatedBalanceForAllAccounts,
+  selectMultichainBalances,
+  selectMultichainAssets,
+  selectMultichainAssetsRates,
+  MULTICHAIN_NETWORK_TO_ASSET_TYPES,
 } from '../../../selectors/multichain';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
+import { parseCaipAssetType } from '@metamask/utils';
 ///: END:ONLY_INCLUDE_IF
 import I18n from '../../../../locales/i18n';
+import { BigNumber } from 'bignumber.js';
 
 /**
  * Hook to manage portfolio balance data across chains.
@@ -41,8 +44,9 @@ import I18n from '../../../../locales/i18n';
  * @returns Portfolio balance data
  */
 const useMultichainBalances = (): UseMultichainBalancesHook => {
-  // Production selectors (EVM)
+  // Common selectors
   const internalAccounts = useSelector(selectInternalAccounts);
+  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const chainId = useSelector(selectChainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const allChainIDs = useSelector(getChainIdsToPoll);
@@ -50,8 +54,16 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
-  const { type } = useSelector(selectProviderConfig);
   const ticker = useSelector(selectEvmTicker);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
+  const multichainConversionRate = useSelector(selectMultichainConversionRate);
+  const nonEvmNetworkChainId = useSelector(selectSelectedNonEvmNetworkChainId);
+  const multichainBalances = useSelector(selectMultichainBalances);
+  const multichainAssets = useSelector(selectMultichainAssets);
+  const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
+  ///: END:ONLY_INCLUDE_IF
 
   // Production hooks (EVM)
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
@@ -65,64 +77,210 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     formattedTokensWithBalancesPerChain,
   );
 
-  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
-    chainId,
-    ticker,
-    type,
-  );
+  // Helper function to calculate EVM balance for a specific account
+  const calculateEvmBalance = useCallback(
+    (account: InternalAccount): MultichainBalancesData => {
+      // Get the ETH balance from AccountTrackerController for this specific account
+      const { accountsByChainId } =
+        Engine.context.AccountTrackerController.state;
+      const accountHexAddress = account.address.toLowerCase();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const shouldShowFiat = useSelector(selectMultichainShouldShowFiat);
-  const multichainConversionRate = useSelector(selectMultichainConversionRate);
-  const multichainBalancesForAllAccounts = useSelector(
-    selectMultichainNetworkAggregatedBalanceForAllAccounts,
-  );
-  ///: END:ONLY_INCLUDE_IF
+      // Ensure we're using the correct chain ID format for EVM
+      const evmChainId = chainId.startsWith('0x')
+        ? chainId
+        : `0x${parseInt(chainId).toString(16)}`;
 
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+      // Get the balance, checking both formats of chain ID to be safe
+      const ethBalance =
+        accountsByChainId?.[evmChainId]?.[accountHexAddress]?.balance ||
+        accountsByChainId?.[chainId]?.[accountHexAddress]?.balance ||
+        '0x0';
 
-  // Memoize the EVM display balance calculation
-  const getEvmDisplayBalance = useCallback(
-    (account: InternalAccount) => {
-      const balance = Engine.getTotalFiatAccountBalance();
-      let total;
+      // Convert from hex to decimal for display purposes
+      let nativeAmount = '0';
+      try {
+        // Check if we have a valid balance
+        if (ethBalance && ethBalance !== '0x0') {
+          // For a proper conversion from hex to ETH amount we need to:
+          // 1) Remove '0x' prefix if present and ensure we have a valid hex string
+          const cleanHex = ethBalance.toLowerCase().replace('0x', '');
+          // 2) Convert hex to BigNumber maintaining full precision
+          const wei = new BigNumber(cleanHex, 16);
+          // 3) Convert from wei to ETH (divide by 10^18)
+          const ethValue = wei.dividedBy(new BigNumber(10).pow(18));
 
-      if (isOriginalNativeTokenSymbol) {
-        if (isPortfolioViewEnabled()) {
-          total =
-            totalFiatBalancesCrossChain[account.address]?.totalFiatBalance ?? 0;
-        } else {
-          const tokenFiatTotal = balance?.tokenFiat ?? 0;
-          const ethFiatTotal = balance?.ethFiat ?? 0;
-          total = tokenFiatTotal + ethFiatTotal;
+          // Format the value appropriately
+          if (ethValue.isZero()) {
+            nativeAmount = '0';
+          } else if (ethValue.isLessThan(0.000001)) {
+            // For very small values, show more decimals
+            nativeAmount = ethValue.toFixed(8);
+          } else {
+            // For normal values, show reasonable precision
+            nativeAmount = ethValue.toFixed(6);
+          }
+
+          // Remove trailing zeros after decimal point
+          nativeAmount = nativeAmount.replace(/\.?0+$/, '');
+          if (nativeAmount === '') nativeAmount = '0';
         }
-      } else if (isPortfolioViewEnabled()) {
-        total =
-          totalFiatBalancesCrossChain[account.address]?.totalTokenFiat ?? 0;
-      } else {
-        total = balance?.tokenFiat ?? 0;
+      } catch (e) {
+        console.error('Error converting ETH balance:', e);
+        nativeAmount = '0';
       }
 
-      return formatWithThreshold(total, 0, I18n.locale, {
+      // Get account-specific portfolio data if available
+      const accountData = totalFiatBalancesCrossChain[accountHexAddress] || {
+        tokenFiatBalancesCrossChains: [],
+        totalFiatBalance: 0,
+        totalTokenFiat: 0,
+      };
+
+      // Get total ETH + token balance in fiat
+      let ethFiat = 0;
+      let tokenFiat = 0;
+      let totalFiat = 0;
+
+      // Find the current chain data, checking both chain ID formats
+      const currentChainData = accountData.tokenFiatBalancesCrossChains.find(
+        (chainData) =>
+          chainData.chainId === evmChainId || chainData.chainId === chainId,
+      );
+
+      if (currentChainData) {
+        ethFiat = currentChainData.nativeFiatValue || 0;
+        tokenFiat = currentChainData.tokenFiatBalances.reduce(
+          (sum, val) => sum + (val || 0),
+          0,
+        );
+        totalFiat = ethFiat + tokenFiat;
+      }
+
+      // If we couldn't get the data from cross-chain info, fallback to a direct calculation
+      if (totalFiat === 0) {
+        // Get conversion rate
+        const { currencyRates } = Engine.context.CurrencyRateController.state;
+        const conversionRate = currencyRates?.[ticker]?.conversionRate || 0;
+
+        // Estimate ETH value
+        if (nativeAmount && nativeAmount !== '0') {
+          ethFiat = parseFloat(nativeAmount) * conversionRate;
+          totalFiat = ethFiat;
+        }
+
+        // Also calculate token values if possible
+        tokenFiat = accountData.totalTokenFiat || 0;
+        totalFiat += tokenFiat;
+      }
+
+      // Format for display
+      const displayBalance = formatWithThreshold(totalFiat, 0, I18n.locale, {
         style: 'currency',
         currency: currentCurrency.toUpperCase(),
       });
+
+      return {
+        nativeTokenBalance: {
+          amount: nativeAmount,
+          unit: ticker || 'ETH',
+        },
+        totalBalanceFiat: totalFiat.toString(),
+        displayBalance,
+        displayCurrency: currentCurrency,
+        tokenFiatBalancesCrossChains: accountData.tokenFiatBalancesCrossChains,
+        totalFiatBalance: totalFiat,
+        totalTokenFiat: tokenFiat,
+        shouldShowAggregatedPercentage: !isTestNet(chainId),
+        isPortfolioVieEnabled: isPortfolioViewEnabled(),
+        aggregatedBalance: {
+          ethFiat,
+          tokenFiat,
+          tokenFiat1dAgo: tokenFiat,
+          ethFiat1dAgo: ethFiat,
+        },
+        accountBalances: {},
+      };
     },
-    [isOriginalNativeTokenSymbol, totalFiatBalancesCrossChain, currentCurrency],
+    [chainId, ticker, currentCurrency, totalFiatBalancesCrossChain],
   );
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // Memoize the non-EVM display balance calculation
-  const getNonEvmDisplayBalance = useCallback(
-    (account: InternalAccount) => {
-      const accountBalance = multichainBalancesForAllAccounts?.[account.id];
-      if (!shouldShowFiat) {
-        return `${accountBalance?.totalNativeTokenBalance.amount} ${accountBalance?.totalNativeTokenBalance.unit}`;
+  // Helper function to calculate non-EVM balance for a specific account
+  const calculateNonEvmBalance = useCallback(
+    (account: InternalAccount): MultichainBalancesData => {
+      // Default values
+      const defaultNativeTokenBalance = { amount: '0', unit: '' };
+
+      if (!nonEvmNetworkChainId) {
+        return {
+          nativeTokenBalance: defaultNativeTokenBalance,
+          totalBalanceFiat: '0',
+          displayBalance: undefined,
+          displayCurrency: currentCurrency,
+          tokenFiatBalancesCrossChains: [],
+          totalFiatBalance: 0,
+          totalTokenFiat: 0,
+          shouldShowAggregatedPercentage: false,
+          isPortfolioVieEnabled: isPortfolioViewEnabled(),
+          aggregatedBalance: {
+            ethFiat: 0,
+            tokenFiat: 0,
+            tokenFiat1dAgo: 0,
+            ethFiat1dAgo: 0,
+          },
+          accountBalances: {},
+        };
       }
-      if (accountBalance?.totalBalanceFiat && multichainConversionRate) {
-        return formatWithThreshold(
-          parseFloat(accountBalance.totalBalanceFiat),
+
+      // Process the account's assets and balances
+      const assetIds = multichainAssets?.[account.id] || [];
+      const balances = multichainBalances?.[account.id] || {};
+
+      // Find the native asset for this chain
+      const nativeAsset =
+        MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmNetworkChainId]?.[0];
+
+      // Default values for native token
+      let nativeTokenBalance = defaultNativeTokenBalance;
+      let totalBalanceFiat = new BigNumber(0);
+
+      // Process each asset
+      for (const assetId of assetIds) {
+        const { chainId: assetChainId } = parseCaipAssetType(assetId);
+
+        if (assetChainId !== nonEvmNetworkChainId) {
+          continue;
+        }
+
+        const balance = balances[assetId] || { amount: '0', unit: '' };
+
+        // Safely handle undefined rate
+        const rate = multichainAssetsRates?.[assetId]?.rate;
+        const balanceInFiat =
+          balance.amount && rate
+            ? new BigNumber(balance.amount).times(rate)
+            : new BigNumber(0);
+
+        // Only update native token balance if this is the native asset
+        if (assetId === nativeAsset) {
+          nativeTokenBalance = {
+            amount: balance.amount || '0',
+            unit: balance.unit || '',
+          };
+        }
+
+        // Always add to total fiat balance
+        totalBalanceFiat = totalBalanceFiat.plus(balanceInFiat);
+      }
+
+      // Generate display balance
+      let displayBalance: string | undefined;
+
+      if (!shouldShowFiat) {
+        displayBalance = `${nativeTokenBalance.amount} ${nativeTokenBalance.unit}`;
+      } else if (totalBalanceFiat && multichainConversionRate) {
+        displayBalance = formatWithThreshold(
+          parseFloat(totalBalanceFiat.toString()),
           0,
           I18n.locale,
           {
@@ -130,152 +288,84 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
             currency: currentCurrency.toUpperCase(),
           },
         );
+      } else if (nativeTokenBalance.amount) {
+        displayBalance = `${nativeTokenBalance.amount} ${nativeTokenBalance.unit}`;
       }
 
-      if (!accountBalance?.totalNativeTokenBalance.amount) {
-        return undefined;
-      }
-
-      return `${accountBalance.totalNativeTokenBalance.amount} ${accountBalance.totalNativeTokenBalance.unit}`;
+      return {
+        nativeTokenBalance,
+        totalBalanceFiat: totalBalanceFiat.toString(),
+        displayBalance,
+        displayCurrency: currentCurrency,
+        tokenFiatBalancesCrossChains: [],
+        totalFiatBalance: parseFloat(totalBalanceFiat.toString()),
+        totalTokenFiat: 0,
+        shouldShowAggregatedPercentage: !isTestNet(nonEvmNetworkChainId),
+        isPortfolioVieEnabled: isPortfolioViewEnabled(),
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+        accountBalances: balances,
+      };
     },
     [
-      multichainBalancesForAllAccounts,
-      shouldShowFiat,
-      multichainConversionRate,
+      nonEvmNetworkChainId,
       currentCurrency,
+      multichainAssets,
+      multichainBalances,
+      multichainAssetsRates,
+      multichainConversionRate,
+      shouldShowFiat,
     ],
   );
   ///: END:ONLY_INCLUDE_IF
 
-  // Memoize the should show aggregated percentage calculation
-  const getShouldShowAggregatedPercentage = useCallback(() => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    return !isTestNet(chainId) && isEvmSelected;
-    ///: END:ONLY_INCLUDE_IF
+  // Compute balances for all accounts
+  const allAccountBalances = useMemo(() => {
+    return internalAccounts.reduce((acc, account) => {
+      // Determine account type by its structure
+      const isSolanaAccount = account.type === 'solana:data-account';
+      const isBitcoinAccount = account.type === 'bip122:p2wpkh';
+      const isNonEvmAccount = isSolanaAccount || isBitcoinAccount;
 
-    // Note: This code marked as unreachable however when the above block gets removed after code fencing this return becomes necessary
-    return !isTestNet(chainId);
-  }, [chainId, isEvmSelected]);
-
-  // Memoize the display balance calculation
-  const getDisplayBalance = useCallback(
-    (account: InternalAccount) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      if (!isEvmSelected) {
-        return getNonEvmDisplayBalance(account);
+      if (isNonEvmAccount) {
+        // For non-EVM networks (Solana, Bitcoin), use non-EVM balance calculation
+        acc[account.id] = calculateNonEvmBalance(account);
+      } else {
+        // For EVM networks, use EVM balance calculation
+        acc[account.id] = calculateEvmBalance(account);
       }
-      ///: END:ONLY_INCLUDE_IF
-      return getEvmDisplayBalance(account);
-    },
-    [isEvmSelected, getNonEvmDisplayBalance, getEvmDisplayBalance],
-  );
+      return acc;
+    }, {} as Record<string, MultichainBalancesData>);
+  }, [internalAccounts, calculateEvmBalance, calculateNonEvmBalance]);
 
-  // Memoize the aggregated balance calculation
-  const getAggregatedBalance = useCallback(() => {
-    const balance = Engine.getTotalFiatAccountBalance();
-    return {
-      ethFiat: balance?.ethFiat ?? 0,
-      tokenFiat: balance?.tokenFiat ?? 0,
-      tokenFiat1dAgo: balance?.tokenFiat1dAgo ?? 0,
-      ethFiat1dAgo: balance?.ethFiat1dAgo ?? 0,
-    };
-  }, []);
-
-  // Memoize portfolio view enabled check
-  const isPortfolioEnabled = useMemo(() => isPortfolioViewEnabled(), []);
-
-  // Memoize the balance calculations
-  const allAccountBalances = useMemo(
-    () =>
-      internalAccounts.reduce((acc, account) => {
-        const multichainBalance =
-          multichainBalancesForAllAccounts?.[account.id];
-
-        return {
-          ...acc,
-          [account.id]: {
-            displayBalance: getDisplayBalance(account),
-            displayCurrency: currentCurrency,
-            tokenFiatBalancesCrossChains:
-              totalFiatBalancesCrossChain[account.address]
-                ?.tokenFiatBalancesCrossChains ?? [],
-            totalFiatBalance:
-              totalFiatBalancesCrossChain[account.address]?.totalFiatBalance ??
-              0,
-            totalTokenFiat:
-              totalFiatBalancesCrossChain[account.address]?.totalTokenFiat ?? 0,
-            shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
-            isPortfolioVieEnabled: isPortfolioEnabled,
-            aggregatedBalance: getAggregatedBalance(),
-            nativeTokenBalance: !isEvmSelected
-              ? multichainBalance?.totalNativeTokenBalance
-              : { unit: '', amount: '' },
-            accountBalances: multichainBalance?.balances ?? {},
-          },
-        };
-      }, {} as Record<string, MultichainBalancesData>),
-    [
-      internalAccounts,
-      multichainBalancesForAllAccounts,
-      getDisplayBalance,
-      currentCurrency,
-      totalFiatBalancesCrossChain,
-      getShouldShowAggregatedPercentage,
-      isPortfolioEnabled,
-      getAggregatedBalance,
-      isEvmSelected,
-    ],
-  );
-
+  // Get the selected account's balance
   const selectedAccountMultichainBalance = useMemo(() => {
-    const multichainBalance = selectedInternalAccount
-      ? multichainBalancesForAllAccounts?.[selectedInternalAccount.id]
-      : undefined;
+    if (!selectedInternalAccount) {
+      return {
+        displayBalance: undefined,
+        displayCurrency: currentCurrency,
+        tokenFiatBalancesCrossChains: [],
+        totalFiatBalance: 0,
+        totalTokenFiat: 0,
+        shouldShowAggregatedPercentage: false,
+        isPortfolioVieEnabled: isPortfolioViewEnabled(),
+        aggregatedBalance: {
+          ethFiat: 0,
+          tokenFiat: 0,
+          tokenFiat1dAgo: 0,
+          ethFiat1dAgo: 0,
+        },
+        nativeTokenBalance: { amount: '0', unit: '' },
+        accountBalances: {},
+      };
+    }
 
-    return selectedInternalAccount
-      ? {
-          displayBalance: getDisplayBalance(selectedInternalAccount),
-          displayCurrency: currentCurrency,
-          tokenFiatBalancesCrossChains:
-            totalFiatBalancesCrossChain[selectedInternalAccount.address]
-              ?.tokenFiatBalancesCrossChains ?? [],
-          totalFiatBalance:
-            totalFiatBalancesCrossChain[selectedInternalAccount.address]
-              ?.totalFiatBalance ?? 0,
-          totalTokenFiat:
-            totalFiatBalancesCrossChain[selectedInternalAccount.address]
-              ?.totalTokenFiat ?? 0,
-          shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
-          isPortfolioVieEnabled: isPortfolioEnabled,
-          aggregatedBalance: getAggregatedBalance(),
-          nativeTokenBalance: !isEvmSelected
-            ? multichainBalance?.totalNativeTokenBalance
-            : { unit: '', amount: '' },
-          accountBalances: multichainBalance?.balances ?? {},
-        }
-      : {
-          displayBalance: undefined,
-          displayCurrency: currentCurrency,
-          tokenFiatBalancesCrossChains: [],
-          totalFiatBalance: 0,
-          totalTokenFiat: 0,
-          shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(),
-          isPortfolioVieEnabled: isPortfolioEnabled,
-          aggregatedBalance: getAggregatedBalance(),
-          nativeTokenBalance: { unit: '', amount: '' },
-          accountBalances: {},
-        };
-  }, [
-    selectedInternalAccount,
-    currentCurrency,
-    totalFiatBalancesCrossChain,
-    getDisplayBalance,
-    getShouldShowAggregatedPercentage,
-    getAggregatedBalance,
-    isPortfolioEnabled,
-    multichainBalancesForAllAccounts,
-    isEvmSelected,
-  ]);
+    return allAccountBalances[selectedInternalAccount.id];
+  }, [selectedInternalAccount, allAccountBalances, currentCurrency]);
 
   return {
     multichainBalancesForAllAccounts: allAccountBalances,
