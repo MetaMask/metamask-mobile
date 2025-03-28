@@ -20,7 +20,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
@@ -44,7 +44,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
-        onTintColor="#0376c9"
+        onTintColor="#4459ff"
         style={
           [
             {
@@ -56,7 +56,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
                 "alignSelf": "flex-start",
               },
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 16,
               },
             ],
@@ -64,7 +64,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
         }
         testID="nft-display-media-mode-section"
         thumbTintColor="#ffffff"
-        tintColor="#BBC0C566"
+        tintColor="#b7bbc866"
         value={false}
       />
     </View>
@@ -73,7 +73,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
+        "color": "#686e7d",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",

@@ -15,11 +15,11 @@ exports[`Collectibles should render correctly 1`] = `
       <RefreshControlMock
         colors={
           [
-            "#0376c9",
+            "#4459ff",
           ]
         }
         refreshing={false}
-        tintColor="#141618"
+        tintColor="#121314"
       />
     }
   >
@@ -38,7 +38,7 @@ exports[`Collectibles should render correctly 1`] = `
         <Text
           style={
             {
-              "color": "#9fa6ae",
+              "color": "#9ca1af",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 20,
               "fontWeight": "400",

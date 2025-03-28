@@ -21,7 +21,7 @@ exports[`DefaultSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -36,7 +36,7 @@ exports[`DefaultSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -83,7 +83,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
@@ -98,7 +98,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -128,7 +128,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -177,7 +177,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
@@ -192,7 +192,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -222,7 +222,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -271,7 +271,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
@@ -286,7 +286,7 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -316,7 +316,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={

@@ -199,12 +199,17 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BRIDGE_DEV_API_BASE_URL, BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BridgeClientId,
+  BridgeController,
+} from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 
 const NON_EMPTY = 'NON_EMPTY';
@@ -472,6 +477,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        'AccountsController:listMultichainAccounts',
         'SnapController:handleRequest',
         SnapControllerGetSnapAction,
       ],
@@ -687,6 +693,30 @@ export class Engine {
           target,
         ),
       getClientCryptography: () => ({ pbkdf2Sha512: pbkdf2 }),
+      getPreferences: () => {
+        const {
+          securityAlertsEnabled,
+          useTransactionSimulations,
+          useTokenDetection,
+          privacyMode,
+          useNftDetection,
+          displayNftMedia,
+          isMultiAccountBalancesEnabled,
+        } = this.getPreferences();
+        const locale = I18n.locale;
+        return {
+          locale,
+          currency: this.context.CurrencyRateController.state.currentCurrency,
+          hideBalances: privacyMode,
+          useSecurityAlerts: securityAlertsEnabled,
+          simulateOnChainActions: useTransactionSimulations,
+          useTokenDetection,
+          batchCheckBalances: isMultiAccountBalancesEnabled,
+          displayNftMedia,
+          useNftDetection,
+          useExternalPricingData: true,
+        };
+      },
     };
     ///: END:ONLY_INCLUDE_IF
 
@@ -963,8 +993,8 @@ export class Engine {
         }) as any,
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
-      }
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1740,6 +1770,31 @@ export class Engine {
     };
   };
 
+  /**
+   * Gets a subset of preferences from the PreferencesController to pass to a snap.
+   */
+  getPreferences = () => {
+    const {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
+    } = this.context.PreferencesController.state;
+
+    return {
+      securityAlertsEnabled,
+      useTransactionSimulations,
+      useTokenDetection,
+      privacyMode,
+      useNftDetection,
+      displayNftMedia,
+      isMultiAccountBalancesEnabled,
+    };
+  };
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async () => {
     let [snapKeyring] = this.keyringController.getKeyringsByType(
@@ -2008,6 +2063,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
@@ -2055,6 +2111,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
