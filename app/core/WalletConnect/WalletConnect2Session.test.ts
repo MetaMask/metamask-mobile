@@ -294,6 +294,7 @@ describe('WalletConnect2Session', () => {
   });
 
   it('should handle chain changes through store subscription', async () => {
+    // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
       subscriberCallback = callback;
@@ -328,6 +329,7 @@ describe('WalletConnect2Session', () => {
   });
 
   it('should not trigger handleChainChange when isHandlingChainChange is true', async () => {
+    // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
       subscriberCallback = callback;
@@ -359,6 +361,7 @@ describe('WalletConnect2Session', () => {
   });
 
   it('should log warning if handleChainChange throws an error', async () => {
+    // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
       subscriberCallback = callback;
