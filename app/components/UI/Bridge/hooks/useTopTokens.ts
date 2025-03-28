@@ -65,7 +65,6 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       handleFetch,
       BRIDGE_PROD_API_BASE_URL,
     );
-    console.log('rawBridgeAssets', rawBridgeAssets);
 
     // Convert from BridgeAsset to BridgeToken
     const bridgeTokenObj: Record<string, BridgeToken> = {};
@@ -107,7 +106,6 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     return top;
   }, [bridgeTokens, swapsTopAssets]);
 
-  console.log('topTokens', topTokens, bridgeTokens, swapsTopAssets);
 
   return { topTokens, pending: Boolean(bridgeTokensPending || swapsTopAssetsPending) };
 };
