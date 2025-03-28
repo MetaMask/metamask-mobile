@@ -492,7 +492,7 @@ const Wallet = ({
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
-    ({ address, symbol }: { address: Hex; symbol: string }) => {
+    ({ address, symbol }: { address: string; symbol: string }) => {
       try {
         return {
           token_address: address,
@@ -558,23 +558,27 @@ const Wallet = ({
           );
         }
 
-        currentDetectedTokens.forEach(({ address, symbol }) => {
-          const analyticsParams = getTokenAddedAnalyticsParams({address, symbol});
+        currentDetectedTokens.forEach(
+          ({ address, symbol }: { address: string; symbol: string }) => {
+            const analyticsParams = getTokenAddedAnalyticsParams({
+              address,
+              symbol,
+            });
 
-          if (analyticsParams) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-                .addProperties({
-                  token_address: address,
-                  token_symbol: symbol,
-                  chain_id: getDecimalChainId(chainId),
-                  source: 'detected',
-                })
-                .build(),
-            );
-          }
-          
-        });
+            if (analyticsParams) {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                  .addProperties({
+                    token_address: address,
+                    token_symbol: symbol,
+                    chain_id: getDecimalChainId(chainId),
+                    source: 'detected',
+                  })
+                  .build(),
+              );
+            }
+          },
+        );
       }
     };
     importAllDetectedTokens();
