@@ -82,7 +82,9 @@ const ActivityView = () => {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { styles } = useStyles(createStyles, { style: { colors, insets } });
+  const { styles } = useStyles(createStyles, {
+    style: { marginTop: insets.top },
+  });
 
   const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
