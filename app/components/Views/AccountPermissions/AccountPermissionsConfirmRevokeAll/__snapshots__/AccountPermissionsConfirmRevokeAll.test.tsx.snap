@@ -23,7 +23,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -70,14 +70,14 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#BBC0C566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -160,7 +160,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontSize": 18,
                   "fontWeight": "700",
@@ -195,7 +195,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -227,7 +227,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "flex-start",
                 "backgroundColor": "transparent",
-                "borderColor": "#0376c9",
+                "borderColor": "#4459ff",
                 "borderRadius": 24,
                 "borderWidth": 1,
                 "flex": 1,
@@ -243,7 +243,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -266,7 +266,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#d73847",
+                "backgroundColor": "#ca3542",
                 "borderRadius": 24,
                 "flex": 1,
                 "flexDirection": "row",

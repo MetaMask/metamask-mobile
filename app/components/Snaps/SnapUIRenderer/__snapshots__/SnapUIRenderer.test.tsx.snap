@@ -110,7 +110,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 24,
             "borderWidth": 1,
             "flex": 1,
@@ -210,7 +210,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -240,7 +240,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -331,7 +331,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -361,7 +361,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -390,7 +390,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -420,7 +420,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -511,7 +511,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -541,7 +541,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -570,7 +570,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -600,7 +600,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -762,7 +762,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           }
         >
           <View
-            backgroundColor="#f2f4f6"
+            backgroundColor="#f3f5f9"
             borderRadius={8}
             color="Default"
             flexDirection="column"
@@ -772,7 +772,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                   "color": "Default",
                   "flexDirection": "column",
                   "gap": 8,
@@ -815,7 +815,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -846,7 +846,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#9fa6ae",
+                      "color": "#9ca1af",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -861,7 +861,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -962,7 +962,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     ellipsizeMode="tail"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
@@ -978,7 +978,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     ellipsizeMode="tail"
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1009,7 +1009,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   ellipsizeMode="tail"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -1025,7 +1025,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   ellipsizeMode="tail"
                   style={
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -1076,7 +1076,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 24,
             "borderWidth": 1,
             "flex": 1,
@@ -1091,7 +1091,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1115,7 +1115,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1154,7 +1154,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -1305,7 +1305,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 24,
             "borderWidth": 1,
             "flex": 1,
@@ -1320,7 +1320,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -1344,7 +1344,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -1383,7 +1383,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -1512,7 +1512,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
@@ -1529,7 +1529,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#848c96",
+                    "borderColor": "#b7bbc8",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -1605,7 +1605,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "backgroundColor": "#ffffff",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1636,17 +1636,28 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     padding={0}
                     style={
                       {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
-                        "flexDirection": "row",
-                        "justifyContent": "center",
-                        "paddingVertical": 8,
+                        "backgroundColor": "transparent",
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
                       }
                     }
                   >
                     <Text
-                      color="inherit"
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
                     >
                       Submit
                     </Text>
@@ -1746,7 +1757,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
@@ -1763,7 +1774,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#848c96",
+                    "borderColor": "#b7bbc8",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -1793,7 +1804,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         "backgroundColor": "#ffffff",
                         "borderColor": "transparent",
                         "borderWidth": 1,
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "Euclid Circular B",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1828,7 +1839,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
@@ -1857,7 +1868,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#0376c9",
+                      "backgroundColor": "#4459ff",
                       "borderColor": "border-muted",
                       "borderRadius": 4,
                       "borderWidth": 2,
@@ -1893,7 +1904,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1926,7 +1937,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
@@ -1948,7 +1959,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     "alignItems": "center",
                     "alignSelf": "stretch",
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#BBC0C566",
+                    "borderColor": "#b7bbc866",
                     "borderRadius": 8,
                     "borderWidth": 1,
                     "flexDirection": "row",
@@ -2013,7 +2024,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         ellipsizeMode="tail"
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Medium",
                             "fontSize": 14,
                             "fontWeight": "500",
@@ -2029,7 +2040,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         ellipsizeMode="tail"
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -2060,7 +2071,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       ellipsizeMode="tail"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -2076,7 +2087,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       ellipsizeMode="tail"
                       style={
                         {
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -2090,7 +2101,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   </View>
                 </View>
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
                   height={16}
                   name="ArrowDown"
                   style={
@@ -2155,7 +2166,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 onStartShouldSetResponder={[Function]}
                 style={
                   {
-                    "backgroundColor": "#00000099",
+                    "backgroundColor": "#00000066",
                     "bottom": 0,
                     "height": 1334,
                     "left": 0,
@@ -2273,7 +2284,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           }
                         >
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
                             height={16}
                             name="ArrowLeft"
                             style={
@@ -2300,7 +2311,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 16,
                             "fontWeight": "700",
@@ -2417,7 +2428,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   ellipsizeMode="tail"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -2433,7 +2444,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   ellipsizeMode="tail"
                                   style={
                                     {
-                                      "color": "#6a737d",
+                                      "color": "#686e7d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2464,7 +2475,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 ellipsizeMode="tail"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -2480,7 +2491,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 ellipsizeMode="tail"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -2567,7 +2578,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   ellipsizeMode="tail"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -2583,7 +2594,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   ellipsizeMode="tail"
                                   style={
                                     {
-                                      "color": "#6a737d",
+                                      "color": "#686e7d",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -2614,7 +2625,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 ellipsizeMode="tail"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -2630,7 +2641,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 ellipsizeMode="tail"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -2658,17 +2669,28 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               onPress={[Function]}
               style={
                 {
-                  "alignItems": "center",
-                  "backgroundColor": "#ffffff",
-                  "borderRadius": 8,
-                  "flexDirection": "row",
-                  "justifyContent": "center",
-                  "paddingVertical": 8,
+                  "backgroundColor": "transparent",
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
                 }
               }
             >
               <Text
-                color="inherit"
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
               >
                 Submit
               </Text>
@@ -2749,7 +2771,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#848c96",
+                  "borderColor": "#b7bbc8",
                   "borderRadius": 8,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2779,7 +2801,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "Euclid Circular B",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -2915,7 +2937,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 24,
             "borderWidth": 1,
             "flex": 1,
@@ -2930,7 +2952,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -2954,7 +2976,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#121314",
             "borderRadius": 24,
             "flex": 1,
             "flexDirection": "row",
@@ -2993,7 +3015,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",

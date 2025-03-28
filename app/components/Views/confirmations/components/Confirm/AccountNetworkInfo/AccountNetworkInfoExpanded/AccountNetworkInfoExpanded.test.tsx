@@ -38,16 +38,4 @@ describe('AccountNetworkInfoExpanded', () => {
     expect(getByText('Network')).toBeDefined();
     expect(getByText('Ethereum Mainnet')).toBeDefined();
   });
-
-  it('should render correctly when isPortfolioViewEnabled is false', async () => {
-    const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
-      state: personalSignatureConfirmationState,
-    });
-
-    expect(getByText('$10.00')).toBeDefined();
-    expect(getByText('Account')).toBeDefined();
-    expect(getByText('Balance')).toBeDefined();
-    expect(getByText('Network')).toBeDefined();
-    expect(getByText('Ethereum Mainnet')).toBeDefined();
-  });
 });
