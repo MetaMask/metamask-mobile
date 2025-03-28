@@ -1,10 +1,10 @@
 import React, { View, StyleSheet } from 'react-native';
-import handleOauth2Login from '../../core/Oauth2Login/utils';
 import StyledButton from '../UI/StyledButton';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import { strings } from '../../../locales/i18n';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { useNavigation, ParamListBase, NavigationProp } from '@react-navigation/native';
+import Oauth2LoginService from '../../core/Oauth2Login/Oauth2loginService';
 
 const styles = StyleSheet.create({
   buttonWrapper: {
@@ -22,7 +22,7 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          const result = await handleOauth2Login('apple' ).catch((e) => {
+          const result = await Oauth2LoginService.handleOauth2Login('apple' ).catch((e) => {
             DevLogger.log(e);
             return {type: 'error', error: e};
           });
@@ -39,7 +39,7 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          const result = await handleOauth2Login('google').catch((e) => {
+          const result = await Oauth2LoginService.handleOauth2Login('google').catch((e) => {
             DevLogger.log(e);
             return {type: 'error', error: e};
           });

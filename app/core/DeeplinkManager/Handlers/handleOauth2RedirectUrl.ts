@@ -1,7 +1,6 @@
-import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { handleCodeFlow } from '../../Oauth2Login/utils';
 import DeeplinkManager from '../DeeplinkManager';
-
+import Oauth2LoginService from '../../Oauth2Login/Oauth2loginService';
+import Logger from '../../../util/Logger';
 
 function handleOauth2RedirectUrl({
   deeplinkManager,
@@ -21,12 +20,12 @@ function handleOauth2RedirectUrl({
   const provider = state.provider as 'apple' | 'google';
   const clientId = state.clientId as string;
 
-  DevLogger.log('handleOauth2RedirectUrl: provider', provider);
-  DevLogger.log('handleOauth2RedirectUrl: code', code);
+  Logger.log('handleOauth2RedirectUrl: provider', provider);
+  Logger.log('handleOauth2RedirectUrl: code', code);
 
-  console.log('handleOauth2RedirectUrl: state', state);
+  Logger.log('handleOauth2RedirectUrl: state', state);
   if (code ) {
-    handleCodeFlow({ code, provider , clientId, redirectUri: state.redirectUri})
+    Oauth2LoginService.handleCodeFlow({ code, provider , clientId, redirectUri: state.redirectUri, codeVerifier: Oauth2LoginService.localState.codeVerifier ?? undefined })
     .then((result) => {
       if (result.status === 'success') {
         // get current route
@@ -35,7 +34,7 @@ function handleOauth2RedirectUrl({
         return code;
       }
     }).catch((error) => {
-      DevLogger.log('handleOauth2RedirectUrl: error', error);
+      Logger.log('handleOauth2RedirectUrl: error', error);
     });
   } else {
   //   deeplinkManager.dispatch(
