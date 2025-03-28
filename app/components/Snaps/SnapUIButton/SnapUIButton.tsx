@@ -136,7 +136,10 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
           return section;
         });
 
-        type SectionProps = { sections: Array<any> };
+        interface SectionProps {
+          sections: Array<any>;
+        }
+
         return React.cloneElement(
           children as React.ReactElement<SectionProps>,
           {
