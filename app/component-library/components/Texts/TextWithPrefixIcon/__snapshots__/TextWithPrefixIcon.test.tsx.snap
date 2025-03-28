@@ -11,7 +11,7 @@ exports[`TextWithPrefixIcon - Snapshot should render default settings correctly 
   testID="text-with-prefix-icon"
 >
   <Icon
-    color="#141618"
+    color="#121314"
     name="Add"
     testID="text-with-prefix-icon-icon"
   />
