@@ -15,39 +15,38 @@ function handleOauth2RedirectUrl({
   const minusBase = url.replace(base, '');
   const params = new URLSearchParams(minusBase);
 
-  const state = params.get('state');
-  const code = params.get('code');
-  const idToken = params.get('idToken');
-  const accessToken = params.get('accessToken');
+  const state = JSON.parse(params.get('state') ?? '{}');
+  const code = params.get('code') ?? undefined;
 
-  const provider = JSON.parse(state || '{}').provider;
+  const provider = state.provider as 'apple' | 'google';
+  const clientId = state.clientId as string;
 
   DevLogger.log('handleOauth2RedirectUrl: provider', provider);
   DevLogger.log('handleOauth2RedirectUrl: code', code);
 
-  if (!provider) {
-    DevLogger.log('handleOauth2RedirectUrl: no provider');
-    return;
-  }
-
-  if (code || idToken || accessToken ) {
-    handleCodeFlow({ code, idToken, accessToken, provider: provider as 'apple' | 'google'}, deeplinkManager.dispatch).catch((error) => {
+  console.log('handleOauth2RedirectUrl: state', state);
+  if (code ) {
+    handleCodeFlow({ code, provider , clientId, redirectUri: state.redirectUri})
+    .then((result) => {
+      if (result.status === 'success') {
+        // get current route
+        // const currentRoute = deeplinkManager.navigation.getCurrentRoute();
+        deeplinkManager.navigation.navigate('ChoosePassword');
+        return code;
+      }
+    }).catch((error) => {
       DevLogger.log('handleOauth2RedirectUrl: error', error);
     });
-    return code;
+  } else {
+  //   deeplinkManager.dispatch(
+  //     showAlert({
+  //       isVisible: true,
+  //       autodismiss: 5000,
+  //       content: 'clipboard-alert',
+  //       data: { msg: strings('social login failed')},
+  //     }),
+  //   );
   }
-
-  DevLogger.log('handleOauth2RedirectUrl: no code, idToken, or accessToken');
-  // on failure ?
-
-//   deeplinkManager.dispatch(
-//     showAlert({
-//       isVisible: true,
-//       autodismiss: 5000,
-//       content: 'clipboard-alert',
-//       data: { msg: strings('social login failed')},
-//     }),
-//   );
 
 }
 

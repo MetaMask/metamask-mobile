@@ -4,9 +4,8 @@ import StyledButton from '../UI/StyledButton';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import { strings } from '../../../locales/i18n';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
-import { useDispatch } from 'react-redux';
-import { UserAction, UserActionType } from '../../actions/user';
-import { Dispatch } from 'redux';
+import { useNavigation, ParamListBase, NavigationProp } from '@react-navigation/native';
+
 const styles = StyleSheet.create({
   buttonWrapper: {
     marginBottom: 16,
@@ -14,8 +13,7 @@ const styles = StyleSheet.create({
 });
 
 export default function Oauth2LoginComponent( ) {
-  const dispatch = useDispatch<Dispatch<UserAction>>();
-
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   return (
     <>
     <View style={styles.buttonWrapper}>
@@ -24,10 +22,14 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          dispatch({ type: UserActionType.OAUTH2_LOGIN });
-          handleOauth2Login('apple', dispatch).catch((e) => {
+          const result = await handleOauth2Login('apple' ).catch((e) => {
             DevLogger.log(e);
+            return {type: 'error', error: e};
           });
+
+          if (result.type === 'success') {
+            navigation.navigate('ChoosePassword');
+          }
         }}
       > {strings('login.apple_button')} </StyledButton>
     </View>
@@ -37,10 +39,14 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          dispatch({ type: UserActionType.OAUTH2_LOGIN });
-          handleOauth2Login('google', dispatch).catch((e) => {
+          const result = await handleOauth2Login('google').catch((e) => {
             DevLogger.log(e);
+            return {type: 'error', error: e};
           });
+
+          if (result.type === 'success') {
+            navigation.navigate('ChoosePassword');
+          }
         }}
       > {strings('login.google_button')} </StyledButton>
     </View>

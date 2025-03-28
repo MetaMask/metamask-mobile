@@ -585,7 +585,8 @@ export type ControllersToInitialize =
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'
-  | 'TransactionController';
+  | 'TransactionController'
+  | 'SeedlessOnboardingController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

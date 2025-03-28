@@ -250,40 +250,6 @@ class Onboarding extends PureComponent {
     );
   };
 
-  updateOAuth2Login = async () => {
-    const { oauth2LoginSuccess, oauth2LoginExistingUser, oauth2LoginError, oauth2LoginInProgress, navigation} = this.props;
-    // if oauth2LoginSuccess is true, navigate to home
-    DevLogger.log('updateOAuth2Login: oauth2LoginSuccess', oauth2LoginSuccess);
-    DevLogger.log('updateOAuth2Login: oauth2LoginExistingUser', oauth2LoginExistingUser);
-    DevLogger.log('updateOAuth2Login: oauth2LoginError', oauth2LoginError);
-    // eslint-disable-next-line no-console
-    console.log('updateOAuth2Login: oauth2LoginInProgress', oauth2LoginInProgress);
-
-    if (oauth2LoginSuccess) {
-      if (oauth2LoginExistingUser) {
-        // TODO: handle existing user
-        // Navigate to Relogin Wallet
-        this.props.oauth2LoginReset();
-        await Authentication.lockApp();
-        navigation.navigate(Routes.ONBOARDING.LOGIN);
-      } else {
-        this.props.oauth2LoginReset();
-        // eslint-disable-next-line no-console
-        console.log('updateOAuth2Login: navigate to ChoosePassword');
-        this.props.navigation.navigate('ChoosePassword', {
-          [PREVIOUS_SCREEN]: ONBOARDING,
-        });
-      }
-    }
-    if (oauth2LoginError) {
-      // TODO: handle error
-      // Show error message
-    }
-    if (oauth2LoginInProgress) {
-      // TODO: handle in progress
-    }
-  };
-
   componentDidMount() {
     this.updateNavBar();
     this.mounted = true;
@@ -309,7 +275,6 @@ class Onboarding extends PureComponent {
   }
 
   componentDidUpdate = () => {
-    this.updateOAuth2Login();
     this.updateNavBar();
   };
 
