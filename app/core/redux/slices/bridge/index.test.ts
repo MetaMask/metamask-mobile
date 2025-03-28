@@ -3,6 +3,7 @@ import reducer, {
   setSourceAmount,
   setDestAmount,
   resetBridgeState,
+  setSlippage,
 } from '.';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../../../components/UI/Tokens/types';
@@ -46,6 +47,7 @@ describe('bridge slice', () => {
         destChainId: undefined,
         sourceToken: undefined,
         destToken: undefined,
+        slippage: '0.5',
       });
     });
   });
@@ -64,6 +66,16 @@ describe('bridge slice', () => {
       const state = reducer(initialState, action);
 
       expect(state.sourceAmount).toBeUndefined();
+    });
+  });
+
+  describe('setSlippage', () => {
+    it('should set the slippage', () => {
+      const slippage = '0.5';
+      const action = setSlippage(slippage);
+      const state = reducer(initialState, action);
+
+      expect(state.slippage).toBe(slippage);
     });
   });
 
