@@ -5,6 +5,12 @@ import { IWalletKit } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import Engine from '../Engine';
+import { selectEvmChainId } from '../../selectors/networkController';
+import { Platform, Linking } from 'react-native';
+import Routes from '../../../app/constants/navigation/Routes';
+import Device from '../../util/device';
+import { Minimizer } from '../NativeModules';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -85,6 +91,19 @@ jest.mock('./wc-utils', () => ({
   }),
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
 }));
+jest.mock('../../selectors/networkController', () => ({
+  selectEvmChainId: jest.fn(),
+}));
+
+jest.mock('../../util/device', () => ({
+  isIos: jest.fn(),
+}));
+
+jest.mock('../NativeModules', () => ({
+  Minimizer: {
+    goBack: jest.fn(),
+  },
+}));
 
 describe('WalletConnect2Session', () => {
   let session: WalletConnect2Session;
@@ -101,7 +120,9 @@ describe('WalletConnect2Session', () => {
         metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
       },
     } as unknown as SessionTypes.Struct;
-    mockNavigation = {} as NavigationContainerRef;
+    mockNavigation = {
+      navigate: jest.fn(),
+    } as unknown as NavigationContainerRef;
 
     (store.getState as jest.Mock).mockReturnValue({
       inpageProvider: {
@@ -139,6 +160,13 @@ describe('WalletConnect2Session', () => {
     });
 
     (session as any).topicByRequestId = { '1': mockSession.topic };
+
+    // Mock Platform
+    jest.spyOn(Platform, 'Version', 'get').mockReturnValue('17.0');
+    jest.spyOn(Platform, 'select').mockImplementation(jest.fn());
+
+    // Mock Linking
+    jest.spyOn(Linking, 'openURL').mockReturnValue(Promise.resolve());
   });
 
   it('should initialize correctly in constructor', () => {
@@ -262,6 +290,255 @@ describe('WalletConnect2Session', () => {
           accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
         }
       }
+    });
+  });
+
+  it('should handle chain changes through store subscription', async () => {
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    // Mock initial chain ID
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+
+    // Change the chain ID
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
+
+    subscriberCallback();
+    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('should not trigger handleChainChange when isHandlingChainChange is true', async () => {
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    (session as any).isHandlingChainChange = true;
+
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).not.toHaveBeenCalled();
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('should log warning if handleChainChange throws an error', async () => {
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const error = new Error('Chain change failed');
+    jest.spyOn(session as any, 'handleChainChange').mockRejectedValueOnce(error);
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'WC2::store.subscribe Error handling chain change:',
+      error
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  describe('redirect', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should do nothing if deeplink is false', () => {
+      session.setDeeplink(false);
+      session.redirect('test');
+      jest.runAllTimers();
+      
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(Minimizer.goBack).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should call Minimizer.goBack for non-iOS devices', () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      
+      session.redirect('test');
+      jest.runAllTimers();
+
+      expect(Minimizer.goBack).toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    describe('iOS specific behavior', () => {
+      beforeEach(() => {
+        (Device.isIos as jest.Mock).mockReturnValue(true);
+        //(Platform.Version as any) = '17.0';
+      });
+
+      it('should open peerLink if available', async () => {
+        const mockPeerLink = 'https://example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                native: mockPeerLink,
+              },
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockPeerLink);
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
+
+      it('should use universal link if native link is not available', async () => {
+        const mockUniversalLink = 'https://universal.example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                universal: mockUniversalLink,
+              },
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockUniversalLink);
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
+
+      it('should show return modal if no peerLink is available', () => {
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {},
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          }
+        );
+        expect(Linking.openURL).not.toHaveBeenCalled();
+      });
+
+      it('should show return modal if opening peerLink fails', async () => {
+        const mockPeerLink = 'https://example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                native: mockPeerLink,
+              },
+            },
+          },
+        } as any;
+
+        (Linking.openURL as jest.Mock).mockReturnValue(Promise.reject(new Error('Failed to open URL')));
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        // Force jest to process all pending promises
+        await Promise.resolve();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockPeerLink);
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          }
+        );
+        expect(DevLogger.log).toHaveBeenLastCalledWith(
+          `WC2::redirect error while opening ${mockPeerLink} with error Error: Failed to open URL`
+        );
+      });
+
+      it('should not handle iOS specific logic for iOS versions below 17', () => {
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
+        
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Minimizer.goBack).toHaveBeenCalled();
+        expect(Linking.openURL).not.toHaveBeenCalled();
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
     });
   });
 });

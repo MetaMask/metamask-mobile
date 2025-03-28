@@ -207,12 +207,10 @@ class WalletConnect2Session {
         const redirect = this.session.peer.metadata.redirect;
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
-          try {
-            Linking.openURL(peerLink);
-          } catch (error) {
-            DevLogger.log(`WC2::redirect error while opening ${peerLink}`);
+          Linking.openURL(peerLink).catch((error) => {
+            DevLogger.log(`WC2::redirect error while opening ${peerLink} with error ${error}`);
             showReturnModal();
-          }
+          });
         } else {
           showReturnModal();
         }
