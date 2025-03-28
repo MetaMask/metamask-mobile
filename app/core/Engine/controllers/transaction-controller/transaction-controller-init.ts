@@ -102,7 +102,6 @@ export const TransactionControllerInit: ControllerInitFunction<
         pendingTransactions: {
           isResubmitEnabled: () => false,
         },
-        // @ts-expect-error - Keyring controller expects TxData returned but TransactionController expects TypedTransaction
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
       });

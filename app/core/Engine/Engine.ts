@@ -570,7 +570,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               mnemonic: (keyring as unknown as HdKeyring).mnemonic,
             }),
@@ -599,7 +599,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               seed: (keyring as unknown as HdKeyring).seed,
             }),
@@ -1715,11 +1715,14 @@ export class Engine {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async () => {
+    // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
     );
     if (!snapKeyring) {
-      snapKeyring = await this.keyringController.addNewKeyring(
+      await this.keyringController.addNewKeyring(KeyringTypes.snap);
+      // TODO: Replace `getKeyringsByType` with `withKeyring`
+      [snapKeyring] = this.keyringController.getKeyringsByType(
         KeyringTypes.snap,
       );
     }
