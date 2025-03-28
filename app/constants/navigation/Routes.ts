@@ -140,7 +140,10 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
-  BRIDGE: 'Bridge',
+  BRIDGE: {
+    BRIDGE: 'Bridge',
+    BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
   CONFIRM_MODAL: 'Confirmation Modal',

@@ -204,7 +204,14 @@ class TransactionElement extends PureComponent {
   onPressItem = () => {
     const { tx, i, onPressItem } = this.props;
     onPressItem(tx.id, i);
-    this.setState({ detailsModalVisible: true });
+    if (tx.type === 'bridge') {
+      const { bridgeTxHistoryItem } = this.props?.bridgeTxHistoryData;
+      this.props.navigation.navigate('BridgeTransactionDetails', {
+        tx: tx,
+      });
+    } else {
+      this.setState({ detailsModalVisible: true });
+    }
   };
 
   onPressImportWalletTip = () => {

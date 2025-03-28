@@ -133,7 +133,7 @@ describe('BridgeView', () => {
     const { getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.BRIDGE,
       },
       { state: mockInitialState },
     );
@@ -144,7 +144,7 @@ describe('BridgeView', () => {
     const { findByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.BRIDGE,
       },
       { state: initialState },
     );
@@ -165,7 +165,7 @@ describe('BridgeView', () => {
     const { getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.BRIDGE,
       },
       { state: initialState },
     );
@@ -187,7 +187,7 @@ describe('BridgeView', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.BRIDGE,
       },
       { state: initialState },
     );
@@ -214,7 +214,7 @@ describe('BridgeView', () => {
     const { getByText, getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.BRIDGE,
       },
       { state: stateWithAmount },
     );
@@ -235,7 +235,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: initialState },
       );
@@ -255,7 +255,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: stateWithZeroAmount },
       );
@@ -275,7 +275,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: stateWithHighAmount },
       );
@@ -295,7 +295,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: stateWithValidAmount },
       );
@@ -316,7 +316,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: stateWithValidAmount },
       );
@@ -337,7 +337,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.BRIDGE,
         },
         { state: stateWithValidAmount },
       );

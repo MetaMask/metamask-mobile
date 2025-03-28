@@ -1766,6 +1766,26 @@ export function getBridgeNavbar(navigation, route, themeColors) {
   };
 }
 
+export function getBridgeTransactionDetailsNavbar(navigation) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={'Bridge Details'}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 export function getFiatOnRampAggNavbar(
   navigation,
   { title = 'Buy', showBack = true, showCancel = true } = {},

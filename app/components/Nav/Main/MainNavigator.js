@@ -90,6 +90,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import BridgeView from '../../UI/Bridge';
+import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/transaction-details';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -201,6 +202,7 @@ const TransactionsHome = () => (
       name={Routes.RAMP.SEND_TRANSACTION}
       component={SendTransaction}
     />
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS} component={BridgeTransactionDetails} />
   </Stack.Navigator>
 );
 
@@ -828,7 +830,7 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name={Routes.BRIDGE} component={Bridge} />
+    <Stack.Screen name={Routes.BRIDGE.BRIDGE} component={Bridge} />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
