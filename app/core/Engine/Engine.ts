@@ -1510,14 +1510,23 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController } = this.context;
+    const { NetworkController, TransactionController, PreferencesController } =
+      this.context;
 
-    const chainId = getGlobalChainId(NetworkController);
+    const chainIds = Object.keys(
+      NetworkController.state.networkConfigurationsByChainId,
+    );
+    const filteredChainIds = chainIds.filter(
+      (id) =>
+        PreferencesController.state.showIncomingTransactions[
+          id as keyof typeof PreferencesController.state.showIncomingTransactions
+        ],
+    ) as Hex[];
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([chainId]);
+    TransactionController.startIncomingTransactionPolling(filteredChainIds);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();
