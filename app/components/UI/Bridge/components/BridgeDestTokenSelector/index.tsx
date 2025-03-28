@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken } from '../../types';
+
 const createStyles = () => StyleSheet.create({
   infoButton: {
     marginRight: 12,
@@ -28,7 +29,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
 
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
-  const tokensList = useTokens({
+  const { tokens: tokensList, pending } = useTokens({
     topTokensChainId: selectedDestChainId as Hex,
     balanceChainIds: [selectedDestChainId as Hex],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
@@ -78,6 +79,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       networksBar={<BridgeDestNetworksBar />}
       renderTokenItem={renderToken}
       tokensList={tokensList}
+      pending={pending}
     />
   );
 };
