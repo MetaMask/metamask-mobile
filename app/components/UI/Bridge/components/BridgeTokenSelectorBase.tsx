@@ -54,16 +54,22 @@ const createStyles = (params: { theme: Theme }) => {
     loadingSkeleton: {
       padding: 16,
     },
+    skeletonCircle: {
+      borderRadius: 15,
+    },
   });
 };
 
-const SkeletonItem = () => (
-  <Box
-    gap={16}
-    flexDirection={FlexDirection.Row}
-    alignItems={AlignItems.center}
-  >
-    <Skeleton height={30} width={30} style={{ borderRadius: 15 }} />
+const SkeletonItem = () => {
+  const { styles } = useStyles(createStyles, {});
+
+  return (
+    <Box
+      gap={16}
+      flexDirection={FlexDirection.Row}
+      alignItems={AlignItems.center}
+    >
+      <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
     {/* Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used */}
     {/* eslint-disable-next-line react-native/no-inline-styles */}
@@ -74,7 +80,8 @@ const SkeletonItem = () => (
 
     <Icon name={IconName.Info} />
   </Box>
-);
+  );
+};
 
 const LoadingSkeleton = () => {
   const { styles } = useStyles(createStyles, {});
