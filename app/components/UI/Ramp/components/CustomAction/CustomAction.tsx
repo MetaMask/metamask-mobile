@@ -50,13 +50,14 @@ const CustomAction: React.FC<Props> = ({
   showInfo,
   isLoading,
   highlighted,
-  rampType,
 }: Props) => {
   const {
     styles,
     theme: { colors, themeAppearance },
   } = useStyles(styleSheet, {});
-  const { provider } = customAction;
+  const {
+    buy: { provider },
+  } = customAction;
   const shouldShowTags = previouslyUsedProvider;
 
   const expandedHeight = useSharedValue(0);
@@ -90,7 +91,7 @@ const CustomAction: React.FC<Props> = ({
         highlighted={highlighted}
         activeOpacity={0.8}
         accessible={!highlighted}
-        accessibilityLabel={customAction.provider?.name}
+        accessibilityLabel={provider?.name}
         compact
       >
         <ListItem
@@ -109,25 +110,25 @@ const CustomAction: React.FC<Props> = ({
               <TouchableOpacity
                 onPress={highlighted ? showInfo : undefined}
                 disabled={!highlighted}
-                accessibilityLabel={`${customAction.provider?.name} logo`}
+                accessibilityLabel={`${provider?.name} logo`}
                 accessibilityHint="Shows provider details"
               >
                 <View style={styles.title}>
-                  {customAction.provider?.logos?.[themeAppearance] ? (
+                  {provider?.logos?.[themeAppearance] ? (
                     <RemoteImage
                       style={{
-                        width: customAction.provider.logos.width,
-                        height: customAction.provider.logos.height,
+                        width: provider.logos.width,
+                        height: provider.logos.height,
                       }}
                       source={{
-                        uri: customAction.provider?.logos?.[themeAppearance],
+                        uri: provider?.logos?.[themeAppearance],
                       }}
                     />
                   ) : (
-                    <Title>{customAction?.provider?.name}</Title>
+                    <Title>{provider?.name}</Title>
                   )}
 
-                  {customAction?.provider && (
+                  {provider && (
                     <Feather name="info" size={12} style={styles.infoIcon} />
                   )}
                 </View>
