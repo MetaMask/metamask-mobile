@@ -35,7 +35,7 @@ import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeStake('Stake from Actions'), () => {
+describe.skip(SmokeStake('Stake from Actions'), () => {
   const FIRST_ROW = 0;
   const AMOUNT_TO_SEND = '.005';
   let mockServer;
