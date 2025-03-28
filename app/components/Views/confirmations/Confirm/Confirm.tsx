@@ -1,10 +1,10 @@
 import React from 'react';
 import {
-  ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
@@ -36,7 +36,7 @@ const ConfirmWrapped = ({
       <QRHardwareContextProvider>
         <LedgerContextProvider>
           <Title />
-          <ScrollView style={styles.scrollView}>
+          <ScrollView style={styles.scrollView} nestedScrollEnabled>
             <TouchableWithoutFeedback>
               <>
                 <GeneralAlertBanner />

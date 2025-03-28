@@ -329,7 +329,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -545,7 +545,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
@@ -559,7 +559,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -575,7 +575,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
+                                  "color": "#9ca1af",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -610,7 +610,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -626,7 +626,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -662,7 +662,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   },
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -694,7 +694,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
@@ -1076,7 +1076,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -1292,7 +1292,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
@@ -1306,7 +1306,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -1322,7 +1322,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
+                                  "color": "#9ca1af",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -1357,7 +1357,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -1373,7 +1373,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -1409,7 +1409,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   },
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -1441,7 +1441,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
@@ -1823,7 +1823,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                         <View
                           style={
                             {
-                              "borderColor": "#f2f4f6",
+                              "borderColor": "#f3f5f9",
                               "borderRadius": 16,
                               "borderWidth": 2,
                               "padding": 24,
@@ -2039,7 +2039,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               {
                                 "alignSelf": "center",
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
@@ -2053,7 +2053,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 14,
                                 "fontWeight": "400",
@@ -2069,7 +2069,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#9fa6ae",
+                                  "color": "#9ca1af",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -2104,7 +2104,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             testID="qr-account-display-copy-button"
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -2120,7 +2120,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -2156,7 +2156,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   },
                                   {
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#0376c9",
+                                    "borderColor": "#4459ff",
                                     "borderWidth": 1,
                                   },
                                   {
@@ -2188,7 +2188,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                       "textAlign": "center",
                                     },
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                     },
                                     undefined,
                                   ],
