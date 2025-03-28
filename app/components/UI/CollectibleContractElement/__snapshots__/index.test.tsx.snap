@@ -27,7 +27,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
       }
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={12}
         name="ArrowDown"
         style={
@@ -68,7 +68,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 8,
                   "justifyContent": "flex-start",
                 },
@@ -99,7 +99,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
               style={
                 [
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Regular",
                     "fontSize": 30,
                     "fontWeight": "400",
@@ -153,7 +153,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -183,7 +183,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
             undefined,
             undefined,
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 18,
               "fontWeight": "400",
@@ -243,7 +243,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     [
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#f3f5f9",
                         "borderRadius": 8,
                         "justifyContent": "flex-start",
                       },
@@ -274,7 +274,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -331,7 +331,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       {
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -345,7 +345,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -405,7 +405,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     [
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#f3f5f9",
                         "borderRadius": 8,
                         "justifyContent": "flex-start",
                       },
@@ -436,7 +436,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -493,7 +493,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       {
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -507,7 +507,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -563,7 +563,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     [
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#f3f5f9",
                         "borderRadius": 8,
                         "justifyContent": "flex-start",
                       },
@@ -594,7 +594,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -651,7 +651,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       {
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -665,7 +665,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -731,7 +731,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     [
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#f2f4f6",
+                        "backgroundColor": "#f3f5f9",
                         "borderRadius": 8,
                         "justifyContent": "flex-start",
                       },
@@ -762,7 +762,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 30,
                           "fontWeight": "400",
@@ -819,7 +819,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       {
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -833,7 +833,7 @@ exports[`CollectibleContractElement Snapshot renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",

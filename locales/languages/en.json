@@ -417,7 +417,7 @@
       "subtitle": "Available in select regions"
     },
     "fund": {
-      "title": "Fund your wallet", 
+      "title": "Fund your wallet",
       "subtitle": "Add or transfer tokens to get started"
     },
     "cashout": {
@@ -2048,7 +2048,7 @@
     "error_empty_message":"You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
     "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
-    "error_srp_word_error_1": "Word ", 
+    "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
@@ -3818,6 +3818,15 @@
     "see_all": "See all",
     "apply": "Apply",
     "slippage": "Slippage",
-    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
+    "network_fee": "Network Fee",
+    "estimated_time": "Estimated Time",
+    "quote": "Quote",
+    "quote_details": "Quote Details",
+    "price_impact": "Price Impact",
+    "time": "Time",
+    "quote_info_content": "This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
+    "quote_info_title": "Why we recommend this quote",
+    "see_other_quotes": "See other quotes"
   }
 }
