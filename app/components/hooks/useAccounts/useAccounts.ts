@@ -67,10 +67,10 @@ const useAccounts = ({
 
   const { multichainBalancesForAllAccounts } = useMultichainBalances();
 
-  // console.log(
-  //   'multichainBalancesForAllAccounts',
-  //   JSON.stringify(multichainBalancesForAllAccounts, null, 2),
-  // );
+  console.log(
+    'useAccounts multichainBalancesForAllAccounts',
+    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -171,30 +171,30 @@ const useAccounts = ({
 
           // TODO - Improve UI to either include loading and/or balance load failures.
           // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
-          const { balanceETH, balanceFiat, balanceWH } = getAccountBalances({
-            internalAccount,
-            accountInfoByAddress,
-            totalFiatBalancesCrossChain,
-            conversionRate,
-            currentCurrency,
-          });
+          // const { balanceETH, balanceFiat, balanceWH } = getAccountBalances({
+          //   internalAccount,
+          //   accountInfoByAddress,
+          //   totalFiatBalancesCrossChain,
+          //   conversionRate,
+          //   currentCurrency,
+          // });
 
-          const balanceTicker = getTicker(ticker);
-          const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
-          console.log('balanceLabel', balanceLabel);
+          // const balanceTicker = getTicker(ticker);
+          const balanceForAccount =
+            multichainBalancesForAllAccounts?.[internalAccount.id];
+          const displayBalance = `${balanceForAccount.displayBalance} \n ${balanceForAccount.nativeTokenBalance?.amount} ${balanceForAccount.nativeTokenBalance?.unit}`;
+          // const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
+          // console.log('balanceLabel', balanceLabel);
 
-          const balanceWeiHex = safeBNToHex(
-            fiatNumberToWei(
-              multichainBalancesForAllAccounts?.[internalAccount.id]
-                .totalFiatBalance,
-              multichainBalancesForAllAccounts?.[internalAccount.id]
-                .conversionRate,
-            ),
-          );
-          const balanceError = checkBalanceError?.(balanceWeiHex);
-          const displayBalance =
-            multichainBalancesForAllAccounts?.[internalAccount.id]
-              ?.displayBalance;
+          // const balanceWeiHex = safeBNToHex(
+          //   fiatNumberToWei(
+          //     multichainBalancesForAllAccounts?.[internalAccount.id]
+          //       .totalFiatBalance,
+          //     multichainBalancesForAllAccounts?.[internalAccount.id]
+          //       .conversionRate,
+          //   ),
+          // );
+          const balanceError = checkBalanceError?.(displayBalance);
           const isBalanceAvailable =
             isMultiAccountBalancesEnabled || isSelected;
           const mappedAccount: Account = {

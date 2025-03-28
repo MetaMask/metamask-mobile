@@ -13,7 +13,7 @@ import {
   selectSolanaAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { Balance, BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -310,9 +310,9 @@ export const selectMultichainTokenList = createDeepEqualSelector(
 );
 
 interface MultichainNetworkAggregatedBalance {
-  totalNativeTokenBalance: string;
+  totalNativeTokenBalance: Balance;
   totalBalanceFiat: string;
-  tokenBalances: Record<string, { amount: string; unit: string }>;
+  balances: Record<string, Balance>;
 }
 
 const getMultichainNetworkAggregatedBalance = (
@@ -322,18 +322,14 @@ const getMultichainNetworkAggregatedBalance = (
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
   nonEvmChainId: SupportedCaipChainId,
 ): MultichainNetworkAggregatedBalance => {
-  console.log(
-    'multichainBalances',
-    JSON.stringify(multichainBalances, null, 2),
-  );
-  console.log('multichainAssets', JSON.stringify(multichainAssets, null, 2));
   const assetIds = multichainAssets?.[account.id] || [];
   const balances = multichainBalances?.[account.id] || {};
 
   // Find the native asset for this chain
   const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
 
-  let totalNativeTokenBalance = new BigNumber(0);
+  // Default values for native token
+  let totalNativeTokenBalance = { amount: '0', unit: '' };
   let totalBalanceFiat = new BigNumber(0);
 
   for (const assetId of assetIds) {
@@ -344,12 +340,20 @@ const getMultichainNetworkAggregatedBalance = (
     }
 
     const balance = balances[assetId] || { amount: '0', unit: '' };
-    const rate = multichainAssetsRates?.[assetId]?.rate || '0';
-    const balanceInFiat = new BigNumber(balance.amount).times(rate);
 
-    // Only add to native token balance if this is the native asset
+    // Safely handle undefined rate
+    const rate = multichainAssetsRates?.[assetId]?.rate;
+    const balanceInFiat =
+      balance.amount && rate
+        ? new BigNumber(balance.amount).times(rate)
+        : new BigNumber(0);
+
+    // Only update native token balance if this is the native asset
     if (assetId === nativeAsset) {
-      totalNativeTokenBalance = new BigNumber(balance.amount);
+      totalNativeTokenBalance = {
+        amount: balance.amount || '0',
+        unit: balance.unit || '',
+      };
     }
 
     // Always add to total fiat balance
@@ -357,9 +361,9 @@ const getMultichainNetworkAggregatedBalance = (
   }
 
   return {
-    totalNativeTokenBalance: totalNativeTokenBalance.toString(),
+    totalNativeTokenBalance,
     totalBalanceFiat: totalBalanceFiat.toString(),
-    tokenBalances: balances || {},
+    balances,
   };
 };
 
@@ -379,9 +383,9 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
     ): MultichainNetworkAggregatedBalance => {
       if (!selectedAccount) {
         return {
-          totalNativeTokenBalance: '0',
+          totalNativeTokenBalance: { amount: '0', unit: '' },
           totalBalanceFiat: '0',
-          tokenBalances: {},
+          balances: {},
         };
       }
       return getMultichainNetworkAggregatedBalance(
@@ -411,11 +415,7 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
       assets,
       assetsRates,
       nonEvmNetworkChainId,
-    ): undefined | MultichainNetworkAggregatedBalanceForAllAccounts => {
-      if (!internalAccounts) {
-        return undefined;
-      }
-
+    ): MultichainNetworkAggregatedBalanceForAllAccounts => {
       return internalAccounts.reduce(
         (acc, account) => ({
           ...acc,
