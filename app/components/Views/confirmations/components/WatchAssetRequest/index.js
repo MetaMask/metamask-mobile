@@ -114,7 +114,7 @@ const WatchAssetRequest = ({
 
   const activeTabUrl = useSelector(getActiveTabUrl, isEqual);
 
-  const getAnalyticsParams = () => {
+  const getTokenAddedAnalyticsParams = () => {
     try {
       const url = new URL(currentPageInformation?.url);
 
@@ -126,18 +126,28 @@ const WatchAssetRequest = ({
         source: 'Dapp suggested (watchAsset)',
       };
     } catch (error) {
-      return {};
+      Logger.error(
+        error,
+        'WatchAssetRequest.getTokenAddedAnalyticsParams',
+      );
+      return undefined
     }
   };
 
   const onConfirmPress = async () => {
     await onConfirm();
     InteractionManager.runAfterInteractions(() => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-          .addProperties(getAnalyticsParams())
-          .build(),
-      );
+
+      const analyticsParams = getTokenAddedAnalyticsParams();
+
+      if (analyticsParams) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+            .addProperties(analyticsParams)
+            .build(),
+        );
+      }
+
       NotificationManager.showSimpleNotification({
         status: `simple_notification`,
         duration: 5000,

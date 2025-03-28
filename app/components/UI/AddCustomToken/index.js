@@ -165,7 +165,7 @@ class AddCustomToken extends PureComponent {
     metrics: PropTypes.object,
   };
 
-  getAnalyticsParams = () => {
+  getTokenAddedAnalyticsParams = () => {
     try {
       const { chainId } = this.props;
       const { address, symbol } = this.state;
@@ -176,7 +176,8 @@ class AddCustomToken extends PureComponent {
         source: 'Custom token',
       };
     } catch (error) {
-      return {};
+      Logger.error(error, 'AddCustomToken.getTokenAddedAnalyticsParams error')
+      return undefined;
     }
   };
 
@@ -186,12 +187,16 @@ class AddCustomToken extends PureComponent {
     const { address, symbol, decimals, name } = this.state;
     await TokensController.addToken({ address, symbol, decimals, name });
 
-    this.props.metrics.trackEvent(
-      this.props.metrics
-        .createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-        .addProperties(this.getAnalyticsParams())
-        .build(),
-    );
+    const analyticsParams = this.getTokenAddedAnalyticsParams();
+
+    if (analyticsParams) {
+      this.props.metrics.trackEvent(
+        this.props.metrics
+          .createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+          .addProperties(analyticsParams)
+          .build(),
+      );
+    }
 
     // Clear state before closing
     this.setState(
