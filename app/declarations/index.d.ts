@@ -194,22 +194,6 @@ declare module 'react-native-vector-icons/FontAwesome5' {
   export default FontAwesome5;
 }
 
-declare module 'react-native-vector-icons/Octicons' {
-  import { IconProps } from 'react-native-vector-icons/Octicons';
-
-  const Octicons: ComponentType<IconProps>;
-
-  /**
-   * @deprecated The `<OcticonsIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
-   * Please update your code to use the new `<Icon>` component instead, which can be found at app/component-library/components/Icons/Icon/Icon.tsx.
-   * You can find documentation for the new Icon component in the README:
-   * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Icons/Icon/README.md}
-   * If you would like to help with the replacement of the usage of the Octicons component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8119}
-   */
-  export default Octicons;
-}
-
 declare module 'react-native-vector-icons/Entypo' {
   import { IconProps } from 'react-native-vector-icons/Entypo';
 
@@ -224,54 +208,6 @@ declare module 'react-native-vector-icons/Entypo' {
    * {@link https://github.com/MetaMask/metamask-mobile/issues/8120}
    */
   export default Entypo;
-}
-
-declare module 'react-native-vector-icons/Foundation' {
-  import { IconProps } from 'react-native-vector-icons/Foundation';
-
-  const Foundation: ComponentType<IconProps>;
-
-  /**
-   * @deprecated The `<FoundationIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
-   * Please update your code to use the new `<Icon>` component instead, which can be found at app/component-library/components/Icons/Icon/Icon.tsx.
-   * You can find documentation for the new Icon component in the README:
-   * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Icons/Icon/README.md}
-   * If you would like to help with the replacement of the usage of the Foundation component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8121}
-   */
-  export default Foundation;
-}
-
-declare module 'react-native-vector-icons/Fontisto' {
-  import { IconProps } from 'react-native-vector-icons/Fontisto';
-
-  const Fontisto: ComponentType<IconProps>;
-
-  /**
-   * @deprecated The `<FontistoIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
-   * Please update your code to use the new `<Icon>` component instead, which can be found at app/component-library/components/Icons/Icon/Icon.tsx.
-   * You can find documentation for the new Icon component in the README:
-   * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Icons/Icon/README.md}
-   * If you would like to help with the replacement of the usage of the Fontisto component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8122}
-   */
-  export default Fontisto;
-}
-
-declare module 'react-native-vector-icons/Zocial' {
-  import { IconProps } from 'react-native-vector-icons/Zocial';
-
-  const Zocial: ComponentType<IconProps>;
-
-  /**
-   * @deprecated The `<ZocialIcon />` component has been deprecated in favor of the new `<Icon>` component from the component-library.
-   * Please update your code to use the new `<Icon>` component instead, which can be found at app/component-library/components/Icons/Icon/Icon.tsx.
-   * You can find documentation for the new Icon component in the README:
-   * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/Icons/Icon/README.md}
-   * If you would like to help with the replacement of the usage of the Zocial component, please submit a pull request against this GitHub issue:
-   * {@link https://github.com/MetaMask/metamask-mobile/issues/8123}
-   */
-  export default Zocial;
 }
 
 declare module '@metamask/contract-metadata' {

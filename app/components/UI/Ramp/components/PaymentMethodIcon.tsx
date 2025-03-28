@@ -4,19 +4,16 @@ import { Payment, PaymentType } from '@consensys/on-ramp-sdk';
 import { PaymentIcon, PaymentIconType } from '@consensys/on-ramp-sdk/dist/API';
 
 import AntDesignIcon from 'react-native-vector-icons/AntDesign';
-import EntypoIcon from 'react-native-vector-icons/Entypo';
+
 import EvilIconsIcon from 'react-native-vector-icons/EvilIcons';
 import FeatherIcon from 'react-native-vector-icons/Feather';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 import FontAwesome5Icon from 'react-native-vector-icons/FontAwesome5';
-// import FontistoIcon from 'react-native-vector-icons/Fontisto';
-import FoundationIcon from 'react-native-vector-icons/Foundation';
 import IoniconsIcon from 'react-native-vector-icons/Ionicons';
 import MaterialsIconsIcon from 'react-native-vector-icons/MaterialIcons';
 import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import OcticonsIcon from 'react-native-vector-icons/Octicons';
+
 import SimpleLineIconsIcon from 'react-native-vector-icons/SimpleLineIcons';
-import ZocialIcon from 'react-native-vector-icons/Zocial';
 
 interface iconParams {
   paymentMethodIcons?: Payment['icons'];
@@ -39,9 +36,6 @@ function getIconComponent(icon: PaymentIcon) {
     case PaymentIconType.AntDesign: {
       return AntDesignIcon;
     }
-    case PaymentIconType.Entypo: {
-      return EntypoIcon;
-    }
     case PaymentIconType.EvilIcons: {
       return EvilIconsIcon;
     }
@@ -57,9 +51,6 @@ function getIconComponent(icon: PaymentIcon) {
     case PaymentIconType.Fontisto: {
       return null;
     }
-    case PaymentIconType.Foundation: {
-      return FoundationIcon;
-    }
     case PaymentIconType.Ionicons: {
       return IoniconsIcon;
     }
@@ -69,14 +60,8 @@ function getIconComponent(icon: PaymentIcon) {
     case PaymentIconType.MaterialCommunityIcons: {
       return MaterialsCommunityIconsIcon;
     }
-    case PaymentIconType.Octicons: {
-      return OcticonsIcon;
-    }
     case PaymentIconType.SimpleLineIcons: {
       return SimpleLineIconsIcon;
-    }
-    case PaymentIconType.Zocial: {
-      return ZocialIcon;
     }
     default: {
       return null;
@@ -85,12 +70,18 @@ function getIconComponent(icon: PaymentIcon) {
 }
 
 /*
-* With the integration of Expo, it introduced a compatibility layer (https://github.com/expo/vector-icons)
-* around react-native-vector-icons which doesn't expose hasIcon anymore so we need to build our own based on
-* the implementation https://github.com/oblador/react-native-vector-icons/blob/master/lib/create-icon-set.js#L158
-*/
-function hasIcon(IconComponent: { glyphMap: { [key: string]: number } }, name: string) {
-  return IconComponent?.glyphMap && Object.prototype.hasOwnProperty.call(IconComponent.glyphMap, name);
+ * With the integration of Expo, it introduced a compatibility layer (https://github.com/expo/vector-icons)
+ * around react-native-vector-icons which doesn't expose hasIcon anymore so we need to build our own based on
+ * the implementation https://github.com/oblador/react-native-vector-icons/blob/master/lib/create-icon-set.js#L158
+ */
+function hasIcon(
+  IconComponent: { glyphMap: { [key: string]: number } },
+  name: string,
+) {
+  return (
+    IconComponent?.glyphMap &&
+    Object.prototype.hasOwnProperty.call(IconComponent.glyphMap, name)
+  );
 }
 
 function getIcon(icon: PaymentIcon) {
