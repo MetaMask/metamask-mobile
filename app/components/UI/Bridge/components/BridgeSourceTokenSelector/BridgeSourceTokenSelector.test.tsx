@@ -7,7 +7,9 @@ import { setSourceToken } from '../../../../../core/redux/slices/bridge';
 import {
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  BRIDGE_PROD_API_BASE_URL,
 } from '@metamask/bridge-controller';
+import nock from 'nock';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,12 +32,70 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   };
 });
 
+jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
+  useSwitchNetworks: () => ({
+    onSetRpcTarget: jest.fn(),
+    onNetworkChange: jest.fn(),
+  }),
+}));
+
 describe('BridgeSourceTokenSelector', () => {
+  // Fix ReferenceError: You are trying to access a property or method of the Jest environment after it has been torn down.
+  jest.useFakeTimers();
+
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    nock.cleanAll();
+  });
+
+  afterEach(() => {
+    nock.cleanAll();
+  });
+
+  // Mock any bridge tokens API call
+  nock(BRIDGE_PROD_API_BASE_URL)
+    .persist()
+    .get(/\/getTokens/)
+    .query({ chainId: mockChainId })
+    .reply(200, {
+      [token1Address]: {
+        address: token1Address,
+        symbol: 'TOKEN1',
+        name: 'Token One',
+        decimals: 18,
+        chainId: mockChainId,
+        iconUrl: 'https://token1.com/logo.png',
+      },
+      [token2Address]: {
+        address: token2Address,
+        symbol: 'HELLO',
+        name: 'Hello Token',
+        decimals: 18,
+        chainId: mockChainId,
+        iconUrl: 'https://token2.com/logo.png',
+      },
+    });
+
+  // Mock the swaps top assets API call
+  nock('https://swap.api.cx.metamask.io')
+    .persist()
+    .get(/\/networks\/.*\/topAssets/)
+    .reply(200, [
+      {
+        address: token1Address,
+        symbol: 'TOKEN1',
+      },
+      {
+        address: token2Address,
+        symbol: 'HELLO',
+      },
+    ]);
 
   const initialState = {
     engine: {
@@ -306,10 +366,6 @@ describe('BridgeSourceTokenSelector', () => {
       selectedSourceChainIds: undefined,
     },
   };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
 
   it('renders with initial state and displays tokens', async () => {
     const { getByText, toJSON } = renderScreen(
