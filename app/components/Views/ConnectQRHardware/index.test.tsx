@@ -99,7 +99,16 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
       getOrAddQRKeyring: jest.fn(),
-      withKeyring: jest.fn(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      withKeyring: (_selector: any, operation: any) =>
+        operation({
+          keyring: {
+            cancelSync: jest.fn(),
+            submitCryptoAccount: jest.fn(),
+            submitCryptoHDKey: jest.fn(),
+          },
+          metadata: { id: '1234' },
+        }),
       connectQRHardware: jest.fn(),
     },
     AccountTrackerController: {

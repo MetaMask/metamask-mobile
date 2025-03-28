@@ -255,6 +255,7 @@ const NetworkModals = (props: NetworkProps) => {
             url: rpcUrl,
             name: nickname,
             type: RpcEndpointType.Custom,
+            failoverUrls: [],
           },
         ],
       });

@@ -232,6 +232,7 @@ describe(`migration #${version}`, () => {
         name: customNetwork.nickname,
         url: customNetwork.rpcUrl,
         type: RpcEndpointType.Custom,
+        failoverUrls: [],
       }) - 1;
 
     // The custom network's block explorer should be added to
@@ -516,6 +517,7 @@ function defaultPostMigrationState() {
             networkClientId: 'mainnet',
             url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
             type: 'infura',
+            failoverUrls: [],
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -531,6 +533,7 @@ function defaultPostMigrationState() {
             networkClientId: 'sepolia',
             url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
             type: 'infura',
+            failoverUrls: [],
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -546,6 +549,7 @@ function defaultPostMigrationState() {
             networkClientId: 'linea-sepolia',
             url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
             type: 'infura',
+            failoverUrls: [],
           },
         ],
         defaultRpcEndpointIndex: 0,
@@ -561,6 +565,7 @@ function defaultPostMigrationState() {
             networkClientId: 'linea-mainnet',
             url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
             type: 'infura',
+            failoverUrls: [],
           },
         ],
         defaultRpcEndpointIndex: 0,
