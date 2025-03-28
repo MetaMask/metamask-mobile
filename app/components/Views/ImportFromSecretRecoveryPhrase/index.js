@@ -65,6 +65,7 @@ import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { setIsAccountSyncingReadyToBeDispatched } from '../../../actions/identity';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -251,6 +252,7 @@ const ImportFromSecretRecoveryPhrase = ({
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         });
         await importAdditionalAccounts();
+        await setIsAccountSyncingReadyToBeDispatched(true);
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {

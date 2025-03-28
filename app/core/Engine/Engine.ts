@@ -199,7 +199,11 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BRIDGE_DEV_API_BASE_URL, BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BridgeClientId,
+  BridgeController,
+} from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -882,8 +886,45 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
-        isAccountSyncingEnabled: false,
+        isAccountSyncingEnabled: true,
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
       },
     });
 
@@ -988,8 +1029,8 @@ export class Engine {
         }) as any,
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
-      }
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({

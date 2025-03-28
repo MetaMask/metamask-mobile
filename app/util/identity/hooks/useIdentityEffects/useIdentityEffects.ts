@@ -1,4 +1,8 @@
 import { useEffect } from 'react';
+import {
+  useAccountSyncing,
+  useAccountSyncingReadyToBeDispatchedEffect,
+} from '../useAccountSyncing';
 import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
 
 /**
@@ -6,8 +10,21 @@ import { useAutoSignIn, useAutoSignOut } from '../useAuthentication';
  * - Automatically signs users in or out based on the app state.
  */
 export const useIdentityEffects = () => {
+  const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
+    useAccountSyncing();
   const { autoSignIn, shouldAutoSignIn } = useAutoSignIn();
   const { autoSignOut, shouldAutoSignOut } = useAutoSignOut();
+
+  /**
+   * Back up & sync effects
+   */
+  // TODO: remove this and rely on .lock() and .unlock() events
+  useAccountSyncingReadyToBeDispatchedEffect();
+  useEffect(() => {
+    if (shouldDispatchAccountSyncing) {
+      dispatchAccountSyncing();
+    }
+  }, [shouldDispatchAccountSyncing, dispatchAccountSyncing]);
 
   /**
    * Authentication effects
