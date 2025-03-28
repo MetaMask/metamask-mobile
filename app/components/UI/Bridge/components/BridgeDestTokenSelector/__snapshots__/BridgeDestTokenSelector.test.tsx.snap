@@ -324,7 +324,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#00000099",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,7 +491,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#141618",
                                           "flex": 1,
                                           "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
@@ -525,7 +525,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         testID="bridge-token-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#121314"
+                                          color="#141618"
                                           height={16}
                                           name="Close"
                                           style={
@@ -597,7 +597,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "alignItems": "center",
                                         "alignSelf": "flex-start",
                                         "backgroundColor": "transparent",
-                                        "borderColor": "#b7bbc866",
+                                        "borderColor": "#BBC0C566",
                                         "borderRadius": 20,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -611,8 +611,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
-                                          "fontFamily": "CentraNo1-Book",
+                                          "color": "#141618",
+                                          "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -623,7 +623,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       See all
                                     </Text>
                                     <SvgMock
-                                      color="#4459ff"
+                                      color="#0376c9"
                                       height={16}
                                       name="ArrowDown"
                                       style={
@@ -647,62 +647,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       {
                                         "alignItems": "center",
                                         "alignSelf": "flex-start",
-                                        "backgroundColor": "transparent",
-                                        "borderColor": "#b7bbc866",
-                                        "borderRadius": 20,
-                                        "borderWidth": 1,
-                                        "flexDirection": "row",
-                                        "height": 40,
-                                        "justifyContent": "center",
-                                        "paddingHorizontal": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      alignItems="center"
-                                      flexDirection="row"
-                                      gap={4}
-                                      style={
-                                        [
-                                          {
-                                            "alignItems": "center",
-                                            "flexDirection": "row",
-                                            "gap": 4,
-                                          },
-                                          undefined,
-                                        ]
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        style={
-                                          {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
-                                            "fontSize": 14,
-                                            "fontWeight": "400",
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
-                                          }
-                                        }
-                                      >
-                                        Ethereum
-                                      </Text>
-                                    </View>
-                                  </TouchableOpacity>
-                                  <TouchableOpacity
-                                    accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
-                                      {
-                                        "alignItems": "center",
-                                        "alignSelf": "flex-start",
-                                        "backgroundColor": "#4459ff1a",
-                                        "borderColor": "#4459ff1a",
+                                        "backgroundColor": "#0376C91A",
+                                        "borderColor": "#0376C91A",
                                         "borderRadius": 20,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
@@ -757,8 +703,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#121314",
-                                            "fontFamily": "CentraNo1-Book",
+                                            "color": "#141618",
+                                            "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 14,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -766,8 +712,60 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           }
                                         }
                                       >
-                                        Optimism
+                                        Ethereum
                                       </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={1}
+                                    onPress={[Function]}
+                                    onPressIn={[Function]}
+                                    onPressOut={[Function]}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "transparent",
+                                        "borderColor": "#BBC0C566",
+                                        "borderRadius": 20,
+                                        "borderWidth": 1,
+                                        "flexDirection": "row",
+                                        "height": 40,
+                                        "justifyContent": "center",
+                                        "paddingHorizontal": 16,
+                                      }
+                                    }
+                                  >
+                                    <View
+                                      alignItems="center"
+                                      flexDirection="row"
+                                      gap={4}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "flexDirection": "row",
+                                            "gap": 4,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#141618",
+                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontSize": 14,
+                                            "fontWeight": "400",
+                                            "letterSpacing": 0,
+                                            "lineHeight": 22,
+                                          }
+                                        }
+                                      />
                                     </View>
                                   </TouchableOpacity>
                                 </View>
@@ -777,7 +775,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   {
                                     "alignItems": "center",
                                     "backgroundColor": "#ffffff",
-                                    "borderColor": "#b7bbc8",
+                                    "borderColor": "#848c96",
                                     "borderRadius": 8,
                                     "borderWidth": 1,
                                     "flexDirection": "row",
@@ -797,7 +795,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                   testID="textfield-startacccessory"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#141618"
                                     height={16}
                                     name="Search"
                                     style={
@@ -828,7 +826,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "backgroundColor": "#ffffff",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
-                                        "color": "#121314",
+                                        "color": "#141618",
                                         "fontFamily": "Euclid Circular B",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -845,44 +843,29 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               </View>
                             </View>
                             <RCTScrollView
-                              ListEmptyComponent={
-                                <ForwardRef
-                                  style={
-                                    {
-                                      "marginHorizontal": 24,
-                                      "marginVertical": 10,
-                                    }
-                                  }
-                                >
-                                  <Text
-                                    color="Alternative"
-                                  >
-                                    No tokens match “”
-                                  </Text>
-                                </ForwardRef>
-                              }
+                              ListEmptyComponent={[Function]}
                               data={
                                 [
                                   {
-                                    "address": "0x0000000000000000000000000000000000000000",
-                                    "balance": "20",
-                                    "balanceFiat": "$40000",
-                                    "chainId": "0xa",
-                                    "decimals": 18,
-                                    "image": "",
-                                    "name": "Ethereum",
-                                    "symbol": "ETH",
-                                    "tokenFiatAmount": 40000,
-                                  },
-                                  {
                                     "address": "0x0000000000000000000000000000000000000002",
                                     "balance": "2",
-                                    "balanceFiat": "$20000",
-                                    "chainId": "0xa",
+                                    "balanceFiat": "$200000",
+                                    "chainId": "0x1",
                                     "decimals": 18,
                                     "image": "https://token2.com/logo.png",
                                     "name": "Hello Token",
                                     "symbol": "HELLO",
+                                    "tokenFiatAmount": 200000,
+                                  },
+                                  {
+                                    "address": "0x0000000000000000000000000000000000000001",
+                                    "balance": "1",
+                                    "balanceFiat": "$20000",
+                                    "chainId": "0x1",
+                                    "decimals": 18,
+                                    "image": "https://token1.com/logo.png",
+                                    "name": "Token One",
+                                    "symbol": "TOKEN1",
                                     "tokenFiatAmount": 20000,
                                   },
                                 ]
@@ -904,287 +887,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                               viewabilityConfigCallbackPairs={[]}
                             >
                               <View>
-                                <View
-                                  onFocusCapture={[Function]}
-                                  onLayout={[Function]}
-                                  style={null}
-                                >
-                                  <View
-                                    alignItems="center"
-                                    flexDirection="row"
-                                    justifyContent="space-between"
-                                    style={
-                                      [
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                          "justifyContent": "space-between",
-                                        },
-                                        {
-                                          "backgroundColor": "#ffffff",
-                                          "padding": 4,
-                                        },
-                                      ]
-                                    }
-                                  >
-                                    <TouchableOpacity
-                                      onLongPress={[Function]}
-                                      onPress={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "flex-start",
-                                          "flex": 1,
-                                          "flexDirection": "row",
-                                          "paddingHorizontal": 15,
-                                          "paddingVertical": 10,
-                                        }
-                                      }
-                                      testID="asset-ETH"
-                                    >
-                                      <View
-                                        onLayout={[Function]}
-                                        style={
-                                          {
-                                            "alignSelf": "flex-start",
-                                            "position": "relative",
-                                          }
-                                        }
-                                        testID="badge-wrapper-badge"
-                                      >
-                                        <View>
-                                          <View
-                                            useNativeDriver={true}
-                                          >
-                                            <Image
-                                              fadeIn={true}
-                                              onError={[Function]}
-                                              onLoadEnd={[Function]}
-                                              source={
-                                                {
-                                                  "uri": "",
-                                                }
-                                              }
-                                              style={
-                                                [
-                                                  {
-                                                    "borderRadius": 12,
-                                                    "height": 24,
-                                                    "width": 24,
-                                                  },
-                                                  {
-                                                    "borderRadius": 18,
-                                                    "height": 36,
-                                                    "width": 36,
-                                                  },
-                                                  undefined,
-                                                  undefined,
-                                                  undefined,
-                                                ]
-                                              }
-                                              testID="network-logo-ETH"
-                                            />
-                                            <View
-                                              collapsable={false}
-                                              style={
-                                                {
-                                                  "bottom": 0,
-                                                  "left": 0,
-                                                  "opacity": 1,
-                                                  "position": "absolute",
-                                                  "right": 0,
-                                                  "top": 0,
-                                                }
-                                              }
-                                            >
-                                              <View
-                                                style={
-                                                  [
-                                                    {
-                                                      "borderRadius": 18,
-                                                      "height": 36,
-                                                      "width": 36,
-                                                    },
-                                                    {
-                                                      "backgroundColor": "#eee",
-                                                    },
-                                                    undefined,
-                                                  ]
-                                                }
-                                              />
-                                            </View>
-                                          </View>
-                                        </View>
-                                        <View
-                                          style={
-                                            {
-                                              "alignItems": "center",
-                                              "aspectRatio": 1,
-                                              "bottom": 0,
-                                              "height": 0,
-                                              "justifyContent": "center",
-                                              "position": "absolute",
-                                              "right": 0,
-                                              "transform": [
-                                                {
-                                                  "translateX": 0,
-                                                },
-                                                {
-                                                  "translateY": 0,
-                                                },
-                                              ],
-                                            }
-                                          }
-                                        >
-                                          <View
-                                            onLayout={[Function]}
-                                            style={
-                                              {
-                                                "alignItems": "center",
-                                                "aspectRatio": 1,
-                                                "height": "50%",
-                                                "justifyContent": "center",
-                                                "maxHeight": 24,
-                                                "minHeight": 8,
-                                                "opacity": 0,
-                                              }
-                                            }
-                                            testID="badgenetwork"
-                                          >
-                                            <View
-                                              style={
-                                                {
-                                                  "alignItems": "center",
-                                                  "backgroundColor": "#ffffff",
-                                                  "borderColor": "#ffffff",
-                                                  "borderRadius": 8,
-                                                  "borderWidth": 2,
-                                                  "height": 32,
-                                                  "justifyContent": "center",
-                                                  "overflow": "hidden",
-                                                  "shadowColor": "#0000001a",
-                                                  "shadowOffset": {
-                                                    "height": 2,
-                                                    "width": 0,
-                                                  },
-                                                  "shadowOpacity": 1,
-                                                  "shadowRadius": 4,
-                                                  "transform": [
-                                                    {
-                                                      "scale": 1,
-                                                    },
-                                                  ],
-                                                  "width": 32,
-                                                }
-                                              }
-                                            >
-                                              <Image
-                                                onError={[Function]}
-                                                resizeMode="contain"
-                                                source={1}
-                                                style={
-                                                  {
-                                                    "height": 32,
-                                                    "width": 32,
-                                                  }
-                                                }
-                                                testID="network-avatar-image"
-                                              />
-                                            </View>
-                                          </View>
-                                        </View>
-                                      </View>
-                                      <View
-                                        flexDirection="column"
-                                        gap={4}
-                                        style={
-                                          [
-                                            {
-                                              "flexDirection": "column",
-                                              "gap": 4,
-                                            },
-                                            {
-                                              "flex": 1,
-                                              "marginLeft": 8,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 16,
-                                              "fontWeight": "500",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
-                                          }
-                                        >
-                                          ETH
-                                        </Text>
-                                        <Text
-                                          accessibilityRole="text"
-                                          style={
-                                            {
-                                              "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
-                                              "fontSize": 14,
-                                              "fontWeight": "400",
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
-                                          }
-                                        >
-                                          Ethereum
-                                        </Text>
-                                      </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-end",
-                                            "alignSelf": "flex-end",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      disabled={false}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "borderRadius": 8,
-                                          "height": 28,
-                                          "justifyContent": "center",
-                                          "marginRight": 12,
-                                          "opacity": 1,
-                                          "width": 28,
-                                        }
-                                      }
-                                      testID="token-info-button"
-                                    >
-                                      <SvgMock
-                                        color="#686e7d"
-                                        height={20}
-                                        name="Info"
-                                        style={
-                                          {
-                                            "height": 20,
-                                            "width": 20,
-                                          }
-                                        }
-                                        width={20}
-                                      />
-                                    </TouchableOpacity>
-                                  </View>
-                                </View>
                                 <View
                                   onFocusCapture={[Function]}
                                   onLayout={[Function]}
@@ -1310,7 +1012,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                                   "height": 32,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001a",
+                                                  "shadowColor": "#0000001A",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -1362,8 +1064,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#121314",
-                                              "fontFamily": "CentraNo1-Medium",
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1377,8 +1079,8 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#686e7d",
-                                              "fontFamily": "CentraNo1-Book",
+                                              "color": "#6a737d",
+                                              "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1420,7 +1122,256 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                       testID="token-info-button"
                                     >
                                       <SvgMock
-                                        color="#686e7d"
+                                        color="#6a737d"
+                                        height={20}
+                                        name="Info"
+                                        style={
+                                          {
+                                            "height": 20,
+                                            "width": 20,
+                                          }
+                                        }
+                                        width={20}
+                                      />
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                <View
+                                  onFocusCapture={[Function]}
+                                  onLayout={[Function]}
+                                  style={null}
+                                >
+                                  <View
+                                    alignItems="center"
+                                    flexDirection="row"
+                                    justifyContent="space-between"
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "justifyContent": "space-between",
+                                        },
+                                        {
+                                          "backgroundColor": "#ffffff",
+                                          "padding": 4,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    <TouchableOpacity
+                                      onLongPress={[Function]}
+                                      onPress={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "flex-start",
+                                          "flex": 1,
+                                          "flexDirection": "row",
+                                          "paddingHorizontal": 15,
+                                          "paddingVertical": 10,
+                                        }
+                                      }
+                                      testID="asset-TOKEN1"
+                                    >
+                                      <View
+                                        onLayout={[Function]}
+                                        style={
+                                          {
+                                            "alignSelf": "flex-start",
+                                            "position": "relative",
+                                          }
+                                        }
+                                        testID="badge-wrapper-badge"
+                                      >
+                                        <View>
+                                          <View
+                                            style={
+                                              {
+                                                "backgroundColor": "#ffffff",
+                                                "borderRadius": 16,
+                                                "height": 32,
+                                                "overflow": "hidden",
+                                                "width": 32,
+                                              }
+                                            }
+                                          >
+                                            <Image
+                                              onError={[Function]}
+                                              resizeMode="contain"
+                                              source={
+                                                {
+                                                  "uri": "https://token1.com/logo.png",
+                                                }
+                                              }
+                                              style={
+                                                {
+                                                  "flex": 1,
+                                                  "height": undefined,
+                                                  "width": undefined,
+                                                }
+                                              }
+                                              testID="token-avatar-image"
+                                            />
+                                          </View>
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "aspectRatio": 1,
+                                              "bottom": 0,
+                                              "height": 0,
+                                              "justifyContent": "center",
+                                              "position": "absolute",
+                                              "right": 0,
+                                              "transform": [
+                                                {
+                                                  "translateX": 0,
+                                                },
+                                                {
+                                                  "translateY": 0,
+                                                },
+                                              ],
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            onLayout={[Function]}
+                                            style={
+                                              {
+                                                "alignItems": "center",
+                                                "aspectRatio": 1,
+                                                "height": "50%",
+                                                "justifyContent": "center",
+                                                "maxHeight": 24,
+                                                "minHeight": 8,
+                                                "opacity": 0,
+                                              }
+                                            }
+                                            testID="badgenetwork"
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "backgroundColor": "#ffffff",
+                                                  "borderColor": "#ffffff",
+                                                  "borderRadius": 8,
+                                                  "borderWidth": 2,
+                                                  "height": 32,
+                                                  "justifyContent": "center",
+                                                  "overflow": "hidden",
+                                                  "shadowColor": "#0000001A",
+                                                  "shadowOffset": {
+                                                    "height": 2,
+                                                    "width": 0,
+                                                  },
+                                                  "shadowOpacity": 1,
+                                                  "shadowRadius": 4,
+                                                  "transform": [
+                                                    {
+                                                      "scale": 1,
+                                                    },
+                                                  ],
+                                                  "width": 32,
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                resizeMode="contain"
+                                                source={1}
+                                                style={
+                                                  {
+                                                    "height": 32,
+                                                    "width": 32,
+                                                  }
+                                                }
+                                                testID="network-avatar-image"
+                                              />
+                                            </View>
+                                          </View>
+                                        </View>
+                                      </View>
+                                      <View
+                                        flexDirection="column"
+                                        gap={4}
+                                        style={
+                                          [
+                                            {
+                                              "flexDirection": "column",
+                                              "gap": 4,
+                                            },
+                                            {
+                                              "flex": 1,
+                                              "marginLeft": 8,
+                                            },
+                                          ]
+                                        }
+                                      >
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#141618",
+                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": "500",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                            }
+                                          }
+                                        >
+                                          TOKEN1
+                                        </Text>
+                                        <Text
+                                          accessibilityRole="text"
+                                          style={
+                                            {
+                                              "color": "#6a737d",
+                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontSize": 14,
+                                              "fontWeight": "400",
+                                              "letterSpacing": 0,
+                                              "lineHeight": 22,
+                                            }
+                                          }
+                                        >
+                                          Token One
+                                        </Text>
+                                      </View>
+                                      <View
+                                        style={
+                                          {
+                                            "alignItems": "flex-end",
+                                            "alignSelf": "flex-end",
+                                            "flex": 1,
+                                          }
+                                        }
+                                      />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      accessible={true}
+                                      activeOpacity={1}
+                                      disabled={false}
+                                      onPress={[Function]}
+                                      onPressIn={[Function]}
+                                      onPressOut={[Function]}
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "borderRadius": 8,
+                                          "height": 28,
+                                          "justifyContent": "center",
+                                          "marginRight": 12,
+                                          "opacity": 1,
+                                          "width": 28,
+                                        }
+                                      }
+                                      testID="token-info-button"
+                                    >
+                                      <SvgMock
+                                        color="#6a737d"
                                         height={20}
                                         name="Info"
                                         style={
