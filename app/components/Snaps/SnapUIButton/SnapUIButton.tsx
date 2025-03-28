@@ -3,7 +3,6 @@ import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
 import {
   TouchableOpacity,
   StyleSheet,
-  View,
   ViewStyle,
   StyleProp,
   TouchableOpacityProps,
@@ -117,16 +116,42 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       );
     }
 
-    if (isIcon) {
-      return <View style={styles.content}>{children}</View>;
-    }
-
     if (typeof children === 'string') {
       return (
         <Text color={color} variant={textVariant}>
           {children}
         </Text>
       );
+    }
+
+    if (React.isValidElement(children) && children.props?.sections) {
+      try {
+        const modifiedSections = children.props.sections.map((section: any) => {
+          if (section.element === 'RNText') {
+            return {
+              ...section,
+              props: {
+                ...section.props,
+                style: {
+                  ...section.props?.style,
+                  color: colors.primary.default,
+                },
+              },
+            };
+          }
+          return section;
+        });
+
+        return React.cloneElement(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          children as React.ReactElement<{ sections: any }>,
+          {
+            sections: modifiedSections,
+          },
+        );
+      } catch (error) {
+        console.log('Error modifying sections:', error);
+      }
     }
 
     return children;
