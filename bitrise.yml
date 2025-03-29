@@ -42,8 +42,8 @@ pipelines:
   #Run E2E test suite for iOS Flask only
   run_e2e_flask_pipeline:
     stages:
-      - build_e2e_flask_stage: {}
-      - run_e2e_flask_stage: {}
+      - build_e2e_flask_ios_android: {}
+      - run_e2e_flask_ios_android: {}
       - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
@@ -245,19 +245,14 @@ stages:
   release_notify:
     workflows:
       - release_announcing_stores: {}
-  build_e2e_flask_stage:
-    abort_on_fail: true
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
+  build_e2e_flask_ios_android:
     workflows:
-      - ios_e2e_build: {}
-      - android_e2e_build: {}
-  run_e2e_flask_stage:
-    envs:
-       - METAMASK_BUILD_TYPE: 'flask'
+      - build_flask_e2e_android: {}
+      - build_flask_e2e_ios: {}
+  run_e2e_flask_ios_android:
     workflows:
-      - ios_e2e_test: {}
-      - android_e2e_test: {}
+      - run_flask_e2e_android: {}
+      - run_flask_e2e_ios: {}
   create_build_flask_release:
     workflows:
       - build_android_flask_release: {}
@@ -589,6 +584,34 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
+  build_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_build
+  run_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_test
+  build_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_build
+  run_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_test
   run_tag_upgrade_android:
     meta:
       bitrise.io:
