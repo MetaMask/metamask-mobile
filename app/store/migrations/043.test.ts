@@ -75,7 +75,7 @@ const oldState = {
             rpcUrl: 'https://zksync2-mainnet.zksync.io',
             chainId: '0x144',
             ticker: 'ETH',
-            nickname: 'zkSync Era',
+            nickname: 'ZKsync Era',
             rpcPrefs: {
               blockExplorerUrl: 'https://explorer.zksync.io',
             },
@@ -93,7 +93,7 @@ const oldState = {
             rpcUrl: 'https://sepolia.era.zksync.dev',
             chainId: '0x12c',
             ticker: 'ETH',
-            nickname: 'zkSync Sepolia Testnet',
+            nickname: 'ZKsync Sepolia Testnet',
             rpcPrefs: {
               blockExplorerUrl: 'https://sepolia.explorer.zksync.io/',
             },
@@ -226,7 +226,7 @@ const expectedState = {
             rpcUrl: 'https://zksync2-mainnet.zksync.io',
             chainId: '0x144',
             ticker: 'ETH',
-            nickname: 'zkSync Era',
+            nickname: 'ZKsync Era',
             rpcPrefs: {
               blockExplorerUrl: 'https://explorer.zksync.io',
             },
@@ -245,7 +245,7 @@ const expectedState = {
             rpcUrl: 'https://sepolia.era.zksync.dev',
             chainId: '0x12c',
             ticker: 'ETH',
-            nickname: 'zkSync Sepolia Testnet',
+            nickname: 'ZKsync Sepolia Testnet',
             rpcPrefs: {
               blockExplorerUrl: 'https://sepolia.explorer.zksync.io/',
             },
