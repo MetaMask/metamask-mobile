@@ -245,6 +245,7 @@ describe('Tokens', () => {
   afterEach(() => {
     mockNavigate.mockClear();
     mockPush.mockClear();
+    jest.clearAllMocks();
   });
 
   it('should render correctly', () => {
@@ -286,7 +287,7 @@ describe('Tokens', () => {
       },
     });
 
-    const fiatBalances = getAllByTestId('fiat-balance-test-id');
+    const fiatBalances = getAllByTestId('balance-test-id');
 
     fiatBalances.forEach((balance) => {
       const originalText = balance.props.children;
@@ -386,6 +387,51 @@ describe('Tokens', () => {
       },
       { timeout: 3000 },
     );
+  });
+
+  it('does not call goToAddEvmToken when non-EVM network is selected', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        ...initialState.engine,
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            selectedNetworkType: 'non-evm',
+          },
+        },
+      },
+      settings: {
+        hideZeroBalanceTokens: false,
+      },
+    };
+
+    const { getByTestId } = renderComponent(state);
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON));
+
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('renders correctly when token list is empty', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          TokensController: {
+            allTokens: {
+              '0x1': {
+                [selectedAddress]: [],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderComponent(state);
+    expect(getByTestId(WalletViewSelectorsIDs.TOKENS_CONTAINER)).toBeDefined();
   });
 
   it('triggers bottom sheet when sort controls are pressed', async () => {

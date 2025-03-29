@@ -4,6 +4,7 @@ import {
 } from '../../selectors/wallet/WalletView.selectors';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
+import TestHelpers from '../../helpers';
 
 class WalletView {
   get container() {
@@ -25,7 +26,6 @@ class WalletView {
   get stakeMoreButton() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_MORE_BUTTON);
   }
-
 
   get tokenDetectionLinkButton() {
     return Matchers.getElementByID(
@@ -123,6 +123,54 @@ class WalletView {
     return Matchers.getElementByText('Cancel');
   }
 
+  get carouselContainer() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_CONTAINER);
+  }
+
+  get carouselFirstSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE);
+  }
+
+  get carouselFirstSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_TITLE,
+    );
+  }
+
+  get carouselSecondSlide() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE,
+    );
+  }
+
+  get carouselSecondSlideTitle() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_TITLE,
+    );
+  }
+
+  get carouselProgressDots() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_PROGRESS_DOTS,
+    );
+  }
+
+  get carouselFirstSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_FIRST_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSecondSlideCloseButton() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.CAROUSEL_SECOND_SLIDE_CLOSE_BUTTON,
+    );
+  }
+
+  get carouselSlide() {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CAROUSEL_SLIDE);
+  }
+
   async tapCurrentMainWalletAccountActions() {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions);
   }
@@ -140,7 +188,7 @@ class WalletView {
   }
 
   async tapNetworksButtonOnNavBar() {
-    await Gestures.waitAndTap(this.navbarNetworkButton);
+    await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
   }
 
   async tapNftTab() {
@@ -244,6 +292,14 @@ class WalletView {
 
   async tapCancelButton() {
     await Gestures.waitAndTap(this.cancelButton);
+  }
+
+  async tapCarouselCloseButton() {
+    await Gestures.tap(this.carouselCloseButton);
+  }
+
+  async tapCarouselSlide() {
+    await Gestures.tap(this.carouselSlide);
   }
 }
 

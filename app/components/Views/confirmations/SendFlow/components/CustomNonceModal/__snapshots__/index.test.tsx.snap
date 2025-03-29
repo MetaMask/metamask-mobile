@@ -7,7 +7,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
   animationOut="slideOutDown"
   animationOutTiming={600}
   avoidKeyboard={false}
-  backdropColor="#00000099"
+  backdropColor="#00000066"
   backdropOpacity={1}
   backdropTransitionInTiming={300}
   backdropTransitionOutTiming={300}
@@ -86,7 +86,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
           centered={true}
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontSize": 14,
             }
           }
@@ -114,12 +114,12 @@ exports[`CustomNonceModal renders correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="26"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             showSoftInputOnFocus={false}
             spellCheck={false}
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 36,
                 "fontWeight": "600",
@@ -135,7 +135,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
           centered={true}
           style={
             {
-              "color": "#6a737d",
+              "color": "#686e7d",
               "fontSize": 14,
               "marginBottom": 10,
             }
@@ -174,7 +174,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
               size={64}
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                 }
               }
             />
@@ -194,7 +194,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
               size={64}
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                 }
               }
             />
@@ -211,7 +211,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
             bold={true}
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,
@@ -223,7 +223,7 @@ exports[`CustomNonceModal renders correctly 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 12,
                 "lineHeight": 16,
                 "marginVertical": 10,

@@ -10,7 +10,9 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../../../component-library/components/Badges/Badge';
 import Text from '../../../../../../../component-library/components/Texts/Text';
-import BadgeWrapper from '../../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../../component-library/components/Badges/BadgeWrapper';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -40,6 +42,7 @@ const AccountNetworkInfoCollapsed = () => {
   return (
     <View style={styles.container}>
       <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}

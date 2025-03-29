@@ -11,6 +11,8 @@ import { selectTokenMarketData } from '../../../../selectors/tokenRatesControlle
 import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import BigNumber from 'bignumber.js';
+import { parseFloatSafe } from '../../Earn/utils';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -22,8 +24,9 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
 
 interface EarnTokenDetails extends TokenI {
   apr: string;
+  estimatedAnnualRewardsFormatted: string;
   tokenBalanceFormatted: string;
-  balanceFiat: string;
+  balanceFiat?: string;
 }
 
 export const useEarnTokenDetails = () => {
@@ -53,11 +56,41 @@ export const useEarnTokenDetails = () => {
           currentCurrency || '',
         );
 
+      const apr = MOCK_APR_VALUES[token.symbol] || '0.0';
+
+      const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
+
+      const tokenFiatBalanceFloat =
+        token.balanceFiat && parseFloatSafe(token.balanceFiat).toString();
+
+      const estimatedAnnualRewardsDecimal =
+        tokenFiatBalanceFloat &&
+        new BigNumber(parseFloat(tokenFiatBalanceFloat))
+          .multipliedBy(rewardRateDecimal)
+          .toNumber();
+
+      let estimatedAnnualRewardsFormatted = '';
+
+      if (!Number.isNaN(estimatedAnnualRewardsDecimal)) {
+        // Show cents ($0.50) for small amounts. Otherwise round up to nearest dollar ($2).
+        const numDecimalPlacesToShow =
+          estimatedAnnualRewardsDecimal && estimatedAnnualRewardsDecimal > 1
+            ? 0
+            : 2;
+
+        if (estimatedAnnualRewardsDecimal) {
+          estimatedAnnualRewardsFormatted = `$${new BigNumber(
+            estimatedAnnualRewardsDecimal,
+          ).toFixed(numDecimalPlacesToShow, BigNumber.ROUND_UP)}`;
+        }
+      }
+
       return {
         ...token,
         tokenBalanceFormatted: balanceValueFormatted,
         balanceFiat,
-        apr: MOCK_APR_VALUES[token.symbol] || '0.0',
+        apr,
+        estimatedAnnualRewardsFormatted,
       };
     },
     [

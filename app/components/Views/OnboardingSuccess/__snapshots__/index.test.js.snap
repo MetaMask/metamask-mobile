@@ -34,7 +34,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 24,
             "fontWeight": "700",
@@ -58,7 +58,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -74,7 +74,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -90,7 +90,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
               onPress={[Function]}
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -136,7 +136,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             }
           >
             <SvgMock
-              color="#0376c9"
+              color="#4459ff"
               height={16}
               name="Setting"
               style={
@@ -152,7 +152,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -168,7 +168,7 @@ exports[`OnboardingSuccess should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
@@ -201,7 +201,7 @@ Change these at any time.
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 24,
             "flexDirection": "row",
             "height": 48,

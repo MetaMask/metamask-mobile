@@ -1,3 +1,121 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ProfileSyncing should render correctly 1`] = `null`;
+exports[`ProfileSyncing renders correctly 1`] = `
+<View
+  style={
+    {
+      "marginVertical": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "paddingBottom": 8,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Profile Sync
+    </Text>
+    <RCTSwitch
+      accessibilityRole="switch"
+      disabled={false}
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      onTintColor="#4459ff"
+      style={
+        [
+          {
+            "height": 31,
+            "width": 51,
+          },
+          {
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 16,
+          },
+        ]
+      }
+      thumbTintColor="#ffffff"
+      tintColor="#b7bbc866"
+      value={true}
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn how we protect your privacy
+    </Text>
+  </Text>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
+`;
