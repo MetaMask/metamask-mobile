@@ -22,7 +22,7 @@ import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
 import { RampSDK } from '../../sdk';
-import useSortedQuotes from '../../hooks/useSortedQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -121,8 +121,8 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
-const mockUseSortedQuotesInitialValues: Partial<
-  ReturnType<typeof useSortedQuotes>
+const mockUseQuotesAndCustomActionsInitialValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
 > = {
   quotes: mockQuotesData as (QuoteResponse | QuoteError)[],
   quotesWithoutError: mockQuotesData as QuoteResponse[],
@@ -136,12 +136,14 @@ const mockUseSortedQuotesInitialValues: Partial<
   query: mockQueryGetQuotes,
 };
 
-let mockUseSortedQuotesValues: Partial<ReturnType<typeof useSortedQuotes>> = {
-  ...mockUseSortedQuotesInitialValues,
+let mockUseQuotesAndCustomActionsValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
+> = {
+  ...mockUseQuotesAndCustomActionsInitialValues,
 };
 
-jest.mock('../../hooks/useSortedQuotes', () =>
-  jest.fn(() => mockUseSortedQuotesValues),
+jest.mock('../../hooks/useQuotesAndCustomActions', () =>
+  jest.fn(() => mockUseQuotesAndCustomActionsValues),
 );
 
 describe('Quotes', () => {
@@ -161,14 +163,14 @@ describe('Quotes', () => {
     mockUseParamsValues = {
       ...mockUseParamsInitialValues,
     };
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
     };
   });
 
   it('calls setOptions when rendering', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
       quotesWithoutError: [],
@@ -189,7 +191,8 @@ describe('Quotes', () => {
       chain_id_destination: '1',
       location: 'Quotes Screen',
       results_count:
-        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -206,7 +209,8 @@ describe('Quotes', () => {
       chain_id_source: '1',
       location: 'Quotes Screen',
       results_count:
-        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -215,8 +219,8 @@ describe('Quotes', () => {
 
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
     };
@@ -227,8 +231,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation without quotes', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       quotesWithoutError: [],
       quotesByPriceWithoutError: [],
       quotesByReliabilityWithoutError: [],
@@ -320,7 +324,7 @@ describe('Quotes', () => {
     browser: ProviderBuyFeatureBrowserEnum,
   ) => {
     const mockedRecommendedQuote =
-      mockUseSortedQuotesInitialValues.recommendedQuote;
+      mockUseQuotesAndCustomActionsInitialValues.recommendedQuote;
 
     if (!mockedRecommendedQuote) {
       throw new Error('No recommended quote found');
@@ -342,8 +346,8 @@ describe('Quotes', () => {
     (mockedRecommendedQuote as QuoteResponse).buy = () =>
       Promise.resolve(mockedBuyAction);
 
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       recommendedQuote: mockedRecommendedQuote,
     };
     render(Quotes);
@@ -515,7 +519,8 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
 
-    const mockRecommendedQuote = mockUseSortedQuotesValues.recommendedQuote;
+    const mockRecommendedQuote =
+      mockUseQuotesAndCustomActionsValues.recommendedQuote;
 
     if (!mockRecommendedQuote) {
       throw new Error('No recommended quote found');
@@ -713,8 +718,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly when fetching quotes errors', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
@@ -725,8 +730,8 @@ describe('Quotes', () => {
   });
 
   it('fetches quotes again when pressing button after fetching quotes errors', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);

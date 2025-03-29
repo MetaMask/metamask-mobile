@@ -17,7 +17,7 @@ import {
   QuoteResponse,
   SellQuoteResponse,
 } from '@consensys/on-ramp-sdk';
-import { Provider } from '@consensys/on-ramp-sdk/dist/API';
+import { PaymentCustomAction, Provider } from '@consensys/on-ramp-sdk/dist/API';
 import styleSheet from './Quotes.styles';
 import LoadingQuotes from './LoadingQuotes';
 import Timer from './Timer';
@@ -27,6 +27,7 @@ import ErrorViewWithReporting from '../../components/ErrorViewWithReporting';
 import ErrorView from '../../components/ErrorView';
 import Row from '../../components/Row';
 import Quote from '../../components/Quote';
+import CustomAction from '../../components/CustomAction';
 import InfoAlert from '../../components/InfoAlert';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
 import {
@@ -42,7 +43,7 @@ import BottomSheetFooter, {
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 
 import useAnalytics from '../../hooks/useAnalytics';
-import useSortedQuotes from '../../hooks/useSortedQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import { useRampSDK } from '../../sdk';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -124,13 +125,15 @@ function Quotes() {
 
   const {
     recommendedQuote,
+    recommendedCustomAction,
     quotesWithoutError,
     quotesWithError,
     quotesByPriceWithoutError,
+    customActions,
     isFetching: isFetchingQuotes,
     error: ErrorFetchingQuotes,
     query: fetchQuotes,
-  } = useSortedQuotes(params.amount);
+  } = useQuotesAndCustomActions(params.amount);
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
@@ -243,6 +246,13 @@ function Quotes() {
     trackEvent,
   ]);
 
+  const handleOnCustomActionPress = useCallback(
+    (customAction: PaymentCustomAction) => {
+      setProviderId(customAction?.buy?.provider.id);
+    },
+    [],
+  );
+
   const handleOnQuotePress = useCallback(
     (quote: QuoteResponse | SellQuoteResponse) => {
       setProviderId(quote.provider.id);
@@ -268,6 +278,13 @@ function Quotes() {
       }
     },
     [isBuy, trackEvent],
+  );
+
+  const handleOnPressCustomActionCTA = useCallback(
+    (customAction: PaymentCustomAction) => {
+      console.log('user clicked a custom action');
+    },
+    [],
   );
 
   const handleOnPressCTA = useCallback(
@@ -592,8 +609,16 @@ function Quotes() {
       } else if (recommendedQuote) {
         setProviderId(recommendedQuote.provider?.id);
       }
+    } else if (recommendedCustomAction) {
+      console.log('recommendedCustomAction', recommendedCustomAction);
+      setProviderId(recommendedCustomAction.buy?.provider?.id);
     }
-  }, [isExpanded, quotesByPriceWithoutError, recommendedQuote]);
+  }, [
+    isExpanded,
+    quotesByPriceWithoutError,
+    recommendedCustomAction,
+    recommendedQuote,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -719,7 +744,11 @@ function Quotes() {
   }
 
   // No providers available
-  if (!isFetchingQuotes && quotesByPriceWithoutError.length === 0) {
+  if (
+    !isFetchingQuotes &&
+    quotesByPriceWithoutError.length === 0 &&
+    customActions?.length === 0
+  ) {
     if (!isExpanded) {
       return (
         <BottomSheet>
@@ -775,6 +804,29 @@ function Quotes() {
           <ScrollView testID={QuoteSelectors.QUOTES}>
             {isFetchingQuotes && isInPolling ? (
               <LoadingQuotes count={1} />
+            ) : recommendedCustomAction ? (
+              <CustomAction
+                isLoading={isQuoteLoading}
+                previouslyUsedProvider={ordersProviders.includes(
+                  recommendedCustomAction.buy?.provider?.id,
+                )}
+                customAction={recommendedCustomAction}
+                onPress={() =>
+                  handleOnCustomActionPress(recommendedCustomAction)
+                }
+                onPressCTA={() =>
+                  handleOnPressCustomActionCTA(recommendedCustomAction, 0)
+                }
+                highlighted={
+                  recommendedCustomAction.buy?.provider?.id === providerId
+                }
+                showInfo={() =>
+                  handleInfoPress({
+                    provider: recommendedCustomAction?.buy?.provider,
+                  })
+                }
+                rampType={rampType}
+              />
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
                 <Quote
@@ -899,22 +951,49 @@ function Quotes() {
               {isFetchingQuotes && isInPolling ? (
                 <LoadingQuotes />
               ) : (
-                quotesByPriceWithoutError.map((quote, index) => (
-                  <Row key={quote.provider.id}>
-                    <Quote
-                      isLoading={isQuoteLoading}
-                      previouslyUsedProvider={ordersProviders.includes(
-                        quote.provider.id,
-                      )}
-                      quote={quote}
-                      onPress={() => handleOnQuotePress(quote)}
-                      onPressCTA={() => handleOnPressCTA(quote, index)}
-                      highlighted={quote.provider.id === providerId}
-                      showInfo={() => handleInfoPress(quote)}
-                      rampType={rampType}
-                    />
-                  </Row>
-                ))
+                <>
+                  {customActions
+                    ? customActions.map((customAction) => (
+                        <CustomAction
+                          isLoading={isQuoteLoading}
+                          previouslyUsedProvider={ordersProviders.includes(
+                            customAction.buy?.provider?.id,
+                          )}
+                          customAction={customAction}
+                          onPress={() => handleOnQuotePress(customAction)}
+                          onPressCTA={() =>
+                            handleOnPressCustomActionCTA(customAction, 0)
+                          }
+                          highlighted={
+                            customAction.buy?.provider?.id === providerId
+                          }
+                          showInfo={() =>
+                            handleInfoPress({
+                              provider: customAction?.buy?.provider,
+                            })
+                          }
+                          rampType={rampType}
+                        />
+                      ))
+                    : null}
+
+                  {quotesByPriceWithoutError.map((quote, index) => (
+                    <Row key={quote.provider.id}>
+                      <Quote
+                        isLoading={isQuoteLoading}
+                        previouslyUsedProvider={ordersProviders.includes(
+                          quote.provider.id,
+                        )}
+                        quote={quote}
+                        onPress={() => handleOnQuotePress(quote)}
+                        onPressCTA={() => handleOnPressCTA(quote, index)}
+                        highlighted={quote.provider.id === providerId}
+                        showInfo={() => handleInfoPress(quote)}
+                        rampType={rampType}
+                      />
+                    </Row>
+                  ))}
+                </>
               )}
             </ScreenLayout.Content>
           </Animated.ScrollView>
