@@ -296,11 +296,10 @@ const RevealPrivateCredential = ({
 
     const msg = `${strings(
       `reveal_credential.${privCredentialName}_copied_${Platform.OS}`,
-    )}${
-      Device.isIos()
+    )}${Device.isIos()
         ? strings(`reveal_credential.${privCredentialName}_copied_time`)
         : ''
-    }`;
+      }`;
 
     dispatch(
       showAlert({

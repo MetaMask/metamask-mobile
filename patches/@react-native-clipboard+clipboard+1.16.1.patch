@@ -1,9 +1,9 @@
 diff --git a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
-index 248fbf8..20fa37f 100644
+index b68b858..3376547 100644
 --- a/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
 +++ b/node_modules/@react-native-clipboard/clipboard/android/src/main/java/com/reactnativecommunity/clipboard/ClipboardModule.java
-@@ -72,6 +72,16 @@ public class ClipboardModule extends ContextBaseJavaModule {
-     }
+@@ -64,6 +64,16 @@ public class ClipboardModule extends NativeClipboardModuleSpec {
+     return (ClipboardManager) reactContext.getSystemService(Context.CLIPBOARD_SERVICE);
    }
  
 +  @ReactMethod
@@ -17,17 +17,17 @@ index 248fbf8..20fa37f 100644
 +  }
 +
    @ReactMethod
-   public void hasString(Promise promise) {
+   public void getString(Promise promise) {
      try {
 diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
-index 988c553..ea44978 100644
+index 6c85195..3a9302e 100644
 --- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
 +++ b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.d.ts
-@@ -40,6 +40,25 @@ export declare const Clipboard: {
-      * @param the content to be stored in the clipboard.
+@@ -90,6 +90,25 @@ export declare const Clipboard: {
+      * }
+      * ```
       */
-     setString(content: string): void;
-+	/**
++    /**
 +     * [IOS ONLY] Set content of string type with an expiry date of 60 seconds. You can use following code to set clipboard content
 +     * ```javascript
 +     * _setContent() {
@@ -46,18 +46,18 @@ index 988c553..ea44978 100644
 +     * ```
 +     */
 +	clearString(): void;
+     hasString(): Promise<boolean>;
      /**
-      * Returns whether the clipboard has content or is empty.
-      * This method returns a `Promise`, so you can use following code to get clipboard content
+      * Returns whether the clipboard has an image or is empty.
 diff --git a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
-index 7bdc989..cde4c6d 100644
+index ccdf309..3eb6120 100644
 --- a/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
 +++ b/node_modules/@react-native-clipboard/clipboard/dist/Clipboard.js
-@@ -71,6 +71,29 @@ exports.Clipboard = {
-     setString: function (content) {
-         NativeClipboard_1.default.setString(content);
+@@ -127,6 +127,29 @@ exports.Clipboard = {
+     setStrings(content) {
+         NativeClipboardModule_1.default.setStrings(content);
      },
-+	/**
++    	/**
 +     * [IOS ONLY] Set content of string type. You can use following code to set clipboard content
 +     * ```javascript
 +     * _setContent() {
@@ -83,21 +83,20 @@ index 7bdc989..cde4c6d 100644
      /**
       * Returns whether the clipboard has content or is empty.
       * This method returns a `Promise`, so you can use following code to get clipboard content
-diff --git a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
-index 57efb09..9e0773c 100644
---- a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
-+++ b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.m
-@@ -4,7 +4,7 @@
- #import <UIKit/UIKit.h>
+diff --git a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.mm b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.mm
+index 3ee5caa..f6bd6f3 100644
+--- a/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.mm
++++ b/node_modules/@react-native-clipboard/clipboard/ios/RNCClipboard.mm
+@@ -6,6 +6,7 @@
  #import <React/RCTBridge.h>
  #import <React/RCTEventDispatcher.h>
--
+ 
 +#import <MobileCoreServices/UTCoreTypes.h>
  
  @implementation RNCClipboard {
      BOOL isObserving;
-@@ -66,6 +66,16 @@ - (void) listener:(NSNotification *) notification
-   clipboard.string = (content ? : @"");
+@@ -51,6 +52,16 @@ - (void) listener:(NSNotification *) notification
+     }
  }
  
 +RCT_EXPORT_METHOD(setStringExpire:(NSString *)content)
@@ -110,6 +109,6 @@ index 57efb09..9e0773c 100644
 +  [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
 +}
 +
- RCT_EXPORT_METHOD(getString:(RCTPromiseResolveBlock)resolve
-                   reject:(__unused RCTPromiseRejectBlock)reject)
+ RCT_EXPORT_METHOD(setListener)
  {
+     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(listener:) name:UIPasteboardChangedNotification object:nil];
