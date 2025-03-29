@@ -22,6 +22,10 @@ const initialState = {
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {

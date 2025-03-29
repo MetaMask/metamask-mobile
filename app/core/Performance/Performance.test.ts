@@ -2,6 +2,10 @@
 import Performance from './Performance';
 import performance from 'react-native-performance';
 
+jest.mock('../../util/test/utils', () => ({
+  isTest: true, // or false, depending on what you want to test
+}));
+
 // Mock react-native-performance
 jest.mock('react-native-performance', () => {
   const originalModule = jest.requireActual('react-native-performance');
@@ -46,10 +50,6 @@ describe('Performance', () => {
   });
 
   it('should not log performance numbers in production', () => {
-    jest.mock('../../util/test/utils', () => ({
-      isTest: true, // or false, depending on what you want to test
-    }));
-
     // Mock console.info to verify its calls
     console.info = jest.fn();
 
