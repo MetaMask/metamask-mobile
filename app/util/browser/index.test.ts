@@ -39,7 +39,7 @@ describe('Browser utils :: onUrlSubmit', () => {
     expect(url).toBe('https://test.com');
   });
 
-  it('should generate a seach engine link if it we pass non url', () => {
+  it('should generate a search engine link if it we pass non url', () => {
     const keyword = 'test';
     const url = processUrlForBrowser(keyword, 'Google');
     const expectedUrl =
