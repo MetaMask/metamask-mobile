@@ -207,6 +207,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1546,7 +1547,9 @@ export class Engine {
     AccountTrackerController.refresh();
   }
 
-  getTotalFiatAccountBalance = (): {
+  getTotalFiatAccountBalance = (
+    account?: InternalAccount,
+  ): {
     ethFiat: number;
     tokenFiat: number;
     tokenFiat1dAgo: number;
@@ -1562,9 +1565,11 @@ export class Engine {
       NetworkController,
     } = this.context;
 
-    const selectedInternalAccount = AccountsController.getAccount(
-      AccountsController.state.internalAccounts.selectedAccount,
-    );
+    const selectedInternalAccount =
+      account ??
+      AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
 
     if (selectedInternalAccount) {
       const selectSelectedInternalAccountFormattedAddress =
@@ -2044,9 +2049,9 @@ export default {
     return instance.datamodel;
   },
 
-  getTotalFiatAccountBalance() {
+  getTotalFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
-    return instance.getTotalFiatAccountBalance();
+    return instance.getTotalFiatAccountBalance(account);
   },
 
   hasFunds() {
