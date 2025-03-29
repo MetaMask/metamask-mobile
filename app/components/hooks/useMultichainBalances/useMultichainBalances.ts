@@ -89,11 +89,6 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       const balance = Engine.getTotalFiatAccountBalance(account);
       let total;
 
-      // console.log(
-      //   'balance',
-      //   JSON.stringify(totalFiatBalancesCrossChain, null, 2),
-      // );
-
       if (isOriginalNativeTokenSymbol) {
         if (isPortfolioViewEnabled()) {
           total =
@@ -169,27 +164,18 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
   ///: END:ONLY_INCLUDE_IF
 
-  const getDisplayBalance = useCallback(
-    (account: InternalAccount) => {
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      if (!isEvmAccountType(account.type)) {
-        return getNonEvmDisplayBalance(account);
-      }
-      ///: END:ONLY_INCLUDE_IF
-      return getEvmBalance(account).displayBalance;
+  const getAggregatedBalance = useMemo(
+    () => (account: InternalAccount) => {
+      const balance = Engine.getTotalFiatAccountBalance(account);
+      return {
+        ethFiat: balance?.ethFiat ?? 0,
+        tokenFiat: balance?.tokenFiat ?? 0,
+        tokenFiat1dAgo: balance?.tokenFiat1dAgo ?? 0,
+        ethFiat1dAgo: balance?.ethFiat1dAgo ?? 0,
+      };
     },
-    [getEvmBalance, getNonEvmDisplayBalance],
+    [],
   );
-
-  const getAggregatedBalance = (account: InternalAccount) => {
-    const balance = Engine.getTotalFiatAccountBalance(account);
-    return {
-      ethFiat: balance?.ethFiat ?? 0,
-      tokenFiat: balance?.tokenFiat ?? 0,
-      tokenFiat1dAgo: balance?.tokenFiat1dAgo ?? 0,
-      ethFiat1dAgo: balance?.ethFiat1dAgo ?? 0,
-    };
-  };
 
   const getAccountBalanceData = useCallback(
     (
@@ -237,8 +223,8 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     ],
   );
 
-  const getShouldShowAggregatedPercentage = useCallback(
-    (account: InternalAccount) => {
+  const getShouldShowAggregatedPercentage = useMemo(
+    () => (account: InternalAccount) => {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       return !isTestNet(chainId) && isEvmAccountType(account.type);
       ///: END:ONLY_INCLUDE_IF
@@ -280,13 +266,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       getShouldShowAggregatedPercentage,
       isPortfolioEnabled,
       totalFiatBalancesCrossChain,
+      getAggregatedBalance,
     ],
   );
-
-  // console.log(
-  //   'totalFiatBalancesCrossChain',
-  //   JSON.stringify(totalFiatBalancesCrossChain, null, 2),
-  // );
 
   const selectedAccountMultichainBalance = useMemo(() => {
     if (selectedInternalAccount) {
@@ -315,6 +297,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     isPortfolioEnabled,
     selectedInternalAccount,
     totalFiatBalancesCrossChain,
+    getAggregatedBalance,
   ]);
 
   return {
