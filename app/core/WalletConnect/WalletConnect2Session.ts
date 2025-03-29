@@ -452,12 +452,12 @@ class WalletConnect2Session {
       );
       if (!existingEntry && !existingNetworkDefault) {
         DevLogger.log(
-          `SKIP rpcMiddleWare -- auto rejection is detected (_chainId=${_chainId})`,
+          `wallet_switchEthereumChain: chain not found, throwing 4902 (_chainId=${_chainId})`,
         );
         await this.web3Wallet.rejectRequest({
           id: requestEvent.id,
           topic: requestEvent.topic,
-          error: { code: 32603, message: ERROR_MESSAGES.INVALID_CHAIN },
+          error: { code: 4902, message: `Unrecognized chain ID "${_chainId}". Try adding the chain using wallet_addEthereumChain first.` },
         });
 
         showWCLoadingState({ navigation: this.navigation });
