@@ -1627,14 +1627,12 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
+                  <TouchableOpacity
+                    accessibilityLabel="submit"
+                    accessibilityRole="button"
                     accessible={true}
                     disabled={false}
-                    id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
                     padding={0}
                     style={
                       {
@@ -1647,7 +1645,6 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "lineHeight": 22,
                       }
                     }
-                    suppressHighlighting={true}
                   >
                     <Text
                       accessibilityRole="text"
@@ -1662,13 +1659,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         }
                       }
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -2668,14 +2661,12 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
+            <TouchableOpacity
+              accessibilityLabel="submit"
+              accessibilityRole="button"
               accessible={true}
               disabled={false}
-              id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
                   "backgroundColor": "transparent",
@@ -2687,7 +2678,6 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   "lineHeight": 22,
                 }
               }
-              suppressHighlighting={true}
             >
               <Text
                 accessibilityRole="text"
@@ -2702,13 +2692,9 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   }
                 }
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
