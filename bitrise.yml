@@ -39,11 +39,11 @@ pipelines:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
-  #Run E2E test suite for iOS Flask only
+  #Run E2E test suite for  Flask builds
   run_e2e_flask_pipeline:
     stages:
-      - build_e2e_flask_stage: {}
-      - run_e2e_flask_stage: {}
+      - build_e2e_flask_ios_android: {}
+      - run_e2e_flask_ios_android: {}
       - notify: {}
   #Run E2E test suite for Android only
   run_e2e_android_pipeline:
@@ -245,15 +245,14 @@ stages:
   release_notify:
     workflows:
       - release_announcing_stores: {}
-  build_e2e_flask_stage:
-    abort_on_fail: true
+  build_e2e_flask_ios_android:
     workflows:
-      - ios_e2e_build_flask: {}
-      - android_e2e_build_flask: {}
-  run_e2e_flask_stage:
+      - build_flask_e2e_android: {}
+      - build_flask_e2e_ios: {}
+  run_e2e_flask_ios_android:
     workflows:
-      - ios_e2e_test_flask: {}
-      - android_e2e_test_flask: {}
+      - run_flask_e2e_android: {}
+      - run_flask_e2e_ios: {}
   create_build_flask_release:
     workflows:
       - build_android_flask_release: {}
@@ -585,6 +584,34 @@ workflows:
       - TEST_SUITE: 'Regression'
     after_run:
       - android_e2e_test
+  build_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_build
+  run_flask_e2e_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - android_e2e_test
+  build_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_build
+  run_flask_e2e_ios:
+    envs:
+      - METAMASK_BUILD_TYPE: 'flask'
+    after_run:
+      - ios_e2e_test
   run_tag_upgrade_android:
     meta:
       bitrise.io:
@@ -853,7 +880,7 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
       - save-gradle-cache@1: {}
       - save-cache@1:
@@ -933,8 +960,12 @@ workflows:
                 TEST_SUITE=$TEST_SUITE_TAG
                 fi
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
+                else
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                fi
       - custom-test-results-export@1:
           title: Export test results
           is_always_run: true
@@ -1097,7 +1128,7 @@ workflows:
                 ./scripts/cache/setup-ccache.sh
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
       - save-cocoapods-cache@1: {}
       - save-cache@1:
@@ -1118,213 +1149,6 @@ workflows:
           inputs:
             - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
             - paths: node_modules
-  ios_e2e_build_flask:
-    envs:
-      - NO_FLIPPER: '1'
-      - METAMASK_BUILD_TYPE: 'flask'
-    before_run:
-      - install_applesimutils
-      - code_setup
-      - set_commit_hash
-    after_run:
-      - notify_failure
-    steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh ios
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                brew install ccache with HOMEBREW_NO_DEPENDENTS_CHECK=1
-                ln -s $(which ccache) /usr/local/bin/gcc
-                ln -s $(which ccache) /usr/local/bin/g++
-                ln -s $(which ccache) /usr/local/bin/cc
-                ln -s $(which ccache) /usr/local/bin/c++
-                ln -s $(which ccache) /usr/local/bin/clang
-                ln -s $(which ccache) /usr/local/bin/clang++
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - script@1:
-          title: Run detox build
-          timeout: 1200
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
-      - save-cocoapods-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
-      - deploy-to-bitrise-io@2.2.3:
-          inputs:
-            - pipeline_intermediate_files: |-
-                ios/build/Build:INTERMEDIATE_IOS_BUILD_DIR
-                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
-          title: Save iOS build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
-  ios_e2e_test_flask:
-    envs:
-      - NO_FLIPPER: '1'
-      - METAMASK_BUILD_TYPE: 'flask'
-    before_run:
-      - setup
-      - install_applesimutils
-      - prep_environment
-    after_run:
-      - notify_failure
-    steps:
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
-          title: Pull iOS build
-      - script@1:
-          title: Copy iOS build for Detox
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/ios/build/Build"
-                mkdir -p "$BITRISE_SOURCE_DIR/../Library/Detox/ios"
-                # Copy saved files for Detox usage
-                # INTERMEDIATE_IOS_BUILD_DIR & INTERMEDIATE_IOS_DETOX_DIR are the cached directories by ios_e2e_build's "Save iOS build" step
-                cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build"
-                cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
-      - restore-cocoapods-cache@2: {}
-      - restore-cache@2:
-          title: Restore cache node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
-      - script:
-          inputs:
-            - content: |-
-                # Add cache directory to environment variable
-                envman add --key BREW_APPLESIMUTILS --value "$(brew --cellar)/applesimutils"
-                envman add --key BREW_OPT_APPLESIMUTILS --value "/usr/local/opt/applesimutils"
-                brew tap wix/brew
-          title: Set Env Path for caching deps
-      - script@1:
-          title: Start Metro bundler
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                # Start Metro bundler in the background
-                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
-                yarn start --reset-cache &
-                # Save the PID to kill it later
-                echo $! > metro.pid
-                # Wait for Metro to start
-                sleep 30
-      - script@1:
-          title: Run detox test
-          timeout: 1200
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
-                  TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                  echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                  TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export PATH="$PATH:$BITRISE_SOURCE_DIR/node_modules/.bin"
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
-      - script@1:
-          title: Kill Metro bundler
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ -f metro.pid ]; then
-                  kill $(cat metro.pid) || true
-                  rm metro.pid
-                fi
-      - custom-test-results-export@1:
-          is_always_run: true
-          is_skippable: false
-          title: Export test results
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: true
-          is_skippable: true
-          title: Deploy test report files
-      - script@1:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Copy screenshot files
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
-      - deploy-to-bitrise-io@2.3:
-          is_always_run: true
-          run_if: .IsBuildFailed
-          title: Deploy test screenshots
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
-            - zip_name: 'E2E_IOS_Failure_Artifacts'
   ios_e2e_test:
     envs:
       - NO_FLIPPER: '1'
@@ -1393,8 +1217,12 @@ workflows:
                 fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='main'
+                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
+                if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
+                else
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                fi
       - custom-test-results-export@1:
           is_always_run: true
           is_skippable: false
@@ -1424,172 +1252,6 @@ workflows:
             - deploy_path: $BITRISE_DEPLOY_DIR
             - is_compress: true
             - zip_name: 'E2E_IOS_Failure_Artifacts'
-  android_e2e_build_flask:
-    before_run:
-      - code_setup
-      - set_commit_hash
-    after_run:
-      - notify_failure
-    steps:
-      - script@1:
-          title: Generating ccache key using native folder checksum
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/set-cache-envs.sh android
-      - restore-gradle-cache@2: {}
-      - install-missing-android-tools@3:
-          inputs:
-            - ndk_version: $NDK_VERSION
-            - gradlew_path: $PROJECT_LOCATION/gradlew
-      - file-downloader@1:
-          inputs:
-            - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
-      - script@1:
-          title: Install CCache & symlink
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                sudo apt update
-                sudo apt install ccache -y
-      - restore-cache@2:
-          title: Restore CCache
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-      - script@1:
-          title: Set skip ccache upload
-          run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                envman add --key SKIP_CCACHE_UPLOAD --value "true"
-      - script@1:
-          title: Run detox build
-          timeout: 1200
-          is_always_run: true
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                ./scripts/cache/setup-ccache.sh
-                node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:build:qa-release
-      - save-gradle-cache@1: {}
-      - save-cache@1:
-          title: Save CCache
-          run_if: '{{not (enveq "SKIP_CCACHE_UPLOAD" "true")}}'
-          inputs:
-            - key: '{{ getenv "CCACHE_KEY" }}'
-            - paths: |-
-                ccache
-      - deploy-to-bitrise-io@2.2.3:
-          inputs:
-            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
-          title: Save Android build
-      - save-cache@1:
-          title: Save node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-            - paths: node_modules
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-  android_e2e_test_flask:
-    before_run:
-      - setup
-      - prep_environment
-    after_run:
-      - notify_failure
-    steps:
-      - restore-gradle-cache@2: {}
-      - pull-intermediate-files@1:
-          inputs:
-            - artifact_sources: .*
-          title: Pull Android build
-      - script@1:
-          title: Copy Android build for Detox
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                # Create directories for Detox
-                mkdir -p "$BITRISE_SOURCE_DIR/android/app/build/outputs"
-                # Copy saved files for Detox usage
-                # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
-                cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
-      - restore-cache@2:
-          title: Restore cache node_modules
-          inputs:
-            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
-      - avd-manager@1:
-          inputs:
-            - api_level: '34'
-            - abi: 'x86_64'
-            - create_command_flags: --sdcard 8192M
-            - start_command_flags: -read-only
-            - profile: pixel_5
-      - wait-for-android-emulator@1: {}
-      - script@1:
-          title: Run detox test
-          timeout: 1200
-          is_always_run: false
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                else
-                  # Default to Flask specs folder if not specified
-                  TEST_SUITE_FOLDER="e2e/specs/flask/"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE='flask'
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release e2e/specs/flask/
-      - custom-test-results-export@1:
-          title: Export test results
-          is_always_run: true
-          is_skippable: true
-          inputs:
-            - base_path: $BITRISE_SOURCE_DIR/e2e/reports/
-            - test_name: E2E Tests
-            - search_pattern: $BITRISE_SOURCE_DIR/e2e/reports/junit.xml
-      - deploy-to-bitrise-io@2.2.3:
-          title: Deploy test report files
-          is_always_run: true
-          is_skippable: true
-      - script@1:
-          title: Copy screenshot files
-          is_always_run: true
-          run_if: .IsBuildFailed
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                set -ex
-                cp -r "$BITRISE_SOURCE_DIR/artifacts"  "$BITRISE_DEPLOY_DIR"
-      - deploy-to-bitrise-io@2.3:
-          title: Deploy test screenshots
-          is_always_run: true
-          run_if: .IsBuildFailed
-          inputs:
-            - deploy_path: $BITRISE_DEPLOY_DIR
-            - is_compress: true
-            - zip_name: E2E_Android_Failure_Artifacts
-    meta:
-      bitrise.io:
-        machine_type_id: elite-xl
-        stack: linux-docker-android-22.04
   start_e2e_tests:
     steps:
       - build-router-start@0:
