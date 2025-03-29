@@ -47,14 +47,14 @@ export const PortfolioBalance = React.memo(() => {
 
   const { selectedAccountMultichainBalance, multichainBalancesForAllAccounts } =
     useMultichainBalances();
-  console.log(
-    'Portfolio balance selectedAccountMultichainBalance',
-    JSON.stringify(selectedAccountMultichainBalance, null, 2),
-  );
-  console.log(
-    'Portfolio balance multichainBalancesForAllAccounts',
-    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
-  );
+  // console.log(
+  //   'Portfolio balance selectedAccountMultichainBalance',
+  //   JSON.stringify(selectedAccountMultichainBalance, null, 2),
+  // );
+  // console.log(
+  //   'Portfolio balance multichainBalancesForAllAccounts',
+  //   JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  // );
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>

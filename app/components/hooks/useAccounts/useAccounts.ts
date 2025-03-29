@@ -58,19 +58,19 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
-  const accountInfoByAddress = useSelector(selectAccounts);
-  const conversionRate = useSelector(selectConversionRate);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const ticker = useSelector(selectEvmTicker);
+  // const accountInfoByAddress = useSelector(selectAccounts);
+  // const conversionRate = useSelector(selectConversionRate);
+  // const currentCurrency = useSelector(selectCurrentCurrency);
+  // const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const { multichainBalancesForAllAccounts } = useMultichainBalances();
 
-  // console.log(
-  //   'useAccounts multichainBalancesForAllAccounts',
-  //   JSON.stringify(multichainBalancesForAllAccounts, null, 2),
-  // );
+  console.log(
+    'useAccounts multichainBalancesForAllAccounts',
+    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  );
 
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
@@ -182,7 +182,11 @@ const useAccounts = ({
           // const balanceTicker = getTicker(ticker);
           const balanceForAccount =
             multichainBalancesForAllAccounts?.[internalAccount.id];
-          const displayBalance = `${balanceForAccount.displayBalance} \n ${balanceForAccount.nativeTokenBalance?.amount} ${balanceForAccount.nativeTokenBalance?.unit}`;
+          console.log(
+            'useAccounts balanceForAccount',
+            JSON.stringify(balanceForAccount, null, 2),
+          );
+          const displayBalance = `${balanceForAccount.displayBalance} \n ${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`;
           // const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
           // console.log('balanceLabel', balanceLabel);
 
@@ -236,10 +240,6 @@ const useAccounts = ({
     [
       selectedInternalAccount,
       fetchENSNames,
-      accountInfoByAddress,
-      conversionRate,
-      currentCurrency,
-      ticker,
       isMultiAccountBalancesEnabled,
       internalAccounts,
       checkBalanceError,

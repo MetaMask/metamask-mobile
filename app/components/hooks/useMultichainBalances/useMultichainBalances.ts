@@ -84,7 +84,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   ///: END:ONLY_INCLUDE_IF
 
   // Production balance calculartion (EVM)
-  const getEvmDisplayBalance = useCallback(
+  const getEvmBalance = useCallback(
     (account: InternalAccount) => {
       const balance = Engine.getTotalFiatAccountBalance(account);
       let total;
@@ -112,10 +112,17 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         total = balance?.tokenFiat ?? 0;
       }
 
-      return formatWithThreshold(total, 0, I18n.locale, {
+      const displayBalance = formatWithThreshold(total, 0, I18n.locale, {
         style: 'currency',
         currency: currentCurrency.toUpperCase(),
       });
+
+      return {
+        displayBalance,
+        totalFiatBalance: total,
+        totalNativeTokenBalance: total,
+        nativeTokenUnit: 'ETH',
+      };
     },
     [currentCurrency, isOriginalNativeTokenSymbol, totalFiatBalancesCrossChain],
   );
@@ -169,9 +176,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         return getNonEvmDisplayBalance(account);
       }
       ///: END:ONLY_INCLUDE_IF
-      return getEvmDisplayBalance(account);
+      return getEvmBalance(account).displayBalance;
     },
-    [getEvmDisplayBalance, getNonEvmDisplayBalance],
+    [getEvmBalance, getNonEvmDisplayBalance],
   );
 
   const getAggregatedBalance = (account: InternalAccount) => {
@@ -183,6 +190,52 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       ethFiat1dAgo: balance?.ethFiat1dAgo ?? 0,
     };
   };
+
+  const getAccountBalanceData = useCallback(
+    (
+      account: InternalAccount,
+    ): {
+      displayBalance: string;
+      totalFiatBalance: string;
+      totalNativeTokenBalance: string;
+      nativeTokenUnit: string;
+    } => {
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      if (!isEvmAccountType(account.type)) {
+        const nonEvmAccountBalance = getMultichainNetworkAggregatedBalance(
+          account,
+          multichainBalances,
+          multichainAssets,
+          multichainAssetsRates,
+          nonEvmChainId,
+        );
+        return {
+          displayBalance: getNonEvmDisplayBalance(account),
+          totalFiatBalance: nonEvmAccountBalance.totalBalanceFiat,
+          totalNativeTokenBalance:
+            nonEvmAccountBalance.totalNativeTokenBalance.amount,
+          nativeTokenUnit: nonEvmAccountBalance.totalNativeTokenBalance.unit,
+        };
+      }
+      ///: END:ONLY_INCLUDE_IF
+      const evmAccountBalance = getEvmBalance(account);
+      return {
+        displayBalance: evmAccountBalance.displayBalance,
+        totalFiatBalance: evmAccountBalance.totalFiatBalance.toString(),
+        totalNativeTokenBalance:
+          evmAccountBalance.totalNativeTokenBalance.toString(),
+        nativeTokenUnit: evmAccountBalance.nativeTokenUnit,
+      };
+    },
+    [
+      getEvmBalance,
+      getNonEvmDisplayBalance,
+      multichainAssets,
+      multichainAssetsRates,
+      multichainBalances,
+      nonEvmChainId,
+    ],
+  );
 
   const getShouldShowAggregatedPercentage = useCallback(
     (account: InternalAccount) => {
@@ -200,32 +253,30 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const allAccountBalances = useMemo(
     () =>
-      accountsList.reduce(
-        (acc, account) => ({
+      accountsList.reduce((acc, account) => {
+        const accountBalanceData = getAccountBalanceData(account);
+        return {
           ...acc,
           [account.id]: {
-            displayBalance: getDisplayBalance(account),
+            displayBalance: accountBalanceData.displayBalance,
             displayCurrency: currentCurrency,
+            totalFiatBalance: accountBalanceData.totalFiatBalance,
+            totalNativeTokenBalance: accountBalanceData.totalNativeTokenBalance,
+            nativeTokenUnit: accountBalanceData.nativeTokenUnit,
             tokenFiatBalancesCrossChains:
               totalFiatBalancesCrossChain[account.address]
                 ?.tokenFiatBalancesCrossChains ?? [],
-            totalFiatBalance:
-              totalFiatBalancesCrossChain[account.address]?.totalFiatBalance ??
-              0,
-            totalTokenFiat:
-              totalFiatBalancesCrossChain[account.address]?.totalTokenFiat ?? 0,
             shouldShowAggregatedPercentage:
               getShouldShowAggregatedPercentage(account),
             isPortfolioVieEnabled: isPortfolioEnabled,
             aggregatedBalance: getAggregatedBalance(account),
           },
-        }),
-        {} as Record<string, MultichainBalancesData>,
-      ),
+        };
+      }, {} as Record<string, MultichainBalancesData>),
     [
       accountsList,
       currentCurrency,
-      getDisplayBalance,
+      getAccountBalanceData,
       getShouldShowAggregatedPercentage,
       isPortfolioEnabled,
       totalFiatBalancesCrossChain,
@@ -237,37 +288,34 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   //   JSON.stringify(totalFiatBalancesCrossChain, null, 2),
   // );
 
-  const selectedAccountMultichainBalance = useMemo(
-    () =>
-      selectedInternalAccount
-        ? {
-            displayBalance: getDisplayBalance(selectedInternalAccount),
-            displayCurrency: currentCurrency,
-            tokenFiatBalancesCrossChains:
-              totalFiatBalancesCrossChain[selectedInternalAccount.address]
-                ?.tokenFiatBalancesCrossChains ?? [],
-            totalFiatBalance:
-              totalFiatBalancesCrossChain[selectedInternalAccount.address]
-                ?.totalFiatBalance ?? 0,
-            totalTokenFiat:
-              totalFiatBalancesCrossChain[selectedInternalAccount.address]
-                ?.totalTokenFiat ?? 0,
-            shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
-              selectedInternalAccount,
-            ),
-            isPortfolioVieEnabled: isPortfolioEnabled,
-            aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
-          }
-        : undefined,
-    [
-      currentCurrency,
-      getDisplayBalance,
-      getShouldShowAggregatedPercentage,
-      isPortfolioEnabled,
-      selectedInternalAccount,
-      totalFiatBalancesCrossChain,
-    ],
-  );
+  const selectedAccountMultichainBalance = useMemo(() => {
+    if (selectedInternalAccount) {
+      const accountBalanceData = getAccountBalanceData(selectedInternalAccount);
+      return {
+        displayBalance: accountBalanceData.displayBalance,
+        displayCurrency: currentCurrency,
+        totalFiatBalance: accountBalanceData.totalFiatBalance,
+        totalNativeTokenBalance: accountBalanceData.totalNativeTokenBalance,
+        nativeTokenUnit: accountBalanceData.nativeTokenUnit,
+        tokenFiatBalancesCrossChains:
+          totalFiatBalancesCrossChain[selectedInternalAccount.address]
+            ?.tokenFiatBalancesCrossChains ?? [],
+        shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
+          selectedInternalAccount,
+        ),
+        isPortfolioVieEnabled: isPortfolioEnabled,
+        aggregatedBalance: getAggregatedBalance(selectedInternalAccount),
+      };
+    }
+    return undefined;
+  }, [
+    currentCurrency,
+    getAccountBalanceData,
+    getShouldShowAggregatedPercentage,
+    isPortfolioEnabled,
+    selectedInternalAccount,
+    totalFiatBalancesCrossChain,
+  ]);
 
   return {
     multichainBalancesForAllAccounts: allAccountBalances,

@@ -11,14 +11,12 @@ export interface MultichainBalancesData {
   displayBalance?: string;
   displayCurrency: string;
   tokenFiatBalancesCrossChains: AggregatedPercentageCrossChainsProps['tokenFiatBalancesCrossChains'];
-  totalFiatBalance: number;
-  totalTokenFiat: number;
-  totalBalanceFiat?: string;
+  totalFiatBalance: string;
+  totalNativeTokenBalance: string;
+  nativeTokenUnit: string;
   aggregatedBalance: AggregatedPercentageProps;
   shouldShowAggregatedPercentage: boolean;
   isPortfolioVieEnabled: boolean;
-  nativeTokenBalance?: BalanceInfo;
-  accountBalances?: Record<string, BalanceInfo>;
 }
 
 export interface UseMultichainBalancesHook {
