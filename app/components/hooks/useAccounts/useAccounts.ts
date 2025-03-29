@@ -5,20 +5,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 
 // External Dependencies.
 import { doENSReverseLookup } from '../../../util/ENSUtils';
-import { getTicker } from '../../../util/transactions';
-import {
-  selectChainId,
-  selectEvmTicker,
-} from '../../../selectors/networkController';
-import {
-  selectConversionRate,
-  selectCurrentCurrency,
-} from '../../../selectors/currencyRateController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
-import {
-  selectIsMultiAccountBalancesEnabled,
-  selectIsTokenNetworkFilterEqualCurrentNetwork,
-} from '../../../selectors/preferencesController';
+import { selectChainId } from '../../../selectors/networkController';
+import { selectIsMultiAccountBalancesEnabled } from '../../../selectors/preferencesController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccount,
@@ -32,16 +20,11 @@ import {
   UseAccountsParams,
 } from './useAccounts.types';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { getChainIdsToPoll } from '../../../selectors/tokensController';
-import { useGetFormattedTokensPerChain } from '../useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../useGetTotalFiatBalanceCrossChains';
 import {
   getFormattedAddressFromInternalAccount,
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
-import { getAccountBalances } from './utils';
 import { useMultichainBalances } from '../useMultichainBalances';
-import { fiatNumberToWei, safeBNToHex } from '../../../util/number';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -58,10 +41,6 @@ const useAccounts = ({
   const [ensByAccountAddress, setENSByAccountAddress] =
     useState<EnsByAccountAddress>({});
   const chainId = useSelector(selectChainId);
-  // const accountInfoByAddress = useSelector(selectAccounts);
-  // const conversionRate = useSelector(selectConversionRate);
-  // const currentCurrency = useSelector(selectCurrentCurrency);
-  // const ticker = useSelector(selectEvmTicker);
   const internalAccounts = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
@@ -75,21 +54,6 @@ const useAccounts = ({
   const isMultiAccountBalancesEnabled = useSelector(
     selectIsMultiAccountBalancesEnabled,
   );
-  // Agg balance Start
-  const allChainIDs = useSelector(getChainIdsToPoll);
-  const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
-    selectIsTokenNetworkFilterEqualCurrentNetwork,
-  );
-  const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
-    internalAccounts,
-    !isTokenNetworkFilterEqualCurrentNetwork,
-    allChainIDs,
-  );
-  const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
-    internalAccounts,
-    formattedTokensWithBalancesPerChain,
-  );
-
   // Agg balance End
 
   // Memoize checkBalanceErrorFn so it doesn't cause an infinite loop
@@ -153,98 +117,93 @@ const useAccounts = ({
     [chainId],
   );
 
-  const getAccounts = useCallback(
-    () => {
-      if (!isMountedRef.current) return;
-      // Keep track of the Y position of account item. Used for scrolling purposes.
-      let yOffset = 0;
-      let selectedIndex = 0;
-      const flattenedAccounts: Account[] = internalAccounts.map(
-        (internalAccount: InternalAccount, index: number) => {
-          const formattedAddress =
-            getFormattedAddressFromInternalAccount(internalAccount);
-          const isSelected =
-            selectedInternalAccount?.address === internalAccount.address;
-          if (isSelected) {
-            selectedIndex = index;
-          }
+  const getAccounts = useCallback(() => {
+    if (!isMountedRef.current) return;
+    // Keep track of the Y position of account item. Used for scrolling purposes.
+    let yOffset = 0;
+    let selectedIndex = 0;
+    const flattenedAccounts: Account[] = internalAccounts.map(
+      (internalAccount: InternalAccount, index: number) => {
+        const formattedAddress =
+          getFormattedAddressFromInternalAccount(internalAccount);
+        const isSelected =
+          selectedInternalAccount?.address === internalAccount.address;
+        if (isSelected) {
+          selectedIndex = index;
+        }
 
-          // TODO - Improve UI to either include loading and/or balance load failures.
-          // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
-          // const { balanceETH, balanceFiat, balanceWH } = getAccountBalances({
-          //   internalAccount,
-          //   accountInfoByAddress,
-          //   totalFiatBalancesCrossChain,
-          //   conversionRate,
-          //   currentCurrency,
-          // });
+        // TODO - Improve UI to either include loading and/or balance load failures.
+        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to support multiple chains in the future.
+        // const { balanceETH, balanceFiat, balanceWH } = getAccountBalances({
+        //   internalAccount,
+        //   accountInfoByAddress,
+        //   totalFiatBalancesCrossChain,
+        //   conversionRate,
+        //   currentCurrency,
+        // });
 
-          // const balanceTicker = getTicker(ticker);
-          const balanceForAccount =
-            multichainBalancesForAllAccounts?.[internalAccount.id];
-          console.log(
-            'useAccounts balanceForAccount',
-            JSON.stringify(balanceForAccount, null, 2),
-          );
-          const displayBalance = `${balanceForAccount.displayBalance} \n ${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`;
-          // const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
-          // console.log('balanceLabel', balanceLabel);
+        // const balanceTicker = getTicker(ticker);
+        const balanceForAccount =
+          multichainBalancesForAllAccounts?.[internalAccount.id];
+        console.log(
+          'useAccounts balanceForAccount',
+          JSON.stringify(balanceForAccount, null, 2),
+        );
+        const displayBalance = `${balanceForAccount.displayBalance} \n ${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`;
+        // const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
+        // console.log('balanceLabel', balanceLabel);
 
-          // const balanceWeiHex = safeBNToHex(
-          //   fiatNumberToWei(
-          //     multichainBalancesForAllAccounts?.[internalAccount.id]
-          //       .totalFiatBalance,
-          //     multichainBalancesForAllAccounts?.[internalAccount.id]
-          //       .conversionRate,
-          //   ),
-          // );
-          const balanceError = checkBalanceError?.(displayBalance);
-          const isBalanceAvailable =
-            isMultiAccountBalancesEnabled || isSelected;
-          const mappedAccount: Account = {
-            name: internalAccount.metadata.name,
-            address: formattedAddress,
-            type: internalAccount.metadata.keyring.type as KeyringTypes,
-            yOffset,
-            isSelected,
-            // TODO - Also fetch assets. Reference AccountList component.
-            // assets
-            assets:
-              isBalanceAvailable && displayBalance
-                ? {
-                    fiatBalance: displayBalance,
-                  }
-                : undefined,
-            balanceError,
-          };
-          // Calculate height of the account item.
-          yOffset += 78;
-          if (balanceError) {
-            yOffset += 22;
-          }
-          if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
-            yOffset += 24;
-          }
-          return mappedAccount;
-        },
-      );
+        // const balanceWeiHex = safeBNToHex(
+        //   fiatNumberToWei(
+        //     multichainBalancesForAllAccounts?.[internalAccount.id]
+        //       .totalFiatBalance,
+        //     multichainBalancesForAllAccounts?.[internalAccount.id]
+        //       .conversionRate,
+        //   ),
+        // );
+        const balanceError = checkBalanceError?.(displayBalance);
+        const isBalanceAvailable = isMultiAccountBalancesEnabled || isSelected;
+        const mappedAccount: Account = {
+          name: internalAccount.metadata.name,
+          address: formattedAddress,
+          type: internalAccount.metadata.keyring.type as KeyringTypes,
+          yOffset,
+          isSelected,
+          // TODO - Also fetch assets. Reference AccountList component.
+          // assets
+          assets:
+            isBalanceAvailable && displayBalance
+              ? {
+                  fiatBalance: displayBalance,
+                }
+              : undefined,
+          balanceError,
+        };
+        // Calculate height of the account item.
+        yOffset += 78;
+        if (balanceError) {
+          yOffset += 22;
+        }
+        if (internalAccount.metadata.keyring.type !== KeyringTypes.hd) {
+          yOffset += 24;
+        }
+        return mappedAccount;
+      },
+    );
 
-      setAccounts(flattenedAccounts);
-      setEVMAccounts(
-        flattenedAccounts.filter(
-          (account) => !isNonEvmAddress(account.address),
-        ),
-      );
-      fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
-    }, // eslint-disable-next-line react-hooks/exhaustive-deps
-    [
-      selectedInternalAccount,
-      fetchENSNames,
-      isMultiAccountBalancesEnabled,
-      internalAccounts,
-      checkBalanceError,
-    ],
-  );
+    setAccounts(flattenedAccounts);
+    setEVMAccounts(
+      flattenedAccounts.filter((account) => !isNonEvmAddress(account.address)),
+    );
+    fetchENSNames({ flattenedAccounts, startingIndex: selectedIndex });
+  }, [
+    internalAccounts,
+    fetchENSNames,
+    selectedInternalAccount?.address,
+    multichainBalancesForAllAccounts,
+    checkBalanceError,
+    isMultiAccountBalancesEnabled,
+  ]);
 
   useEffect(() => {
     // eslint-disable-next-line
