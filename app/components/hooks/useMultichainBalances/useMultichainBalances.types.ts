@@ -23,5 +23,5 @@ export interface MultichainBalancesData {
 
 export interface UseMultichainBalancesHook {
   multichainBalancesForAllAccounts: Record<string, MultichainBalancesData>;
-  selectedAccountMultichainBalance: MultichainBalancesData;
+  selectedAccountMultichainBalance: MultichainBalancesData | undefined;
 }

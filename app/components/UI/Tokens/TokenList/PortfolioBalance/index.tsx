@@ -45,7 +45,16 @@ export const PortfolioBalance = React.memo(() => {
   const navigation = useNavigation();
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 
-  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const { selectedAccountMultichainBalance, multichainBalancesForAllAccounts } =
+    useMultichainBalances();
+  console.log(
+    'Portfolio balance selectedAccountMultichainBalance',
+    JSON.stringify(selectedAccountMultichainBalance, null, 2),
+  );
+  console.log(
+    'Portfolio balance multichainBalancesForAllAccounts',
+    JSON.stringify(multichainBalancesForAllAccounts, null, 2),
+  );
 
   const onOpenPortfolio = useCallback(() => {
     const existingPortfolioTab = browserTabs.find(({ url }: BrowserTab) =>
@@ -100,7 +109,7 @@ export const PortfolioBalance = React.memo(() => {
   ]);
 
   const renderAggregatedPercentage = () => {
-    if (!selectedAccountMultichainBalance.shouldShowAggregatedPercentage) {
+    if (!selectedAccountMultichainBalance?.shouldShowAggregatedPercentage) {
       return null;
     }
 

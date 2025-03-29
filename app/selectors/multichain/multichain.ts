@@ -315,7 +315,7 @@ interface MultichainNetworkAggregatedBalance {
   balances: Record<string, Balance>;
 }
 
-const getMultichainNetworkAggregatedBalance = (
+export const getMultichainNetworkAggregatedBalance = (
   account: InternalAccount,
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
