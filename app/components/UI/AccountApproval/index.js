@@ -28,6 +28,7 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { getAddressAccountType } from '../../../util/address';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { getDecimalChainId } from '../../../util/networks';
@@ -36,6 +37,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import store from '../../../store';
 
 /**
  * Account access approval component
@@ -287,6 +289,15 @@ class AccountApproval extends PureComponent {
 
   checkUrlFlaggedAsPhishing = (hostname) => {
     const { PhishingController } = Engine.context;
+    // Get basicFunctionalityEnabled using the selector
+    const basicFunctionalityEnabled = selectBasicFunctionalityEnabled(store.getState());
+    // Only run phishing checks if basicFunctionalityEnabled is enabled
+    if (!basicFunctionalityEnabled) {
+      this.setState({
+        isUrlFlaggedAsPhishing: false,
+      });
+      return;
+    }
     PhishingController.maybeUpdateState();
     const phishingControllerTestResult = PhishingController.test(hostname);
 

@@ -82,6 +82,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -278,8 +279,16 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
+  // Get basicFunctionalityEnabled from the store
+  const basicFunctionalityEnabled = useSelector(selectBasicFunctionalityEnabled);
+
   const isAllowedOrigin = useCallback((origin: string) => {
     const { PhishingController } = Engine.context;
+
+    // Skip phishing check if basic functionality is disabled
+    if (!basicFunctionalityEnabled) {
+      return true;
+    }
 
     // Update phishing configuration if it is out-of-date
     // This is async but we are not `await`-ing it here intentionally, so that we don't slow
@@ -289,7 +298,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     const phishingControllerTestResult = PhishingController.test(origin);
 
     return !phishingControllerTestResult.result;
-  }, []);
+  }, [basicFunctionalityEnabled]);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';

@@ -109,6 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 /**
  * Tab component for the in-app browser
@@ -206,6 +207,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
+  // Basic functionality setting from app settings
+  const basicFunctionalityEnabled = useSelector(selectBasicFunctionalityEnabled);
+
   /**
    * Checks if a given url or the current url is the homepage
    */
@@ -296,6 +300,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     (urlOrigin: string) => {
       const { PhishingController } = Engine.context;
 
+      if (!basicFunctionalityEnabled) {
+        return true;
+      }
+
       // Update phishing configuration if it is out-of-date
       // This is async but we are not `await`-ing it here intentionally, so that we don't slow
       // down network requests. The configuration is updated for the next request.
@@ -314,7 +322,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
       );
     },
-    [whitelist],
+    [whitelist, basicFunctionalityEnabled],
   );
 
   /**
