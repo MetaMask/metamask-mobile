@@ -1,5 +1,43 @@
 # syntax=docker/dockerfile:1.4
-FROM node:20-bookworm
+
+###### Foundry builder
+ARG FOUNDRY_BUILDER_ALPINE_VERSION=3.19
+ARG FOUNDRY_BUILDER_RUST_VERSION=1.81
+ARG NODE_VERSION=20
+ARG DEBIAN_VERSION=bookworm
+FROM rust:${FOUNDRY_BUILDER_RUST_VERSION}-alpine${FOUNDRY_BUILDER_ALPINE_VERSION} as foundry-build-environment
+
+WORKDIR /opt
+
+ARG FOUNDRY_COMMIT=a17869a6dcce7ce3765c5ed521d40ddb572de9f0
+RUN apk add --no-cache clang lld curl build-base linux-headers git \
+  && mkdir foundry \
+  && cd foundry \
+  && git init \
+  && git remote add origin https://github.com/foundry-rs/foundry.git \
+  && git fetch --depth 1 origin "${FOUNDRY_COMMIT}" \
+  && git checkout FETCH_HEAD
+
+ARG TARGETARCH
+RUN [[ "$TARGETARCH" = "arm64" ]] && echo "export CFLAGS=-mno-outline-atomics" >> $HOME/.profile || touch $HOME/.profile
+
+WORKDIR /opt/foundry
+
+RUN --mount=type=cache,target=/root/.cargo/registry --mount=type=cache,target=/root/.cargo/git --mount=type=cache,target=/opt/foundry/target \
+    source $HOME/.profile \
+    && cargo build --release -p anvil \
+    && mkdir out \
+    #&& mv target/release/forge out/forge \
+    #&& mv target/release/cast out/cast \
+    && mv target/release/anvil out/anvil \
+    #&& mv target/release/chisel out/chisel \
+    #&& strip out/forge \
+    #&& strip out/cast \
+    #&& strip out/chisel \
+    && strip out/anvil;
+
+###### Split base image for compatibly parallelizable builds
+FROM node:${NODE_VERSION}-${DEBIAN_VERSION} as base
 
 RUN apt-get update \
   && apt-get install -y \
@@ -9,7 +47,8 @@ RUN apt-get update \
   && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
   && locale-gen
 
-ENV YARN_VERSION 1.22.22
+ARG YARN_VERSION=1.22.22
+ENV YARN_VERSION ${YARN_VERSION}
 # replace base image yarn 1.19
 # checksums and sigs for 1.22 not available as of now...
 # https://github.com/nodejs/docker-node/blob/07bd7414c9eeb7a134951122e1105e8c849f770e/Dockerfile-debian.template
@@ -51,11 +90,20 @@ RUN (mkdir /home/node/.rbenv \
   ) \
   && echo 'eval "$(/home/node/.rbenv/bin/rbenv init -)"' >> /home/node/.bashrc
 
+ARG BUNDLER_VERSION=2.5.8
 RUN bash -c 'eval "$(/home/node/.rbenv/bin/rbenv init -)" \
     && rbenv install \
-    && gem install bundler -v 2.5.8 \
+    && gem install bundler -v ${BUNDLER_VERSION} \
     && gem install bigdecimal cocoapods \
     && bundle install'
+
+###### Final image
+FROM base
+
+COPY --from=foundry-build-environment /opt/foundry/out/anvil /usr/local/bin/anvil
+#COPY --from=foundry-build-environment /opt/foundry/out/cast /usr/local/bin/cast
+#COPY --from=foundry-build-environment /opt/foundry/out/chisel /usr/local/bin/chisel
+#COPY --from=foundry-build-environment /opt/foundry/out/forge /usr/local/bin/forge
 
 # fix broken ipv6 on nodejs v20
 ENV NODE_OPTIONS="--no-network-family-autoselection --trace-warnings"
