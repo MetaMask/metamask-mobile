@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/controller-utils/dist/constants.cjs b/node_modules/@metamask/controller-utils/dist/constants.cjs
+index 8c8c896..91b6945 100644
+--- a/node_modules/@metamask/controller-utils/dist/constants.cjs
++++ b/node_modules/@metamask/controller-utils/dist/constants.cjs
+@@ -95,7 +95,7 @@ exports.BUILT_IN_NETWORKS = {
+ };
+ // APIs
+ exports.OPENSEA_PROXY_URL = 'https://proxy.api.cx.metamask.io/opensea/v1/api/v2';
+-exports.NFT_API_BASE_URL = 'https://nft.api.cx.metamask.io';
++exports.NFT_API_BASE_URL = 'https://nft.dev-api.cx.metamask.io';
+ exports.NFT_API_VERSION = '1';
+ exports.NFT_API_TIMEOUT = 15000;
+ // Default origin for controllers
