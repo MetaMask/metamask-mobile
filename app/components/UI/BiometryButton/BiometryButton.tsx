@@ -14,12 +14,12 @@ const iosFaceId = require('../../../images/ios-face-id.png');
 const androidFaceRecognition = require('../../../images/android-face-recognition.png');
 const androidIris = require('../../../images/android-iris.png');
 
-type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE;
+type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;
 
 interface BiometryButtonProps {
-  onPress: () => void;
+  onPress: () => Promise<void>;
   hidden: boolean;
-  biometryType: BiometryType;
+  biometryType: BiometryType | null;
 }
 
 const BiometryButton = ({
@@ -41,7 +41,7 @@ const BiometryButton = ({
             name="ios-finger-print"
           />
         );
-      } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+      } else if (type && type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
           <Ionicons
             color={colors.text.default}
@@ -68,7 +68,7 @@ const BiometryButton = ({
         return <ImageRN style={styles.image} source={androidFaceRecognition} />;
       } else if (type === 'Iris') {
         return <ImageRN style={styles.image} source={androidIris} />;
-      } else if (type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+      } else if (type && type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
           <MaterialIcon
             color={colors.text.default}
@@ -94,7 +94,7 @@ const BiometryButton = ({
 
   return (
     <TouchableOpacity hitSlop={styles.hitSlop} onPress={onPress}>
-      {renderIcon(biometryType)}
+      {biometryType ? renderIcon(biometryType) : null}
     </TouchableOpacity>
   );
 };
