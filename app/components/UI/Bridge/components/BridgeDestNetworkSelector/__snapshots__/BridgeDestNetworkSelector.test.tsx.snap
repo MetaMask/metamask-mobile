@@ -324,7 +324,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#00000099",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,7 +491,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#141618",
                                           "flex": 1,
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
@@ -525,7 +525,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                         testID="bridge-network-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#121314"
+                                          color="#141618"
                                           height={16}
                                           name="Close"
                                           style={
@@ -656,7 +656,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
@@ -754,7 +754,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
@@ -852,7 +852,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",

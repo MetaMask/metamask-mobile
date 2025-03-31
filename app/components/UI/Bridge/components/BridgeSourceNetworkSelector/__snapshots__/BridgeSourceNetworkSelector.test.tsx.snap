@@ -324,7 +324,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#00000099",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#b7bbc866",
+                                "borderColor": "#BBC0C566",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001a",
+                                "shadowColor": "#0000001A",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#b7bbc866",
+                                  "backgroundColor": "#BBC0C566",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,7 +491,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#121314",
+                                          "color": "#141618",
                                           "flex": 1,
                                           "fontFamily": "EuclidCircularB-Bold",
                                           "fontSize": 18,
@@ -525,7 +525,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                         testID="bridge-network-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#121314"
+                                          color="#141618"
                                           height={16}
                                           name="Close"
                                           style={
@@ -584,7 +584,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#121314",
+                                      "color": "#141618",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -599,7 +599,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#4459ff",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 14,
                                         "fontWeight": "500",
@@ -661,8 +661,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                           style={
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#4459ff",
-                                              "borderColor": "#4459ff",
+                                              "backgroundColor": "#0376c9",
+                                              "borderColor": "#0376c9",
                                               "borderRadius": 4,
                                               "borderWidth": 2,
                                               "height": 20,
@@ -758,7 +758,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
@@ -789,7 +789,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "flex": 1,
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
@@ -846,8 +846,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                           style={
                                             {
                                               "alignItems": "center",
-                                              "backgroundColor": "#4459ff",
-                                              "borderColor": "#4459ff",
+                                              "backgroundColor": "#0376c9",
+                                              "borderColor": "#0376c9",
                                               "borderRadius": 4,
                                               "borderWidth": 2,
                                               "height": 20,
@@ -943,7 +943,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
@@ -974,7 +974,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#121314",
+                                                "color": "#141618",
                                                 "flex": 1,
                                                 "fontFamily": "EuclidCircularB-Medium",
                                                 "fontSize": 16,
@@ -1017,7 +1017,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
                                       "backgroundColor": "transparent",
-                                      "borderColor": "#4459ff",
+                                      "borderColor": "#0376c9",
                                       "borderRadius": 20,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
@@ -1032,7 +1032,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#4459ff",
+                                        "color": "#0376c9",
                                         "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 14,
                                         "fontWeight": "500",
