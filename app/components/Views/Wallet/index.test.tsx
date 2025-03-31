@@ -104,6 +104,9 @@ const mockInitialState = {
       },
     },
   },
+  multichainSettings: {
+    solanaSupportEnabled: false,
+  },
 };
 
 jest.mock('react-redux', () => ({
@@ -228,5 +231,25 @@ describe('Wallet', () => {
     render(Wallet);
 
     expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render correctly when Solana support is enabled', () => {
+    const stateWithSolana = {
+      ...mockInitialState,
+      multichainSettings: {
+        solanaSupportEnabled: true,
+      },
+    };
+
+    jest
+      .mocked(require('react-redux').useSelector)
+      .mockImplementation(
+        (callback: (state: typeof stateWithSolana) => boolean) =>
+          callback(stateWithSolana),
+      );
+
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    const wrapper = render(Wallet);
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 });
