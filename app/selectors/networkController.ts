@@ -259,7 +259,8 @@ export const selectIsAllNetworks = createSelector(
   selectAllPopularNetworkConfigurations,
   (state: RootState) => selectTokenNetworkFilter(state),
   (popularNetworkConfigurations, tokenNetworkFilter) => {
-    if (Object.keys(tokenNetworkFilter).length === 1) {
+    // TODO: When the patch for this state is removed, this field needs to be updated to ensure it's not undefined
+    if (!tokenNetworkFilter || Object.keys(tokenNetworkFilter).length === 1) {
       return false;
     }
     const allNetworks = enableAllNetworksFilter(popularNetworkConfigurations);
