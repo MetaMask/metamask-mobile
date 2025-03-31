@@ -29,7 +29,7 @@ import {
   getNormalizedTxState,
   getTicker,
 } from '../../../util/transactions';
-import ApproveTransactionHeader from '../../Views/confirmations/components/ApproveTransactionHeader';
+import ApproveTransactionHeader from '../../Views/confirmations/legacy/components/ApproveTransactionHeader';
 import Identicon from '../Identicon';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
 
