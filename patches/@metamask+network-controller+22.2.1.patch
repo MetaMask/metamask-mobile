@@ -1,8 +1,8 @@
 diff --git a/node_modules/@metamask/network-controller/dist/NetworkController.cjs b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
-index cc9793f..59bd31f 100644
+index 03c1fee..5e87269 100644
 --- a/node_modules/@metamask/network-controller/dist/NetworkController.cjs
 +++ b/node_modules/@metamask/network-controller/dist/NetworkController.cjs
-@@ -108,28 +108,32 @@ const controllerName = 'NetworkController';
+@@ -109,28 +109,32 @@ const controllerName = 'NetworkController';
   * @returns The default value for `networkConfigurationsByChainId`.
   */
  function getDefaultNetworkConfigurationsByChainId() {

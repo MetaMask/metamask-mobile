@@ -1747,7 +1747,7 @@ PODS:
     - React-Core
   - react-native-safe-area-context (3.4.1):
     - React-Core
-  - react-native-slider (4.5.2):
+  - react-native-slider (4.5.6):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2115,8 +2115,26 @@ PODS:
     - React-Core
     - RNFBApp
   - RNFlashList (1.7.6):
-    - RCT-Folly (= 2021.07.22.00)
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (1.10.3):
@@ -2875,7 +2893,7 @@ SPEC CHECKSUMS:
   react-native-randombytes: 3c8f3e89d12487fd03a2f966c288d495415fc116
   react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 667324e20fb3dd9c39c12d6036675ed90099bcd5
-  react-native-slider: e3c37170c5998b20d9796ce04f58426c0565c6f4
+  react-native-slider: 0b7c66d7408aa7c279b783f6a017c31870184c99
   react-native-video: 93d594ef6fcb9ed17b2dd046ff2562057669c649
   react-native-view-shot: bb8934cb93bf8ec740c81ed94f93244778797b6c
   react-native-webview-mm: d5f16bf95d45db97b53851ab87c79b2e1d964a13
@@ -2917,7 +2935,7 @@ SPEC CHECKSUMS:
   RNDeviceInfo: e5219d380b51ddb7f97e650ab99a518476b90203
   RNFBApp: 0e66b9f844efdf2ac3fa2b30e64c9db41a263b3d
   RNFBMessaging: 70b12c9f22c7c9d5011ac9b12ac2bafbfb081267
-  RNFlashList: de2c7f9674f1cd5407ea883e04a46e1ec8c5f9d6
+  RNFlashList: fad82b8b2d3ee447fcc4723d747f43b38710c4fc
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 6572a5f44759900730562b418da289c373de8d06
   RNI18n: 11ec5086508673ef71b5b567da3e8bcca8a926e1
