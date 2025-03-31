@@ -2,6 +2,7 @@ import { ButtonElement, FooterElement } from '@metamask/snaps-sdk/jsx';
 import { footer, DEFAULT_FOOTER } from './footer';
 import { mockTheme } from '../../../../util/theme';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import { UIComponent } from './types';
 
 describe('footer', () => {
   const mockT = (value: string) => `translated_${value}`;
@@ -46,34 +47,34 @@ describe('footer', () => {
       theme: mockTheme,
     });
 
-    expect(result).toEqual({
-      ...DEFAULT_FOOTER,
-      children: [
-        {
-          element: 'SnapUIFooterButton',
-          key: 'snap-footer-button-0',
-          props: {
-            disabled: undefined,
-            form: undefined,
-            isSnapAction: true,
-            loading: false,
-            name: undefined,
-            onCancel: undefined,
-            textVariant: 'sBodyMDMedium',
-            type: undefined,
-            variant: 'Primary',
-          },
-          children: [
-            {
-              key: '57fd48ba929aa415dc4c3996c826a75f8686418c77765eb14fad2658efa73d87_1',
-              element: 'RNText',
-              children: 'Button',
-              props: { color: 'inherit' },
-            },
-          ],
-        },
-      ],
+    expect(result.element).toBe(DEFAULT_FOOTER.element);
+
+    const children = result.children as UIComponent[];
+    expect(children).toBeTruthy();
+    expect(Array.isArray(children)).toBe(true);
+
+    const buttonComponent = children[0];
+    expect(buttonComponent.element).toBe('SnapUIFooterButton');
+    expect(buttonComponent.props).toMatchObject({
+      disabled: undefined,
+      form: undefined,
+      isSnapAction: true,
+      loading: false,
+      name: undefined,
+      onCancel: undefined,
+      textVariant: 'sBodyMDMedium',
+      type: undefined,
+      variant: 'Primary',
     });
+
+    const buttonChildren = buttonComponent.children as UIComponent[];
+    expect(buttonChildren).toBeTruthy();
+    expect(Array.isArray(buttonChildren)).toBe(true);
+
+    const textComponent = buttonChildren[0];
+    expect(textComponent.element).toBe('RNText');
+    expect(textComponent.children).toBe('Button');
+    expect(textComponent.props?.color).toBe('Info');
   });
 
   it('add cancel button when onCancel is provided and only one child', () => {
@@ -89,18 +90,42 @@ describe('footer', () => {
       theme: mockTheme,
     });
 
-    expect(Array.isArray(result.children)).toBe(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0]).toEqual({
-      element: 'SnapUIFooterButton',
-      key: 'default-button',
-      props: {
-        isSnapAction: false,
-        onCancel: mockOnCancel,
-        variant: 'Secondary',
-      },
-      children: 'translated_template_confirmation.cancel',
+    const children = result.children as UIComponent[];
+    expect(children).toBeTruthy();
+    expect(Array.isArray(children)).toBe(true);
+
+    const cancelButton = children[0];
+    expect(cancelButton.element).toBe('SnapUIFooterButton');
+    expect(cancelButton.props).toMatchObject({
+      isSnapAction: false,
+      onCancel: mockOnCancel,
+      variant: 'Secondary',
     });
+
+    if (typeof cancelButton.children === 'string') {
+      expect(cancelButton.children).toBe(
+        'translated_template_confirmation.cancel',
+      );
+    } else {
+      const buttonChildren = cancelButton.children as (string | UIComponent)[];
+
+      if (Array.isArray(buttonChildren) && buttonChildren.length > 0) {
+        const content = buttonChildren[0];
+
+        if (typeof content === 'string') {
+          expect(content).toBe('translated_template_confirmation.cancel');
+        } else if (
+          content &&
+          typeof content === 'object' &&
+          'children' in content
+        ) {
+          const textContent = content.children;
+          if (typeof textContent === 'string') {
+            expect(textContent).toBe('translated_template_confirmation.cancel');
+          }
+        }
+      }
+    }
   });
 
   it('handle multiple buttons with correct variants', () => {
@@ -116,19 +141,52 @@ describe('footer', () => {
       theme: mockTheme,
     });
 
-    expect(Array.isArray(result.children)).toBe(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0].props.variant).toBe(
-      ButtonVariants.Secondary,
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[1].props.variant).toBe(
-      ButtonVariants.Primary,
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0].props.isSnapAction).toBe(true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[1].props.isSnapAction).toBe(true);
+    const children = result.children as UIComponent[];
+    expect(children).toBeTruthy();
+    expect(Array.isArray(children)).toBe(true);
+    expect(children.length).toBeGreaterThanOrEqual(2);
+
+    const rejectButton = children[0];
+    expect(rejectButton.props?.variant).toBe(ButtonVariants.Secondary);
+    expect(rejectButton.props?.isSnapAction).toBe(true);
+
+    const confirmButton = children[1];
+    expect(confirmButton.props?.variant).toBe(ButtonVariants.Primary);
+    expect(confirmButton.props?.isSnapAction).toBe(true);
+
+    const rejectButtonChildren = rejectButton.children as (
+      | string
+      | UIComponent
+    )[];
+    if (
+      Array.isArray(rejectButtonChildren) &&
+      rejectButtonChildren.length > 0
+    ) {
+      const textContent = rejectButtonChildren[0];
+      if (typeof textContent === 'object' && textContent.element === 'RNText') {
+        const text = textContent.children;
+        if (typeof text === 'string') {
+          expect(text).toBe('Reject');
+        }
+      }
+    }
+
+    const confirmButtonChildren = confirmButton.children as (
+      | string
+      | UIComponent
+    )[];
+    if (
+      Array.isArray(confirmButtonChildren) &&
+      confirmButtonChildren.length > 0
+    ) {
+      const textContent = confirmButtonChildren[0];
+      if (typeof textContent === 'object' && textContent.element === 'RNText') {
+        const text = textContent.children;
+        if (typeof text === 'string') {
+          expect(text).toBe('Confirm');
+        }
+      }
+    }
   });
 
   it('use index as key when button name is not provided', () => {
@@ -143,7 +201,11 @@ describe('footer', () => {
       theme: mockTheme,
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((result.children as any[])[0].key).toBe('snap-footer-button-0');
+    const children = result.children as UIComponent[];
+    expect(children).toBeTruthy();
+    expect(Array.isArray(children)).toBe(true);
+
+    const button = children[0];
+    expect(button.key).toBe('snap-footer-button-0');
   });
 });

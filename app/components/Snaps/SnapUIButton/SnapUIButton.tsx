@@ -8,7 +8,7 @@ import {
   TouchableOpacityProps,
 } from 'react-native';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Text, {
+import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -69,9 +69,6 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
     }
   };
 
-  const overriddenVariant = disabled ? 'disabled' : variant;
-  const color = COLORS[overriddenVariant as keyof typeof COLORS];
-
   const styles = StyleSheet.create({
     button: {
       backgroundColor: colors.background.default,
@@ -81,80 +78,32 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       alignItems: 'center',
       ...(style as ViewStyle),
     },
-    content: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    icon: {
-      marginRight: 8,
-    },
-    lastIcon: {
-      marginRight: 0,
+    loadingAnimation: {
+      width: 24,
+      height: 24,
     },
   });
 
-  const renderContent = () => {
-    if (loading) {
-      return (
+  if (loading) {
+    return (
+      <TouchableOpacity
+        style={styles.button}
+        disabled={true}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={typeof children === 'string' ? children : name}
+        testID={testID}
+        {...props}
+      >
         <AnimatedLottieView
           source={{ uri: './loading.json' }}
           autoPlay
           loop
-          // eslint-disable-next-line react-native/no-inline-styles
-          style={{
-            width: 24,
-            height: 24,
-          }}
+          style={styles.loadingAnimation}
         />
-      );
-    }
-
-    if (typeof children === 'string') {
-      return (
-        <Text color={color} variant={textVariant}>
-          {children}
-        </Text>
-      );
-    }
-
-    if (React.isValidElement(children) && 'sections' in children.props) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const modifiedSections = children.props.sections.map((section: any) => {
-          if (section.element === 'RNText') {
-            return {
-              ...section,
-              props: {
-                ...section.props,
-                style: {
-                  ...section.props?.style,
-                  color: colors.primary.default,
-                },
-              },
-            };
-          }
-          return section;
-        });
-
-        interface SectionProps {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          sections: any[];
-        }
-
-        return React.cloneElement(
-          children as React.ReactElement<SectionProps>,
-          {
-            sections: modifiedSections,
-          } as Partial<SectionProps>,
-        );
-      } catch (error) {
-        console.error('Error modifying sections:', error);
-      }
-    }
-
-    return children;
-  };
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -167,7 +116,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       testID={testID}
       {...props}
     >
-      {renderContent()}
+      {children}
     </TouchableOpacity>
   );
 };

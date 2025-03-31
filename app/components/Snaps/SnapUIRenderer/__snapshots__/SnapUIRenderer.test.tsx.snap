@@ -1181,6 +1181,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           >
             <Text
               color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>
@@ -1410,6 +1415,11 @@ exports[`SnapUIRenderer renders footers 1`] = `
           >
             <Text
               color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>
@@ -3028,6 +3038,11 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           >
             <Text
               color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>

@@ -3,7 +3,9 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { SnapUIButton } from './SnapUIButton';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
-import Text from '../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { View } from 'react-native';
 import AnimatedLottieView from 'lottie-react-native';
 
@@ -17,7 +19,7 @@ jest.mock('../../../util/theme', () => ({
       background: { default: '#FFFFFF' },
       border: { muted: '#CCCCCC', default: '#DDDDDD' },
       text: { default: '#000000' },
-      info: { default: '#0376C9' },
+      primary: { default: '#0376C9' },
       error: { default: '#D73A49' },
     },
   }),
@@ -34,9 +36,30 @@ describe('SnapUIButton', () => {
     });
   });
 
+  const createStyledText = (
+    text: string,
+    color: TextColor = TextColor.Info,
+  ) => (
+    <Text
+      color={color}
+      style={{
+        color:
+          color === TextColor.Info
+            ? '#0376C9'
+            : color === TextColor.Error
+            ? '#D73A49'
+            : '#000000',
+      }}
+    >
+      {text}
+    </Text>
+  );
+
   it('renders correctly with text children', () => {
     const { getByText } = render(
-      <SnapUIButton variant="primary">Test Button</SnapUIButton>,
+      <SnapUIButton variant="primary">
+        {createStyledText('Test Button')}
+      </SnapUIButton>,
     );
 
     expect(getByText('Test Button')).toBeTruthy();
@@ -45,7 +68,7 @@ describe('SnapUIButton', () => {
   it('renders correctly when disabled', () => {
     const { getByText, getByTestId } = render(
       <SnapUIButton variant="primary" disabled testID="disabled-button">
-        Disabled Button
+        {createStyledText('Disabled Button', TextColor.Muted)}
       </SnapUIButton>,
     );
 
@@ -56,7 +79,7 @@ describe('SnapUIButton', () => {
   it('renders with loading state', () => {
     const { UNSAFE_getByType } = render(
       <SnapUIButton variant="primary" loading>
-        Loading Button
+        {createStyledText('Loading Button')}
       </SnapUIButton>,
     );
 
@@ -66,7 +89,7 @@ describe('SnapUIButton', () => {
   it('calls onPress and handles ButtonClickEvent when pressed', () => {
     const { getByText } = render(
       <SnapUIButton variant="primary" onPress={mockOnPress} name="test-button">
-        Click Me
+        {createStyledText('Click Me')}
       </SnapUIButton>,
     );
 
@@ -87,7 +110,7 @@ describe('SnapUIButton', () => {
         name="test-button"
         form="test-form"
       >
-        Submit Form
+        {createStyledText('Submit Form')}
       </SnapUIButton>,
     );
 
@@ -103,7 +126,7 @@ describe('SnapUIButton', () => {
     });
   });
 
-  it('renders icon component correctly without wrapping in Text', () => {
+  it('renders icon component correctly', () => {
     const MockIcon = () => <View testID="mock-icon" />;
     MockIcon.displayName = 'Icon';
 
@@ -117,14 +140,14 @@ describe('SnapUIButton', () => {
     expect(getByTestId('mock-icon')).toBeTruthy();
   });
 
-  it('renders destructive variant with correct color', () => {
-    const { UNSAFE_getAllByType } = render(
-      <SnapUIButton variant="destructive">Destructive Button</SnapUIButton>,
+  it('renders destructive variant button correctly', () => {
+    const { getByTestId } = render(
+      <SnapUIButton variant="destructive" testID="destructive-button">
+        {createStyledText('Destructive Button', TextColor.Error)}
+      </SnapUIButton>,
     );
 
-    const textComponents = UNSAFE_getAllByType(Text);
-    expect(textComponents.length).toBeGreaterThan(0);
-    expect(textComponents[0].props.color).toBe('Error');
+    expect(getByTestId('destructive-button')).toBeTruthy();
   });
 
   it('renders with custom style', () => {
@@ -135,7 +158,7 @@ describe('SnapUIButton', () => {
         style={customStyle}
         testID="styled-button"
       >
-        Styled Button
+        {createStyledText('Styled Button')}
       </SnapUIButton>,
     );
 
@@ -164,14 +187,14 @@ describe('SnapUIButton', () => {
         testID="accessible-button"
         name="button-name"
       >
-        Accessible Button
+        {createStyledText('Accessible Button')}
       </SnapUIButton>,
     );
 
     const button = getByTestId('accessible-button');
     expect(button.props.accessible).toBe(true);
     expect(button.props.accessibilityRole).toBe('button');
-    expect(button.props.accessibilityLabel).toBe('Accessible Button');
+    expect(button.props.accessibilityLabel).toBe('button-name');
   });
 
   it('provides fallback to name for accessibilityLabel when children is not a string', () => {
