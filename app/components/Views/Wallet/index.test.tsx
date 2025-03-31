@@ -8,6 +8,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -242,12 +243,10 @@ describe('Wallet', () => {
     };
 
     jest
-      .mocked(require('react-redux').useSelector)
-      .mockImplementation(
-        (callback: (state: typeof stateWithSolana) => boolean) =>
-          callback(stateWithSolana),
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(stateWithSolana),
       );
-
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
