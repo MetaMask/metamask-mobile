@@ -29,6 +29,7 @@ export interface BridgeState {
   destToken: TokenI | undefined;
   selectedSourceChainIds: undefined | string[];
   selectedDestChainId: SupportedCaipChainId | Hex | undefined;
+  slippage: string;
 }
 
 export const initialState: BridgeState = {
@@ -38,6 +39,7 @@ export const initialState: BridgeState = {
   destToken: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
+  slippage: '0.5',
 };
 
 const name = 'bridge';
@@ -67,6 +69,9 @@ const slice = createSlice({
     },
     setDestToken: (state, action: PayloadAction<TokenI>) => {
       state.destToken = action.payload;
+    },
+    setSlippage: (state, action: PayloadAction<string>) => {
+      state.slippage = action.payload;
     },
   },
 });
@@ -194,6 +199,11 @@ export const selectSelectedDestChainId = createSelector(
   },
 );
 
+export const selectSlippage = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.slippage,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -203,4 +213,5 @@ export const {
   setDestToken,
   setSelectedSourceChainIds,
   setSelectedDestChainId,
+  setSlippage,
 } = actions;
