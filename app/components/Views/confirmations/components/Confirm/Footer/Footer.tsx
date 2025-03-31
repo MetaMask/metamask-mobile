@@ -22,7 +22,7 @@ import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardw
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import { isStakingConfirmation } from '../../../utils/confirm';
-import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
+import { ResultType } from '../../../constants/signatures';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
