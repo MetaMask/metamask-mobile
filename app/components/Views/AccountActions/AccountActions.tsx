@@ -99,6 +99,11 @@ const AccountActions = () => {
             providerConfig.rpcUrl,
             networkConfigurations,
           );
+
+          if (!explorer) {
+            return undefined;
+          }
+
           return {
             url: `${explorer}/address/${selectedAccount.address}`,
             title: new URL(explorer).hostname,
@@ -132,7 +137,6 @@ const AccountActions = () => {
       }
       return undefined;
     }
-    return undefined;
   }, [
     networkConfigurations,
     providerConfig.rpcUrl,

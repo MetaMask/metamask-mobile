@@ -8,11 +8,11 @@ exports[`ContractTag render matches snapshot 1`] = `
   style={
     {
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
-      "borderColor": "#848c96",
+      "backgroundColor": "#f3f5f9",
+      "borderColor": "#b7bbc8",
       "borderRadius": 999,
       "borderWidth": 0,
-      "color": "#6a737d",
+      "color": "#686e7d",
       "padding": 16,
       "paddingHorizontal": 8,
       "paddingVertical": 2,
@@ -181,7 +181,7 @@ exports[`ContractTag render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",

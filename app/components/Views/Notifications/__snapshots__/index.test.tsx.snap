@@ -20,7 +20,7 @@ exports[`NotificationsView should render correctly 1`] = `
     testID="no-notifications-container"
   >
     <SvgMock
-      color="#141618"
+      color="#121314"
       height={32}
       name="Notification"
       style={
@@ -38,7 +38,7 @@ exports[`NotificationsView should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 18,
           "fontWeight": "700",
@@ -56,7 +56,7 @@ exports[`NotificationsView should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",

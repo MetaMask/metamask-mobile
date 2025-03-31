@@ -20,7 +20,7 @@ import {
   Reason,
   ResultType,
   SecurityAlertSource,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import Logger from '../../util/Logger';
 
 const CHAIN_ID_MOCK = '0x1';
