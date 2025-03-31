@@ -40,8 +40,12 @@ const LedgerSignModal = () => {
   }, [signingEvent.eventStage, completeRequest]);
 
   const onConfirmation = useCallback(async () => {
-    onConfirm();
-  }, [onConfirm]);
+    try {
+      await onConfirm();
+    } catch (err) {
+      onReject();
+    }
+  }, [onConfirm, onReject]);
 
   const onRejection = useCallback(() => {
     onReject();
