@@ -1180,7 +1180,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
             >
               Foo
             </Text>
@@ -1409,7 +1409,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
             >
               Foo
             </Text>
@@ -1640,13 +1640,12 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "backgroundColor": "#ffffff",
                         "borderRadius": 8,
                         "flexDirection": "row",
-                        "justifyContent": "center",
                         "paddingVertical": 8,
                       }
                     }
                   >
                     <Text
-                      color="inherit"
+                      color="Info"
                       style={
                         {
                           "color": "#4459ff",
@@ -2667,13 +2666,12 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   "backgroundColor": "#ffffff",
                   "borderRadius": 8,
                   "flexDirection": "row",
-                  "justifyContent": "center",
                   "paddingVertical": 8,
                 }
               }
             >
               <Text
-                color="inherit"
+                color="Info"
                 style={
                   {
                     "color": "#4459ff",
@@ -3029,7 +3027,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
             >
               Foo
             </Text>
