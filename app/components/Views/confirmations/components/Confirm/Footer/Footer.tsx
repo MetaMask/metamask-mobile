@@ -17,7 +17,6 @@ import Text, {
 import { useAlerts } from '../../../AlertSystem/context';
 import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
 import { useLedgerContext } from '../../../context/LedgerContext';
-import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
@@ -27,8 +26,7 @@ import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
-  const { fieldAlerts, hasDangerAlerts } = useAlerts();
-  const { hasUnconfirmedDangerAlerts } = useAlertsConfirmed(fieldAlerts);
+  const { fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
@@ -63,17 +61,12 @@ export const Footer = () => {
   }, [hideConfirmAlertModal, onConfirm]);
 
   const onSignConfirm = useCallback(async () => {
-    if (hasDangerAlerts && !hasUnconfirmedDangerAlerts) {
+    if (hasDangerAlerts) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [
-    hasDangerAlerts,
-    hasUnconfirmedDangerAlerts,
-    onConfirm,
-    showConfirmAlertModal,
-  ]);
+  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
 
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,

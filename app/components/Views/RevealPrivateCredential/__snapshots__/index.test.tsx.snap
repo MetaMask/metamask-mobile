@@ -72,7 +72,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               },
@@ -82,7 +82,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               }
@@ -95,7 +95,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   {
                     "top": 2.5,
@@ -111,7 +111,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontWeight": "600",
                 }
@@ -128,7 +128,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   {
                     "top": 2.5,
@@ -144,7 +144,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontWeight": "600",
                 }
@@ -157,8 +157,8 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         <View
           style={
             {
-              "backgroundColor": "#D738471A",
-              "borderColor": "#d73847",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "margin": 20,
@@ -182,12 +182,12 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             }
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={24}
               name="EyeSlash"
               style={
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "height": 24,
                   "margin": 10,
                   "width": 24,
@@ -198,7 +198,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "marginLeft": 10,
@@ -210,7 +210,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               <Text
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontWeight": "600",
                   }
@@ -231,7 +231,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "marginBottom": 15,
               }
             }
@@ -243,14 +243,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#141618",
+                "color": "#121314",
                 "padding": 10,
               }
             }
@@ -259,7 +259,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginTop": 10,
@@ -294,7 +294,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#6a737d",
+                    "borderColor": "#686e7d",
                     "borderWidth": 1,
                   },
                   [
@@ -329,7 +329,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                       "textAlign": "center",
                     },
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                     },
                     undefined,
                   ],
@@ -355,7 +355,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
                   [
@@ -396,7 +396,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],
@@ -519,7 +519,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 "padding": 20,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               },
@@ -529,7 +529,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               }
@@ -542,7 +542,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   {
                     "top": 2.5,
@@ -558,7 +558,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontWeight": "600",
                 }
@@ -575,7 +575,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 [
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   {
                     "top": 2.5,
@@ -591,7 +591,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Bold",
                   "fontWeight": "600",
                 }
@@ -604,8 +604,8 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         <View
           style={
             {
-              "backgroundColor": "#D738471A",
-              "borderColor": "#d73847",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "margin": 20,
@@ -629,12 +629,12 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             }
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={24}
               name="EyeSlash"
               style={
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "height": 24,
                   "margin": 10,
                   "width": 24,
@@ -645,7 +645,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "marginLeft": 10,
@@ -657,7 +657,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               <Text
                 style={
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "EuclidCircularB-Bold",
                     "fontWeight": "600",
                   }
@@ -678,7 +678,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "marginBottom": 15,
               }
             }
@@ -690,14 +690,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#141618",
+                "color": "#121314",
                 "padding": 10,
               }
             }
@@ -706,7 +706,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
           <Text
             style={
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginTop": 10,
@@ -741,7 +741,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#6a737d",
+                    "borderColor": "#686e7d",
                     "borderWidth": 1,
                   },
                   [
@@ -776,7 +776,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                       "textAlign": "center",
                     },
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                     },
                     undefined,
                   ],
@@ -802,7 +802,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
                   [
@@ -843,7 +843,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],
@@ -966,7 +966,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                 "padding": 20,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               },
@@ -976,7 +976,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               }
@@ -988,8 +988,8 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#D738471A",
-              "borderColor": "#d73847",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "margin": 20,
@@ -1013,12 +1013,12 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             }
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={24}
               name="EyeSlash"
               style={
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "height": 24,
                   "margin": 10,
                   "width": 24,
@@ -1029,7 +1029,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "marginLeft": 10,
@@ -1051,7 +1051,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "marginBottom": 15,
               }
             }
@@ -1063,14 +1063,14 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#141618",
+                "color": "#121314",
                 "padding": 10,
               }
             }
@@ -1079,7 +1079,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
           <Text
             style={
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginTop": 10,
@@ -1114,7 +1114,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#6a737d",
+                    "borderColor": "#686e7d",
                     "borderWidth": 1,
                   },
                   [
@@ -1149,7 +1149,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                     },
                     undefined,
                   ],
@@ -1175,7 +1175,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
                   [
@@ -1216,7 +1216,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],
@@ -1339,7 +1339,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                 "padding": 20,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               },
@@ -1349,7 +1349,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
               }
@@ -1361,8 +1361,8 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#D738471A",
-              "borderColor": "#d73847",
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
               "borderRadius": 8,
               "borderWidth": 1,
               "margin": 20,
@@ -1386,12 +1386,12 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             }
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={24}
               name="EyeSlash"
               style={
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "height": 24,
                   "margin": 10,
                   "width": 24,
@@ -1402,7 +1402,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             <Text
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
                   "marginLeft": 10,
@@ -1424,7 +1424,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "marginBottom": 15,
               }
             }
@@ -1436,14 +1436,14 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             onChangeText={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Password"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             secureTextEntry={true}
             style={
               {
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 5,
                 "borderWidth": 2,
-                "color": "#141618",
+                "color": "#121314",
                 "padding": 10,
               }
             }
@@ -1452,7 +1452,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
           <Text
             style={
               {
-                "color": "#d73847",
+                "color": "#ca3542",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontWeight": "400",
                 "marginTop": 10,
@@ -1487,7 +1487,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#6a737d",
+                    "borderColor": "#686e7d",
                     "borderWidth": 1,
                   },
                   [
@@ -1522,7 +1522,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#6a737d",
+                      "color": "#686e7d",
                     },
                     undefined,
                   ],
@@ -1548,7 +1548,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                   },
                   {
                     "backgroundColor": "#ffffff",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#4459ff",
                     "borderWidth": 1,
                   },
                   [
@@ -1589,7 +1589,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                       "textAlign": "center",
                     },
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                     },
                     undefined,
                   ],

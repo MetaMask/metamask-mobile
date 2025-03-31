@@ -27,7 +27,7 @@ exports[`BadgeNetwork should render BadgeNetwork 1`] = `
         "height": 32,
         "justifyContent": "center",
         "overflow": "hidden",
-        "shadowColor": "#0000001A",
+        "shadowColor": "#0000001a",
         "shadowOffset": {
           "height": 2,
           "width": 0,
