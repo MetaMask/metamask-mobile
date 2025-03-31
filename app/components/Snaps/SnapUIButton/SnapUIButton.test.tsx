@@ -57,9 +57,7 @@ describe('SnapUIButton', () => {
 
   it('renders correctly with text children', () => {
     const { getByText } = render(
-      <SnapUIButton variant="primary">
-        {createStyledText('Test Button')}
-      </SnapUIButton>,
+      <SnapUIButton>{createStyledText('Test Button')}</SnapUIButton>,
     );
 
     expect(getByText('Test Button')).toBeTruthy();
@@ -67,7 +65,7 @@ describe('SnapUIButton', () => {
 
   it('renders correctly when disabled', () => {
     const { getByText, getByTestId } = render(
-      <SnapUIButton variant="primary" disabled testID="disabled-button">
+      <SnapUIButton disabled testID="disabled-button">
         {createStyledText('Disabled Button', TextColor.Muted)}
       </SnapUIButton>,
     );
@@ -78,9 +76,7 @@ describe('SnapUIButton', () => {
 
   it('renders with loading state', () => {
     const { UNSAFE_getByType } = render(
-      <SnapUIButton variant="primary" loading>
-        {createStyledText('Loading Button')}
-      </SnapUIButton>,
+      <SnapUIButton loading>{createStyledText('Loading Button')}</SnapUIButton>,
     );
 
     expect(UNSAFE_getByType(AnimatedLottieView)).toBeTruthy();
@@ -88,7 +84,7 @@ describe('SnapUIButton', () => {
 
   it('calls onPress and handles ButtonClickEvent when pressed', () => {
     const { getByText } = render(
-      <SnapUIButton variant="primary" onPress={mockOnPress} name="test-button">
+      <SnapUIButton onPress={mockOnPress} name="test-button">
         {createStyledText('Click Me')}
       </SnapUIButton>,
     );
@@ -105,7 +101,6 @@ describe('SnapUIButton', () => {
   it('handles FormSubmitEvent when button type is Submit', () => {
     const { getByText } = render(
       <SnapUIButton
-        variant="primary"
         type={ButtonType.Submit}
         name="test-button"
         form="test-form"
@@ -131,7 +126,7 @@ describe('SnapUIButton', () => {
     MockIcon.displayName = 'Icon';
 
     const { getByTestId } = render(
-      <SnapUIButton variant="primary" testID="icon-button">
+      <SnapUIButton testID="icon-button">
         <MockIcon />
       </SnapUIButton>,
     );
@@ -142,7 +137,7 @@ describe('SnapUIButton', () => {
 
   it('renders destructive variant button correctly', () => {
     const { getByTestId } = render(
-      <SnapUIButton variant="destructive" testID="destructive-button">
+      <SnapUIButton testID="destructive-button">
         {createStyledText('Destructive Button', TextColor.Error)}
       </SnapUIButton>,
     );
@@ -153,11 +148,7 @@ describe('SnapUIButton', () => {
   it('renders with custom style', () => {
     const customStyle = { backgroundColor: '#FF0000', borderRadius: 16 };
     const { getByTestId } = render(
-      <SnapUIButton
-        variant="primary"
-        style={customStyle}
-        testID="styled-button"
-      >
+      <SnapUIButton style={customStyle} testID="styled-button">
         {createStyledText('Styled Button')}
       </SnapUIButton>,
     );
@@ -171,7 +162,7 @@ describe('SnapUIButton', () => {
     const NonStringComponent = () => <View testID="non-string-component" />;
 
     const { getByTestId } = render(
-      <SnapUIButton variant="primary" testID="custom-children-button">
+      <SnapUIButton testID="custom-children-button">
         <NonStringComponent />
       </SnapUIButton>,
     );
@@ -182,11 +173,7 @@ describe('SnapUIButton', () => {
 
   it('sets proper accessibility properties', () => {
     const { getByTestId } = render(
-      <SnapUIButton
-        variant="primary"
-        testID="accessible-button"
-        name="button-name"
-      >
+      <SnapUIButton testID="accessible-button" name="button-name">
         {createStyledText('Accessible Button')}
       </SnapUIButton>,
     );
@@ -201,11 +188,7 @@ describe('SnapUIButton', () => {
     const NonStringComponent = () => <View testID="non-string-component" />;
 
     const { getByTestId } = render(
-      <SnapUIButton
-        variant="primary"
-        testID="accessible-button"
-        name="button-name"
-      >
+      <SnapUIButton testID="accessible-button" name="button-name">
         <NonStringComponent />
       </SnapUIButton>,
     );
