@@ -265,7 +265,7 @@ export function isEthAddress(address: string): boolean {
  * @param {String} address - String corresponding to an address
  * @returns {InternalAccount | undefined} - Returns the internal account by address
  */
-function getInternalAccountByAddress(
+export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;

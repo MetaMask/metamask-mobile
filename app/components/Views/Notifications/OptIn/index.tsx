@@ -25,15 +25,14 @@ const OptIn = () => {
   const styles = createStyles(theme);
   const navigation = useNavigation();
 
-  const { enableNotifications, isEnablingNotifications } =
-    useEnableNotifications({
-      nudgeEnablePush: true,
-    });
+  const { enableNotifications, loading } = useEnableNotifications({
+    nudgeEnablePush: true,
+  });
 
   const handleOptInCancel = useHandleOptInCancel({
     navigation,
     metrics,
-    isCreatingNotifications: isEnablingNotifications,
+    isCreatingNotifications: loading,
   });
 
   const handleOptInClick = useHandleOptInClick({
@@ -108,7 +107,7 @@ const OptIn = () => {
         </View>
       </View>
       <SwitchLoadingModal
-        loading={isEnablingNotifications}
+        loading={loading}
         loadingText={strings('app_settings.enabling_notifications')}
       />
     </Fragment>
