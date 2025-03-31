@@ -353,6 +353,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   autoFocus={false}
                   editable={true}
                   id="input"
+                  keyboardType="numeric"
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -415,6 +416,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
+                  secureTextEntry={true}
                   style={
                     {
                       "backgroundColor": "#ffffff",
@@ -2239,6 +2241,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderTopLeftRadius": 24,
                       "borderTopRightRadius": 24,
+                      "maxHeight": "80%",
                       "minHeight": 300,
                       "overflow": "hidden",
                       "paddingBottom": 20,
