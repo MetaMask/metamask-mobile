@@ -297,7 +297,11 @@ const generateRawSignature = async ({
   return rawSig;
 };
 
-// TODO: [ffmcgee] docs (and return type)
+/**
+ * Gets the dependency hooks used by methods from {@link getRpcMethodMiddleware}
+ * @param origin - The origin of the connection.
+ * @returns The hooks object.
+ */
 const getRpcMethodMiddlewareHooks = (origin: string) => ({
   getCaveat: ({
     target,
