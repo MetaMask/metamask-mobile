@@ -4589,15 +4589,15 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
-  integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
+"@metamask/design-tokens@^5.1.0":
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.1.0.tgz#0ee1cfc147aac08b73e2c12ec6d9063302dd643c"
+  integrity sha512-wMt9kYA0JTColhEKA8bq9GoUvJ83/7Q0UVMyi1oyxM0UfBudhSXxULR9FdBo/KVxXpOa0fKJC6ZyzuJkGgxKtg==
 
-"@metamask/earn-controller@^0.8.0":
-  version "0.8.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.8.0.tgz#766798c60468279a9f4081bd960a8c502238c0b9"
-  integrity sha512-USRDcBNZr3h7K05lvswizryEOJM2f1iQvbztWzwB6gVipA345lZqapiUuzhPYDH8Ej3T4yfbyRCG5BN4m6i6Sg==
+"@metamask/earn-controller@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.10.0.tgz#890587d9e51e4fbaa8e85f09077c040e85a99462"
+  integrity sha512-vhywGCsaQphYyDwYksjk7+DZMQAeeC94lpDs6xUEV3xr0l1rG3NR5Ubqhl29oFwYsPV/0HGAbiGW9i3UYOBvkQ==
   dependencies:
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
@@ -5405,10 +5405,10 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.5.0.tgz#3a5078d698c1e603e51c4d3f155ce9d228ae07ea"
-  integrity sha512-r+t/t3jKjpsVdoOVWWt6ulZHRhQn8gAMLID1l0QvQgmzQy87ayTDU7WAnyw+jFyO4z+OA/uCwj4EwN+M2rPXgA==
+"@metamask/remote-feature-flag-controller@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.6.0.tgz#138c0a841e52b00efb704c892fa5915fbe9ef1d8"
+  integrity sha512-yMHHTR4lT38HQ8rl8qakX2eXUztudqk2GaGiumlT7D6tdROo96Oc6sU6ZQlYohIVJ1OH6TNP8ucKKlJ2GDtTHQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
@@ -5480,10 +5480,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/slip44/-/slip44-4.1.0.tgz#6f2702de7ba64dad3ab6586ea3ac4e5647804b0a"
   integrity sha512-RQ2MJO0X3QLnJo0rFlb83h2tNAkqqx/VNOPLc3/S2CvY3/cXy3UAEw/xRM/475BeAAkWI93yiIn/FoGUy3E0Ig==
 
-"@metamask/smart-transactions-controller@^16.1.0":
-  version "16.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.1.0.tgz#a23684c5614c03e3aa005ab900cb98192ddd6c0e"
-  integrity sha512-GJ6uCqQG3ocVIAj+a0urrcBmqsUiaP+zP45yTHx9jtJElrZ4iumE8CLp7tmctg0pbccRkj/vtiJWq/uxgOoT1g==
+"@metamask/smart-transactions-controller@^16.2.0":
+  version "16.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/smart-transactions-controller/-/smart-transactions-controller-16.2.0.tgz#683370d7c5ef3a36fd5efc3eecbae9e75a8740ba"
+  integrity sha512-OSV2pn+zVyv28ZGdyx5Br50odAbrWRqF2mrLzN5dl4k6vMhvWY9SBOhp2taftk9VSN8eP13LiyvKfEtMLlcazg==
   dependencies:
     "@babel/runtime" "^7.24.1"
     "@ethereumjs/tx" "^5.2.1"
