@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectConfirmationMetricsById,
@@ -14,12 +14,12 @@ type AlertNameMetrics = {
   [K in AlertKeys]: string;
 };
 
-export function useConfirmationAlertMetric() {
+export function useConfirmationAlertMetrics() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { alerts, isAlertConfirmed, alertKey } = useAlerts();
   const signatureRequest = useSignatureRequest();
 
-  const alertProperties = useMemo(() => ({
+  const alertProperties = useMemo(() => alerts.length > 0 ? {
     alert_trigger_count: alerts.length,
     alert_trigger_name: getAlertNames(alerts),
     alert_resolved_count: alerts.filter((alertSelected) =>
@@ -28,22 +28,13 @@ export function useConfirmationAlertMetric() {
     alert_resolved: getAlertNames(
       alerts.filter((alertSelected) => isAlertConfirmed(alertSelected.key)),
     ),
-  }), [alerts, isAlertConfirmed]);
+  } : undefined, [alerts, isAlertConfirmed]);
 
   const confirmationMetrics = useSelector((state: RootState) =>
     selectConfirmationMetricsById(state, signatureRequest?.id ?? '')
   );
 
-  useEffect(() => {
-    setConfirmationMetric({
-      properties: {
-        ...alertProperties,
-      },
-    });
-  }, [alertProperties, setConfirmationMetric]);
-
-  const trackers = useMemo(() => {
-    const trackInlineAlertClicked = (alertField?: string) => {
+    const trackInlineAlertClicked = useCallback((alertField?: string) => {
       const alertKeyClicked = uniqueFreshArrayPush(
         (confirmationMetrics?.properties?.alert_key_clicked as string[]) ?? [],
         getAlertName(alertKey)
@@ -60,9 +51,9 @@ export function useConfirmationAlertMetric() {
           alert_field_clicked: alertFieldClicked,
         },
       });
-    };
+    }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
 
-    const trackAlertRendered = () => {
+    const trackAlertRendered = useCallback(() => {
       const alertVisualized = uniqueFreshArrayPush(
         (confirmationMetrics?.properties?.alert_visualized as string[]) ?? [],
         getAlertName(alertKey)
@@ -75,15 +66,29 @@ export function useConfirmationAlertMetric() {
           alert_visualized_count: alertVisualized.length,
         },
       });
-    };
-
-    return {
-      trackAlertRendered,
-      trackInlineAlertClicked,
-    };
   }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
 
-  return { ...trackers };
+    const updateAlertMetrics = useCallback(() => {
+      if (!alertProperties) {
+        return;
+      }
+      setConfirmationMetric({
+        properties: {
+          ...alertProperties,
+        },
+      });
+
+    }, [alertProperties, setConfirmationMetric]);
+
+    useEffect(() => {
+      updateAlertMetrics();
+    }, [updateAlertMetrics]);
+
+  return {
+    trackAlertRendered,
+    trackInlineAlertClicked,
+    updateAlertMetrics,
+  };
 }
 
 function uniqueFreshArrayPush<T>(array: T[], value: T): T[] {

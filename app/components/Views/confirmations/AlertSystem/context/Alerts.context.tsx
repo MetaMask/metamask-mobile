@@ -1,6 +1,5 @@
 import React, { useContext, useMemo, useState } from 'react';
 import { Alert, Severity } from '../../types/alerts';
-import MultipleAlertModal from '../MultipleAlertModal';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 
 export interface AlertsContextParams {
@@ -121,7 +120,6 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
   return (
     <AlertsContext.Provider value={contextValue}>
       {children}
-      <MultipleAlertModal />
     </AlertsContext.Provider>
   );
 };

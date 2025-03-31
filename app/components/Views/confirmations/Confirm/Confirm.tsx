@@ -18,9 +18,8 @@ import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
-import { AlertsContextProvider } from '../AlertSystem/context';
-import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
 import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
+import { ConfirmAlerts } from '../components/Confirm/ConfirmAlerts';
 
 const ConfirmWrapped = ({
   styles,
@@ -28,11 +27,8 @@ const ConfirmWrapped = ({
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   route?: UnstakeConfirmationViewProps['route'];
-}) => {
-  const alerts = useConfirmationAlerts();
-
-  return (
-    <AlertsContextProvider alerts={alerts}>
+}) => (
+    <ConfirmAlerts>
       <QRHardwareContextProvider>
         <LedgerContextProvider>
           <Title />
@@ -47,9 +43,8 @@ const ConfirmWrapped = ({
           <Footer />
         </LedgerContextProvider>
       </QRHardwareContextProvider>
-    </AlertsContextProvider>
+    </ConfirmAlerts>
   );
-};
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];

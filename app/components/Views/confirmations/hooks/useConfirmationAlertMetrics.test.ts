@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useAlerts } from '../AlertSystem/context';
 import { useConfirmationMetricEvents } from './useConfirmationMetricEvents';
-import { useConfirmationAlertMetric } from './useConfirmationAlertMetric';
+import { useConfirmationAlertMetrics } from './useConfirmationAlertMetrics';
 import { AlertKeys } from '../constants/alerts';
 
 jest.mock('react-redux', () => ({
@@ -17,7 +17,7 @@ jest.mock('./useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
-describe('useConfirmationAlertMetric', () => {
+describe('useConfirmationAlertMetrics', () => {
   const ALERT_FIELD_FROM_MOCK = 'from';
   const mockSetConfirmationMetric = jest.fn();
   const mockUseAlerts = {
@@ -49,7 +49,7 @@ describe('useConfirmationAlertMetric', () => {
       properties: baseAlertProperties,
     });
 
-    renderHook(() => useConfirmationAlertMetric());
+    renderHook(() => useConfirmationAlertMetrics());
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: baseAlertProperties,
@@ -64,7 +64,7 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackInlineAlertClicked(ALERT_FIELD_FROM_MOCK);
 
@@ -84,7 +84,7 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackAlertRendered();
 
@@ -104,7 +104,7 @@ describe('useConfirmationAlertMetric', () => {
       properties: baseAlertProperties,
     });
 
-    renderHook(() => useConfirmationAlertMetric());
+    renderHook(() => useConfirmationAlertMetrics());
 
     expect(mockSetConfirmationMetric).toHaveBeenCalledWith({
       properties: {
@@ -136,7 +136,7 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackInlineAlertClicked(ALERT_FIELD_FROM_MOCK);
 
@@ -162,7 +162,7 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackAlertRendered();
 
@@ -184,7 +184,7 @@ describe('useConfirmationAlertMetric', () => {
       },
     });
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackInlineAlertClicked();
 
@@ -201,7 +201,7 @@ describe('useConfirmationAlertMetric', () => {
     (mockUseAlerts.isAlertConfirmed as jest.Mock).mockReturnValue(false);
     (useSelector as jest.Mock).mockReturnValue({});
 
-    const { result } = renderHook(() => useConfirmationAlertMetric());
+    const { result } = renderHook(() => useConfirmationAlertMetrics());
 
     result.current.trackInlineAlertClicked();
 

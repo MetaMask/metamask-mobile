@@ -1,7 +1,7 @@
 import React from 'react';
 import InlineAlert from '../../../../AlertSystem/InlineAlert/InlineAlert';
 import { useAlerts } from '../../../../AlertSystem/context';
-import { useConfirmationAlertMetric } from '../../../../hooks/useConfirmationAlertMetric';
+import { useAlertMetrics } from '../../../../context/AlertMetricsContext/AlertMetricsContext';
 import { Severity } from '../../../../types/alerts';
 import { TextColor } from '../../../../../../../component-library/components/Texts/Text';
 import InfoRow, { InfoRowProps } from '../InfoRow';
@@ -27,7 +27,7 @@ export interface AlertRowProps extends InfoRowProps {
 
 const AlertRow = ({ alertField, isShownWithAlertsOnly, ...props }: AlertRowProps) => {
   const { fieldAlerts, showAlertModal, setAlertKey } = useAlerts();
-  const { trackInlineAlertClicked } = useConfirmationAlertMetric();
+  const { trackInlineAlertClicked } = useAlertMetrics();
   const alertSelected = fieldAlerts.find((a) => a.field === alertField);
 
   const handleInlineAlertClick = () => {

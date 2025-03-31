@@ -3,15 +3,14 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import { useAlerts } from '../context';
 import MultipleAlertModal from './MultipleAlertModal';
 import { Severity } from '../../types/alerts';
+import { useAlertMetrics } from '../../context/AlertMetricsContext/AlertMetricsContext';
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
 }));
 
-jest.mock('../../hooks/useConfirmationAlertMetric', () => ({
-  useConfirmationAlertMetric: jest.fn(() => ({
-    trackAlertRendered: jest.fn(),
-  })),
+jest.mock('../../context/AlertMetricsContext/AlertMetricsContext', () => ({
+  useAlertMetrics: jest.fn(),
 }));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -61,9 +60,13 @@ describe('MultipleAlertModal', () => {
     hasUnconfirmedDangerAlerts: false,
     hasUnconfirmedFieldDangerAlerts: false,
   };
+  const trackAlertRendered = jest.fn();
 
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
+    (useAlertMetrics as jest.Mock).mockReturnValue({
+      trackAlertRendered,
+    });
     jest.clearAllMocks();
   });
 

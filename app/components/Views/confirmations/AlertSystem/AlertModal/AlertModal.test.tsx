@@ -5,14 +5,14 @@ import AlertModal from './AlertModal';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../types/alerts';
-import { useConfirmationAlertMetric } from '../../hooks/useConfirmationAlertMetric';
+import { useAlertMetrics } from '../../context/AlertMetricsContext/AlertMetricsContext';
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
 }));
 
-jest.mock('../../hooks/useConfirmationAlertMetric', () => ({
-  useConfirmationAlertMetric: jest.fn(),
+jest.mock('../../context/AlertMetricsContext/AlertMetricsContext', () => ({
+  useAlertMetrics: jest.fn(),
 }));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -68,7 +68,7 @@ describe('AlertModal', () => {
 
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
-    (useConfirmationAlertMetric as jest.Mock).mockReturnValue({
+    (useAlertMetrics as jest.Mock).mockReturnValue({
       trackAlertRendered,
     });
     jest.clearAllMocks();
