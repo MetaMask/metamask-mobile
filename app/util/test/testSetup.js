@@ -259,8 +259,6 @@ jest.mock(
   () => 'TextInput',
 );
 
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(),
   createInteractionHandle: jest.fn(),

@@ -267,7 +267,13 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -275,6 +281,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -642,35 +649,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -952,7 +930,13 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -960,6 +944,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1327,35 +1312,6 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                             </View>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -1637,7 +1593,13 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1645,6 +1607,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2293,7 +2256,13 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -2301,6 +2270,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3225,7 +3195,13 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3233,6 +3209,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -3881,7 +3858,13 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3889,6 +3872,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4813,7 +4797,13 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4821,6 +4811,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5469,7 +5460,13 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5477,6 +5474,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -8144,122 +8142,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -8541,7 +8423,13 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -8549,6 +8437,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -9473,7 +9362,13 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -9481,6 +9376,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -10129,7 +10025,13 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -10137,6 +10039,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -11061,7 +10964,13 @@ exports[`BuildQuote View renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -11069,6 +10978,7 @@ exports[`BuildQuote View renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -13782,122 +13692,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -14179,7 +13973,13 @@ exports[`BuildQuote View renders correctly 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -14187,6 +13987,7 @@ exports[`BuildQuote View renders correctly 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -16879,122 +16680,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                             </TouchableOpacity>
                           </View>
                         </View>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          onSwipeComplete={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeDirection="down"
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </RCTSafeAreaView>
                   </View>
@@ -17276,7 +16961,13 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -17284,6 +16975,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -17932,7 +17624,13 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -17940,6 +17638,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >

@@ -510,8 +510,8 @@ const RootRPCMethodsUI = (props) => {
     initializeWalletConnect();
 
     return function cleanup() {
-      Engine.context.TokensController.hub.removeAllListeners();
-      WalletConnect.hub.removeAllListeners();
+      Engine.context.TokensController?.hub?.removeAllListeners();
+      WalletConnect?.hub?.removeAllListeners();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

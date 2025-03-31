@@ -4,9 +4,6 @@ import { View, FlexAlignType } from 'react-native';
 
 import Skeleton from './Skeleton';
 
-// Mock animations to prevent Jest environment errors
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 // Mock animation timers
 beforeEach(() => {
   jest.useFakeTimers();
