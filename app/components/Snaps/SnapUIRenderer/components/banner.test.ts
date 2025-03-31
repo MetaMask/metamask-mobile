@@ -104,4 +104,48 @@ describe('banner component', () => {
       },
     });
   });
+
+  it('removes empty title', () => {
+    const el: BannerElement = {
+      type: 'Banner',
+      props: {
+        title: '',
+        severity: 'info',
+        children: createTextElement('Test content'),
+      },
+      key: null,
+    };
+
+    const result = banner({ element: el, ...defaultParams });
+
+    expect(result).toEqual({
+      element: 'SnapUIBanner',
+      children: [
+        {
+          element: 'Text',
+          key: 'mock-key',
+          children: [
+            {
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
+              element: 'RNText',
+              props: {
+                color: 'inherit',
+              },
+              children: 'Test content',
+            },
+          ],
+          props: {
+            color: 'inherit',
+            fontWeight: 'normal',
+            textAlign: 'left',
+            variant: 'sBodyMD',
+          },
+        },
+      ],
+      props: {
+        severity: 'Info',
+        title: null,
+      },
+    });
+  });
 });
