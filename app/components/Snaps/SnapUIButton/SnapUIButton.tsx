@@ -60,6 +60,7 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       name,
     });
 
+    // Since we don't have onSubmit on mobile, the button submits the form.
     if (type === ButtonType.Submit) {
       handleEvent({
         event: UserInputEventType.FormSubmitEvent,
