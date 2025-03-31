@@ -130,7 +130,6 @@ import {
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
@@ -176,15 +175,12 @@ import {
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
-import { JsonMap } from '../Analytics/MetaMetrics.types';
 import {
   BaseControllerMessenger,
   EngineState,
   EngineContext,
-  TransactionEventPayload,
   StatefulControllers,
 } from './types';
 import {
@@ -199,7 +195,11 @@ import { logEngineCreation } from './utils/logger';
 import { initModularizedControllers } from './utils';
 import { accountsControllerInit } from './controllers/accounts-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BRIDGE_DEV_API_BASE_URL, BridgeClientId, BridgeController } from '@metamask/bridge-controller';
+import {
+  BRIDGE_DEV_API_BASE_URL,
+  BridgeClientId,
+  BridgeController,
+} from '@metamask/bridge-controller';
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
@@ -473,6 +473,7 @@ export class Engine {
         'AccountsController:setSelectedAccount',
         'AccountsController:getAccountByAddress',
         'AccountsController:setAccountName',
+        'AccountsController:listMultichainAccounts',
         'SnapController:handleRequest',
         SnapControllerGetSnapAction,
       ],
@@ -988,8 +989,8 @@ export class Engine {
         }) as any,
       fetchFn: handleFetch,
       config: {
-        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL
-      }
+        customBridgeApiBaseUrl: BRIDGE_DEV_API_BASE_URL,
+      },
     });
 
     const bridgeStatusController = new BridgeStatusController({
@@ -1484,95 +1485,8 @@ export class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this._addTransactionControllerListeners();
 
     Engine.instance = this;
-  }
-
-  // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
-  _handleTransactionFinalizedEvent = async (
-    transactionEventPayload: TransactionEventPayload,
-    properties: JsonMap,
-  ) => {
-    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      store.getState(),
-    );
-    if (
-      !shouldUseSmartTransaction ||
-      !transactionEventPayload.transactionMeta
-    ) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.TRANSACTION_FINALIZED,
-        )
-          .addProperties(properties)
-          .build(),
-      );
-      return;
-    }
-    const { transactionMeta } = transactionEventPayload;
-    const { SmartTransactionsController } = this.context;
-    const waitForSmartTransaction = true;
-    const smartTransactionMetricsProperties =
-      await getSmartTransactionMetricsProperties(
-        SmartTransactionsController,
-        transactionMeta,
-        waitForSmartTransaction,
-        this.controllerMessenger,
-      );
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties(smartTransactionMetricsProperties)
-        .addProperties(properties)
-        .build(),
-    );
-  };
-
-  _handleTransactionDropped = async (
-    transactionEventPayload: TransactionEventPayload,
-  ) => {
-    const properties = { status: 'dropped' };
-    await this._handleTransactionFinalizedEvent(
-      transactionEventPayload,
-      properties,
-    );
-  };
-
-  _handleTransactionConfirmed = async (transactionMeta: TransactionMeta) => {
-    const properties = { status: 'confirmed' };
-    await this._handleTransactionFinalizedEvent(
-      { transactionMeta },
-      properties,
-    );
-  };
-
-  _handleTransactionFailed = async (
-    transactionEventPayload: TransactionEventPayload,
-  ) => {
-    const properties = { status: 'failed' };
-    await this._handleTransactionFinalizedEvent(
-      transactionEventPayload,
-      properties,
-    );
-  };
-
-  _addTransactionControllerListeners() {
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionDropped',
-      this._handleTransactionDropped,
-    );
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionConfirmed',
-      this._handleTransactionConfirmed,
-    );
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionFailed',
-      this._handleTransactionFailed,
-    );
   }
 
   handleVaultBackup() {
@@ -1596,14 +1510,23 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController } = this.context;
+    const { NetworkController, TransactionController, PreferencesController } =
+      this.context;
 
-    const chainId = getGlobalChainId(NetworkController);
+    const chainIds = Object.keys(
+      NetworkController.state.networkConfigurationsByChainId,
+    );
+    const filteredChainIds = chainIds.filter(
+      (id) =>
+        PreferencesController.state.showIncomingTransactions[
+          id as keyof typeof PreferencesController.state.showIncomingTransactions
+        ],
+    ) as Hex[];
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([chainId]);
+    TransactionController.startIncomingTransactionPolling(filteredChainIds);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();
@@ -2058,6 +1981,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,
@@ -2105,6 +2029,7 @@ export default {
       MultichainBalancesController,
       RatesController,
       MultichainAssetsController,
+      MultichainAssetsRatesController,
       MultichainTransactionsController,
       ///: END:ONLY_INCLUDE_IF
       MultichainNetworkController,

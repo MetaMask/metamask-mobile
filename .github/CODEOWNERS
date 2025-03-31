@@ -5,6 +5,8 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+# Allows the design system and mobile platform team to review and approve all snapshot changes. This allows for system wide design token changes to color, typography, etc.
+**/*.snap                            @MetaMask/design-system-engineers @MetaMask/mobile-platform
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
@@ -107,6 +109,8 @@ app/components/UI/Stake              @MetaMask/metamask-staking
 app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
 app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
 app/selectors/earnController         @MetaMask/metamask-staking
+**/Earn/**                           @MetaMask/metamask-staking
+**/earn/**                           @MetaMask/metamask-staking
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
