@@ -17,7 +17,7 @@ exports[`BiometryButton should render correctly 1`] = `
     style={
       {
         "height": 24,
-        "tintColor": "#141618",
+        "tintColor": "#121314",
         "width": 24,
       }
     }

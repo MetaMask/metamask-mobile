@@ -21,7 +21,7 @@ exports[`SheetActionView should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
+        "borderColor": "#4459ff",
         "borderRadius": 24,
         "borderWidth": 1,
         "flex": 1,
@@ -37,7 +37,7 @@ exports[`SheetActionView should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
+          "color": "#4459ff",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -60,7 +60,7 @@ exports[`SheetActionView should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#4459ff",
         "borderRadius": 24,
         "flex": 1,
         "flexDirection": "row",
