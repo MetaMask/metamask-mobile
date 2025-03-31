@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
-import { fontStyles } from "../../../styles/common";
+import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 const createStyles = (colors: {
   background: { default: string };
@@ -31,7 +31,7 @@ const createStyles = (colors: {
     },
     cancelButton: {
       marginTop: 12,
-    }
+    },
   });
 
 export default createStyles;

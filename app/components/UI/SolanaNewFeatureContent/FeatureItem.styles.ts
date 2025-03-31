@@ -1,5 +1,5 @@
-import { StyleSheet } from "react-native";
-import { fontStyles } from "../../../styles/common";
+import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 const createStyles = (colors: {
   text: { default: string; alternative: string };
