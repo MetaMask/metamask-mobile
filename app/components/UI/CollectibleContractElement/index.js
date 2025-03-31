@@ -203,7 +203,7 @@ function CollectibleContractElement({
   return (
     <View style={styles.itemWrapper}>
       <TouchableOpacity
-        testID="collectible-contract-element"
+        testID={`collectible-contract-element-${asset.address}-${asset.name}`}
         onPress={toggleCollectibles}
         style={styles.titleContainer}
       >

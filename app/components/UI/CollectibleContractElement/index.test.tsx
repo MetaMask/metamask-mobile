@@ -92,7 +92,12 @@ describe('CollectibleContractElement Snapshot', () => {
     const removeFavoriteMock = jest.fn();
 
     const props = {
-      asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
+      asset: {
+        favorites: false,
+        name: 'AssetName',
+        logo: 'asset-logo.png',
+        address: '0xdef',
+      },
       contractCollectibles: [
         { address: '0xdef', tokenId: '1', name: 'Collectible1' },
         { address: '0xdef', tokenId: '2', name: 'Collectible2' },
@@ -153,7 +158,12 @@ describe('CollectibleContractElement Snapshot', () => {
     const removeFavoriteMock = jest.fn();
 
     const props = {
-      asset: { favorites: false, name: 'AssetName', logo: 'asset-logo.png' },
+      asset: {
+        favorites: false,
+        name: 'AssetName',
+        logo: 'asset-logo.png',
+        address: '0xdef',
+      },
       contractCollectibles: [
         { address: '0xdef', tokenId: '1', name: 'Collectible11' },
       ],
@@ -169,7 +179,9 @@ describe('CollectibleContractElement Snapshot', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    fireEvent.press(getByTestId('collectible-contract-element'));
+    fireEvent.press(
+      getByTestId('collectible-contract-element-0xdef-AssetName'),
+    );
     expect(queryByTestId('collectible-Collectible11-1')).toBeNull();
   });
 });
