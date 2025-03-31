@@ -665,7 +665,6 @@ export type ControllerInitFunction<
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;
