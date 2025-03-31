@@ -1655,6 +1655,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "paddingVertical": 8,
                       }
                     }
+                    textVariant="sBodyMDMedium"
+                    variant="primary"
                   >
                     <Text
                       color="Info"
@@ -2682,6 +2684,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   "paddingVertical": 8,
                 }
               }
+              textVariant="sBodyMDMedium"
+              variant="primary"
             >
               <Text
                 color="Info"
