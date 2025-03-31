@@ -4,25 +4,21 @@ import {
   JsonRpcRequest,
   PendingJsonRpcResponse,
 } from '@metamask/utils';
-// TODO: [ffmcgee] no namespace imports
-// eslint-disable-next-line import/no-namespace
-import * as Util from '../../util/metrics';
+import { shouldEmitDappViewedEvent, trackDappViewedEvent } from '../../util/metrics';
 import requestEthereumAccounts from './eth-request-accounts';
 
 interface DeferredPromise {
-  // TODO: Replace `any` with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  promise: Promise<any>;
+  promise: Promise<void>;
   resolve?: () => void;
   reject?: () => void;
 }
 
 jest.mock('../../util/metrics', () => ({
-  ...jest.requireActual('../../util/metrics'),
   shouldEmitDappViewedEvent: jest.fn(),
   trackDappViewedEvent: jest.fn(),
 }));
-const MockUtil = jest.mocked(Util);
+
+const mockShouldEmitDappViewedEvent = shouldEmitDappViewedEvent as jest.Mock;
 
 const baseRequest = {
   jsonrpc: '2.0' as const,
@@ -34,7 +30,7 @@ const baseRequest = {
 };
 
 /**
- * Create a defered Promise.
+ * Create a deferred Promise.
  *
  * @returns A deferred Promise.
  */
@@ -209,10 +205,10 @@ describe('requestEthereumAccountsHandler', () => {
       const mockAccounts = ['0xdead', '0xbeef'];
       const { handler, getAccounts } = createMockedHandler();
       getAccounts.mockReturnValueOnce([]).mockReturnValueOnce(mockAccounts);
-      MockUtil.shouldEmitDappViewedEvent.mockReturnValue(true);
+      mockShouldEmitDappViewedEvent.mockReturnValue(true);
 
       await handler(baseRequest);
-      expect(MockUtil.trackDappViewedEvent).toHaveBeenCalledWith(
+      expect(trackDappViewedEvent).toHaveBeenCalledWith(
         'http://test.com',
         mockAccounts.length,
       );
@@ -223,10 +219,10 @@ describe('requestEthereumAccountsHandler', () => {
       getAccounts
         .mockReturnValueOnce([])
         .mockReturnValueOnce(['0xdead', '0xbeef']);
-      MockUtil.shouldEmitDappViewedEvent.mockReturnValue(false);
+      mockShouldEmitDappViewedEvent.mockReturnValue(false);
 
       await handler(baseRequest);
-      expect(MockUtil.trackDappViewedEvent).not.toHaveBeenCalled();
+      expect(trackDappViewedEvent).not.toHaveBeenCalled();
     });
   });
 });
