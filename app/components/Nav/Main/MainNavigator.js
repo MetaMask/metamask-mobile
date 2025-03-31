@@ -196,7 +196,11 @@ const WalletTabModalFlow = () => (
 
 const TransactionsHome = () => (
   <Stack.Navigator>
-    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.TRANSACTIONS_VIEW}
+      component={ActivityView}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
