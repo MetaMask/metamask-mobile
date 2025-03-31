@@ -1636,26 +1636,20 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                     padding={0}
                     style={
                       {
-                        "backgroundColor": "transparent",
-                        "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderRadius": 8,
+                        "flexDirection": "row",
+                        "justifyContent": "center",
+                        "paddingVertical": 8,
                       }
                     }
                   >
                     <Text
-                      accessibilityRole="text"
+                      color="inherit"
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
                         }
                       }
                     >
@@ -2669,26 +2663,20 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
               onPress={[Function]}
               style={
                 {
-                  "backgroundColor": "transparent",
-                  "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "flexDirection": "row",
+                  "justifyContent": "center",
+                  "paddingVertical": 8,
                 }
               }
             >
               <Text
-                accessibilityRole="text"
+                color="inherit"
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
                   }
                 }
               >
