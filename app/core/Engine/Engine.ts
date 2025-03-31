@@ -183,6 +183,7 @@ import {
   EngineState,
   EngineContext,
   StatefulControllers,
+  LegacyPermissions,
 } from './types';
 import {
   BACKGROUND_STATE_CHANGE_EVENT_NAMES,
@@ -1711,10 +1712,11 @@ export class Engine {
    * @param {string} address - A hex address
    */
   removeAccount = async (address: string) => {
+    const addressHex = address as Hex;
     // Remove all associated permissions
-    await removeAccountsFromPermissions([address as Hex]); //TODO: [ffmcgee] address typecasting
+    await removeAccountsFromPermissions([addressHex]);
     // Remove account from the keyring
-    await this.keyringController.removeAccount(address as Hex);
+    await this.keyringController.removeAccount(addressHex);
   };
   ///: END:ONLY_INCLUDE_IF
 
@@ -1902,20 +1904,7 @@ export class Engine {
    */
   getCaip25PermissionFromLegacyPermissions(
     origin: string,
-    requestedPermissions: {
-      [PermissionKeys.eth_accounts]?: {
-        caveats?: {
-          type: keyof typeof CaveatTypes;
-          value: Hex[];
-        }[];
-      };
-      [PermissionKeys.permittedChains]?: {
-        caveats?: {
-          type: keyof typeof CaveatTypes;
-          value: Hex[];
-        }[];
-      };
-    },
+    requestedPermissions: LegacyPermissions,
   ) {
     const permissions = pick(requestedPermissions, [
       PermissionKeys.eth_accounts,
@@ -2227,7 +2216,7 @@ export default {
 
   getCaip25PermissionFromLegacyPermissions: (
     origin: string,
-    requestedPermissions: ValidPermission<string, Caveat<string, Json>>,
+    requestedPermissions: LegacyPermissions,
   ) =>
     instance?.getCaip25PermissionFromLegacyPermissions(
       origin,

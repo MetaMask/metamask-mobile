@@ -753,7 +753,7 @@ describe('getRpcMethodMiddleware', () => {
                 requiredScopes: {},
                 optionalScopes: {
                   'wallet:eip155': {
-                    accounts: [`wallet:eip155:${addressMock}` as CaipAccountId], // TODO: [ffmcgee] typecasting
+                    accounts: [`wallet:eip155:${addressMock}`],
                   },
                 },
                 sessionProperties: {},
@@ -832,7 +832,7 @@ describe('getRpcMethodMiddleware', () => {
                 requiredScopes: {},
                 optionalScopes: {
                   'wallet:eip155': {
-                    accounts: [`wallet:eip155:${addressMock}` as CaipAccountId], // TODO: [ffmcgee] typecasting
+                    accounts: [`wallet:eip155:${addressMock}`],
                   },
                 },
                 sessionProperties: {},
