@@ -126,7 +126,7 @@ import {
   getGasFeeEstimatesForTransaction,
 } from './utils/gas';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
-import SmartTransactionsMigrationBanner from '../../Views/confirmations/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import SmartTransactionsMigrationBanner from '../../Views/confirmations/legacy/components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import Routes from '../../../constants/navigation/Routes';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
