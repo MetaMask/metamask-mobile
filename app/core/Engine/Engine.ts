@@ -1902,42 +1902,45 @@ export class Engine {
    */
   getCaip25PermissionFromLegacyPermissions(
     origin: string,
-    requestedPermissions: ValidPermission<string, Caveat<string, Json>>,
+    requestedPermissions: {
+      [PermissionKeys.eth_accounts]?: {
+        caveats?: {
+          type: keyof typeof CaveatTypes;
+          value: Hex[];
+        }[];
+      };
+      [PermissionKeys.permittedChains]?: {
+        caveats?: {
+          type: keyof typeof CaveatTypes;
+          value: Hex[];
+        }[];
+      };
+    },
   ) {
     const permissions = pick(requestedPermissions, [
       PermissionKeys.eth_accounts,
       PermissionKeys.permittedChains,
     ]);
 
-    // TODO: [ffmcgee] type gymnastics over here
-    //@ts-expect-error ...
     if (!permissions[PermissionKeys.eth_accounts]) {
-      //@ts-expect-error ...
       permissions[PermissionKeys.eth_accounts] = {};
     }
 
-    //@ts-expect-error ...
     if (!permissions[PermissionKeys.permittedChains]) {
-      //@ts-expect-error ...
       permissions[PermissionKeys.permittedChains] = {};
     }
 
     if (isSnapId(origin)) {
-      //@ts-expect-error ...
       delete permissions[PermissionKeys.permittedChains];
     }
 
     const requestedAccounts =
-      //@ts-expect-error ...
       permissions[PermissionKeys.eth_accounts]?.caveats?.find(
-        //@ts-expect-error ...
         (caveat) => caveat.type === CaveatTypes.restrictReturnedAccounts,
       )?.value ?? [];
 
     const requestedChains =
-      //@ts-expect-error ...
       permissions[PermissionKeys.permittedChains]?.caveats?.find(
-        //@ts-expect-error ...
         (caveat) => caveat.type === CaveatTypes.restrictNetworkSwitching,
       )?.value ?? [];
 
