@@ -112,7 +112,6 @@ import { Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import NonEvmTokens from '../../UI/NonEvmTokens';
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
@@ -632,17 +631,6 @@ const Wallet = ({
     [navigation],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // to be consolidated with tokensTabProps
-  const nonEvmTokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-    }),
-    [],
-  );
-  ///: END:ONLY_INCLUDE_IF
-
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
@@ -653,24 +641,12 @@ const Wallet = ({
   );
 
   function renderTokensContent() {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
-    if (!isEvmSelected) {
-      return (
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
-        >
-          <NonEvmTokens {...nonEvmTokensTabProps} />
-        </ScrollableTabView>
-      );
-    }
-    ///: END:ONLY_INCLUDE_IF
-
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        <CollectibleContracts {...collectibleContractsTabProps} />
+        {isEvmSelected && (
+          <CollectibleContracts {...collectibleContractsTabProps} />
+        )}
       </ScrollableTabView>
     );
   }

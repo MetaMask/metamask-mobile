@@ -18,7 +18,7 @@ exports[`SendTo Component should render 1`] = `
   <View
     style={
       {
-        "borderBottomColor": "#BBC0C566",
+        "borderBottomColor": "#b7bbc866",
         "borderBottomWidth": 1,
         "flex": 0,
         "paddingHorizontal": 8,
@@ -47,7 +47,7 @@ exports[`SendTo Component should render 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
@@ -63,7 +63,7 @@ exports[`SendTo Component should render 1`] = `
         style={
           [
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
               "flex": 1,
@@ -74,7 +74,7 @@ exports[`SendTo Component should render 1`] = `
               "padding": 10,
             },
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
             },
           ]
         }
@@ -114,7 +114,7 @@ exports[`SendTo Component should render 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -128,7 +128,7 @@ exports[`SendTo Component should render 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#686e7d",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",
@@ -170,7 +170,7 @@ exports[`SendTo Component should render 1`] = `
                       "alignSelf": "center",
                     },
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                     },
                   ],
                   {
@@ -210,7 +210,7 @@ exports[`SendTo Component should render 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 16,
               "fontWeight": "400",
@@ -236,7 +236,7 @@ exports[`SendTo Component should render 1`] = `
               "paddingHorizontal": 10,
             },
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
             },
           ]
         }
@@ -261,12 +261,12 @@ exports[`SendTo Component should render 1`] = `
             onFocus={[Function]}
             onSubmitEditing={[Function]}
             placeholder="Search, public address (0x), or ENS"
-            placeholderTextColor="#9fa6ae"
+            placeholderTextColor="#9ca1af"
             spellCheck={false}
             style={
               [
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "flex": 1,
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontWeight": "400",
@@ -304,7 +304,7 @@ exports[`SendTo Component should render 1`] = `
                     "flexDirection": "column",
                   },
                   {
-                    "color": "#141618",
+                    "color": "#121314",
                   },
                 ],
                 {
@@ -377,7 +377,7 @@ exports[`SendTo Component should render 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#686e7d",
                 "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
@@ -425,7 +425,7 @@ exports[`SendTo Component should render 1`] = `
                 "padding": 15,
               },
               {
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "minHeight": 50,
               },
               {

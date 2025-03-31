@@ -4,8 +4,8 @@ exports[`ClaimBanner render matches snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#1C82341A",
-      "borderColor": "#1c8234",
+      "backgroundColor": "#1c7e331a",
+      "borderColor": "#1c7e33",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -24,7 +24,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#1c8234"
+      color="#1c7e33"
       height={24}
       name="Confirmation"
       style={
@@ -47,7 +47,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -70,7 +70,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
         {
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -85,7 +85,7 @@ exports[`ClaimBanner render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
