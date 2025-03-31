@@ -24,7 +24,7 @@ exports[`LoadingAnimation renders 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -58,7 +58,7 @@ exports[`LoadingAnimation renders 1`] = `
           undefined,
           undefined,
           {
-            "color": "#141618",
+            "color": "#121314",
           },
         ]
       }
@@ -67,7 +67,7 @@ exports[`LoadingAnimation renders 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 18,
           "fontWeight": "600",
@@ -83,7 +83,7 @@ exports[`LoadingAnimation renders 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376C91A",
+          "backgroundColor": "#4459ff1a",
           "borderRadius": 3,
           "height": 3,
           "marginVertical": 15,
@@ -94,7 +94,7 @@ exports[`LoadingAnimation renders 1`] = `
         collapsable={false}
         style={
           {
-            "backgroundColor": "#0376c9",
+            "backgroundColor": "#4459ff",
             "borderRadius": 3,
             "flex": 1,
             "height": 3,
