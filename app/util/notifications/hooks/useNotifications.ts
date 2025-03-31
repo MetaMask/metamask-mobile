@@ -19,7 +19,7 @@ import {
 import { usePushNotificationsToggle } from './usePushNotifications';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
-import ErrorMessage from '../../../components/Views/confirmations/SendFlow/ErrorMessage';
+import ErrorMessage from '../../../components/Views/confirmations/legacy/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
