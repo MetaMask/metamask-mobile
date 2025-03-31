@@ -17,7 +17,9 @@ import TokenHero from '../../TokenHero';
 import GasFeesDetails from '../GasFeesDetails';
 import styleSheet from './StakingClaim.styles';
 
-const StakingClaim = ({ route }: {
+const StakingClaim = ({
+  route,
+}: {
   route: RouteProp<{ params: { amountWei: string } }, 'params'>;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -50,11 +52,9 @@ const StakingClaim = ({ route }: {
           isTransactionsRedesign
         />
       </View>
-      <View style={styles.stakingContractInteractionDetailsContainer}>
-        <InfoSection>
-          <StakingContractInteractionDetails />
-        </InfoSection>
-      </View>
+      <InfoSection>
+        <StakingContractInteractionDetails />
+      </InfoSection>
       <GasFeesDetails />
     </>
   );

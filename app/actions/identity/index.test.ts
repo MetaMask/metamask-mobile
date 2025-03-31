@@ -1,4 +1,9 @@
-import { performSignIn, performSignOut } from '.';
+import {
+  performSignIn,
+  performSignOut,
+  disableProfileSyncing,
+  enableProfileSyncing,
+} from '.';
 import Engine from '../../core/Engine';
 
 jest.mock('../../core/Engine', () => ({
@@ -7,7 +12,10 @@ jest.mock('../../core/Engine', () => ({
     AuthenticationController: {
       performSignIn: jest.fn(),
       performSignOut: jest.fn(),
-      getSessionProfile: jest.fn(),
+    },
+    UserStorageController: {
+      enableProfileSyncing: jest.fn(),
+      disableProfileSyncing: jest.fn(),
     },
   },
 }));
@@ -17,23 +25,16 @@ describe('Identity actions', () => {
     jest.clearAllMocks();
   });
 
-  it('signs in successfully and obtain profile', async () => {
+  it('signs in successfully', async () => {
     (
       Engine.context.AuthenticationController.performSignIn as jest.Mock
     ).mockResolvedValue('valid-access-token');
-    (
-      Engine.context.AuthenticationController.getSessionProfile as jest.Mock
-    ).mockResolvedValue('valid-profile');
 
-    const result = await performSignIn();
+    await performSignIn();
 
     expect(
       Engine.context.AuthenticationController.performSignIn,
     ).toHaveBeenCalled();
-    expect(
-      Engine.context.AuthenticationController.getSessionProfile,
-    ).toHaveBeenCalled();
-    expect(result).toBeUndefined();
   });
 
   it('signs out successfully', () => {
@@ -45,6 +46,32 @@ describe('Identity actions', () => {
 
     expect(
       Engine.context.AuthenticationController.performSignOut,
+    ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('enables profile syncing successfully', async () => {
+    (
+      Engine.context.UserStorageController.enableProfileSyncing as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await enableProfileSyncing();
+
+    expect(
+      Engine.context.UserStorageController.enableProfileSyncing,
+    ).toHaveBeenCalled();
+    expect(result).toBeUndefined();
+  });
+
+  it('disables profile syncing successfully', async () => {
+    (
+      Engine.context.UserStorageController.disableProfileSyncing as jest.Mock
+    ).mockResolvedValue(undefined);
+
+    const result = await disableProfileSyncing();
+
+    expect(
+      Engine.context.UserStorageController.disableProfileSyncing,
     ).toHaveBeenCalled();
     expect(result).toBeUndefined();
   });

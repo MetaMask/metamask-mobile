@@ -100,6 +100,9 @@ jest.mock('../../store', () => ({
 jest.mock('../../selectors/multichainNetworkController', () => ({
   selectMultichainNetworkControllerState: jest.fn(),
   selectSelectedNonEvmNetworkChainId: jest.fn(),
+  selectSelectedNonEvmNetworkSymbol: jest.fn(),
+  selectIsEvmNetworkSelected: jest.fn(),
+  selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -668,7 +671,7 @@ describe('network-utils', () => {
         });
 
         expect(url).toBe(
-          `https://explorer.solana.com/address/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
+          `https://solscan.io/account/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
         );
       });
 
