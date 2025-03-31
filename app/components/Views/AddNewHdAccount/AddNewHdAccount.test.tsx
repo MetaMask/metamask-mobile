@@ -131,11 +131,11 @@ describe('AddNewHdAccount', () => {
     );
     fireEvent.press(srpSelector);
 
-    // clicking the first srp will display the srp list
-    const firstSRP = getByText('Secret Recovery Phrase 1');
-    fireEvent.press(firstSRP);
-
+    // clicking the second srp will display the srp list
+    // it is also the current selected account
     const secondSRP = getByText('Secret Recovery Phrase 2');
+    fireEvent.press(secondSRP);
+
     fireEvent.press(secondSRP);
 
     // The picker will now only show the second srp.
@@ -154,7 +154,7 @@ describe('AddNewHdAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata1.id,
+      mockKeyringMetadata2.id,
       mockNextAccountName,
     );
   });
@@ -174,7 +174,7 @@ describe('AddNewHdAccount', () => {
     fireEvent.press(addButton);
 
     expect(mockAddNewHdAccount).toHaveBeenCalledWith(
-      mockKeyringMetadata1.id,
+      mockKeyringMetadata2.id,
       'My Custom Account',
     );
   });
