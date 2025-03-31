@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 0f15eb6..293602f 100644
+index 0f15eb6..179932b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -135,7 +135,7 @@ index 0f15eb6..293602f 100644
 +    if (blockchainMetadata?.error && nftApiMetadata?.error) {
 +        return {
 +            image: null,
-+           name: null,
++            name: null,
 +            description: null,
 +            standard: blockchainMetadata.standard ?? null,
 +            favorite: false,
@@ -167,7 +167,7 @@ index 4384784..e35e71c 100644
      address?: string;
      attributes?: Attributes[];
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-index c6d715d..696a24b 100644
+index 419956e..c656f1c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
 @@ -165,7 +165,7 @@ class TokenRatesController extends (0, polling_controller_1.StaticIntervalPollin
@@ -180,7 +180,7 @@ index c6d715d..696a24b 100644
              // This prevents redundant updates
              // This promise is resolved after the in-progress update has finished,
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
-index 396f361..9469ba4 100644
+index 9ade79f..49f6d17 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
 @@ -162,7 +162,7 @@ export class TokenRatesController extends StaticIntervalPollingController() {
