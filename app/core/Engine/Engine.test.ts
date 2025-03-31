@@ -18,6 +18,13 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
 import { PermissionKeys } from '../Permissions/specifications';
+import {
+  CaveatSpecificationConstraint,
+  ExtractPermission,
+  PermissionSpecificationConstraint,
+  SubjectPermissions,
+} from '@metamask/permission-controller';
+import { pick } from 'lodash';
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
@@ -534,9 +541,7 @@ describe('Engine', () => {
     it('returns valid CAIP-25 permissions', async () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'test.com',
-        // TODO: [ffmcgee] fix typescript
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        {} as any,
+        {},
       );
 
       expect(permissions).toStrictEqual(
@@ -566,12 +571,11 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'test.com',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
                 type: CaveatTypes.restrictReturnedAccounts,
-                value: ['foo'],
+                value: ['0x0000000000000000000000000000000000000001'],
               },
             ],
           },
@@ -588,7 +592,9 @@ describe('Engine', () => {
                   requiredScopes: {},
                   optionalScopes: {
                     'wallet:eip155': {
-                      accounts: ['wallet:eip155:foo'],
+                      accounts: [
+                        'wallet:eip155:0x0000000000000000000000000000000000000001',
+                      ],
                     },
                   },
                   isMultichainOrigin: false,
@@ -605,7 +611,6 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'test.com',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.permittedChains]: {
             caveats: [
               {
@@ -647,12 +652,11 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'test.com',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
                 type: CaveatTypes.restrictReturnedAccounts,
-                value: ['foo'],
+                value: ['0x0000000000000000000000000000000000000001'],
               },
             ],
           },
@@ -677,10 +681,14 @@ describe('Engine', () => {
                   requiredScopes: {},
                   optionalScopes: {
                     'wallet:eip155': {
-                      accounts: ['wallet:eip155:foo'],
+                      accounts: [
+                        'wallet:eip155:0x0000000000000000000000000000000000000001',
+                      ],
                     },
                     'eip155:100': {
-                      accounts: ['eip155:100:foo'],
+                      accounts: [
+                        'eip155:100:0x0000000000000000000000000000000000000001',
+                      ],
                     },
                   },
                   isMultichainOrigin: false,
@@ -697,12 +705,11 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'npm:snap',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
                 type: CaveatTypes.restrictReturnedAccounts,
-                value: ['foo'],
+                value: ['0x0000000000000000000000000000000000000001'],
               },
             ],
           },
@@ -719,7 +726,9 @@ describe('Engine', () => {
                   requiredScopes: {},
                   optionalScopes: {
                     'wallet:eip155': {
-                      accounts: ['wallet:eip155:foo'],
+                      accounts: [
+                        'wallet:eip155:0x0000000000000000000000000000000000000001',
+                      ],
                     },
                   },
                   isMultichainOrigin: false,
@@ -736,7 +745,6 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'npm:snap',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.permittedChains]: {
             caveats: [
               {
@@ -775,12 +783,11 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'npm:snap',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
                 type: CaveatTypes.restrictReturnedAccounts,
-                value: ['foo'],
+                value: ['0x0000000000000000000000000000000000000001'],
               },
             ],
           },
@@ -805,7 +812,9 @@ describe('Engine', () => {
                   requiredScopes: {},
                   optionalScopes: {
                     'wallet:eip155': {
-                      accounts: ['wallet:eip155:foo'],
+                      accounts: [
+                        'wallet:eip155:0x0000000000000000000000000000000000000001',
+                      ],
                     },
                   },
                   isMultichainOrigin: false,
@@ -822,7 +831,6 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         'test.com',
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
@@ -877,7 +885,6 @@ describe('Engine', () => {
       const permissions = await engine.getCaip25PermissionFromLegacyPermissions(
         origin,
         {
-          //@ts-expect-error // TODO [ffmcgee]: fix typing
           [PermissionKeys.eth_accounts]: {
             caveats: [
               {
@@ -939,8 +946,19 @@ describe('Engine', () => {
     });
 
     it('requests permittedChains approval if autoApprove: false', async () => {
-      const expectedCaip25Permission = {
+      const subjectPermissions: Partial<
+        SubjectPermissions<
+          ExtractPermission<
+            PermissionSpecificationConstraint,
+            CaveatSpecificationConstraint
+          >
+        >
+      > = {
         [Caip25EndowmentPermissionName]: {
+          id: 'id',
+          date: 1,
+          invoker: 'origin',
+          parentCapability: PermissionKeys.permittedChains,
           caveats: [
             {
               type: Caip25CaveatType,
@@ -955,13 +973,22 @@ describe('Engine', () => {
         },
       };
 
+      const expectedCaip25Permission = {
+        [Caip25EndowmentPermissionName]: pick(
+          subjectPermissions[Caip25EndowmentPermissionName],
+          'caveats',
+        ),
+      };
+
       jest
         .spyOn(
           engine.context.PermissionController,
           'requestPermissionsIncremental',
         )
-        //@ts-expect-error // TODO [ffmcgee]: fix typing
-        .mockResolvedValue(expectedCaip25Permission);
+        .mockResolvedValue([
+          subjectPermissions,
+          { id: 'id', origin: 'origin' },
+        ]);
 
       await engine.requestPermittedChainsPermissionIncremental({
         origin: 'test.com',
@@ -992,8 +1019,19 @@ describe('Engine', () => {
     });
 
     it('grants permittedChains approval if autoApprove: true', async () => {
-      const expectedCaip25Permission = {
+      const subjectPermissions: Partial<
+        SubjectPermissions<
+          ExtractPermission<
+            PermissionSpecificationConstraint,
+            CaveatSpecificationConstraint
+          >
+        >
+      > = {
         [Caip25EndowmentPermissionName]: {
+          id: 'id',
+          date: 1,
+          invoker: 'origin',
+          parentCapability: PermissionKeys.permittedChains,
           caveats: [
             {
               type: Caip25CaveatType,
@@ -1008,13 +1046,19 @@ describe('Engine', () => {
         },
       };
 
+      const expectedCaip25Permission = {
+        [Caip25EndowmentPermissionName]: pick(
+          subjectPermissions[Caip25EndowmentPermissionName],
+          'caveats',
+        ),
+      };
+
       jest
         .spyOn(
           engine.context.PermissionController,
           'grantPermissionsIncremental',
         )
-        //@ts-expect-error // TODO [ffmcgee]: fix typing
-        .mockResolvedValue(expectedCaip25Permission);
+        .mockReturnValue(subjectPermissions);
 
       await engine.requestPermittedChainsPermissionIncremental({
         origin: 'test.com',
