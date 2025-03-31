@@ -1,10 +1,11 @@
-import { ChainId, BuiltInNetworkName } from '@metamask/controller-utils';
-import { getDefaultNetworkControllerState } from '@metamask/network-controller';
-import * as networkController from '@metamask/network-controller';
+
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
+
 import { ensureValidState } from './util';
 import migrate from './071';
-import { cloneDeep } from 'lodash';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -90,6 +91,23 @@ const createTestState = () => ({
   }
 });
 
+const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
+    chainId: '0x18c6',
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        url: 'https://carrot.megaeth.com/rpc',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://megaexplorer.xyz'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
+});
+
 describe('Migration 71: Add `MegaEth Testnet`', () => {
   beforeEach(() => {
     jest.resetAllMocks();
@@ -101,14 +119,15 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toBe(state);
+    expect(migratedState).toStrictEqual({ some: 'state' });
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
   it('adds `MegaEth Testnet` as default network to state', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
     const oldState = createTestState();
-    const megaethTestnetChainId = ChainId[BuiltInNetworkName.MegaETHTestnet];
-    const defaultState = getDefaultNetworkControllerState([megaethTestnetChainId]);
+    mockedEnsureValidState.mockReturnValue(true);
+
     const expectedData = {
       engine: {
         backgroundState: {
@@ -116,13 +135,12 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
               ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
-              [megaethTestnetChainId]: defaultState.networkConfigurationsByChainId[megaethTestnetChainId]
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
         }
       }
     };
-    mockedEnsureValidState.mockReturnValue(true);
 
     const migratedState = migrate(oldState);
 
@@ -130,20 +148,40 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures expection if `MegaETH Testnet` configuration not found from getDefaultNetworkControllerState()', () => {
-    const oldState = createTestState()
-    const orgState = cloneDeep(oldState);
-    // Mocking the getDefaultNetworkControllerState to return configuration for all networks except MegaETH Testnet
-    jest.spyOn(networkController, 'getDefaultNetworkControllerState').mockReturnValue({
-      // getDefaultNetworkControllerState() with no arguments will return all default infura networks only
-      ...getDefaultNetworkControllerState()
-    })
+  it('replaces `MegaEth Testnet` NetworkConfiguration if there is one', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
+    const oldState = createTestState();
+    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration> ;
+    networkConfigurationsByChainId[megaethTestnetConfiguration.chainId] = {
+      ...megaethTestnetConfiguration,
+      rpcEndpoints: [
+        {
+          networkClientId: 'some-client-id',
+          url: 'https://some-url.com/rpc',
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    };
     mockedEnsureValidState.mockReturnValue(true);
+
+    const expectedData = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
+            },
+          },
+        }
+      }
+    };
 
     const migratedState = migrate(oldState);
 
-    expect(migratedState).toStrictEqual(orgState);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(migratedState).toStrictEqual(expectedData);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
   it.each([{
@@ -162,7 +200,7 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
     state: {
       engine: {
         backgroundState: {
-          NetworkController: "invalid"
+          NetworkController: 'invalid'
         }
       },
     },
@@ -172,7 +210,7 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurationsByChainId: "invalid"
+            networkConfigurationsByChainId: 'invalid'
           }
         }
       },
@@ -186,7 +224,7 @@ describe('Migration 71: Add `MegaEth Testnet`', () => {
     const migratedState = migrate(state);
 
     // State should be unchanged
-    expect(migratedState).toEqual(orgState);
+    expect(migratedState).toStrictEqual(orgState);
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
