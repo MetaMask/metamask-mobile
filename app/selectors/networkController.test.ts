@@ -138,6 +138,32 @@ describe('networkSelectors', () => {
     ).toBe(false);
   });
 
+  // TODO: When the patch for this state is removed and the field is no longer optional, this test should be removed
+  it('selectIsAllNetworks returns false if tokenNetworkFilter is undefined', () => {
+    expect(
+      selectIsAllNetworks({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+            },
+            PreferencesController: {
+              ...mockState.engine.backgroundState.PreferencesController,
+
+              tokenNetworkFilter: undefined as unknown as Record<
+                string,
+                string
+              >,
+            },
+          },
+        },
+      }),
+    ).toBe(false);
+  });
+
   it('selectNetworkConfigurationByChainId should return the network configuration for a given chainId', () => {
     expect(selectNetworkConfigurationByChainId(mockState, '0x89')).toEqual(
       mockState.engine.backgroundState.NetworkController
