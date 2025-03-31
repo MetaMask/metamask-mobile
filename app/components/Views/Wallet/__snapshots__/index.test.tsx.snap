@@ -55,17 +55,17 @@ exports[`Wallet should render correctly 1`] = `
             style={
               {
                 "backgroundColor": {
-                  "alternative": "#f2f4f6",
-                  "alternativeHover": "#E7EBEE",
-                  "alternativePressed": "#DBE0E6",
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
                   "default": "#ffffff",
-                  "defaultHover": "#F5F5F5",
-                  "defaultPressed": "#EBEBEB",
-                  "hover": "#0000000A",
-                  "muted": "#f2f4f6",
-                  "mutedHover": "#E7EBEE",
-                  "mutedPressed": "#DBE0E6",
-                  "pressed": "#00000014",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
                 },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
@@ -142,7 +142,7 @@ exports[`Wallet should render correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -188,7 +188,7 @@ exports[`Wallet should render correctly 1`] = `
                     </View>
                   </View>
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -236,7 +236,7 @@ exports[`Wallet should render correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
@@ -415,7 +415,7 @@ exports[`Wallet should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
@@ -431,7 +431,7 @@ exports[`Wallet should render correctly 1`] = `
                       </View>
                     </View>
                     <SvgMock
-                      color="#141618"
+                      color="#121314"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -448,7 +448,7 @@ exports[`Wallet should render correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
@@ -523,7 +523,7 @@ exports[`Wallet should render correctly 1`] = `
                         }
                       >
                         <SvgMock
-                          color="#141618"
+                          color="#121314"
                           height={24}
                           name="Copy"
                           style={
@@ -558,7 +558,7 @@ exports[`Wallet should render correctly 1`] = `
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -785,7 +785,7 @@ exports[`Wallet should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 24,
                                 "fontWeight": "600",
@@ -801,8 +801,8 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376C91A",
-                              "borderColor": "#0376c9",
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -821,7 +821,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={24}
                               name="Info"
                               style={
@@ -844,7 +844,7 @@ exports[`Wallet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -860,8 +860,8 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#BF52081A",
-                              "borderColor": "#bf5208",
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -879,7 +879,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#bf5208"
+                              color="#9a6300"
                               height={24}
                               name="Danger"
                               style={
@@ -901,7 +901,7 @@ exports[`Wallet should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -915,7 +915,7 @@ exports[`Wallet should render correctly 1`] = `
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                   }
                                 }
                               >
@@ -929,7 +929,7 @@ exports[`Wallet should render correctly 1`] = `
                         <Text
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -941,7 +941,7 @@ exports[`Wallet should render correctly 1`] = `
                             onPress={[Function]}
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                               }
                             }
                           >
@@ -975,7 +975,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -989,7 +989,7 @@ exports[`Wallet should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "paddingLeft": 5,
@@ -1003,7 +1003,7 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#D738471A",
+                              "backgroundColor": "#ca35421a",
                               "borderRadius": 8,
                               "flexShrink": 1,
                               "marginTop": 10,
@@ -1020,7 +1020,7 @@ exports[`Wallet should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#d73847",
+                                    "color": "#ca3542",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1048,8 +1048,8 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "backgroundColor": "#0376c9",
-                                "borderColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1076,7 +1076,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1089,7 +1089,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -1103,7 +1103,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1116,7 +1116,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -1202,17 +1202,17 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             style={
               {
                 "backgroundColor": {
-                  "alternative": "#f2f4f6",
-                  "alternativeHover": "#E7EBEE",
-                  "alternativePressed": "#DBE0E6",
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
                   "default": "#ffffff",
-                  "defaultHover": "#F5F5F5",
-                  "defaultPressed": "#EBEBEB",
-                  "hover": "#0000000A",
-                  "muted": "#f2f4f6",
-                  "mutedHover": "#E7EBEE",
-                  "mutedPressed": "#DBE0E6",
-                  "pressed": "#00000014",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
                 },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
@@ -1289,7 +1289,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -1335,7 +1335,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     </View>
                   </View>
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -1383,7 +1383,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
@@ -1562,7 +1562,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
@@ -1578,7 +1578,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                       </View>
                     </View>
                     <SvgMock
-                      color="#141618"
+                      color="#121314"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -1595,7 +1595,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
@@ -1670,7 +1670,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         }
                       >
                         <SvgMock
-                          color="#141618"
+                          color="#121314"
                           height={24}
                           name="Copy"
                           style={
@@ -1705,7 +1705,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -1932,7 +1932,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 24,
                                 "fontWeight": "600",
@@ -1948,8 +1948,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376C91A",
-                              "borderColor": "#0376c9",
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -1968,7 +1968,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={24}
                               name="Info"
                               style={
@@ -1991,7 +1991,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -2007,8 +2007,8 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#BF52081A",
-                              "borderColor": "#bf5208",
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -2026,7 +2026,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#bf5208"
+                              color="#9a6300"
                               height={24}
                               name="Danger"
                               style={
@@ -2048,7 +2048,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -2062,7 +2062,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                   }
                                 }
                               >
@@ -2076,7 +2076,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         <Text
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -2088,7 +2088,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             onPress={[Function]}
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                               }
                             }
                           >
@@ -2122,7 +2122,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -2136,7 +2136,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "paddingLeft": 5,
@@ -2150,7 +2150,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#D738471A",
+                              "backgroundColor": "#ca35421a",
                               "borderRadius": 8,
                               "flexShrink": 1,
                               "marginTop": 10,
@@ -2167,7 +2167,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#d73847",
+                                    "color": "#ca3542",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -2195,8 +2195,8 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "backgroundColor": "#0376c9",
-                                "borderColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2223,7 +2223,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2236,7 +2236,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -2250,7 +2250,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2263,7 +2263,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -2349,17 +2349,17 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             style={
               {
                 "backgroundColor": {
-                  "alternative": "#f2f4f6",
-                  "alternativeHover": "#E7EBEE",
-                  "alternativePressed": "#DBE0E6",
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
                   "default": "#ffffff",
-                  "defaultHover": "#F5F5F5",
-                  "defaultPressed": "#EBEBEB",
-                  "hover": "#0000000A",
-                  "muted": "#f2f4f6",
-                  "mutedHover": "#E7EBEE",
-                  "mutedPressed": "#DBE0E6",
-                  "pressed": "#00000014",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
                 },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
@@ -2436,7 +2436,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -2482,7 +2482,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </View>
                   </View>
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -2530,7 +2530,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
@@ -2709,7 +2709,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
@@ -2725,7 +2725,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       </View>
                     </View>
                     <SvgMock
-                      color="#141618"
+                      color="#121314"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -2742,7 +2742,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
@@ -2817,7 +2817,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         }
                       >
                         <SvgMock
-                          color="#141618"
+                          color="#121314"
                           height={24}
                           name="Copy"
                           style={
@@ -2852,7 +2852,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -3079,7 +3079,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 24,
                                 "fontWeight": "600",
@@ -3095,8 +3095,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376C91A",
-                              "borderColor": "#0376c9",
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -3115,7 +3115,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={24}
                               name="Info"
                               style={
@@ -3138,7 +3138,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -3154,8 +3154,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#BF52081A",
-                              "borderColor": "#bf5208",
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -3173,7 +3173,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#bf5208"
+                              color="#9a6300"
                               height={24}
                               name="Danger"
                               style={
@@ -3195,7 +3195,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -3209,7 +3209,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                   }
                                 }
                               >
@@ -3223,7 +3223,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <Text
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -3235,7 +3235,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             onPress={[Function]}
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                               }
                             }
                           >
@@ -3269,7 +3269,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -3283,7 +3283,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "paddingLeft": 5,
@@ -3297,7 +3297,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#D738471A",
+                              "backgroundColor": "#ca35421a",
                               "borderRadius": 8,
                               "flexShrink": 1,
                               "marginTop": 10,
@@ -3314,7 +3314,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               <Text
                                 style={
                                   {
-                                    "color": "#d73847",
+                                    "color": "#ca3542",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -3342,8 +3342,8 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "backgroundColor": "#0376c9",
-                                "borderColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -3370,7 +3370,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -3383,7 +3383,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -3397,7 +3397,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -3410,7 +3410,7 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
