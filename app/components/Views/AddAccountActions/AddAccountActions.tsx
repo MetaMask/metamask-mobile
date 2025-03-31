@@ -26,6 +26,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
+
 import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
   TextColor,
