@@ -1,4 +1,4 @@
-import { InputElement, NumberInputProps } from '@metamask/snaps-sdk/jsx';
+import { InputElement } from '@metamask/snaps-sdk/jsx';
 import { hasProperty } from '@metamask/utils';
 
 import { UIComponentFactory } from './types';
