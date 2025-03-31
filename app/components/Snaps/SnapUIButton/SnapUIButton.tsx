@@ -78,7 +78,6 @@ export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({
       borderRadius: 8,
       paddingVertical: 8,
       flexDirection: 'row',
-      justifyContent: 'center',
       alignItems: 'center',
       ...(style as ViewStyle),
     },
