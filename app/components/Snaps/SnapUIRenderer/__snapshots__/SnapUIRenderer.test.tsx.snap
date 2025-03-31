@@ -2243,6 +2243,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderTopLeftRadius": 24,
                       "borderTopRightRadius": 24,
+                      "maxHeight": "80%",
                       "minHeight": 300,
                       "overflow": "hidden",
                       "paddingBottom": 20,
