@@ -89,7 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
-import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/transaction-details';
+import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/transactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 
 const Stack = createStackNavigator();

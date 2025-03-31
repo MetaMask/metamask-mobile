@@ -48,6 +48,7 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
