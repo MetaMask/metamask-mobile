@@ -1,4 +1,4 @@
-import { GasFeeOptions } from '../../../../../core/GasPolling/types';
+import { GasFeeOptions } from '../../../../../../core/GasPolling/types';
 
 export interface RenderInputProps {
   updateOption:
