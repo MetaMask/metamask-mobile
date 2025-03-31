@@ -36,23 +36,24 @@ describe('SnapUIButton', () => {
     });
   });
 
+  const getColorForTextVariant = (color: TextColor): string => {
+    switch (color) {
+      case TextColor.Info:
+        return '#0376C9';
+      case TextColor.Error:
+        return '#D73A49';
+      case TextColor.Muted:
+        return '#000000';
+      default:
+        return '#000000';
+    }
+  };
+
   const createStyledText = (
     text: string,
     color: TextColor = TextColor.Info,
   ) => (
-    <Text
-      color={color}
-      // eslint-disable-next-line react-native/no-inline-styles
-      // eslint-disable-next-line react-native/no-color-literals
-      style={{
-        color:
-          color === TextColor.Info
-            ? '#0376C9'
-            : color === TextColor.Error
-            ? '#D73A49'
-            : '#000000',
-      }}
-    >
+    <Text color={color} style={{ color: getColorForTextVariant(color) }}>
       {text}
     </Text>
   );
