@@ -5,7 +5,6 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
 import { KeyringSelector } from '@metamask/keyring-controller';
-import Logger from '../../util/Logger';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -62,29 +61,25 @@ export async function createNewSecretRecoveryPhrase() {
 }
 
 export async function addNewHdAccount(
+  keyringId?: string,
   name?: string,
-  _keyringId?: string,
 ): Promise<void> {
   const { KeyringController } = Engine.context;
-  try {
-    const keyringSelector: KeyringSelector = _keyringId
-      ? {
-          id: _keyringId,
-        }
-      : {
-          type: ExtendedKeyringTypes.hd,
-        };
+  const keyringSelector: KeyringSelector = keyringId
+    ? {
+        id: keyringId,
+      }
+    : {
+        type: ExtendedKeyringTypes.hd,
+      };
 
-    const [addedAccountAddress] = await KeyringController.withKeyring(
-      keyringSelector,
-      async (keyring) => await keyring.addAccounts(1),
-    );
-    Engine.setSelectedAddress(addedAccountAddress);
+  const [addedAccountAddress] = await KeyringController.withKeyring(
+    keyringSelector,
+    async (keyring) => await keyring.addAccounts(1),
+  );
+  Engine.setSelectedAddress(addedAccountAddress);
 
-    if (name) {
-      Engine.setAccountLabel(addedAccountAddress, name);
-    }
-  } catch (e: unknown) {
-    Logger.error(e as Error, 'error while trying to add a new account');
+  if (name) {
+    Engine.setAccountLabel(addedAccountAddress, name);
   }
 }

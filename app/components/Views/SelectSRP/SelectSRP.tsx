@@ -1,16 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import SRPList from '../../UI/SRPList';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
-import { strings } from '../../../../locales/i18n';
+import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './styles';
 
 const SelectSRP = () => {
   const navigation = useNavigation();
+  const modalRef = useRef<ReusableModalRef>(null);
+  const { styles } = useStyles(styleSheet, {});
 
   const onKeyringSelect = (keyringId: string) => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -20,14 +19,9 @@ const SelectSRP = () => {
   };
 
   return (
-    <BottomSheet>
-      <BottomSheetHeader onBack={() => navigation.goBack()}>
-        <Text variant={TextVariant.HeadingSM}>
-          {strings('secure_your_wallet.srp_list_selection')}
-        </Text>
-      </BottomSheetHeader>
+    <ReusableModal ref={modalRef} style={styles.screen}>
       <SRPList onKeyringSelect={onKeyringSelect} />
-    </BottomSheet>
+    </ReusableModal>
   );
 };
 

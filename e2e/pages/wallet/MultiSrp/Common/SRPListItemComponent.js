@@ -24,7 +24,7 @@ class SRPListItemComponent {
   }
 
   async tapListItem(srpId) {
-    const srpSelector = Matchers.get(
+    const srpSelector = Matchers.getElementByID(
       `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${srpId}`,
     );
     await Gestures.waitAndTap(srpSelector);

@@ -20,7 +20,7 @@ import { SRPListItemSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPL
 
 const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
   const { styles } = useStyles(styleSheet, {});
-  const [showAccounts, setShowAccounts] = useState(true);
+  const [showAccounts, setShowAccounts] = useState(false);
   const accountsToBeShown = useMemo(
     () =>
       keyring.accounts.map((accountAddress) =>
@@ -41,9 +41,9 @@ const SRPListItem = ({ name, keyring, onActionComplete }: SRPListItemProps) => {
             testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
             variant={ButtonVariants.Link}
             label={`${strings(
-              showAccounts
-                ? 'accounts.hide_accounts'
-                : 'accounts.show_accounts',
+              !showAccounts
+                ? 'accounts.show_accounts'
+                : 'accounts.hide_accounts',
             )} ${keyring.accounts.length} ${strings('accounts.accounts')}`}
             onPress={() => setShowAccounts(!showAccounts)}
           />

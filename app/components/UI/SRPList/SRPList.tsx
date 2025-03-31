@@ -5,9 +5,9 @@ import { useSelector } from 'react-redux';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { SRPListProps } from './SRPList.types';
 import { useStyles } from '../../hooks/useStyles';
-import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
+import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.selectors';
 
 const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});

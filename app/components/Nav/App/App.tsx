@@ -310,11 +310,10 @@ const DetectedTokensFlow = () => (
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 interface RootModalFlowProps {
   route: {
-    params: object;
+    params: Record<string, unknown>;
   };
 }
-///: END:ONLY_INCLUDE_IF
-
+///: END:ONLY_INCLUDE_IF(multi-srp)
 const RootModalFlow = (
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   props: RootModalFlowProps,
