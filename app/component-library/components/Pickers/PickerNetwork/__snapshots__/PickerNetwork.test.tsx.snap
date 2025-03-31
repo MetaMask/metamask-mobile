@@ -8,7 +8,7 @@ exports[`PickerNetwork renders correctly 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 16,
       "flexDirection": "row",
       "height": 32,
@@ -57,7 +57,7 @@ exports[`PickerNetwork renders correctly 1`] = `
     numberOfLines={1}
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "flexShrink": 1,
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
@@ -72,7 +72,7 @@ exports[`PickerNetwork renders correctly 1`] = `
     Ethereum Mainnet
   </Text>
   <SvgMock
-    color="#141618"
+    color="#121314"
     height={12}
     name="ArrowDown"
     style={

@@ -353,7 +353,7 @@ exports[`Approve renders transaction approval 1`] = `
                         onStartShouldSetResponder={[Function]}
                         style={
                           {
-                            "backgroundColor": "#00000099",
+                            "backgroundColor": "#00000066",
                             "bottom": 0,
                             "height": 1334,
                             "left": 0,
@@ -594,7 +594,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                       accessibilityRole="text"
                                                       style={
                                                         {
-                                                          "color": "#141618",
+                                                          "color": "#121314",
                                                           "fontFamily": "EuclidCircularB-Bold",
                                                           "fontSize": 18,
                                                           "fontWeight": "600",
@@ -621,7 +621,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#141618",
+                                                            "color": "#121314",
                                                             "fontFamily": "EuclidCircularB-Bold",
                                                             "fontSize": 18,
                                                             "fontWeight": "700",
@@ -643,7 +643,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                       style={
                                                         {
                                                           "backgroundColor": "transparent",
-                                                          "color": "#0376c9",
+                                                          "color": "#4459ff",
                                                           "fontFamily": "EuclidCircularB-Regular",
                                                           "fontSize": 14,
                                                           "fontWeight": "400",
@@ -659,7 +659,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#0376c9",
+                                                            "color": "#4459ff",
                                                             "fontFamily": "EuclidCircularB-Medium",
                                                             "fontSize": 14,
                                                             "fontWeight": "500",
@@ -691,7 +691,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                           style={
                                                             [
                                                               {
-                                                                "backgroundColor": "#f2f4f6",
+                                                                "backgroundColor": "#f3f5f9",
                                                                 "borderRadius": 30,
                                                                 "padding": 14,
                                                               },
@@ -737,7 +737,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                               reset={true}
                                                               style={
                                                                 {
-                                                                  "color": "#0376c9",
+                                                                  "color": "#4459ff",
                                                                   "fontFamily": "EuclidCircularB-Regular",
                                                                   "fontSize": 12,
                                                                   "fontWeight": "400",
@@ -759,7 +759,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                                     "fontSize": 16,
                                                                   },
                                                                   {
-                                                                    "color": "#6a737d",
+                                                                    "color": "#686e7d",
                                                                   },
                                                                   {
                                                                     "fontFamily": "Ionicons",
@@ -806,7 +806,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                       },
                                                       {
                                                         "backgroundColor": "#ffffff",
-                                                        "borderColor": "#6a737d",
+                                                        "borderColor": "#686e7d",
                                                         "borderWidth": 1,
                                                       },
                                                       [
@@ -841,7 +841,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                           "textAlign": "center",
                                                         },
                                                         {
-                                                          "color": "#6a737d",
+                                                          "color": "#686e7d",
                                                         },
                                                         undefined,
                                                       ],
@@ -866,7 +866,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                         "padding": 15,
                                                       },
                                                       {
-                                                        "backgroundColor": "#0376c9",
+                                                        "backgroundColor": "#4459ff",
                                                         "minHeight": 50,
                                                       },
                                                       [
