@@ -40,6 +40,8 @@ import { multichainTransactionsControllerInit } from '../controllers/multichain-
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 import { notificationServicesControllerInit } from '../controllers/notifications/notification-services-controller-init';
 import { notificationServicesPushControllerInit } from '../controllers/notifications/notification-services-push-controller-init';
+import { type Controller as NotificationServicesController } from '@metamask/notification-services-controller/notification-services';
+import { type Controller as NotificationServicesPushController } from '@metamask/notification-services-controller/push-services';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/snaps');
@@ -179,6 +181,12 @@ describe('initModularizedControllers', () => {
     });
     mockMultichainTransactionsControllerInit.mockReturnValue({
       controller: {} as unknown as MultichainTransactionsController,
+    });
+    mockNotificationServicesControllerInit.mockReturnValue({
+      controller: {} as unknown as NotificationServicesController,
+    });
+    mockNotificationServicesPushControllerInit.mockReturnValue({
+      controller: {} as unknown as NotificationServicesPushController,
     });
   });
 
