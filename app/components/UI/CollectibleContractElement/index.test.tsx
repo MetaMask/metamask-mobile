@@ -148,7 +148,7 @@ describe('CollectibleContractElement Snapshot', () => {
     expect(onPressMock).toHaveBeenCalled();
   });
 
-  it('should setCollectiblesVisible to false', async () => {
+  it('hides collectible when it is pressed', async () => {
     const onPressMock = jest.fn();
     const removeFavoriteMock = jest.fn();
 

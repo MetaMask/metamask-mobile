@@ -51,7 +51,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectNetworkName } from '../../../selectors/networkInfos';
 import { isTestNet } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
-import { useGetChainIdsToDetectNfts } from '../../hooks/useGetChainIdsToDetectNfts';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -199,7 +199,7 @@ const CollectibleContracts = ({
   const showFilterControls = () => {
     navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
   };
-  const chainIdsToDetectNftsFor = useGetChainIdsToDetectNfts();
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   const isCollectionDetectionBannerVisible =
     networkType === MAINNET && !useNftDetection;

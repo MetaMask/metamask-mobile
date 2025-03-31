@@ -115,7 +115,7 @@ import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
-import { useGetChainIdsToDetectNfts } from '../../hooks/useGetChainIdsToDetectNfts';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -356,7 +356,7 @@ const Wallet = ({
       : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
-  const chainIdsToDetectNftsFor = useGetChainIdsToDetectNfts();
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off

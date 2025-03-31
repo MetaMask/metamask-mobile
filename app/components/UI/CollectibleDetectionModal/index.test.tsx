@@ -29,7 +29,7 @@ const initialState = {
 };
 
 describe('CollectibleDetectionModal', () => {
-  it('should call detectNfts when the button is pressed', () => {
+  it('calls NFT detection controller', () => {
     const { getByTestId } = renderWithProvider(<CollectibleDetectionModal />, {
       state: initialState,
     });

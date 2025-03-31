@@ -12,7 +12,7 @@ import { toggleCollectibleContractModal } from '../../../actions/modals';
 import { toLowerCaseEquals } from '../../../util/general';
 import { collectiblesSelector } from '../../../reducers/collectibles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { useGetChainIdsToDetectNfts } from '../../hooks/useGetChainIdsToDetectNfts';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -79,7 +79,7 @@ class Collectible extends PureComponent {
   onRefresh = async () => {
     this.setState({ refreshing: true });
     const { NftDetectionController } = Engine.context;
-    const chainIdsToDetectNftsFor = useGetChainIdsToDetectNfts();
+    const chainIdsToDetectNftsFor = useNftDetectionChainIds();
     try {
       await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
     } finally {

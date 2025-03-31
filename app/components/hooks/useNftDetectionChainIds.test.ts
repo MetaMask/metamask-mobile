@@ -4,7 +4,7 @@ import {
 } from '../../util/test/renderWithProvider';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { RootState } from '../../reducers';
-import { useGetChainIdsToDetectNfts } from './useGetChainIdsToDetectNfts';
+import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { useSelector } from 'react-redux';
 import {
   selectChainId,
@@ -27,8 +27,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-describe('useGetChainIdsToDetectNfts', () => {
-  it('should return current chain id when isAllNetworks is false', async () => {
+describe('useNftDetectionChainIds', () => {
+  it('returns current chain id when filtered on current network', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsAllNetworks) {
         return false; // to show all networks
@@ -38,15 +38,12 @@ describe('useGetChainIdsToDetectNfts', () => {
       }
       return null;
     });
-    const { result } = renderHookWithProvider(
-      () => useGetChainIdsToDetectNfts(),
-      {
-        state: mockInitialState,
-      },
-    );
+    const { result } = renderHookWithProvider(() => useNftDetectionChainIds(), {
+      state: mockInitialState,
+    });
     expect(result?.current).toEqual(['0x1']);
   });
-  it('should return array of all popular networks when isAllNetworks is true', async () => {
+  it('returns array of all popular networks when there is no filter on networks', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectIsAllNetworks) {
         return true;
@@ -66,12 +63,9 @@ describe('useGetChainIdsToDetectNfts', () => {
       }
       return null;
     });
-    const { result } = renderHookWithProvider(
-      () => useGetChainIdsToDetectNfts(),
-      {
-        state: mockInitialState,
-      },
-    );
+    const { result } = renderHookWithProvider(() => useNftDetectionChainIds(), {
+      state: mockInitialState,
+    });
     expect(result?.current).toEqual(['0x1', '0x2']);
   });
 });

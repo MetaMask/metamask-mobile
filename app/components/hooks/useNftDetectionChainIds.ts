@@ -8,7 +8,12 @@ import {
 } from '../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 
-export const useGetChainIdsToDetectNfts = (): Hex[] => {
+/**
+ * Hook to determine the chains that should detect NFTs
+ *
+ * @returns an array of the chain ids allowed for NFTs search
+ */
+export const useNftDetectionChainIds = (): Hex[] => {
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const networkConfigurationsPopularNetworks = useSelector(
