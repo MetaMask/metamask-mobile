@@ -1,6 +1,6 @@
 import React from 'react';
 
-import renderWithProvider from '../../../../../../../../util/test/renderWithProvider';
+import { renderWithConfirmProvider } from '../../../../../../../../util/test/renderWithConfirmProvider';
 import {
   siweSignatureConfirmationState,
   typedSignV1ConfirmationState,
@@ -9,7 +9,7 @@ import InfoRowOrigin from './InfoRowOrigin';
 
 describe('InfoRowOrigin', () => {
   it('should contained required text', async () => {
-    const { getByText } = renderWithProvider(<InfoRowOrigin />, {
+    const { getByText } = renderWithConfirmProvider(<InfoRowOrigin />, {
       state: typedSignV1ConfirmationState,
     });
     expect(getByText('Request from')).toBeDefined();
@@ -17,7 +17,7 @@ describe('InfoRowOrigin', () => {
   });
 
   it('should display signing in with information for SIWE sign request', async () => {
-    const { getByText } = renderWithProvider(<InfoRowOrigin />, {
+    const { getByText } = renderWithConfirmProvider(<InfoRowOrigin />, {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Signing in with')).toBeDefined();

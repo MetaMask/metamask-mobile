@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { renderWithConfirmProvider } from '../../../../../../../util/test/renderWithConfirmProvider';
 import {
   personalSignatureConfirmationState,
   siweSignatureConfirmationState,
@@ -36,7 +36,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 
 describe('PersonalSign', () => {
   it('should render correctly', async () => {
-    const { getByText } = renderWithProvider(<PersonalSign />, {
+    const { getByText } = renderWithConfirmProvider(<PersonalSign />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Request from')).toBeDefined();
@@ -46,7 +46,7 @@ describe('PersonalSign', () => {
   });
 
   it('should render tos statement for SIWE', async () => {
-    const { getByText, getAllByText } = renderWithProvider(<PersonalSign />, {
+    const { getByText, getAllByText } = renderWithConfirmProvider(<PersonalSign />, {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Message')).toBeDefined();
