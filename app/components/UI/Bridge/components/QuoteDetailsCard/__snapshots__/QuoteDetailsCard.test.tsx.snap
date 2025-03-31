@@ -308,7 +308,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                           {},
                           {
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#BBC0C566",
+                            "borderColor": "#b7bbc866",
                             "borderRadius": 8,
                             "borderWidth": 1,
                             "gap": 12,
@@ -382,7 +382,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "height": 24,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
-                                    "shadowColor": "#0000001A",
+                                    "shadowColor": "#0000001a",
                                     "shadowOffset": {
                                       "height": 2,
                                       "width": 0,
@@ -411,7 +411,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -424,7 +424,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                             </Text>
                           </View>
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
                             height={16}
                             name="Arrow2Right"
                             style={
@@ -466,7 +466,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     "height": 24,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
-                                    "shadowColor": "#0000001A",
+                                    "shadowColor": "#0000001a",
                                     "shadowOffset": {
                                       "height": 2,
                                       "width": 0,
@@ -495,7 +495,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -535,7 +535,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                               testID="expand-quote-details"
                             >
                               <SvgMock
-                                color="#9fa6ae"
+                                color="#9ca1af"
                                 height={16}
                                 name="ArrowDown"
                                 style={
@@ -594,7 +594,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -638,7 +638,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -698,7 +698,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -742,7 +742,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -810,7 +810,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -843,7 +843,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#9fa6ae"
+                                    color="#9ca1af"
                                     height={16}
                                     name="Question"
                                     style={
@@ -887,7 +887,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -959,7 +959,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -1003,7 +1003,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1078,7 +1078,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 14,
                                         "fontWeight": "500",
@@ -1095,7 +1095,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                     testID="edit-slippage-button"
                                   >
                                     <SvgMock
-                                      color="#9fa6ae"
+                                      color="#9ca1af"
                                       height={12}
                                       name="Edit"
                                       style={
@@ -1140,7 +1140,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1478,7 +1478,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                           {},
                           {
                             "backgroundColor": "#ffffff",
-                            "borderColor": "#BBC0C566",
+                            "borderColor": "#b7bbc866",
                             "borderRadius": 8,
                             "borderWidth": 1,
                             "gap": 12,
@@ -1552,7 +1552,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "height": 24,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
-                                    "shadowColor": "#0000001A",
+                                    "shadowColor": "#0000001a",
                                     "shadowOffset": {
                                       "height": 2,
                                       "width": 0,
@@ -1581,7 +1581,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -1594,7 +1594,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                             </Text>
                           </View>
                           <SvgMock
-                            color="#141618"
+                            color="#121314"
                             height={16}
                             name="Arrow2Right"
                             style={
@@ -1636,7 +1636,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                     "height": 24,
                                     "justifyContent": "center",
                                     "overflow": "hidden",
-                                    "shadowColor": "#0000001A",
+                                    "shadowColor": "#0000001a",
                                     "shadowOffset": {
                                       "height": 2,
                                       "width": 0,
@@ -1665,7 +1665,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
@@ -1705,7 +1705,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                               testID="expand-quote-details"
                             >
                               <SvgMock
-                                color="#9fa6ae"
+                                color="#9ca1af"
                                 height={16}
                                 name="ArrowDown"
                                 style={
@@ -1764,7 +1764,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1808,7 +1808,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1868,7 +1868,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1912,7 +1912,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1980,7 +1980,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
@@ -2013,7 +2013,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                 >
                                   <SvgMock
-                                    color="#9fa6ae"
+                                    color="#9ca1af"
                                     height={16}
                                     name="Question"
                                     style={
@@ -2057,7 +2057,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
