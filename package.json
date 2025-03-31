@@ -206,7 +206,7 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/selected-network-controller": "^21.0.0",
+    "@metamask/selected-network-controller": "^22.0.0",
     "@metamask/signature-controller": "^23.1.0",
     "@metamask/slip44": "^4.1.0",
     "@metamask/smart-transactions-controller": "^16.2.0",
