@@ -1,6 +1,6 @@
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import Engine, { Engine as EngineClass } from './Engine';
-import { EngineState, TransactionEventPayload } from './types';
+import { EngineState } from './types';
 import { backgroundState } from '../../util/test/initial-root-state';
 import { zeroAddress } from 'ethereumjs-util';
 import {
@@ -9,13 +9,7 @@ import {
   MOCK_ADDRESS_1,
 } from '../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../util/test/network';
-import MetaMetrics from '../Analytics/MetaMetrics';
-import { store } from '../../store';
-import { MetaMetricsEvents } from '../Analytics';
 import { Hex } from '@metamask/utils';
-import { TransactionMeta } from '@metamask/transaction-controller';
-import { RootState } from '../../reducers';
-import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { KeyringControllerState } from '@metamask/keyring-controller';
 import { backupVault } from '../BackupVault';
 
@@ -526,140 +520,6 @@ describe('Engine', () => {
         tokenFiat,
         tokenFiat1dAgo,
       });
-    });
-  });
-});
-
-describe('Transaction event handlers', () => {
-  let engine: EngineClass;
-
-  beforeEach(() => {
-    engine = Engine.init({});
-    jest.spyOn(MetaMetrics.getInstance(), 'trackEvent').mockImplementation();
-    jest.spyOn(store, 'getState').mockReturnValue({} as RootState);
-  });
-
-  afterEach(() => {
-    engine?.destroyEngineInstance();
-    jest.clearAllMocks();
-  });
-
-  describe('_handleTransactionFinalizedEvent', () => {
-    it('tracks event with basic properties when smart transactions are disabled', async () => {
-      const properties = { status: 'confirmed' };
-      const transactionEventPayload: TransactionEventPayload = {
-        transactionMeta: { hash: '0x123' } as TransactionMeta,
-      };
-
-      await engine._handleTransactionFinalizedEvent(
-        transactionEventPayload,
-        properties,
-      );
-
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties(properties)
-        .build();
-
-      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-        expectedEvent,
-      );
-    });
-
-    it('does not process smart transaction metrics if transactionMeta is missing', async () => {
-      const properties = { status: 'failed' };
-      const transactionEventPayload = {} as TransactionEventPayload;
-
-      await engine._handleTransactionFinalizedEvent(
-        transactionEventPayload,
-        properties,
-      );
-
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties(properties)
-        .build();
-
-      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-        expectedEvent,
-      );
-    });
-  });
-
-  describe('Transaction status handlers', () => {
-    it('tracks dropped transactions', async () => {
-      const transactionEventPayload: TransactionEventPayload = {
-        transactionMeta: { hash: '0x123' } as TransactionMeta,
-      };
-
-      await engine._handleTransactionDropped(transactionEventPayload);
-
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties({ status: 'dropped' })
-        .build();
-
-      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-        expectedEvent,
-      );
-    });
-
-    it('tracks confirmed transactions', async () => {
-      const transactionMeta = { hash: '0x123' } as TransactionMeta;
-
-      await engine._handleTransactionConfirmed(transactionMeta);
-
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties({ status: 'confirmed' })
-        .build();
-
-      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-        expectedEvent,
-      );
-    });
-
-    it('tracks failed transactions', async () => {
-      const transactionEventPayload: TransactionEventPayload = {
-        transactionMeta: { hash: '0x123' } as TransactionMeta,
-      };
-
-      await engine._handleTransactionFailed(transactionEventPayload);
-
-      const expectedEvent = MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties({ status: 'failed' })
-        .build();
-
-      expect(MetaMetrics.getInstance().trackEvent).toHaveBeenCalledWith(
-        expectedEvent,
-      );
-    });
-  });
-
-  describe('_addTransactionControllerListeners', () => {
-    it('subscribes to transaction events', () => {
-      jest.spyOn(engine.controllerMessenger, 'subscribe');
-
-      engine._addTransactionControllerListeners();
-
-      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionDropped',
-        engine._handleTransactionDropped,
-      );
-      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionConfirmed',
-        engine._handleTransactionConfirmed,
-      );
-      expect(engine.controllerMessenger.subscribe).toHaveBeenCalledWith(
-        'TransactionController:transactionFailed',
-        engine._handleTransactionFailed,
-      );
     });
   });
 });

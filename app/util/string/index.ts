@@ -1,7 +1,7 @@
 import { isString } from '../lodash';
 
 /**
- * The method escape RTL character in string
+ * The method escapes LTR and RTL override unicode in the string
  *
  * @param {string} str
  * @returns {(string|*)} escaped string or original param value
@@ -13,8 +13,9 @@ export const sanitizeString = (str: string): string => {
   if (!isString(str)) {
     return str;
   }
+
   // Ref: https://stackoverflow.com/questions/69297024/why-is-string-replaceall-not-a-function-on-android-react-native
-  return str.split('\u202E').join('\\u202E');
+  return str.split('\u202D').join('\\u202D').split('\u202E').join('\\u202E');
 };
 
 export const stripMultipleNewlines = (str: string): string => {

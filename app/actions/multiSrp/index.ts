@@ -2,6 +2,7 @@ import { HdKeyring } from '@metamask/eth-hd-keyring';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
+import { KeyringSelector } from '@metamask/keyring-controller';
 
 export async function importNewSecretRecoveryPhrase(mnemonic: string) {
   const { KeyringController } = Engine.context;
@@ -68,4 +69,28 @@ export async function createNewSecretRecoveryPhrase() {
   );
 
   return Engine.setSelectedAddress(newAccountAddress);
+}
+
+export async function addNewHdAccount(
+  keyringId?: string,
+  name?: string,
+): Promise<void> {
+  const { KeyringController } = Engine.context;
+  const keyringSelector: KeyringSelector = keyringId
+    ? {
+        id: keyringId,
+      }
+    : {
+        type: ExtendedKeyringTypes.hd,
+      };
+
+  const [addedAccountAddress] = await KeyringController.withKeyring(
+    keyringSelector,
+    async (keyring) => await keyring.addAccounts(1),
+  );
+  Engine.setSelectedAddress(addedAccountAddress);
+
+  if (name) {
+    Engine.setAccountLabel(addedAccountAddress, name);
+  }
 }
