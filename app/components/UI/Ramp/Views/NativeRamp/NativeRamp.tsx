@@ -31,7 +31,6 @@ import {
   TransakEnvironment,
   BuyQuote,
   OrderPaymentMethod,
-  KycFormDetails,
 } from '@consensys/on-ramp-sdk/dist/NativeRampService';
 import {
   storeTransakToken,
@@ -50,7 +49,7 @@ function NativeRamp() {
   const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [amount, setAmount] = useState();
+  const [amount, setAmount] = useState('');
   const amountInputRef = useRef<TextInput>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
@@ -69,9 +68,7 @@ function NativeRamp() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [orderData, setOrderData] = useState<BuyOrder | null>(null);
   const [sepaData, setSepaData] = useState<OrderPaymentMethod | null>(null);
-  const [idProofFormData, setIdProofFormData] = useState<KycFormDetails | null>(
-    null,
-  );
+  const [idProofForm, setIdProofForm] = useState<KycForm | null>(null);
 
   const { selectedAddress } = useRampSDK();
 
@@ -231,11 +228,14 @@ function NativeRamp() {
       const purposeOfUsageForm = kycForms.forms.find(
         (form) => form.id === 'purposeOfUsage',
       );
-      const idProofForm = kycForms.forms.find((form) => form.id === 'idProof');
+      const foundIdProofForm = kycForms.forms.find(
+        (form) => form.id === 'idProof',
+      );
 
       // Get regular forms (excluding special forms)
       const filteredForms = kycForms.forms.filter(
-        (form) => ![purposeOfUsageForm?.id, idProofForm?.id].includes(form.id),
+        (form) =>
+          ![purposeOfUsageForm?.id, foundIdProofForm?.id].includes(form.id),
       );
 
       setForms(filteredForms);
@@ -252,14 +252,8 @@ function NativeRamp() {
       }
 
       // Store idProof for later use
-      if (idProofForm) {
-        const idProofDetails = await nativeRampService.getKycForm(
-          token,
-          newQuote as BuyQuote,
-          idProofForm,
-        );
-
-        setIdProofFormData(idProofDetails);
+      if (foundIdProofForm) {
+        setIdProofForm(foundIdProofForm);
       }
     } catch (error) {
       console.error('Error in fetchKycForms:', error);
@@ -317,59 +311,71 @@ function NativeRamp() {
           'Buying/selling crypto for investments',
         ]);
 
-        setLoadingMessage('Loading ID verification...');
-
-        if (idProofFormData?.data.kycUrl) {
-          // Start polling for KYC approval in parallel
-          setCurrentStep(5.5);
-          setLoadingMessage('Waiting for KYC approval...');
-
-          // Navigate to KYC webview
-          navigation.navigate(
-            ...createKycWebviewNavDetails({
-              url: idProofFormData.data.kycUrl,
-            }),
+        if (idProofForm) {
+          setLoadingMessage('Loading ID verification...');
+          const idProofFormData = await nativeRampService.getKycForm(
+            accessToken,
+            quote as BuyQuote,
+            idProofForm,
           );
 
-          // Start polling for KYC approval
-          let retries = 0;
-          const maxRetries = 40; // 20 minutes max wait time
-          const pollInterval = 30000; // 30 seconds
+          if (idProofFormData?.data?.kycUrl) {
+            // Start polling for KYC approval in parallel
+            setCurrentStep(5.5);
+            setLoadingMessage('Waiting for KYC approval...');
 
-          const pollKycStatus = async () => {
-            try {
-              const userDetails = await nativeRampService.getUserDetails(
-                accessToken,
-              );
+            // Navigate to KYC webview
+            navigation.navigate(
+              ...createKycWebviewNavDetails({
+                url: idProofFormData.data.kycUrl,
+              }),
+            );
 
-              if (userDetails.kyc?.l1?.status === 'APPROVED') {
-                // KYC was approved, proceed with the flow
+            // Start polling for KYC approval
+            let retries = 0;
+            const maxRetries = 40; // 20 minutes max wait time
+            const pollInterval = 30000; // 30 seconds
 
-                setCurrentStep(6);
+            const pollKycStatus = async () => {
+              try {
+                const userDetails = await nativeRampService.getUserDetails(
+                  accessToken,
+                );
+
+                if (userDetails.kyc?.l1?.status === 'APPROVED') {
+                  // KYC was approved, proceed with the flow
+
+                  setCurrentStep(6);
+                  setIsLoading(false);
+                  return;
+                }
+
+                retries++;
+                if (retries >= maxRetries) {
+                  throw new Error('KYC approval timeout reached.');
+                }
+
+                // Update loading message with attempt count
+                setLoadingMessage(
+                  `Waiting for KYC approval... Attempt ${retries}`,
+                );
+
+                // Schedule next poll
+                setTimeout(pollKycStatus, pollInterval);
+              } catch (error: unknown) {
+                Alert.alert('Error', getErrorMessage(error));
                 setIsLoading(false);
-                return;
               }
+            };
 
-              retries++;
-              if (retries >= maxRetries) {
-                throw new Error('KYC approval timeout reached.');
-              }
-
-              // Update loading message with attempt count
-              setLoadingMessage(
-                `Waiting for KYC approval... Attempt ${retries}`,
-              );
-
-              // Schedule next poll
-              setTimeout(pollKycStatus, pollInterval);
-            } catch (error: unknown) {
-              Alert.alert('Error', getErrorMessage(error));
-              setIsLoading(false);
-            }
-          };
-
-          // Start the first poll
-          pollKycStatus();
+            // Start the first poll
+            pollKycStatus();
+          } else {
+            setCurrentStep(6);
+            await fetchKycForms(accessToken);
+            setIsLoading(false);
+            return;
+          }
         } else {
           setCurrentStep(6);
           await fetchKycForms(accessToken);
