@@ -20,8 +20,14 @@ import { store } from '../../store';
 import { getPermittedAccounts } from '../Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
+  Caveat,
+  CaveatSpecificationConstraint,
+  ExtractPermission,
   PermissionConstraint,
   PermissionController,
+  PermissionSpecificationConstraint,
+  SubjectPermissions,
+  ValidPermission,
 } from '@metamask/permission-controller';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { backgroundState } from '../../util/test/initial-root-state';
@@ -735,12 +741,9 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_requestPermissions', () => {
     it('can requestPermissions for eth_accounts', async () => {
+      const accounts: CaipAccountId[] = [`wallet:eip155:${addressMock}`];
       const mockOrigin = 'example.metamask.io';
-      const mockPermission: Awaited<
-        ReturnType<
-          typeof MockEngine.context.PermissionController.requestPermissions
-        >
-      >[0] = {
+      const mockPermission = {
         [Caip25EndowmentPermissionName]: {
           parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
@@ -753,7 +756,7 @@ describe('getRpcMethodMiddleware', () => {
                 requiredScopes: {},
                 optionalScopes: {
                   'wallet:eip155': {
-                    accounts: [`wallet:eip155:${addressMock}`],
+                    accounts,
                   },
                 },
                 sessionProperties: {},
@@ -767,7 +770,19 @@ describe('getRpcMethodMiddleware', () => {
       mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
-          mockPermission,
+          /**
+           * // TODO: [ffmcgee] discuss with Jiexi / come back to this ?
+           * `PermissionController.requestPermissions` response can return a valid `{@link Caip25EndowmentPermissionName}` permission object,
+           * which does not match the explicit return type for the method implementation itself, so we typecast to prevent compile error.
+           */
+          mockPermission as unknown as Partial<
+            SubjectPermissions<
+              ExtractPermission<
+                PermissionSpecificationConstraint,
+                CaveatSpecificationConstraint
+              >
+            >
+          >,
           {
             id: 'id',
             origin: mockOrigin,
@@ -775,7 +790,7 @@ describe('getRpcMethodMiddleware', () => {
         ],
       );
       MockEngine.getCaip25PermissionFromLegacyPermissions.mockImplementation(
-        () => mockPermission, // TODO: [ffmcgee] resolve typescript
+        () => mockPermission,
       );
 
       const expectedEthAccountsPermission = {
@@ -814,12 +829,11 @@ describe('getRpcMethodMiddleware', () => {
 
   describe('wallet_getPermissions', () => {
     it('can getPermissions', async () => {
+      const accounts: CaipAccountId[] = [`wallet:eip155:${addressMock}`];
       const mockOrigin = 'example.metamask.io';
-      const mockPermission: Awaited<
-        ReturnType<
-          typeof MockEngine.context.PermissionController.requestPermissions
-        >
-      >[0] = {
+      const mockPermission: SubjectPermissions<
+        ValidPermission<string, Caveat<typeof Caip25CaveatType, Json>>
+      > = {
         [Caip25EndowmentPermissionName]: {
           parentCapability: PermissionKeys.eth_accounts,
           id: 'id',
@@ -832,7 +846,7 @@ describe('getRpcMethodMiddleware', () => {
                 requiredScopes: {},
                 optionalScopes: {
                   'wallet:eip155': {
-                    accounts: [`wallet:eip155:${addressMock}`],
+                    accounts,
                   },
                 },
                 sessionProperties: {},
@@ -845,7 +859,7 @@ describe('getRpcMethodMiddleware', () => {
 
       mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
-        () => mockPermission, // TODO: [ffmcgee] resolve typescript
+        () => mockPermission,
       );
 
       const expectedEthAccountsPermission = {
