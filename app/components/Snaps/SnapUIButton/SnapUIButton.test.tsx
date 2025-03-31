@@ -42,6 +42,8 @@ describe('SnapUIButton', () => {
   ) => (
     <Text
       color={color}
+      // eslint-disable-next-line react-native/no-inline-styles
+      // eslint-disable-next-line react-native/no-color-literals
       style={{
         color:
           color === TextColor.Info
