@@ -86,7 +86,7 @@ export async function addNewHdAccount(
 
   const [addedAccountAddress] = await KeyringController.withKeyring(
     keyringSelector,
-    async (keyring) => await keyring.addAccounts(1),
+    async ({ keyring }) => await keyring.addAccounts(1),
   );
   Engine.setSelectedAddress(addedAccountAddress);
 
