@@ -3,8 +3,9 @@ import Gestures from '../../utils/Gestures';
 
 class TokenSelectBottomSheet {
   async tapTokenByName(token) {
-    const tokenName = await Matchers.getElementByText(token);
-
+    const tokenSearchInput = await Matchers.getElementByLabel(" Search by cryptocurrency");
+    await Gestures.typeTextAndHideKeyboard(tokenSearchInput, token);
+    const tokenName = await Matchers.getElementByText(token, 1);
     await Gestures.waitAndTap(tokenName);
   }
 }
