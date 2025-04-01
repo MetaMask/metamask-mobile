@@ -62,7 +62,7 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type } =
     signatureRequest ?? {};
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest);
 
   const analyticsParams = useMemo(() => {
     if (!type || !isSignatureRequest(type)) {

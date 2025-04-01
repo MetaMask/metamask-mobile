@@ -184,15 +184,15 @@ describe('Signature Utils', () => {
         parseTypedDataMessageFromSignatureRequest(typedSignV4SignatureRequest)?.primaryType,
       ).toBe('Permit');
     });
-    it('parses undefined for typed sign V1 message', () => {
+    it('parses {} for typed sign V1 message', () => {
       expect(
         parseTypedDataMessageFromSignatureRequest(typedSignV1SignatureRequest),
-      ).toBe(undefined);
+      ).toBe({});
     });
-    it('parses undefined for personal sign message', () => {
+    it('parses {} for personal sign message', () => {
       expect(
         parseTypedDataMessageFromSignatureRequest(personalSignSignatureRequest),
-      ).toBe(undefined);
+      ).toBe({});
     });
   });
 

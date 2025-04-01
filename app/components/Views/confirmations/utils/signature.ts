@@ -204,7 +204,7 @@ export const parseTypedDataMessageFromSignatureRequest = (
   signatureRequest?: SignatureRequest,
 ) => {
   if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) {
-    return;
+    return {};
   }
 
   const data = signatureRequest.messageParams?.data as string;
@@ -215,8 +215,7 @@ const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  const { primaryType } =
-    parseTypedDataMessageFromSignatureRequest(request) || {};
+  const { primaryType } = parseTypedDataMessageFromSignatureRequest(request);
   return types.includes(primaryType);
 };
 
