@@ -353,6 +353,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   autoFocus={false}
                   editable={true}
                   id="input"
+                  keyboardType="numeric"
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
@@ -415,6 +416,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                   onBlur={[Function]}
                   onChangeText={[Function]}
                   onFocus={[Function]}
+                  secureTextEntry={true}
                   style={
                     {
                       "backgroundColor": "#ffffff",
@@ -1131,7 +1133,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1360,7 +1362,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1972,7 +1974,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     "flexDirection": "row",
                     "height": "auto",
                     "justifyContent": "center",
-                    "maxHeight": 64,
+                    "maxHeight": 58,
                     "minHeight": 48,
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -2243,6 +2245,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       "backgroundColor": "#ffffff",
                       "borderTopLeftRadius": 24,
                       "borderTopRightRadius": 24,
+                      "maxHeight": "80%",
                       "minHeight": 300,
                       "overflow": "hidden",
                       "paddingBottom": 20,
@@ -2376,7 +2379,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -2526,7 +2529,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -3006,7 +3009,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
