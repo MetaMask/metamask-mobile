@@ -1330,21 +1330,23 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths for release builds
-                APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
-                BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
-                
-                echo "What are the build outputs?"
+                           if [ "$IS_DEV_BUILD" = "true" ]; then
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/debug"
+                else
+                    APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
+                    BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
+                fi
 
-                ls -l "$PROJECT_LOCATION/app/build/outputs"
-
-                echo "What are the apk outputs?"
-                ls -l "$PROJECT_LOCATION/app/build/outputs/apk"
-                
                 # Generate new names based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename APK
-                OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                if [ "$IS_DEV_BUILD" = "true" ]; then
+                    OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
+                else
+                    OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                fi
+
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
                 
@@ -1352,13 +1354,11 @@ workflows:
                 OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
-
-                
                 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
-                envman add --key APK_DEPLOY_PATH --value "$NEW_APK"
+                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
