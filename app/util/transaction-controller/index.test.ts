@@ -11,6 +11,14 @@ const {
   ...proxyMethods
 } = TransactionControllerUtils;
 
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
+  },
+}));
+
 const TRANSACTION_MOCK = { from: '0x0', to: '0x1', value: '0x0' };
 const NETWORK_CLIENT_ID_MOCK = 'testNetworkClientId';
 
