@@ -27,7 +27,6 @@ import Button, {
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
-import { selectActiveEVMNetworksWithActivity } from '../../../selectors/multichainNetworkController';
 
 // Internal dependencies.
 import {
@@ -63,9 +62,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
-  );
-  const activeEVMNetworksWithActivity = useSelector(
-    selectActiveEVMNetworksWithActivity,
   );
 
   useEffect(() => {
@@ -104,19 +100,20 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const fetchAccountsWithActivity = useCallback(async () => {
-    const multichainNetworkController = Engine.context
-      .MultichainNetworkController as MultichainNetworkController;
-    await multichainNetworkController.getNetworksWithActivityByAccounts();
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
   }, [Engine]);
 
   useEffect(() => {
-    fetchAccountsWithActivity();
-  }, [fetchAccountsWithActivity]);
-
-  console.log(
-    'active EVM networks with activity',
-    activeEVMNetworksWithActivity,
-  );
+    if (accounts.length > 0) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts]);
 
   const renderAccountSelector = useCallback(
     () => (
