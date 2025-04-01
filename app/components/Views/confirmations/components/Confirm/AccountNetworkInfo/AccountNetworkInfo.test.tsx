@@ -23,7 +23,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 describe('AccountNetworkInfo', () => {
   it('should render correctly', async () => {
-    const { getByText } = renderWithProvider(<AccountNetworkInfo />, {
+    const { getByText } = renderWithProvider(<AccountNetworkInfo isSignatureRequest />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('0x935E...5477')).toBeDefined();

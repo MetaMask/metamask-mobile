@@ -24,20 +24,32 @@ import useAccountInfo from '../../../../hooks/useAccountInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
 import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import styleSheet from './AccountNetworkInfoCollapsed.styles';
+import { Hex } from '@metamask/utils';
+import { useTransactionMetadataRequest } from '../../../../hooks/useTransactionMetadataRequest';
 
-const AccountNetworkInfoCollapsed = () => {
-  const signatureRequest = useSignatureRequest();
-  const chainId = signatureRequest?.chainId;
-  const { networkName, networkImage } = useNetworkInfo(chainId);
+const AccountNetworkInfoCollapsed = ({ isSignatureRequest }: { isSignatureRequest: boolean }) => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
-  const fromAddress = signatureRequest?.messageParams?.from as string;
+
+  const signatureRequest = useSignatureRequest();
+  const transactionMetadata = useTransactionMetadataRequest();
+  let chainId: Hex | undefined;
+  let fromAddress: string | undefined;
+  if (isSignatureRequest) {
+    chainId = signatureRequest?.chainId;
+    fromAddress = signatureRequest?.messageParams?.from as string;
+  } else {
+    chainId = transactionMetadata?.chainId;
+    fromAddress = transactionMetadata?.txParams?.from as string;
+  }
   const { accountName } = useAccountInfo(fromAddress);
   const accountLabel = getLabelTextByAddress(fromAddress);
   const { styles } = useStyles(styleSheet, {
     accountNameWide: Boolean(!accountLabel),
   });
+
+  const { networkName, networkImage } = useNetworkInfo(chainId);
 
   return (
     <View style={styles.container}>

@@ -10,12 +10,22 @@ import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import { Hex } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../../../util/address';
 import { useMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
+import { useTransactionMetadataRequest } from '../../../../hooks/useTransactionMetadataRequest';
 
-const AccountNetworkInfoExpanded = () => {
+const AccountNetworkInfoExpanded = (
+  { isSignatureRequest }: { isSignatureRequest: boolean }
+) => {
   const signatureRequest = useSignatureRequest();
-  const chainId = signatureRequest?.chainId as Hex;
-
-  const fromAddress = signatureRequest?.messageParams?.from as string;
+  const transactionMetadata = useTransactionMetadataRequest();
+  let chainId: Hex | undefined;
+  let fromAddress: string | undefined;
+  if (isSignatureRequest) {
+    chainId = signatureRequest?.chainId as Hex;
+    fromAddress = signatureRequest?.messageParams?.from as string;
+  } else {
+    chainId = transactionMetadata?.chainId as Hex;
+    fromAddress = transactionMetadata?.txParams?.from as string;
+  }
   const { accountAddress } = useAccountInfo(fromAddress);
   const { multichainBalances } = useMultichainBalances();
   const balanceToDisplay = multichainBalances.displayBalance;

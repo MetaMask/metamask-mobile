@@ -12,9 +12,8 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-
-import { backgroundState } from './initial-root-state';
 import { merge } from 'lodash';
+import { backgroundState } from './initial-root-state';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
@@ -621,16 +620,20 @@ const stakingConfirmationBaseState = {
             rpcEndpoints: [
               {
                 networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
                 networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
         },
         selectedNetworkClientId: 'mainnet',
@@ -874,3 +877,69 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
+const txId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+export const generateContractInteractionState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        ApprovalController: {
+          pendingApprovals: {
+            [txId]: {
+              id: txId,
+              origin: 'metamask.github.io',
+              type: 'transaction',
+              time: 1731850822653,
+              requestData: { 
+                txId,
+                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477', 
+                origin: 'metamask.github.io'
+              },
+              requestState: null,
+              expectsResult: true,
+            },
+          },
+          pendingApprovalCount: 1,
+          approvalFlows: [],
+        },
+        TransactionController: {
+          transactions: [
+            { 
+              type: 'contractInteraction', 
+              id: txId,
+              origin: 'metamask.github.io',
+              time: 1731850822653,
+              txParams: {
+                data: '0x123456',
+                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+                gas: '0x1a5bd',
+                maxFeePerGas: '0x84594b20',
+                maxPriorityFeePerGas: '0x4dcd6500',
+                to: '0x1234567890123456789012345678901234567890',
+                value: '0x0',
+                type: '0x2'
+              },
+              chainId: '0x1',
+              networkClientId: 'mainnet',
+              originalGasEstimate: '0x1a5bd',
+              status: 'unapproved',
+              defaultGasEstimates: {
+                gas: '0x1a5bd',
+                estimateType: 'medium',
+                maxFeePerGas: '0x74594b20',
+                maxPriorityFeePerGas: '0x1dcd6500'
+              },
+              gasFeeEstimates: {
+                high: { maxFeePerGas: '0xd0f5f04a', maxPriorityFeePerGas: '0x77359400' },
+                low: { maxFeePerGas: '0x274d76df', maxPriorityFeePerGas: '0x47be0d' },
+                medium: { maxFeePerGas: '0x559ab26a', maxPriorityFeePerGas: '0x1dcd6500' },
+                type: 'fee-market'
+              }
+            },
+          ],
+        } as unknown as TransactionControllerState,
+      },
+    },
+  }
+);

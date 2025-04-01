@@ -12,15 +12,30 @@ import InfoRow from '../../../../UI/InfoRow';
 import InfoSection from '../../../../UI/InfoRow/InfoSection';
 import AlertRow from '../../../../UI/InfoRow/AlertRow';
 import { RowAlertKey } from '../../../../UI/InfoRow/AlertRow/constants';
+import { useTransactionMetadataRequest } from '../../../../../hooks/useTransactionMetadataRequest';
 
-const InfoRowOrigin = () => {
-  const { approvalRequest } = useApprovalRequest();
+const InfoRowOrigin = (
+  { isSignatureRequest }: { isSignatureRequest: boolean }
+) => {
   const signatureRequest = useSignatureRequest();
-  const chainId = signatureRequest?.chainId as Hex;
-  const { isSIWEMessage } = getSIWEDetails(signatureRequest);
-  const fromAddress = signatureRequest?.messageParams?.from as string;
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { approvalRequest } = useApprovalRequest();
+  let chainId: Hex | undefined;
+  let fromAddress: string | undefined;
+  let isSIWEMessage: boolean | undefined;
+  let url: string | undefined;
+  if (isSignatureRequest) {
+    chainId = signatureRequest?.chainId as Hex;
+    isSIWEMessage = getSIWEDetails(signatureRequest).isSIWEMessage;
+    fromAddress = signatureRequest?.messageParams?.from as string;
+    url = approvalRequest?.requestData?.meta?.url as string;
+  } else {
+    chainId = transactionMetadata?.chainId as Hex;
+    fromAddress = transactionMetadata?.txParams?.from as string;
+    url = transactionMetadata?.origin as string;
+  }
 
-  if (!approvalRequest) {
+  if (isSignatureRequest && !approvalRequest) {
     return null;
   }
 
@@ -31,12 +46,14 @@ const InfoRowOrigin = () => {
       <AlertRow
         alertField={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
-        tooltip={strings('confirm.personal_sign_tooltip')}
+        tooltip={strings(isSignatureRequest ?
+          'confirm.personal_sign_tooltip' :
+          'confirm.transaction_tooltip'
+        )}
       >
-        {/* TODO: request from url below will only work for signatures */}
-        <DisplayURL url={approvalRequest?.requestData?.meta?.url} />
+        <DisplayURL url={url} />
       </AlertRow>
-      {isSIWEMessage && (
+      {isSignatureRequest && isSIWEMessage && (
         <InfoRow
           label={strings('confirm.label.signing_in_with')}
           testID={

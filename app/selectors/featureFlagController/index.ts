@@ -6,6 +6,7 @@ import { getFeatureFlagValue } from './env';
 export interface ConfirmationRedesignRemoteFlags {
   signatures: boolean;
   staking_confirmations: boolean;
+  contract_interaction: boolean;
 }
 
 export const selectRemoteFeatureFlagControllerState = (
@@ -34,6 +35,11 @@ export const selectConfirmationRedesignFlags = createSelector(
       confirmationRedesignFlags.staking_confirmations,
     );
 
+    const isContractInteractionEnabled = getFeatureFlagValue(
+      process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
+      confirmationRedesignFlags.contract_interaction,
+    );
+
     const isSignaturesEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
       confirmationRedesignFlags.signatures,
@@ -43,6 +49,7 @@ export const selectConfirmationRedesignFlags = createSelector(
       ...confirmationRedesignFlags,
       staking_confirmations: isStakingConfirmationsEnabled,
       signatures: isSignaturesEnabled,
+      contract_interaction: isContractInteractionEnabled,
     };
   },
 );
