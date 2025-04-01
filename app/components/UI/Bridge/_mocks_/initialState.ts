@@ -116,6 +116,7 @@ export const initialState = {
             ],
             defaultRpcEndpointIndex: 0,
             nativeCurrency: 'ETH',
+            name: 'Ethereum Mainnet',
           },
           [optimismChainId]: {
             chainId: optimismChainId,
@@ -126,6 +127,7 @@ export const initialState = {
             ],
             defaultRpcEndpointIndex: 0,
             nativeCurrency: 'ETH',
+            name: 'Optimism',
           },
         },
         providerConfig: {
