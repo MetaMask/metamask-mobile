@@ -63,7 +63,10 @@ import { updateIncomingTransactions } from '../../../util/transaction-controller
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { store } from '../../../store';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectSwapsTransactions } from '../../../selectors/transactionController';
+import {
+  selectSwapsTransactions,
+  selectTransactions,
+} from '../../../selectors/transactionController';
 import Logger from '../../../util/Logger';
 import { TOKEN_CATEGORY_HASH } from '../../UI/TransactionElement/utils';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
@@ -583,7 +586,7 @@ const mapStateToProps = (state, { route }) => ({
   selectedInternalAccount: selectSelectedInternalAccount(state),
   chainId: selectChainId(state),
   tokens: selectTokens(state),
-  transactions: state.engine.backgroundState.TransactionController.transactions,
+  transactions: selectTransactions(state),
   rpcUrl: selectRpcUrl(state),
   networkConfigurations: selectNetworkConfigurations(state),
   isNetworkRampSupported: isNetworkRampSupported(
