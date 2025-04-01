@@ -302,23 +302,6 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly after animation with the recommended custom action', async () => {
-    mockUseQuotesAndCustomActionsValues = {
-      ...mockUseQuotesAndCustomActionsInitialValues,
-      recommendedCustomAction: mockCustomAction,
-    };
-
-    render(Quotes);
-    act(() => {
-      jest.advanceTimersByTime(3000);
-      jest.clearAllTimers();
-    });
-    expect(screen.toJSON()).toMatchSnapshot();
-    act(() => {
-      jest.useRealTimers();
-    });
-  });
-
   it('renders correctly after animation with expanded quotes', async () => {
     render(Quotes);
     fireEvent.press(
@@ -488,6 +471,23 @@ describe('Quotes', () => {
         fireEvent.press(customActionContinueButton);
       });
     };
+
+    it('renders correctly after animation with the recommended custom action', async () => {
+      mockUseQuotesAndCustomActionsValues = {
+        ...mockUseQuotesAndCustomActionsInitialValues,
+        recommendedCustomAction: mockCustomAction,
+      };
+
+      render(Quotes);
+      act(() => {
+        jest.advanceTimersByTime(3000);
+        jest.clearAllTimers();
+      });
+      expect(screen.toJSON()).toMatchSnapshot();
+      act(() => {
+        jest.useRealTimers();
+      });
+    });
 
     it('does nothing is there is no SDK or custom action', async () => {
       mockUseRampSDKValues = {
