@@ -147,11 +147,11 @@ const REGEX_MESSAGE_VALUE_LARGE =
   /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
 
 /** Returns the value of the message if it is a digit greater than 15 digits */
-function extractLargeMessageValue(dataToParse: string): string | undefined {
-  if (typeof dataToParse !== 'string') {
+function extractLargeMessageValue(messageParamsData: string): string | undefined {
+  if (typeof messageParamsData !== 'string') {
     return undefined;
   }
-  return dataToParse.match(REGEX_MESSAGE_VALUE_LARGE)?.[1];
+  return messageParamsData.match(REGEX_MESSAGE_VALUE_LARGE)?.[1];
 }
 
 /**
@@ -167,16 +167,13 @@ function extractLargeMessageValue(dataToParse: string): string | undefined {
  *
  * This function has a workaround to extract the large value from the message and replace
  * the message value with the string value.
- *
- * @param dataToParse
- * @returns
  */
-export const parseTypedDataMessage = (dataToParse: string) => {
-  if (!dataToParse) { return {}; }
+export const parseTypedDataMessage = (messageParamsData: string) => {
+  if (!messageParamsData) { return {}; }
 
-  const result = JSON.parse(dataToParse);
+  const result = JSON.parse(messageParamsData);
 
-  const largeMessageValue = extractLargeMessageValue(dataToParse);
+  const largeMessageValue = extractLargeMessageValue(messageParamsData);
   if (result.message?.value) {
     result.message.value = largeMessageValue || String(result.message.value);
   }
@@ -184,17 +181,17 @@ export const parseTypedDataMessage = (dataToParse: string) => {
   return result;
 };
 
-export const parseAndSanitizeSignTypedData = (dataToParse: string) => {
-  if (!dataToParse) { return {}; }
+export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
+  if (!messageParamsData) { return {}; }
 
-  const { message, primaryType, types } = parseTypedDataMessage(dataToParse);
+  const { message, primaryType, types } = parseTypedDataMessage(messageParamsData);
   return sanitizeParsedMessage(message, primaryType, types);
 };
 
-export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
-  if (!dataToParse) { return {}; }
+export const parseSanitizeTypedDataMessage = (messageParamsData: string) => {
+  if (!messageParamsData) { return {}; }
   const { domain, message, primaryType, types } =
-    parseTypedDataMessage(dataToParse);
+    parseTypedDataMessage(messageParamsData);
 
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
   return { sanitizedMessage, primaryType, domain };
