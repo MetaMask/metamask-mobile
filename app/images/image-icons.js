@@ -43,5 +43,5 @@ export default {
   FOX_LOGO,
   BTC,
   BASE,
-  'XRPLEVM-XRP-TOKEN': XRPLEVM_XRP_TOKEN,
+  XRPLEVM_XRP_TOKEN,
 };
