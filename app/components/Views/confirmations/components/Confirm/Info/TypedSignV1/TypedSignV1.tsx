@@ -14,8 +14,8 @@ const TypedSignV1 = () => {
 
   return (
     <>
-      <AccountNetworkInfo />
-      <InfoRowOrigin />
+      <AccountNetworkInfo isSignatureRequest />
+      <InfoRowOrigin isSignatureRequest />
       <Message />
     </>
   );
