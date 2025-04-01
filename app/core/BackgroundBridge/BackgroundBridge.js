@@ -619,6 +619,7 @@ export class BackgroundBridge extends EventEmitter {
       createEthAccountsMethodMiddleware({
         getAccounts: (...args) =>
           getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
+          // TODO: [ffmcgee] verify with Arthur if this check should be done everywhere we are passing in the origin (this.isMMSDK ? ......)
       }),
     );
 

@@ -422,7 +422,7 @@ export class WC2Manager {
     store.dispatch(updateWC2Metadata({ url, name, icon, id: `${id}` }));
 
     try {
-      // TODO: This isn't right
+      // TODO: This isn't right (eth_accounts, we change to caip25)
       await permissionsController.requestPermissions(
         { origin: url },
         {
