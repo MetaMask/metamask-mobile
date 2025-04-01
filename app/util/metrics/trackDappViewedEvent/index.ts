@@ -14,7 +14,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
  * @param params.hostname - Hostname of the Dapp
  * @param params.numberOfConnectedAccounts - Number of connected accounts that are connected to the Dapp
  */
-const trackDappViewedEvent = ({
+export const trackDappViewedEvent = ({
   hostname,
   numberOfConnectedAccounts,
 }: {
@@ -51,7 +51,7 @@ const trackDappViewedEvent = ({
  * @param metaMetricsId - The metametricsId to use for the event.
  * @returns Whether to emit the event or not.
  */
-const shouldEmitDappViewedEvent = (metaMetricsId: string): boolean => {
+export const shouldEmitDappViewedEvent = (metaMetricsId: string): boolean => {
   if (metaMetricsId === null) {
     return false;
   }
@@ -61,5 +61,3 @@ const shouldEmitDappViewedEvent = (metaMetricsId: string): boolean => {
 
   return lastFourCharactersAsNumber % 100 === 0;
 };
-
-export { shouldEmitDappViewedEvent, trackDappViewedEvent };

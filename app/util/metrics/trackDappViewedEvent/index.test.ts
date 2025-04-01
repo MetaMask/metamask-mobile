@@ -1,4 +1,4 @@
-import trackDappViewedEvent from './index';
+import { trackDappViewedEvent } from './index';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { createMockAccountsControllerState } from '../../test/accountsControllerTestUtils';
