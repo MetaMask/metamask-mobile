@@ -44,8 +44,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
-import { isSnapPreinstalled } from '../../core/SnapKeyring/utils/snaps';
-import { SnapId } from '@metamask/snaps-sdk';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -183,7 +182,9 @@ export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
 
   if (
     account.metadata.keyring.type === KeyringTypes.snap &&
-    !isSnapPreinstalled(account.metadata.snap?.id as SnapId) &&
+    !PREINSTALLED_SNAPS.some(
+      (snap) => snap.snapId === account.metadata.snap?.id,
+    ) &&
     !account.options?.entropySource
   ) {
     return false;
