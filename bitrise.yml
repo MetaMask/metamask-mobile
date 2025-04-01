@@ -1333,6 +1333,13 @@ workflows:
                 APK_DIR="$PROJECT_LOCATION/app/build/outputs/apk/$APP_NAME/release"
                 BUNDLE_DIR="$PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH"
                 
+                echo "What are the build outputs?"
+
+                ls -l "$PROJECT_LOCATION/app/build/outputs"
+
+                echo "What are the apk outputs?"
+                ls -l "$PROJECT_LOCATION/app/build/outputs/apk"
+                
                 # Generate new names based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
                 
@@ -1346,8 +1353,7 @@ workflows:
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
 
-                echo "Setting APK_DEPLOY_PATH to: $NEW_APK"
-                ls -l "$NEW_APK"
+                
                 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
