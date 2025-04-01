@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -26,6 +27,7 @@ import Button, {
 import AddAccountActions from '../AddAccountActions';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { selectPrivacyMode } from '../../../selectors/preferencesController';
+import { selectActiveEVMNetworksWithActivity } from '../../../selectors/multichainNetworkController';
 
 // Internal dependencies.
 import {
@@ -62,6 +64,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
+  const activeEVMNetworksWithActivity = useSelector(
+    selectActiveEVMNetworksWithActivity,
+  );
+
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
   }, []);
@@ -95,6 +101,21 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       nextActiveAddress && Engine.setSelectedAddress(nextActiveAddress);
     },
     [Engine],
+  );
+
+  const fetchAccountsWithActivity = useCallback(async () => {
+    const multichainNetworkController = Engine.context
+      .MultichainNetworkController as MultichainNetworkController;
+    await multichainNetworkController.getNetworksWithActivityByAccounts();
+  }, [Engine]);
+
+  useEffect(() => {
+    fetchAccountsWithActivity();
+  }, [fetchAccountsWithActivity]);
+
+  console.log(
+    'active EVM networks with activity',
+    activeEVMNetworksWithActivity,
   );
 
   const renderAccountSelector = useCallback(
