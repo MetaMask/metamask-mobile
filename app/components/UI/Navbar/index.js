@@ -144,6 +144,9 @@ const styles = StyleSheet.create({
   addressCopyWrapper: {
     marginHorizontal: 4,
   },
+  iconButton: {
+    marginHorizontal: 24,
+  },
 });
 
 const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
@@ -1900,8 +1903,8 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
- * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -1911,7 +1914,12 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
+  const {
+    hasBackButton = true,
+    hasCancelButton = true,
+    hasIconButton = false,
+    handleIconPress,
+  } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1958,6 +1966,18 @@ export function getStakingNavbar(
     }
   }
 
+  function handleIconPressWrapper() {
+    if (!handleIconPress) return;
+    if (metricsOptions?.iconButtonEvent) {
+      withMetaMetrics(handleIconPress, {
+        event: metricsOptions.iconButtonEvent.event,
+        properties: metricsOptions.iconButtonEvent.properties,
+      })();
+    } else {
+      handleIconPress();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1985,6 +2005,13 @@ export function getStakingNavbar(
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.cancel')}
           </Text>
+        </TouchableOpacity>
+      ) : hasIconButton ? (
+        <TouchableOpacity
+          onPress={handleIconPressWrapper}
+          style={styles.iconButton}
+        >
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>
