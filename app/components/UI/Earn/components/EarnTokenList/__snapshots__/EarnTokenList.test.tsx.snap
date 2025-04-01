@@ -1,0 +1,1115 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EarnTokenList render matches snapshot 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "justifyContent": "flex-end",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#00000066",
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": 0,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+          },
+          {
+            "paddingBottom": 0,
+          },
+        ]
+      }
+    >
+      <View
+        collapsable={false}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc866",
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
+              "borderWidth": 1,
+              "maxHeight": 1334,
+              "overflow": "hidden",
+              "paddingBottom": 0,
+              "shadowColor": "#0000001a",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 40,
+            },
+            {
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
+              }
+            }
+          />
+        </View>
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "padding": 16,
+              },
+              false,
+            ]
+          }
+          testID="header"
+        >
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "marginHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Select a token
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            />
+          </View>
+        </View>
+        <RCTScrollView
+          collapsable={false}
+          onGestureHandlerEvent={[Function]}
+          onGestureHandlerStateChange={[Function]}
+          style={
+            {
+              "gap": 12,
+              "maxHeight": 552,
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#f3f5f9",
+                  "borderRadius": 8,
+                  "gap": 8,
+                  "paddingHorizontal": 16,
+                  "paddingVertical": 24,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 18,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                You could earn
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 32,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 40,
+                  }
+                }
+              >
+                $454
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                per year on your tokens
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "padding": 16,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "position": "relative",
+                      }
+                    }
+                    testID="badge-wrapper-badge"
+                  >
+                    <View>
+                      <View
+                        useNativeDriver={true}
+                      >
+                        <Image
+                          fadeIn={true}
+                          onError={[Function]}
+                          onLoadEnd={[Function]}
+                          source={
+                            {
+                              "uri": "",
+                            }
+                          }
+                          style={
+                            [
+                              {
+                                "borderRadius": 12,
+                                "height": 24,
+                                "width": 24,
+                              },
+                              undefined,
+                              false,
+                              false,
+                              {
+                                "flexShrink": 0,
+                                "height": 32,
+                                "width": 32,
+                              },
+                            ]
+                          }
+                          testID="earn-token-list-item-Ethereum-0x1"
+                        />
+                        <View
+                          collapsable={false}
+                          style={
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "opacity": 1,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "borderRadius": 12,
+                                  "flexShrink": 0,
+                                  "height": 32,
+                                  "width": 32,
+                                },
+                                {
+                                  "backgroundColor": "#eee",
+                                },
+                                undefined,
+                              ]
+                            }
+                          />
+                        </View>
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "bottom": 0,
+                          "height": 0,
+                          "justifyContent": "center",
+                          "position": "absolute",
+                          "right": 0,
+                          "transform": [
+                            {
+                              "translateX": 0,
+                            },
+                            {
+                              "translateY": 0,
+                            },
+                          ],
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "aspectRatio": 1,
+                            "height": "50%",
+                            "justifyContent": "center",
+                            "maxHeight": 24,
+                            "minHeight": 8,
+                            "opacity": 0,
+                          }
+                        }
+                        testID="badgenetwork"
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 2,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "shadowColor": "#0000001a",
+                              "shadowOffset": {
+                                "height": 2,
+                                "width": 0,
+                              },
+                              "shadowOpacity": 1,
+                              "shadowRadius": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                              "width": 32,
+                            }
+                          }
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={10}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            testID="network-avatar-image"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "flex-end",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    2.3% APR
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                     ETH
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "padding": 16,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "position": "relative",
+                      }
+                    }
+                    testID="badge-wrapper-badge"
+                  >
+                    <View>
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 16,
+                            "flexShrink": 0,
+                            "height": 32,
+                            "overflow": "hidden",
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={
+                            {
+                              "uri": "",
+                            }
+                          }
+                          style={
+                            {
+                              "flex": 1,
+                              "height": undefined,
+                              "width": undefined,
+                            }
+                          }
+                          testID="token-avatar-image"
+                        />
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "bottom": 0,
+                          "height": 0,
+                          "justifyContent": "center",
+                          "position": "absolute",
+                          "right": 0,
+                          "transform": [
+                            {
+                              "translateX": 0,
+                            },
+                            {
+                              "translateY": 0,
+                            },
+                          ],
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "aspectRatio": 1,
+                            "height": "50%",
+                            "justifyContent": "center",
+                            "maxHeight": 24,
+                            "minHeight": 8,
+                            "opacity": 0,
+                          }
+                        }
+                        testID="badgenetwork"
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 2,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "shadowColor": "#0000001a",
+                              "shadowOffset": {
+                                "height": 2,
+                                "width": 0,
+                              },
+                              "shadowOpacity": 1,
+                              "shadowRadius": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                              "width": 32,
+                            }
+                          }
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={10}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            testID="network-avatar-image"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Dai Stablecoin
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "flex-end",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    5.0% APR
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    tokenBalanceLoading
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "padding": 16,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "position": "relative",
+                      }
+                    }
+                    testID="badge-wrapper-badge"
+                  >
+                    <View>
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 16,
+                            "flexShrink": 0,
+                            "height": 32,
+                            "overflow": "hidden",
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={
+                            {
+                              "uri": "",
+                            }
+                          }
+                          style={
+                            {
+                              "flex": 1,
+                              "height": undefined,
+                              "width": undefined,
+                            }
+                          }
+                          testID="token-avatar-image"
+                        />
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "bottom": 0,
+                          "height": 0,
+                          "justifyContent": "center",
+                          "position": "absolute",
+                          "right": 0,
+                          "transform": [
+                            {
+                              "translateX": 0,
+                            },
+                            {
+                              "translateY": 0,
+                            },
+                          ],
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "aspectRatio": 1,
+                            "height": "50%",
+                            "justifyContent": "center",
+                            "maxHeight": 24,
+                            "minHeight": 8,
+                            "opacity": 0,
+                          }
+                        }
+                        testID="badgenetwork"
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 2,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "shadowColor": "#0000001a",
+                              "shadowOffset": {
+                                "height": 2,
+                                "width": 0,
+                              },
+                              "shadowOpacity": 1,
+                              "shadowRadius": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                              "width": 32,
+                            }
+                          }
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={10}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            testID="network-avatar-image"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    USDC
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "flex-end",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    4.5% APR
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    tokenBalanceLoading
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "padding": 16,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    }
+                  }
+                >
+                  <View
+                    onLayout={[Function]}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "position": "relative",
+                      }
+                    }
+                    testID="badge-wrapper-badge"
+                  >
+                    <View>
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 16,
+                            "flexShrink": 0,
+                            "height": 32,
+                            "overflow": "hidden",
+                            "width": 32,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={
+                            {
+                              "uri": "",
+                            }
+                          }
+                          style={
+                            {
+                              "flex": 1,
+                              "height": undefined,
+                              "width": undefined,
+                            }
+                          }
+                          testID="token-avatar-image"
+                        />
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "aspectRatio": 1,
+                          "bottom": 0,
+                          "height": 0,
+                          "justifyContent": "center",
+                          "position": "absolute",
+                          "right": 0,
+                          "transform": [
+                            {
+                              "translateX": 0,
+                            },
+                            {
+                              "translateY": 0,
+                            },
+                          ],
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          {
+                            "alignItems": "center",
+                            "aspectRatio": 1,
+                            "height": "50%",
+                            "justifyContent": "center",
+                            "maxHeight": 24,
+                            "minHeight": 8,
+                            "opacity": 0,
+                          }
+                        }
+                        testID="badgenetwork"
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#ffffff",
+                              "borderRadius": 8,
+                              "borderWidth": 2,
+                              "height": 32,
+                              "justifyContent": "center",
+                              "overflow": "hidden",
+                              "shadowColor": "#0000001a",
+                              "shadowOffset": {
+                                "height": 2,
+                                "width": 0,
+                              },
+                              "shadowOpacity": 1,
+                              "shadowRadius": 4,
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                              "width": 32,
+                            }
+                          }
+                        >
+                          <Image
+                            onError={[Function]}
+                            resizeMode="contain"
+                            source={10}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                            testID="network-avatar-image"
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Tether USD
+                  </Text>
+                </View>
+                <View
+                  style={
+                    {
+                      "alignItems": "flex-end",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    4.1% APR
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    tokenBalanceLoading
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </RCTScrollView>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaProvider>
+`;

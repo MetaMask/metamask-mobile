@@ -2815,9 +2815,12 @@
     "n_quotes": "{{numberOfQuotes}} kuotasi",
     "view_details": "Lihat detail",
     "estimated_gas_fee": "Estimasi biaya gas",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Biaya gas maks",
     "edit": "Edit",
     "quotes_include_fee": "Kuotasi mencakup {{fee}}% biaya MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Ketuk untuk Menukar",
     "swipe_to_swap": "Usap untuk menukar",
     "swipe_to": "Usap untuk",
@@ -2887,6 +2890,8 @@
     "high_recommendation": "Pertukaran biasanya sensitif terhadap waktu. “Tinggi” akan membantu menghindari potensi kerugian akibat perubahan kondisi pasar.",
     "recommended": "Direkomendasikan",
     "recommended_gas": "Biaya gas yang direkomendasikan",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Estimasi biaya gas",
     "gas_education_1": "Biaya gas dibayarkan kepada penambang kripto yang memproses transaksi di",
     "gas_education_2_ethereum": "jaringan Ethereum.",
@@ -3430,11 +3435,11 @@
     "not_enough_eth": "ETH tidak cukup",
     "balance": "Saldo",
     "stake_eth_and_earn": "Stake ETH dan dapatkan",
-    "stake_any_amount_of_eth": "Stake sejumlah ETH",
+    "stake_any_amount_of_eth": "Stake sejumlah ETH.",
     "no_minimum_required": "Tidak ada jumlah minimum.",
-    "earn_eth_rewards": "Dapatkan reward ETH",
+    "earn_eth_rewards": "Dapatkan reward ETH.",
     "earn_eth_rewards_description": "Mulailah menghasilkan segera setelah Anda melakukan stake. Reward akan terkumpul secara otomatis.",
-    "flexible_unstaking": "Pembatalan stake yang fleksibel",
+    "flexible_unstaking": "Pembatalan stake yang fleksibel.",
     "flexible_unstaking_description": "Batalkan stake setiap saat. Biasanya waktu yang diperlukan kurang dari 3 hari, tetapi butuh waktu hingga 11 hari untuk memprosesnya.",
     "disclaimer": "Stake tidak menjamin reward, dan melibatkan risiko termasuk hilangnya dana.",
     "learn_more": "Selengkapnya",
@@ -3493,7 +3498,25 @@
     "estimated_unstaking_time": "1 sampai 11 hari",
     "proceed_anyway": "Tetap lanjutkan",
     "gas_cost_impact": "Dampak biaya gas",
-    "gas_cost_impact_warning": "Peringatan: biaya gas transaksi akan mencapai lebih dari 30% dari deposit Anda."
+    "gas_cost_impact_warning": "Peringatan: biaya gas transaksi akan mencapai lebih dari {{percentOverDeposit}}% dari deposit Anda.",
+    "view_earnings_history": "Lihat riwayat pendapatan",
+    "earnings_history_title": "Pendapatan {{ticker}}",
+    "earnings_history_list_title": "Riwayat pembayaran",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7H",
+        "1M": "1B",
+        "3M": "3B",
+        "6M": "6B"
+      }
+    },
+    "today": "Hari ini",
+    "one_week_average": "Rata-rata 1 minggu",
+    "one_month_average": "Rata-rata 1 bulan",
+    "three_month_average": "Rata-rata 3 bulan",
+    "six_month_average": "Rata-rata 6 bulan",
+    "one_year_average": "Rata-rata 1 tahun"
   },
   "default_settings": {
     "title": "Dompet Anda sudah siap",
@@ -3578,12 +3601,15 @@
     "reject": "Tolak",
     "confirm": "Konfirmasikan",
     "title": {
-      "signature": "Permintaan tanda tangan"
+      "signature": "Permintaan tanda tangan",
+      "signature_siwe": "Permintaan masuk"
     },
     "sub_title": {
-      "signature": "Tinjau detail permintaan sebelum mengonfirmasi."
+      "signature": "Tinjau detail permintaan sebelum mengonfirmasi.",
+      "signature_siwe": "Sebuah situs ingin Anda masuk untuk membuktikan bahwa Anda merupakan pemilik akun ini."
     },
     "request_from": "Permintaan dari",
+    "signing_in_with": "Masuk dengan",
     "message": "Pesan",
     "primary_type": "Tipe primer",
     "personal_sign_tooltip": "Situs ini meminta tanda tangan Anda",
@@ -3591,6 +3617,19 @@
     "account": "Akun",
     "balance": "Saldo",
     "network": "Jaringan",
+    "qr_get_sign": "Dapatkan Tanda Tangan",
+    "qr_scan_text": "Pindai dengan dompet perangkat keras",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Jaringan",
+      "account": "Akun",
+      "version": "Versi",
+      "chain_id": "ID Chain",
+      "nonce": "Nonce",
+      "issued": "Diterbitkan",
+      "requestId": "ID Permintaan",
+      "resources": "Sumber daya"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFT akan terlihat di dompet Anda saat tawaran diterima.",
       "decoded_tooltip_list_nft": "Nantikan perubahan hanya jika seseorang membeli NFT Anda.",
@@ -3609,7 +3648,7 @@
       "unavailable": "Tidak tersedia"
     },
     "unlimited": "Tak terbatas",
-    "none": "None"
+    "none": "Kosong"
   },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",

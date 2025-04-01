@@ -2815,9 +2815,12 @@
     "n_quotes": "견적 {{numberOfQuotes}}건",
     "view_details": "세부 사항 확인",
     "estimated_gas_fee": "예상 가스비",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "최대 가스비",
     "edit": "편집",
     "quotes_include_fee": "견적에는 {{fee}}%의 MetaMask 수수료가 포함됩니다",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "눌러서 스와프하세요",
     "swipe_to_swap": "밀어서 스와프하세요",
     "swipe_to": "밀어서",
@@ -2887,6 +2890,8 @@
     "high_recommendation": "스와프는 일반적으로 시간에 민감합니다. \"높음\"은 시장 조건의 변화로 생길 수 있는 손실을 피하는 데 도움이 됩니다.",
     "recommended": "권장됨",
     "recommended_gas": "권장 가스비",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "예상 가스비",
     "gas_education_1": "가스비는 다음 네트워크에서 트랜잭션을 진행할 때 암호화 화폐 채굴자에게 지불하는 비용입니다:",
     "gas_education_2_ethereum": "이더리움 네트워크.",
@@ -3430,11 +3435,11 @@
     "not_enough_eth": "ETH 부족",
     "balance": "잔액",
     "stake_eth_and_earn": "ETH를 스테이킹하고 수익을 창출하세요",
-    "stake_any_amount_of_eth": "ETH를 원하는 만큼 스테이킹하세요",
+    "stake_any_amount_of_eth": "ETH를 원하는 만큼 스테이킹하세요.",
     "no_minimum_required": "최소 금액은 필요하지 않습니다.",
-    "earn_eth_rewards": "ETH 보상 획득",
+    "earn_eth_rewards": "ETH 보상을 획득하세요.",
     "earn_eth_rewards_description": "스테이킹하는 즉시 적립을 시작하세요. 보상은 복리로 자동 적립됩니다.",
-    "flexible_unstaking": "유연한 언스테이킹",
+    "flexible_unstaking": "유연한 언스테이킹.",
     "flexible_unstaking_description": "언제든지 언스테이킹할 수 있습니다. 보통 3일 이내에 처리되지만, 최대 11일까지 소요될 수 있습니다.",
     "disclaimer": "스테이킹은 보상을 보장하지 않으며 자금 손실 등의 위험이 있습니다.",
     "learn_more": "더 보기",
@@ -3493,7 +3498,25 @@
     "estimated_unstaking_time": "1일~11일",
     "proceed_anyway": "계속 진행",
     "gas_cost_impact": "가스 비용 영향",
-    "gas_cost_impact_warning": "경고: 트랜잭션의 가스 비용이 입금액의 30% 이상을 차지하게 됩니다."
+    "gas_cost_impact_warning": "경고: 트랜잭션 가스 비용이 예치금의 {{percentOverDeposit}}% 이상을 차지할 수 있습니다.",
+    "view_earnings_history": "수익 내역 보기",
+    "earnings_history_title": "{{ticker}} 수익",
+    "earnings_history_list_title": "지급 내역",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7일",
+        "1M": "1개월",
+        "3M": "3개월",
+        "6M": "6개월"
+      }
+    },
+    "today": "오늘",
+    "one_week_average": "1주일 평균",
+    "one_month_average": "1개월 평균",
+    "three_month_average": "3개월 평균",
+    "six_month_average": "6개월 평균",
+    "one_year_average": "1년 평균"
   },
   "default_settings": {
     "title": "지갑이 준비되었습니다",
@@ -3578,12 +3601,15 @@
     "reject": "거부",
     "confirm": "컨펌",
     "title": {
-      "signature": "서명 요청"
+      "signature": "서명 요청",
+      "signature_siwe": "로그인 요청"
     },
     "sub_title": {
-      "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요."
+      "signature": "컨펌하기 전에 요청 세부 사항을 검토하세요.",
+      "signature_siwe": "어떤 사이트에서 귀하가 이 계정을 소유했는지 확인하기 위해 로그인을 요청하고 있습니다."
     },
     "request_from": "요청자:",
+    "signing_in_with": "다음으로 로그인 중:",
     "message": "메시지",
     "primary_type": "기본 유형",
     "personal_sign_tooltip": "서명이 필요한 사이트입니다",
@@ -3591,6 +3617,19 @@
     "account": "계정",
     "balance": "잔액",
     "network": "네트워크",
+    "qr_get_sign": "서명 받기",
+    "qr_scan_text": "하드웨어 지갑으로 스캔하기",
+    "siwe_message": {
+      "url": "URL",
+      "network": "네트워크",
+      "account": "계정",
+      "version": "버전",
+      "chain_id": "체인 ID",
+      "nonce": "논스",
+      "issued": "발급됨",
+      "requestId": "요청 ID",
+      "resources": "리소스"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "입찰이 수락되면 NFT가 지갑에 반영됩니다.",
       "decoded_tooltip_list_nft": "누군가 NFT를 구매할 경우에만 변경이 예상됩니다.",
@@ -3609,7 +3648,7 @@
       "unavailable": "사용 불가"
     },
     "unlimited": "무제한",
-    "none": "None"
+    "none": "없음"
   },
   "change_in_simulation_modal": {
     "title": "결과가 변경되었습니다",

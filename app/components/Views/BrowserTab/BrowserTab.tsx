@@ -590,7 +590,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
+      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -692,8 +692,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         tabId,
+        {
+          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        },
       );
 
       addToBrowserHistory({
@@ -1070,8 +1072,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
         if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
             'Error in onSubmitEditing',
           );
           return;

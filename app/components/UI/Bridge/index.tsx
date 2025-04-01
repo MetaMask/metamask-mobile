@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
-import { TokenInputArea } from './TokenInputArea';
+import { TokenInputArea, TokenInputAreaType } from './components/TokenInputArea';
 import Button, {
-  ButtonSize,
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../component-library/hooks';
@@ -20,17 +19,17 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
-import { useLatestBalance } from './useLatestBalance';
+import { useLatestBalance } from './hooks/useLatestBalance';
 import {
   selectSourceAmount,
   selectDestAmount,
-  selectSourceChainId,
-  selectDestChainId,
+  selectSelectedDestChainId,
   selectSourceToken,
   selectDestToken,
   setSourceAmount,
   resetBridgeState,
-  switchTokens,
+  setSourceToken,
+  setDestToken,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -39,7 +38,12 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
+import Engine from '../../../core/Engine';
+import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import QuoteDetailsCard from './components/QuoteDetailsCard';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -88,11 +92,34 @@ const createStyles = (params: { theme: Theme }) => {
       textAlignVertical: 'center',
       paddingTop: 1,
     },
+    quoteContainer: {
+      paddingHorizontal: 24,
+      paddingVertical: 24,
+    },
   });
 };
 
 // We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
+  // The same as getUseExternalServices in Extension
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+
+  useEffect(() => {
+    const setBridgeFeatureFlags = async () => {
+      try {
+        if (isBasicFunctionalityEnabled) {
+          await Engine.context.BridgeController.setBridgeFeatureFlags();
+        }
+      } catch (error) {
+        console.error('Error setting bridge feature flags', error);
+      }
+    };
+
+    setBridgeFeatureFlags();
+  }, [isBasicFunctionalityEnabled]);
+
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -105,24 +132,19 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
-  const sourceChainId = useSelector(selectSourceChainId);
-  const destChainId = useSelector(selectDestChainId);
+  const destChainId = useSelector(selectSelectedDestChainId);
 
-  // Add state for slippage
-  const [slippage, setSlippage] = useState('0.5');
-
-  const sourceBalance = useLatestBalance(
-    {
-      address: sourceToken?.address,
-      decimals: sourceToken?.decimals,
-    },
-    sourceChainId,
-  );
+  const latestSourceBalance = useLatestBalance({
+    address: sourceToken?.address,
+    decimals: sourceToken?.decimals,
+    chainId: sourceToken?.chainId as Hex,
+    balance: sourceToken?.balance,
+  });
 
   const hasInsufficientBalance = useMemo(() => {
     if (
       !sourceAmount ||
-      !sourceBalance?.atomicBalance ||
+      !latestSourceBalance?.atomicBalance ||
       !sourceToken?.decimals
     ) {
       return false;
@@ -132,8 +154,8 @@ const BridgeView = () => {
       sourceAmount,
       sourceToken.decimals,
     );
-    return sourceAmountAtomic.gt(sourceBalance.atomicBalance);
-  }, [sourceAmount, sourceBalance?.atomicBalance, sourceToken?.decimals]);
+    return sourceAmountAtomic.gt(latestSourceBalance.atomicBalance);
+  }, [sourceAmount, latestSourceBalance?.atomicBalance, sourceToken?.decimals]);
 
   // Reset bridge state when component unmounts
   useEffect(
@@ -171,21 +193,24 @@ const BridgeView = () => {
   };
 
   const handleArrowPress = () => {
-    if (destChainId && destToken) {
-      dispatch(switchTokens());
+    // Switch tokens
+    if (sourceToken && destToken) {
+      dispatch(setSourceToken(destToken));
+      dispatch(setDestToken(sourceToken));
     }
   };
 
-  // Add function to navigate to slippage modal
-  const handleSlippagePress = () => {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SLIPPAGE_MODAL,
-      params: {
-        selectedSlippage: slippage,
-        onSelectSlippage: setSlippage,
-      },
+  const handleSourceTokenPress = () =>
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
+      params: {},
     });
-  };
+
+  const handleDestTokenPress = () =>
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      params: {},
+    });
 
   const renderBottomContent = () => {
     if (
@@ -232,50 +257,48 @@ const BridgeView = () => {
       >
         <Box style={styles.inputsContainer} gap={8}>
           <TokenInputArea
-            value={sourceAmount}
-            tokenSymbol={sourceToken?.symbol}
-            tokenBalance={sourceBalance?.displayBalance}
-            tokenIconUrl={sourceToken?.image}
-            tokenAddress={sourceToken?.address}
+            amount={sourceAmount}
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
             networkImageSource={getNetworkImageSource({
-              chainId: sourceChainId,
+              chainId: sourceToken?.chainId as Hex,
             })}
             autoFocus
             isReadonly
             testID="source-token-area"
+            tokenType={TokenInputAreaType.Source}
+            onTokenPress={handleSourceTokenPress}
           />
           <Box style={styles.arrowContainer}>
-            <TouchableOpacity
-              onPress={handleArrowPress}
-              disabled={!destChainId || !destToken}
-              style={styles.arrowCircle}
-            >
-              <Text style={styles.arrow}>↓</Text>
-            </TouchableOpacity>
+            <Box style={styles.arrowCircle}>
+              <ButtonIcon
+                iconName={IconName.Arrow2Down}
+                onPress={handleArrowPress}
+                disabled={!destChainId || !destToken}
+                testID="arrow-button"
+              />
+            </Box>
           </Box>
           <TokenInputArea
-            value={destAmount}
-            tokenSymbol={destToken?.symbol}
-            tokenAddress={destToken?.address}
-            tokenIconUrl={destToken?.image}
+            amount={destAmount}
+            token={destToken}
             networkImageSource={
-              destChainId
+              destToken
                 ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                  getNetworkImageSource({ chainId: destChainId })
+                  getNetworkImageSource({ chainId: destToken?.chainId as Hex })
                 : undefined
             }
             isReadonly
             testID="dest-token-area"
+            tokenType={TokenInputAreaType.Destination}
+            onTokenPress={handleDestTokenPress}
           />
+          <Box style={styles.quoteContainer}>
+            <QuoteDetailsCard />
+          </Box>
         </Box>
-        <Button
-          variant={ButtonVariants.Secondary}
-          label={strings('bridge.slippage') + ' ' + slippage + '%'}
-          onPress={handleSlippagePress}
-          style={styles.button}
-          size={ButtonSize.Sm}
-        />
+
         <Box style={styles.bottomSection}>
           <Keypad
             value={sourceAmount}

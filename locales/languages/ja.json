@@ -2815,9 +2815,12 @@
     "n_quotes": "{{numberOfQuotes}}件のクォート",
     "view_details": "詳細を表示",
     "estimated_gas_fee": "ガス代の見積もり",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "最大ガス代",
     "edit": "編集",
     "quotes_include_fee": "クォートには{{fee}}%のMetaMask手数料が含まれています",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "タップしてスワップ",
     "swipe_to_swap": "スワイプしてスワップ",
     "swipe_to": "スワイプして",
@@ -2887,6 +2890,8 @@
     "high_recommendation": "通常、スワップは時間が重要です。「高」にすると、市場状況の変化による問題を回避しやすくなります。",
     "recommended": "推奨",
     "recommended_gas": "推奨ガス代",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "ガス代の見積もり",
     "gas_education_1": "ガス代は、",
     "gas_education_2_ethereum": "イーサリアムネットワークでトランザクションを処理するクリプトマイナーに支払われます。",
@@ -3430,11 +3435,11 @@
     "not_enough_eth": "ETHが不足しています",
     "balance": "残高",
     "stake_eth_and_earn": "ETHをステーキングして収益を獲得",
-    "stake_any_amount_of_eth": "ETHをいくらでもステーキング可能",
+    "stake_any_amount_of_eth": "ETHはいくらでもステーキング可能。",
     "no_minimum_required": "最低要件なし。",
-    "earn_eth_rewards": "ETHの報酬を獲得",
+    "earn_eth_rewards": "ETHの報酬を獲得。",
     "earn_eth_rewards_description": "ステーキングすればすぐに収益が得られます。報酬は自動的に複利で支払われます。",
-    "flexible_unstaking": "柔軟にステーキングを解除可能",
+    "flexible_unstaking": "柔軟にステーキングを解除可能。",
     "flexible_unstaking_description": "いつでもステーキングを解除できます。処理は通常3日以内で完了しますが、最大11日かかる場合もあります。",
     "disclaimer": "ステーキングは報酬を保証するものではなく、資金の喪失を含むリスクを伴います。",
     "learn_more": "詳細",
@@ -3493,7 +3498,25 @@
     "estimated_unstaking_time": "1～11日",
     "proceed_anyway": "承知の上で続ける",
     "gas_cost_impact": "ガス代の影響",
-    "gas_cost_impact_warning": "警告：トランザクションのガス代が入金額の30%を超えます。"
+    "gas_cost_impact_warning": "警告：トランザクションのガス代がデポジットの{{percentOverDeposit}}%を超えます。",
+    "view_earnings_history": "収益履歴を表示",
+    "earnings_history_title": "{{ticker}}の収益",
+    "earnings_history_list_title": "払出履歴",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7日",
+        "1M": "1か月",
+        "3M": "3か月",
+        "6M": "6か月"
+      }
+    },
+    "today": "今日",
+    "one_week_average": "1週間の平均",
+    "one_month_average": "1か月の平均",
+    "three_month_average": "3か月の平均",
+    "six_month_average": "6か月の平均",
+    "one_year_average": "1年の平均"
   },
   "default_settings": {
     "title": "ウォレットの準備ができました",
@@ -3578,12 +3601,15 @@
     "reject": "拒否",
     "confirm": "確定",
     "title": {
-      "signature": "署名要求"
+      "signature": "署名要求",
+      "signature_siwe": "サインイン要求"
     },
     "sub_title": {
-      "signature": "確定する前にリクエストの詳細を確認してください。"
+      "signature": "確定する前にリクエストの詳細を確認してください。",
+      "signature_siwe": "このアカウントの所有者であることを証明するために、サイトがサインインを求めています。"
     },
     "request_from": "要求元",
+    "signing_in_with": "サインイン方法",
     "message": "メッセージ",
     "primary_type": "プライマリタイプ",
     "personal_sign_tooltip": "このサイトが署名を求めています",
@@ -3591,6 +3617,19 @@
     "account": "アカウント",
     "balance": "残高",
     "network": "ネットワーク",
+    "qr_get_sign": "署名を取得",
+    "qr_scan_text": "ハードウェアウォレットでスキャン",
+    "siwe_message": {
+      "url": "URL",
+      "network": "ネットワーク",
+      "account": "アカウント",
+      "version": "バージョン",
+      "chain_id": "チェーンID",
+      "nonce": "ナンス",
+      "issued": "発行されました",
+      "requestId": "要求ID",
+      "resources": "リソース"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFTは、入札が受け入れられるとウォレットに反映されます。",
       "decoded_tooltip_list_nft": "誰かがNFTを購入した場合にのみ変化します。",
@@ -3609,7 +3648,7 @@
       "unavailable": "利用不可"
     },
     "unlimited": "無制限",
-    "none": "None"
+    "none": "なし"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",

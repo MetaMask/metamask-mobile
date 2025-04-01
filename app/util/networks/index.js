@@ -14,6 +14,7 @@ import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
+import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
 
 /* eslint-disable */
 const ethLogo = require('../../images/eth-logo-new.png');
@@ -48,8 +49,9 @@ import {
   selectSelectedNonEvmNetworkChainId,
   selectMultichainNetworkControllerState,
 } from '../../selectors/multichainNetworkController';
-import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../core/Multichain/constants';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+
 /**
  * List of the supported networks
  * including name, id, and color
@@ -160,6 +162,8 @@ export const isDefaultMainnet = (networkType) => networkType === MAINNET;
 export const isMainNet = (chainId) => chainId === '0x1';
 
 export const isLineaMainnet = (networkType) => networkType === LINEA_MAINNET;
+export const isLineaMainnetChainId = (chainId) =>
+  chainId === CHAIN_IDS.LINEA_MAINNET;
 
 export const isSolanaMainnet = (chainId) => chainId === SolScope.Mainnet;
 
@@ -309,6 +313,18 @@ export function findBlockExplorerForRpc(rpcTargetUrl, networkConfigurations) {
 
 /**
  * Returns block explorer for non-evm chain id
+ *
+ * @param {object} internalAccount - Internal account object
+ * @returns {string} - Block explorer url or undefined if not found
+ */
+export function findBlockExplorerForNonEvmChainId(chainId) {
+  const blockExplorerUrls =
+    MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP[chainId];
+  return blockExplorerUrls?.url;
+}
+
+/**
+ * Returns block explorer for non-evm account
  *
  * @param {object} internalAccount - Internal account object
  * @returns {string} - Block explorer url or undefined if not found
