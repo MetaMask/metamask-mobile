@@ -11,7 +11,10 @@ import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
-import { DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
+import {
+  DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
+  DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
+} from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
 import {
   FlexDirection,
   JustifyContent,
@@ -29,7 +32,7 @@ const localStyles = StyleSheet.create({
     flexDirection: FlexDirection.Row,
     alignItems: AlignItems.center,
     justifyContent: JustifyContent.center,
-    gap: 8,
+    gap: 4,
   },
 });
 
@@ -95,7 +98,10 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
   const buttonLabel = () => {
     if (loading) {
       return (
-        <ActivityIndicator size="small" color={theme.colors.primary.inverse} />
+        <ActivityIndicator
+          size="small"
+          color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
+        />
       );
     } else if (isSnapAction && !hideSnapBranding) {
       return (
@@ -103,7 +109,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
-            color={theme.colors.primary.inverse}
+            color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
           >
             {children}
           </Text>
@@ -115,7 +121,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
         color={
           variant === ButtonVariants.Primary
-            ? theme.colors.primary.inverse
+            ? DEFAULT_BUTTONPRIMARY_LABEL_COLOR
             : theme.colors.primary.default
         }
       >
