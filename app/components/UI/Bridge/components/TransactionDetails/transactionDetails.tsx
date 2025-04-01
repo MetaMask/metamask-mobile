@@ -19,6 +19,7 @@ import { StatusTypes } from '@metamask/bridge-status-controller';
 import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
+import { strings } from '../../../../../../locales/i18n';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -105,20 +106,20 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
           chainId={destinationChainId as Hex}
         />
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>Status</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
           <Box flexDirection={FlexDirection.Row} gap={4}>
             <Text variant={TextVariant.BodyMDMedium} color={StatusToColorMap[status.status]} style={{ textTransform: 'capitalize' }}>{status.status}</Text>
             {status.status === StatusTypes.PENDING && estimatedCompletionString && (
-              <Text variant={TextVariant.BodyMDMedium}>Est. completion {estimatedCompletionString}</Text>
+              <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>
             )}
           </Box>
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>Date</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.date')}</Text>
           <Text>{submissionDateString}</Text>
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>Total gas fee</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.total_gas_fee')}</Text>
           <Text>{totalGasFee} ETH</Text>
         </Box>
       </Box>
