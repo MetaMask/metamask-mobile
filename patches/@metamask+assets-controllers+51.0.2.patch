@@ -166,3 +166,29 @@ index 7b0580e..e783176 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
+index c6d715d..696a24b 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
+@@ -165,7 +165,7 @@ class TokenRatesController extends (0, polling_controller_1.StaticIntervalPollin
+             return;
+         }
+         const tokenAddresses = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_getTokenAddresses).call(this, chainId);
+-        const updateKey = `${chainId}:${nativeCurrency}`;
++        const updateKey = `${chainId}:${nativeCurrency}:${tokenAddresses.length}`;
+         if (updateKey in __classPrivateFieldGet(this, _TokenRatesController_inProcessExchangeRateUpdates, "f")) {
+             // This prevents redundant updates
+             // This promise is resolved after the in-progress update has finished,
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
+index 396f361..9469ba4 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
+@@ -162,7 +162,7 @@ export class TokenRatesController extends StaticIntervalPollingController() {
+             return;
+         }
+         const tokenAddresses = __classPrivateFieldGet(this, _TokenRatesController_instances, "m", _TokenRatesController_getTokenAddresses).call(this, chainId);
+-        const updateKey = `${chainId}:${nativeCurrency}`;
++        const updateKey = `${chainId}:${nativeCurrency}:${tokenAddresses.length}`;
+         if (updateKey in __classPrivateFieldGet(this, _TokenRatesController_inProcessExchangeRateUpdates, "f")) {
+             // This prevents redundant updates
+             // This promise is resolved after the in-progress update has finished,

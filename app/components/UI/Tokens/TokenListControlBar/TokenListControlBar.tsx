@@ -92,7 +92,12 @@ export const TokenListControlBar = ({
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
             onPress={goToAddToken}
             iconName={IconName.Add}
-            style={styles.controlIconButton}
+            style={
+              isEvmSelected
+                ? styles.controlIconButton
+                : styles.controlIconButtonDisabled
+            }
+            disabled={!isEvmSelected}
           />
         </View>
       </View>

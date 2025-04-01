@@ -26,7 +26,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -81,7 +81,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -118,7 +118,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -157,7 +157,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -212,7 +212,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           },
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#6a737d",
+            "borderColor": "#686e7d",
             "borderWidth": 1,
           },
           undefined,
@@ -239,7 +239,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
               "textAlign": "center",
             },
             {
-              "color": "#6a737d",
+              "color": "#686e7d",
             },
             {
               "width": 600,

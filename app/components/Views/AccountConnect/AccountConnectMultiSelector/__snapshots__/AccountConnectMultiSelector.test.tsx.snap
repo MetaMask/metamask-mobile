@@ -48,7 +48,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           testID="sheet-header-back-button"
         >
           <SvgMock
-            color="#141618"
+            color="#121314"
             height={16}
             name="ArrowLeft"
             style={
@@ -65,7 +65,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Bold",
             "fontSize": 18,
             "fontWeight": "700",
@@ -96,7 +96,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -129,8 +129,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#0376c9",
-                "borderColor": "#0376c9",
+                "backgroundColor": "#4459ff",
+                "borderColor": "#4459ff",
                 "borderRadius": 4,
                 "borderWidth": 2,
                 "height": 20,
@@ -165,7 +165,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -284,8 +284,8 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "alignItems": "center",
-                        "backgroundColor": "#0376c9",
-                        "borderColor": "#0376c9",
+                        "backgroundColor": "#4459ff",
+                        "borderColor": "#4459ff",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -366,7 +366,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -383,7 +383,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -403,7 +403,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               accessible={true}
               style={
                 {
-                  "backgroundColor": "#0376C91A",
+                  "backgroundColor": "#4459ff1a",
                   "bottom": 0,
                   "flexDirection": "row",
                   "left": 0,
@@ -476,7 +476,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#141618",
+                        "borderColor": "#121314",
                         "borderRadius": 4,
                         "borderWidth": 2,
                         "height": 20,
@@ -542,7 +542,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 16,
                           "fontWeight": "400",
@@ -559,7 +559,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -611,7 +611,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -658,7 +658,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 24,
                 "flex": 1,
                 "flexDirection": "row",
