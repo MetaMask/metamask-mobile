@@ -115,6 +115,7 @@ import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
@@ -355,6 +356,8 @@ const Wallet = ({
       ? allDetectedTokens
       : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
+
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
 
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
@@ -622,7 +625,7 @@ const Wallet = ({
         const { NftDetectionController } = Engine.context;
         try {
           showNftFetchingLoadingIndicator();
-          await NftDetectionController.detectNfts();
+          await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
         } finally {
           hideNftFetchingLoadingIndicator();
         }
@@ -633,6 +636,7 @@ const Wallet = ({
       hideNftFetchingLoadingIndicator,
       showNftFetchingLoadingIndicator,
       createEventBuilder,
+      chainIdsToDetectNftsFor,
     ],
   );
 
