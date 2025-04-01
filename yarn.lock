@@ -4430,12 +4430,12 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^51.0.2":
-  version "51.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-51.0.2.tgz#fc8ed8981fce62e4c7327393faffc2017874644d"
-  integrity sha512-dEJJw6qc5HMEiMJUTOrKhTYTMS8tuf3+gofZ9PHGSvPibUx/DivC1L3bouiMNgi2xzzH9ktfmkFyCN1lzFk22w==
+"@metamask/assets-controllers@^55.0.1":
+  version "55.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-55.0.1.tgz#43a29b363e603d5e96c273f4dddbb9867d0d68da"
+  integrity sha512-cZKT5KUv5u6YJcsZOx15gqVQkgSTL00+UxF/v+zvEA50bzy6kCYl1quRmgtG4LD7ejLMrGjfoZMEqZstl15MYQ==
   dependencies:
-    "@ethereumjs/util" "^8.1.0"
+    "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4444,11 +4444,11 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.0.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/controller-utils" "^11.6.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^12.0.3"
+    "@metamask/polling-controller" "^13.0.0"
     "@metamask/rpc-errors" "^7.0.2"
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
@@ -5268,6 +5268,18 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/utils" "^11.1.0"
+    "@types/uuid" "^8.3.0"
+    fast-json-stable-stringify "^2.1.0"
+    uuid "^8.3.2"
+
+"@metamask/polling-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/polling-controller/-/polling-controller-13.0.0.tgz#3116fec7c8785b1aa112dbdc9f803aadec8e3f4a"
+  integrity sha512-wdhCxjvWt0B2KYtn9z+s4uSLfGwRET7NOJ7HnxJOgJ0vBPqdBn61FjYkd+gVF5ZNELiKD/De/o2+uMSmJJKrjA==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/utils" "^11.2.0"
     "@types/uuid" "^8.3.0"
     fast-json-stable-stringify "^2.1.0"
     uuid "^8.3.2"
