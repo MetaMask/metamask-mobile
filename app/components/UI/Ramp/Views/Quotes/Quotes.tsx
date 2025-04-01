@@ -1053,9 +1053,10 @@ function Quotes() {
                 <LoadingQuotes />
               ) : (
                 <>
-                  {customActions
+                  {customActions && customActions.length > 0
                     ? customActions.map((customAction) => (
                         <CustomAction
+                          key={customAction.buy?.provider.id}
                           isLoading={isQuoteLoading}
                           previouslyUsedProvider={ordersProviders.includes(
                             customAction.buy?.provider?.id,
