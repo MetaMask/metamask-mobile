@@ -261,6 +261,7 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
   };
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const onRequestUserApproval = (origin: string) => async (args: any) => {
   await Engine.context.ApprovalController.clear(
     providerErrors.userRejectedRequest(),

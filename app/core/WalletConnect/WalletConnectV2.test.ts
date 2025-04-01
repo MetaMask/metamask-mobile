@@ -11,7 +11,7 @@ import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import/no-namespace
 import * as wcUtils from './wc-utils';
-import { Core } from "@walletconnect/core";
+import { Core } from '@walletconnect/core';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -853,7 +853,7 @@ describe('WC2Manager', () => {
       await sessionDeleteCallback({ topic: 'test-topic' });
 
       // Verify that deeplinkSessions was updated and stored
-      expect((manager as any).deeplinkSessions['test-pairing']).toBeUndefined();
+      expect((manager as unknown as { deeplinkSessions: Record<string, any> }).deeplinkSessions['test-pairing']).toBeUndefined();
       expect(storageSetItemSpy).toHaveBeenCalledWith(
         AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
         JSON.stringify({})
@@ -930,12 +930,14 @@ describe('WC2Manager', () => {
     });
 
     it('should throw error when projectId is undefined', async () => {
+      // eslint-disable-next-line dot-notation
       await expect(WC2Manager['initCore'](undefined))
         .rejects
         .toThrow('WC2::init Init Missing projectId');
     });
 
     it('should throw error when projectId is empty string', async () => {
+      // eslint-disable-next-line dot-notation
       await expect(WC2Manager['initCore'](''))
         .rejects
         .toThrow('WC2::init Init Missing projectId');
@@ -947,6 +949,7 @@ describe('WC2Manager', () => {
         throw new Error('Core initialization failed');
       });
 
+      // eslint-disable-next-line dot-notation
       await expect(WC2Manager['initCore']('valid-project-id'))
         .rejects
         .toThrow('Core initialization failed');
@@ -959,6 +962,7 @@ describe('WC2Manager', () => {
     });
 
     it('should successfully initialize Core with valid projectId', async () => {
+      // eslint-disable-next-line dot-notation
       const result = await WC2Manager['initCore']('valid-project-id');
       
       expect(Core).toHaveBeenCalledWith({

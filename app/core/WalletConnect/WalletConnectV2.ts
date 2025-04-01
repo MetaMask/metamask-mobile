@@ -198,9 +198,8 @@ export class WC2Manager {
           projectId,
           logger: 'fatal',
         });
-      } else {
-        throw new Error('WC2::init Init Missing projectId');
       }
+      throw new Error('WC2::init Init Missing projectId');
     } catch (err) {
       console.warn(`WC2::init Init failed due to ${err}`);
       throw err;
@@ -239,14 +238,13 @@ export class WC2Manager {
     });
     const currentRouteName = navigation.getCurrentRoute()?.name;
 
-    let core;
     const chainId = parseInt(selectEvmChainId(store.getState()), 16);
 
     DevLogger.log(
       `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
     );
 
-    core = await WC2Manager.initCore(PROJECT_ID);
+    const core = await WC2Manager.initCore(PROJECT_ID);
 
     let web3Wallet;
     // Extract chainId from controller

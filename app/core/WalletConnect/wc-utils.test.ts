@@ -364,7 +364,7 @@ describe('WalletConnect Utils', () => {
 		it('falls back to manual parsing when URL parsing fails', () => {
 			// Create a URL with invalid characters that will fail URL parsing
 			const invalidUrl = 'wc:topic@1';
-			expect(getHostname(invalidUrl)).toBe("wc");
+			expect(getHostname(invalidUrl)).toBe('wc');
 		});
 
 		it('returns original URI when no protocol separator is found', () => {
