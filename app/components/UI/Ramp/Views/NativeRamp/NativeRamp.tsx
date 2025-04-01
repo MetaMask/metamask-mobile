@@ -805,6 +805,14 @@ function NativeRamp() {
         break;
       case 8:
         navigation.goBack();
+
+        navigation.navigate('Swaps', {
+          screen: 'SwapsAmountView',
+          params: {
+            sourceToken: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', // USDC token address
+            sourcePage: 'NativeRamp',
+          },
+        });
         break;
     }
   };
