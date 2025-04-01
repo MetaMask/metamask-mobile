@@ -9,15 +9,8 @@ import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './TokenDetails.styles';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { selectTokenList } from '../../../../selectors/tokenListController';
-import {
-  selectTokenMarketDataByChainId,
-  selectContractExchangeRates,
-} from '../../../../selectors/tokenRatesController';
-import {
-  selectConversionRateBySymbol,
-  selectCurrentCurrency,
-  selectConversionRate,
-} from '../../../../selectors/currencyRateController';
+import { selectTokenMarketDataByChainId } from '../../../../selectors/tokenRatesController';
+import { selectConversionRateBySymbol, selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   convertDecimalToPercentage,
@@ -63,8 +56,6 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
-  const conversionRateLegacy = useSelector(selectConversionRate);
   const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, nativeCurrency),
   );

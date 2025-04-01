@@ -39,13 +39,11 @@ export const useTokenSearchDiscovery = () => {
 
   const swapsTokenAddresses = useSelector(selectSupportedSwapTokenAddressesByChainId);
 
-  const filteredResults = useMemo(() => {
-    return results.filter((result) => {
+  const filteredResults = useMemo(() => results.filter((result) => {
       const chainId = result.chainId as Hex;
       const tokenAddresses = swapsTokenAddresses[chainId];
       return tokenAddresses?.addresses.includes(result.tokenAddress);
-    });
-  }, [results, swapsTokenAddresses]);
+    }), [results, swapsTokenAddresses]);
 
   const searchTokens = useMemo(
     () =>
