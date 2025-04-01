@@ -1345,11 +1345,14 @@ workflows:
                 OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
+
+                echo "Setting APK_DEPLOY_PATH to: $NEW_APK"
+                ls -l "$NEW_APK"
                 
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
-                envman add --key APK_DEPLOY_PATH --value "$APK_DIR/$NEW_BASE_NAME.apk"
+                envman add --key APK_DEPLOY_PATH --value "$NEW_APK"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
