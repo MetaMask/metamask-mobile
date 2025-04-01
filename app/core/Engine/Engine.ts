@@ -289,6 +289,7 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
+      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -507,6 +508,7 @@ export class Engine {
         allowedEvents: [],
       }),
       state: initialKeyringState || initialState.KeyringController,
+      // @ts-expect-error To Do: Update the type of QRHardwareKeyring to Keyring<Json>
       keyringBuilders: additionalKeyrings,
       cacheEncryptionKey: true,
     });
