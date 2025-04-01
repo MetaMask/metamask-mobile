@@ -1,9 +1,9 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 const styleSheet = () => StyleSheet.create({
   sheet: {
     paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'android' ? 20 : 0
+    paddingBottom: 20
   },
   infoIconWrap: {
     display: 'flex',
