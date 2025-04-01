@@ -56,7 +56,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -66,9 +66,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             }
             textAlign="left"
           >
-            <Text
-              color="inherit"
-            >
+            <Text>
               Hello world!
             </Text>
           </Text>
@@ -685,7 +683,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
             fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -695,9 +693,7 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
             }
             textAlign="left"
           >
-            <Text
-              color="inherit"
-            >
+            <Text>
               Hello world!
             </Text>
           </Text>
@@ -1182,7 +1178,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="#4459ff"
             >
               Foo
             </Text>
@@ -1254,7 +1250,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -1264,9 +1260,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
             textAlign="left"
           >
-            <Text
-              color="inherit"
-            >
+            <Text>
               Hello world!
             </Text>
           </Text>
@@ -1411,7 +1405,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="#4459ff"
             >
               Foo
             </Text>
@@ -1665,7 +1659,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       }
                     >
                       <Text
-                        color="inherit"
+                        color="#4459ff"
                       >
                         Submit
                       </Text>
@@ -2706,7 +2700,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 }
               >
                 <Text
-                  color="inherit"
+                  color="#4459ff"
                 >
                   Submit
                 </Text>
@@ -2901,7 +2895,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -2911,9 +2905,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
             textAlign="left"
           >
-            <Text
-              color="inherit"
-            >
+            <Text>
               Hello world!
             </Text>
           </Text>
@@ -3058,7 +3050,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="#4459ff"
             >
               Foo
             </Text>

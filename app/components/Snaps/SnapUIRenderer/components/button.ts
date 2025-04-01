@@ -36,6 +36,6 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
   },
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    params,
+    { ...params, textColor: params.theme.colors.info.default },
   ),
 });

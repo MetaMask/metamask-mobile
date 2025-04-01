@@ -23,7 +23,7 @@ function getTextColor(color: TextElement['props']['color']) {
     case 'warning':
       return TextColor.Warning;
     default:
-      return 'inherit';
+      return null;
   }
 }
 
@@ -67,7 +67,7 @@ export const text: UIComponentFactory<TextElement> = ({
   props: {
     variant: e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
     fontWeight: getFontWeight(e.props.fontWeight),
-    color: getTextColor(e.props.color),
+    color: getTextColor(e.props.color) ?? params.textColor,
     textAlign: alignText(e.props.alignment),
   },
 });

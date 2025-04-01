@@ -29,7 +29,7 @@ describe('link component', () => {
           children: 'link',
           key: expect.any(String),
           props: {
-            color: 'inherit',
+            color: '#4459ff',
           },
         },
       ],

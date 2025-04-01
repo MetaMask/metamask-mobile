@@ -141,7 +141,7 @@ export const mapTextToTemplate = (
         element: 'RNText',
         key,
         children: text,
-        props: { color: 'inherit' },
+        props: { color: params.textColor },
       };
     }
     return mapToTemplate({

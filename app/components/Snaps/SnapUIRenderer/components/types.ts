@@ -9,6 +9,8 @@ export interface UIComponentParams<T extends JSXElement> {
   onCancel?: () => void;
   t: (key: string) => string;
   theme: Theme;
+  // If the component must inherit the color of the parent, the parent must pass this color to their children.
+  textColor?: string;
 }
 
 export interface UIComponent {
