@@ -1572,7 +1572,7 @@ export class NetworkSettings extends PureComponent {
     await MultichainNetworkController.setActiveNetwork(networkClientId);
 
     setTimeout(async () => {
-      await updateIncomingTransactions([CHAIN_IDS.MAINNET]);
+      await updateIncomingTransactions();
     }, 1000);
   };
 
