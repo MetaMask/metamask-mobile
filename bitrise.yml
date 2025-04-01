@@ -1343,15 +1343,16 @@ workflows:
                 # Rename APK
                 if [ "$IS_DEV_BUILD" = "true" ]; then
                     OLD_APK="$APK_DIR/app-$APP_NAME-debug.apk"
+                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-debug.aab"
                 else
                     OLD_APK="$APK_DIR/app-$APP_NAME-release.apk"
+                    OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 fi
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
                 
                 # Rename AAB
-                OLD_AAB="$BUNDLE_DIR/app-$APP_NAME-release.aab"
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
                 
