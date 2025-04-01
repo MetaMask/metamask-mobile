@@ -14,6 +14,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken } from '../../types';
+import { PopularList } from '../../../../../util/networks/customNetworks';
 
 const createStyles = () => StyleSheet.create({
   infoButton: {
@@ -45,14 +46,20 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const renderToken = useCallback(
     ({ item }: { item: BridgeToken }) => {
 
-    // Open the asset details screen as a bottom sheet
-    const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
+      // Open the asset details screen as a bottom sheet
+      const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
+
+      // If the user hasn't added the network, it won't be in the networkConfigurations object
+      // So we use the PopularList to get the network name
+      const networkName = networkConfigurations?.[item.chainId as Hex]?.name
+        ?? PopularList.find((network) => network.chainId === item.chainId)?.nickname
+        ?? 'Unknown Network';
 
       return (
       <TokenSelectorItem
         token={item}
         onPress={handleTokenPress}
-        networkName={networkConfigurations[item.chainId as Hex].name}
+        networkName={networkName}
         //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
         shouldShowBalance={false}
