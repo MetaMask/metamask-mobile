@@ -9,7 +9,6 @@ import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBrid
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { decimalToPrefixedHex } from '../../../../../util/conversions';
 import { useSelector } from 'react-redux';
-import { getHexGasTotal } from '../../../../../util/confirm-tx';
 import { Hex } from '@metamask/utils';
 import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
 import { TokenI } from '../../../Tokens/types';
@@ -36,6 +35,9 @@ const createStyles = () =>
     },
     transactionContainer: {
       paddingLeft: 8,
+    },
+    transactionAssetsContainer: {
+      paddingVertical: 16,
     },
   });
 
@@ -92,19 +94,21 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
-        <TransactionAsset
-          token={sourceToken as TokenI}
-          tokenAmount={sourceTokenAmount}
-          chainId={sourceChainId as Hex}
-        />
-        <Box style={styles.arrowContainer}>
-          <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
+        <Box style={styles.transactionAssetsContainer}>
+          <TransactionAsset
+            token={sourceToken as TokenI}
+            tokenAmount={sourceTokenAmount}
+            chainId={sourceChainId as Hex}
+          />
+          <Box style={styles.arrowContainer}>
+            <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
+          </Box>
+          <TransactionAsset
+            token={destinationToken as TokenI}
+            tokenAmount={destinationTokenAmount}
+            chainId={destinationChainId as Hex}
+          />
         </Box>
-        <TransactionAsset
-          token={destinationToken as TokenI}
-          tokenAmount={destinationTokenAmount}
-          chainId={destinationChainId as Hex}
-        />
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
           <Box flexDirection={FlexDirection.Row} gap={4}>
