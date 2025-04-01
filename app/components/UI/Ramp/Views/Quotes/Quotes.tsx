@@ -61,6 +61,7 @@ import Logger from '../../../../../util/Logger';
 import { isBuyQuote } from '../../utils';
 import { getOrdersProviders } from './../../../../../reducers/fiatOrders';
 import { QuoteSelectors } from '../../../../../../e2e/selectors/Ramps/Quotes.selectors';
+import useFiatCurrencies from '../../hooks/useFiatCurrencies';
 
 export interface QuotesParams {
   amount: number | string;
@@ -76,6 +77,7 @@ function Quotes() {
   const navigation = useNavigation();
   const trackEvent = useAnalytics();
   const params = useParams<QuotesParams>();
+
   const {
     selectedPaymentMethodId,
     selectedChainId,
@@ -84,7 +86,15 @@ function Quotes() {
     sdkError,
     rampType,
     isBuy,
+    selectedAddress,
+    selectedRegion,
+    selectedAsset,
+    selectedFiatCurrencyId,
+    sdk,
   } = useRampSDK();
+
+  const { currentFiatCurrency } = useFiatCurrencies();
+
   const renderInAppBrowser = useInAppBrowser();
 
   const ordersProviders = useSelector(getOrdersProviders);
@@ -281,8 +291,103 @@ function Quotes() {
   );
 
   const handleOnPressCustomActionCTA = useCallback(
-    (customAction: PaymentCustomAction) => {},
-    [],
+    async (customAction: PaymentCustomAction) => {
+      if (!sdk || !customAction) {
+        return;
+      }
+
+      try {
+        setIsQuoteLoading(true);
+        const provider = customAction.buy.provider;
+        const payload = {
+          region: selectedRegion?.id as string,
+          payment_method_id: selectedPaymentMethodId as string,
+        };
+
+        if (isBuy) {
+          trackEvent('ONRAMP_DIRECT_PROVIDER_CLICKED', {
+            ...payload,
+            currency_source: currentFiatCurrency?.symbol as string,
+            currency_destination: selectedAsset?.symbol as string,
+            provider_onramp: provider.name,
+            chain_id_destination: selectedChainId as string,
+          });
+        } else {
+          trackEvent('OFFRAMP_DIRECT_PROVIDER_CLICKED', {
+            ...payload,
+            currency_destination: currentFiatCurrency?.symbol as string,
+            currency_source: selectedAsset?.symbol as string,
+            provider_offramp: provider.name,
+            chain_id_source: selectedChainId as string,
+          });
+        }
+
+        const getUrlMethod = isBuy ? 'getBuyUrl' : 'getSellUrl';
+
+        const buyAction = await sdk[getUrlMethod](
+          provider,
+          selectedRegion?.id as string,
+          selectedPaymentMethodId as string,
+          selectedAsset?.id as string,
+          selectedFiatCurrencyId as string,
+          params.amount as number,
+          selectedAddress as string,
+        );
+
+        console.log('11111');
+        if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
+          console.log('22222');
+          const { url, orderId: customOrderId } = await buyAction.createWidget(
+            callbackBaseUrl,
+          );
+          console.log('3333', url, customOrderId);
+
+          console.log('calling mock navigation');
+          navigation.navigate(
+            ...createCheckoutNavDetails({
+              url,
+              provider,
+              customOrderId,
+            }),
+          );
+        } else if (
+          buyAction.browser === ProviderBuyFeatureBrowserEnum.InAppOsBrowser
+        ) {
+          await renderInAppBrowser(
+            buyAction,
+            provider,
+            params.amount as number,
+            currentFiatCurrency?.symbol,
+          );
+        } else {
+          throw new Error('Unsupported browser type: ' + buyAction.browser);
+        }
+      } catch (error) {
+        Logger.error(error as Error, {
+          message:
+            'FiatOrders::CustomActionButton error while getting buy action',
+        });
+      } finally {
+        setIsQuoteLoading(false);
+      }
+    },
+    [
+      sdk,
+      selectedRegion?.id,
+      selectedPaymentMethodId,
+      isBuy,
+      selectedAsset?.id,
+      selectedAsset?.symbol,
+      selectedFiatCurrencyId,
+      params.amount,
+      selectedAddress,
+      trackEvent,
+      currentFiatCurrency?.symbol,
+      selectedChainId,
+      callbackBaseUrl,
+      navigation,
+      renderInAppBrowser,
+    ],
   );
 
   const handleOnPressCTA = useCallback(
@@ -811,9 +916,9 @@ function Quotes() {
                 onPress={() =>
                   handleOnCustomActionPress(recommendedCustomAction)
                 }
-                onPressCTA={() =>
-                  handleOnPressCustomActionCTA(recommendedCustomAction)
-                }
+                onPressCTA={() => {
+                  handleOnPressCustomActionCTA(recommendedCustomAction);
+                }}
                 highlighted={
                   recommendedCustomAction.buy?.provider?.id === providerId
                 }
