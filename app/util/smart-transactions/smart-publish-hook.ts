@@ -173,6 +173,12 @@ class SmartTransactionHook {
       return useRegularTransactionSubmit;
     }
 
+    // console.log('>>> transctionMeta', this.#transactionMeta);
+    // console.log(
+    //   '>>> SmartTransactionHook submit origin',
+    //   this.#transactionMeta.origin,
+    // );
+    //makeSelectDomainNetworkClientId
     Logger.log(
       LOG_PREFIX,
       'Started submit hook',
@@ -188,9 +194,12 @@ class SmartTransactionHook {
         return useRegularTransactionSubmit;
       }
 
-      const batchStatusPollingInterval = this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
+      const batchStatusPollingInterval =
+        this.#featureFlags?.smartTransactions?.batchStatusPollingInterval;
       if (batchStatusPollingInterval) {
-        this.#smartTransactionsController.setStatusRefreshInterval(batchStatusPollingInterval);
+        this.#smartTransactionsController.setStatusRefreshInterval(
+          batchStatusPollingInterval,
+        );
       }
 
       const submitTransactionResponse = await this.#signAndSubmitTransactions({
@@ -239,11 +248,17 @@ class SmartTransactionHook {
     }
   }
 
+  // here first
   #getFees = async () => {
+    console.log(
+      '>>> getFees this.#transactionMeta.networkClientId',
+      this.#transactionMeta.networkClientId,
+    );
     try {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
+        { networkClientId: this.#transactionMeta.networkClientId },
       );
     } catch (error) {
       return undefined;
@@ -339,11 +354,17 @@ class SmartTransactionHook {
       getFeesResponse.tradeTxFees?.cancelFees || [],
       true,
     );
+    // here second
+    console.log(
+      '>>> submitSignedTransactions this.#transactionMeta.networkClientId',
+      this.#transactionMeta.networkClientId,
+    );
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,
       signedCanceledTransactions,
       txParams: this.#txParams,
       transactionMeta: this.#transactionMeta,
+      networkClientId: this.#transactionMeta.networkClientId,
     });
   };
 
