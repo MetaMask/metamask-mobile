@@ -43,7 +43,7 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  isHdAccount,
+  isHDOrFirstPartySnapAccount,
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   isSnapAccount,
@@ -222,7 +222,6 @@ const AccountActions = () => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const goToExportSRP = () => {
-    Logger.log('keyring id', keyringId);
     sheetRef.current?.onCloseBottomSheet(() => {
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
@@ -457,7 +456,7 @@ const AccountActions = () => {
         />
         {
           ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-          selectedAddress && isHdAccount(selectedAccount) && (
+          selectedAddress && isHDOrFirstPartySnapAccount(selectedAccount) && (
             <AccountAction
               actionTitle={strings('accounts.reveal_secret_recovery_phrase')}
               iconName={IconName.Key}
