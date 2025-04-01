@@ -1,3 +1,4 @@
+import { equal } from 'uri-js';
 import { InteractionManager } from 'react-native';
 import { ChainId } from '@metamask/controller-utils';
 import Engine from '../Engine';
@@ -82,13 +83,22 @@ export const wallet_addEthereumChain = async ({
     const { networkClientId } =
       network.rpcEndpoints[network.defaultRpcEndpointIndex];
 
-    // TODO: [ffmcgee] check impl from extension, for now we default to true ? We need to come back to this
-    const shouldAddOrUpdateNetwork = true;
-    // const shouldAddOrUpdateNetwork =
-    //   !existingNetwork ||
-    //   rpcIndex !== existingNetwork.defaultRpcEndpointIndex ||
-    //   (firstValidBlockExplorerUrl &&
-    //     blockExplorerIndex !== existingNetwork.defaultBlockExplorerUrlIndex);
+    const existingNetwork = hooks.getNetworkConfigurationByChainId(chainId);
+    const rpcIndex = existingNetwork?.rpcEndpoints.findIndex(({ url }) =>
+      equal(url, firstValidRPCUrl),
+    );
+
+    const blockExplorerIndex = firstValidBlockExplorerUrl
+      ? existingNetwork?.blockExplorerUrls.findIndex((url) =>
+          equal(url, firstValidBlockExplorerUrl),
+        )
+      : undefined;
+
+    const shouldAddOrUpdateNetwork =
+      !existingNetwork ||
+      rpcIndex !== existingNetwork.defaultRpcEndpointIndex ||
+      (firstValidBlockExplorerUrl &&
+        blockExplorerIndex !== existingNetwork.defaultBlockExplorerUrlIndex);
 
     await switchToNetwork({
       network: [networkClientId, network],
@@ -102,10 +112,8 @@ export const wallet_addEthereumChain = async ({
       analytics,
       origin,
       isAddNetworkFlow,
-      hooks: {
-        autoApprove: shouldAddOrUpdateNetwork,
-        ...hooks,
-      },
+      autoApprove: shouldAddOrUpdateNetwork,
+      hooks,
     });
   };
 

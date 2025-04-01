@@ -222,13 +222,13 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
+  autoApprove,
   hooks,
 }) {
   const {
     getCaveat,
     requestPermittedChainsPermissionIncrementalForOrigin,
     hasApprovalRequestsForOrigin,
-    autoApprove, // TODO: [ffmcgee] this should come from the add/switch Ethereum Chain handler function, not from upstream hooks passed. Check.
     toNetworkConfiguration,
     fromNetworkConfiguration,
   } = hooks;
@@ -268,7 +268,6 @@ export async function switchToNetwork({
   let ethChainIds;
 
   if (caip25Caveat) {
-    console.log({ caip25Caveat, getPermittedEthChainIds });
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
 
     if (!ethChainIds.includes(chainId)) {

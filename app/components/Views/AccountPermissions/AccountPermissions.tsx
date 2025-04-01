@@ -332,7 +332,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
         newActiveAddress = addPermittedAccounts(
           hostname,
           accountsToAdd as Hex[],
-        ); // TODO: [ffmcgee] address typecasting ?
+        );
       } else {
         // If no new accounts were added, set the first selected address as active
         newActiveAddress = normalizedSelectedAddresses[0];
@@ -346,7 +346,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Remove accounts that are no longer selected
       if (accountsToRemove.length > 0) {
-        removePermittedAccounts(hostname, accountsToRemove as Hex[]); // TODO: [ffmcgee] address typecasting ?
+        removePermittedAccounts(hostname, accountsToRemove as Hex[]);
       }
 
       // Calculate the number of connected accounts after changes
