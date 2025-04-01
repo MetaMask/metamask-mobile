@@ -202,7 +202,7 @@ const WRONG_PASSWORD_ERROR_ANDROID =
 const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
 const JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error';
-
+const PASSWORD_REQUIREMENTS_NOT_MET = 'Password requirements not met';
 /**
  * View where returning users can authenticate
  */
@@ -382,17 +382,21 @@ class Login extends PureComponent {
     endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
-    const locked = !passwordRequirementsMet(password);
-    if (locked) this.setState({ error: strings('login.invalid_password') });
-    if (this.state.loading || locked) return;
-
-    this.setState({ loading: true, error: null });
-    const authType = await Authentication.componentAuthenticationType(
-      this.state.biometryChoice,
-      this.state.rememberMe,
-    );
 
     try {
+      const locked = !passwordRequirementsMet(password);
+      if (locked) {
+        // This will be caught by the catch block below
+        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
+      }
+      if (this.state.loading || locked) return;
+
+      this.setState({ loading: true, error: null });
+      const authType = await Authentication.componentAuthenticationType(
+        this.state.biometryChoice,
+        this.state.rememberMe,
+      );
+
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -422,9 +426,11 @@ class Login extends PureComponent {
       field?.clear();
     } catch (e) {
       const error = e.toString();
+
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
+        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID) ||
+        error.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         this.setState({
           loading: false,
