@@ -23,7 +23,6 @@ import Badge, {
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../selectors/networkController';
 import {
-  getDefaultNetworkByChainId,
   getTestNetImageByChainId,
   isLineaMainnetChainId,
   isMainNet,
