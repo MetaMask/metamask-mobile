@@ -180,6 +180,119 @@ function NativeRamp() {
     if (!accessToken || !quote) return;
     try {
       setIsLoading(true);
+      setLoadingMessage('Verifying KYC status...');
+
+      // Double-check KYC status before proceeding
+      const userDetails = await nativeRampService.getUserDetails(accessToken);
+
+      // If not fully approved, check which forms are missing
+      if (!userDetails.isKycApproved()) {
+        const kycForms = await nativeRampService.getKYCForms(
+          accessToken,
+          quote,
+        );
+
+        // Check for any remaining forms, including ID proof
+        const foundIdProofForm = kycForms.forms.find(
+          (form) => form.id === 'idProof',
+        );
+        const purposeOfUsageForm = kycForms.forms.find(
+          (form) => form.id === 'purposeOfUsage',
+        );
+
+        const regularForms = kycForms.forms.filter(
+          (form) =>
+            ![purposeOfUsageForm?.id, foundIdProofForm?.id].includes(form.id),
+        );
+
+        // Handle remaining forms appropriately
+        if (regularForms.length > 0) {
+          // Still need to complete regular KYC forms
+          setForms(regularForms);
+          setCurrentFormIndex(0);
+          if (regularForms.length > 0) {
+            const formDetails = await nativeRampService.getKycForm(
+              accessToken,
+              quote,
+              regularForms[0],
+            );
+            setCurrentFormFields(formDetails.fields || []);
+          }
+          setCurrentStep(5);
+          setIsLoading(false);
+          Alert.alert(
+            'KYC Required',
+            'Please complete the verification forms first.',
+          );
+          return;
+        }
+
+        if (foundIdProofForm) {
+          // Need to complete ID verification
+          setIdProofForm(foundIdProofForm);
+          const idProofFormData = await nativeRampService.getKycForm(
+            accessToken,
+            quote,
+            foundIdProofForm,
+          );
+
+          if (idProofFormData?.data?.kycUrl) {
+            // Navigate to ID verification
+            setCurrentStep(5.5);
+            setLoadingMessage('ID verification required');
+
+            navigation.navigate(
+              ...createKycWebviewNavDetails({
+                url: idProofFormData.data.kycUrl,
+              }),
+            );
+
+            // Start polling for KYC status
+            let retries = 0;
+            const maxRetries = 40;
+            const pollInterval = 30000;
+
+            const pollKycStatus = async () => {
+              try {
+                const updatedUserDetails =
+                  await nativeRampService.getUserDetails(accessToken);
+
+                if (updatedUserDetails.kyc?.l1?.status === 'APPROVED') {
+                  setCurrentStep(6);
+                  setIsLoading(false);
+                  return;
+                }
+
+                retries++;
+                if (retries >= maxRetries) {
+                  throw new Error('KYC approval timeout reached.');
+                }
+
+                setLoadingMessage(
+                  `Waiting for KYC approval... Attempt ${retries}`,
+                );
+                setTimeout(pollKycStatus, pollInterval);
+              } catch (error) {
+                Alert.alert('Error', getErrorMessage(error));
+                setIsLoading(false);
+              }
+            };
+
+            pollKycStatus();
+            return;
+          }
+        }
+
+        // If we get here but user is not approved, show error
+        Alert.alert(
+          'KYC Required',
+          'Please complete your KYC to place an order.',
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      // If KYC is approved, proceed with order creation
       setLoadingMessage('Creating order...');
       const reservation = await nativeRampService.walletReserve(
         quote as BuyQuote,
@@ -311,12 +424,24 @@ function NativeRamp() {
           'Buying/selling crypto for investments',
         ]);
 
-        if (idProofForm) {
-          setLoadingMessage('Loading ID verification...');
+        // Check if we still need to do ID proof verification
+        setLoadingMessage('Checking verification status...');
+        const kycForms = await nativeRampService.getKYCForms(
+          accessToken,
+          quote,
+        );
+
+        const foundIdProofForm = kycForms.forms.find(
+          (form) => form.id === 'idProof',
+        );
+
+        if (foundIdProofForm) {
+          // User needs to complete ID proof verification
+          setIdProofForm(foundIdProofForm);
           const idProofFormData = await nativeRampService.getKycForm(
             accessToken,
-            quote as BuyQuote,
-            idProofForm,
+            quote,
+            foundIdProofForm,
           );
 
           if (idProofFormData?.data?.kycUrl) {
@@ -344,7 +469,6 @@ function NativeRamp() {
 
                 if (userDetails.kyc?.l1?.status === 'APPROVED') {
                   // KYC was approved, proceed with the flow
-
                   setCurrentStep(6);
                   setIsLoading(false);
                   return;
@@ -370,15 +494,11 @@ function NativeRamp() {
 
             // Start the first poll
             pollKycStatus();
-          } else {
-            setCurrentStep(6);
-            await fetchKycForms(accessToken);
-            setIsLoading(false);
             return;
           }
         } else {
+          // No ID proof required, proceed to success screen
           setCurrentStep(6);
-          await fetchKycForms(accessToken);
           setIsLoading(false);
           return;
         }
@@ -388,7 +508,7 @@ function NativeRamp() {
         const nextForm = forms[currentFormIndex + 1];
         const formDetails = await nativeRampService.getKycForm(
           accessToken,
-          quote as BuyQuote,
+          quote,
           nextForm,
         );
         setCurrentFormFields(formDetails.fields || []);
@@ -477,6 +597,75 @@ function NativeRamp() {
     }
   };
 
+  // This function checks if only ID proof is remaining in the KYC process
+  const checkIfOnlyIdProofRemaining = async (
+    token: NativeTransakAccessToken,
+    quoteData?: BuyQuote,
+  ) => {
+    try {
+      setLoadingMessage('Checking KYC status...');
+
+      // Get the latest user details
+      const userDetails = await nativeRampService.getUserDetails(token);
+
+      // If user is already fully approved, no need to continue
+      if (userDetails.isKycApproved()) {
+        return { onlyIdProofRemaining: false, isFullyApproved: true };
+      }
+
+      // We need to fetch KYC forms to check which forms are pending
+      const currentQuote =
+        quoteData ||
+        (await nativeRampService.getBuyQuote(
+          'EUR',
+          'USDC',
+          'arbitrum',
+          'sepa_bank_transfer',
+          amount,
+        ));
+
+      const kycForms = await nativeRampService.getKYCForms(token, currentQuote);
+
+      // Find the ID proof form
+      const foundIdProofForm = kycForms.forms.find(
+        (form) => form.id === 'idProof',
+      );
+
+      // Find other forms (excluding special forms)
+      const purposeOfUsageForm = kycForms.forms.find(
+        (form) => form.id === 'purposeOfUsage',
+      );
+
+      const regularForms = kycForms.forms.filter(
+        (form) =>
+          ![purposeOfUsageForm?.id, foundIdProofForm?.id].includes(form.id),
+      );
+
+      // If there are no regular forms and we have an ID proof form,
+      // that means only ID proof is remaining
+      if (regularForms.length === 0 && foundIdProofForm) {
+        setIdProofForm(foundIdProofForm);
+        return {
+          onlyIdProofRemaining: true,
+          isFullyApproved: false,
+          quote: currentQuote,
+          idProofForm: foundIdProofForm,
+        };
+      }
+
+      return {
+        onlyIdProofRemaining: false,
+        isFullyApproved: false,
+        quote: currentQuote,
+        forms: regularForms,
+        idProofForm: foundIdProofForm,
+      };
+    } catch (error) {
+      console.error('Error checking KYC status:', error);
+      return { onlyIdProofRemaining: false, isFullyApproved: false, error };
+    }
+  };
+
   const handleContinue = async () => {
     switch (currentStep) {
       case 1: {
@@ -487,19 +676,105 @@ function NativeRamp() {
           try {
             setAccessToken(tokenResult.token);
             setLoadingMessage('Checking user details...');
-            const userDetails = await nativeRampService.getUserDetails(
-              tokenResult.token,
-            );
 
-            if (userDetails.isKycApproved()) {
+            // Ensure token is valid and call checkIfOnlyIdProofRemaining with properly typed token
+            const token = tokenResult.token as NativeTransakAccessToken;
+            const kycStatus = await checkIfOnlyIdProofRemaining(token);
+
+            if (kycStatus.isFullyApproved) {
+              // User is fully approved - go to success screen
               setCurrentStep(6);
-              await fetchKycForms(tokenResult.token); // Still need quote for the next steps
+              await fetchKycForms(token); // Still need quote for the next steps
+            } else if (
+              kycStatus.onlyIdProofRemaining &&
+              kycStatus.idProofForm &&
+              kycStatus.quote
+            ) {
+              // Only ID proof is remaining - go directly to the ID proof step
+              setQuote(kycStatus.quote);
+
+              // Get the ID verification URL and navigate to webview
+              const idProofFormData = await nativeRampService.getKycForm(
+                token,
+                kycStatus.quote,
+                kycStatus.idProofForm,
+              );
+
+              if (idProofFormData?.data?.kycUrl) {
+                // Set the step to ID verification
+                setCurrentStep(5.5);
+                setLoadingMessage('Loading ID verification...');
+
+                // Navigate to the webview for ID verification
+                navigation.navigate(
+                  ...createKycWebviewNavDetails({
+                    url: idProofFormData.data.kycUrl,
+                  }),
+                );
+
+                // Start polling for KYC approval
+                let retries = 0;
+                const maxRetries = 40; // 20 minutes max wait time
+                const pollInterval = 30000; // 30 seconds
+
+                const pollKycStatus = async () => {
+                  try {
+                    const userDetails = await nativeRampService.getUserDetails(
+                      token,
+                    );
+
+                    if (userDetails.kyc?.l1?.status === 'APPROVED') {
+                      // KYC was approved, proceed with the flow
+                      setCurrentStep(6);
+                      setIsLoading(false);
+                      return;
+                    }
+
+                    retries++;
+                    if (retries >= maxRetries) {
+                      throw new Error('KYC approval timeout reached.');
+                    }
+
+                    // Update loading message with attempt count
+                    setLoadingMessage(
+                      `Waiting for KYC approval... Attempt ${retries}`,
+                    );
+
+                    // Schedule next poll
+                    setTimeout(pollKycStatus, pollInterval);
+                  } catch (error: unknown) {
+                    Alert.alert('Error', getErrorMessage(error));
+                    setIsLoading(false);
+                  }
+                };
+
+                // Start the first poll
+                pollKycStatus();
+              }
             } else {
-              await fetchKycForms(tokenResult.token);
-              setCurrentStep(5);
+              // User has regular KYC forms to complete or we need to fetch them
+              const hasForms = kycStatus.forms && kycStatus.forms.length > 0;
+
+              if (hasForms) {
+                setForms(kycStatus.forms);
+                if (kycStatus.idProofForm) {
+                  setIdProofForm(kycStatus.idProofForm);
+                }
+                if (kycStatus.quote) {
+                  setQuote(kycStatus.quote);
+                } else {
+                  await fetchKycForms(token);
+                }
+                setCurrentStep(5);
+              } else {
+                // Fallback to regular flow
+                await fetchKycForms(token);
+                setCurrentStep(5);
+              }
             }
           } catch (error) {
             // Token is invalid/expired, continue with normal flow
+            console.error('Error in token validation:', error);
             setAccessToken(null);
             setCurrentStep(2);
           } finally {
