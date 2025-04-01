@@ -16,8 +16,9 @@ import {
 import { isValidAddress } from 'ethereumjs-util';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { JsonRpcRequest, PendingJsonRpcResponse } from '@metamask/utils';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
-const wallet_watchAsset = async ({
+export const wallet_watchAsset = async ({
   req,
   res,
   hostname,
@@ -112,4 +113,10 @@ const wallet_watchAsset = async ({
   res.result = true;
 };
 
-export default wallet_watchAsset;
+export const watchAssetHandler = {
+  methodNames: [MESSAGE_TYPE.WATCH_ASSET],
+  implementation: wallet_watchAsset,
+  hookNames: {
+    handleWatchAssetRequest: true,
+  },
+};

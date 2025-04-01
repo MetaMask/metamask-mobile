@@ -17,6 +17,7 @@ import {
 } from './lib/ethereum-chain-utils';
 import { getDecimalChainId } from '../../util/networks';
 import { RpcEndpointType } from '@metamask/network-controller';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
 const waitForInteraction = async () =>
   new Promise((resolve) => {
@@ -49,7 +50,7 @@ const addOrUpdateIndex = (array, value, comparator) => {
  * @param params.hooks - Method hooks passed to the method implementation.
  * @returns Nothing.
  */
-const wallet_addEthereumChain = async ({
+export const wallet_addEthereumChain = async ({
   req,
   res,
   requestUserApproval,
@@ -288,4 +289,18 @@ const wallet_addEthereumChain = async ({
   res.result = null;
 };
 
-export default wallet_addEthereumChain;
+export const addEthereumChainHandler = {
+  methodNames: [MESSAGE_TYPE.ADD_ETHEREUM_CHAIN],
+  implementation: wallet_addEthereumChain,
+  hookNames: {
+    addNetwork: true,
+    updateNetwork: true,
+    getNetworkConfigurationByChainId: true,
+    setActiveNetwork: true,
+    requestUserApproval: true,
+    getCurrentChainIdForDomain: true,
+    getCaveat: true,
+    requestPermittedChainsPermissionIncrementalForOrigin: true,
+    rejectApprovalRequestsForOrigin: true,
+  },
+};

@@ -7,6 +7,7 @@ import {
   findExistingNetwork,
   switchToNetwork,
 } from './lib/ethereum-chain-utils';
+import { MESSAGE_TYPE } from '../createTracingMiddleware';
 
 /**
  * Switch chain implementation to be used in JsonRpcEngine middleware.
@@ -18,7 +19,7 @@ import {
  * @param params.hooks - Method hooks passed to the method implementation.
  * @returns Nothing.
  */
-const wallet_switchEthereumChain = async ({
+export const wallet_switchEthereumChain = async ({
   req,
   res,
   requestUserApproval,
@@ -111,4 +112,17 @@ const wallet_switchEthereumChain = async ({
   });
 };
 
-export default wallet_switchEthereumChain;
+export const switchEthereumChainHandler = {
+  methodNames: [MESSAGE_TYPE.SWITCH_ETHEREUM_CHAIN],
+  implementation: wallet_switchEthereumChain,
+  hookNames: {
+    getNetworkConfigurationByChainId: true,
+    setActiveNetwork: true,
+    requestUserApproval: true,
+    getCaveat: true,
+    getCurrentChainIdForDomain: true,
+    requestPermittedChainsPermissionIncrementalForOrigin: true,
+    setTokenNetworkFilter: true,
+    hasApprovalRequestsForOrigin: true,
+  },
+};
