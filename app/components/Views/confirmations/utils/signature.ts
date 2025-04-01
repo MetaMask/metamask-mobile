@@ -184,7 +184,7 @@ export const parseTypedDataMessage = (dataToParse: string) => {
   return result;
 };
 
-export const parseSignTypedDataMessage = (dataToParse: string) => {
+export const parseAndSanitizeSignTypedData = (dataToParse: string) => {
   if (!dataToParse) { return {}; }
 
   const { message, primaryType, types } = parseTypedDataMessage(dataToParse);

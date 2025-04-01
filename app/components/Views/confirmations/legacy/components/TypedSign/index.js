@@ -11,7 +11,7 @@ import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEve
 import { KEYSTONE_TX_CANCELED } from '../../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 import {
-  parseSignTypedDataMessage,
+  parseAndSanitizeSignTypedData,
   escapeSpecialUnicode,
 } from '../../../../../../util/string';
 
@@ -236,7 +236,7 @@ class TypedSign extends PureComponent {
       );
     }
     if (messageParams.version === 'V3' || messageParams.version === 'V4') {
-      const message = parseSignTypedDataMessage(messageParams.data);
+      const message = parseAndSanitizeSignTypedData(messageParams.data);
       return this.renderTypedMessageV3(message);
     }
   };
