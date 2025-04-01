@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View } from 'react-native';
+import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 // External dependencies.
 import AccountSelectorList from '../../UI/AccountSelectorList';
@@ -64,6 +65,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   const [screen, setScreen] = useState<AccountSelectorScreens>(
     navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
+
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
   }, []);
@@ -98,6 +100,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     },
     [Engine],
   );
+
+  const fetchAccountsWithActivity = useCallback(async () => {
+    try {
+      const multichainNetworkController = Engine.context
+        .MultichainNetworkController as MultichainNetworkController;
+      await multichainNetworkController.getNetworksWithActivityByAccounts();
+    } catch (error) {
+      console.error('Error fetching accounts with activity', error);
+    }
+  }, [Engine]);
+
+  useEffect(() => {
+    if (accounts.length > 0) {
+      fetchAccountsWithActivity();
+    }
+  }, [fetchAccountsWithActivity, accounts]);
 
   const renderAccountSelector = useCallback(
     () => (
