@@ -31,7 +31,7 @@ import {
 const introductionImg = require('../../../../images/reveal-srp.png');
 
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-interface SRPQuizProps {
+export interface SRPQuizProps {
   route: {
     params: {
       keyringId?: string;

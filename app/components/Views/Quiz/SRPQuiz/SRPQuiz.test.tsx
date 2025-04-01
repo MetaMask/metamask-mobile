@@ -8,7 +8,7 @@ import {
   SrpSecurityQuestionOneSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsIDs,
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
-import { SRPQuiz, SRPQuizProps } from '.';
+import SRPQuiz, { SRPQuizProps } from './SRPQuiz';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
