@@ -67,8 +67,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  // Disabling because on line 79 the test fails
-  it.skip('should change parameters and select a quote', async () => {
+  it('should change parameters and select a quote', async () => {
     const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
 
     await TabBarComponent.tapActions();
