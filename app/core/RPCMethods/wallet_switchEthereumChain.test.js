@@ -223,6 +223,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       );
     });
 
+    // TODO: [ffmcgee] check todo in `app/core/RPCMethods/lib/ethereum-chain-utils.js` file, and discuss, for fix
     it.only('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
       const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,

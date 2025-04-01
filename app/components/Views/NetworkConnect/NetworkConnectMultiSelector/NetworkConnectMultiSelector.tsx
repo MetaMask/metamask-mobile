@@ -35,9 +35,12 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { NetworkConnectMultiSelectorSelectorsIDs } from '../../../../../e2e/selectors/Browser/NetworkConnectMultiSelector.selectors';
 import Logger from '../../../../util/Logger';
-import { addPermittedChains, getCaip25Caveat } from '../../../../core/Permissions';
+import {
+  addPermittedChains,
+  getCaip25Caveat,
+} from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { Hex } from '@metamask/utils';
+import { Hex, isHexString } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -72,8 +75,10 @@ const NetworkConnectMultiSelector = ({
 
     let currentlyPermittedChains: string[] = [];
     try {
-      const caveat = getCaip25Caveat(hostname)
-      currentlyPermittedChains = caveat ? getPermittedEthChainIds(caveat.value) : []
+      const caveat = getCaip25Caveat(hostname);
+      currentlyPermittedChains = caveat
+        ? getPermittedEthChainIds(caveat.value)
+        : [];
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
     }
@@ -117,9 +122,24 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
+      // TODO: [ffmcgee] discuss, `selectedChainIds` are not consistent. Sometimes I see chain Id hexes (ex.:0x1), sometimes I see an id shaped key (ex.:network-1).
+      // `addPermittedChains` call needs consistent hex chain ids.
+      let chainsToAdd = selectedChainIds;
+      const shouldReplaceWithChainIdHexes = selectedChainIds.some(
+        (id) => !isHexString(id),
+      );
+      if (shouldReplaceWithChainIdHexes) {
+        const selectedChainNames = Object.keys(networkConfigurations).filter(
+          (name) => selectedChainIds.includes(name),
+        );
+        chainsToAdd = selectedChainNames.map(
+          (name) => networkConfigurations[name as Hex].chainId,
+        );
+      }
+
       // TODO: Verify if this can be called before CAIP-25 permissions have been granted
       // Previous behavior was to incremental grant if no permittedChains permission existed
-      addPermittedChains(hostname, selectedChainIds as Hex[])
+      addPermittedChains(hostname, chainsToAdd as Hex[]);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [
