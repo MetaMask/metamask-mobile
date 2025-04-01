@@ -44,6 +44,7 @@ import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -171,7 +172,7 @@ const BridgeView = () => {
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
     const quoteResponse = undefined;
     if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
+      submitBridgeTx({ quoteResponse: quoteResponse as unknown as QuoteResponse & QuoteMetadata });
     }
   };
 
@@ -198,13 +199,13 @@ const BridgeView = () => {
     });
   };
 
-  const handleSourceTokenPress = () => 
+  const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       params: {},
     });
 
-  const handleDestTokenPress = () => 
+  const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {},
