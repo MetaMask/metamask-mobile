@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import Text from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
 import Icon from 'react-native-vector-icons/Ionicons';
 import createStyles from './FeatureItem.styles';

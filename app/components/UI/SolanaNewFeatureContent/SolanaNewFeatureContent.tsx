@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { View, Text } from 'react-native';
-import Modal from 'react-native-modal';
+import { View } from 'react-native';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolScope } from '@metamask/keyring-api';
+import Text from '../../../component-library/components/Texts/Text';
+import BottomSheet, {
+  BottomSheetRef,
+} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import Logger from '../../../util/Logger';
 import Button, {
@@ -21,6 +24,7 @@ import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 
 const SolanaNewFeatureContent = () => {
   const [isVisible, setIsVisible] = useState(false);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -41,6 +45,7 @@ const SolanaNewFeatureContent = () => {
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     setIsVisible(false);
+    sheetRef.current?.onCloseBottomSheet();
   };
 
   const createSolanaAccount = async () => {
@@ -75,18 +80,10 @@ const SolanaNewFeatureContent = () => {
   if (!isVisible) return null;
 
   return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={handleClose}
-      onBackButtonPress={handleClose}
-      onSwipeComplete={handleClose}
-      swipeDirection={'down'}
-      animationIn="slideInUp"
-      animationOut="slideOutDown"
-      propagateSwipe
-      backdropColor={colors.overlay.default}
-      backdropOpacity={1}
-      style={styles.modal}
+    <BottomSheet
+      ref={sheetRef}
+      onClose={handleClose}
+      shouldNavigateBack={false}
     >
       <View style={styles.wrapper}>
         <SolanaLogo name="solana-logo" height={65} />
@@ -122,7 +119,7 @@ const SolanaNewFeatureContent = () => {
           style={styles.cancelButton}
         />
       </View>
-    </Modal>
+    </BottomSheet>
   );
 };
 

@@ -15,6 +15,7 @@ const createStyles = (colors: {
       backgroundColor: colors.background.default,
       borderRadius: 12,
       padding: 24,
+      paddingBottom: 0,
       alignItems: 'center',
     },
     title: {
