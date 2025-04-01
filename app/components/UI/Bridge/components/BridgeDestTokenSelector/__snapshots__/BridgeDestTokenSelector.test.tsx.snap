@@ -765,7 +765,9 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                             "lineHeight": 22,
                                           }
                                         }
-                                      />
+                                      >
+                                        Optimism
+                                      </Text>
                                     </View>
                                   </TouchableOpacity>
                                 </View>
