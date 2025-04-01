@@ -41,13 +41,13 @@ describe('banner component', () => {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
               element: 'RNText',
               props: {
-                color: 'inherit',
+                color: undefined,
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
+            color: undefined,
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',
@@ -85,13 +85,13 @@ describe('banner component', () => {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_2',
               element: 'RNText',
               props: {
-                color: 'inherit',
+                color: undefined,
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
+            color: undefined,
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',
@@ -129,13 +129,13 @@ describe('banner component', () => {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
               element: 'RNText',
               props: {
-                color: 'inherit',
+                color: undefined,
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
+            color: undefined,
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',

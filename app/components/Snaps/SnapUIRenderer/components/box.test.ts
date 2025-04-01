@@ -42,11 +42,11 @@ describe('box UIComponentFactory', () => {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
               element: 'RNText',
               children: 'Test content',
-              props: { color: 'inherit' },
+              props: { color: undefined },
             },
           ],
           props: {
-            color: 'inherit',
+            color: undefined,
             fontWeight: 'normal',
             textAlign: 'left',
             variant: 'sBodyMD',

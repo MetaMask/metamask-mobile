@@ -130,7 +130,7 @@ export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
   params: Pick<
     MapToTemplateParams,
-    'map' | 'useFooter' | 'onCancel' | 'theme' | 'size'
+    'map' | 'useFooter' | 'onCancel' | 'theme' | 'size' | 'textColor'
   >,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
