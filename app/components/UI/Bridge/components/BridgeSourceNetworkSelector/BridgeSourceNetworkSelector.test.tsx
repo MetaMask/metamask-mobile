@@ -25,12 +25,13 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setSelectedSourceChainIds: jest.fn(actual.setSelectedSourceChainIds),
+    setSourceToken: jest.fn(actual.setSourceToken),
   };
 });
 
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
   useSwitchNetworks: jest.fn(() => ({
-    onSetRpcTarget: jest.fn(),
+    onSetRpcTarget: jest.fn().mockResolvedValue(undefined),
     onNetworkChange: jest.fn(),
   })),
 }));
@@ -166,11 +167,14 @@ describe('BridgeSourceNetworkSelector', () => {
     const applyButton = getByText('Apply');
     fireEvent.press(applyButton);
 
-    // Should call setSelectedSourceChainIds with just Optimism chainId
-    expect(setSelectedSourceChainIds).toHaveBeenCalledWith([optimismChainId]);
+    // Wait for async operations to complete
+    await waitFor(() => {
+      // Should call setSelectedSourceChainIds with just Optimism chainId
+      expect(setSelectedSourceChainIds).toHaveBeenCalledWith([optimismChainId]);
 
-    // Should navigate back
-    expect(mockGoBack).toHaveBeenCalled();
+      // Should navigate back
+      expect(mockGoBack).toHaveBeenCalled();
+    });
   });
 
   it('handles close button correctly', () => {
