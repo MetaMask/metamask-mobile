@@ -8,7 +8,11 @@ export interface UIComponentParams<T extends JSXElement> {
   useFooter?: boolean;
   onCancel?: () => void;
   t: (key: string) => string;
+
+  // React Native specific props
   theme: Theme;
+  // If the component must inherit the size of the parent, the parent must pass this size to their children.
+  size?: string;
   // If the component must inherit the color of the parent, the parent must pass this color to their children.
   textColor?: string;
 }
