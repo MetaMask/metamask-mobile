@@ -29,7 +29,6 @@ import TokenDetailsList from './TokenDetailsList';
 import MarketDetailsList from './MarketDetailsList';
 import { TokenI } from '../../Tokens/types';
 import StakingEarnings from '../../Stake/components/StakingEarnings';
-import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { isAssetFromSearch, selectTokenDisplayData } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
@@ -76,14 +75,11 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   let conversionRate;
   if (isAssetFromSearch(asset)) {
     conversionRate = 1;
-  } else if (isPortfolioViewEnabled()) {
-    conversionRate = conversionRateBySymbol;
   } else {
-    conversionRate = conversionRateLegacy;
+    conversionRate = conversionRateBySymbol;
   }
-  const tokenExchangeRates = isPortfolioViewEnabled()
-    ? tokenExchangeRatesByChainId
-    : tokenExchangeRatesLegacy;
+
+  const tokenExchangeRates = tokenExchangeRatesByChainId;
 
   let tokenMetadata;
   let marketData;
