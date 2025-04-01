@@ -9,6 +9,7 @@ import {
 	checkWCPermissions,
   networkModalOnboardingConfig,
   onRequestUserApproval,
+  getHostname,
 } from './wc-utils';
 import type { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../app/constants/navigation/Routes';
@@ -20,6 +21,7 @@ import {
 	switchToNetwork,
 } from '../RPCMethods/lib/ethereum-chain-utils';
 import Engine from '../Engine';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('../Engine', () => ({
@@ -317,6 +319,57 @@ describe('WalletConnect Utils', () => {
 
 			// Verify the error is propagated
 			await expect(approvalHandler(args)).rejects.toThrow('Approval failed');
+		});
+	});
+
+	describe('getHostname', () => {
+		it('returns empty string for null or undefined URI', () => {
+			expect(getHostname('')).toBe('');
+			expect(getHostname(undefined as unknown as string)).toBe('');
+			expect(getHostname(null as unknown as string)).toBe('');
+		});
+
+		it('returns protocol part for protocol-based URIs', () => {
+			expect(getHostname('wc:topic@1')).toBe('wc');
+			expect(getHostname('ethereum:0x123')).toBe('ethereum');
+			expect(getHostname('metamask:pay')).toBe('metamask');
+		});
+
+		it('handles errors gracefully and returns original URI', () => {
+			// Mock a scenario where uri.substring throws an error
+			const expectedError = new Error('Substring failed');
+			const maliciousUri = {
+				includes: () => false,
+				indexOf: () => 1,
+				substring: () => {
+					throw expectedError;
+				},
+				toString: () => 'malicious-uri',
+			};
+
+			expect(getHostname(maliciousUri as unknown as string)).toBe(maliciousUri);
+			
+			// Verify that DevLogger.log was called with the error
+			expect(DevLogger.log).toHaveBeenCalledWith(
+				'Error in getHostname:',
+				expectedError
+			);
+		});
+
+		it('handles standard URLs with hostname extraction', () => {
+			expect(getHostname('https://example.com/path')).toBe('example.com');
+			expect(getHostname('http://subdomain.example.org:8080/path?query=1')).toBe('subdomain.example.org');
+		});
+
+		it('falls back to manual parsing when URL parsing fails', () => {
+			// Create a URL with invalid characters that will fail URL parsing
+			const invalidUrl = 'wc:topic@1';
+			expect(getHostname(invalidUrl)).toBe("wc");
+		});
+
+		it('returns original URI when no protocol separator is found', () => {
+			const noProtocolUri = 'example-with-no-protocol';
+			expect(getHostname(noProtocolUri)).toBe(noProtocolUri);
 		});
 	});
 });
