@@ -7,7 +7,7 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 import { UIComponent } from './types';
 
-type TestButtonElement = {
+interface TestButtonElement {
   type: string;
   props: {
     variant: string;
@@ -18,7 +18,7 @@ type TestButtonElement = {
   };
   key: string;
   children: (string | MockUIComponent)[];
-};
+}
 
 interface MockUIComponent {
   element: string;
