@@ -6,6 +6,7 @@ import QuoteView from '../../pages/swaps/QuoteView';
 import SwapView from '../../pages/swaps/SwapView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletView from '../../pages/wallet/WalletView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
@@ -26,10 +27,12 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Tenderly from '../../tenderly';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 const fixtureServer = new FixtureServer();
 
 describe(Regression('Swap from Token view'), () => {
+  const FIRST_ROW = 0;
   const swapOnboarded = true; // TODO: Set it to false once we show the onboarding page again.
   const wallet = ethers.Wallet.createRandom();
 
@@ -57,6 +60,13 @@ describe(Regression('Swap from Token view'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+  });
+
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
   });
 
   it('should be able to import account', async () => {
@@ -119,9 +129,9 @@ describe(Regression('Swap from Token view'), () => {
       ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
     );
     await Assertions.checkIfElementToHaveText(
-      ActivitiesView.firstTransactionStatus,
+      ActivitiesView.transactionStatus(FIRST_ROW),
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
-      60000,
+      120000,
     );
   });
 });

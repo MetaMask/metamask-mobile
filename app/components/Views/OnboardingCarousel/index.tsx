@@ -35,13 +35,17 @@ import {
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
 
-const IMAGE_3_RATIO = 215 / 315;
-const IMAGE_2_RATIO = 222 / 239;
-const IMAGE_1_RATIO = 285 / 203;
+const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
+const DEVICE_HEIGHT = Dimensions.get('window').height;
+const ANDROID_PADDING = DEVICE_HEIGHT > 800 ? 80 : 150;
+const IOS_PADDING = Device.isIphoneX() ? 80 : Device.isIphone5S() ? 160 : 150;
+const IMG_PADDING = Device.isAndroid() ? ANDROID_PADDING : IOS_PADDING;
 
-const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
-
+const carouselSize = {
+  width: DEVICE_WIDTH - IMG_PADDING,
+  height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_RATIO,
+};
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     scroll: {
@@ -78,21 +82,15 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'flex-end',
     },
     carouselImage: {},
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage1: {
       marginTop: 30,
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
+      ...carouselSize,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage2: {
-      width: DEVICE_WIDTH - IMG_PADDING,
-      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_2_RATIO,
+      ...carouselSize,
     },
-    // eslint-disable-next-line react-native/no-unused-styles
     carouselImage3: {
-      width: DEVICE_WIDTH - 60,
-      height: (DEVICE_WIDTH - 60) * IMAGE_3_RATIO,
+      ...carouselSize,
     },
     carouselImageWrapper: {
       flex: 1,
@@ -111,7 +109,7 @@ const createStyles = (colors: ThemeColors) =>
     solidCircle: {
       opacity: 1,
     },
-    progessContainer: {
+    progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
       marginVertical: 36,
@@ -279,7 +277,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
               })}
             </ScrollableTabView>
 
-            <View style={styles.progessContainer}>
+            <View style={styles.progressContainer}>
               {[1, 2, 3].map((i) => (
                 <View
                   key={i}

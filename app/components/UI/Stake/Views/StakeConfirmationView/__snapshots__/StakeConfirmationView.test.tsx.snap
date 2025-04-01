@@ -5,7 +5,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
   collapsable={false}
   contentContainerStyle={
     {
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "flexGrow": 1,
       "justifyContent": "space-between",
       "paddingHorizontal": 16,
@@ -106,17 +106,17 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -143,12 +143,12 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -191,7 +191,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Bold",
                 "fontSize": 24,
                 "fontWeight": "700",
@@ -200,7 +200,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               }
             }
           >
-            0.00321
+            0.01
              
             ETH
           </Text>
@@ -208,7 +208,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
+                "color": "#686e7d",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -217,7 +217,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               }
             }
           >
-            $7.46
+            $26.21
           </Text>
         </View>
       </View>
@@ -237,7 +237,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 "backgroundColor": "#ffffff",
                 "borderBottomLeftRadius": 0,
                 "borderBottomRightRadius": 0,
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 8,
                 "borderWidth": 0,
                 "gap": 16,
@@ -289,7 +289,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -336,11 +336,11 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "alignSelf": "flex-start",
-                          "backgroundColor": "#0376C91A",
-                          "borderColor": "#0376c9",
+                          "backgroundColor": "#4459ff1a",
+                          "borderColor": "#4459ff",
                           "borderRadius": 999,
                           "borderWidth": 0,
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                           "padding": 16,
                           "paddingHorizontal": 8,
                           "paddingVertical": 2,
@@ -509,7 +509,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#0376c9",
+                              "color": "#4459ff",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -571,7 +571,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -618,11 +618,11 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       style={
                         {
                           "alignSelf": "flex-start",
-                          "backgroundColor": "#f2f4f6",
-                          "borderColor": "#848c96",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#b7bbc8",
                           "borderRadius": 999,
                           "borderWidth": 0,
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                           "padding": 16,
                           "paddingHorizontal": 8,
                           "paddingVertical": 2,
@@ -791,7 +791,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -817,7 +817,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                 "borderBottomLeftRadius": 8,
                 "borderBottomRightRadius": 8,
                 "borderBottomWidth": 0,
-                "borderColor": "#BBC0C566",
+                "borderColor": "#b7bbc866",
                 "borderLeftWidth": 0,
                 "borderRadius": 4,
                 "borderRightWidth": 0,
@@ -872,7 +872,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -951,7 +951,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -974,7 +974,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
@@ -1026,7 +1026,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
@@ -1059,7 +1059,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#9fa6ae"
+                      color="#9ca1af"
                       height={16}
                       name="Question"
                       style={
@@ -1103,7 +1103,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#1c8234",
+                        "color": "#1c7e33",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1113,7 +1113,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                     testID="label"
                   >
-                    2.5%
+                    2.6%
                   </Text>
                 </View>
               </View>
@@ -1163,7 +1163,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
@@ -1215,7 +1215,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -1224,13 +1224,13 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      $5000
+                      $0.68
                     </Text>
                     <Text
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -1239,7 +1239,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                         }
                       }
                     >
-                      2.5 ETH
+                      0.00026 ETH
                     </Text>
                   </View>
                 </View>
@@ -1290,7 +1290,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
@@ -1323,7 +1323,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#9fa6ae"
+                      color="#9ca1af"
                       height={16}
                       name="Question"
                       style={
@@ -1367,7 +1367,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1389,7 +1389,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 0,
               "gap": 16,
@@ -1441,7 +1441,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
@@ -1474,7 +1474,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     }
                   >
                     <SvgMock
-                      color="#9fa6ae"
+                      color="#9ca1af"
                       height={16}
                       name="Question"
                       style={
@@ -1518,7 +1518,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -1565,7 +1565,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
@@ -1590,7 +1590,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
@@ -1626,7 +1626,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
               "alignItems": "center",
               "alignSelf": "stretch",
               "backgroundColor": "transparent",
-              "borderColor": "#0376c9",
+              "borderColor": "#4459ff",
               "borderRadius": 24,
               "borderWidth": 1,
               "flexBasis": 0,
@@ -1643,7 +1643,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
                 "fontFamily": "EuclidCircularB-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
@@ -1668,7 +1668,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 24,
               "flexBasis": 0,
               "flexDirection": "row",

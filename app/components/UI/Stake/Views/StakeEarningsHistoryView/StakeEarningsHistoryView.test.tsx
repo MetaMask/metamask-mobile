@@ -1,7 +1,7 @@
 import React from 'react';
 import StakeEarningsHistoryView from './StakeEarningsHistoryView';
 import useStakingEarningsHistory from '../../hooks/useStakingEarningsHistory';
-import { MOCK_STAKED_ETH_ASSET } from '../../__mocks__/mockData';
+import { MOCK_STAKED_ETH_MAINNET_ASSET } from '../../__mocks__/mockData';
 import { fireLayoutEvent } from '../../../../../util/testUtils/react-native-svg-charts';
 import { getStakingNavbar } from '../../../Navbar';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
     useRoute: () => ({
       key: '1',
       name: 'params',
-      params: { asset: MOCK_STAKED_ETH_ASSET },
+      params: { asset: MOCK_STAKED_ETH_MAINNET_ASSET },
     }),
   };
 });

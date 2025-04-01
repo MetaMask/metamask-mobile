@@ -4,13 +4,13 @@ import {
   weiToFiatNumber,
 } from '../../../../util/number';
 import usePooledStakes from './usePooledStakes';
-import useVaultData from './useVaultData';
 import useBalance from './useBalance';
 import BigNumber from 'bignumber.js';
+import useVaultMetadata from './useVaultMetadata';
 
 const useStakingEarnings = () => {
-  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultData } =
-    useVaultData();
+  const { annualRewardRate, annualRewardRateDecimal, isLoadingVaultMetadata } =
+    useVaultMetadata();
 
   const { currentCurrency, conversionRate } = useBalance();
 
@@ -42,7 +42,8 @@ const useStakingEarnings = () => {
     2,
   );
 
-  const isLoadingEarningsData = isLoadingVaultData || isLoadingPooledStakesData;
+  const isLoadingEarningsData =
+    isLoadingVaultMetadata || isLoadingPooledStakesData;
 
   return {
     annualRewardRate,

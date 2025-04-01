@@ -9,7 +9,7 @@ import NotificationsService from '../util/notifications/services/NotificationSer
 import { NotificationTransactionTypes, ChannelId } from '../util/notifications';
 import { safeToChecksumAddress, formatAddress } from '../util/address';
 import ReviewManager from './ReviewManager';
-import { selectTicker } from '../selectors/networkController';
+import { selectEvmTicker } from '../selectors/networkController';
 import { store } from '../store';
 import { getTicker } from '../../app/util/transactions';
 import { updateTransaction } from '../../app/util/transaction-controller';
@@ -440,7 +440,7 @@ class NotificationManager {
         selectedInternalAccount.address,
       );
 
-      const ticker = selectTicker(store.getState());
+      const ticker = selectEvmTicker(store.getState());
 
       // If a TX has been confirmed more than 10 min ago, it's considered old
       const oldestTimeAllowed = Date.now() - 1000 * 60 * 10;

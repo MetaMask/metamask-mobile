@@ -20,6 +20,10 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: './node_modules/@metamask/bridge-controller',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
       test: [
         './node_modules/**/@metamask/rpc-errors/**',
         './node_modules/@metamask/rpc-errors/**',
@@ -34,6 +38,14 @@ module.exports = {
     // Do not apply this plugin globally since it breaks FlatList props.getItem
     {
       test: './app/core/redux/ReduxService.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/core/Engine/Engine.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/core/NavigationService/NavigationService.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

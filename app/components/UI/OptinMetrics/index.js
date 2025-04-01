@@ -8,7 +8,6 @@ import {
   BackHandler,
   Alert,
   Linking,
-  InteractionManager,
   TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
@@ -98,6 +97,7 @@ const createStyles = ({ colors }) =>
       paddingVertical: 10,
     },
     wrapper: {
+      marginTop: 10,
       marginHorizontal: 20,
     },
     privacyPolicy: {

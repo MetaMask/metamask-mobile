@@ -4,7 +4,7 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountAddress } from './accountsController';
-import { selectChainId } from './networkController';
+import { selectEvmChainId } from './networkController';
 
 const selectTokenBalancesControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenBalancesController;
@@ -18,7 +18,7 @@ export const selectTokensBalances = createSelector(
 export const selectContractBalances = createSelector(
   selectTokenBalancesControllerState,
   selectSelectedInternalAccountAddress,
-  selectChainId,
+  selectEvmChainId,
   (
     tokenBalancesControllerState: TokenBalancesControllerState,
     selectedInternalAccountAddress: string | undefined,

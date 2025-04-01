@@ -7,6 +7,7 @@ import { UseAccountsParams } from '../../../components/hooks/useAccounts';
 export enum AccountSelectorScreens {
   AccountSelector = 'AccountSelector',
   AddAccountActions = 'AddAccountActions',
+  AddHdAccountSelector = 'AddHdAccountSelector',
 }
 
 export interface AccountSelectorParams {
@@ -39,6 +40,10 @@ export interface AccountSelectorParams {
    * Optional boolean to indicate if privacy mode is disabled.
    */
   disablePrivacyMode?: boolean;
+  /**
+   * Optional navigation screen to indicate if should navigate to add account actions sheet.
+   */
+  navigateToAddAccountActions?: AccountSelectorScreens.AddAccountActions;
 }
 
 /**

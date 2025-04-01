@@ -1,6 +1,9 @@
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { BtcScope, SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 /* eslint-disable @typescript-eslint/no-require-imports, import/no-commonjs */
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
@@ -99,6 +102,16 @@ export const PopularList = [
     },
   },
 ];
+
+export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
+  if (chainId === SolScope.Mainnet) {
+    return require('../../images/solana-logo.png');
+  }
+  if (chainId === BtcScope.Mainnet) {
+    return require('../../images/bitcoin-logo.png');
+  }
+  return undefined;
+};
 
 export const INFURA_TESTNET_CHAIN_IDS = {
   GOERLI: '0x5',

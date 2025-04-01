@@ -15,13 +15,7 @@ import {
   FORMATTED_PERCENTAGE_TEST_ID,
 } from './AggregatedPercentage.constants';
 import { DECIMALS_TO_SHOW } from '../../../../components/UI/Tokens/constants';
-
-export interface AggregatedPercentageProps {
-  ethFiat: number;
-  tokenFiat: number;
-  tokenFiat1dAgo: number;
-  ethFiat1dAgo: number;
-}
+import { AggregatedPercentageProps } from './AggregatedPercentage.types';
 
 const isValidAmount = (amount: number | null | undefined): boolean =>
   amount !== null && amount !== undefined && !Number.isNaN(amount);
@@ -32,13 +26,7 @@ const AggregatedPercentage = ({
   tokenFiat1dAgo,
   ethFiat1dAgo,
   privacyMode = false,
-}: {
-  ethFiat: number;
-  tokenFiat: number;
-  tokenFiat1dAgo: number;
-  ethFiat1dAgo: number;
-  privacyMode?: boolean;
-}) => {
+}: AggregatedPercentageProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const currentCurrency = useSelector(selectCurrentCurrency);

@@ -3,10 +3,13 @@
 exports[`HeaderBase should render snapshot correctly 1`] = `
 <View
   style={
-    {
-      "backgroundColor": "#ffffff",
-      "flexDirection": "row",
-    }
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+      },
+      false,
+    ]
   }
   testID="header"
 >
@@ -34,7 +37,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "700",

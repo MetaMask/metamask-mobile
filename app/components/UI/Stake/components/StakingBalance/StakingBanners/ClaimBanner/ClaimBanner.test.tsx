@@ -1,16 +1,17 @@
-import React from 'react';
-import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
-import ClaimBanner from './ClaimBanner';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { useFocusEffect } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
+import React from 'react';
+import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
-import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
 import { mockNetworkState } from '../../../../../../../util/test/network';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import Engine from '../../../../../../../core/Engine';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/mockData';
 import useStakingChain from '../../../../hooks/useStakingChain';
+import ClaimBanner from './ClaimBanner';
 
-const MOCK_CLAIM_AMOUNT = '0.016';
+const MOCK_CLAIM_AMOUNT = '16000000000000000';
 const MOCK_ADDRESS_1 = '0x0123456789abcdef0123456789abcdef01234567';
 
 const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
@@ -29,6 +30,9 @@ const mockInitialState = {
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+    MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
   },
@@ -55,12 +59,27 @@ jest.mock('../../../../hooks/usePoolStakedClaim', () => ({
   }),
 }));
 
+const mockNavigate = jest.fn();
+const noop = () => undefined;
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    goBack: jest.fn(),
+    addListener: jest.fn().mockReturnValue(noop),
+  }),
+  useFocusEffect: jest.fn(),
+}));
+
 describe('ClaimBanner', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
     (useStakingChain as jest.Mock).mockReturnValue({
       isStakingSupportedChain: true,
     });
+    (useFocusEffect as jest.Mock).mockImplementation(jest.fn());
   });
 
   it('render matches snapshot', () => {
@@ -104,7 +123,7 @@ describe('ClaimBanner', () => {
     fireEvent.press(claimButton);
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
   });
 
@@ -120,7 +139,7 @@ describe('ClaimBanner', () => {
 
     expect(claimButton.props.disabled).toBe(true);
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).not.toHaveBeenCalled();
     expect(mockAttemptPoolStakedClaimTransaction).toHaveBeenCalledTimes(1);
   });

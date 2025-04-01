@@ -22,7 +22,12 @@ describe('logEngineCreation', () => {
   it('logs empty state initialization with keyring backup', () => {
     logEngineCreation(
       {},
-      { vault: 'test-vault', keyrings: [], isUnlocked: false },
+      {
+        vault: 'test-vault',
+        keyrings: [],
+        isUnlocked: false,
+        keyringsMetadata: [],
+      },
     );
 
     expect(Logger.log).toHaveBeenCalledWith(
@@ -61,6 +66,7 @@ describe('logEngineCreation', () => {
         vault: 'test-vault',
         keyrings: [],
         isUnlocked: false,
+        keyringsMetadata: [],
       },
     };
 
@@ -88,6 +94,7 @@ describe('logEngineCreation', () => {
         vault: 'test-vault',
         keyrings: [],
         isUnlocked: false,
+        keyringsMetadata: [],
       },
     };
 
@@ -95,6 +102,7 @@ describe('logEngineCreation', () => {
       vault: 'backup-vault',
       keyrings: [],
       isUnlocked: false,
+      keyringsMetadata: [],
     };
 
     logEngineCreation(initialState, keyringBackup);

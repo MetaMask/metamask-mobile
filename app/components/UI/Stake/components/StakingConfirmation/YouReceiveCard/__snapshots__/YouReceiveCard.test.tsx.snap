@@ -6,7 +6,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -26,7 +26,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -51,7 +51,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 14,
           "fontWeight": "500",
@@ -85,11 +85,11 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "backgroundColor": "#1C82341A",
-              "borderColor": "#1c8234",
+              "backgroundColor": "#1c7e331a",
+              "borderColor": "#1c7e33",
               "borderRadius": 999,
               "borderWidth": 0,
-              "color": "#1c8234",
+              "color": "#1c7e33",
               "padding": 16,
               "paddingHorizontal": 8,
               "paddingVertical": 2,
@@ -109,7 +109,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#1c8234",
+                  "color": "#1c7e33",
                   "fontFamily": "EuclidCircularB-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
@@ -129,11 +129,11 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "backgroundColor": "#f2f4f6",
-              "borderColor": "#848c96",
+              "backgroundColor": "#f3f5f9",
+              "borderColor": "#b7bbc8",
               "borderRadius": 999,
               "borderWidth": 0,
-              "color": "#6a737d",
+              "color": "#686e7d",
               "padding": 16,
               "paddingHorizontal": 8,
               "paddingVertical": 2,
@@ -188,7 +188,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "fontFamily": "EuclidCircularB-Regular",
                   "fontSize": 14,
                   "fontWeight": "400",
@@ -206,7 +206,7 @@ exports[`YouReceiveCard render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",

@@ -48,7 +48,6 @@ import { toLowerCaseEquals } from '../../../util/general';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { createRestoreWalletNavDetailsNested } from '../RestoreWallet/RestoreWallet';
 import { parseVaultValue } from '../../../util/validators';
@@ -74,6 +73,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import Fox from '../../../images/fantom.png';
 
 const deviceHeight = Device.getDeviceHeight();
 const breakPoint = deviceHeight < 700;
@@ -202,7 +202,7 @@ const WRONG_PASSWORD_ERROR_ANDROID =
 const VAULT_ERROR = 'Cannot unlock without a previous vault.';
 const DENY_PIN_ERROR_ANDROID = 'Error: Error: Cancel';
 const JSON_PARSE_ERROR_UNEXPECTED_TOKEN = 'Error: JSON Parse error';
-
+const PASSWORD_REQUIREMENTS_NOT_MET = 'Password requirements not met';
 /**
  * View where returning users can authenticate
  */
@@ -382,17 +382,21 @@ class Login extends PureComponent {
     endTrace({ name: TraceName.LoginUserInteraction });
     const { password } = this.state;
     const { current: field } = this.fieldRef;
-    const locked = !passwordRequirementsMet(password);
-    if (locked) this.setState({ error: strings('login.invalid_password') });
-    if (this.state.loading || locked) return;
-
-    this.setState({ loading: true, error: null });
-    const authType = await Authentication.componentAuthenticationType(
-      this.state.biometryChoice,
-      this.state.rememberMe,
-    );
 
     try {
+      const locked = !passwordRequirementsMet(password);
+      if (locked) {
+        // This will be caught by the catch block below
+        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
+      }
+      if (this.state.loading || locked) return;
+
+      this.setState({ loading: true, error: null });
+      const authType = await Authentication.componentAuthenticationType(
+        this.state.biometryChoice,
+        this.state.rememberMe,
+      );
+
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -422,9 +426,11 @@ class Login extends PureComponent {
       field?.clear();
     } catch (e) {
       const error = e.toString();
+
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
+        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID) ||
+        error.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         this.setState({
           loading: false,
@@ -570,15 +576,11 @@ class Login extends PureComponent {
                 onLongPress={this.handleDownloadStateLogs}
                 activeOpacity={1}
               >
-                {Device.isAndroid() ? (
-                  <Image
-                    source={require('../../../images/fox.png')}
-                    style={styles.image}
-                    resizeMethod={'auto'}
-                  />
-                ) : (
-                  <AnimatedFox bgColor={colors.background.default} />
-                )}
+                <Image
+                  source={require('../../../images/branding/fox.png')}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
               </TouchableOpacity>
 
               <Text style={styles.title} testID={LoginViewSelectors.TITLE_ID}>

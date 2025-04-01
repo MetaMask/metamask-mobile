@@ -27,7 +27,9 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import ApplePayButton from '../../containers/ApplePayButton';
 import RemoteImage from '../../../../Base/RemoteImage';
-import TagColored from '../../../../../component-library/components-temp/TagColored';
+import TagColored, {
+  TagColor,
+} from '../../../../../component-library/components-temp/TagColored';
 import styleSheet from './Quote.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import { isBuyQuote } from '../../utils';
@@ -78,6 +80,7 @@ const Quote: React.FC<Props> = ({
     fiat,
     provider,
     crypto,
+    tags,
   } = quote;
   const amountOutInFiat = isBuyQuote(quote, rampType)
     ? quote.amountOutInFiat
@@ -87,6 +90,9 @@ const Quote: React.FC<Props> = ({
 
   const fiatCode = fiat?.symbol ?? '';
   const fiatSymbol = fiat?.denomSymbol ?? '';
+
+  const shouldShowTags =
+    previouslyUsedProvider || tags?.isBestRate || tags?.isMostReliable;
 
   const expandedHeight = useSharedValue(0);
   const handleOnLayout = (event: LayoutChangeEvent) => {
@@ -126,12 +132,27 @@ const Quote: React.FC<Props> = ({
           topAccessoryGap={8}
           topAccessory={
             <>
-              {previouslyUsedProvider ? (
-                <TagColored>
-                  {strings('fiat_on_ramp_aggregator.previously_used')}
-                </TagColored>
-              ) : null}
+              {shouldShowTags && (
+                <View style={styles.tags}>
+                  {previouslyUsedProvider ? (
+                    <TagColored>
+                      {strings('fiat_on_ramp_aggregator.previously_used')}
+                    </TagColored>
+                  ) : null}
 
+                  {tags?.isMostReliable ? (
+                    <TagColored color={TagColor.Info}>
+                      {strings('fiat_on_ramp_aggregator.most_reliable')}
+                    </TagColored>
+                  ) : null}
+
+                  {tags?.isBestRate ? (
+                    <TagColored color={TagColor.Success}>
+                      {strings('fiat_on_ramp_aggregator.best_rate')}
+                    </TagColored>
+                  ) : null}
+                </View>
+              )}
               <TouchableOpacity
                 onPress={highlighted ? showInfo : undefined}
                 disabled={!highlighted}
@@ -182,6 +203,7 @@ const Quote: React.FC<Props> = ({
                   >
                     {isLoading ? (
                       <ActivityIndicator
+                        testID="buy-button-loading"
                         size={'small'}
                         color={colors.primary.inverse}
                       />
@@ -210,7 +232,11 @@ const Quote: React.FC<Props> = ({
                   {crypto?.symbol}
                 </>
               ) : (
-                `≈ ${renderFiat(amountOut, fiatCode, fiat?.decimals)}`
+                `≈ ${fiatSymbol} ${renderFiat(
+                  amountOut,
+                  fiatCode,
+                  fiat?.decimals,
+                )}`
               )}
             </Text>
           </ListItemColumn>

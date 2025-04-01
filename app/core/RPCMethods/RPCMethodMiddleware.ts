@@ -32,7 +32,10 @@ import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { selectProviderConfig } from '../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -45,6 +48,7 @@ import {
   MessageParamsTyped,
   SignatureController,
 } from '@metamask/signature-controller';
+import { PermissionKeys } from '../Permissions/specifications.js';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -75,6 +79,7 @@ export enum ApprovalTypes {
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   INSTALL_SNAP = 'wallet_installSnap',
   UPDATE_SNAP = 'wallet_updateSnap',
+  SNAP_DIALOG = 'snap_dialog',
   ///: END:ONLY_INCLUDE_IF
 }
 
@@ -172,6 +177,7 @@ export const checkActiveAccountAndChainId = async ({
   );
   if (chainId) {
     const providerConfig = selectProviderConfig(store.getState());
+    const providerConfigChainId = selectEvmChainId(store.getState());
     const networkType = providerConfig.type as NetworkType;
     const isInitialNetwork =
       networkType && getAllNetworks().includes(networkType);
@@ -180,7 +186,7 @@ export const checkActiveAccountAndChainId = async ({
     if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
-      activeChainId = providerConfig.chainId;
+      activeChainId = providerConfigChainId;
     }
 
     if (activeChainId && !activeChainId.startsWith('0x')) {
@@ -392,12 +398,61 @@ export const getRpcMethodMiddleware = ({
       return responseData;
     };
 
-    const [requestPermissionsHandler, getPermissionsHandler] =
-      permissionRpcMethods.handlers;
+    const [
+      requestPermissionsHandler,
+      getPermissionsHandler,
+      revokePermissionsHandler,
+    ] = permissionRpcMethods.handlers;
 
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rpcMethods: any = {
+      wallet_revokePermissions: async () =>
+        await revokePermissionsHandler.implementation(
+          req,
+          res,
+          next,
+          (err) => {
+            if (err) {
+              throw err;
+            }
+          },
+          {
+            revokePermissionsForOrigin: (permissionKeys) => {
+              try {
+                /**
+                 * For now, we check if either eth_accounts or endowment:permitted-chains are sent. If either of those is sent, we revoke both.
+                 * This manual filtering will be handled / refactored once we implement [CAIP-25 permissions](https://github.com/MetaMask/MetaMask-planning/issues/4129)
+                 */
+                const caip25EquivalentPermissions: string[] = [
+                  PermissionKeys.eth_accounts,
+                  PermissionKeys.permittedChains,
+                ];
+
+                const keysToRevoke = permissionKeys.some((key) =>
+                  caip25EquivalentPermissions.includes(key),
+                )
+                  ? Array.from(
+                      new Set([
+                        ...caip25EquivalentPermissions,
+                        ...permissionKeys,
+                      ]),
+                    )
+                  : permissionKeys;
+
+                Engine.context.PermissionController.revokePermissions({
+                  [origin]: keysToRevoke,
+                });
+              } catch (e) {
+                // we dont want to handle errors here because
+                // the revokePermissions api method should just
+                // return `null` if the permissions were not
+                // successfully revoked or if the permissions
+                // for the origin do not exist
+              }
+            },
+          },
+        ),
       wallet_getPermissions: async () =>
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

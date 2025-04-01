@@ -4,9 +4,7 @@ import { Image, StyleSheet, View, Text, Platform } from 'react-native';
 import StyledButton from '../StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { fontStyles } from '../../../styles/common';
-import AnimatedFox from '../../Base/AnimatedFox';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import {
   ERROR_PAGE_MESSAGE,
@@ -95,15 +93,11 @@ export default class WebviewError extends PureComponent {
     return error ? (
       <View style={styles.wrapper}>
         <View style={styles.foxWrapper}>
-          {Device.isAndroid() ? (
-            <Image
-              source={require('../../../images/fox.png')}
-              style={styles.image}
-              resizeMethod={'auto'}
-            />
-          ) : (
-            <AnimatedFox bgColor={colors.background.default} />
-          )}
+          <Image
+            source={require('../../../images/branding/fox.png')}
+            style={styles.image}
+            resizeMethod={'auto'}
+          />
         </View>
         <View style={styles.textWrapper}>
           <Text

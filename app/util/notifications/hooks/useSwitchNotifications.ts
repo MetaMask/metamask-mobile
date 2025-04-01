@@ -1,107 +1,197 @@
-import { useState, useCallback, useMemo } from 'react';
-import { getErrorMessage } from '../../../util/errorHandling';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import {
-  deleteOnChainTriggersByAccount,
-  setFeatureAnnouncementsEnabled,
-  updateOnChainTriggersByAccount,
+  assertIsFeatureEnabled,
+  createNotificationsForAccount,
+  deleteNotificationsForAccount,
+  fetchAccountNotificationSettings,
+  toggleFeatureAnnouncements,
 } from '../../../actions/notification/helpers';
-import Engine from '../../../core/Engine';
-import { useDispatch } from 'react-redux';
 
-import { updateAccountState } from '../../../core/redux/slices/notifications';
-import { Account } from '../../../components/hooks/useAccounts/useAccounts.types';
-import Logger from '../../../util/Logger';
+import { debounce } from 'lodash';
+import {
+  selectIsFeatureAnnouncementsEnabled,
+  selectIsMetamaskNotificationsEnabled,
+  selectIsMetaMaskPushNotificationsLoading,
+  selectIsUpdatingMetamaskNotifications,
+  selectIsUpdatingMetamaskNotificationsAccount,
+} from '../../../selectors/notifications';
+import {
+  useListNotifications,
+  useEnableNotifications,
+  useDisableNotifications,
+  useContiguousLoading,
+} from './useNotifications';
 import { isNotificationsFeatureEnabled } from '../constants';
+import { strings } from '../../../../locales/i18n';
 
-export function useSwitchNotifications() {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const resetStates = useCallback(() => {
-    setLoading(false);
-    setError(null);
-  }, []);
+export function useNotificationsToggle() {
+  const {
+    enableNotifications,
+    data,
+    loading,
+    error: enableError,
+  } = useEnableNotifications({ nudgeEnablePush: false });
+  const { disableNotifications, error: disableError } =
+    useDisableNotifications();
 
-  const switchFeatureAnnouncements = useCallback(
-    async (state: boolean) => {
-      if (!isNotificationsFeatureEnabled()) {
-        return;
-      }
-
-      resetStates();
-      setLoading(true);
-
-      try {
-        const errorMessage = await setFeatureAnnouncementsEnabled(state);
-        if (errorMessage) {
-          setError(getErrorMessage(errorMessage));
-        }
-      } catch (e) {
-        const errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
+  const switchNotifications = useCallback(
+    async (val: boolean) => {
+      assertIsFeatureEnabled();
+      val ? await enableNotifications() : await disableNotifications();
     },
-    [resetStates],
-  );
-
-  const switchAccountNotifications = useCallback(
-    async (accounts: string[], state: boolean) => {
-      resetStates();
-      setLoading(true);
-
-      try {
-        let errorMessage: string | undefined;
-        if (state) {
-          errorMessage = await updateOnChainTriggersByAccount(accounts);
-        } else {
-          errorMessage = await deleteOnChainTriggersByAccount(accounts);
-        }
-
-        if (errorMessage) {
-          setError(getErrorMessage(errorMessage));
-        }
-      } catch (e) {
-        const errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [resetStates],
+    [disableNotifications, enableNotifications],
   );
 
   return {
-    switchFeatureAnnouncements,
-    switchAccountNotifications,
+    switchNotifications,
+    data,
     loading,
-    error,
+    error: enableError || disableError,
   };
 }
 
-/**
- * Account Settings Hook.
- * Gets initial loading states, and returns enable/disable account states.
- * Also exposes an update() method so each switch can be manually updated.
- *
- * @param accounts the accounts we are checking to see if notifications are enabled/disabled
- * @returns props for settings page
- */
+export function useFeatureAnnouncementToggle() {
+  const { listNotifications } = useListNotifications();
+  const isEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+  const data = useSelector(selectIsFeatureAnnouncementsEnabled);
+  const switchFeatureAnnouncements = useCallback(
+    async (val: boolean) => {
+      assertIsFeatureEnabled();
+      if (!isEnabled) {
+        return;
+      }
 
-export function useAccountSettingsProps(accounts: Account[]) {
-  const dispatch = useDispatch();
+      await toggleFeatureAnnouncements(val);
+
+      // Refetch notifications
+      debounce(listNotifications)();
+    },
+    [isEnabled, listNotifications],
+  );
+
+  return {
+    data,
+    switchFeatureAnnouncements,
+  };
+}
+
+export function useFetchAccountNotifications(accounts: string[]) {
+  const accountsBeingUpdated = useSelector(
+    selectIsUpdatingMetamaskNotificationsAccount,
+  );
+  const isEnabled = useSelector(selectIsMetamaskNotificationsEnabled);
+  const [data, setData] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Memoize the accounts array to avoid unnecessary re-fetching
-  const memoAccounts = useMemo(() => accounts.map((account) => account.address),[accounts]);
-  const updateAndfetchAccountSettings = useCallback(async () => {
-    try {
-      const result = await Engine.context.NotificationServicesController.checkAccountsPresence(memoAccounts);
-      dispatch(updateAccountState(result));
-      return result;
-    } catch (err) {
-      Logger.log('Failed to get account settings:', err);
-    }
-  }, [dispatch, memoAccounts]);
+  const jsonAccounts = useMemo(() => JSON.stringify(accounts), [accounts]);
 
-  return { updateAndfetchAccountSettings };
+  const update = useCallback(
+    async (addresses: string[]) => {
+      assertIsFeatureEnabled();
+      if (!isEnabled) {
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetchAccountNotificationSettings(addresses);
+        setData(res);
+      } catch {
+        setError('Failed to get account settings');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isEnabled],
+  );
+
+  // Effect - async get if accounts are enabled/disabled
+  useEffect(() => {
+    if (!isEnabled || !isNotificationsFeatureEnabled()) {
+      return;
+    }
+    const memoAccounts: string[] = JSON.parse(jsonAccounts);
+    if (memoAccounts.length > 0) {
+      update(memoAccounts);
+    }
+  }, [jsonAccounts, isEnabled, update]);
+
+  return {
+    data,
+    initialLoading: loading,
+    error,
+    accountsBeingUpdated,
+    update,
+  };
+}
+
+export function useAccountNotificationsToggle() {
+  const { listNotifications } = useListNotifications();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onToggle = useCallback(
+    async (addresses: string[], state: boolean) => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        if (state) {
+          await createNotificationsForAccount(addresses);
+        } else {
+          await deleteNotificationsForAccount(addresses);
+        }
+      } catch (e) {
+        const errorMessage =
+          e instanceof Error ? e.message : JSON.stringify(e ?? '');
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+        // Refetch notifications
+        debounce(listNotifications)();
+      }
+    },
+    [listNotifications],
+  );
+
+  return {
+    onToggle,
+    error,
+    loading,
+  };
+}
+
+export function useSwitchNotificationLoadingText(): string | undefined {
+  // Notification Settings
+  const notificationsLoading = useSelector(
+    selectIsUpdatingMetamaskNotifications,
+  );
+
+  // Push Notification Settings
+  const pushNotificationsLoading = useSelector(
+    selectIsMetaMaskPushNotificationsLoading,
+  );
+
+  const accountsLoading = useSelector(
+    selectIsUpdatingMetamaskNotificationsAccount,
+  );
+
+  const loading = useContiguousLoading(
+    notificationsLoading,
+    pushNotificationsLoading,
+  );
+
+  if (accountsLoading.length > 0) {
+    return strings('app_settings.updating_account_settings');
+  }
+
+  if (notificationsLoading || pushNotificationsLoading || loading) {
+    return strings('app_settings.updating_notifications');
+  }
+
+  return undefined;
 }

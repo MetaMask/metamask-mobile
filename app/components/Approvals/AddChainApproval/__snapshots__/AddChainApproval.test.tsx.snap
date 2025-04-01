@@ -12,7 +12,9 @@ exports[`AddChainApproval renders 1`] = `
       }
     }
   >
-    <NetworkVerificationInfo />
+    <NetworkVerificationInfo
+      customNetworkInformation={{}}
+    />
   </View>
 </ForwardRef>
 `;

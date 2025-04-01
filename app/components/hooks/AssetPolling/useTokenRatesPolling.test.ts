@@ -2,6 +2,7 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -22,6 +23,12 @@ describe('useTokenRatesPolling', () => {
       backgroundState: {
         TokenRatesController: {
           marketData: {},
+        },
+        MultichainNetworkController: {
+          isEvmSelected: true,
+          selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+          multichainNetworkConfigurationsByChainId: {},
         },
         NetworkController: {
           networkConfigurationsByChainId: {
@@ -68,6 +75,12 @@ describe('useTokenRatesPolling', () => {
     const stateToTest = {
       engine: {
         backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {},
+          },
           NetworkController: {
             selectedNetworkClientId: 'selectedNetworkClientId',
             networkConfigurationsByChainId: {

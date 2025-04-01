@@ -36,16 +36,16 @@ export const getEntryTimePeriodGroupInfo = (
     listGroupLabel: '',
     listGroupHeader: '',
   };
-  const dayLabel = date.toLocaleString('fullwide', {
+  const dayLabel = date.toLocaleString(undefined, {
     month: 'long',
     day: 'numeric',
     timeZone: 'UTC',
   });
-  const monthLabel = date.toLocaleString('fullwide', {
+  const monthLabel = date.toLocaleString(undefined, {
     month: 'long',
     timeZone: 'UTC',
   });
-  const yearLabel = date.toLocaleString('fullwide', {
+  const yearLabel = date.toLocaleString(undefined, {
     year: 'numeric',
     timeZone: 'UTC',
   });

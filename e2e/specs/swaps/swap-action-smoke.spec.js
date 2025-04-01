@@ -7,6 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet.js';
 import WalletView from '../../pages/wallet/WalletView.js';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
 import {
@@ -26,12 +27,15 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import Assertions from '../../utils/Assertions.js';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet.js';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView.js';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
 describe(SmokeSwaps('Swap from Actions'), () => {
-  let educationModalTapped = false;
+  const FIRST_ROW = 0;
+  const SECOND_ROW = 1;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet = ethers.Wallet.createRandom();
 
@@ -60,6 +64,13 @@ describe(SmokeSwaps('Swap from Actions'), () => {
 
   beforeEach(async () => {
     jest.setTimeout(120000);
+  });
+
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
   });
 
   it('should be able to import account', async () => {
@@ -106,8 +117,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-
-        await QuoteView.selectToken(sourceTokenSymbol);
+        await TestHelpers.delay(2000);
+        await QuoteView.selectToken(sourceTokenSymbol, 2);
       }
       await QuoteView.enterSwapAmount(quantity);
 
@@ -117,7 +128,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
         await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol);
+        await QuoteView.selectToken(destTokenSymbol, 2);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
       //Make sure slippage is zero for wrapped tokens
@@ -157,32 +168,14 @@ describe(SmokeSwaps('Swap from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      // TODO: Commenting this out until Tenderly issue is resolved
-      //await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+      await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
 
       // Check the token approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        // TODO: Commenting this out until Tenderly issue is resolved
-        //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
-      }
-
-      // TODO: The following hack is needed to update the token balance until bug 13187 is fixed
-      await TabBarComponent.tapWallet();
-      await WalletView.tapNetworksButtonOnNavBar();
-      await NetworkListModal.changeNetworkTo('Localhost', false);
-      if (!educationModalTapped) {
-        await NetworkEducationModal.tapGotItButton();
-      }
-      await NetworkListModal.changeNetworkTo(
-        network.providerConfig.nickname,
-        false,
-      );
-      if (!educationModalTapped) {
-        await NetworkEducationModal.tapGotItButton();
-        educationModalTapped = true;
+        await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(SECOND_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
       }
     },
   );

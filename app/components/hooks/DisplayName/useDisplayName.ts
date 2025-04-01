@@ -16,6 +16,7 @@ export interface UseDisplayNameResponse {
   image?: string;
   name?: string;
   variant: DisplayNameVariant;
+  isFirstPartyContractName?: boolean;
 }
 
 /**
@@ -83,12 +84,15 @@ export function useDisplayNames(
       nftNames[index] || {};
 
     const name =
-      watchedNftName ||
       firstPartyContractName ||
+      watchedNftName ||
       erc20Token?.name ||
       nftCollectionName;
 
     const image = erc20Token?.image || nftCollectionImage;
+
+    const isFirstPartyContractName = firstPartyContractName !== undefined &&
+      firstPartyContractName !== null;
 
     return {
       contractDisplayName: erc20Token?.name,
@@ -97,6 +101,7 @@ export function useDisplayNames(
       variant: name
         ? DisplayNameVariant.Recognized
         : DisplayNameVariant.Unknown,
+      isFirstPartyContractName
     };
   });
 }

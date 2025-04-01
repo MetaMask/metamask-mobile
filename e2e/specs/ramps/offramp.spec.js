@@ -18,7 +18,7 @@ import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
-
+import QuotesView from '../../pages/Ramps/QuotesView';
 const fixtureServer = new FixtureServer();
 
 const Regions = {
@@ -62,7 +62,7 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSellButton();
     await SellGetStartedView.tapGetStartedButton();
-    await SelectRegionView.tapSelectRegionDropdown();
+    await BuildQuoteView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption(Regions.USA);
     await SelectRegionView.tapRegionOption(Regions.CALIFORNIA);
     await SelectRegionView.tapContinueButton();
@@ -72,5 +72,14 @@ describe(SmokeRamps('Off-Ramp'), () => {
     await SelectPaymentMethodView.tapContinueButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToSellLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
+  });
+
+  it('should show quotes', async () => {
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapSellButton();
+    await BuildQuoteView.enterAmount('2');
+    await BuildQuoteView.tapGetQuotesButton();
+    await Assertions.checkIfVisible(QuotesView.quotes);
   });
 });

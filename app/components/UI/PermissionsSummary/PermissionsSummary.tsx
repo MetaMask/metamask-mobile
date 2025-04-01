@@ -43,7 +43,10 @@ import { getNetworkImageSource } from '../../../util/networks';
 import Engine from '../../../core/Engine';
 import { SDKSelectorsIDs } from '../../../../e2e/selectors/Settings/SDK.selectors';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../selectors/networkController';
+import {
+  selectEvmChainId,
+  selectProviderConfig,
+} from '../../../selectors/networkController';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import { ConnectedAccountsSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
@@ -75,6 +78,7 @@ const PermissionsSummary = ({
   const { navigate } = useNavigation();
   const selectedAccount = useSelectedAccount();
   const providerConfig = useSelector(selectProviderConfig);
+  const chainId = useSelector(selectEvmChainId);
 
   const hostname = useMemo(
     () => new URL(currentPageInformation.url).hostname,
@@ -235,6 +239,7 @@ const PermissionsSummary = ({
       const matchedAccount = accounts.find(
         (account) => account.address === accountAddresses[0],
       );
+
       return `${strings('permissions.requesting_for')}${
         matchedAccount?.name ? matchedAccount.name : accountAddresses[0]
       }`;
@@ -242,6 +247,10 @@ const PermissionsSummary = ({
 
     if (accountAddresses.length === 0 && selectedAccount) {
       return `${strings('permissions.requesting_for')}${selectedAccount?.name}`;
+    }
+
+    if (!selectedAccount) {
+      return `${strings('permissions.connect_an_account')}`;
     }
 
     return strings('permissions.requesting_for_accounts', {
@@ -378,7 +387,7 @@ const PermissionsSummary = ({
                       isNonDappNetworkSwitch
                         ? // @ts-expect-error getNetworkImageSource is not implemented in typescript
                           getNetworkImageSource({
-                            chainId: providerConfig.chainId,
+                            chainId,
                           })
                         : chainImage
                     }
@@ -479,6 +488,7 @@ const PermissionsSummary = ({
               <StyledButton
                 type={'confirm'}
                 onPress={confirm}
+                disabled={!selectedAccount && accountAddresses.length === 0}
                 containerStyle={[
                   styles.buttonPositioning,
                   styles.confirmButton,

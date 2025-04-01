@@ -1,27 +1,25 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
+import { MarkAsReadNotificationsParam } from '@metamask/notification-services-controller/notification-services';
 import {
-  ListNotificationsReturn,
-  CreateNotificationsReturn,
-  EnableNotificationsReturn,
-  DisableNotificationsReturn,
-  MarkNotificationAsReadReturn,
-  deleteNotificationsStorageKeyReturn,
-} from './types';
-import { getErrorMessage } from '../../../util/errorHandling';
-import {
-  MarkAsReadNotificationsParam,
-  performDeleteStorage,
-  disableNotificationServices,
-  enableNotificationServices,
-  fetchAndUpdateMetamaskNotifications,
-  markMetamaskNotificationsAsRead,
-  updateOnChainTriggersByAccount,
+  assertIsFeatureEnabled,
+  disableNotifications as disableNotificationsHelper,
+  enableNotifications as enableNotificationsHelper,
+  fetchNotifications,
+  markNotificationsAsRead as markNotificationsAsReadHelper,
+  resetNotifications as resetNotificationsHelper,
 } from '../../../actions/notification/helpers';
-import { getNotificationsList } from '../../../selectors/notifications';
-import { usePushNotifications } from './usePushNotifications';
+import {
+  getNotificationsList,
+  selectIsFetchingMetamaskNotifications,
+  selectIsMetamaskNotificationsEnabled,
+  selectIsUpdatingMetamaskNotifications,
+} from '../../../selectors/notifications';
+import { usePushNotificationsToggle } from './usePushNotifications';
+import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
+import ErrorMessage from '../../../components/Views/confirmations/legacy/SendFlow/ErrorMessage';
 
 /**
  * Custom hook to fetch and update the list of notifications.
@@ -29,78 +27,101 @@ import { isNotificationsFeatureEnabled } from '../constants';
  *
  * @returns An object containing the `listNotifications` function, loading state, and error state.
  */
-export function useListNotifications(): ListNotificationsReturn {
-  const notifications = useSelector(getNotificationsList);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
-
+export function useListNotifications() {
+  const loading = useSelector(selectIsFetchingMetamaskNotifications);
+  const data = useSelector(getNotificationsList);
+  const [error, setError] = useState<unknown>(null);
   const listNotifications = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
-    setLoading(true);
-    setError(undefined);
-    try {
-      const errorMessage = await fetchAndUpdateMetamaskNotifications();
-      if (errorMessage) {
-        setError(getErrorMessage(errorMessage));
-        return errorMessage;
-      }
-    } catch (e) {
-      const errorMessage = getErrorMessage(e);
-      setError(errorMessage);
-      return errorMessage;
-    } finally {
-      setLoading(false);
-    }
+    assertIsFeatureEnabled();
+    setError(null);
+    await fetchNotifications().catch((e) => setError(e));
   }, []);
 
   return {
     listNotifications,
-    notificationsData: notifications,
+    notificationsData: data,
     isLoading: loading,
     error,
   };
 }
-/**
- * Custom hook to enable notifications by creating on-chain triggers.
- * It manages loading and error states internally.
- *
- * @returns An object containing the `enableNotifications` function, loading state, and error state.
- */
-export function useCreateNotifications(): CreateNotificationsReturn {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
 
-  const createNotifications = useCallback(async (accounts: string[]) => {
-    if (!isNotificationsFeatureEnabled()) {
+/**
+ * Effect that queries for notifications on startup if notifications are enabled.
+ */
+export function useListNotificationsEffect() {
+  const notificationsFlagEnabled = isNotificationsFeatureEnabled();
+  const notificationsControllerEnabled = useSelector(
+    selectIsMetamaskNotificationsEnabled,
+  );
+
+  const notificationsEnabled =
+    notificationsFlagEnabled && notificationsControllerEnabled;
+
+  const { listNotifications } = useListNotifications();
+
+  // App Open Effect
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (notificationsEnabled) {
+          await listNotifications();
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(ErrorMessage);
+        Logger.error(
+          new Error(`Failed to list notifications - ${errorMessage}`),
+        );
+      }
+    };
+
+    run();
+  }, [notificationsEnabled, listNotifications]);
+}
+
+/**
+ * Adds a tiny delay between 2 loading states to ensure that we have a smooth loading experience.
+ * It prevents any flickers while we are transitioning between the 2 loading params
+ * E.g.
+ * ```
+ * loadingParam1: true, loadingParam2: false // 1st loading
+ * loadingParam1: false, loadingParam2: false // False positive (causes UI flicker)
+ * loadingParam1: false, loadingParam2: true // 2nd loading
+ * loadingParam1: false, loadingParam2: false // Finished loading
+ * ```
+ * @param loadingParam1 boolean
+ * @param loadingParam2 boolean
+ */
+export function useContiguousLoading(
+  loadingParam1: boolean,
+  loadingParam2: boolean,
+) {
+  const [contiguousLoading, setContiguousLoading] = useState(false);
+
+  useEffect(() => {
+    const isLoading = loadingParam1 || loadingParam2;
+
+    // If loading is true, we set it immediately
+    if (isLoading) {
+      setContiguousLoading(isLoading);
       return;
     }
 
-    setLoading(true);
-    setError(undefined);
-    try {
-      const errorMessage = await updateOnChainTriggersByAccount(accounts);
-      if (errorMessage) {
-        setError(getErrorMessage(errorMessage));
-        return errorMessage;
-      }
-    } catch (e) {
-      const errorMessage = getErrorMessage(e);
-      setError(errorMessage);
-      return errorMessage;
-    } finally {
-      setLoading(false);
+    // Otherwise if loading has stopped, we will continue to be loading for a little bit
+    // In case the boolean params update again
+    if (!isLoading) {
+      const timeout = setTimeout(() => {
+        setContiguousLoading(false);
+      }, 100);
+      return () => {
+        clearTimeout(timeout);
+      };
     }
-  }, []);
+  }, [loadingParam1, loadingParam2]);
 
-  return {
-    createNotifications,
-    loading,
-    error,
-  };
+  return contiguousLoading;
 }
+
 /**
  * Custom hook to enable MetaMask notifications.
  * This hook encapsulates the logic for enabling notifications, handling loading and error states.
@@ -111,88 +132,66 @@ export function useCreateNotifications(): CreateNotificationsReturn {
  * - `loading`: A boolean indicating if the enabling process is ongoing.
  * - `error`: A string or null value representing any error that occurred during the process.
  */
-export function useEnableNotifications(): EnableNotificationsReturn {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
-  const { switchPushNotifications } = usePushNotifications();
+export function useEnableNotifications(props = { nudgeEnablePush: true }) {
+  const { togglePushNotification, loading: pushLoading } =
+    usePushNotificationsToggle(props);
+  const data = useSelector(selectIsMetamaskNotificationsEnabled);
+  const loading = useSelector(selectIsUpdatingMetamaskNotifications);
+  const [error, setError] = useState<unknown>(null);
   const enableNotifications = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
+    assertIsFeatureEnabled();
+    setError(null);
+    await togglePushNotification(true).catch(() => {
+      /* Do Nothing */
+    });
+    await enableNotificationsHelper().catch((e) => setError(e));
+  }, [togglePushNotification]);
 
-    setLoading(true);
-    setError(undefined);
-    try {
-      const errorEnablingNotifications = await enableNotificationServices();
-      const errorEnablingPushNotifications = await switchPushNotifications(
-        true,
-      );
-      const errorMessage =
-        errorEnablingNotifications || errorEnablingPushNotifications;
-
-      if (errorMessage) {
-        setError(getErrorMessage(errorMessage));
-        return errorMessage;
-      }
-    } catch (e) {
-      const errorMessage = getErrorMessage(e);
-      setError(errorMessage);
-      return errorMessage;
-    } finally {
-      setLoading(false);
-    }
-  }, [switchPushNotifications]);
+  const contiguousLoading = useContiguousLoading(loading, pushLoading);
 
   return {
     enableNotifications,
-    loading,
+    isEnablingNotifications: loading,
+    isEnablingPushNotifications: pushLoading,
+    loading: loading || pushLoading || contiguousLoading,
     error,
+    data,
   };
 }
+
 /**
  * Custom hook to disable notifications by deleting on-chain triggers associated with accounts.
  * It also disables snap and feature announcements. Manages loading and error states internally.
  *
  * @returns An object containing the `disableNotifications` function, loading state, and error state.
  */
-export function useDisableNotifications(): DisableNotificationsReturn {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
-  const { switchPushNotifications } = usePushNotifications();
+export function useDisableNotifications() {
+  const { togglePushNotification, loading: pushLoading } =
+    usePushNotificationsToggle();
+
+  const data = useSelector(selectIsMetamaskNotificationsEnabled);
+  const loading = useSelector(selectIsUpdatingMetamaskNotifications);
+  const [error, setError] = useState<string | undefined>(undefined);
   const disableNotifications = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
-    setLoading(true);
+    assertIsFeatureEnabled();
     setError(undefined);
-    try {
-      const errorDisablingNotifications = await disableNotificationServices();
-      const errorDisablingPushNotifications = await switchPushNotifications(
-        false,
-      );
-      const errorMessage =
-        errorDisablingNotifications || errorDisablingPushNotifications;
-
-      if (errorMessage) {
-        setError(getErrorMessage(errorMessage));
-        return errorMessage;
-      }
-    } catch (e) {
-      const errorMessage = getErrorMessage(e);
-      setError(errorMessage);
-      return errorMessage;
-    } finally {
-      setLoading(false);
-    }
-  }, [switchPushNotifications]);
+    await togglePushNotification(false);
+    await disableNotificationsHelper().catch((e) => {
+      Logger.error(e);
+      setError(`Failed to disable push notifications`);
+    });
+  }, [togglePushNotification]);
 
   return {
     disableNotifications,
-    loading,
-    error,
+    loading: loading && pushLoading,
+    // This will be fixed in a separate PR to converge the types correctly
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    error: error as any,
+    data,
   };
 }
+
 /**
  * Provides a function to mark notifications as read. This hook does not take parameters itself,
  * but returns a function that accepts the notification parameters when called.
@@ -200,33 +199,14 @@ export function useDisableNotifications(): DisableNotificationsReturn {
  * @returns An object containing the `markNotificationAsRead` function which takes a `notifications`
  * parameter of type `MarkAsReadNotificationsParam` and marks those notifications as read.
  */
-export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
-
+export function useMarkNotificationAsRead() {
+  const [loading, setLoading] = useState(false);
   const markNotificationAsRead = useCallback(
     async (notifications: MarkAsReadNotificationsParam) => {
-      if (!isNotificationsFeatureEnabled()) {
-        return;
-      }
-
+      assertIsFeatureEnabled();
       setLoading(true);
-      setError(undefined);
-      try {
-        const errorMessage = await markMetamaskNotificationsAsRead(
-          notifications,
-        );
-        if (errorMessage) {
-          setError(getErrorMessage(errorMessage));
-          return errorMessage;
-        }
-      } catch (e) {
-        const errorMessage = getErrorMessage(e);
-        setError(errorMessage);
-        return errorMessage;
-      } finally {
-        setLoading(false);
-      }
+      await markNotificationsAsReadHelper(notifications);
+      setLoading(false);
     },
     [],
   );
@@ -234,7 +214,6 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
   return {
     markNotificationAsRead,
     loading,
-    error,
   };
 }
 
@@ -244,34 +223,17 @@ export function useMarkNotificationAsRead(): MarkNotificationAsReadReturn {
  *
  * @returns An object containing the `deleteNotificationsStorageKey` function, loading state, and error state.
  */
-export function useDeleteNotificationsStorageKey(): deleteNotificationsStorageKeyReturn {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>();
-
-  const deleteNotificationsStorageKey = useCallback(async () => {
-    if (!isNotificationsFeatureEnabled()) {
-      return;
-    }
-
-    setLoading(true);
-    setError(undefined);
-    try {
-      const errorMessage = await performDeleteStorage();
-      if (errorMessage) {
-        setError(getErrorMessage(errorMessage));
-        return errorMessage;
-      }
-    } catch (e) {
-      const errorMessage = getErrorMessage(e);
-      setError(errorMessage);
-      return errorMessage;
-    } finally {
-      setLoading(false);
-    }
+export function useResetNotifications() {
+  const loading = useSelector(selectIsUpdatingMetamaskNotifications);
+  const [error, setError] = useState<unknown>(null);
+  const resetNotifications = useCallback(async () => {
+    assertIsFeatureEnabled();
+    setError(null);
+    await resetNotificationsHelper().catch((e) => setError(e));
   }, []);
 
   return {
-    deleteNotificationsStorageKey,
+    resetNotifications,
     loading,
     error,
   };

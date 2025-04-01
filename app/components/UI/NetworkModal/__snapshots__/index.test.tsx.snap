@@ -122,7 +122,7 @@ exports[`NetworkDetails renders correctly 1`] = `
           <View
             style={
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 2,
                 "height": 4,
                 "width": 40,
@@ -145,11 +145,14 @@ exports[`NetworkDetails renders correctly 1`] = `
           >
             <View
               style={
-                {
-                  "backgroundColor": "#ffffff",
-                  "flexDirection": "row",
-                  "padding": 16,
-                }
+                [
+                  {
+                    "backgroundColor": "#ffffff",
+                    "flexDirection": "row",
+                    "padding": 16,
+                  },
+                  false,
+                ]
               }
               testID="header"
             >
@@ -177,7 +180,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -219,7 +222,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -265,7 +268,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "flexShrink": 1,
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
@@ -284,7 +287,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 14,
                       "fontWeight": "400",
@@ -301,7 +304,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     onPress={[Function]}
                     style={
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 14,
                         "fontWeight": "400",
@@ -322,7 +325,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   style={
                     [
                       {
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 10,
                         "borderWidth": 1,
                         "marginVertical": 16,
@@ -337,7 +340,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
@@ -352,7 +355,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -377,7 +380,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Medium",
                             "fontSize": 14,
                             "fontWeight": "500",
@@ -393,7 +396,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontFamily": "EuclidCircularB-Regular",
                           "fontSize": 14,
                           "fontWeight": "400",
@@ -422,7 +425,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#0376c9",
+                            "color": "#4459ff",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -452,7 +455,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                         testID="accordionheader-arrow-icon-animation"
                       >
                         <SvgMock
-                          color="#0376c9"
+                          color="#4459ff"
                           height={16}
                           name="ArrowDown"
                           style={
@@ -493,7 +496,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                     "alignItems": "center",
                     "alignSelf": "flex-start",
                     "backgroundColor": "transparent",
-                    "borderColor": "#0376c9",
+                    "borderColor": "#4459ff",
                     "borderRadius": 24,
                     "borderWidth": 1,
                     "flex": 1,
@@ -509,7 +512,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
@@ -532,7 +535,7 @@ exports[`NetworkDetails renders correctly 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#0376c9",
+                    "backgroundColor": "#4459ff",
                     "borderRadius": 24,
                     "flex": 1,
                     "flexDirection": "row",

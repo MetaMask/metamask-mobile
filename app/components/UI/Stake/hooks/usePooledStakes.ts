@@ -1,14 +1,8 @@
-import { useSelector, useDispatch } from 'react-redux';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { selectChainId } from '../../../../selectors/networkController';
-import { hexToNumber } from '@metamask/utils';
+import { useMemo, useState } from 'react';
 import { PooledStake } from '@metamask/stake-sdk';
-import {
-  selectPooledStakesData,
-  setPooledStakes,
-} from '../../../../core/redux/slices/staking';
-import { stakingApiService } from '../sdk/stakeSdkProvider';
+import Engine from '../../../../core/Engine';
+import { useSelector } from 'react-redux';
+import { pooledStakingSelectors } from '../../../../selectors/earnController';
 
 export enum StakeAccountStatus {
   // These statuses are only used internally rather than displayed to a user
@@ -19,47 +13,28 @@ export enum StakeAccountStatus {
 }
 
 const usePooledStakes = () => {
-  const dispatch = useDispatch();
-  const chainId = useSelector(selectChainId);
-  const selectedAddress =
-    useSelector(selectSelectedInternalAccountFormattedAddress) || '';
-  const { pooledStakesData, exchangeRate } = useSelector(
-    selectPooledStakesData,
-  );
-
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    if (!stakingApiService || !selectedAddress) return;
+  const { selectPoolStakes, selectExchangeRate } = pooledStakingSelectors;
 
+  const pooledStakesData = useSelector(selectPoolStakes);
+  const exchangeRate = useSelector(selectExchangeRate);
+
+  const fetchData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const { accounts = [], exchangeRate: fetchedExchangeRate } =
-        await stakingApiService.getPooledStakes(
-          [selectedAddress],
-          hexToNumber(chainId),
-          true,
-        );
-
-      dispatch(
-        setPooledStakes({
-          pooledStakes: accounts[0] || {},
-          exchangeRate: fetchedExchangeRate,
-        }),
-      );
+      await Engine.context.EarnController.refreshPooledStakes({
+        resetCache: true,
+      });
     } catch (err) {
       setError('Failed to fetch pooled stakes');
     } finally {
       setIsLoading(false);
     }
-  }, [chainId, selectedAddress, dispatch]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  };
 
   const getStatus = (stake: PooledStake) => {
     if (stake.assets === '0' && stake.exitRequests.length > 0) {

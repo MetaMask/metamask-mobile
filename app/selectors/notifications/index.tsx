@@ -2,9 +2,13 @@ import { createSelector } from 'reselect';
 import {
   NotificationServicesControllerState,
   TRIGGER_TYPES,
-  defaultState,
+  defaultState as notificationControllerServiceDefaultState,
   INotification,
 } from '@metamask/notification-services-controller/notification-services';
+import {
+  NotificationServicesPushControllerState,
+  defaultState as pushControllerDefaultState,
+} from '@metamask/notification-services-controller/push-services';
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
@@ -13,13 +17,27 @@ type NotificationServicesState = NotificationServicesControllerState;
 
 const selectNotificationServicesControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesController ??
-  defaultState;
+  notificationControllerServiceDefaultState;
+
+const selectNotificationServicesPushControllerState = (state: RootState) =>
+  state?.engine?.backgroundState?.NotificationServicesPushController ??
+  pushControllerDefaultState;
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>
     notificationServicesControllerState.isNotificationServicesEnabled,
 );
+export const selectIsMetaMaskPushNotificationsEnabled = createSelector(
+  selectNotificationServicesPushControllerState,
+  (state: NotificationServicesPushControllerState) =>
+    Boolean(state.isPushEnabled),
+);
+export const selectIsMetaMaskPushNotificationsLoading = createSelector(
+  selectNotificationServicesPushControllerState,
+  (state: NotificationServicesPushControllerState) => state.isUpdatingFCMToken,
+);
+
 export const selectIsMetamaskNotificationsFeatureSeen = createSelector(
   selectNotificationServicesControllerState,
   (notificationServicesControllerState: NotificationServicesState) =>

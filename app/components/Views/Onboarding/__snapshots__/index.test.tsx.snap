@@ -125,9 +125,9 @@ exports[`Onboarding should render correctly 1`] = `
                   source={1}
                   style={
                     {
-                      "height": 15,
-                      "tintColor": "#141618",
-                      "width": 122,
+                      "height": 35,
+                      "tintColor": "#121314",
+                      "width": 70,
                     }
                   }
                 />
@@ -333,261 +333,235 @@ exports[`Onboarding should render correctly 1`] = `
                       }
                       testID="onboarding-screen"
                     >
-                      <View
+                      <RCTScrollView
+                        contentContainerStyle={
+                          {
+                            "flex": 1,
+                          }
+                        }
                         style={
                           {
-                            "backgroundColor": "#ffffff",
                             "flex": 1,
                           }
                         }
                       >
-                        <View
-                          accessibilityIgnoresInvertColors={true}
-                          style={
-                            {
-                              "borderTopWidth": 0,
-                              "bottom": 0,
-                              "flex": 1,
-                              "height": null,
-                              "left": 0,
-                              "position": "absolute",
-                              "right": 0,
-                              "top": 0,
-                              "width": null,
-                            }
-                          }
-                        >
-                          <Image
-                            resizeMode="stretch"
-                            source={1}
-                            style={
-                              [
-                                {
-                                  "bottom": 0,
-                                  "left": 0,
-                                  "position": "absolute",
-                                  "right": 0,
-                                  "top": 0,
-                                },
-                                {
-                                  "height": null,
-                                  "width": null,
-                                },
-                                undefined,
-                              ]
-                            }
-                          />
-                          <RCTScrollView
-                            contentContainerStyle={
-                              {
-                                "flex": 1,
-                              }
-                            }
+                        <View>
+                          <View
                             style={
                               {
+                                "alignItems": "center",
                                 "flex": 1,
+                                "paddingVertical": 30,
                               }
                             }
                           >
-                            <View>
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                  "position": "relative",
+                                }
+                              }
+                            >
                               <View
                                 style={
                                   {
                                     "alignItems": "center",
+                                    "marginVertical": 24,
+                                  }
+                                }
+                              >
+                                <Image
+                                  resizeMethod="auto"
+                                  source={1}
+                                  style={
+                                    {
+                                      "height": 125,
+                                      "resizeMode": "contain",
+                                      "width": 125,
+                                    }
+                                  }
+                                />
+                              </View>
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 32,
+                                    "textAlign": "center",
+                                  }
+                                }
+                                testID="wallet-setup-screen-title-id"
+                              >
+                                Wallet setup
+                              </Text>
+                              <View
+                                style={
+                                  {
+                                    "marginVertical": 16,
+                                  }
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                      "marginBottom": 16,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                  testID="wallet-setup-screen-description-id"
+                                >
+                                  Import an existing wallet or create a new one
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
                                     "flex": 1,
-                                    "paddingVertical": 30,
+                                    "justifyContent": "flex-end",
+                                    "marginBottom": 24,
                                   }
                                 }
                               >
                                 <View
                                   style={
                                     {
-                                      "flex": 1,
-                                      "position": "relative",
+                                      "marginBottom": 16,
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={0.2}
+                                    onPress={[Function]}
                                     style={
-                                      {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
-                                        "fontSize": 24,
-                                        "fontWeight": "700",
-                                        "letterSpacing": 0,
-                                        "lineHeight": 32,
-                                        "textAlign": "center",
-                                      }
+                                      [
+                                        [
+                                          {
+                                            "borderRadius": 100,
+                                            "justifyContent": "center",
+                                            "padding": 15,
+                                          },
+                                          {
+                                            "backgroundColor": "#ffffff",
+                                            "borderColor": "#4459ff",
+                                            "borderWidth": 1,
+                                          },
+                                          undefined,
+                                        ],
+                                        null,
+                                      ]
                                     }
-                                    testID="wallet-setup-screen-title-id"
-                                  >
-                                    Wallet setup
-                                  </Text>
-                                  <View
-                                    style={
-                                      {
-                                        "marginVertical": 24,
-                                      }
-                                    }
+                                    testID="wallet-setup-screen-import-from-seed-button-id"
                                   >
                                     <Text
-                                      accessibilityRole="text"
                                       style={
-                                        {
-                                          "color": "#141618",
-                                          "fontFamily": "EuclidCircularB-Regular",
-                                          "fontSize": 14,
-                                          "fontWeight": "400",
-                                          "letterSpacing": 0,
-                                          "lineHeight": 22,
-                                          "marginBottom": 16,
-                                          "textAlign": "center",
-                                        }
+                                        [
+                                          {
+                                            "color": "#007aff",
+                                            "fontSize": 17,
+                                            "fontWeight": "500",
+                                            "textAlign": "center",
+                                          },
+                                          null,
+                                          [
+                                            {
+                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontSize": 14,
+                                              "fontWeight": "600",
+                                              "textAlign": "center",
+                                            },
+                                            {
+                                              "color": "#4459ff",
+                                            },
+                                            undefined,
+                                          ],
+                                          null,
+                                        ]
                                       }
-                                      testID="wallet-setup-screen-description-id"
                                     >
-                                      Import an existing wallet or create a new one
+                                      Import using Secret Recovery Phrase
                                     </Text>
-                                  </View>
-                                  <View
-                                    style={
-                                      {
-                                        "flex": 1,
-                                        "justifyContent": "flex-end",
-                                        "marginBottom": 24,
-                                      }
+                                  </TouchableOpacity>
+                                </View>
+                                <View
+                                  style={
+                                    {
+                                      "marginBottom": 16,
                                     }
+                                  }
+                                >
+                                  <TouchableOpacity
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={0.2}
+                                    onPress={[Function]}
+                                    style={
+                                      [
+                                        [
+                                          {
+                                            "borderRadius": 100,
+                                            "justifyContent": "center",
+                                            "padding": 15,
+                                          },
+                                          {
+                                            "backgroundColor": "#4459ff",
+                                          },
+                                          undefined,
+                                        ],
+                                        null,
+                                      ]
+                                    }
+                                    testID="wallet-setup-screen-create-new-wallet-button-id"
                                   >
-                                    <View
+                                    <Text
                                       style={
-                                        {
-                                          "marginBottom": 16,
-                                        }
+                                        [
+                                          {
+                                            "color": "#007aff",
+                                            "fontSize": 17,
+                                            "fontWeight": "500",
+                                            "textAlign": "center",
+                                          },
+                                          null,
+                                          [
+                                            {
+                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontSize": 14,
+                                              "fontWeight": "600",
+                                              "textAlign": "center",
+                                            },
+                                            {
+                                              "color": "#ffffff",
+                                            },
+                                            undefined,
+                                          ],
+                                          null,
+                                        ]
                                       }
                                     >
-                                      <TouchableOpacity
-                                        accessibilityRole="button"
-                                        accessible={true}
-                                        activeOpacity={0.2}
-                                        onPress={[Function]}
-                                        style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 100,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#ffffff",
-                                                "borderColor": "#0376c9",
-                                                "borderWidth": 1,
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
-                                        }
-                                        testID="wallet-setup-screen-import-from-seed-button-id"
-                                      >
-                                        <Text
-                                          style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "EuclidCircularB-Bold",
-                                                  "fontSize": 14,
-                                                  "fontWeight": "600",
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#0376c9",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
-                                          }
-                                        >
-                                          Import using Secret Recovery Phrase
-                                        </Text>
-                                      </TouchableOpacity>
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "marginBottom": 16,
-                                        }
-                                      }
-                                    >
-                                      <TouchableOpacity
-                                        accessibilityRole="button"
-                                        accessible={true}
-                                        activeOpacity={0.2}
-                                        onPress={[Function]}
-                                        style={
-                                          [
-                                            [
-                                              {
-                                                "borderRadius": 100,
-                                                "justifyContent": "center",
-                                                "padding": 15,
-                                              },
-                                              {
-                                                "backgroundColor": "#0376c9",
-                                              },
-                                              undefined,
-                                            ],
-                                            null,
-                                          ]
-                                        }
-                                        testID="wallet-setup-screen-create-new-wallet-button-id"
-                                      >
-                                        <Text
-                                          style={
-                                            [
-                                              {
-                                                "color": "#007aff",
-                                                "fontSize": 17,
-                                                "fontWeight": "500",
-                                                "textAlign": "center",
-                                              },
-                                              null,
-                                              [
-                                                {
-                                                  "fontFamily": "EuclidCircularB-Bold",
-                                                  "fontSize": 14,
-                                                  "fontWeight": "600",
-                                                  "textAlign": "center",
-                                                },
-                                                {
-                                                  "color": "#ffffff",
-                                                },
-                                                undefined,
-                                              ],
-                                              null,
-                                            ]
-                                          }
-                                        >
-                                          Create a new wallet
-                                        </Text>
-                                      </TouchableOpacity>
-                                    </View>
-                                  </View>
+                                      Create a new wallet
+                                    </Text>
+                                  </TouchableOpacity>
                                 </View>
                               </View>
                             </View>
-                          </RCTScrollView>
+                          </View>
                         </View>
-                      </View>
+                      </RCTScrollView>
                       <View
                         collapsable={false}
                         style={

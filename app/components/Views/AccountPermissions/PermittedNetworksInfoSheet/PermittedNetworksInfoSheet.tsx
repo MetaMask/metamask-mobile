@@ -17,6 +17,7 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './PermittedNetworksInfoSheet.styles';
+import { PermittedNetworksInfoSheetTestIds } from './PermittedNetworksInfoSheet.constants';
 
 const PermittedNetworksInfoSheet = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -29,24 +30,34 @@ const PermittedNetworksInfoSheet = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <View style={styles.container}>
+      <View
+        style={styles.container}
+        testID={PermittedNetworksInfoSheetTestIds.CONTAINER}
+      >
         <BottomSheetHeader>
           <Text variant={TextVariant.HeadingMD}>
             {strings('permissions.permitted_networks')}
           </Text>
         </BottomSheetHeader>
-        <View style={styles.descriptionContainer}>
+        <View
+          style={styles.descriptionContainer}
+          testID={PermittedNetworksInfoSheetTestIds.DESCRIPTION_CONTAINER}
+        >
           <Text variant={TextVariant.BodyMD}>
             {strings('permissions.permitted_networks_info_sheet_description')}
           </Text>
         </View>
-        <View style={styles.buttonsContainer}>
+        <View
+          style={styles.buttonsContainer}
+          testID={PermittedNetworksInfoSheetTestIds.BUTTONS_CONTAINER}
+        >
           <Button
             label={strings('permissions.got_it')}
             style={styles.button}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
             onPress={onDismiss}
+            testID={PermittedNetworksInfoSheetTestIds.GOT_IT_BUTTON}
           />
         </View>
       </View>

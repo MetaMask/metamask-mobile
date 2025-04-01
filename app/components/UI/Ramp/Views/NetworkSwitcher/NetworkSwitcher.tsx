@@ -36,7 +36,7 @@ import { isNetworkRampSupported } from '../../utils';
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { getFiatOnRampAggNavbar } from '../../../Navbar';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -61,7 +61,9 @@ function NetworkSwitcher() {
   const [isCurrentNetworkRampSupported] = useRampNetwork();
   const { selectedChainId, isBuy, intent, setIntent } = useRampSDK();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const [networkToBeAdded, setNetworkToBeAdded] = useState<Network>();
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
@@ -144,16 +146,16 @@ function NetworkSwitcher() {
 
   const switchToMainnet = useCallback(
     (type: 'mainnet' | 'linea-mainnet') => {
-      const { NetworkController } = Engine.context;
-      NetworkController.setActiveNetwork(type);
+      const { MultichainNetworkController } = Engine.context;
+      MultichainNetworkController.setActiveNetwork(type);
       navigateToGetStarted();
     },
     [navigateToGetStarted],
   );
 
   const switchNetwork = useCallback(
-    (networkConfiguration) => {
-      const { NetworkController } = Engine.context;
+    async (networkConfiguration) => {
+      const { MultichainNetworkController } = Engine.context;
       const config = Object.values(networkConfigurations).find(
         ({ chainId }) => chainId === networkConfiguration.chainId,
       );
@@ -164,7 +166,8 @@ function NetworkSwitcher() {
         const { networkClientId } =
           rpcEndpoints?.[defaultRpcEndpointIndex] ?? {};
 
-        NetworkController.setActiveNetwork(networkClientId);
+        await MultichainNetworkController.setActiveNetwork(networkClientId);
+
         navigateToGetStarted();
       }
     },
@@ -172,7 +175,7 @@ function NetworkSwitcher() {
   );
 
   const handleNetworkPress = useCallback(
-    (networkConfiguration) => {
+    async (networkConfiguration) => {
       setIntent((prevIntent) => ({
         ...prevIntent,
         chainId: networkConfiguration.chainId,
@@ -184,7 +187,7 @@ function NetworkSwitcher() {
       };
 
       if (networkConfiguration.isAdded) {
-        switchNetwork(networkConfigurationWithHexChainId);
+        await switchNetwork(networkConfigurationWithHexChainId);
       } else {
         setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
@@ -193,7 +196,7 @@ function NetworkSwitcher() {
   );
 
   const handleIntentChainId = useCallback(
-    (chainId: string) => {
+    async (chainId: string) => {
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
@@ -225,7 +228,7 @@ function NetworkSwitcher() {
       );
 
       if (networkConfiguration) {
-        handleNetworkPress(networkConfiguration);
+        await handleNetworkPress(networkConfiguration);
       }
     },
     [

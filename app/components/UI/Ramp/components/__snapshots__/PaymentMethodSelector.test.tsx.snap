@@ -1,0 +1,546 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PaymentMethodSelector renders correctly 1`] = `
+[
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginVertical": 8,
+      }
+    }
+    testID="label"
+  >
+    Update payment method
+  </Text>,
+  <TouchableOpacity
+    accessible={false}
+    disabled={true}
+  >
+    <View
+      style={
+        [
+          {
+            "borderColor": "#b7bbc8",
+            "borderRadius": 8,
+            "borderWidth": 1.5,
+            "padding": 16,
+          },
+          undefined,
+          undefined,
+          {
+            "padding": 0,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Image
+              source={
+                {
+                  "uri": "https://example.com/icon.png",
+                }
+              }
+            />
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Debit or Credit
+            </Text>
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    {
+                      "color": "#121314",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#121314",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              >
+                Change
+              </Text>
+                
+              <Text
+                allowFontScaling={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#121314",
+                      "marginLeft": 10,
+                    },
+                    {
+                      "fontFamily": "Entypo",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#b7bbc866",
+            "height": 1,
+            "marginLeft": 16,
+            "marginRight": 16,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "margin": 16,
+          }
+        }
+      >
+        <Image
+          onError={[Function]}
+          source={
+            {
+              "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Visa-regular@3x.png",
+            }
+          }
+          style={
+            {
+              "height": 20,
+              "marginRight": 6,
+              "width": 30,
+            }
+          }
+        />
+        <Image
+          onError={[Function]}
+          source={
+            {
+              "uri": "https://on-ramp-content-uat.api.cx.metamask.io/assets/Mastercard-regular@3x.png",
+            }
+          }
+          style={
+            {
+              "height": 20,
+              "marginRight": 6,
+              "width": 30,
+            }
+          }
+        />
+      </View>
+    </View>
+  </TouchableOpacity>,
+]
+`;
+
+exports[`PaymentMethodSelector renders correctly if there are no icons 1`] = `
+[
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginVertical": 8,
+      }
+    }
+    testID="label"
+  >
+    Update payment method
+  </Text>,
+  <TouchableOpacity
+    accessible={false}
+    disabled={true}
+  >
+    <View
+      style={
+        [
+          {
+            "borderColor": "#b7bbc8",
+            "borderRadius": 8,
+            "borderWidth": 1.5,
+            "padding": 16,
+          },
+          undefined,
+          undefined,
+          {
+            "padding": 0,
+          },
+          undefined,
+        ]
+      }
+    >
+      <View
+        accessibilityRole="none"
+        accessible={true}
+        style={
+          {
+            "padding": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": -1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Image
+              source={
+                {
+                  "uri": "https://example.com/icon.png",
+                }
+              }
+            />
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+            testID="listitemcolumn"
+          >
+            <Text
+              accessibilityRole="text"
+              adjustsFontSizeToFit={true}
+              numberOfLines={1}
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Debit or Credit
+            </Text>
+          </View>
+          <View
+            accessible={false}
+            style={
+              {
+                "width": 16,
+              }
+            }
+            testID="listitem-gap"
+          />
+          <View>
+            <Text
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 30,
+                    "fontWeight": "400",
+                    "marginVertical": 2,
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  {
+                    "color": "#121314",
+                  },
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 30,
+                      "fontWeight": "400",
+                      "marginVertical": 2,
+                    },
+                    undefined,
+                    undefined,
+                    {
+                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontWeight": "600",
+                    },
+                    undefined,
+                    {
+                      "color": "#121314",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "color": "#121314",
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                  ]
+                }
+              >
+                Change
+              </Text>
+                
+              <Text
+                allowFontScaling={false}
+                style={
+                  [
+                    {
+                      "color": undefined,
+                      "fontSize": 16,
+                    },
+                    {
+                      "color": "#121314",
+                      "marginLeft": 10,
+                    },
+                    {
+                      "fontFamily": "Entypo",
+                      "fontStyle": "normal",
+                      "fontWeight": "normal",
+                    },
+                    {},
+                  ]
+                }
+              >
+                
+              </Text>
+            </Text>
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "backgroundColor": "#b7bbc866",
+            "height": 1,
+            "marginLeft": 16,
+            "marginRight": 16,
+          }
+        }
+      />
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "margin": 16,
+          }
+        }
+      />
+    </View>
+  </TouchableOpacity>,
+]
+`;

@@ -2,7 +2,7 @@ import TestHelpers from '../../helpers';
 import Gestures from '../../utils/Gestures';
 import Matchers from '../../utils/Matchers';
 import { SendViewSelectorsIDs } from '../../selectors/SendFlow/SendView.selectors';
-import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors'
+import {AddAddressModalSelectorsIDs} from '../../selectors/SendFlow/AddAddressModal.selectors';
 import Assertions from '../../utils/Assertions';
 
 

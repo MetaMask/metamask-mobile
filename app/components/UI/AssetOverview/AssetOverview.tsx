@@ -10,10 +10,10 @@ import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
 import Engine from '../../../core/Engine';
 import {
-  selectChainId,
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectSelectedNetworkClientId,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -58,7 +58,7 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/utils/useGoToBridge';
+import useGoToBridge from '../Bridge/hooks/useGoToBridge';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -75,6 +75,7 @@ interface AssetOverviewProps {
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
   swapsIsLive?: boolean;
+  networkName?: string;
 }
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
@@ -82,6 +83,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   displayBuyButton,
   displaySwapsButton,
   swapsIsLive,
+  networkName,
 }: AssetOverviewProps) => {
   const navigation = useNavigation();
   const [timePeriod, setTimePeriod] = React.useState<TimePeriod>('1d');
@@ -95,7 +97,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const primaryCurrency = useSelector(
     (state: RootState) => state.settings.primaryCurrency,
   );
-  const goToBridge = useGoToBridge('TokenDetails');
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -103,10 +104,11 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const tokenBalances = useSelector(selectContractBalances);
-  const selectedChainId = useSelector((state: RootState) =>
-    selectChainId(state),
+  const selectedChainId = useSelector(selectEvmChainId);
+
+  const selectedTicker = useSelector((state: RootState) =>
+    selectEvmTicker(state),
   );
-  const selectedTicker = useSelector((state: RootState) => selectTicker(state));
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -162,6 +164,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigation.navigate(Routes.QR_TAB_SWITCHER, {
       initialScreen: QRTabSwitcherScreens.Receive,
       disableTabber: true,
+      networkName,
     });
   };
 
@@ -176,6 +179,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     });
   }, [navigation, asset.address, asset.chainId]);
 
+  const handleBridgeNavigation = useCallback(() => {
+    navigation.navigate('Bridge', {
+      screen: 'BridgeView',
+      params: {
+        sourceToken: asset.address,
+        sourcePage: 'MainView',
+        chainId: asset.chainId,
+      },
+    });
+  }, [navigation, asset.address, asset.chainId]);
+
+  const goToPortfolioBridge = useGoToBridge('TokenDetails');
+
+  const goToBridge =
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+      ? handleBridgeNavigation
+      : goToPortfolioBridge;
+
   const onSend = async () => {
     if (isPortfolioViewEnabled()) {
       navigation.navigate(Routes.WALLET.HOME, {
@@ -186,7 +207,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       });
 
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -197,10 +219,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        await NetworkController.setActiveNetwork(networkClientId as string);
+        await MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        );
       }
     }
-    if (asset.isETH && ticker) {
+    if ((asset.isETH || asset.isNative) && ticker) {
       dispatch(newAssetTransaction(getEther(ticker)));
     } else {
       dispatch(newAssetTransaction(asset));
@@ -217,7 +241,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         },
       });
       if (asset.chainId !== selectedChainId) {
-        const { NetworkController } = Engine.context;
+        const { NetworkController, MultichainNetworkController } =
+          Engine.context;
         const networkConfiguration =
           NetworkController.getNetworkConfigurationByChainId(
             asset.chainId as Hex,
@@ -228,13 +253,13 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             networkConfiguration.defaultRpcEndpointIndex
           ]?.networkClientId;
 
-        NetworkController.setActiveNetwork(networkClientId as string).then(
-          () => {
-            setTimeout(() => {
-              handleSwapNavigation();
-            }, 500);
-          },
-        );
+        MultichainNetworkController.setActiveNetwork(
+          networkClientId as string,
+        ).then(() => {
+          setTimeout(() => {
+            handleSwapNavigation();
+          }, 500);
+        });
       } else {
         handleSwapNavigation();
       }
@@ -339,12 +364,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   if (asset.isETH || asset.isNative) {
     balance = renderFromWei(
       //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
     );
     balanceFiat = weiToFiat(
       hexToBN(
         //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-        accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
+        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
       ),
       conversionRate,
       currentCurrency,
@@ -387,8 +412,8 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
         : `${balance} ${asset.symbol}`;
     }
   } else {
-    mainBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
-    secondaryBalance = asset.balanceFiat || '';
+    mainBalance = asset.balanceFiat || '';
+    secondaryBalance = `${balance} ${asset.isETH ? asset.ticker : asset.symbol}`;
   }
 
   let currentPrice = 0;

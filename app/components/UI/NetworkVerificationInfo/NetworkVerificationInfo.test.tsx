@@ -4,6 +4,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import { strings } from '../../../../locales/i18n';
 import { useSelector } from 'react-redux';
+import { PopularList } from '../../../util/networks/customNetworks';
 
 const mockNetworkInfo = {
   chainName: 'Test Chain',
@@ -42,6 +43,48 @@ describe('NetworkVerificationInfo', () => {
 
     expect(toJSON()).toMatchSnapshot();
   });
+
+  it('renders updated details when isNetworkRpcUpdate is true', () => {
+    (useSelector as jest.Mock).mockReturnValue(true);
+
+    const networkWithCustomRpcUrl = {
+      ...PopularList[0],
+      chainName: 'Test Chain',
+      rpcUrl: 'https://custom-rpc-url.io',
+      pageMeta: { url: 'http://metamask.github.io/test-dapp' },
+      alerts: [],
+    };
+
+    const { toJSON, getByText } = render(
+      <NetworkVerificationInfo
+        // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
+        customNetworkInformation={networkWithCustomRpcUrl}
+        onReject={() => undefined}
+        onConfirm={() => undefined}
+        isNetworkRpcUpdate
+      />,
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+    expect(
+      getByText(
+        strings(
+          'switch_custom_network.update_network_and_give_dapp_permission_warning',
+          {
+            dapp_origin: 'metamask.github.io',
+          },
+        ),
+      ),
+    ).toBeDefined();
+    expect(
+      getByText(
+        strings('networks.update_network', {
+          network_name: networkWithCustomRpcUrl.chainName,
+        }),
+      ),
+    ).toBeDefined();
+  });
+
   it('renders one alert', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
     const { getByText } = render(

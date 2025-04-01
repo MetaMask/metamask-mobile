@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StyleSheet,
   BackHandler,
+  Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
@@ -22,7 +23,6 @@ import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
-import SeedPhraseVideo from '../../UI/SeedPhraseVideo';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -33,6 +33,7 @@ import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboard
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import SRPDesign from '../../../images/srp-lock-design.png';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -48,6 +49,7 @@ const createStyles = (colors) =>
       padding: 20,
       paddingTop: 0,
       paddingBottom: 0,
+      marginTop: 16,
     },
     content: {
       alignItems: 'center',
@@ -58,6 +60,7 @@ const createStyles = (colors) =>
     title: {
       fontSize: 24,
       marginBottom: 24,
+      marginTop: 24,
       color: colors.text.default,
       textAlign: 'center',
       ...fontStyles.bold,
@@ -70,7 +73,7 @@ const createStyles = (colors) =>
       lineHeight: scaling.scale(20),
       fontSize: scaling.scale(14),
       color: colors.text.default,
-      textAlign: 'center',
+      textAlign: 'left',
       ...fontStyles.normal,
     },
     buttonWrapper: {
@@ -114,6 +117,10 @@ const createStyles = (colors) =>
     ctaContainer: {
       marginBottom: 30,
     },
+    srpDesign: {
+      width: 200,
+      height: 225,
+    },
   });
 
 /**
@@ -130,9 +137,9 @@ const AccountBackupStep1 = (props) => {
   const styles = createStyles(colors);
 
   const track = (event, properties) => {
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
-      eventBuilder.addProperties(properties);
-      trackOnboarding(eventBuilder.build());
+    const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+    eventBuilder.addProperties(properties);
+    trackOnboarding(eventBuilder.build());
   };
 
   useEffect(() => {
@@ -220,7 +227,8 @@ const AccountBackupStep1 = (props) => {
             <Text style={styles.title}>
               {strings('account_backup_step_1.title')}
             </Text>
-            <SeedPhraseVideo onClose={skip} />
+
+            <Image source={SRPDesign} style={styles.srpDesign} />
             <View style={styles.text}>
               <Text style={styles.label}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}

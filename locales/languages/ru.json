@@ -1118,7 +1118,6 @@
     "security_alerts": "Оповещения безопасности",
     "security_alerts_desc": "Эта функция предупреждает вас о вредоносной активности, проверяя запросы транзакций и подписей локально. Всегда проводите комплексную проверку перед утверждением каких-либо запросов. Нет никакой гарантии, что эта функция обнаружит всю вредоносную активность. Включая эту функцию, вы соглашаетесь с условиями использования поставщика.",
     "smart_transactions_opt_in_heading": "Умные транзакции",
-    "smart_transactions_opt_in_desc": "Включите функцию «Умные транзакции» для более надежного и безопасного выполнения транзакций в Мейн-нете Ethereum.",
     "smart_transactions_learn_more": "Узнайте подробнее.",
     "simulation_details": "Спрогнозировать изменения баланса",
     "simulation_details_description": "Включите эту опцию, чтобы спрогнозировать изменения баланса транзакций перед их подтверждением. Это не гарантирует окончательный результат ваших транзакций. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} котировки(-ок)",
     "view_details": "Просмотр подробностей",
     "estimated_gas_fee": "Примерная плата за газ",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Макс. плата за газ",
     "edit": "Изменить",
     "quotes_include_fee": "Котировки включают комиссию MetaMask в размере {{fee}}%",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Нажмите для свопа",
     "swipe_to_swap": "Проведите для свопа",
     "swipe_to": "Проведите, чтобы",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Обычно время — важный фактор в операциях свопа. Настройка «Высокая» поможет избежать возможных потерь из-за изменения конъюнктуры рынка.",
     "recommended": "Рекомендуется",
     "recommended_gas": "Рекомендуемая плата за газ",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Примерная плата за газ",
     "gas_education_1": "Плата за газ выплачивается криптомайнерам, которые обрабатывают транзакции в ",
     "gas_education_2_ethereum": "сети Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Недостаточно ETH",
     "balance": "Баланс",
     "stake_eth_and_earn": "Выполняйте стейкинг ETH и зарабатывайте",
-    "stake_any_amount_of_eth": "Выполняйте стейкинг любой суммы ETH",
+    "stake_any_amount_of_eth": "Выполняйте стейкинг любой суммы ETH.",
     "no_minimum_required": "Минимум не установлен.",
-    "earn_eth_rewards": "Зарабатывайте вознаграждения в ETH",
+    "earn_eth_rewards": "Зарабатывайте вознаграждения в ETH.",
     "earn_eth_rewards_description": "Начните зарабатывать сразу же после начала стейкинга. Вознаграждения суммируются автоматически.",
-    "flexible_unstaking": "Гибкая отмена стейкинга",
+    "flexible_unstaking": "Гибкая отмена стейкинга.",
     "flexible_unstaking_description": "Отменяйте стейкинг в любое время. Обычно обработка занимает менее 3 дней, но может занять до 11 дней.",
     "disclaimer": "Стейкинг не гарантирует вознаграждение и сопряжен с рисками, включая потерю средств.",
     "learn_more": "Подробнее",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "от 1 до 11 дней",
     "proceed_anyway": "Все равно продолжить",
     "gas_cost_impact": "Влияние стоимости газа",
-    "gas_cost_impact_warning": "Внимание: стоимость газа за транзакцию составит более 30% от вашего депозита."
+    "gas_cost_impact_warning": "Внимание: стоимость газа за транзакцию составит более {{percentOverDeposit}}% от вашего депозита.",
+    "view_earnings_history": "Посмотреть историю доходов",
+    "earnings_history_title": "Доходы {{ticker}}",
+    "earnings_history_list_title": "История выплат",
+    "apr": "Год. проц. ставка",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 Д",
+        "1M": "1 М",
+        "3M": "3 М",
+        "6M": "6 М"
+      }
+    },
+    "today": "Сегодня",
+    "one_week_average": "Среднее за 1 неделю",
+    "one_month_average": "Среднее за 1 месяц",
+    "three_month_average": "Среднее за 3 месяца",
+    "six_month_average": "Среднее за 6 месяцев",
+    "one_year_average": "Среднее за 1 год"
   },
   "default_settings": {
     "title": "Ваш кошелек готов",
@@ -3580,12 +3602,15 @@
     "reject": "Отклонить",
     "confirm": "Подтвердить",
     "title": {
-      "signature": "Запрос подписи"
+      "signature": "Запрос подписи",
+      "signature_siwe": "Запрос на вход"
     },
     "sub_title": {
-      "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса."
+      "signature": "Прежде чем подтвердить запрос, просмотрите детали запроса.",
+      "signature_siwe": "Сайт хочет, чтобы вы вошли в систему, чтобы доказать, что вы являетесь владельцем этого счета."
     },
     "request_from": "Запрос от",
+    "signing_in_with": "Вход через",
     "message": "Сообщение",
     "primary_type": "Первичный тип",
     "personal_sign_tooltip": "Этот сайт запрашивает вашу подпись",
@@ -3593,6 +3618,19 @@
     "account": "Счет",
     "balance": "Баланс",
     "network": "Сеть",
+    "qr_get_sign": "Получить подпись",
+    "qr_scan_text": "Отсканируйте с помощью вашего аппаратного кошелька",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Сеть",
+      "account": "Счет",
+      "version": "Версия",
+      "chain_id": "ID блокчейна",
+      "nonce": "Одноразовый код",
+      "issued": "Выпущено",
+      "requestId": "ID запроса",
+      "resources": "Ресурсы"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "NFT отобразится в вашем кошельке, когда ставка будет принята.",
       "decoded_tooltip_list_nft": "Ожидайте изменений, только если кто-то купит ваши NFT.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Недоступно"
     },
     "unlimited": "Неограничено",
-    "none": "None"
+    "none": "Нет"
   },
   "change_in_simulation_modal": {
     "title": "Результаты изменились",

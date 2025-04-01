@@ -29,6 +29,39 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AuthenticationController": {
         "isSignedIn": false,
       },
+      "BridgeController": {
+        "bridgeFeatureFlags": {
+          "extensionConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+          "mobileConfig": {
+            "chains": {},
+            "maxRefreshCount": 5,
+            "refreshRate": 30000,
+            "support": false,
+          },
+        },
+        "quoteFetchError": null,
+        "quoteRequest": {
+          "slippage": 0.5,
+          "srcTokenAddress": "0x0000000000000000000000000000000000000000",
+        },
+        "quotes": [],
+        "quotesInitialLoadTime": null,
+        "quotesLastFetched": null,
+        "quotesLoadingStatus": null,
+        "quotesRefreshCount": 0,
+      },
+      "BridgeStatusController": {
+        "txHistory": {},
+      },
+      "CronjobController": {
+        "events": {},
+        "jobs": {},
+      },
       "CurrencyRateController": {
         "currencyRates": {
           "ETH": {
@@ -38,6 +71,49 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
         },
         "currentCurrency": "usd",
+      },
+      "EarnController": {
+        "lastUpdated": 0,
+        "pooled_staking": {
+          "exchangeRate": "1",
+          "isEligible": false,
+          "pooledStakes": {
+            "account": "",
+            "assets": "0",
+            "exitRequests": [],
+            "lifetimeRewards": "0",
+          },
+          "vaultApyAverages": {
+            "oneDay": "0",
+            "oneMonth": "0",
+            "oneWeek": "0",
+            "oneYear": "0",
+            "sixMonths": "0",
+            "threeMonths": "0",
+          },
+          "vaultDailyApys": [],
+          "vaultMetadata": {
+            "apy": "0",
+            "capacity": "0",
+            "feePercent": 0,
+            "totalAssets": "0",
+            "vaultAddress": "0x0000000000000000000000000000000000000000",
+          },
+        },
+        "stablecoin_lending": {
+          "vaults": [
+            {
+              "chainId": 0,
+              "currentAPY": "0",
+              "liquidity": "0",
+              "name": "",
+              "supply": "0",
+              "symbol": "",
+              "tokenAddress": "",
+              "vaultAddress": "",
+            },
+          ],
+        },
       },
       "GasFeeController": {
         "estimatedGasFeeTimeBounds": {},
@@ -54,6 +130,37 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "LoggingController": {
         "logs": {},
+      },
+      "MultichainAssetsController": {
+        "accountsAssets": {},
+        "assetsMetadata": {},
+      },
+      "MultichainAssetsRatesController": {
+        "conversionRates": {},
+      },
+      "MultichainBalancesController": {
+        "balances": {},
+      },
+      "MultichainNetworkController": {
+        "isEvmSelected": true,
+        "multichainNetworkConfigurationsByChainId": {
+          "bip122:000000000019d6689c085ae165831e93": {
+            "chainId": "bip122:000000000019d6689c085ae165831e93",
+            "isEvm": false,
+            "name": "Bitcoin Mainnet",
+            "nativeCurrency": "bip122:000000000019d6689c085ae165831e93/slip44:0",
+          },
+          "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": {
+            "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+            "isEvm": false,
+            "name": "Solana Mainnet",
+            "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+          },
+        },
+        "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+      },
+      "MultichainTransactionsController": {
+        "nonEvmTransactions": {},
       },
       "NetworkController": {
         "networkConfigurationsByChainId": {
@@ -136,6 +243,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "NotificationServicesPushController": {
         "fcmToken": "",
+        "isPushEnabled": true,
+        "isUpdatingFCMToken": false,
       },
       "PPOMController": {
         "storageMetadata": [],
@@ -191,6 +300,23 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "useTokenDetection": true,
         "useTransactionSimulations": true,
       },
+      "RatesController": {
+        "cryptocurrencies": [
+          "btc",
+          "sol",
+        ],
+        "fiatCurrency": "usd",
+        "rates": {
+          "btc": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+          "sol": {
+            "conversionDate": 0,
+            "conversionRate": 0,
+          },
+        },
+      },
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
@@ -237,6 +363,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "snapStates": {},
         "snaps": {},
         "unencryptedSnapStates": {},
+      },
+      "SnapInterfaceController": {
+        "interfaces": {},
       },
       "SnapsRegistry": {
         "database": null,
@@ -310,6 +439,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "TokenRatesController": {
         "marketData": {},
       },
+      "TokenSearchDiscoveryController": {
+        "lastSearchTimestamp": null,
+        "recentSearches": [],
+      },
       "TransactionController": {
         "lastFetchedBlockNumbers": {},
         "methodData": {},
@@ -318,6 +451,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "UserStorageController": {
         "hasAccountSyncingSyncedAtLeastOnce": false,
+        "isAccountSyncingInProgress": false,
         "isAccountSyncingReadyToBeDispatched": false,
         "isProfileSyncingEnabled": true,
         "isProfileSyncingUpdateLoading": false,

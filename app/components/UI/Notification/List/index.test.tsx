@@ -68,7 +68,7 @@ jest.mock('../NotificationMenuItem', () => ({
 
 function arrangeActions() {
   const mockMarkNotificationAsRead = jest
-    .spyOn(Actions, 'markMetamaskNotificationsAsRead')
+    .spyOn(Actions, 'markNotificationsAsRead')
     .mockResolvedValue(undefined);
 
   return {

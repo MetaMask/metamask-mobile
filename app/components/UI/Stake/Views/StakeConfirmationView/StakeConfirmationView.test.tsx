@@ -79,11 +79,11 @@ describe('StakeConfirmationView', () => {
       route: {
         key: '1',
         params: {
-          amountWei: '3210000000000000',
-          amountFiat: '7.46',
-          annualRewardRate: '2.5%',
-          annualRewardsETH: '2.5 ETH',
-          annualRewardsFiat: '$5000',
+          amountWei: '10000000000000000',
+          amountFiat: '26.21',
+          annualRewardRate: '2.6%',
+          annualRewardsETH: '0.00026 ETH',
+          annualRewardsFiat: '$0.68',
         },
         name: 'params',
       },

@@ -27,10 +27,7 @@ import { PROVIDER_LINKS } from '../types';
 import Account from './Account';
 import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 import { getOrderAmount } from '../utils';
-import {
-  selectNetworkConfigurations,
-  selectProviderConfig,
-} from '../../../../selectors/networkController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import ListItem from '../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -245,9 +242,10 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
   } = order;
   const { colors } = useTheme();
   const trackEvent = useAnalytics();
-  const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const explorer = useBlockExplorer(providerConfig, networkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const explorer = useBlockExplorer(networkConfigurations);
   const styles = createStyles(colors);
   const date = createdAt && toDateFormat(createdAt);
   const renderAmount = getOrderAmount(order);

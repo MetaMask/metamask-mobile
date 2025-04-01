@@ -18,6 +18,7 @@ import BottomSheet, {
 import AccountAction from '../AccountAction/AccountAction';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import {
+  findBlockExplorerForNonEvmAccount,
   findBlockExplorerForRpc,
   getBlockExplorerName,
 } from '../../../util/networks';
@@ -54,6 +55,7 @@ import Engine from '../../../core/Engine';
 import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -83,17 +85,64 @@ const AccountActions = () => {
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
 
-  const blockExplorer = useMemo(() => {
-    if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
-      return findBlockExplorerForRpc(
-        providerConfig.rpcUrl,
-        networkConfigurations,
-      );
-    }
-    return null;
-  }, [networkConfigurations, providerConfig.rpcUrl, providerConfig.type]);
+  const blockExplorer:
+    | {
+        url: string;
+        title: string;
+        blockExplorerName: string;
+      }
+    | undefined = useMemo(() => {
+    if (selectedAccount) {
+      if (isEvmAccountType(selectedAccount.type)) {
+        if (providerConfig?.rpcUrl && providerConfig.type === RPC) {
+          const explorer = findBlockExplorerForRpc(
+            providerConfig.rpcUrl,
+            networkConfigurations,
+          );
 
-  const blockExplorerName = getBlockExplorerName(blockExplorer);
+          if (!explorer) {
+            return undefined;
+          }
+
+          return {
+            url: `${explorer}/address/${selectedAccount.address}`,
+            title: new URL(explorer).hostname,
+            blockExplorerName:
+              getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
+          };
+        }
+
+        const url = getEtherscanAddressUrl(
+          providerConfig.type,
+          selectedAccount.address,
+        );
+        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
+          'https://',
+          '',
+        );
+        return {
+          url,
+          title: etherscan_url,
+          blockExplorerName: getBlockExplorerName(url) ?? etherscan_url,
+        };
+      }
+      const explorer = findBlockExplorerForNonEvmAccount(selectedAccount);
+      if (explorer) {
+        return {
+          url: explorer,
+          title: new URL(explorer).hostname,
+          blockExplorerName:
+            getBlockExplorerName(explorer) ?? new URL(explorer).hostname,
+        };
+      }
+      return undefined;
+    }
+  }, [
+    networkConfigurations,
+    providerConfig.rpcUrl,
+    providerConfig.type,
+    selectedAccount,
+  ]);
 
   const goToBrowserUrl = (url: string, title: string) => {
     navigate('Webview', {
@@ -105,24 +154,11 @@ const AccountActions = () => {
     });
   };
 
-  const viewInEtherscan = () => {
+  const viewOnBlockExplorer = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (blockExplorer) {
-        const url = `${blockExplorer}/address/${selectedAddress}`;
-        const title = new URL(blockExplorer).hostname;
-        goToBrowserUrl(url, title);
-      } else {
-        const url = getEtherscanAddressUrl(
-          providerConfig.type,
-          selectedAddress,
-        );
-        const etherscan_url = getEtherscanBaseUrl(providerConfig.type).replace(
-          'https://',
-          '',
-        );
-        goToBrowserUrl(url, etherscan_url);
+        goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
-
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
@@ -368,15 +404,13 @@ const AccountActions = () => {
           onPress={goToEditAccountName}
           testID={AccountActionsBottomSheetSelectorsIDs.EDIT_ACCOUNT}
         />
-        {isExplorerVisible && (
+        {isExplorerVisible && blockExplorer && (
           <AccountAction
-            actionTitle={
-              (blockExplorer &&
-                `${strings('drawer.view_in')} ${blockExplorerName}`) ||
-              strings('drawer.view_in_etherscan')
-            }
+            actionTitle={`${strings('drawer.view_in')} ${
+              blockExplorer.blockExplorerName
+            }`}
             iconName={IconName.Export}
-            onPress={viewInEtherscan}
+            onPress={viewOnBlockExplorer}
             testID={AccountActionsBottomSheetSelectorsIDs.VIEW_ETHERSCAN}
           />
         )}

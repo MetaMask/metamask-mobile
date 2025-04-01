@@ -1,11 +1,9 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import AggregatedPercentage, {
-  AggregatedPercentageProps,
-} from './AggregatedPercentage';
+import AggregatedPercentage from './AggregatedPercentage';
 import { createStore } from 'redux';
 import initialBackgroundState from '../../../../util/test/initial-background-state.json';
-
+import { AggregatedPercentageProps } from './AggregatedPercentage.types';
 const mockInitialState = {
   wizard: {
     step: 1,

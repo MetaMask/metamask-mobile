@@ -15,6 +15,8 @@ import {
   NavigationProp,
   ParamListBase,
 } from '@react-navigation/native';
+import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
+import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -24,6 +26,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     NetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+    MultichainNetworkController: {
       setActiveNetwork: jest.fn(),
     },
   },
@@ -82,6 +87,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockInitialState,
@@ -98,6 +104,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockSepoliaNetworkState,
@@ -108,10 +115,14 @@ describe('StakingButtons', () => {
     });
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
       screen: Routes.STAKING.STAKE,
+      params: {
+        action: EARN_INPUT_VIEW_ACTIONS.STAKE,
+        token: MOCK_ETH_MAINNET_ASSET,
+      },
     });
   });
 
@@ -123,6 +134,7 @@ describe('StakingButtons', () => {
       style: {},
       hasStakedPositions: true,
       hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
     };
     const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
       state: mockSepoliaNetworkState,
@@ -133,9 +145,12 @@ describe('StakingButtons', () => {
     });
 
     expect(
-      Engine.context.NetworkController.setActiveNetwork,
+      Engine.context.MultichainNetworkController.setActiveNetwork,
     ).toHaveBeenCalledWith('mainnet');
     expect(navigate).toHaveBeenCalledWith('StakeScreens', {
+      params: {
+        token: MOCK_ETH_MAINNET_ASSET,
+      },
       screen: Routes.STAKING.UNSTAKE,
     });
   });

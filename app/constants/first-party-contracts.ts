@@ -5,16 +5,19 @@ import { NETWORKS_CHAIN_ID } from './network';
  * A map of first-party contract names to their addresses on various chains.
  */
 const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
-  'MetaMask Validator Staking': {
+  'Validator Staking': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0xDc71aFFC862fceB6aD32BE58E098423A7727bEbd',
   },
-  'MetaMask Pool Staking': {
+  'Pooled Staking': {
+    [NETWORKS_CHAIN_ID.MAINNET]: '0x4FEF9D741011476750A243aC70b9789a63dd47Df',
+  },
+  'Third Party Staking': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0x1f6692E78dDE07FF8da75769B6d7c716215bC7D0',
   },
-  'MetaMask Pool Staking (v1)': {
+  'Pool Staking (v1)': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0xc7bE520a13dC023A1b34C03F4Abdab8A43653F7B',
   },
-  'MetaMask Bridge': {
+  'Bridge': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0x0439e60F02a8900a951603950d8D4527f400C3f1',
     [NETWORKS_CHAIN_ID.OPTIMISM]: '0xB90357f2b86dbfD59c3502215d4060f71DF8ca0e',
     [NETWORKS_CHAIN_ID.BSC]: '0xaEc23140408534b378bf5832defc426dF8604B59',
@@ -28,7 +31,7 @@ const FIRST_PARTY_CONTRACT_NAMES: Record<string, Record<Hex, Hex>> = {
     [NETWORKS_CHAIN_ID.BASE]: '0xa20ECbC821fB54064aa7B5C6aC81173b8b34Df71',
     [NETWORKS_CHAIN_ID.ARBITRUM]: '0x23981fC34e69eeDFE2BD9a0a9fCb0719Fe09DbFC',
   },
-  'MetaMask Swaps': {
+  'Swaps': {
     [NETWORKS_CHAIN_ID.MAINNET]: '0x881D40237659C251811CEC9c364ef91dC08D300C',
     [NETWORKS_CHAIN_ID.BSC]: '0x1a1ec25DC08e98e5E93F1104B5e5cdD298707d31',
     [NETWORKS_CHAIN_ID.POLYGON]: '0x1a1ec25DC08e98e5E93F1104B5e5cdD298707d31',

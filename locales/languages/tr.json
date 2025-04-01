@@ -1118,7 +1118,6 @@
     "security_alerts": "Güvenlik uyarıları",
     "security_alerts_desc": "Bu özellik, işlem ve imza taleplerinizi yerel olarak incelerken gizliliğinizi koruyarak Ethereum Ana Ağındaki kötü amaçlı aktivitelere karşı sizi uyarır. Talepleri onaylamadan önce her zaman gereken özeni kendiniz gösterin. Bu özelliğin tüm kötü amaçlı faaliyetleri algılayacağına dair herhangi bir garanti bulunmamaktadır. Bu özelliği etkinleştirerek sağlayıcının kullanım koşullarını kabul etmiş olursunuz.",
     "smart_transactions_opt_in_heading": "Akıllı İşlemler",
-    "smart_transactions_opt_in_desc": "Daha güvenilir ve emniyetli işlemler için Ethereum Ana Ağı üzerinde Akıllı İşlemleri açın.",
     "smart_transactions_learn_more": "Daha fazla bilgi edinin.",
     "simulation_details": "Bakiye değişikliklerini tahmin edin",
     "simulation_details_description": "İşlemleri onaylamadan önce işlemlerin neden olacağı bakiye değişikliklerini tahmin etmek için bunu açın. İşlemlerinizin nihai sonucunu garanti etmez. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} teklif",
     "view_details": "Ayrıntıları görüntüle",
     "estimated_gas_fee": "Tahmini gaz ücreti",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Maks. gaz ücreti",
     "edit": "Düzenle",
     "quotes_include_fee": "%{{fee}} MetaMask ücreti tekliflere dahildir",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Swap gerçekleştirmek için dokun",
     "swipe_to_swap": "Swap gerçekleştirmek için kaydır",
     "swipe_to": "Swap gerçekleştirmek için",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Swap işlemleri genellikle zamana duyarlıdır. “Yüksek”, piyasa koşullarındaki değişikliklerden kaynaklanan olası zararları önlemeye yardımcı olacaktır.",
     "recommended": "Önerilir",
     "recommended_gas": "Önerilen gaz ücreti",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Tahmini gaz ücretleri",
     "gas_education_1": "Gaz ücretleri",
     "gas_education_2_ethereum": "Ethereum ağında işlem gerçekleştiren kripto madencilerine ödenir.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Yeterli ETH yok",
     "balance": "Bakiye",
     "stake_eth_and_earn": "ETH stake et ve kazan",
-    "stake_any_amount_of_eth": "Dilediğiniz tutarda ETH stake edin",
+    "stake_any_amount_of_eth": "Dilediğiniz tutarda ETH stake edin.",
     "no_minimum_required": "Gerekli minimum yoktur.",
-    "earn_eth_rewards": "ETH ödüllerini kazan",
+    "earn_eth_rewards": "ETH ödüllerini kazanın.",
     "earn_eth_rewards_description": "Stake eder etmez kazanmaya başlayın. Ödüller otomatik olarak birleştirilir.",
-    "flexible_unstaking": "Esnek unstake",
+    "flexible_unstaking": "Esnek unstake.",
     "flexible_unstaking_description": "Dilediğiniz zaman unstake edin. Gerçekleşmesi genellikle 3 günden kısa sürer ancak 11 güne kadar da sürebilir.",
     "disclaimer": "Stake, ödülleri garanti etmez ve para kaybını da içeren riskler taşır.",
     "learn_more": "Daha fazla bilgi edinin",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 ila 11 gün",
     "proceed_anyway": "Yine de devam et",
     "gas_cost_impact": "Gaz maliyeti etkisi",
-    "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın %30'undan fazlası olacaktır."
+    "gas_cost_impact_warning": "Uyarı: İşlemin gaz maliyeti yatırdığınız paranın %{{percentOverDeposit}} fazlası olacaktır.",
+    "view_earnings_history": "Kazanç geçmişini görüntüle",
+    "earnings_history_title": "{{ticker}} kazançları",
+    "earnings_history_list_title": "Ödeme geçmişi",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7G",
+        "1M": "1A",
+        "3M": "3A",
+        "6M": "6A"
+      }
+    },
+    "today": "Bugün",
+    "one_week_average": "1 haftalık ortalama",
+    "one_month_average": "1 aylık ortalama",
+    "three_month_average": "3 aylık ortalama",
+    "six_month_average": "6 aylık ortalama",
+    "one_year_average": "1 yıllık ortalama"
   },
   "default_settings": {
     "title": "Cüzdanınız hazır",
@@ -3580,12 +3602,15 @@
     "reject": "Reddet",
     "confirm": "Onayla",
     "title": {
-      "signature": "İmza talebi"
+      "signature": "İmza talebi",
+      "signature_siwe": "Giriş talebi"
     },
     "sub_title": {
-      "signature": "Onaylamadan önce talep bilgilerini inceleyin."
+      "signature": "Onaylamadan önce talep bilgilerini inceleyin.",
+      "signature_siwe": "Bir site, bu hesabın sahibinin siz olduğunuzu kanıtlamak için giriş yapmanızı istiyor."
     },
     "request_from": "Talebi gönderen",
+    "signing_in_with": "Şununla giriş yapılıyor:",
     "message": "Mesaj",
     "primary_type": "Birincil tür",
     "personal_sign_tooltip": "Bu site imzanızı istiyor",
@@ -3593,6 +3618,19 @@
     "account": "Hesap",
     "balance": "Bakiye",
     "network": "Ağ",
+    "qr_get_sign": "İmza Al",
+    "qr_scan_text": "Donanım cüzdanınızla tarayın",
+    "siwe_message": {
+      "url": "URL Adresi",
+      "network": "Ağ",
+      "account": "Hesap",
+      "version": "Sürüm",
+      "chain_id": "Zincir Kimliği",
+      "nonce": "Nonce",
+      "issued": "Düzenlendi",
+      "requestId": "Talep Kimliği",
+      "resources": "Kaynaklar"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Teklif kabul edildiğinde NFT cüzdanınıza yansıyacak.",
       "decoded_tooltip_list_nft": "Sadece biri NFT'lerinizi satın alırsa değişiklik olmasını bekleyin.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Mevcut değil"
     },
     "unlimited": "Sınırsız",
-    "none": "None"
+    "none": "Hiçbiri"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",

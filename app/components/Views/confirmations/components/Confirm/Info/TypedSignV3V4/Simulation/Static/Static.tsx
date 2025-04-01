@@ -1,19 +1,14 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { useStyles } from '../../../../../../../../../component-library/hooks';
 import InfoRow from '../../../../../UI/InfoRow';
 import InfoSection from '../../../../../UI/InfoRow/InfoSection';
-import Loader from '../../../../../../../../../component-library/components-temp/Loader';
 
 const styleSheet = () => StyleSheet.create({
   base: {
     display: 'flex',
     justifyContent: 'space-between',
-  },
-  loaderContainer: {
-    display: 'flex',
-    justifyContent: 'center',
   },
 });
 
@@ -32,7 +27,7 @@ const StaticSimulation: React.FC<{
   isLoading,
   isCollapsed = false,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
 
   return(
     <View style={isCollapsed ? styles.base : {}}>
@@ -41,9 +36,10 @@ const StaticSimulation: React.FC<{
           {description}
         </InfoRow>
         {isLoading ? (
-          <View style={styles.loaderContainer}>
-            <Loader size={'small'} />
-          </View>
+          <ActivityIndicator
+            size="small"
+            color={theme.colors.warning.default}
+          />
         ) : (
           simulationElements
           )}

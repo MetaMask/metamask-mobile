@@ -10,10 +10,31 @@ import TypedSignV3V4 from './TypedSignV3V4';
 
 jest.mock('../../../../../../../core/Engine', () => ({
   resetState: jest.fn(),
+  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
+    KeyringController: {
+      state: {
+        keyrings: [],
+      },
+      getOrAddQRKeyring: jest.fn(),
+    },
     NetworkController: {
       findNetworkClientIdByChainId: () => 123,
     },
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '1': {
+              address: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+            },
+          },
+        },
+      },
+    },
+  },
+  controllerMessenger: {
+    subscribe: jest.fn(),
   },
 }));
 
@@ -22,7 +43,7 @@ jest.mock('../../../../hooks/useTokenDecimalsInTypedSignRequest', () => ({
 }));
 
 describe('TypedSignV3V4', () => {
-  it('should contained required text', async () => {
+  it('contains required text', () => {
     const { getByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV3ConfirmationState,
     });
@@ -44,7 +65,7 @@ describe('TypedSignV3V4', () => {
     expect(queryByText('Mail')).toBeNull();
   });
 
-  it('should show detailed message when message section is clicked', async () => {
+  it('shows detailed message when message section is clicked', () => {
     const { getByText, getAllByText } = renderWithProvider(<TypedSignV3V4 />, {
       state: typedSignV4ConfirmationState,
     });

@@ -317,7 +317,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -438,7 +438,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Bold",
                                         "fontSize": 22,
                                         "fontWeight": "700",
@@ -470,7 +470,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -485,7 +485,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -501,7 +501,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -517,7 +517,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -533,7 +533,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -549,7 +549,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -570,7 +570,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     numberOfLines={2}
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#4459ff",
                                         "flex": 1,
                                         "flexWrap": "wrap",
                                         "fontFamily": "EuclidCircularB-Regular",

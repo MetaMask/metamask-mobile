@@ -1,5 +1,5 @@
 import React from 'react';
-import { cloneDeep } from 'lodash';
+import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
@@ -22,7 +22,7 @@ import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
 import { RampSDK } from '../../sdk';
-import useQuotes from '../../hooks/useQuotes';
+import useSortedQuotes from '../../hooks/useSortedQuotes';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -69,6 +69,7 @@ jest.mock('@react-navigation/native', () => {
         pop: mockPop,
       }),
     }),
+    useFocusEffect: jest.fn((callback) => callback()),
   };
 });
 
@@ -120,18 +121,28 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
-const mockUseQuotesInitialValues: Partial<ReturnType<typeof useQuotes>> = {
-  data: mockQuotesData as (QuoteResponse | QuoteError)[],
+const mockUseSortedQuotesInitialValues: Partial<
+  ReturnType<typeof useSortedQuotes>
+> = {
+  quotes: mockQuotesData as (QuoteResponse | QuoteError)[],
+  quotesWithoutError: mockQuotesData as QuoteResponse[],
+  quotesWithError: [],
+  quotesByPriceWithoutError: mockQuotesData as QuoteResponse[],
+  quotesByReliabilityWithoutError: mockQuotesData as QuoteResponse[],
+  recommendedQuote: mockQuotesData[1] as QuoteResponse,
+  sorted: [],
   isFetching: false,
   error: null,
   query: mockQueryGetQuotes,
 };
 
-let mockUseQuotesValues: Partial<ReturnType<typeof useQuotes>> = {
-  ...mockUseQuotesInitialValues,
+let mockUseSortedQuotesValues: Partial<ReturnType<typeof useSortedQuotes>> = {
+  ...mockUseSortedQuotesInitialValues,
 };
 
-jest.mock('../../hooks/useQuotes', () => jest.fn(() => mockUseQuotesValues));
+jest.mock('../../hooks/useSortedQuotes', () =>
+  jest.fn(() => mockUseSortedQuotesValues),
+);
 
 describe('Quotes', () => {
   afterEach(() => {
@@ -150,19 +161,24 @@ describe('Quotes', () => {
     mockUseParamsValues = {
       ...mockUseParamsInitialValues,
     };
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
     };
   });
 
   it('calls setOptions when rendering', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
       isFetching: true,
-      data: undefined,
+      quotes: undefined,
+      quotesWithoutError: [],
+      quotesWithError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
     };
     render(Quotes);
-    expect(mockSetOptions).toBeCalledTimes(1);
+    expect(mockSetOptions).toHaveBeenCalled();
   });
 
   it('navigates and tracks event on cancel button press', async () => {
@@ -172,7 +188,8 @@ describe('Quotes', () => {
     expect(mockTrackEvent).toBeCalledWith('ONRAMP_CANCELED', {
       chain_id_destination: '1',
       location: 'Quotes Screen',
-      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+      results_count:
+        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -188,7 +205,8 @@ describe('Quotes', () => {
     expect(mockTrackEvent).toBeCalledWith('OFFRAMP_CANCELED', {
       chain_id_source: '1',
       location: 'Quotes Screen',
-      results_count: mockQuotesData.filter((quote) => !quote.error).length,
+      results_count:
+        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -197,10 +215,10 @@ describe('Quotes', () => {
 
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
       isFetching: true,
-      data: undefined,
+      quotes: undefined,
     };
     render(Quotes);
     const fetchingQuotesText = screen.getByText('Fetching quotes');
@@ -209,9 +227,12 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation without quotes', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      data: [],
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
+      quotesWithoutError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
     };
     render(Quotes);
     act(() => {
@@ -225,7 +246,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly after animation with quotes', async () => {
+  it('renders correctly after animation with the recommended quote', async () => {
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
@@ -237,14 +258,7 @@ describe('Quotes', () => {
     });
   });
 
-  it('renders correctly after animation with quotes and expanded', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      data: [
-        ...mockQuotesData.slice(0, 2),
-        { ...mockQuotesData[2], error: false },
-      ] as (QuoteResponse | QuoteError)[],
-    };
+  it('renders correctly after animation with expanded quotes', async () => {
     render(Quotes);
     fireEvent.press(
       screen.getByRole('button', { name: 'Explore more options' }),
@@ -280,13 +294,40 @@ describe('Quotes', () => {
     });
   });
 
+  it('calls hardware back handler ', async () => {
+    const backHandlerMock = jest.spyOn(BackHandler, 'addEventListener');
+    const removeMock = jest.fn();
+
+    backHandlerMock.mockImplementation((event, handler) => {
+      if (event === 'hardwareBackPress') {
+        handler();
+        return { remove: removeMock } as NativeEventSubscription;
+      }
+      return { remove: jest.fn() } as NativeEventSubscription;
+    });
+
+    const { unmount } = render(Quotes);
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Explore more options' }),
+    );
+    backHandlerMock.mock.calls[0][1]();
+    unmount();
+    expect(removeMock).toHaveBeenCalled();
+    backHandlerMock.mockRestore();
+  });
+
   const simulateQuoteSelection = async (
     browser: ProviderBuyFeatureBrowserEnum,
   ) => {
-    // Mock the functions for the 2nd mocked quote
-    const mockData = cloneDeep(mockQuotesData);
-    const mockedQuote = mockData[1] as QuoteResponse;
-    const mockQuoteProviderName = mockedQuote.provider?.name as string;
+    const mockedRecommendedQuote =
+      mockUseSortedQuotesInitialValues.recommendedQuote;
+
+    if (!mockedRecommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockQuoteProviderName = mockedRecommendedQuote?.provider
+      ?.name as string;
 
     const mockedBuyAction = {
       browser,
@@ -298,11 +339,12 @@ describe('Quotes', () => {
         }),
     };
 
-    mockedQuote.buy = () => Promise.resolve(mockedBuyAction);
+    (mockedRecommendedQuote as QuoteResponse).buy = () =>
+      Promise.resolve(mockedBuyAction);
 
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
-      data: mockData as (QuoteResponse | QuoteError)[],
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
+      recommendedQuote: mockedRecommendedQuote,
     };
     render(Quotes);
     act(() => {
@@ -322,16 +364,16 @@ describe('Quotes', () => {
       fireEvent.press(quoteContinueButton);
     });
 
-    return { mockedQuote, mockedBuyAction };
+    return { mockedRecommendedQuote, mockedBuyAction };
   };
 
   it('navigates and tracks events when pressing buy button with app browser quote', async () => {
-    const { mockedQuote } = await simulateQuoteSelection(
+    const { mockedRecommendedQuote } = await simulateQuoteSelection(
       ProviderBuyFeatureBrowserEnum.AppBrowser,
     );
     expect(mockNavigate).toBeCalledTimes(1);
     expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
-      provider: mockedQuote.provider,
+      provider: mockedRecommendedQuote.provider,
       customOrderId: 'test-order-id',
       url: 'https://test-url.on-ramp.metamask',
     });
@@ -346,12 +388,15 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -376,12 +421,15 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -389,15 +437,16 @@ describe('Quotes', () => {
   });
 
   it('calls renderInAppBrowser hook and tracks events when pressing buy button with in-app browser quote', async () => {
-    const { mockedQuote, mockedBuyAction } = await simulateQuoteSelection(
-      ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
-    );
+    const { mockedRecommendedQuote, mockedBuyAction } =
+      await simulateQuoteSelection(
+        ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+      );
 
     expect(mockRenderInAppBrowser).toBeCalledWith(
       mockedBuyAction,
-      mockedQuote.provider,
-      mockedQuote.amountIn,
-      mockedQuote.fiat?.symbol,
+      mockedRecommendedQuote.provider,
+      mockedRecommendedQuote.amountIn,
+      mockedRecommendedQuote.fiat?.symbol,
     );
 
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
@@ -411,12 +460,15 @@ describe('Quotes', () => {
           "currency_source": "USD",
           "exchange_rate": 2809.8765432098767,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_onramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -441,12 +493,15 @@ describe('Quotes', () => {
           "exchange_rate": 2809.8765432098767,
           "fiat_out": 0.0162,
           "gas_fee": 2.64,
+          "is_best_rate": true,
+          "is_most_reliable": true,
+          "is_recommended": true,
           "payment_method_id": "/payment-methods/test-payment-method",
           "processing_fee": 1.8399999999999999,
           "provider_offramp": "MoonPay (Staging)",
-          "quote_position": 2,
+          "quote_position": 1,
           "refresh_count": 1,
-          "results_count": 2,
+          "results_count": 3,
           "total_fee": 4.48,
         },
       ]
@@ -460,21 +515,27 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
 
-    const mockQuoteProvider = mockQuotesData[0]
-      .provider as QuoteResponse['provider'];
+    const mockRecommendedQuote = mockUseSortedQuotesValues.recommendedQuote;
+
+    if (!mockRecommendedQuote) {
+      throw new Error('No recommended quote found');
+    }
+
+    const mockRecommendedProvider =
+      mockRecommendedQuote.provider as QuoteResponse['provider'];
 
     const descriptionNotFound = screen.queryByText(
-      mockQuoteProvider.description,
+      mockRecommendedProvider.description,
     );
     expect(descriptionNotFound).toBeFalsy();
 
     const quoteProviderLogo = screen.getByLabelText(
-      `${mockQuoteProvider.name} logo`,
+      `${mockRecommendedProvider.name} logo`,
     );
 
     fireEvent.press(quoteProviderLogo);
 
-    const description = screen.queryByText(mockQuoteProvider.description);
+    const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();
 
     act(() => {
@@ -536,41 +597,33 @@ describe('Quotes', () => {
           "ONRAMP_QUOTES_RECEIVED",
           {
             "amount": 50,
-            "average_crypto_out": 0.016671,
-            "average_gas_fee": 1.32,
-            "average_processing_fee": 1.455,
-            "average_total_fee": 2.7750000000000004,
-            "average_total_fee_of_amount": 202.50619012432108,
+            "average_crypto_out": 0.016416043333333335,
+            "average_gas_fee": 1.0466666666666666,
+            "average_processing_fee": 2.89,
+            "average_total_fee": 3.936666666666667,
+            "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_destination": "1",
             "currency_destination": "ETH",
             "currency_source": "USD",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_onramp_best_price": "Banxa (Staging)",
             "provider_onramp_first": "Banxa (Staging)",
-            "provider_onramp_last": "MoonPay (Staging)",
+            "provider_onramp_last": "Transak (Staging)",
             "provider_onramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
+              "Transak (Staging)",
             ],
+            "provider_onramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
-            "quotes_amount_last": 0.0162,
+            "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
               0.017142,
               0.0162,
+              0.01590613,
             ],
             "refresh_count": 1,
-            "results_count": 2,
-          },
-        ],
-        [
-          "ONRAMP_QUOTE_ERROR",
-          {
-            "amount": 50,
-            "chain_id_destination": "1",
-            "currency_destination": "ETH",
-            "currency_source": "USD",
-            "error_message": undefined,
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_onramp": "Transak (Staging)",
+            "results_count": 3,
           },
         ],
       ]
@@ -595,41 +648,33 @@ describe('Quotes', () => {
           "OFFRAMP_QUOTES_RECEIVED",
           {
             "amount": 50,
-            "average_fiat_out": 0.016671,
-            "average_gas_fee": 1.32,
-            "average_processing_fee": 1.455,
-            "average_total_fee": 2.7750000000000004,
-            "average_total_fee_of_amount": 202.50619012432108,
+            "average_fiat_out": 0.016416043333333335,
+            "average_gas_fee": 1.0466666666666666,
+            "average_processing_fee": 2.89,
+            "average_total_fee": 3.936666666666667,
+            "average_total_fee_of_amount": 382.4978079068538,
             "chain_id_source": "1",
             "currency_destination": "USD",
             "currency_source": "ETH",
             "payment_method_id": "/payment-methods/test-payment-method",
+            "provider_offramp_best_price": "Banxa (Staging)",
             "provider_offramp_first": "Banxa (Staging)",
-            "provider_offramp_last": "MoonPay (Staging)",
+            "provider_offramp_last": "Transak (Staging)",
             "provider_offramp_list": [
               "Banxa (Staging)",
               "MoonPay (Staging)",
+              "Transak (Staging)",
             ],
+            "provider_offramp_most_reliable": "MoonPay (Staging)",
             "quotes_amount_first": 0.017142,
-            "quotes_amount_last": 0.0162,
+            "quotes_amount_last": 0.01590613,
             "quotes_amount_list": [
               0.017142,
               0.0162,
+              0.01590613,
             ],
             "refresh_count": 1,
-            "results_count": 2,
-          },
-        ],
-        [
-          "OFFRAMP_QUOTE_ERROR",
-          {
-            "amount": 50,
-            "chain_id_source": "1",
-            "currency_destination": "USD",
-            "currency_source": "ETH",
-            "error_message": undefined,
-            "payment_method_id": "/payment-methods/test-payment-method",
-            "provider_offramp": "Transak (Staging)",
+            "results_count": 3,
           },
         ],
       ]
@@ -668,8 +713,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly when fetching quotes errors', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
@@ -680,8 +725,8 @@ describe('Quotes', () => {
   });
 
   it('fetches quotes again when pressing button after fetching quotes errors', async () => {
-    mockUseQuotesValues = {
-      ...mockUseQuotesInitialValues,
+    mockUseSortedQuotesValues = {
+      ...mockUseSortedQuotesInitialValues,
       error: 'Test Error',
     };
     render(Quotes);

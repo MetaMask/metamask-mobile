@@ -57,14 +57,12 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import AnimatedFox from '../../Base/AnimatedFox';
 
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { enableProfileSyncing } from '../../../actions/identity';
-import {MetricsEventBuilder} from '../../../core/Analytics/MetricsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -74,6 +72,7 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       marginBottom: 10,
+      marginTop: 16,
     },
     scrollableWrapper: {
       flex: 1,
@@ -374,7 +373,6 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         new_wallet: true,
       });
-      await enableProfileSyncing();
     } catch (error) {
       try {
         await this.recreateVault('');
@@ -576,15 +574,11 @@ class ChoosePassword extends PureComponent {
         {loading ? (
           <View style={styles.loadingWrapper}>
             <View style={styles.foxWrapper}>
-              {Device.isAndroid() ? (
-                <Image
-                  source={require('../../../images/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              ) : (
-                <AnimatedFox bgColor={colors.background.default} />
-              )}
+              <Image
+                source={require('../../../images/branding/fox.png')}
+                style={styles.image}
+                resizeMethod={'auto'}
+              />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
             <Text variant={TextVariant.HeadingLG} style={styles.title}>

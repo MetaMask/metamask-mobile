@@ -96,7 +96,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
   const [permittedAccountsAddresses, setPermittedAccountsAddresses] = useState<
     string[]
   >([]);
-  const { accounts } = useAccounts({
+  const { evmAccounts: accounts } = useAccounts({
     isLoading: false,
   });
 

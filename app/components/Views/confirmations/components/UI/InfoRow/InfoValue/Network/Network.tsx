@@ -1,10 +1,11 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../../../component-library/components/Avatars/Avatar';
+import Text from '../../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../../component-library/hooks';
 import useNetworkInfo from '../../../../../hooks/useNetworkInfo';
 import styleSheet from './Network.styles';

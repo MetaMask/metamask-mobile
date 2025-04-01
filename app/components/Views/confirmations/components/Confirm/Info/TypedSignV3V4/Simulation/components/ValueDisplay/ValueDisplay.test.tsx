@@ -17,6 +17,17 @@ const mockInitialState = {
   },
 };
 
+const mockErc20TokenDetails = {
+  details: {
+    symbol: 'TST',
+    decimals: '4',
+    balance: undefined,
+    standard: TokenStandard.ERC20,
+    decimalsNumber: 4,
+  },
+  isPending: false,
+};
+
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../../../../../../hooks/useMetrics');
@@ -58,20 +69,11 @@ describe('SimulationValueDisplay', () => {
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
-    ).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
-      isPending: false,
-    });
+    ).mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -90,7 +92,7 @@ describe('SimulationValueDisplay', () => {
 
     const { findByTestId } = renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -101,22 +103,46 @@ describe('SimulationValueDisplay', () => {
     expect(await findByTestId('simulation-value-display-loader')).toBeDefined();
   });
 
-  it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
+  it('renders null when tokenContract is not found', async () => {
+    const { queryByTestId } = renderWithProvider(
+      <SimulationValueDisplay
+        modalHeaderText={'Spending Cap'}
+        tokenContract={undefined}
+        value={'4321'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId('simulation-value-display-loader')).toBeNull();
+  });
+
+  it('renders no value display if no value was loaded', () => {
     (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
+      details: { decimalsNumber: undefined },
       isPending: false,
     });
+
+    const { queryByTestId } = renderWithProvider(
+      <SimulationValueDisplay
+        modalHeaderText={'Spending Cap'}
+        tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
+        value={''}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+    expect(queryByTestId('simulation-value-display-loader')).toBeNull();
+  });
+
+  it('renders "Unlimited" for large values when canDisplayValueAsUnlimited is true', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
 
     const { findByText } = renderWithProvider(
       <SimulationValueDisplay
         canDisplayValueAsUnlimited
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'1461501637330902918203684832716283019655932542975'}
         chainId={'0x1'}
@@ -124,6 +150,63 @@ describe('SimulationValueDisplay', () => {
       { state: mockInitialState },
     );
 
+    expect(await findByText('Unlimited')).toBeDefined();
+  });
+
+  it('renders Dai Revoke', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Revoke'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={'12345'}
+        chainId={'0x1'}
+        allowed={false}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
+  });
+
+  it('renders Dai Revoke when value is 0', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Revoke'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={'0'}
+        chainId={'0x1'}
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
+  });
+
+  it('renders Dai Approve', async () => {
+    (useGetTokenStandardAndDetails as jest.MockedFn<typeof useGetTokenStandardAndDetails>)
+      .mockReturnValue(mockErc20TokenDetails);
+
+    const { findByText } = renderWithProvider(
+      <SimulationValueDisplay
+        canDisplayValueAsUnlimited
+        modalHeaderText={'Spending cap'}
+        tokenContract={'0x6b175474e89094c44da98b954eedeac495271d0f'}
+        value={undefined}
+        chainId={'0x1'}
+        allowed
+      />,
+      { state: mockInitialState },
+    );
+
+    expect(await findByText('0x6B175...71d0F')).toBeDefined();
     expect(await findByText('Unlimited')).toBeDefined();
   });
 
@@ -145,7 +228,7 @@ describe('SimulationValueDisplay', () => {
 
     renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -161,20 +244,11 @@ describe('SimulationValueDisplay', () => {
       useGetTokenStandardAndDetails as jest.MockedFn<
         typeof useGetTokenStandardAndDetails
       >
-    ).mockReturnValue({
-      details: {
-        symbol: 'TST',
-        decimals: '4',
-        balance: undefined,
-        standard: TokenStandard.ERC20,
-        decimalsNumber: 4,
-      },
-      isPending: false,
-    });
+    ).mockReturnValue(mockErc20TokenDetails);
 
     renderWithProvider(
       <SimulationValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
         value={'4321'}
         chainId={'0x1'}
@@ -197,7 +271,7 @@ describe('SimulationValueDisplay', () => {
     it('does not invoke method to track missing decimal information', async () => {
       renderWithProvider(
         <SimulationValueDisplay
-          labelChangeType={'Withdraw'}
+          modalHeaderText={'Withdraw'}
           tokenContract={'0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'}
           tokenId={'1234'}
           value={'4321'}

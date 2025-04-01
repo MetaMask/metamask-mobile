@@ -7,6 +7,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
+import SettingsView from '../../pages/Settings/SettingsView';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
@@ -25,6 +26,8 @@ import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import Assertions from '../../utils/Assertions';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 
 import Tenderly from '../../tenderly';
 
@@ -32,7 +35,8 @@ const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
 describe(Regression('Multiple Swaps from Actions'), () => {
-  let educationModalTapped = false;
+  const FIRST_ROW = 0;
+  const SECOND_ROW = 1;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
   const wallet = ethers.Wallet.createRandom();
 
@@ -58,6 +62,13 @@ describe(Regression('Multiple Swaps from Actions'), () => {
 
   afterAll(async () => {
     await stopFixtureServer(fixtureServer);
+  });
+
+  it('should turn off stx', async () => {
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapAdvancedTitle();
+    await AdvancedSettingsView.tapSmartTransactionSwitch();
+    await TabBarComponent.tapWallet();
   });
 
   it('should be able to import account', async () => {
@@ -106,7 +117,7 @@ describe(Regression('Multiple Swaps from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-
+        await TestHelpers.delay(2000);
         await QuoteView.selectToken(sourceTokenSymbol);
       }
       await QuoteView.enterSwapAmount(quantity);
@@ -154,32 +165,14 @@ describe(Regression('Multiple Swaps from Actions'), () => {
       await Assertions.checkIfVisible(
         ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
       );
-      // TODO: Commenting this out until Tenderly issue is resolved
-      //await Assertions.checkIfElementToHaveText(ActivitiesView.firstTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
+      await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
 
       // Check the token approval completed
       if (type === 'unapproved') {
         await Assertions.checkIfVisible(
           ActivitiesView.tokenApprovalActivity(sourceTokenSymbol),
         );
-        // TODO: Commenting this out until Tenderly issue is resolved
-        //await Assertions.checkIfElementToHaveText(ActivitiesView.secondTransactionStatus, ActivitiesViewSelectorsText.CONFIRM_TEXT, 60000);
-      }
-
-      // TODO: The following hack is needed to update the token balance until bug 13187 is fixed
-      await TabBarComponent.tapWallet();
-      await WalletView.tapNetworksButtonOnNavBar();
-      await NetworkListModal.changeNetworkTo('Localhost', false);
-      if (!educationModalTapped) {
-        await NetworkEducationModal.tapGotItButton();
-      }
-      await NetworkListModal.changeNetworkTo(
-        network.providerConfig.nickname,
-        false,
-      );
-      if (!educationModalTapped) {
-        await NetworkEducationModal.tapGotItButton();
-        educationModalTapped = true;
+        await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(SECOND_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
       }
     },
   );

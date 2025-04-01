@@ -1,13 +1,20 @@
 import { StyleSheet } from 'react-native';
-
-import Device from '../../../../util/device';
 import { Theme } from '../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme }) => {
+const styleSheet = (params: {
+  theme: Theme;
+}) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    mainContainer: {
+    bottomSheetDialogSheet: {
+      backgroundColor: theme.colors.background.alternative,
+    },
+    confirmContainer: {
+      display: 'flex',
+      maxHeight: '100%',
+    },
+    flatContainer: {
       position: 'absolute',
       top: 0,
       left: 0,
@@ -16,17 +23,9 @@ const styleSheet = (params: { theme: Theme }) => {
       zIndex: 9999,
       backgroundColor: theme.colors.background.alternative,
       justifyContent: 'space-between',
-      paddingHorizontal: 16,
     },
-    container: {
-      backgroundColor: theme.colors.background.alternative,
+    scrollView: {
       paddingHorizontal: 16,
-      paddingVertical: 24,
-      minHeight: '70%',
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      paddingBottom: Device.isIphoneX() ? 20 : 0,
-      justifyContent: 'space-between',
     },
   });
 };

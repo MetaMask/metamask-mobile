@@ -178,8 +178,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.38.1"
-        versionCode 1533
+        versionName "7.43.0"
+        versionCode 1656
         testBuildType System.getProperty('testBuildType', 'debug')
         missingDimensionStrategy 'react-native-camera', 'general'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -255,7 +255,12 @@ android {
             dimension "version"
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
-            signingConfig signingConfigs.flask
+            // Use the appropriate signing config based on environment
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.flask
+            }
           }
     	  }
 
@@ -288,7 +293,7 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-    androidTestImplementation('com.wix:detox-legacy:+') {
+    androidTestImplementation('com.wix:detox:+') {
          exclude module: "protobuf-lite"
      }
     androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')

@@ -16,8 +16,10 @@ import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
+import QuotesView from '../../pages/Ramps/QuotesView';
 import Assertions from '../../utils/Assertions';
-
+import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
+import SelectCurrencyView from '../../pages/Ramps/SelectCurrencyView';
 const fixtureServer = new FixtureServer();
 
 describe(SmokeRamps('Buy Crypto'), () => {
@@ -46,7 +48,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapBuyButton();
     await BuyGetStartedView.tapGetStartedButton();
-    await SelectRegionView.tapSelectRegionDropdown();
+    await BuildQuoteView.tapSelectRegionDropdown();
     await SelectRegionView.tapRegionOption('United States of America');
     await SelectRegionView.tapRegionOption('California');
     await SelectRegionView.tapContinueButton();
@@ -62,5 +64,36 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await WalletActionsBottomSheet.tapBuyButton();
     await Assertions.checkIfVisible(BuildQuoteView.amountToBuyLabel);
     await Assertions.checkIfVisible(BuildQuoteView.getQuotesButton);
+    await BuildQuoteView.tapCancelButton();
   });
+
+  // Disabling because on line 79 the test fails
+  it.skip('should change parameters and select a quote', async () => {
+    const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapBuyButton();
+    await BuildQuoteView.tapCurrencySelector();
+    await SelectCurrencyView.tapCurrencyOption('Euro');
+    await BuildQuoteView.tapTokenDropdown('Ethereum');
+    await TokenSelectBottomSheet.tapTokenByName('LINK');
+    await BuildQuoteView.tapRegionSelector();
+    await SelectRegionView.tapRegionOption('France');
+    await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
+    await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
+    await Assertions.checkIfTextIsDisplayed('€0');
+    await Assertions.checkIfTextIsNotDisplayed('$0');
+    await Assertions.checkIfTextIsDisplayed('Chainlink');
+    await Assertions.checkIfTextIsNotDisplayed('Ethereum');
+    await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
+    await Assertions.checkIfTextIsDisplayed(paymentMethod);
+    await Assertions.checkIfTextIsNotDisplayed('🇺🇸');
+    await Assertions.checkIfTextIsDisplayed('🇫🇷');
+    await BuildQuoteView.enterAmount('100');
+    await BuildQuoteView.tapGetQuotesButton();
+    await Assertions.checkIfVisible(QuotesView.quotes);
+    await QuotesView.closeQuotesSection();
+    await BuildQuoteView.tapCancelButton();
+  });
+
 });

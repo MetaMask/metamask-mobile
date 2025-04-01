@@ -126,7 +126,7 @@ describe('NotificationManager', () => {
       expect(message).toBe(strings('notifications.default_message_description'));
     });
   });
-  
+
   describe('smartTransactionListener', () => {
     const mockTransactionController = {
       getTransactions: jest.fn(),
@@ -172,7 +172,7 @@ describe('NotificationManager', () => {
     beforeEach(() => {
       // Clear all mock interactions before each test
       jest.clearAllMocks();
-      
+
       // Reset the notification manager before each test
       notificationManager = NotificationManager.init({
         navigation: mockNavigation,
@@ -197,14 +197,14 @@ describe('NotificationManager', () => {
         transactionId: '0x123',
       };
 
-      notificationManager.watchSubmittedTransaction({ 
+      notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
           nonce: '0x1'
         },
         silent: false
       });
-      
+
       // Get the subscriber callback
       const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(transaction);
@@ -217,7 +217,7 @@ describe('NotificationManager', () => {
     });
 
     it('shows a cancelled notification for cancelled smart transactions', async () => {
-      const mockTransaction = { 
+      const mockTransaction = {
         id: '0x123',
         txParams: {
           nonce: '0x1'
@@ -230,14 +230,14 @@ describe('NotificationManager', () => {
         transactionId: '0x123',
       };
 
-      notificationManager.watchSubmittedTransaction({ 
+      notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
           nonce: '0x1'
         },
         silent: false
       });
-      
+
       // Get the subscriber callback
       const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(smartTransaction);
@@ -256,14 +256,14 @@ describe('NotificationManager', () => {
         transactionId: '0x123',
       };
 
-      notificationManager.watchSubmittedTransaction({ 
+      notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
           nonce: '0x1'
         },
         silent: false
       });
-      
+
       // Get the subscriber callback
       const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(transaction);
@@ -275,7 +275,7 @@ describe('NotificationManager', () => {
     });
 
     it('sets up transaction event listeners correctly', () => {
-      const transaction = { 
+      const transaction = {
         id: '0x123',
         txParams: {
           nonce: '0x1'

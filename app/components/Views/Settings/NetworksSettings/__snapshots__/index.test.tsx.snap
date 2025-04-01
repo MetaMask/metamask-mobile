@@ -137,7 +137,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,7 +178,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
@@ -382,10 +382,10 @@ exports[`NetworksSettings should render correctly 1`] = `
                         style={
                           {
                             "alignItems": "center",
-                            "borderColor": "#848c96",
+                            "borderColor": "#b7bbc8",
                             "borderRadius": 5,
                             "borderWidth": 1,
-                            "color": "#141618",
+                            "color": "#121314",
                             "flexDirection": "row",
                             "paddingHorizontal": 10,
                             "paddingVertical": 10,
@@ -397,7 +397,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontSize": 20,
                               },
                               undefined,
@@ -417,11 +417,11 @@ exports[`NetworksSettings should render correctly 1`] = `
                           onChangeText={[Function]}
                           onFocus={[Function]}
                           placeholder="Search"
-                          placeholderTextColor="#141618"
+                          placeholderTextColor="#121314"
                           style={
                             {
-                              "borderColor": "#848c96",
-                              "color": "#141618",
+                              "borderColor": "#b7bbc8",
+                              "color": "#121314",
                               "flex": 1,
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
@@ -438,7 +438,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
@@ -485,7 +485,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -501,7 +501,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontSize": 20,
                                     },
                                     {
@@ -557,7 +557,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -573,7 +573,81 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
+                                      "fontSize": 20,
+                                    },
+                                    {
+                                      "marginLeft": 8,
+                                    },
+                                    {
+                                      "fontFamily": "FontAwesome",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              disabled={true}
+                              onPress={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "flexDirection": "row",
+                                  "opacity": 0.5,
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 0,
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <View>
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                      }
+                                    }
+                                  >
+                                    Solana Mainnet
+                                  </Text>
+                                </View>
+                              </View>
+                              <Text
+                                allowFontScaling={false}
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
                                       "fontSize": 20,
                                     },
                                     {
@@ -595,7 +669,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
@@ -635,7 +709,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -649,7 +723,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontSize": 20,
                                       },
                                       {
@@ -699,7 +773,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -713,7 +787,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontSize": 20,
                                       },
                                       {
@@ -749,7 +823,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                 "padding": 15,
                               },
                               {
-                                "backgroundColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
                                 "minHeight": 50,
                               },
                               undefined,

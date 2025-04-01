@@ -1,0 +1,245 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEnabled is true 1`] = `
+<View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 8,
+        "marginBottom": 8,
+        "paddingBottom": 8,
+        "paddingHorizontal": 8,
+        "paddingTop": 12,
+      }
+    }
+    testID="info-section"
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 8,
+        }
+      }
+      testID="info-row"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "display": "flex",
+            "flexDirection": "row",
+            "minHeight": 38,
+            "paddingEnd": 4,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Account
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        0x935E7...05477
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 8,
+        }
+      }
+      testID="info-row"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "display": "flex",
+            "flexDirection": "row",
+            "minHeight": 38,
+            "paddingEnd": 4,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Balance
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        $0.00
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 8,
+        "marginBottom": 8,
+        "paddingBottom": 8,
+        "paddingHorizontal": 8,
+        "paddingTop": 12,
+      }
+    }
+    testID="info-section"
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "flexWrap": "wrap",
+          "justifyContent": "space-between",
+          "paddingBottom": 8,
+          "paddingHorizontal": 8,
+        }
+      }
+      testID="info-row"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "display": "flex",
+            "flexDirection": "row",
+            "minHeight": 38,
+            "paddingEnd": 4,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Network
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderRadius": 8,
+              "height": 16,
+              "justifyContent": "center",
+              "overflow": "hidden",
+              "width": 16,
+            }
+          }
+        >
+          <Image
+            onError={[Function]}
+            resizeMode="contain"
+            source={1}
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            testID="network-avatar-image"
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginLeft": 8,
+            }
+          }
+        >
+          Ethereum Mainnet
+        </Text>
+      </View>
+    </View>
+  </View>
+</View>
+`;

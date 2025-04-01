@@ -1,7 +1,6 @@
 import wallet_switchEthereumChain from './wallet_switchEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
-import MetaMetrics from '../Analytics/MetaMetrics';
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
@@ -19,6 +18,9 @@ jest.mock('../Engine', () => ({
     NetworkController: {
       setActiveNetwork: jest.fn(),
       getNetworkClientById: jest.fn(),
+    },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
     },
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
@@ -58,19 +60,6 @@ jest.mock('../../store', () => ({
     })),
   },
 }));
-
-jest.mock('../Analytics/MetaMetrics');
-
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockReturnValue({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnThis(),
-});
-
-MetaMetrics.getInstance = jest.fn().mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: mockCreateEventBuilder,
-});
 
 const correctParams = {
   chainId: '0x1',
@@ -160,7 +149,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
       .mockReturnValue({ configuration: { chainId: '0x1' } });
     const spyOnSetActiveNetwork = jest.spyOn(
-      Engine.context.NetworkController,
+      Engine.context.MultichainNetworkController,
       'setActiveNetwork',
     );
     await wallet_switchEthereumChain({
@@ -202,7 +191,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .mockReturnValue({ value: ['0x64'] });
 
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       await wallet_switchEthereumChain({
@@ -234,7 +223,7 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         .spyOn(Engine.context.NetworkController, 'getNetworkClientById')
         .mockReturnValue({ configuration: { chainId: '0x1' } });
       const spyOnSetActiveNetwork = jest.spyOn(
-        Engine.context.NetworkController,
+        Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
       jest

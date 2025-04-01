@@ -3,6 +3,7 @@
 // Third party dependencies.
 import React from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import { useComponentSize, useStyles } from '../../hooks';
@@ -22,11 +23,14 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   children,
   startAccessory,
   endAccessory,
+  includesTopInset = false,
 }) => {
   const { size: startAccessorySize, onLayout: startAccessoryOnLayout } =
     useComponentSize();
   const { size: endAccessorySize, onLayout: endAccessoryOnLayout } =
     useComponentSize();
+  const insets = useSafeAreaInsets();
+
   const { styles } = useStyles(styleSheet, {
     style,
     startAccessorySize,
@@ -34,7 +38,10 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   });
 
   return (
-    <View style={styles.base} testID={HEADERBASE_TEST_ID}>
+    <View
+      style={[styles.base, includesTopInset && { marginTop: insets.top }]}
+      testID={HEADERBASE_TEST_ID}
+    >
       <View style={styles.accessoryWrapper}>
         <View onLayout={startAccessoryOnLayout}>{startAccessory}</View>
       </View>

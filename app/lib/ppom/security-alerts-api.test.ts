@@ -1,9 +1,8 @@
 import {
   Reason,
   ResultType,
-} from '../../components/Views/confirmations/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import {
-  getSecurityAlertsAPISupportedChainIds,
   validateWithSecurityAlertsAPI,
 } from './security-alerts-api';
 
@@ -66,33 +65,6 @@ describe('Security Alerts API', () => {
 
       await expect(responsePromise).rejects.toThrow(
         'Security alerts API request failed with status: 567',
-      );
-    });
-  });
-
-  describe('getSecurityAlertsAPISupportedChainIds', () => {
-    it('sends GET request', async () => {
-      const SUPPORTED_CHAIN_IDS_MOCK = ['0x1', '0x2'];
-      fetchMock.mockResolvedValue({
-        ok: true,
-        json: async () => SUPPORTED_CHAIN_IDS_MOCK,
-      });
-      const response = await getSecurityAlertsAPISupportedChainIds();
-
-      expect(response).toEqual(SUPPORTED_CHAIN_IDS_MOCK);
-
-      expect(fetchMock).toHaveBeenCalledTimes(1);
-      expect(fetchMock).toHaveBeenCalledWith(
-        `https://example.com/supportedChains`,
-        undefined,
-      );
-    });
-
-    it('throws an error if response is not ok', async () => {
-      fetchMock.mockResolvedValue({ ok: false, status: 404 });
-
-      await expect(getSecurityAlertsAPISupportedChainIds()).rejects.toThrow(
-        'Security alerts API request failed with status: 404',
       );
     });
   });

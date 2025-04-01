@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import ButtonIcon, {
   ButtonIconSizes,
@@ -9,6 +9,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../BottomModal';
 import styleSheet from './ExpandableSection.styles';
@@ -38,7 +39,7 @@ const ExpandableSection = ({
   const [expanded, setExpanded] = useState(false);
 
   const iconStyle =
-    iconVerticalPosition === IconVerticalPosition.Top ? { top: 18 } : {};
+    iconVerticalPosition === IconVerticalPosition.Top ? { top: 20 } : {};
 
   return (
     <>
@@ -64,7 +65,7 @@ const ExpandableSection = ({
         </View>
       </TouchableOpacity>
       {expanded && (
-        <BottomModal onClose={() => setExpanded(false)} canCloseOnBackdropClick>
+        <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <ButtonIcon

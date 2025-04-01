@@ -238,7 +238,7 @@ const jetifyTask = {
 const patchPackageTask = {
   title: 'Patch npm packages',
   task: async () => {
-    await $`yarn patch-package`;
+    await $`yarn patch-package --error-on-fail`;
   },
 };
 

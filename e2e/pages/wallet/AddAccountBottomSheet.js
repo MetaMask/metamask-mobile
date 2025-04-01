@@ -8,17 +8,29 @@ class AddAccountBottomSheet {
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );
   }
+
   get createAccountButton() {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
     );
   }
 
+  get importSrpButton() {
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+    );
+  }
+
   async tapImportAccount() {
     await Gestures.waitAndTap(this.importAccountButton);
   }
+
   async tapCreateAccount() {
     await Gestures.waitAndTap(this.createAccountButton);
+  }
+
+  async tapImportSrp() {
+    await Gestures.waitAndTap(this.importSrpButton);
   }
 }
 

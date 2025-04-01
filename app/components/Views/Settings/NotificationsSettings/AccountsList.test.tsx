@@ -1,88 +1,155 @@
 import React from 'react';
-import renderWithProvider, { DeepPartial } from '../../../../util/test/renderWithProvider';
-import { AccountsList } from './AccountsList';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { ACCOUNT_LIST_ITEM_TEST_ID, AccountsList } from './AccountsList';
+// eslint-disable-next-line import/no-namespace
+import * as AccountListHooksModule from './AccountsList.hooks';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-import { Account } from '../../../../components/hooks/useAccounts/useAccounts.types';
-import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import { Hex } from '@metamask/utils';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { toChecksumAddress } from 'ethereumjs-util';
-import { RootState } from '../../../../reducers';
-import { backgroundState } from '../../../../util/test/initial-root-state';
+// eslint-disable-next-line import/no-namespace
+import * as useSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
+import {
+  NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID,
+  NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
+  NOTIFICATION_OPTIONS_TOGGLE_TEST_ID,
+} from './NotificationOptionToggle';
 
-const MOCK_ACCOUNT_ADDRESSES = Object.values(
-  MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-).map((account) => account.address);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockVar = any;
 
-const MOCK_ACCOUNT_1: Account = {
-  name: 'Account 1',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[0]) as Hex,
-  type: KeyringTypes.hd,
-  yOffset: 0,
-  isSelected: false,
-  assets: {
-    fiatBalance: '\n0 ETH',
-  },
-  balanceError: undefined,
+jest.mock(
+  '../../../../util/notifications/hooks/useSwitchNotifications',
+  () => ({
+    useAccountNotificationsToggle: jest.fn(),
+  }),
+);
+
+const ADDRESS_1 = '0xb2B92547A92C1aC55EAe3F6632Fa1aF87dc05a29';
+const ADDRESS_2 = '0x700CcD8172BC3807D893883a730A1E0E6630F8EC';
+
+const ACCOUNT_1_TEST_ID = {
+  item: NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+  ),
+  itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+  ),
+  itemSwitch: NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_1),
+  ),
 };
-const MOCK_ACCOUNT_2: Account = {
-  name: 'Account 2',
-  address: toChecksumAddress(MOCK_ACCOUNT_ADDRESSES[1]) as Hex,
-  type: KeyringTypes.hd,
-  yOffset: 78,
-  isSelected: true,
-  assets: {
-    fiatBalance: '\n< 0.00001 ETH',
-  },
-  balanceError: undefined,
-};
-
-const MOCK_ACCOUNTS = [MOCK_ACCOUNT_1, MOCK_ACCOUNT_2];
-
-const mockInitialState: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      NotificationServicesController: {
-        metamaskNotificationsList: [],
-      },
-    },
-  },
+const ACCOUNT_2_TEST_ID = {
+  item: NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+  ),
+  itemLoading: NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+  ),
+  itemSwitch: NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(
+    ACCOUNT_LIST_ITEM_TEST_ID(ADDRESS_2),
+  ),
 };
 
-describe('AccountsList', () => {
-  it('matches snapshot', () => {
+describe('AccountList', () => {
+  const arrangeMocks = () => {
+    const createMockAccounts = (addresses: string[]) =>
+      addresses.map((address, idx) => ({
+        address,
+        name: `My Account ${idx}`,
+      }));
 
-    const { toJSON } = renderWithProvider(
-      <AccountsList
-        accounts={MOCK_ACCOUNTS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
-        accountSettingsData={{}}
-        updateAndfetchAccountSettings={jest.fn()}
-        isUpdatingMetamaskNotificationsAccount={[]}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
-    expect(toJSON()).toMatchSnapshot();
+    const mockUseAccountProps = jest
+      .spyOn(AccountListHooksModule, 'useAccountProps')
+      .mockReturnValue({
+        accounts: createMockAccounts([ADDRESS_1, ADDRESS_2]) as MockVar,
+        accountAvatarType: AvatarAccountType.JazzIcon,
+        accountAddresses: [ADDRESS_1, ADDRESS_2],
+      });
+
+    const mockRefetchAccountSettings = jest.fn();
+    const createUseNotificationAccountListProps = () => ({
+      isAnyAccountLoading: false,
+      refetchAccountSettings: mockRefetchAccountSettings,
+      isAccountLoading: jest
+        .fn()
+        .mockImplementation((address) => address === ADDRESS_1),
+      isAccountEnabled: jest
+        .fn()
+        .mockImplementation((address) => address === ADDRESS_1),
+    });
+    const mockUseNotificationAccountListProps = jest
+      .spyOn(AccountListHooksModule, 'useNotificationAccountListProps')
+      .mockReturnValue(createUseNotificationAccountListProps());
+
+    const mockOnToggle = jest.fn();
+    const mockUseUpdateAccountSettings = jest
+      .spyOn(useSwitchNotificationsModule, 'useAccountNotificationsToggle')
+      .mockReturnValue({
+        onToggle: mockOnToggle,
+        error: null,
+        loading: false,
+      });
+
+    return {
+      createMockAccounts,
+      mockUseAccountProps,
+      mockRefetchAccountSettings,
+      createUseNotificationAccountListProps,
+      mockUseNotificationAccountListProps,
+      mockOnToggle,
+      mockUseUpdateAccountSettings,
+    };
+  };
+
+  it('renders correctly', async () => {
+    arrangeMocks();
+    const { getByTestId, queryByTestId } = render(<AccountsList />);
+
+    // Assert - Items exist
+    expect(getByTestId(ACCOUNT_1_TEST_ID.item)).toBeTruthy();
+    expect(getByTestId(ACCOUNT_2_TEST_ID.item)).toBeTruthy();
+
+    // Assert - Item Loading
+    expect(getByTestId(ACCOUNT_1_TEST_ID.itemLoading)).toBeTruthy();
+
+    expect(queryByTestId(ACCOUNT_2_TEST_ID.itemLoading)).toBe(null);
+
+    // Assert - Item Switch
+    expect(queryByTestId(ACCOUNT_1_TEST_ID.itemSwitch)).toBe(null); // We are loading, so this is null
+    expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.value).toBe(false); // The switch is set to false
   });
 
-  it('triggers updateAndfetchAccountSettings on mount', () => {
-    const updateAndfetchAccountSettings = jest.fn();
-    renderWithProvider(
-      <AccountsList
-        accounts={MOCK_ACCOUNTS}
-        accountAvatarType={AvatarAccountType.JazzIcon}
-        accountSettingsData={{}}
-        updateAndfetchAccountSettings={updateAndfetchAccountSettings}
-        isUpdatingMetamaskNotificationsAccount={[]}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
+  it('disable switches when any account is loading', () => {
+    const mocks = arrangeMocks();
+    mocks.mockUseNotificationAccountListProps.mockReturnValue({
+      ...mocks.createUseNotificationAccountListProps(),
+      isAnyAccountLoading: true,
+      isAccountLoading: () => false,
+    });
 
-    expect(updateAndfetchAccountSettings).toHaveBeenCalledTimes(1);
+    const { getByTestId } = render(<AccountsList />);
+
+    // Assert switches are disabled since we are loading
+    expect(getByTestId(ACCOUNT_1_TEST_ID.itemSwitch).props.disabled).toBe(true);
+    expect(getByTestId(ACCOUNT_2_TEST_ID.itemSwitch).props.disabled).toBe(true);
+  });
+
+  it('invokes switch toggle logic when clicked', async () => {
+    const mocks = arrangeMocks();
+    mocks.mockUseNotificationAccountListProps.mockReturnValue({
+      ...mocks.createUseNotificationAccountListProps(),
+      isAnyAccountLoading: false,
+      isAccountLoading: () => false,
+    });
+
+    const { getByTestId } = render(<AccountsList />);
+
+    // Act
+    const toggleSwitch = getByTestId(ACCOUNT_1_TEST_ID.itemSwitch);
+    fireEvent(toggleSwitch, 'onChange', { nativeEvent: { value: false } });
+
+    // Assert account was toggled, and we refetch all account notification toggles
+    await waitFor(() => {
+      expect(mocks.mockOnToggle).toHaveBeenCalled();
+      expect(mocks.mockRefetchAccountSettings).toHaveBeenCalled();
+    });
   });
 });

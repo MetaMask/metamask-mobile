@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { GasFeeState } from '@metamask/gas-fee-controller';
 import {
   MessageParamsPersonal,
   MessageParamsTyped,
@@ -6,8 +6,31 @@ import {
   SignatureRequestStatus,
   SignatureRequestType,
 } from '@metamask/signature-controller';
+import {
+  TransactionControllerState,
+  TransactionEnvelopeType,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { Hex } from '@metamask/utils';
 
 import { backgroundState } from './initial-root-state';
+import { merge } from 'lodash';
+
+export const confirmationRedesignRemoteFlagsState = {
+  remoteFeatureFlags: {
+    confirmation_redesign: {
+      signatures: true,
+      staking_transactions: true,
+    },
+  },
+};
+
+const mockTypeDefEIP712Domain = [
+  { name: 'name', type: 'string' },
+  { name: 'version', type: 'string' },
+  { name: 'chainId', type: 'uint256' },
+  { name: 'verifyingContract', type: 'address' }
+];
 
 export const personalSignSignatureRequest = {
   chainId: '0x1',
@@ -61,11 +84,7 @@ export const personalSignatureConfirmationState = {
         approvalFlows: [],
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
+        ...confirmationRedesignRemoteFlagsState,
       },
       SignatureController: {
         signatureRequests: {
@@ -226,11 +245,7 @@ export const typedSignV1ConfirmationState = {
         },
       },
       RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
-        },
+        ...confirmationRedesignRemoteFlagsState,
       },
     },
   },
@@ -326,9 +341,7 @@ export const typedSignV3ConfirmationState = {
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          confirmation_redesign: {
-            signatures: true,
-          },
+          ...confirmationRedesignRemoteFlagsState,
         },
       },
     },
@@ -401,6 +414,73 @@ export const typedSignV4ConfirmationState = {
   },
 };
 
+export const typedSignV4NFTSignatureRequest = {
+  id: 'c5067710-87cf-11ef-916c-71f266571322',
+  chainId: '0x1' as Hex,
+  type: SignatureRequestType.TypedSign,
+  messageParams: {
+    data: '{"domain":{"name":"Uniswap V3 Positions NFT-V1","version":"1","chainId":1,"verifyingContract":"0xC36442b4a4522E871399CD717aBDD847Ab11FE88"},"types":{"Permit":[{"name":"spender","type":"address"},{"name":"tokenId","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","message":{"spender":"0x00000000Ede6d8D217c60f93191C060747324bca","tokenId":"3606393","nonce":"0","deadline":"1734995006"}}',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    version: 'V4',
+    requestId: 14,
+    signatureMethod: 'eth_signTypedData_v4',
+    origin: 'https://metamask.github.io',
+    metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+    meta: {
+      url: 'https://metamask.github.io/test-dapp/',
+      title: 'E2E Test Dapp',
+      icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+      analytics: { request_source: 'In-App-Browser' },
+    },
+  },
+  networkClientId: '1',
+  status: SignatureRequestStatus.Unapproved,
+  time: 1733143817088,
+} as SignatureRequest;
+
+export const typedSignV4NFTConfirmationState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          'c5067710-87cf-11ef-916c-71f266571322': {
+            id: 'c5067710-87cf-11ef-916c-71f266571322',
+            origin: 'metamask.github.io',
+            type: SignatureRequestType.TypedSign,
+            time: 1733143817088,
+            requestData: {
+              data: '{"domain":{"name":"Uniswap V3 Positions NFT-V1","version":"1","chainId":1,"verifyingContract":"0xC36442b4a4522E871399CD717aBDD847Ab11FE88"},"types":{"Permit":[{"name":"spender","type":"address"},{"name":"tokenId","type":"uint256"},{"name":"nonce","type":"uint256"},{"name":"deadline","type":"uint256"}]},"primaryType":"Permit","message":{"spender":"0x00000000Ede6d8D217c60f93191C060747324bca","tokenId":"3606393","nonce":"0","deadline":"1734995006"}}',
+              from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+              version: 'V4',
+              requestId: 2874791875,
+              signatureMethod: 'eth_signTypedData_v4',
+              origin: 'https://metamask.github.io',
+              metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+              meta: {
+                url: 'https://metamask.github.io/test-dapp/',
+                title: 'E2E Test Dapp',
+                icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+                analytics: { request_source: 'In-App-Browser' },
+              },
+            },
+            requestState: null,
+            expectsResult: true,
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      SignatureController: {
+        signatureRequests: {
+          'c5067710-87cf-11ef-916c-71f266571322':
+            typedSignV4NFTSignatureRequest,
+        },
+      },
+    },
+  },
+};
+
 export const securityAlertResponse = {
   block: 21572398,
   result_type: 'Malicious',
@@ -432,3 +512,365 @@ export const securityAlertResponse = {
   },
   chainId: '0x1',
 };
+
+const stakingConfirmationBaseState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      ApprovalController: {
+        pendingApprovals: {
+          '699ca2f0-e459-11ef-b6f6-d182277cf5e1': {
+            expectsResult: true,
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            origin: 'metamask',
+            requestData: { txId: '699ca2f0-e459-11ef-b6f6-d182277cf5e1' },
+            requestState: null,
+            time: 1738825814816,
+            type: 'transaction',
+          },
+        },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+      CurrencyRateController: {
+        currentCurrency: 'usd',
+        currencyRates: {
+          ETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+          LineaETH: {
+            conversionDate: 1732887955.694,
+            conversionRate: 3596.25,
+            usdConversionRate: 3596.25,
+          },
+        },
+      },
+      TransactionController: {
+        transactions: [
+          {
+            actionId: undefined,
+            chainId: '0x1',
+            dappSuggestedGasFees: undefined,
+            defaultGasEstimates: {
+              estimateType: 'medium',
+              gas: '0x1a5bd',
+              gasPrice: undefined,
+              maxFeePerGas: '0x74594b20',
+              maxPriorityFeePerGas: '0x1dcd6500',
+            },
+            deviceConfirmedOn: 'metamask_mobile',
+            gasLimitNoBuffer: '0x11929',
+            id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+            isFirstTimeInteraction: undefined,
+            networkClientId: 'mainnet',
+            origin: 'metamask',
+            originalGasEstimate: '0x1a5bd',
+            securityAlertResponse: undefined,
+            simulationFails: undefined,
+            status: 'unapproved',
+            time: 1738825814687,
+            txParams: {
+              data: '0xf9609f08000000000000000000000000dc47789de4ceff0e8fe9d15d728af7f17550c1640000000000000000000000000000000000000000000000000000000000000000',
+              from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164',
+              gas: '0x1a5bd',
+              maxFeePerGas: '0x84594b20',
+              maxPriorityFeePerGas: '0x4dcd6500',
+              to: '0x4fef9d741011476750a243ac70b9789a63dd47df',
+              value: '0x5af3107a4000',
+              type: TransactionEnvelopeType.feeMarket,
+            },
+            type: TransactionType.stakingUnstake,
+            userEditedGasLimit: false,
+            userFeeLevel: 'medium',
+            verifiedOnBlockchain: false,
+            gasFeeEstimates: {
+              high: {
+                maxFeePerGas: '0xd0f5f04a',
+                maxPriorityFeePerGas: '0x77359400',
+              },
+              low: {
+                maxFeePerGas: '0x274d76df',
+                maxPriorityFeePerGas: '0x47be0d',
+              },
+              medium: {
+                maxFeePerGas: '0x559ab26a',
+                maxPriorityFeePerGas: '0x1dcd6500',
+              },
+              type: 'fee-market',
+            },
+          },
+        ],
+      } as unknown as TransactionControllerState,
+      RemoteFeatureFlagController: {
+        ...confirmationRedesignRemoteFlagsState,
+      },
+      NetworkController: {
+        networksMetadata: {
+          mainnet: {
+            EIPS: { 1559: true },
+          },
+          sepolia: {
+            EIPS: { 1559: true },
+          },
+        },
+        networkConfigurationsByChainId: {
+          '0x1': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+              },
+            ],
+          },
+          '0xaa36a7': {
+            nativeCurrency: 'ETH',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+              },
+            ],
+          },
+        },
+        selectedNetworkClientId: 'mainnet',
+      },
+      GasFeeController: {
+        gasFeeEstimatesByChainId: {
+          '0x1': {
+            gasEstimateType: 'fee-market',
+            gasFeeEstimates: {
+              baseFeeTrend: 'down',
+              estimatedBaseFee: '0.657622129',
+              high: {
+                maxWaitTimeEstimate: 30000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '3.554606064',
+                suggestedMaxPriorityFeePerGas: '2',
+              },
+              historicalBaseFeeRange: ['0.570409997', '0.742901351'],
+              historicalPriorityFeeRange: ['0.0001', '40.023291076'],
+              latestPriorityFeeRange: ['0.001014498', '3'],
+              low: {
+                maxWaitTimeEstimate: 60000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '0.750628835',
+                suggestedMaxPriorityFeePerGas: '0.006017503',
+              },
+              medium: {
+                maxWaitTimeEstimate: 45000,
+                minWaitTimeEstimate: 15000,
+                suggestedMaxFeePerGas: '1.65994205',
+                suggestedMaxPriorityFeePerGas: '0.5',
+              },
+              networkCongestion: 0.10665,
+              priorityFeeTrend: 'up',
+            },
+          },
+        },
+      } as unknown as GasFeeState,
+    },
+  },
+  settings: {
+    showFiatOnTestnets: true,
+  },
+};
+
+export const stakingDepositConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingDeposit },
+          ],
+        } as unknown as TransactionControllerState,
+      },
+    },
+  },
+);
+
+export const stakingWithdrawalConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingUnstake },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
+export const stakingClaimConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingClaim },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
+export enum SignTypedDataMockType {
+  BATCH = 'BATCH',
+  DAI = 'DAI',
+}
+
+const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
+  [SignTypedDataMockType.BATCH]: JSON.stringify({
+    types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
+      PermitBatch: [
+        { name: 'details', type: 'PermitDetails[]' },
+        { name: 'spender', type: 'address' },
+        { name: 'sigDeadline', type: 'uint256' }
+      ],
+      PermitDetails: [
+        { name: 'token', type: 'address' },
+        { name: 'amount', type: 'uint160' },
+        { name: 'expiration', type: 'uint48' },
+        { name: 'nonce', type: 'uint48' }
+      ],
+    },
+    domain: {
+      name: 'Permit2',
+      chainId: '1',
+      version: '1',
+      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3'
+    },
+    primaryType: 'PermitBatch',
+    message: {
+      details: [
+        {
+          token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          amount: '1461501637330902918203684832716283019655932542975',
+          expiration: '1722887542',
+          nonce: '5'
+        },
+        {
+          token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          amount: '250',
+          expiration: '1722887642',
+          nonce: '6'
+        }
+      ],
+      spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
+      sigDeadline: '1720297342'
+    }
+  }),
+  [SignTypedDataMockType.DAI]: JSON.stringify({
+    domain: {
+      name: 'Dai Stablecoin',
+      version: '1',
+      chainId: 1,
+      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+    },
+    types: {
+      EIP712Domain: mockTypeDefEIP712Domain,
+      Permit: [
+        { name: 'holder', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'nonce', type: 'uint256' },
+        { name: 'expiry', type: 'uint256' },
+        { name: 'allowed', type: 'bool' }
+      ]
+    },
+    primaryType: 'Permit',
+    message: {
+      spender: '0x5B38Da6a701c568545dCfcB03FcB875f56beddC4',
+      tokenId: '3606393',
+      nonce: 0,
+      expiry: 0,
+      allowed: false
+    },
+  }),
+};
+
+export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
+  const mockSignatureRequest = {
+    id: 'c5067710-87cf-11ef-916c-71f266571322',
+    chainId: '0x1' as Hex,
+    type: SignatureRequestType.TypedSign,
+    messageParams: {
+      data: SIGN_TYPE_DATA[mockType],
+      from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+      version: 'V4',
+      requestId: 14,
+      signatureMethod: 'eth_signTypedData_v4',
+      origin: 'https://metamask.github.io',
+      metamaskId: 'fb2029e0-b0ab-11ef-9227-05a11087c334',
+      meta: {
+        url: 'https://metamask.github.io/test-dapp/',
+        title: 'E2E Test Dapp',
+        icon: { uri: 'https://metamask.github.io/metamask-fox.svg' },
+        analytics: { request_source: 'In-App-Browser' },
+      },
+    },
+    networkClientId: '1',
+    status: SignatureRequestStatus.Unapproved,
+    time: 1733143817088,
+  } as SignatureRequest;
+
+  return {
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        ApprovalController: {
+          pendingApprovals: {
+            'c5067710-87cf-11ef-916c-71f266571322': {
+              id: 'c5067710-87cf-11ef-916c-71f266571322',
+              origin: 'metamask.github.io',
+              type: SignatureRequestType.TypedSign,
+              time: 1733143817088,
+              requestData: { ...mockSignatureRequest },
+              requestState: null,
+              expectsResult: true,
+            },
+          },
+          pendingApprovalCount: 1,
+          approvalFlows: [],
+        },
+        SignatureController: {
+          signatureRequests: {
+            'c5067710-87cf-11ef-916c-71f266571322':
+            mockSignatureRequest,
+          },
+        },
+      },
+    },
+  };
+}
+

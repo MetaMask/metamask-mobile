@@ -71,9 +71,10 @@ import { scale } from 'react-native-size-matters';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { DRAWER_VIEW_LOCK_TEXT_ID } from '../../../../wdio/screen-objects/testIDs/Screens/DrawerView.testIds';
 import {
+  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
-  selectTicker,
+  selectEvmTicker,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectTokens } from '../../../selectors/tokensController';
@@ -86,6 +87,7 @@ import { createAccountSelectorNavDetails } from '../../Views/AccountSelector';
 import NetworkInfo from '../NetworkInfo';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import safePromiseHandler from './utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -318,8 +320,8 @@ const createStyles = (colors) =>
     protectWalletButtonWrapper: { marginVertical: 8 },
   });
 
-const metamask_name = require('../../../images/metamask-name.png'); // eslint-disable-line
-const metamask_fox = require('../../../images/fox.png'); // eslint-disable-line
+const metamask_name = require('../../../images/branding/metamask-name.png'); // eslint-disable-line
+const metamask_fox = require('../../../images/branding/fox.png'); // eslint-disable-line
 const ICON_IMAGES = {
   wallet: require('../../../images/wallet-icon.png'), // eslint-disable-line
   'selected-wallet': require('../../../images/selected-wallet-icon.png'), // eslint-disable-line
@@ -440,6 +442,10 @@ class DrawerView extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Selected multichain chainId
+     */
+    chainId: PropTypes.string,
   };
 
   state = {
@@ -573,23 +579,23 @@ class DrawerView extends PureComponent {
   }
 
   updateAccountInfo = async () => {
-    const { providerConfig, selectedInternalAccount } = this.props;
+    const { providerConfig, selectedInternalAccount, chainId } = this.props;
     const { currentChainId, address, name } = this.state.account;
     const accountName = selectedInternalAccount.metadata.name;
     if (
-      currentChainId !== providerConfig.chainId ||
+      currentChainId !== chainId ||
       address !== this.selectedChecksummedAddress ||
       name !== accountName
     ) {
       const ens = await doENSReverseLookup(
         this.selectedChecksummedAddress,
-        providerConfig.chainId,
+        chainId,
       );
       this.setState((state) => ({
         account: {
           ens,
           name: accountName,
-          currentChainId: providerConfig.chainId,
+          currentChainId: chainId,
           address: this.selectedChecksummedAddress,
         },
       }));
@@ -615,13 +621,13 @@ class DrawerView extends PureComponent {
 
   // NOTE: do we need this event?
   trackOpenBrowserEvent = () => {
-    const { providerConfig } = this.props;
+    const { chainId } = this.props;
     this.props.metrics.trackEvent(
       this.props.metrics
         .createEventBuilder(MetaMetricsEvents.BROWSER_OPENED)
         .addProperties({
           source: 'In-app Navigation',
-          chain_id: getDecimalChainId(providerConfig.chainId),
+          chain_id: getDecimalChainId(chainId),
         })
         .build(),
     );
@@ -971,14 +977,17 @@ class DrawerView extends PureComponent {
 
   onInfoNetworksModalClose = () => {
     const {
-      providerConfig,
+      chainId,
       onboardNetworkAction,
       networkSwitched,
       toggleInfoNetworkModal,
     } = this.props;
-    onboardNetworkAction(providerConfig.chainId);
+
+    onboardNetworkAction(chainId);
     networkSwitched({ networkUrl: '', networkStatus: false });
-    toggleInfoNetworkModal();
+
+    // Wrap the toggle call in a setTimeout to avoid awaiting a non-promise function.
+    safePromiseHandler(toggleInfoNetworkModal(), 100);
   };
 
   renderProtectModal = () => {
@@ -1240,11 +1249,7 @@ class DrawerView extends PureComponent {
           backdropColor={colors.overlay.default}
           backdropOpacity={1}
         >
-          <NetworkInfo
-            onClose={this.onInfoNetworksModalClose}
-            type={providerConfig.type}
-            ticker={providerConfig.ticker}
-          />
+          <NetworkInfo onClose={this.onInfoNetworksModalClose} />
         </Modal>
 
         {this.renderProtectModal()}
@@ -1255,6 +1260,7 @@ class DrawerView extends PureComponent {
 
 const mapStateToProps = (state) => ({
   providerConfig: selectProviderConfig(state),
+  chainId: selectChainId(state),
   accounts: selectAccounts(state),
   selectedInternalAccount: selectSelectedInternalAccount(state),
   networkConfigurations: selectNetworkConfigurations(state),
@@ -1264,7 +1270,7 @@ const mapStateToProps = (state) => ({
   infoNetworkModalVisible: state.modals.infoNetworkModalVisible,
   passwordSet: state.user.passwordSet,
   wizard: state.wizard,
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
   tokens: selectTokens(state),
   tokenBalances: selectContractBalances(state),
   collectibles: collectiblesSelector(state),

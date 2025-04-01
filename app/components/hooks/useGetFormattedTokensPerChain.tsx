@@ -60,6 +60,7 @@ export const useGetFormattedTokensPerChain = (
     tokensWithBalances: TokensWithBalances[];
   }[];
 } => {
+  // TODO: [SOLANA] Revisit this before shipping, `selectAllTokenBalances` selector needs to most likely be replaced by a non evm supported version
   const currentChainId = useSelector(selectChainId);
   const importedTokens: AllTokens = useSelector(selectAllTokens);
   const allNetworks: Record<

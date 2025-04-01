@@ -76,6 +76,9 @@ jest.mock('../../../core/Engine', () => ({
         ],
       }),
     },
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
     PreferencesController: {
       setShowTestNetworks: jest.fn(),
       setTokenNetworkFilter: jest.fn(),
@@ -97,6 +100,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const initialState = {
+  user: {
+    userLoggedIn: true,
+  },
   navigation: { currentBottomNavRoute: 'Wallet' },
   settings: {
     primaryCurrency: 'usd',
@@ -322,7 +328,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(polygonCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('toggles the test networks switch correctly', () => {
@@ -340,6 +348,9 @@ describe('Network Selector', () => {
   it('toggle test network is disabled and is on when a testnet is selected', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByTestId } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',
@@ -400,12 +411,16 @@ describe('Network Selector', () => {
     const gnosisCell = getByText('Gnosis Chain');
 
     fireEvent.press(gnosisCell);
-
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('changes to test network when another network cell is pressed', async () => {
     const { getByText } = renderComponent({
+      user: {
+        userLoggedIn: true,
+      },
       navigation: { currentBottomNavRoute: 'Wallet' },
       settings: {
         primaryCurrency: 'usd',
@@ -469,7 +484,9 @@ describe('Network Selector', () => {
 
     fireEvent.press(sepoliaCell);
 
-    expect(mockEngine.context.NetworkController.setActiveNetwork).toBeCalled();
+    expect(
+      mockEngine.context.MultichainNetworkController.setActiveNetwork,
+    ).toBeCalled();
   });
 
   it('renders correctly with no network configurations', async () => {
@@ -624,6 +641,47 @@ describe('Network Selector', () => {
       const mainnetCell = getByText('Ethereum Mainnet');
       expect(mainnetCell).toBeTruthy();
       expect(mainnetRpcUrl).toBeTruthy();
+    });
+  });
+
+  describe('network switching with connected dapp', () => {
+    beforeEach(() => {
+      jest.spyOn(networks, 'isMultichainV1Enabled').mockReturnValue(true);
+      // Reset the mock before each test
+      jest.clearAllMocks();
+    });
+
+    it('should not call setNetworkClientIdForDomain when dapp is not connected', async () => {
+      // Mock non-connected dapp state
+      const nonConnectedDappMock = {
+        networkName: 'Test Network',
+        networkImageSource: '',
+        domainNetworkClientId: 'test-network-id',
+        chainId: CHAIN_IDS.MAINNET,
+        rpcUrl: 'https://test.network',
+        domainIsConnectedDapp: false,
+        origin: 'test-origin',
+      };
+
+      jest
+        .spyOn(selectedNetworkControllerFcts, 'useNetworkInfo')
+        .mockImplementation(() => nonConnectedDappMock);
+
+      const { getByText } = renderComponent(initialState);
+
+      const mainnetCell = getByText('Ethereum Mainnet');
+      fireEvent.press(mainnetCell);
+
+      // Wait a bit to ensure async operations complete
+      await waitFor(() => {
+        expect(
+          mockEngine.context.SelectedNetworkController
+            .setNetworkClientIdForDomain,
+        ).not.toHaveBeenCalled();
+        expect(
+          mockEngine.context.MultichainNetworkController.setActiveNetwork,
+        ).toHaveBeenCalled();
+      });
     });
   });
 });

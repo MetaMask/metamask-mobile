@@ -28,6 +28,7 @@ const createStyles = (colors) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginTop: 16,
     },
     actionView: {
       paddingTop: 40,
@@ -174,9 +175,9 @@ class ManualBackupStep3 extends PureComponent {
       JSON.stringify({ ...parsedHints, manualBackup: hintText }),
     );
     trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
-            MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
-        ).build(),
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.WALLET_SECURITY_RECOVERY_HINT_SAVED,
+      ).build(),
     );
   };
 

@@ -30,16 +30,16 @@ import {
   balanceToFiat,
   renderFromTokenMinimalUnit,
 } from '../../../util/number';
-import WarningMessage from '../confirmations/SendFlow/WarningMessage';
+import WarningMessage from '../confirmations/legacy/SendFlow/WarningMessage';
 import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  selectChainId,
   selectProviderConfig,
   selectNetworkConfigurationByChainId,
-  selectNetworkConfigurations,
   selectIsAllNetworks,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -136,12 +136,15 @@ const AssetDetails = (props: Props) => {
   const selectedAccountAddress = useSelector(
     selectSelectedInternalAccountAddress,
   );
-  const selectedChainId = useSelector(selectChainId);
+  const selectedChainId = useSelector(selectEvmChainId);
   const chainId = isPortfolioViewEnabled() ? networkId : selectedChainId;
   const tokens = useSelector(selectTokens);
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const isAllNetworks = useSelector(selectIsAllNetworks);
+
   const tokenNetworkConfig = networkConfigurations[networkId]?.name;
 
   const tokensByChain = useMemo(

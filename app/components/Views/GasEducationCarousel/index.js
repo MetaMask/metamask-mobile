@@ -31,7 +31,7 @@ import Engine from '../../../core/Engine';
 import TransactionTypes from '../../../core/TransactionTypes';
 import { formatCurrency, getTransactionFee } from '../../../util/confirm-tx';
 import Logger from '../../../util/Logger';
-import { selectTicker } from '../../../selectors/networkController';
+import { selectEvmTicker } from '../../../selectors/networkController';
 import {
   selectConversionRate,
   selectCurrentCurrency,
@@ -413,7 +413,7 @@ GasEducationCarousel.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  ticker: selectTicker(state),
+  ticker: selectEvmTicker(state),
 });
 
 export default connect(mapStateToProps)(GasEducationCarousel);

@@ -35,7 +35,6 @@ const styleSheet = (params: { theme: Theme }) => {
       color: theme.colors.text.default,
       ...fontStyles.bold,
       fontSize: 14,
-      fontWeight: '700',
       width: '90%',
       textAlign: 'center',
     },

@@ -125,9 +125,9 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                   source={1}
                   style={
                     {
-                      "height": 15,
-                      "tintColor": "#141618",
-                      "width": 122,
+                      "height": 35,
+                      "tintColor": "#121314",
+                      "width": 70,
                     }
                   }
                 />
@@ -381,7 +381,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 25,
                                   "fontWeight": "600",
@@ -413,7 +413,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 16,
                                       "fontWeight": "400",
@@ -443,7 +443,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -522,7 +522,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -557,7 +557,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(132, 140, 150, 1)",
+                                        "borderColor": "rgba(183, 187, 200, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -587,7 +587,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(132, 140, 150, 1)",
+                                        "borderColor": "rgba(183, 187, 200, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -622,7 +622,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     collapsable={false}
                                     style={
                                       {
-                                        "borderColor": "rgba(132, 140, 150, 1)",
+                                        "borderColor": "rgba(183, 187, 200, 1)",
                                         "borderRadius": 4,
                                         "borderStyle": "solid",
                                         "borderWidth": 1,
@@ -659,7 +659,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       onChangeText={[Function]}
                                       onContentSizeChange={[Function]}
                                       onFocus={[Function]}
-                                      selectionColor="#0376c9"
+                                      selectionColor="#4459ff"
                                       style={
                                         [
                                           {
@@ -678,7 +678,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             "height": 24,
                                           },
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 16,
                                             "fontWeight": "400",
@@ -713,7 +713,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               style={
                                 {
                                   "alignSelf": "flex-end",
-                                  "borderColor": "#9fa6ae",
+                                  "borderColor": "#9ca1af",
                                   "borderRadius": 6,
                                   "borderWidth": 1,
                                   "marginBottom": 30,
@@ -729,7 +729,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontSize": 20,
                                     },
                                     undefined,
@@ -771,7 +771,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
@@ -801,7 +801,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 16,
                                           "fontWeight": "400",
@@ -880,7 +880,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         collapsable={false}
                                         style={
                                           {
-                                            "borderColor": "rgba(132, 140, 150, 1)",
+                                            "borderColor": "rgba(183, 187, 200, 1)",
                                             "borderRadius": 4,
                                             "borderStyle": "solid",
                                             "borderWidth": 1,
@@ -915,7 +915,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -945,7 +945,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -980,7 +980,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1017,7 +1017,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         onChangeText={[Function]}
                                         onContentSizeChange={[Function]}
                                         onFocus={[Function]}
-                                        selectionColor="#0376c9"
+                                        selectionColor="#4459ff"
                                         style={
                                           [
                                             {
@@ -1036,7 +1036,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                               "height": 24,
                                             },
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1069,7 +1069,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 21.428571428571427,
                                     "fontWeight": "400",
@@ -1089,7 +1089,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 16,
                                     "fontWeight": "400",
@@ -1165,7 +1165,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         collapsable={false}
                                         style={
                                           {
-                                            "borderColor": "rgba(132, 140, 150, 1)",
+                                            "borderColor": "rgba(183, 187, 200, 1)",
                                             "borderRadius": 4,
                                             "borderStyle": "solid",
                                             "borderWidth": 1,
@@ -1200,7 +1200,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1230,7 +1230,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1265,7 +1265,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       collapsable={false}
                                       style={
                                         {
-                                          "borderColor": "rgba(132, 140, 150, 1)",
+                                          "borderColor": "rgba(183, 187, 200, 1)",
                                           "borderRadius": 4,
                                           "borderStyle": "solid",
                                           "borderWidth": 1,
@@ -1302,7 +1302,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         onChangeText={[Function]}
                                         onContentSizeChange={[Function]}
                                         onFocus={[Function]}
-                                        selectionColor="#0376c9"
+                                        selectionColor="#4459ff"
                                         style={
                                           [
                                             {
@@ -1321,7 +1321,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                               "height": 24,
                                             },
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -1364,7 +1364,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 21.428571428571427,
                                     "fontWeight": "400",
@@ -1396,7 +1396,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                         "padding": 15,
                                       },
                                       {
-                                        "backgroundColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
                                       },
                                       undefined,
                                     ],
@@ -1458,7 +1458,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#6a737d",
+                                "color": "#686e7d",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 10,
                                 "fontWeight": "400",

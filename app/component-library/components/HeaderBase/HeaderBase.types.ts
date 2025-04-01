@@ -17,6 +17,12 @@ export interface HeaderBaseProps extends ViewProps {
    * Optional prop to include content to be displayed after the title.
    */
   endAccessory?: React.ReactNode;
+  /**
+   * Optional prop to include the top inset to make sure the header is visible
+   * below device's knob
+   * @default: false
+   */
+  includesTopInset?: boolean;
 }
 
 /**

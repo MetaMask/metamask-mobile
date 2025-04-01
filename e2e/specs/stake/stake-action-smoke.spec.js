@@ -37,7 +37,7 @@ const fixtureServer = new FixtureServer();
 
 describe(SmokeStake('Stake from Actions'), () => {
   const FIRST_ROW = 0;
-  const AMOUNT_TO_SEND = '.01';
+  const AMOUNT_TO_SEND = '.005';
   let mockServer;
   const wallet = ethers.Wallet.createRandom();
 
@@ -60,12 +60,26 @@ describe(SmokeStake('Stake from Actions'), () => {
 
   afterAll(async () => {
     if (mockServer)
-    await stopMockServer(mockServer)
+    await stopMockServer(mockServer);
     await stopFixtureServer(fixtureServer);
   });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
+  });
+
+  it('should be able to import stake test account with funds', async () => {
+    await Assertions.checkIfVisible(WalletView.container);
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapImportAccount();
+    await Assertions.checkIfVisible(ImportAccountView.container);
+    await ImportAccountView.enterPrivateKey(process.env.MM_STAKE_TEST_ACCOUNT_PRIVATE_KEY);
+    await Assertions.checkIfVisible(SuccessImportAccountView.container);
+    await SuccessImportAccountView.tapCloseButton();
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should send ETH to new account', async () => {
@@ -87,7 +101,7 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfTextIsNotDisplayed('$0',60000);
   });
 
-  it('should be able to import the funded account', async () => {
+  it('should be able to import the new funded account', async () => {
     await Assertions.checkIfVisible(WalletView.container);
     await WalletView.tapIdenticon();
     await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
@@ -103,13 +117,13 @@ describe(SmokeStake('Stake from Actions'), () => {
 
   it('should Stake ETH', async () => {
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
-    await WalletView.tapOnEarnButton()
+    await WalletView.tapOnEarnButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
-    await StakeView.enterAmount('.004')
-    await StakeView.tapReview()
-    await StakeView.tapContinue()
-    await StakeConfirmView.tapConfirmButton()
-    await TestHelpers.delay(2000)
+    await StakeView.enterAmount('.002');
+    await StakeView.tapReview();
+    await StakeView.tapContinue();
+    await StakeConfirmView.tapConfirmButton();
+    await TestHelpers.delay(2000);
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
@@ -117,42 +131,42 @@ describe(SmokeStake('Stake from Actions'), () => {
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
-  })
+  });
 
   it('should Stake more ETH', async () => {
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
-    await WalletView.tapOnStakedEthereum()
+    await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
     await TokenOverview.tapStakeMoreButton();
     await Assertions.checkIfVisible(StakeView.stakeContainer);
-    await StakeView.enterAmount('.003')
-    await StakeView.tapReview()
-    await StakeView.tapContinue()
-    await StakeConfirmView.tapConfirmButton()
-    await TestHelpers.delay(10000)
+    await StakeView.enterAmount('.001');
+    await StakeView.tapReview();
+    await StakeView.tapContinue();
+    await StakeConfirmView.tapConfirmButton();
+    await TestHelpers.delay(10000);
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.stakeDepositedLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
     await TestHelpers.delay(8000);
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
-  })
+  });
 
   it('should Unstake ETH', async () => {
     await Assertions.checkIfVisible(WalletView.container);
-    await WalletView.tapOnStakedEthereum()
+    await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
     await TokenOverview.tapUnstakeButton();
     await Assertions.checkIfVisible(StakeView.unstakeContainer);
-    await StakeView.enterAmount('.002')
-    await StakeView.tapReview()
-    await StakeView.tapContinue()
-    await StakeConfirmView.tapConfirmButton()
-    await TestHelpers.delay(15000)
+    await StakeView.enterAmount('.002');
+    await StakeView.tapReview();
+    await StakeView.tapContinue();
+    await StakeConfirmView.tapConfirmButton();
+    await TestHelpers.delay(15000);
     await Assertions.checkIfVisible(ActivitiesView.title);
     await Assertions.checkIfVisible(ActivitiesView.unstakeLabel);
     await Assertions.checkIfElementToHaveText(ActivitiesView.transactionStatus(FIRST_ROW), ActivitiesViewSelectorsText.CONFIRM_TEXT, 120000);
@@ -161,31 +175,31 @@ describe(SmokeStake('Stake from Actions'), () => {
     await Assertions.checkIfVisible(TabBarComponent.tabBarWalletButton);
     await TabBarComponent.tapWallet();
     await Assertions.checkIfVisible(WalletView.container);
-    await WalletView.tapOnStakedEthereum()
+    await WalletView.tapOnStakedEthereum();
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
     await Assertions.checkIfVisible(TokenOverview.unstakingBanner);
     await TokenOverview.tapBackButton();
-  })
+  });
 
   it('should make sure staking actions are hidden for ETH assets that are not on main', async () => {
-    const THIRD_ONE = 2
+    const THIRD_ONE = 2;
     await TabBarComponent.tapWallet();
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(PopularNetworksList.zkSync.providerConfig.nickname, false);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.checkIfNotVisible(WalletView.earnButton)
-    await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel)
+    await Assertions.checkIfNotVisible(WalletView.earnButton);
+    await Assertions.checkIfNotVisible(WalletView.stakedEthereumLabel);
     await WalletView.tapTokenNetworkFilter();
     await WalletView.tapTokenNetworkFilterAll();
     // 3rd one is Linea Network
-    await WalletView.tapOnToken('Ethereum', THIRD_ONE)
+    await WalletView.tapOnToken('Ethereum', THIRD_ONE);
     await TokenOverview.scrollOnScreen();
     await TestHelpers.delay(3000);
     await Assertions.checkIfNotVisible(TokenOverview.stakedBalance);
     await Assertions.checkIfNotVisible(TokenOverview.unstakingBanner);
     await Assertions.checkIfNotVisible(TokenOverview.unstakeButton);
-    await TokenOverview.tapBackButton()
+    await TokenOverview.tapBackButton();
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo(CustomNetworks.Holesky.providerConfig.nickname);
     await NetworkEducationModal.tapGotItButton();
@@ -198,7 +212,7 @@ it('should Stake Claim ETH', async () => {
   if (response.status !== 200) {
     throw new Error('Error calling Staking API');
   }
-  const account =  response.data.accounts[0]
+  const account =  response.data.accounts[0];
   if (!account.exitRequests[0]) {
     throw new Error(`No claim entries found for account ${wallet.address}`);
   }
@@ -230,7 +244,7 @@ it('should Stake Claim ETH', async () => {
         responseCode: 200,
       },
     ],
-  }
+  };
   await device.terminateApp();
 
 
@@ -241,12 +255,20 @@ it('should Stake Claim ETH', async () => {
     launchArgs: { fixtureServerPort: `${getFixturesServerPort()}`,  mockServerPort: `${mockServerPort}`, },
   });
   await loginToApp();
-  await WalletView.tapOnStakedEthereum()
+  await WalletView.tapOnStakedEthereum();
   await TokenOverview.scrollOnScreen();
   await TestHelpers.delay(3000);
   await TokenOverview.tapClaimButton();
   await StakeConfirmView.tapConfirmButton();
   await TokenOverview.tapBackButton();
+  //Wait for transaction to complete
+  try {
+    await Assertions.checkIfTextIsDisplayed('Transaction #3 Complete!',30000);
+    await TestHelpers.delay(8000);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+       console.log(`Transaction complete didn't pop up: ${e}`);
+    }
   await TabBarComponent.tapActivity();
   await Assertions.checkIfVisible(ActivitiesView.title);
   await Assertions.checkIfVisible(ActivitiesView.stackingClaimLabel);

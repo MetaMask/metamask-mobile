@@ -38,12 +38,17 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
+import AddNewHdAccount from '../AddNewHdAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { onSelectAccount, checkBalanceError, disablePrivacyMode } =
-    route.params || {};
+  const {
+    onSelectAccount,
+    checkBalanceError,
+    disablePrivacyMode,
+    navigateToAddAccountActions,
+  } = route.params || {};
 
   const { reloadAccounts } = useSelector((state: RootState) => state.accounts);
   // TODO: Replace "any" with type
@@ -56,7 +61,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     isLoading: reloadAccounts,
   });
   const [screen, setScreen] = useState<AccountSelectorScreens>(
-    AccountSelectorScreens.AccountSelector,
+    navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
   );
   useEffect(() => {
     endTrace({ name: TraceName.AccountList });
@@ -134,6 +139,18 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <AddAccountActions
         onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
+        onAddHdAccount={() =>
+          setScreen(AccountSelectorScreens.AddHdAccountSelector)
+        }
+      />
+    ),
+    [],
+  );
+
+  const renderAddHdAccountSelector = useCallback(
+    () => (
+      <AddNewHdAccount
+        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
       />
     ),
     [],
@@ -145,10 +162,17 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
+      case AccountSelectorScreens.AddHdAccountSelector:
+        return renderAddHdAccountSelector();
       default:
         return renderAccountSelector();
     }
-  }, [screen, renderAccountSelector, renderAddAccountActions]);
+  }, [
+    screen,
+    renderAccountSelector,
+    renderAddAccountActions,
+    renderAddHdAccountSelector,
+  ]);
 
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };

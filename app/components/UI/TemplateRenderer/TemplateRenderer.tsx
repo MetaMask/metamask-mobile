@@ -4,7 +4,7 @@ import { v1 as random } from 'uuid';
 import { safeComponentList } from './SafeComponentList';
 import { TemplateRendererComponent, TemplateRendererInput } from './types';
 import Text from '../../../component-library/components/Texts/Text';
-import { isValidElementName } from '../../Views/confirmations/components/Approval/TemplateConfirmation/util';
+import { isValidElementName } from '../../Views/confirmations/legacy/components/Approval/TemplateConfirmation/util';
 
 interface TemplateRendererProps {
   sections?: TemplateRendererInput;
@@ -16,12 +16,45 @@ function getElement(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): React.ComponentType<any> {
   const component = section?.element;
-  if (!component && !isValidElementName(component)) {
+  if (!component || !isValidElementName(component)) {
     throw new Error(
       `${component} is not in the safe component list for template renderer`,
     );
   }
   return safeComponentList[component];
+}
+
+function renderElement(section: TemplateRendererComponent) {
+  const Element = getElement(section);
+  const propsAsComponents = section.propComponents
+    ? getPropComponents(section.propComponents)
+    : {};
+  return (
+    <Element {...section.props} {...propsAsComponents}>
+      {typeof section.children === 'object' ? (
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        <TemplateRenderer sections={section.children} />
+      ) : (
+        section.children
+      )}
+    </Element>
+  );
+}
+
+function getPropComponents(
+  components: Record<string, TemplateRendererComponent>,
+) {
+  return Object.entries(components).reduce<Record<string, ReactNode>>(
+    (accumulator, [key, component]) => {
+      if (component) {
+        accumulator[key] = Array.isArray(component)
+          ? component.map(renderElement)
+          : renderElement(component);
+      }
+      return accumulator;
+    },
+    {},
+  );
 }
 
 const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
@@ -36,21 +69,7 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
     typeof sections === 'object' &&
     !Array.isArray(sections)
   ) {
-    // If dealing with a single entry, then render a single object without key
-    const Element = getElement(sections);
-    const children = sections.children;
-    return (
-      <Element {...sections.props}>
-        {Array.isArray(children)
-          ? children.map((child) => (
-              <TemplateRenderer
-                key={typeof child === 'string' ? `${random()}` : child.key}
-                sections={child}
-              />
-            ))
-          : children}
-      </Element>
-    );
+    return renderElement(sections);
   }
 
   // The last case is dealing with an array of objects
@@ -82,8 +101,15 @@ const TemplateRenderer = ({ sections }: TemplateRendererProps) => {
             } else {
               // Otherwise render the element.
               const Element = getElement(child);
+              const propsAsComponents = child.propComponents
+                ? getPropComponents(child.propComponents)
+                : {};
               allChildren.push(
-                <Element key={child.key} {...child.props}>
+                <Element
+                  key={child.key}
+                  {...child.props}
+                  {...propsAsComponents}
+                >
                   {child?.children}
                 </Element>,
               );

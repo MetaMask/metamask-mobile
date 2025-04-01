@@ -31,6 +31,7 @@ import { calcTokenAmount } from '../../../../../../../../../../util/transactions
 import { useGetTokenStandardAndDetails } from '../../../../../../../hooks/useGetTokenStandardAndDetails';
 import useTrackERC20WithoutDecimalInformation from '../../../../../../../hooks/useTrackERC20WithoutDecimalInformation';
 import { TOKEN_VALUE_UNLIMITED_THRESHOLD } from '../../../../../../../utils/confirm';
+import { isPermitDaiRevoke, isPermitDaiUnlimited } from '../../../../../../../utils/signature';
 import { TokenDetailsERC20 } from '../../../../../../../utils/token';
 import BottomModal from '../../../../../../UI/BottomModal';
 
@@ -44,8 +45,8 @@ interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
   chainId: Hex;
 
-  /** Change type to be displayed in value tooltip */
-  labelChangeType: string;
+  /** Header text to be displayed in the value modal */
+  modalHeaderText: string;
 
   /** The network client ID */
   networkClientId?: NetworkClientId;
@@ -58,6 +59,9 @@ interface SimulationValueDisplayParams {
   tokenContract: Hex | string | undefined;
 
   // Optional
+
+  /** Value for backwards compatibility DAI EIP-2612 support while it is being depreacted */
+  allowed?: boolean | number | string;
 
   /** Whether a large amount can be substituted by "Unlimited" */
   canDisplayValueAsUnlimited?: boolean;
@@ -80,7 +84,7 @@ interface SimulationValueDisplayParams {
 
 const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   chainId,
-  labelChangeType,
+  modalHeaderText,
   networkClientId,
   primaryType,
   tokenContract,
@@ -88,13 +92,14 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   value,
   credit,
   debit,
+  allowed,
   canDisplayValueAsUnlimited = false,
 }) => {
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
 
-    const { colors } = useTheme();
+  const { colors } = useTheme();
 
-    const styles = styleSheet(colors);
+  const styles = styleSheet(colors);
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId),
@@ -105,42 +110,15 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       ? contractExchangeRates[tokenContract as `0x${string}`]?.price
       : undefined;
 
-    const {
-      details: tokenDetails,
-      isPending: isPendingTokenDetails,
-    } = useGetTokenStandardAndDetails(tokenContract, networkClientId);
-    const { decimalsNumber: tokenDecimals } = tokenDetails;
+  const { details: tokenDetails, isPending: isPendingTokenDetails } =
+    useGetTokenStandardAndDetails(tokenContract, networkClientId);
+  const { decimalsNumber: tokenDecimals } = tokenDetails;
 
   useTrackERC20WithoutDecimalInformation(
     chainId,
     tokenContract,
     tokenDetails as TokenDetailsERC20,
   );
-
-  const tokenAmount =
-    isNumberValue(value) && !tokenId
-      ? calcTokenAmount(value as number | string, tokenDecimals)
-      : null;
-  const isValidTokenAmount =
-    tokenAmount !== null &&
-    tokenAmount !== undefined &&
-    tokenAmount instanceof BigNumber;
-
-  const fiatValue =
-    isValidTokenAmount && exchangeRate && !tokenId
-      ? tokenAmount.multipliedBy(exchangeRate).toNumber()
-      : undefined;
-
-  const tokenValue = isValidTokenAmount
-    ? formatAmount('en-US', tokenAmount)
-    : null;
-  const tokenValueMaxPrecision = isValidTokenAmount
-    ? formatAmountMaxPrecision('en-US', tokenAmount)
-    : null;
-
-  const shouldShowUnlimitedValue =
-    canDisplayValueAsUnlimited &&
-    Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD;
 
   /** Temporary error capturing as we are building out Permit Simulations */
   if (!tokenContract) {
@@ -152,6 +130,45 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     return null;
   }
 
+  const isNFT = tokenId !== undefined && tokenId !== '0';
+  const isDaiUnlimited = isPermitDaiUnlimited(tokenContract, allowed);
+  const isDaiRevoke = isPermitDaiRevoke(tokenContract, allowed, value);
+  const isRevoke = isDaiRevoke || modalHeaderText === strings('confirm.title.permit_revoke');
+
+  const tokenAmount =
+    isNumberValue(value) && !tokenId
+      ? calcTokenAmount(value as number | string, tokenDecimals)
+      : null;
+
+  const isValidTokenAmount =
+    !isNFT &&
+    !isRevoke &&
+    tokenAmount !== null &&
+    tokenAmount !== undefined &&
+    tokenAmount instanceof BigNumber;
+
+  const fiatValue =
+    isValidTokenAmount && exchangeRate && !tokenId
+      ? tokenAmount.multipliedBy(exchangeRate)
+      : undefined;
+
+  const tokenValue = isValidTokenAmount
+    ? formatAmount('en-US', tokenAmount)
+    : null;
+
+  const tokenValueMaxPrecision = isValidTokenAmount
+    ? formatAmountMaxPrecision('en-US', tokenAmount)
+    : null;
+
+  const showUnlimitedValue = isDaiUnlimited ||
+    (canDisplayValueAsUnlimited &&
+    Number(value) > TOKEN_VALUE_UNLIMITED_THRESHOLD);
+
+  // Avoid empty button pill container
+  const showValueButtonPill = Boolean(isPendingTokenDetails
+    || showUnlimitedValue
+    || (tokenValue !== null || tokenId));
+
   function handlePressTokenValue() {
     setHasValueModalOpen(true);
   }
@@ -160,10 +177,10 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
       <View style={styles.wrapper}>
         <View style={styles.flexRowTokenValueAndAddress}>
           <View style={styles.valueAndAddress}>
-            {
+            {showValueButtonPill &&
               <AnimatedPulse isPulsing={isPendingTokenDetails} testID="simulation-value-display-loader">
                 <ButtonPill
-                  isDisabled={!!tokenId || tokenId === '0'}
+                  isDisabled={isNFT || tokenValueMaxPrecision === null}
                   onPress={handlePressTokenValue}
                   onPressIn={handlePressTokenValue}
                   onPressOut={handlePressTokenValue}
@@ -175,34 +192,33 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                   <Text>
                     {credit && '+ '}
                     {debit && '- '}
-                    {shouldShowUnlimitedValue
+                    {showUnlimitedValue
                       ? strings('confirm.unlimited')
                       : tokenValue !== null &&
                         shortenString(tokenValue || '', {
-                        truncatedCharLimit: 15,
-                        truncatedStartChars: 15,
-                        truncatedEndChars: 0,
-                        skipCharacterInEnd: true,
-                      })}
-                      {tokenId && `#${tokenId}`}
-                    </Text>
-                  }
-                </ButtonPill>
-              </AnimatedPulse>
-            }
-            <View style={styles.marginStart4}>
-              <Address address={tokenContract} chainId={chainId} />
-            </View>
+                          truncatedCharLimit: 15,
+                          truncatedStartChars: 15,
+                          truncatedEndChars: 0,
+                          skipCharacterInEnd: true,
+                        })}
+                    {tokenId && `#${tokenId}`}
+                  </Text>
+                }
+              </ButtonPill>
+            </AnimatedPulse>
+          }
+          <View style={styles.marginStart4}>
+            <Address address={tokenContract} chainId={chainId} />
           </View>
         </View>
-        <View style={styles.fiatDisplay}>
-          {/**
-            TODO - add fiat shorten prop after tooltip logic has been updated
-            {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
-          */}
-        {fiatValue && (
-          <IndividualFiatDisplay fiatAmount={fiatValue} /* shorten*/ />
-        )}
+      </View>
+      <View>
+        {fiatValue &&
+          (isPendingTokenDetails ? (
+            <View style={styles.loadingFiatValue} />
+          ) : (
+            <IndividualFiatDisplay fiatAmount={fiatValue} />
+          ))}
       </View>
       {hasValueModalOpen && (
         /**
@@ -224,7 +240,7 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
                   iconName={IconName.ArrowLeft}
                 />
                 <Text style={styles.valueModalHeaderText}>
-                  {labelChangeType}
+                  {modalHeaderText}
                 </Text>
               </View>
               <Text style={styles.valueModalText}>

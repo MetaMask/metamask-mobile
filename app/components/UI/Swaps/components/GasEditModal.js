@@ -20,8 +20,8 @@ import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { useTheme } from '../../../../util/theme';
 import {
-  selectChainId,
-  selectTicker,
+  selectEvmChainId,
+  selectEvmTicker,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -545,8 +545,8 @@ GasEditModal.propTypes = {
 const mapStateToProps = (state) => ({
   conversionRate: selectConversionRate(state),
   currentCurrency: selectCurrentCurrency(state),
-  ticker: selectTicker(state),
-  chainId: selectChainId(state),
+  ticker: selectEvmTicker(state),
+  chainId: selectEvmChainId(state),
   primaryCurrency: state.settings.primaryCurrency,
 });
 

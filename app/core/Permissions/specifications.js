@@ -10,6 +10,7 @@ import {
 } from '@metamask/permission-controller';
 import { v1 as random } from 'uuid';
 import { CaveatTypes, RestrictedMethods } from './constants';
+import { isNonEvmAddress } from '../Multichain/utils';
 
 /**
  * This file contains the specifications of the permissions and caveats
@@ -159,43 +160,56 @@ export const getPermissionSpecifications = ({
 
     methodImplementation: async (_args) => {
       const accounts = await getAllAccounts();
-      const internalAccounts = getInternalAccounts();
 
-      return accounts.sort((firstAddress, secondAddress) => {
-        const lowerCaseFirstAddress = firstAddress.toLowerCase();
-        const firstAccount = internalAccounts.find(
-          (internalAccount) =>
-            internalAccount.address.toLowerCase() === lowerCaseFirstAddress,
-        );
+      const internalAccounts = getInternalAccounts().filter(
+        (account) => !isNonEvmAddress(account.address),
+      );
 
-        const lowerCaseSecondAddress = secondAddress.toLowerCase();
-        const secondAccount = internalAccounts.find(
-          (internalAccount) =>
-            internalAccount.address.toLowerCase() === lowerCaseSecondAddress,
-        );
+      return accounts
+        .filter((account) => !isNonEvmAddress(account))
+        .sort((firstAddress, secondAddress) => {
+          const lowerCaseFirstAddress = firstAddress.toLowerCase();
+          const firstAccount = internalAccounts.find(
+            (internalAccount) =>
+              internalAccount.address.toLowerCase() === lowerCaseFirstAddress,
+          );
 
-        if (!firstAccount) {
-          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
-          throw new Error(`Missing identity for address: "${firstAddress}".`);
-        } else if (!secondAccount) {
-          captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
-          throw new Error(`Missing identity for address: "${secondAddress}".`);
-        } else if (
-          firstAccount.metadata.lastSelected ===
-          secondAccount.metadata.lastSelected
-        ) {
-          return 0;
-        } else if (firstAccount.metadata.lastSelected === undefined) {
-          return 1;
-        } else if (secondAccount.metadata.lastSelected === undefined) {
-          return -1;
-        }
+          const lowerCaseSecondAddress = secondAddress.toLowerCase();
+          const secondAccount = internalAccounts.find(
+            (internalAccount) =>
+              internalAccount.address.toLowerCase() === lowerCaseSecondAddress,
+          );
 
-        return (
-          secondAccount.metadata.lastSelected -
-          firstAccount.metadata.lastSelected
-        );
-      });
+          if (!firstAccount) {
+            captureKeyringTypesWithMissingIdentities(
+              internalAccounts,
+              accounts,
+            );
+            throw new Error(`Missing identity for address: "${firstAddress}".`);
+          } else if (!secondAccount) {
+            captureKeyringTypesWithMissingIdentities(
+              internalAccounts,
+              accounts,
+            );
+            throw new Error(
+              `Missing identity for address: "${secondAddress}".`,
+            );
+          } else if (
+            firstAccount.metadata.lastSelected ===
+            secondAccount.metadata.lastSelected
+          ) {
+            return 0;
+          } else if (firstAccount.metadata.lastSelected === undefined) {
+            return 1;
+          } else if (secondAccount.metadata.lastSelected === undefined) {
+            return -1;
+          }
+
+          return (
+            secondAccount.metadata.lastSelected -
+            firstAccount.metadata.lastSelected
+          );
+        });
     },
 
     validator: (permission, _origin, _target) => {
@@ -369,6 +383,7 @@ export const unrestrictedMethods = Object.freeze([
   // Define unrestricted methods below to bypass PermissionController. These are eventually handled by RPCMethodMiddleware (User facing RPC methods)
   'wallet_getPermissions',
   'wallet_requestPermissions',
+  'wallet_revokePermissions',
   'eth_getTransactionByHash',
   'eth_getTransactionByBlockHashAndIndex',
   'eth_getTransactionByBlockNumberAndIndex',
@@ -405,9 +420,19 @@ export const unrestrictedMethods = Object.freeze([
   'wallet_invokeSnap',
   'wallet_invokeKeyring',
   'snap_getClientStatus',
+  'snap_clearState',
   'snap_getFile',
+  'snap_getState',
+  'snap_listEntropySources',
   'snap_createInterface',
   'snap_updateInterface',
   'snap_getInterfaceState',
+  'snap_getInterfaceContext',
+  'snap_resolveInterface',
+  'snap_setState',
+  'snap_scheduleBackgroundEvent',
+  'snap_cancelBackgroundEvent',
+  'snap_getBackgroundEvents',
+  'snap_experimentalProviderRequest',
   ///: END:ONLY_INCLUDE_IF
 ]);

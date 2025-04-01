@@ -34,11 +34,11 @@ import {
   selectAllDetectedTokensFlat,
 } from '../../../selectors/tokensController';
 import {
-  selectChainId,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
 } from '../../../selectors/networkController';
 import BottomSheet, {
   BottomSheetRef,
@@ -97,8 +97,8 @@ const DetectedTokens = () => {
   const allDetectedTokens = useSelector(
     selectAllDetectedTokensFlat,
   ) as TokenI[];
-  const allNetworks = useSelector(selectNetworkConfigurations);
-  const chainId = useSelector(selectChainId);
+  const allNetworks = useSelector(selectEvmNetworkConfigurationsByChainId);
+  const chainId = useSelector(selectEvmChainId);
   const isPopularNetworks = useSelector(selectIsPopularNetwork);
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
   const [ignoredTokens, setIgnoredTokens] = useState<IgnoredTokensByAddress>(

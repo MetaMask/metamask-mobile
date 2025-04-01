@@ -1,5 +1,705 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+  testID="onboarding-carousel-screen"
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "paddingVertical": 30,
+            }
+          }
+          testID="welcome-screen-carousel-container-id"
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              [
+                {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              activeTab={0}
+              containerWidth={750}
+              goToPage={[Function]}
+              scrollValue={0}
+              tabs={
+                [
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+            <RCTScrollView
+              alwaysBounceVertical={false}
+              automaticallyAdjustContentInsets={false}
+              collapsable={false}
+              contentOffset={
+                {
+                  "x": 0,
+                }
+              }
+              directionalLockEnabled={true}
+              horizontal={true}
+              keyboardDismissMode="on-drag"
+              onMomentumScrollBegin={[Function]}
+              onMomentumScrollEnd={[Function]}
+              onScroll={[Function]}
+              pagingEnabled={true}
+              scrollEnabled={true}
+              scrollEventThrottle={16}
+              scrollsToTop={false}
+              showsHorizontalScrollIndicator={false}
+              style={{}}
+            >
+              <View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "marginHorizontal": 30,
+                        }
+                      }
+                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
+                    >
+                      <Text
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <Image
+                        resizeMethod="auto"
+                        source={1}
+                        style={
+                          [
+                            {},
+                            {
+                              "height": 750,
+                              "marginTop": 30,
+                              "width": 600,
+                            },
+                          ]
+                        }
+                        testID="carousel-one-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View />
+                </View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View />
+                </View>
+              </View>
+            </RCTScrollView>
+          </View>
+          <View
+            style={
+              {
+                "alignSelf": "center",
+                "flexDirection": "row",
+                "marginVertical": 36,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {
+                    "opacity": 1,
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {},
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {},
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "paddingBottom": 20,
+          "paddingHorizontal": 40,
+        }
+      }
+      testID="welcome-screen-get-started-button-id"
+    >
+      <View
+        style={
+          {
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+</View>
+`;
+
+exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+  testID="onboarding-carousel-screen"
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <RCTScrollView
+      contentContainerStyle={
+        {
+          "flexGrow": 1,
+        }
+      }
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "paddingVertical": 30,
+            }
+          }
+          testID="welcome-screen-carousel-container-id"
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              [
+                {
+                  "flex": 1,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              activeTab={0}
+              containerWidth={750}
+              goToPage={[Function]}
+              scrollValue={0}
+              tabs={
+                [
+                  undefined,
+                  undefined,
+                  undefined,
+                ]
+              }
+            />
+            <RCTScrollView
+              alwaysBounceVertical={false}
+              automaticallyAdjustContentInsets={false}
+              collapsable={false}
+              contentOffset={
+                {
+                  "x": 0,
+                }
+              }
+              directionalLockEnabled={true}
+              horizontal={true}
+              keyboardDismissMode="on-drag"
+              onMomentumScrollBegin={[Function]}
+              onMomentumScrollEnd={[Function]}
+              onScroll={[Function]}
+              pagingEnabled={true}
+              scrollEnabled={true}
+              scrollEventThrottle={16}
+              scrollsToTop={false}
+              showsHorizontalScrollIndicator={false}
+              style={{}}
+            >
+              <View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "marginHorizontal": 30,
+                        }
+                      }
+                      testID="**/XCUIElementTypeOther[\`label == "Welcome to MetaMask Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all."\`]"
+                    >
+                      <Text
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 24,
+                            "fontWeight": "600",
+                            "justifyContent": "center",
+                            "marginBottom": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Welcome to MetaMask
+                      </Text>
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontSize": 10,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="app-start-time-id"
+                      />
+                      <Text
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "justifyContent": "center",
+                            "lineHeight": 19,
+                            "marginBottom": 25,
+                            "marginTop": 12,
+                            "textAlign": "center",
+                          }
+                        }
+                      >
+                        Trusted by millions, MetaMask is a secure wallet making the world of web3 accessible to all.
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <Image
+                        resizeMethod="auto"
+                        source={1}
+                        style={
+                          [
+                            {},
+                            {
+                              "height": 750,
+                              "marginTop": 30,
+                              "width": 600,
+                            },
+                          ]
+                        }
+                        testID="carousel-one-image"
+                      />
+                    </View>
+                  </View>
+                </View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View />
+                </View>
+                <View
+                  style={
+                    {
+                      "width": 750,
+                    }
+                  }
+                >
+                  <View />
+                </View>
+              </View>
+            </RCTScrollView>
+          </View>
+          <View
+            style={
+              {
+                "alignSelf": "center",
+                "flexDirection": "row",
+                "marginVertical": 36,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {
+                    "opacity": 1,
+                  },
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {},
+                ]
+              }
+            />
+            <View
+              style={
+                [
+                  {
+                    "backgroundColor": "#121314",
+                    "borderRadius": 4,
+                    "height": 8,
+                    "marginHorizontal": 8,
+                    "opacity": 0.4,
+                    "width": 8,
+                  },
+                  {},
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      style={
+        {
+          "flexDirection": "column",
+          "paddingBottom": 40,
+          "paddingHorizontal": 40,
+        }
+      }
+      testID="welcome-screen-get-started-button-id"
+    >
+      <View
+        style={
+          {
+            "justifyContent": "flex-end",
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={0.2}
+          onPress={[Function]}
+          style={
+            [
+              [
+                {
+                  "borderRadius": 100,
+                  "justifyContent": "center",
+                  "padding": 15,
+                },
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#4459ff",
+                  "borderWidth": 1,
+                },
+                undefined,
+              ],
+              null,
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#007aff",
+                  "fontSize": 17,
+                  "fontWeight": "500",
+                  "textAlign": "center",
+                },
+                null,
+                [
+                  {
+                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontSize": 14,
+                    "fontWeight": "600",
+                    "textAlign": "center",
+                  },
+                  {
+                    "color": "#4459ff",
+                  },
+                  undefined,
+                ],
+                null,
+              ]
+            }
+          >
+            Get started
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  />
+</View>
+`;
+
 exports[`OnboardingCarousel should render correctly 1`] = `
 <View
   style={
@@ -111,7 +811,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -126,7 +826,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -136,7 +836,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -168,9 +868,9 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                           [
                             {},
                             {
-                              "height": 912.5615763546798,
+                              "height": 750,
                               "marginTop": 30,
-                              "width": 650,
+                              "width": 600,
                             },
                           ]
                         }
@@ -213,7 +913,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -230,7 +930,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -245,7 +945,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -264,7 +964,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
       style={
         {
           "flexDirection": "column",
-          "paddingBottom": 40,
+          "paddingBottom": 20,
           "paddingHorizontal": 40,
         }
       }
@@ -292,7 +992,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -319,7 +1019,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],
@@ -461,7 +1161,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -476,7 +1176,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -486,7 +1186,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -518,9 +1218,9 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                           [
                             {},
                             {
-                              "height": 912.5615763546798,
+                              "height": 750,
                               "marginTop": 30,
-                              "width": 650,
+                              "width": 600,
                             },
                           ]
                         }
@@ -563,7 +1263,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -580,7 +1280,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -595,7 +1295,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -614,7 +1314,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
       style={
         {
           "flexDirection": "column",
-          "paddingBottom": 40,
+          "paddingBottom": 20,
           "paddingHorizontal": 40,
         }
       }
@@ -642,7 +1342,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -669,7 +1369,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],

@@ -14,7 +14,7 @@ describe('NativeValueDisplay', () => {
   it('renders component correctly', async () => {
     const { findByText } = renderWithProvider(
       <NativeValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         value={'4321'}
         chainId={'0x1'}
       />,
@@ -28,7 +28,7 @@ describe('NativeValueDisplay', () => {
   it('displays modal when clicking on the value', async () => {
     const { findByText } = renderWithProvider(
       <NativeValueDisplay
-        labelChangeType={'Spending Cap'}
+        modalHeaderText={'Spending Cap'}
         value={'4321'}
         chainId={'0x1'}
       />,

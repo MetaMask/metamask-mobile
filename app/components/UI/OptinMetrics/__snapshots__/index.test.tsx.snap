@@ -74,7 +74,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
           pointerEvents="box-none"
           style={
             {
-              "height": 100,
+              "height": 64,
               "maxHeight": undefined,
               "minHeight": undefined,
               "opacity": undefined,
@@ -106,13 +106,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "alignItems": "flex-start",
-                  "bottom": 0,
-                  "justifyContent": "center",
-                  "left": 0,
+                  "marginHorizontal": 16,
                   "opacity": 1,
-                  "position": "absolute",
-                  "top": 0,
                 }
               }
             >
@@ -120,49 +115,22 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "flexDirection": "row",
-                    "marginHorizontal": 20,
+                    "flex": 1,
+                    "justifyContent": "center",
                   }
                 }
               >
-                <View
+                <Image
+                  resizeMethod="auto"
+                  source={1}
                   style={
                     {
-                      "marginLeft": 0,
+                      "height": 35,
+                      "tintColor": "#121314",
+                      "width": 70,
                     }
                   }
-                >
-                  <Image
-                    resizeMethod="auto"
-                    source={1}
-                    style={
-                      {
-                        "height": 40,
-                        "marginRight": 10,
-                        "width": 40,
-                      }
-                    }
-                  />
-                </View>
-                <View
-                  style={
-                    {
-                      "marginLeft": 0,
-                    }
-                  }
-                >
-                  <Image
-                    resizeMethod="auto"
-                    source={1}
-                    style={
-                      {
-                        "height": 15,
-                        "tintColor": "#141618",
-                        "width": 122,
-                      }
-                    }
-                  />
-                </View>
+                />
               </View>
             </View>
             <View
@@ -170,25 +138,17 @@ exports[`OptinMetrics render matches snapshot 1`] = `
               pointerEvents="box-none"
               style={
                 {
-                  "marginHorizontal": 72,
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
                   "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
                 }
               }
             >
-              <Text
-                accessibilityRole="header"
-                aria-level="1"
-                collapsable={false}
-                numberOfLines={1}
-                onLayout={[Function]}
-                style={
-                  {
-                    "color": "#0376c9",
-                    "fontSize": 17,
-                    "fontWeight": "600",
-                  }
-                }
-              />
+              <View />
             </View>
           </View>
         </View>
@@ -391,13 +351,14 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             style={
                               {
                                 "marginHorizontal": 20,
+                                "marginTop": 10,
                               }
                             }
                           >
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 22,
                                   "fontWeight": "600",
@@ -410,7 +371,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -425,7 +386,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               onPress={[Function]}
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -438,7 +399,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -471,7 +432,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1c8234",
+                                        "color": "#1c7e33",
                                       },
                                     ],
                                     {
@@ -488,7 +449,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -531,7 +492,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1c8234",
+                                        "color": "#1c7e33",
                                       },
                                     ],
                                     {
@@ -548,7 +509,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -591,7 +552,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                         "marginRight": 5,
                                       },
                                       {
-                                        "color": "#1c8234",
+                                        "color": "#1c7e33",
                                       },
                                     ],
                                     {
@@ -608,7 +569,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "flex": 1,
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontWeight": "400",
@@ -661,7 +622,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#141618",
+                                      "borderColor": "#121314",
                                       "borderRadius": 4,
                                       "borderWidth": 2,
                                       "height": 20,
@@ -674,7 +635,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -689,7 +650,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#9fa6ae",
+                                    "color": "#9ca1af",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -709,7 +670,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "transparent",
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -723,7 +684,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#4459ff",
                                         "fontFamily": "EuclidCircularB-Medium",
                                         "fontSize": 14,
                                         "fontWeight": "500",
@@ -769,7 +730,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "transparent",
-                              "borderColor": "#0376c9",
+                              "borderColor": "#4459ff",
                               "borderRadius": 24,
                               "borderWidth": 1,
                               "flex": 1,
@@ -785,7 +746,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                                 "fontFamily": "EuclidCircularB-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
@@ -816,7 +777,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "flex-start",
-                              "backgroundColor": "#0376c9",
+                              "backgroundColor": "#4459ff",
                               "borderRadius": 24,
                               "flex": 1,
                               "flexDirection": "row",

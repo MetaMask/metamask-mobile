@@ -1,0 +1,3075 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIRenderer adds a footer if required 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            fontWeight="normal"
+            style={
+              {
+                "color": "inherit",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            textAlign="left"
+          >
+            <Text
+              color="inherit"
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Close
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  keyboardType="numeric"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  secureTextEntry={true}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={2}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="bar"
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input2"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="foo"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={2}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders basic UI 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            fontWeight="normal"
+            style={
+              {
+                "color": "inherit",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            textAlign="left"
+          >
+            <Text
+              color="inherit"
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders complex nested components 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            backgroundColor="#f3f5f9"
+            borderRadius={8}
+            color="Default"
+            flexDirection="column"
+            gap={8}
+            justifyContent="flex-start"
+            padding={16}
+            style={
+              [
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "color": "Default",
+                  "flexDirection": "column",
+                  "gap": 8,
+                  "justifyContent": "flex-start",
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "display": "flex",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                  "justifyContent": "space-between",
+                  "marginLeft": -8,
+                  "marginRight": -8,
+                  "paddingBottom": 0,
+                  "paddingHorizontal": 8,
+                  "paddingTop": 0,
+                }
+              }
+              testID="info-row"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "minHeight": 38,
+                    "paddingEnd": 4,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Key
+                </Text>
+              </View>
+              <View
+                alignItems="center"
+                flexDirection="row"
+                gap={4}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#9ca1af",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Extra
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Value
+                </Text>
+              </View>
+            </View>
+            <View
+              alignItems="center"
+              flexDirection="row"
+              justifyContent="space-between"
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                  },
+                  {
+                    "flex": 1,
+                  },
+                ]
+              }
+              testID="snaps-ui-card"
+            >
+              <View
+                alignItems="center"
+                flexDirection="row"
+                gap={16}
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 16,
+                    },
+                    undefined,
+                  ]
+                }
+              >
+                <RNSVGSvgView
+                  bbHeight={32}
+                  bbWidth={32}
+                  focusable={false}
+                  height={32}
+                  onLayout={[Function]}
+                  style={
+                    [
+                      {
+                        "backgroundColor": "transparent",
+                        "borderWidth": 0,
+                      },
+                      [
+                        {
+                          "borderRadius": 0,
+                          "overflow": "hidden",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "flex": 0,
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                  testID="snaps-ui-image"
+                  width={32}
+                  xml="<svg />"
+                >
+                  <RNSVGGroup
+                    fill={
+                      {
+                        "payload": 4278190080,
+                        "type": 0,
+                      }
+                    }
+                  />
+                </RNSVGSvgView>
+                <View
+                  flexDirection="column"
+                  style={
+                    [
+                      {
+                        "flexDirection": "column",
+                      },
+                      undefined,
+                    ]
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="tail"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    CardTitle
+                  </Text>
+                  <Text
+                    accessibilityRole="text"
+                    ellipsizeMode="tail"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    CardDescription
+                  </Text>
+                </View>
+              </View>
+              <View
+                flexDirection="column"
+                style={
+                  [
+                    {
+                      "flexDirection": "column",
+                      "textAlign": "right",
+                    },
+                    undefined,
+                  ]
+                }
+                textAlign="right"
+              >
+                <Text
+                  accessibilityRole="text"
+                  ellipsizeMode="tail"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  CardValue
+                </Text>
+                <Text
+                  accessibilityRole="text"
+                  ellipsizeMode="tail"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  CardExtra
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        textVariant="sBodyMDMedium"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            <Text
+              color="inherit"
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders footers 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            fontWeight="normal"
+            style={
+              {
+                "color": "inherit",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            textAlign="left"
+          >
+            <Text
+              color="inherit"
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        textVariant="sBodyMDMedium"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            <Text
+              color="inherit"
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer renders loading state 1`] = `
+<ActivityIndicator
+  color="#1292B4"
+  size="large"
+/>
+`;
+
+exports[`SnapUIRenderer supports fields with multiple components 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            flexDirection="column"
+            gap={8}
+            style={
+              [
+                {
+                  "flexDirection": "column",
+                  "gap": 8,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {},
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Input
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "marginRight": 8,
+                    }
+                  }
+                  testID="textfield-startacccessory"
+                >
+                  <RNSVGSvgView
+                    bbHeight="100%"
+                    bbWidth="100%"
+                    focusable={false}
+                    onLayout={[Function]}
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        [
+                          {
+                            "borderRadius": 0,
+                            "overflow": "hidden",
+                          },
+                          undefined,
+                        ],
+                        {
+                          "flex": 0,
+                          "height": "100%",
+                          "width": "100%",
+                        },
+                      ]
+                    }
+                    testID="snaps-ui-image"
+                    xml="<svg />"
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    />
+                  </RNSVGSvgView>
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoFocus={false}
+                    editable={true}
+                    id="input"
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="input"
+                    value=""
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "marginLeft": 8,
+                    }
+                  }
+                  testID="textfield-endacccessory"
+                >
+                  <Text
+                    accessibilityRole="link"
+                    accessible={true}
+                    disabled={false}
+                    id="submit"
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    padding={0}
+                    style={
+                      {
+                        "backgroundColor": "transparent",
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    suppressHighlighting={true}
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      <Text
+                        color="inherit"
+                      >
+                        Submit
+                      </Text>
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer supports forms with fields 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            flexDirection="column"
+            gap={8}
+            style={
+              [
+                {
+                  "flexDirection": "column",
+                  "gap": 8,
+                },
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                [
+                  {},
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Input
+              </Text>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc8",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": 48,
+                    "opacity": 1,
+                    "paddingHorizontal": 16,
+                  }
+                }
+                testID="textfield"
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <TextInput
+                    autoFocus={false}
+                    editable={true}
+                    id="input"
+                    onBlur={[Function]}
+                    onChangeText={[Function]}
+                    onFocus={[Function]}
+                    style={
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "transparent",
+                        "borderWidth": 1,
+                        "color": "#121314",
+                        "fontFamily": "Euclid Circular B",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "height": 24,
+                        "letterSpacing": 0,
+                        "opacity": 1,
+                        "paddingVertical": 0,
+                      }
+                    }
+                    testID="input"
+                    value="abc"
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Checkbox
+              </Text>
+              <TouchableOpacity
+                disabled={false}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "height": 24,
+                    "opacity": 1,
+                  }
+                }
+              >
+                <View
+                  accessibilityRole="checkbox"
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#4459ff",
+                      "borderColor": "border-muted",
+                      "borderRadius": 4,
+                      "borderWidth": 2,
+                      "height": 20,
+                      "justifyContent": "center",
+                      "width": 20,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#ffffff"
+                    height={20}
+                    name="CheckBold"
+                    onPress={[Function]}
+                    style={
+                      {
+                        "height": 20,
+                        "width": 20,
+                      }
+                    }
+                    testID="checkbox-icon-component"
+                    width={20}
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "marginLeft": 12,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    This is a checkbox
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              flexDirection="column"
+              style={
+                [
+                  {
+                    "flexDirection": "column",
+                  },
+                  {
+                    "flexBasis": "50%",
+                    "flexGrow": 1,
+                    "flexShrink": 1,
+                  },
+                ]
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                My Selector
+              </Text>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "stretch",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#b7bbc866",
+                    "borderRadius": 8,
+                    "borderWidth": 1,
+                    "flexDirection": "row",
+                    "height": "auto",
+                    "justifyContent": "center",
+                    "maxHeight": 64,
+                    "minHeight": 48,
+                    "paddingBottom": 8,
+                    "paddingHorizontal": 16,
+                    "paddingLeft": 16,
+                    "paddingRight": 16,
+                    "paddingTop": 8,
+                  }
+                }
+              >
+                <View
+                  alignItems="center"
+                  flexDirection="row"
+                  justifyContent="space-between"
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "justifyContent": "space-between",
+                      },
+                      {
+                        "flex": 1,
+                      },
+                    ]
+                  }
+                  testID="snaps-ui-card"
+                >
+                  <View
+                    alignItems="center"
+                    flexDirection="row"
+                    gap={16}
+                    style={
+                      [
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 16,
+                        },
+                        undefined,
+                      ]
+                    }
+                  >
+                    <View
+                      flexDirection="column"
+                      style={
+                        [
+                          {
+                            "flexDirection": "column",
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "EuclidCircularB-Medium",
+                            "fontSize": 14,
+                            "fontWeight": "500",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        CardTitle2
+                      </Text>
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        style={
+                          {
+                            "color": "#686e7d",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        CardDescription2
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    flexDirection="column"
+                    style={
+                      [
+                        {
+                          "flexDirection": "column",
+                          "textAlign": "right",
+                        },
+                        undefined,
+                      ]
+                    }
+                    textAlign="right"
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      CardValue2
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      ellipsizeMode="tail"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      CardExtra2
+                    </Text>
+                  </View>
+                </View>
+                <SvgMock
+                  color="#121314"
+                  height={16}
+                  name="ArrowDown"
+                  style={
+                    {
+                      "height": 16,
+                      "marginLeft": 8,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+            <Modal
+              animationType="none"
+              deviceHeight={null}
+              deviceWidth={null}
+              hardwareAccelerated={false}
+              hideModalContentWhileAnimating={false}
+              onBackdropPress={[Function]}
+              onModalHide={[Function]}
+              onModalWillHide={[Function]}
+              onModalWillShow={[Function]}
+              onRequestClose={[Function]}
+              onSwipeComplete={[Function]}
+              panResponderThreshold={4}
+              scrollHorizontal={false}
+              scrollOffset={0}
+              scrollOffsetMax={0}
+              scrollTo={null}
+              statusBarTranslucent={false}
+              supportedOrientations={
+                [
+                  "portrait",
+                  "landscape",
+                ]
+              }
+              swipeDirection="down"
+              swipeThreshold={100}
+              transparent={true}
+              visible={true}
+            >
+              <View
+                accessibilityState={
+                  {
+                    "busy": undefined,
+                    "checked": undefined,
+                    "disabled": undefined,
+                    "expanded": undefined,
+                    "selected": undefined,
+                  }
+                }
+                accessible={true}
+                collapsable={false}
+                focusable={true}
+                onClick={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderRelease={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                style={
+                  {
+                    "backgroundColor": "#00000066",
+                    "bottom": 0,
+                    "height": 1334,
+                    "left": 0,
+                    "opacity": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                    "width": 750,
+                  }
+                }
+              />
+              <View
+                collapsable={false}
+                deviceHeight={null}
+                deviceWidth={null}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onMoveShouldSetResponder={[Function]}
+                onMoveShouldSetResponderCapture={[Function]}
+                onResponderEnd={[Function]}
+                onResponderGrant={[Function]}
+                onResponderMove={[Function]}
+                onResponderReject={[Function]}
+                onResponderRelease={[Function]}
+                onResponderStart={[Function]}
+                onResponderTerminate={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onStartShouldSetResponderCapture={[Function]}
+                onSwipeComplete={[Function]}
+                panResponderThreshold={4}
+                pointerEvents="box-none"
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "flex-end",
+                    "left": 0,
+                    "margin": 0,
+                    "top": 0,
+                    "transform": [
+                      {
+                        "translateY": 1334,
+                      },
+                    ],
+                  }
+                }
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeDirection="down"
+                swipeThreshold={100}
+              >
+                <View
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderTopLeftRadius": 24,
+                      "borderTopRightRadius": 24,
+                      "maxHeight": "80%",
+                      "minHeight": 300,
+                      "overflow": "hidden",
+                      "paddingBottom": 20,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flexDirection": "row",
+                          "padding": 16,
+                        },
+                        false,
+                      ]
+                    }
+                    testID="header"
+                  >
+                    <View
+                      style={
+                        {
+                          "width": undefined,
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                      >
+                        <TouchableOpacity
+                          accessible={true}
+                          activeOpacity={1}
+                          disabled={false}
+                          onPress={[Function]}
+                          onPressIn={[Function]}
+                          onPressOut={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "borderRadius": 8,
+                              "height": 24,
+                              "justifyContent": "center",
+                              "opacity": 1,
+                              "width": 24,
+                            }
+                          }
+                        >
+                          <SvgMock
+                            color="#121314"
+                            height={16}
+                            name="ArrowLeft"
+                            style={
+                              {
+                                "height": 16,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flex": 1,
+                          "marginHorizontal": 16,
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontSize": 16,
+                            "fontWeight": "700",
+                            "letterSpacing": 0,
+                            "lineHeight": 24,
+                            "textAlign": "center",
+                          }
+                        }
+                        testID="header-title"
+                      >
+                        Select an option
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "width": undefined,
+                        }
+                      }
+                    >
+                      <View
+                        onLayout={[Function]}
+                      />
+                    </View>
+                  </View>
+                  <RCTScrollView>
+                    <View>
+                      <View
+                        flexDirection="column"
+                        gap={8}
+                        style={
+                          [
+                            {
+                              "flexDirection": "column",
+                              "gap": 8,
+                            },
+                            {
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                            },
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "transparent",
+                              "borderRadius": 8,
+                              "flexDirection": "row",
+                              "height": "auto",
+                              "justifyContent": "center",
+                              "maxHeight": 64,
+                              "minHeight": 48,
+                              "paddingBottom": 8,
+                              "paddingHorizontal": 16,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            }
+                          }
+                        >
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
+                            }
+                            testID="snaps-ui-card"
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={16}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardTitle1
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardDescription1
+                                </Text>
+                              </View>
+                            </View>
+                            <View
+                              flexDirection="column"
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "column",
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              textAlign="right"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardValue1
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardExtra1
+                              </Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "stretch",
+                              "backgroundColor": "transparent",
+                              "borderRadius": 8,
+                              "flexDirection": "row",
+                              "height": "auto",
+                              "justifyContent": "center",
+                              "maxHeight": 64,
+                              "minHeight": 48,
+                              "paddingBottom": 8,
+                              "paddingHorizontal": 16,
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "paddingTop": 8,
+                            }
+                          }
+                        >
+                          <View
+                            alignItems="center"
+                            flexDirection="row"
+                            justifyContent="space-between"
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "flexDirection": "row",
+                                  "justifyContent": "space-between",
+                                },
+                                {
+                                  "flex": 1,
+                                },
+                              ]
+                            }
+                            testID="snaps-ui-card"
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={16}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "gap": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontSize": 14,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardTitle2
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 22,
+                                    }
+                                  }
+                                >
+                                  CardDescription2
+                                </Text>
+                              </View>
+                            </View>
+                            <View
+                              flexDirection="column"
+                              style={
+                                [
+                                  {
+                                    "flexDirection": "column",
+                                    "textAlign": "right",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                              textAlign="right"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontSize": 14,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardValue2
+                              </Text>
+                              <Text
+                                accessibilityRole="text"
+                                ellipsizeMode="tail"
+                                style={
+                                  {
+                                    "color": "#686e7d",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 22,
+                                  }
+                                }
+                              >
+                                CardExtra2
+                              </Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </RCTScrollView>
+                </View>
+              </View>
+            </Modal>
+            <Text
+              accessibilityRole="link"
+              accessible={true}
+              disabled={false}
+              id="submit"
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "backgroundColor": "transparent",
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+              suppressHighlighting={true}
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                <Text
+                  color="inherit"
+                >
+                  Submit
+                </Text>
+              </Text>
+            </Text>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer supports interactive inputs 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoFocus={false}
+                  editable={true}
+                  id="input"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "Euclid Circular B",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="a"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIRenderer supports the onCancel prop 1`] = `
+<View
+  style={
+    [
+      {},
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 80,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            fontWeight="normal"
+            style={
+              {
+                "color": "inherit",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            textAlign="left"
+          >
+            <Text
+              color="inherit"
+            >
+              Hello world!
+            </Text>
+          </Text>
+        </View>
+      </View>
+    </RCTScrollView>
+    <View
+      flexDirection="row"
+      gap={16}
+      padding={16}
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 16,
+          },
+          {
+            "bottom": 0,
+            "height": 80,
+            "justifyContent": "space-evenly",
+            "paddingVertical": 16,
+            "position": "absolute",
+            "width": "100%",
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[MockFunction]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "EuclidCircularB-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        disabled={false}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#121314",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        textVariant="sBodyMDMedium"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 4,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 50,
+                "borderWidth": 0,
+                "height": 24,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 24,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              m
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "EuclidCircularB-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            <Text
+              color="inherit"
+            >
+              Foo
+            </Text>
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;

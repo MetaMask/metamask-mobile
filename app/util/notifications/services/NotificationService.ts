@@ -1,25 +1,24 @@
 import notifee, {
-  AuthorizationStatus,
-  Event as NotifeeEvent,
-  EventType,
-  EventDetail,
   AndroidChannel,
+  AuthorizationStatus,
+  EventDetail,
+  EventType,
+  InitialNotification,
+  Event as NotifeeEvent,
+  Notification,
 } from '@notifee/react-native';
-
-import { HandleNotificationCallback, LAUNCH_ACTIVITY, INotification as Notification, PressActionId } from '../types';
-
-import { Linking, Platform, Alert as NativeAlert } from 'react-native';
+import { Linking, Alert as NativeAlert, Platform } from 'react-native';
+import { strings } from '../../../../locales/i18n';
+import { store } from '../../../store';
+import Logger from '../../../util/Logger';
 import {
   ChannelId,
   notificationChannels,
 } from '../../../util/notifications/androidChannels';
-
-import { strings } from '../../../../locales/i18n';
+import { withTimeout } from '../methods';
 import { mmStorage } from '../settings';
 import { STORAGE_IDS } from '../settings/storage/constants';
-import { store } from '../../../store';
-import Logger from '../../../util/Logger';
-import { withTimeout } from '../methods';
+import { LAUNCH_ACTIVITY, PressActionId } from '../types';
 
 interface AlertButton {
   text: string;
@@ -30,23 +29,28 @@ class NotificationsService {
   async getBlockedNotifications(): Promise<Map<ChannelId, boolean>> {
     try {
       const settings = await notifee.getNotificationSettings();
-      const channels = await notifee.getChannels();
+      const isNotAuthorised =
+        settings.authorizationStatus === AuthorizationStatus.NOT_DETERMINED ||
+        settings.authorizationStatus === AuthorizationStatus.DENIED;
 
-      switch (settings.authorizationStatus) {
-        case AuthorizationStatus.NOT_DETERMINED:
-        case AuthorizationStatus.DENIED:
-          return notificationChannels.reduce((map, next) => {
-            map.set(next.id as ChannelId, true);
-            return map;
-          }, new Map<ChannelId, boolean>());
-      }
+      const channels = isNotAuthorised
+        ? notificationChannels
+        : await notifee.getChannels();
 
-      return channels.reduce((map, next) => {
-        if (next.blocked) {
-          map.set(next.id as ChannelId, true);
+      const deniedChannelMap = new Map<ChannelId, boolean>();
+      channels.forEach((c) => {
+        // default channels
+        if (isNotAuthorised) {
+          deniedChannelMap.set(c.id as ChannelId, true);
+          return;
         }
-        return map;
-      }, new Map<ChannelId, boolean>());
+        // known notifee channels
+        if ('blocked' in c && c.blocked) {
+          deniedChannelMap.set(c.id as ChannelId, true);
+        }
+      });
+
+      return deniedChannelMap;
     } catch (e) {
       Logger.error(
         e as Error,
@@ -58,11 +62,15 @@ class NotificationsService {
 
   async getAllPermissions(shouldOpenSettings = true) {
     const promises: Promise<string>[] = notificationChannels.map(
-      (channel: AndroidChannel) =>
-        withTimeout(this.createChannel(channel), 5000),
+      async (channel: AndroidChannel) =>
+        await withTimeout(this.createChannel(channel), 5000),
     );
     await Promise.allSettled(promises);
-    const permission = await withTimeout(this.requestPermission(), 5000);
+    const permission: 'authorized' | 'denied' = await withTimeout(
+      this.requestPermission(),
+      5000,
+    );
+
     const blockedNotifications = await withTimeout(
       this.getBlockedNotifications(),
       5000,
@@ -154,8 +162,8 @@ class NotificationsService {
     const settings = await notifee.requestPermission();
     return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
       settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
-      ? 'authorized'
-      : 'denied';
+      ? ('authorized' as const)
+      : ('denied' as const);
   }
 
   onForegroundEvent = (
@@ -184,15 +192,15 @@ class NotificationsService {
     callback,
   }: {
     detail: EventDetail;
-    callback?: (notification: Notification) => void;
+    callback?: (notification: Notification | undefined) => void;
   }) => {
     this.decrementBadgeCount(1);
     if (detail?.notification?.id) {
       await this.cancelTriggerNotification(detail.notification.id);
     }
 
-    if (detail?.notification?.data) {
-      callback?.(detail.notification as Notification);
+    if (detail?.notification) {
+      callback?.(detail.notification);
     }
   };
 
@@ -201,9 +209,9 @@ class NotificationsService {
     detail,
     callback,
   }: NotifeeEvent & {
-    callback?: (notification: Notification) => void;
+    callback?: (notification: Notification | undefined) => void;
   }) => {
-    switch (type as unknown as EventType) {
+    switch (type) {
       case EventType.DELIVERED:
         this.incrementBadgeCount(1);
         break;
@@ -221,14 +229,8 @@ class NotificationsService {
     await notifee.cancelTriggerNotification(id);
   };
 
-  getInitialNotification = async (
-    callback: HandleNotificationCallback
-  ): Promise<void> => {
-    const event = await notifee.getInitialNotification()
-    if (event) {
-      callback(event.notification.data as Notification['data'])
-    }
-  };
+  getInitialNotification = async (): Promise<InitialNotification | null> =>
+    await notifee.getInitialNotification();
 
   cancelAllNotifications = async () => {
     await notifee.cancelAllNotifications();
@@ -238,28 +240,35 @@ class NotificationsService {
     notifee.createChannel(channel);
 
   displayNotification = async ({
-    channelId,
+    channelId = ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+    pressActionId = PressActionId.OPEN_HOME,
     title,
     body,
-    data
+    data,
+    id,
   }: {
-    channelId: ChannelId
-    title: string
-    body?: string
-    data?: Notification['data']
+    channelId?: ChannelId;
+    pressActionId?: PressActionId;
+    title: string;
+    body?: string;
+    data?: unknown;
+    id?: string;
   }): Promise<void> => {
     await notifee.displayNotification({
+      id,
       title,
       body,
-      data: data as unknown as Notification['data'],
+      // Notifee can only store and handle data strings
+      data: { dataStr: JSON.stringify(data) },
       android: {
         smallIcon: 'ic_notification_small',
         largeIcon: 'ic_notification',
         channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
         pressAction: {
-          id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
+          id: pressActionId,
           launchActivity: LAUNCH_ACTIVITY,
-        }
+        },
+        tag: id,
       },
       ios: {
         launchImageName: 'Default',
@@ -277,4 +286,16 @@ class NotificationsService {
   };
 }
 
-export default new NotificationsService();
+const NotificationService = new NotificationsService();
+
+export default NotificationService;
+
+export async function requestPushPermissions() {
+  const result = await NotificationService.getAllPermissions(true);
+  return result.permission === 'authorized';
+}
+
+export async function hasPushPermission() {
+  const result = await NotificationService.getAllPermissions(false);
+  return result.permission === 'authorized';
+}

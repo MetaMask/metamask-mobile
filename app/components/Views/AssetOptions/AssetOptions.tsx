@@ -15,8 +15,8 @@ import Icon, {
 import useBlockExplorer from '../../../components/UI/Swaps/utils/useBlockExplorer';
 import {
   createProviderConfig,
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
@@ -63,9 +63,11 @@ const AssetOptions = (props: Props) => {
   const navigation = useNavigation();
   const modalRef = useRef<ReusableModalRef>(null);
   const providerConfig = useSelector(selectProviderConfig);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
   const tokenList = useSelector(selectTokenList);
-  const chainId = useSelector(selectChainId);
+  const chainId = useSelector(selectEvmChainId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const isDataCollectionForMarketingEnabled = useSelector(
@@ -97,8 +99,8 @@ const AssetOptions = (props: Props) => {
   }, [networkId, networkConfigurations, providerConfig]);
 
   const explorer = useBlockExplorer(
-    providerConfigTokenExplorer,
     networkConfigurations,
+    providerConfigTokenExplorer,
   );
   const { trackEvent, isEnabled, createEventBuilder } = useMetrics();
 

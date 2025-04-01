@@ -11,11 +11,10 @@ exports[`ButtonPill should render correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 99,
-      "color": "#141618",
+      "color": "#121314",
       "justifyContent": "center",
-      "opacity": 1,
       "paddingHorizontal": 8,
       "paddingVertical": 4,
     }

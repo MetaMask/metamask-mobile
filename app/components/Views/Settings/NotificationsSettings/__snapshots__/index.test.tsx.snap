@@ -22,12 +22,13 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
           "marginTop": 16,
         }
       }
+      testID="main-notification-toggle"
     >
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
@@ -43,7 +44,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
-        onTintColor="#0376c9"
+        onTintColor="#4459ff"
         style={
           [
             {
@@ -55,14 +56,15 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
                 "alignSelf": "flex-end",
               },
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 16,
               },
             ],
           ]
         }
+        testID="main-notification-toggle--switch"
         thumbTintColor="#ffffff"
-        tintColor="#BBC0C566"
+        tintColor="#b7bbc866"
         value={false}
       />
     </View>
@@ -77,7 +79,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -93,7 +95,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -101,6 +103,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
               "lineHeight": 22,
             }
           }
+          testID="main-notification-toggle--learn-more-button"
         >
           Learn how we protect your privacy while using this feature.
         </Text>

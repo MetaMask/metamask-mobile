@@ -27,8 +27,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import NetworkSelectorList from '../../../UI/NetworkSelectorList/NetworkSelectorList';
 import {
-  selectChainId,
-  selectNetworkConfigurations,
+  selectEvmChainId,
+  selectEvmNetworkConfigurationsByChainId,
 } from '../../../../selectors/networkController';
 import Engine from '../../../../core/Engine';
 import { PermissionKeys } from '../../../../core/Permissions/specifications';
@@ -54,8 +54,10 @@ const NetworkConnectMultiSelector = ({
   const { navigate } = useNavigation();
   const [selectedChainIds, setSelectedChainIds] = useState<string[]>([]);
   const [originalChainIds, setOriginalChainIds] = useState<string[]>([]);
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentChainId = useSelector(selectChainId);
+  const networkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const currentChainId = useSelector(selectEvmChainId);
 
   useEffect(() => {
     if (propSelectedChainIds && !isInitializedWithPermittedChains) {
@@ -116,7 +118,7 @@ const NetworkConnectMultiSelector = ({
           const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
           // Switch to the network using networkClientId
-          await Engine.context.NetworkController.setActiveNetwork(
+          await Engine.context.MultichainNetworkController.setActiveNetwork(
             networkClientId,
           );
         }
@@ -167,7 +169,7 @@ const NetworkConnectMultiSelector = ({
     currentChainId,
     networkConfigurations,
   ]);
-
+  // TODO: [SOLANA]  When we support non evm networks, refactor this
   const networks = Object.entries(networkConfigurations).map(
     ([key, network]: [string, NetworkConfiguration]) => ({
       id: key,

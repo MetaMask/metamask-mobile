@@ -67,7 +67,7 @@ import {
   MM_MIXPANEL_TOKEN,
 } from './constants';
 import { regex } from '../../../../app/util/regex';
-import { selectChainId } from '../../../selectors/networkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { BrowserViewSelectorsIDs } from '../../../../e2e/selectors/Browser/BrowserView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { trackDappViewedEvent } from '../../../util/metrics';
@@ -590,7 +590,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
+      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -692,8 +692,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         tabId,
+        {
+          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        },
       );
 
       addToBrowserHistory({
@@ -1070,8 +1072,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
         if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
             'Error in onSubmitEditing',
           );
           return;
@@ -1427,7 +1429,7 @@ const mapStateToProps = (state: RootState) => ({
     selectSelectedInternalAccountFormattedAddress(state)?.toLowerCase(),
   isIpfsGatewayEnabled: selectIsIpfsGatewayEnabled(state),
   wizardStep: state.wizard.step,
-  activeChainId: selectChainId(state),
+  activeChainId: selectEvmChainId(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

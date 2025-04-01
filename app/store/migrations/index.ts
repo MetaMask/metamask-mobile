@@ -67,6 +67,12 @@ import migration63 from './063';
 import migration64 from './064';
 import migration65 from './065';
 import migration66 from './066';
+import migration67 from './067';
+import migration68 from './068';
+import migration69 from './069';
+import migration70 from './070';
+
+// Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
 import { RootState } from '../../reducers';
 
@@ -148,6 +154,10 @@ export const migrationList: MigrationsList = {
   64: migration64,
   65: migration65,
   66: migration66,
+  67: migration67,
+  68: migration68,
+  69: migration69,
+  70: migration70,
 };
 
 // Enable both synchronous and asynchronous migrations

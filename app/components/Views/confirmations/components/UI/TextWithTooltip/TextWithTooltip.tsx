@@ -1,23 +1,25 @@
 import React, { useState } from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 
-import BottomModal from '../BottomModal';
-import { useStyles } from '../../../../../hooks/useStyles';
-import styleSheet from './TextWithTooltip.styles';
 import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import Text from '../../../../../../component-library/components/Texts/Text';
 import { ButtonIconSizes } from '../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
 import {
   IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
-
+import { useStyles } from '../../../../../hooks/useStyles';
+import BottomModal from '../BottomModal';
+import styleSheet from './TextWithTooltip.styles';
 interface TextWithTooltipProps {
+  label: string;
   text: string;
   tooltip: string;
   tooltipTestId?: string;
 }
 
 const TextWithTooltip = ({
+  label,
   text,
   tooltip,
   tooltipTestId,
@@ -35,15 +37,17 @@ const TextWithTooltip = ({
           <View style={styles.container}>
             <View style={styles.tooltipHeader}>
               <ButtonIcon
+                style={styles.backIcon}
                 iconColor={IconColor.Default}
                 size={ButtonIconSizes.Sm}
                 onPress={() => setTooltipVisible(false)}
                 iconName={IconName.ArrowLeft}
                 testID={tooltipTestId ?? 'tooltipTestId'}
               />
+              <Text style={styles.text}>{label}</Text>
             </View>
             <View style={styles.tooltipContext}>
-              <Text style={styles.tooltipText}>{tooltip}</Text>
+              <Text style={styles.text}>{tooltip}</Text>
             </View>
           </View>
         </BottomModal>
