@@ -11,10 +11,7 @@ import { SnapIcon } from '../SnapIcon/SnapIcon';
 import Text from '../../../component-library/components/Texts/Text';
 import { useSelector } from 'react-redux';
 import { selectSnaps } from '../../../selectors/snaps/snapController';
-import {
-  DEFAULT_BUTTONPRIMARY_LABEL_COLOR,
-  DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT,
-} from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
+import { DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT } from '../../../component-library/components/Buttons/Button/variants/ButtonPrimary/ButtonPrimary.constants';
 import {
   FlexDirection,
   JustifyContent,
