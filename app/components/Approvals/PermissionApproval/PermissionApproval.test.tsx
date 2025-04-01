@@ -11,6 +11,7 @@ import { render } from '@testing-library/react-native';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import useOriginSource from '../../hooks/useOriginSource';
+import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../components/hooks/useMetrics');
@@ -30,7 +31,7 @@ const PERMISSION_REQUEST_ID_MOCK = 'testId';
 
 const HOST_INFO_MOCK = {
   // TODO: fix this file
-  permissions: { eth_accounts: true },
+  permissions: { [Caip25EndowmentPermissionName]: true },
   metadata: { id: PERMISSION_REQUEST_ID_MOCK },
 };
 
@@ -197,14 +198,14 @@ describe('PermissionApproval', () => {
     expect(navigationMock.navigate).toHaveBeenCalledTimes(0);
   });
 
-  it('does not navigate if no eth_accounts permission', async () => {
+  it(`does not navigate if no ${Caip25EndowmentPermissionName} permission`, async () => {
     const navigationMock = {
       navigate: jest.fn(),
     };
 
     mockApprovalRequest({
       type: ApprovalTypes.REQUEST_PERMISSIONS,
-      requestData: { ...HOST_INFO_MOCK, permissions: { eth_accounts: false } },
+      requestData: { ...HOST_INFO_MOCK, permissions: { [Caip25EndowmentPermissionName]: false } },
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
