@@ -29,8 +29,10 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 });
 
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
-  onSetRpcTarget: jest.fn(),
-  onNetworkChange: jest.fn(),
+  useSwitchNetworks: jest.fn(() => ({
+    onSetRpcTarget: jest.fn(),
+    onNetworkChange: jest.fn(),
+  })),
 }));
 
 describe('BridgeSourceNetworkSelector', () => {
