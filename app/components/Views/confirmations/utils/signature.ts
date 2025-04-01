@@ -172,26 +172,27 @@ function extractLargeMessageValue(dataToParse: string): string | undefined {
  * @returns
  */
 export const parseTypedDataMessage = (dataToParse: string) => {
+  if (!dataToParse) { return {}; }
+
   const result = JSON.parse(dataToParse);
 
   const largeMessageValue = extractLargeMessageValue(dataToParse);
   if (result.message?.value) {
     result.message.value = largeMessageValue || String(result.message.value);
   }
+
   return result;
 };
 
 export const parseSignTypedDataMessage = (dataToParse: string) => {
+  if (!dataToParse) { return {}; }
+
   const { message, primaryType, types } = parseTypedDataMessage(dataToParse);
-  // need to double check after coercing values, typedef still matches
   return sanitizeParsedMessage(message, primaryType, types);
 };
 
 export const parseSanitizeTypedDataMessage = (dataToParse: string) => {
-  if (!dataToParse) {
-    return {};
-  }
-
+  if (!dataToParse) { return {}; }
   const { domain, message, primaryType, types } =
     parseTypedDataMessage(dataToParse);
 
