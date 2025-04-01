@@ -33,6 +33,8 @@ const ConfirmationLocationMap = {
           return CONFIRMATION_EVENT_LOCATIONS.STAKING_DEPOSIT;
         case TransactionType.stakingUnstake:
           return CONFIRMATION_EVENT_LOCATIONS.STAKING_WITHDRAWAL;
+        case TransactionType.stakingClaim:
+          return CONFIRMATION_EVENT_LOCATIONS.STAKING_CLAIM;
         default:
           return undefined;
       }

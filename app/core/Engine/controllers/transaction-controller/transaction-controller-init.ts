@@ -19,14 +19,11 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import {
+  handleTransactionAdded,
   handleTransactionApproved,
-  handleTransactionConfirmed,
-  handleTransactionDropped,
-  handleTransactionFailed,
+  handleTransactionFinalized,
   handleTransactionRejected,
   handleTransactionSubmitted,
-  handleUnapprovedTransactionAdded,
-  type TransactionMetrics,
 } from './transaction-event-handlers';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
@@ -34,6 +31,7 @@ import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
+import type { TransactionEventHandlerRequest } from './types';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -112,6 +110,7 @@ export const TransactionControllerInit: ControllerInitFunction<
     addTransactionControllerListeners({
       initMessenger,
       getState,
+      smartTransactionsController,
     });
 
     return { controller: transactionController };
@@ -188,74 +187,75 @@ function getControllers(
   };
 }
 
-function addTransactionControllerListeners({
-  initMessenger,
-  getState,
-}: {
-  initMessenger: TransactionControllerInitMessenger;
-  getState: () => RootState;
-}) {
-  const getTransactionMetricProperties = (
-    transactionId: string,
-  ): TransactionMetrics => {
-    const state = getState();
-    return (state.confirmationMetrics.metricsById?.[transactionId] ||
-      {}) as unknown as TransactionMetrics;
-  };
-
-  const transactionMetricRequest = {
-    getTransactionMetricProperties,
-  };
+function addTransactionControllerListeners(
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  const { initMessenger } = transactionEventHandlerRequest;
 
   initMessenger.subscribe(
     'TransactionController:transactionApproved',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionApproved(transactionMeta, transactionMetricRequest);
+      handleTransactionApproved(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:transactionConfirmed',
     (transactionMeta: TransactionMeta) => {
-      handleTransactionConfirmed(transactionMeta, transactionMetricRequest);
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:transactionDropped',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionDropped(transactionMeta, transactionMetricRequest);
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:transactionFailed',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionFailed(transactionMeta, transactionMetricRequest);
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:transactionRejected',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionRejected(transactionMeta, transactionMetricRequest);
+      handleTransactionRejected(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:transactionSubmitted',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionSubmitted(transactionMeta, transactionMetricRequest);
+      handleTransactionSubmitted(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 
   initMessenger.subscribe(
     'TransactionController:unapprovedTransactionAdded',
     (transactionMeta: TransactionMeta) => {
-      handleUnapprovedTransactionAdded(
-        transactionMeta,
-        transactionMetricRequest,
-      );
+      handleTransactionAdded(transactionMeta, transactionEventHandlerRequest);
     },
   );
 }

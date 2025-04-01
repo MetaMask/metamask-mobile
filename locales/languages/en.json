@@ -14,7 +14,11 @@
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
-    "review_alert": "Review alert"
+    "review_alert": "Review alert",
+    "domain_mismatch": {
+      "title": "Suspicious sign-in request",
+      "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+    }
   },
   "blockaid_banner": {
     "approval_farming_description": "If you approve this request, a third party known for scams might take all your assets.",
@@ -413,7 +417,7 @@
       "subtitle": "Available in select regions"
     },
     "fund": {
-      "title": "Fund your wallet", 
+      "title": "Fund your wallet",
       "subtitle": "Add or transfer tokens to get started"
     },
     "cashout": {
@@ -732,6 +736,7 @@
     "select_accounts_description": "Select the account(s) to use on this site:",
     "connect_multiple_accounts": "Connect multiple accounts",
     "connect_more_accounts": "Connect more accounts",
+    "add":"Add",
     "cancel": "Cancel",
     "connect": "Connect",
     "connect_with_count": "Connect{{countLabel}}",
@@ -759,7 +764,15 @@
     "potential_threat": "Potential threats include",
     "fake_metamask": "Fake versions of MetaMask",
     "srp_theft": "Secret recovery phrase or password theft",
-    "malicious_transactions": "Malicious transactions resulting in stolen assets"
+    "malicious_transactions": "Malicious transactions resulting in stolen assets",
+    "secret_recovery_phrase": "Secret Recovery Phrase",
+    "account_name": "Account name",
+    "select_secret_recovery_phrase": "Select Secret Recovery Phrase",
+    "reveal_secret_recovery_phrase": "Reveal Secret Recovery Phrase",
+    "add_new_hd_account_helper_text": "The Secret Recovery Phrase your new account will be generated from",
+    "accounts": "accounts",
+    "show_accounts": "Show",
+    "hide_accounts": "Hide"
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -959,6 +972,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",
@@ -1727,6 +1741,9 @@
     "sent_collectible": "Sent Collectible",
     "sent": "Sent",
     "received": "Received",
+    "receive": "Receive",
+    "swap": "Swap",
+    "send": "Send",
     "contract_deploy": "Contract Deployment",
     "to_contract": "New Contract",
     "tx_details_free": "Free",
@@ -1750,6 +1767,7 @@
     "gas_price": "Gas Price (GWEI)",
     "base_fee": "Base Fee (GWEI)",
     "priority_fee": "Priority Fee (GWEI)",
+    "multichain_priority_fee": "Priority Fee",
     "max_fee": "Max Fee Per Gas",
     "total": "Total",
     "view_on": "VIEW ON",
@@ -1773,6 +1791,7 @@
     "sign_description_1": "After you have signed with your hardware wallet,",
     "sign_description_2": "tap on Get Signature",
     "sign_get_signature": "Get Signature",
+    "transaction_id": "Transaction ID",
     "network_fee": "Network Fee",
     "network_fee_tooltip": "Amount paid to process the transaction on network."
   },
@@ -2013,6 +2032,31 @@
   "import_private_key_success": {
     "title": "Account successfully imported!",
     "description_one": "You'll now be able to view your account in MetaMask."
+  },
+  "import_new_secret_recovery_phrase": {
+    "title":"Import Secret Recovery Phrase",
+    "description": "Enter your wallet's secret recovery phrase. You can import any Ethereum, Solana, or Bitcoin secret recovery phrase.",
+    "subtitle": "Paste your secret recovery phrase",
+    "cta_text": "Continue",
+    "paste": "Paste",
+    "clear": "Clear all",
+    "srp_number_of_words_option_title": "Number of words",
+    "12_word_option": "I have a 12 word phrase",
+    "24_word_option": "I have a 24 word phrase",
+    "error_title": "Something went wrong",
+    "error_message": "We couldn't import that secret recovery phrase. Please make sure you entered it correctly.",
+    "error_empty_message":"You need to enter your secret recovery phrase.",
+    "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
+    "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
+    "error_srp_word_error_1": "Word ",
+    "error_srp_word_error_2": " is incorrect or misspelled.",
+    "error_multiple_srp_word_error_1": "Word ",
+    "error_multiple_srp_word_error_2": " and ",
+    "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
+    "error_invalid_srp": "Invalid Secret Recovery Phrase",
+    "success_1": "Secret Recovery Phrase",
+    "success_2": "imported"
+
   },
   "first_incoming_transaction": {
     "title": "{{asset}} was deposited in your account",
@@ -3410,13 +3454,17 @@
   "account_actions": {
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
-    "add_account": "Add account",
-    "add_new_account": "Add new account",
-    "add_hardware_wallet": "Add hardware wallet",
-    "import_account": "Import account",
-    "add_bitcoin_account_testnet": "Add a new Bitcoin Account (Testnet)",
-    "add_bitcoin_account_mainnet": "Add a new Bitcoin Account (Beta)",
-    "add_solana_account": "Add a new Solana Account (Beta)"
+    "connect_hardware_wallet": "Connect an account",
+    "import_wallet_or_account": "Import a wallet or account",
+    "add_account": "Create a new account",
+    "create_an_account": "Create a new account",
+    "add_new_account": "Ethereum account",
+    "import_srp":"Secret Recovery Phrase",
+    "add_hardware_wallet": "Hardware wallet",
+    "import_account": "Private key",
+    "add_bitcoin_account_testnet": "Bitcoin testnet account",
+    "add_bitcoin_account_mainnet": "Bitcoin account",
+    "add_solana_account": "Solana account"
   },
   "show_nft": {
     "show_nft_title": "Show NFT",
@@ -3495,8 +3543,10 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
+    "not_enough_token": "Not enough {{ticker}}",
     "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
+    "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
     "no_minimum_required": "No minimum required.",
     "earn_eth_rewards": "Earn ETH rewards.",
@@ -3557,7 +3607,9 @@
     "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
-      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      "eth": {
+        "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      }
     },
     "use_max": "Use max",
     "estimated_unstaking_time": "1 to 11 days",
@@ -3761,8 +3813,24 @@
     "continue": "Continue",
     "terms_and_conditions": "Terms & Conditions",
     "select_token": "Select token",
-    "slippage": "Slippage",
+    "select_network": "Select network",
+    "all_networks": "All networks",
+    "num_networks": "{{numNetworks}} networks",
+    "one_network": "1 network",
+    "select_all_networks": "Select all",
+    "deselect_all_networks": "Deselect all",
+    "see_all": "See all",
     "apply": "Apply",
-    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
-    }
+    "slippage": "Slippage",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
+    "network_fee": "Network Fee",
+    "estimated_time": "Estimated Time",
+    "quote": "Quote",
+    "quote_details": "Quote Details",
+    "price_impact": "Price Impact",
+    "time": "Time",
+    "quote_info_content": "This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
+    "quote_info_title": "Why we recommend this quote",
+    "see_other_quotes": "See other quotes"
+  }
 }
