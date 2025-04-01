@@ -34,6 +34,7 @@ const mockInitialState = {
   settings: {
     showFiatOnTestnets: true,
     primaryCurrency: 'ETH',
+    basicFunctionalityEnabled: true,
   },
   wizard: {
     step: 1,
@@ -62,6 +63,21 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
   canOpenURL: jest.fn(),
   getInitialURL: jest.fn(),
+}));
+
+jest.mock('../../../util/phishingProtection', () => ({
+  isPhishingProtectionEnabled: jest.fn().mockReturnValue(false),
+  isOriginSafe: jest.fn().mockReturnValue(true),
+  updatePhishingLists: jest.fn(),
+  getPhishingTestResult: jest.fn().mockReturnValue(null),
+  // If there's a usePhishingDetection hook, mock it too
+  usePhishingDetection: jest.fn().mockReturnValue({
+    isPhishingDetected: false,
+    blockedUrl: '',
+    continueToPhishingSite: jest.fn(),
+    goBackToSafety: jest.fn()
+  }),
+  PhishingDetectedModal: jest.fn(() => null)
 }));
 
 const Stack = createStackNavigator();
