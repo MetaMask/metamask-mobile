@@ -1914,12 +1914,7 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const {
-    hasBackButton = true,
-    hasCancelButton = true,
-    hasIconButton = false,
-    handleIconPress,
-  } = navBarOptions ?? {};
+  const { hasBackButton = true, hasCancelButton = true, hasIconButton = false, handleIconPress } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
