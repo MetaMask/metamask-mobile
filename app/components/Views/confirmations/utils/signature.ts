@@ -146,6 +146,7 @@ export const sanitizeParsedMessage = (
 const REGEX_MESSAGE_VALUE_LARGE =
   /"message"\s*:\s*\{[^}]*"value"\s*:\s*(\d{15,})/u;
 
+/** Returns the value of the message if it is a digit greater than 15 digits */
 function extractLargeMessageValue(dataToParse: string): string | undefined {
   if (typeof dataToParse !== 'string') {
     return undefined;
@@ -173,9 +174,9 @@ function extractLargeMessageValue(dataToParse: string): string | undefined {
 export const parseTypedDataMessage = (dataToParse: string) => {
   const result = JSON.parse(dataToParse);
 
-  const messageValue = extractLargeMessageValue(dataToParse);
+  const largeMessageValue = extractLargeMessageValue(dataToParse);
   if (result.message?.value) {
-    result.message.value = messageValue || String(result.message.value);
+    result.message.value = largeMessageValue || String(result.message.value);
   }
   return result;
 };
