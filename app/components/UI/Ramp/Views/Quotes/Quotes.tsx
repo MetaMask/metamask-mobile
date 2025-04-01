@@ -281,9 +281,7 @@ function Quotes() {
   );
 
   const handleOnPressCustomActionCTA = useCallback(
-    (customAction: PaymentCustomAction) => {
-      console.log('user clicked a custom action');
-    },
+    (customAction: PaymentCustomAction) => {},
     [],
   );
 
@@ -610,7 +608,6 @@ function Quotes() {
         setProviderId(recommendedQuote.provider?.id);
       }
     } else if (recommendedCustomAction) {
-      console.log('recommendedCustomAction', recommendedCustomAction);
       setProviderId(recommendedCustomAction.buy?.provider?.id);
     }
   }, [
@@ -815,7 +812,7 @@ function Quotes() {
                   handleOnCustomActionPress(recommendedCustomAction)
                 }
                 onPressCTA={() =>
-                  handleOnPressCustomActionCTA(recommendedCustomAction, 0)
+                  handleOnPressCustomActionCTA(recommendedCustomAction)
                 }
                 highlighted={
                   recommendedCustomAction.buy?.provider?.id === providerId
@@ -825,7 +822,6 @@ function Quotes() {
                     provider: recommendedCustomAction?.buy?.provider,
                   })
                 }
-                rampType={rampType}
               />
             ) : recommendedQuote ? (
               <Row key={recommendedQuote.provider.id}>
@@ -960,9 +956,11 @@ function Quotes() {
                             customAction.buy?.provider?.id,
                           )}
                           customAction={customAction}
-                          onPress={() => handleOnQuotePress(customAction)}
+                          onPress={() =>
+                            handleOnCustomActionPress(customAction)
+                          }
                           onPressCTA={() =>
-                            handleOnPressCustomActionCTA(customAction, 0)
+                            handleOnPressCustomActionCTA(customAction)
                           }
                           highlighted={
                             customAction.buy?.provider?.id === providerId
@@ -972,7 +970,6 @@ function Quotes() {
                               provider: customAction?.buy?.provider,
                             })
                           }
-                          rampType={rampType}
                         />
                       ))
                     : null}

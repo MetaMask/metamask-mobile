@@ -82,6 +82,8 @@ const CustomAction: React.FC<Props> = ({
     opacity: expandedHeight.value ? withDelay(10, withTiming(1)) : 0,
   }));
 
+  console.log('CustomAction Rendered', customAction);
+
   return (
     <Animated.View style={animatedOpacity}>
       <Box

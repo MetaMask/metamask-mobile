@@ -1,6 +1,7 @@
 import React from 'react';
 import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
+  Provider,
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
   QuoteResponse,
@@ -27,6 +28,7 @@ import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RampType } from '../../types';
+import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -121,6 +123,30 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
+const mockCustomAction: PaymentCustomAction = {
+  buy: {
+    providerId: '/providers/paypal-staging',
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    provider: {
+      description: 'Per Paypal: [Paypal Description]',
+      environmentType: 'STAGING',
+      hqAddress: '123 PayPal Staging Address',
+      id: '/providers/paypal-staging',
+      logos: {
+        dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_dark.png',
+        height: 24,
+        light:
+          'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png',
+        width: 65,
+      },
+      name: 'Paypal (Staging)',
+    },
+  },
+  supportedPaymentMethodIds: ['/payments/paypal', '/payments/paypal-staging'],
+  paymentMethodId: '/payments/paypal',
+};
+
 const mockUseQuotesAndCustomActionsInitialValues: Partial<
   ReturnType<typeof useQuotesAndCustomActions>
 > = {
@@ -129,6 +155,7 @@ const mockUseQuotesAndCustomActionsInitialValues: Partial<
   quotesWithError: [],
   quotesByPriceWithoutError: mockQuotesData as QuoteResponse[],
   quotesByReliabilityWithoutError: mockQuotesData as QuoteResponse[],
+  recommendedCustomAction: undefined,
   recommendedQuote: mockQuotesData[1] as QuoteResponse,
   sorted: [],
   isFetching: false,
@@ -251,6 +278,23 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation with the recommended quote', async () => {
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(screen.toJSON()).toMatchSnapshot();
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  it('renders correctly after animation with the recommended custom action', async () => {
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      recommendedCustomAction: mockCustomAction,
+    };
+
     render(Quotes);
     act(() => {
       jest.advanceTimersByTime(3000);
@@ -542,6 +586,43 @@ describe('Quotes', () => {
 
     const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();
+
+    act(() => {
+      jest.useRealTimers();
+    });
+  });
+
+  it('renders information when pressing custom action logo', async () => {
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      recommendedCustomAction: mockCustomAction,
+    };
+
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    //
+    const mockRecommendedCustomActionProvider = mockCustomAction.buy
+      .provider as Provider;
+
+    const descriptionNotFound = screen.queryByText(
+      mockRecommendedCustomActionProvider.description,
+    );
+    expect(descriptionNotFound).toBeFalsy();
+    //
+    const quoteProviderLogo = screen.getByLabelText(
+      `${mockRecommendedCustomActionProvider.name} logo`,
+    );
+
+    fireEvent.press(quoteProviderLogo);
+    //
+    const description = screen.queryByText(
+      mockRecommendedCustomActionProvider.description,
+    );
+    expect(description).toBeTruthy();
+    expect(true).toBeTruthy();
 
     act(() => {
       jest.useRealTimers();
