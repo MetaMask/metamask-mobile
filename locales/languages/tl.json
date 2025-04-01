@@ -50,7 +50,7 @@
   "autocomplete": {
     "placeholder": "Maghanap ayon sa site o address",
     "recents": "Mga Kamakailan",
-    "favorites": "Mga Favorite",
+    "favorites": "Mga Paborito",
     "sites": "Mga Site"
   },
   "navigation": {
@@ -726,7 +726,7 @@
     "connected_and_active": "konektado at aktibo.",
     "now_active": "aktibo ngayon.",
     "network_added": "matagumpay na naidagdag",
-    "network_removed": "matagumpay na naalis",
+    "network_removed": "ay matagumpay na naalis",
     "network_deleted": "matagumpay na natanggal",
     "network_permissions_updated": "Na-update ang mga pahintulot sa network",
     "revoked": "binawi.",
@@ -1118,7 +1118,6 @@
     "security_alerts": "Mga alerto sa seguridad",
     "security_alerts_desc": "Inaalertuhan ka ng tampok na ito sa mga aktibidad na may masamang hangarin sa pamamagitan ng lokal na pagsusuri sa iyong mga transaksyon at kahilingan sa paglagda. Palaging gumawa ng sarili mong pag-iingat bago aprubahan ang anumang mga kahilingan. Walang garantiya na made-detect ng tampok na ito ang lahat ng aktibidad na may masamang hangarin. Sa pagpapagana sa tampok na ito, sumasang-ayon ka sa mga tuntunin ng paggamit ng provider.",
     "smart_transactions_opt_in_heading": "Mga Smart Transaction",
-    "smart_transactions_opt_in_desc": "I-on ang mga Smart Transaction para sa mas maaasahan at ligtas na mga transaksyon sa Ethereum Mainnet.",
     "smart_transactions_learn_more": "Matuto pa.",
     "simulation_details": "Tinatayang mga pagbabago sa balanse",
     "simulation_details_description": "I-on ito para gumawa ng pagtataya sa mga pagbabago sa balanse ng mga transaksyon bago mo kumpirmahin ang mga ito. Hindi nito iginagarantiya ang panghuling resulta ng iyong mga transaksyon. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} (na) quote",
     "view_details": "Tingnan ang mga detalye",
     "estimated_gas_fee": "Tinantyang bayad sa gas",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Pinakamataas na bayad sa gas",
     "edit": "I-edit",
     "quotes_include_fee": "Kasama sa quote ang {{fee}}% na bayarin sa MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "I-tap para I-swap",
     "swipe_to_swap": "I-swipe para i-swap",
     "swipe_to": "I-swipe para",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Ang mga pag-swap ay kadalasang sensitibo sa oras. Ang “Mataas” ay makakatulong na maiwasan ang mga potensyal na pagkalugi dahil sa mga pagbabago sa mga kondisyon ng merkado.",
     "recommended": "Inirerekomenda",
     "recommended_gas": "Inirerekomendang bayad sa gas",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Mga tinantyang bayad sa gas",
     "gas_education_1": "Binabayaran ang mga bayad sa gas sa mga minero ng crypto na nagpoproseso ng mga transaksyon sa ",
     "gas_education_2_ethereum": "Network ng Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Hindi sapat ang ETH",
     "balance": "Balanse",
     "stake_eth_and_earn": "Mag-stake ng ETH at kumita",
-    "stake_any_amount_of_eth": "Mag-stake ng anumang halaga ng ETH",
+    "stake_any_amount_of_eth": "Mag-stake ng anumang halaga ng ETH.",
     "no_minimum_required": "Walang minimum na hinihingi.",
-    "earn_eth_rewards": "Kumita ng mga ETH reward",
+    "earn_eth_rewards": "Kumita ng mga ETH reward.",
     "earn_eth_rewards_description": "Simulang kumita sa sandaling mag-stake ka. Awtomatikong dumadagdag ang mga reward.",
-    "flexible_unstaking": "Flexible na pag-unstake",
+    "flexible_unstaking": "Flexible na pag-unstake.",
     "flexible_unstaking_description": "Mag-unstake anumang oras. Karaniwang wala pang 3 araw ang itinatagal nito, pero maaaring abutin nang hanggang 11 araw para maproseso.",
     "disclaimer": "Hindi iginagarantiya sa pag-stake ang mga reward, at may kasangkot na panganib kabilang ang pagkalugi ng mga pondo.",
     "learn_more": "Matuto pa",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 hanggang 11 araw",
     "proceed_anyway": "Magpatuloy pa rin",
     "gas_cost_impact": "Epekto ng gastos sa gas",
-    "gas_cost_impact_warning": "Babala: Aabot sa higit sa 30% ng deposito mo ang bayad sa gas ng transaksyon."
+    "gas_cost_impact_warning": "Babala: aabot sa higit sa {{percentOverDeposit}}% ng deposito mo ang bayad sa gas ng transaksyon.",
+    "view_earnings_history": "Tingnan ang talaan ng mga kinita",
+    "earnings_history_title": "{{ticker}} ang kinita",
+    "earnings_history_list_title": "Talaan ng payout",
+    "apr": "ABR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7A",
+        "1M": "1B",
+        "3M": "3B",
+        "6M": "6B"
+      }
+    },
+    "today": "Ngayong araw",
+    "one_week_average": "Karaniwan sa 1 linggo",
+    "one_month_average": "Karaniwan sa 1 buwan",
+    "three_month_average": "Karaniwan sa 3 buwan",
+    "six_month_average": "Karaniwan sa 6 na buwan",
+    "one_year_average": "Karaniwan sa 1 taon"
   },
   "default_settings": {
     "title": "Handa na ang iyong Wallet",
@@ -3580,12 +3602,15 @@
     "reject": "Tanggihan",
     "confirm": "Kumpirmahin",
     "title": {
-      "signature": "Kahilingan sa paglagda"
+      "signature": "Kahilingan sa paglagda",
+      "signature_siwe": "Kahilingan sa pag-sign in"
     },
     "sub_title": {
-      "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin."
+      "signature": "Suriin ang mga detalye ng kahilingan bago mo kumpirmahin.",
+      "signature_siwe": "Nais ng site na mag-sign in ka para patunayan na ikaw ang may-ari ng account na ito."
     },
     "request_from": "Hiling mula sa/kay",
+    "signing_in_with": "Nagsa-sign in gamit ang",
     "message": "Mensahe",
     "primary_type": "Pangunahing uri",
     "personal_sign_tooltip": "Hinihingi ng site na ito ang iyong pirma",
@@ -3593,6 +3618,19 @@
     "account": "Account",
     "balance": "Balanse",
     "network": "Network",
+    "qr_get_sign": "Kumuha ng Lagda",
+    "qr_scan_text": "I-scan gamit ang iyong wallet na hardware",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Network",
+      "account": "Account",
+      "version": "Bersyon",
+      "chain_id": "ID ng Chain",
+      "nonce": "Nonce",
+      "issued": "Inisyu",
+      "requestId": "Humiling ng ID",
+      "resources": "Mga Resource"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Makikita ang NFT sa wallet mo, kapag tinanggap ang bid.",
       "decoded_tooltip_list_nft": "Asahan lang ang mga pagbabago kapag may bumili sa mga NFT mo.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Hindi available"
     },
     "unlimited": "Walang limitasyon",
-    "none": "None"
+    "none": "Wala"
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",

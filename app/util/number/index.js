@@ -1,20 +1,17 @@
 /**
  * Collection of utility functions for consistent formatting and conversion
  */
-import { BN, stripHexPrefix } from 'ethereumjs-util';
+import { stripHexPrefix } from 'ethereumjs-util';
+import BN4 from 'bnjs4';
 import { utils as ethersUtils } from 'ethers';
 import convert from '@metamask/ethjs-unit';
-import {
-  BNToHex,
-  hexToBN as controllerHexToBN,
-} from '@metamask/controller-utils';
+import { add0x, remove0x } from '@metamask/utils';
 import numberToBN from 'number-to-bn';
 import BigNumber from 'bignumber.js';
 
 import currencySymbols from '../currency-symbols.json';
 import { isZero } from '../lodash';
 import { regex } from '../regex';
-export { BNToHex };
 
 const MAX_DECIMALS_FOR_TOKENS = 36;
 BigNumber.config({ DECIMAL_PLACES: MAX_DECIMALS_FOR_TOKENS });
@@ -33,8 +30,20 @@ const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
  */
 export const hexToBN = (inputHex) =>
   typeof inputHex !== 'string'
-    ? new BN(inputHex, 16)
-    : controllerHexToBN(inputHex);
+    ? new BN4(inputHex, 16)
+    : (inputHex ? new BN4(remove0x(inputHex), 16) : new BN4(0));
+
+/**
+ * Converts a BN object to a hex string with a '0x' prefix.
+ *
+ * @param inputBn - BN instance to convert to a hex string.
+ * @returns A '0x'-prefixed hex string.
+ */
+// TODO: Either fix this lint violation or explain why it's necessary to ignore.
+// eslint-disable-next-line @typescript-eslint/naming-convention
+export function BNToHex(inputBn) {
+  return add0x(inputBn.toString(16));
+}
 
 // Setter Maps
 export const toBigNumber = {
@@ -58,7 +67,7 @@ const toSpecifiedDenomination = {
 const baseChange = {
   hex: (n) => n.toString(16),
   dec: (n) => new BigNumber(n).toString(10),
-  BN: (n) => new BN(n.toString(16)),
+  BN: (n) => new BN4(n.toString(16)),
 };
 
 /**
@@ -110,7 +119,7 @@ export function fromTokenMinimalUnit(
   minimalInput = isRounding ? Number(minimalInput) : minimalInput;
   const prefixedInput = addHexPrefix(minimalInput.toString(16));
   let minimal = safeNumberToBN(prefixedInput);
-  const negative = minimal.lt(new BN(0));
+  const negative = minimal.lt(new BN4(0));
   const base = toBN(Math.pow(10, decimals).toString());
 
   if (negative) {
@@ -154,9 +163,9 @@ export function fromTokenMinimalUnitString(minimalInput, decimals) {
 /**
  * Converts some unit to token minimal unit
  *
- * @param {number|string|BN} tokenValue - Value to convert
+ * @param {number|string|BN4} tokenValue - Value to convert
  * @param {number} decimals - Unit to convert from, ether by default
- * @returns {Object} - BN instance containing the new number
+ * @returns {BN} - BN instance containing the new number
  */
 export function toTokenMinimalUnit(tokenValue, decimals) {
   const base = toBN(Math.pow(10, decimals).toString());
@@ -199,19 +208,19 @@ export function toTokenMinimalUnit(tokenValue, decimals) {
   while (fraction.length < decimals) {
     fraction += '0';
   }
-  whole = new BN(whole);
-  fraction = new BN(fraction);
+  whole = new BN4(whole);
+  fraction = new BN4(fraction);
   let tokenMinimal = whole.mul(base).add(fraction);
   if (negative) {
     tokenMinimal = tokenMinimal.mul(negative);
   }
-  return new BN(tokenMinimal.toString(10), 10);
+  return new BN4(tokenMinimal.toString(10), 10);
 }
 
 /**
  * Converts some token minimal unit to render format string, showing 5 decimals
  *
- * @param {Number|String|BN} tokenValue - Token value to convert
+ * @param {Number|String|BN4} tokenValue - Token value to convert
  * @param {Number} decimals - Token decimals to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
@@ -307,7 +316,7 @@ export function fiatNumberToTokenMinimalUnit(
 /**
  * Converts wei to render format string, showing 5 decimals
  *
- * @param {Number|String|BN} value - Wei to convert
+ * @param {Number|String|BN4} value - Wei to convert
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {String} - Number of token minimal unit, in render format
  * If value is less than 5 precision decimals will show '< 0.00001'
@@ -346,7 +355,7 @@ export function calcTokenValueToSend(value, decimals) {
  * @returns {boolean} - True if the value is a BN instance
  */
 export function isBN(value) {
-  return BN.isBN(value);
+  return BN4.isBN(value);
 }
 
 /**
@@ -370,7 +379,7 @@ export function isDecimal(value) {
  * @returns {Object} - BN instance
  */
 export function toBN(value) {
-  return new BN(value);
+  return new BN4(value);
 }
 
 /**
@@ -427,9 +436,9 @@ export const isNumberScientificNotationWhenString = (value) => {
 /**
  * Converts some unit to wei
  *
- * @param {number|string|BN} value - Value to convert
+ * @param {number|string|BN4} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
- * @returns {BN} - BN instance containing the new number
+ * @returns {BN4} - BN instance containing the new number
  */
 export function toWei(value, unit = 'ether') {
   // check the posibilty to convert to BN
@@ -443,7 +452,7 @@ export function toWei(value, unit = 'ether') {
 /**
  * Converts some unit to Gwei
  *
- * @param {number|string|BN} value - Value to convert
+ * @param {number|string|BN4} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
  * @returns {Object} - BN instance containing the new number
  */
@@ -454,7 +463,7 @@ export function toGwei(value, unit = 'ether') {
 /**
  * Converts some unit to Gwei and return it in render format
  *
- * @param {number|string|BN} value - Value to convert
+ * @param {number|string|BN4} value - Value to convert
  * @param {string} unit - Unit to convert from, ether by default
  * @returns {string} - String instance containing the renderable number
  */
@@ -469,7 +478,7 @@ export function renderToGwei(value, unit = 'ether') {
  * Converts wei expressed as a BN instance into a human-readable fiat string
  * TODO: wei should be a BN instance, but we're not sure if it's always the case
 //
- * @param {number | BN} wei - BN corresponding to an amount of wei
+ * @param {number | BN4} wei - BN corresponding to an amount of wei
  * @param {number | null} conversionRate - ETH to current currency conversion rate
  * @param {string} currencyCode - Current currency code to display
  * @returns {string} - Currency-formatted string
@@ -553,7 +562,7 @@ export function addCurrencySymbol(
 /**
  * Converts wei expressed as a BN instance into a human-readable fiat string
  *
- * @param {number|string|BN} wei - BN corresponding to an amount of wei
+ * @param {number|string|BN4} wei - BN corresponding to an amount of wei
  * @param {number} conversionRate - ETH to current currency conversion rate
  * @param {Number} decimalsToShow - Decimals to 5
  * @returns {Number} - The converted balance

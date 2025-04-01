@@ -10,7 +10,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
   }
 >
   <SvgMock
-    color="#d73847"
+    color="#ca3542"
     height={32}
     name="Warning"
     style={
@@ -44,7 +44,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 18,
           "fontWeight": "700",
@@ -68,7 +68,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -100,7 +100,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flexDirection": "row",
           "height": 48,
@@ -138,7 +138,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -153,7 +153,7 @@ exports[`ChangeInSimulationModal render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",

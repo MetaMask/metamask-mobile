@@ -726,7 +726,7 @@
     "connected_and_active": "connecté et actif.",
     "now_active": "maintenant actif.",
     "network_added": "a été ajouté avec succès",
-    "network_removed": "a été supprimé avec succès",
+    "network_removed": "a été supprimé",
     "network_deleted": "a été supprimé",
     "network_permissions_updated": "Les autorisations réseau ont été mises à jour",
     "revoked": "révoqué.",
@@ -1118,7 +1118,6 @@
     "security_alerts": "Alertes de sécurité",
     "security_alerts_desc": "Cette fonctionnalité vous avertit de toute activité malveillante en examinant localement vos demandes de transaction et de signature. Vous devez faire preuve de diligence raisonnable avant d’approuver toute demande. Rien ne garantit que toutes les activités malveillantes seront détectées par cette fonctionnalité. En l’activant, vous acceptez les conditions d’utilisation du fournisseur.",
     "smart_transactions_opt_in_heading": "Transactions intelligentes",
-    "smart_transactions_opt_in_desc": "Activez les transactions intelligentes pour profiter de transactions plus fiables et plus sûres sur le réseau principal Ethereum.",
     "smart_transactions_learn_more": "En savoir plus.",
     "simulation_details": "Estimer les changements de solde",
     "simulation_details_description": "Activez cette option pour estimer les changements de solde des transactions avant de les confirmer. Cela ne garantit pas le résultat final de vos transactions. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} cotations",
     "view_details": "Voir les détails",
     "estimated_gas_fee": "Frais de gaz estimés",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Frais de gaz maximums",
     "edit": "Modifier",
     "quotes_include_fee": "Les cotations comprennent une commission de {{fee}} % de MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Appuyez pour échanger",
     "swipe_to_swap": "Faites glisser pour échanger",
     "swipe_to": "Faites glisser pour",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Les swaps étant généralement sensibles au facteur temps, le réglage « Élevé » permettra d’éviter les pertes potentielles dues aux fluctuations des conditions du marché.",
     "recommended": "Recommandé",
     "recommended_gas": "Frais de gaz recommandés",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Frais de gaz estimés",
     "gas_education_1": "Les frais de gaz sont payés aux mineurs de cryptomonnaies qui traitent les transactions sur le",
     "gas_education_2_ethereum": "réseau Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Pas assez d’ETH",
     "balance": "Solde",
     "stake_eth_and_earn": "Dégagez un revenu en stakant des ETH",
-    "stake_any_amount_of_eth": "Stakez n’importe quelle quantité d’ETH",
+    "stake_any_amount_of_eth": "Stakez n’importe quelle quantité d’ETH.",
     "no_minimum_required": "Aucun minimum requis.",
-    "earn_eth_rewards": "Obtenez des ETH en récompense",
+    "earn_eth_rewards": "Obtenez des ETH en récompense.",
     "earn_eth_rewards_description": "Commencez à dégager des bénéfices dès que vous stakez. Les récompenses s’accumulent automatiquement.",
-    "flexible_unstaking": "Déstaking flexible",
+    "flexible_unstaking": "Déstaking flexible.",
     "flexible_unstaking_description": "Déstakez à tout moment. Le traitement des demandes de déstaking prend généralement moins de 3 jours, mais peut prendre jusqu’à 11 jours.",
     "disclaimer": "Le staking comporte des risques et peut entrainer la perte de fonds. De plus, les récompenses liées au staking ne sont pas garanties.",
     "learn_more": "En savoir plus",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 à 11 jours",
     "proceed_anyway": "Continuer quand même",
     "gas_cost_impact": "Impact du coût du gaz",
-    "gas_cost_impact_warning": "Attention : le coût du gaz de la transaction représente plus de 30 % de votre dépôt."
+    "gas_cost_impact_warning": "Attention : le coût du gaz de la transaction représente plus de {{percentOverDeposit}} % de votre dépôt.",
+    "view_earnings_history": "Consulter l’historique des bénéfices",
+    "earnings_history_title": "Revenus en {{ticker}}",
+    "earnings_history_list_title": "Historique des paiements",
+    "apr": "TAEG",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7 j",
+        "1M": "1 mois",
+        "3M": "3 mois",
+        "6M": "6 mois"
+      }
+    },
+    "today": "Aujourd’hui",
+    "one_week_average": "Moyenne sur 1 semaine",
+    "one_month_average": "Moyenne sur 1 mois",
+    "three_month_average": "Moyenne sur 3 mois",
+    "six_month_average": "Moyenne sur 6 mois",
+    "one_year_average": "Moyenne sur 1 an"
   },
   "default_settings": {
     "title": "Votre portefeuille est prêt",
@@ -3580,12 +3602,15 @@
     "reject": "Rejeter",
     "confirm": "Confirmer",
     "title": {
-      "signature": "Demande de signature"
+      "signature": "Demande de signature",
+      "signature_siwe": "Demande de connexion"
     },
     "sub_title": {
-      "signature": "Vérifiez les détails de la demande avant de la confirmer."
+      "signature": "Vérifiez les détails de la demande avant de la confirmer.",
+      "signature_siwe": "Un site vous demande de vous connecter pour prouver que vous êtes le titulaire de ce compte."
     },
     "request_from": "Demande de",
+    "signing_in_with": "Se connecter avec",
     "message": "Message",
     "primary_type": "Type primaire",
     "personal_sign_tooltip": "Ce site demande votre signature",
@@ -3593,6 +3618,19 @@
     "account": "Compte",
     "balance": "Solde",
     "network": "Réseau",
+    "qr_get_sign": "Obtenir la signature",
+    "qr_scan_text": "Scannez avec votre portefeuille matériel",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Réseau",
+      "account": "Compte",
+      "version": "Version",
+      "chain_id": "ID de chaîne",
+      "nonce": "Nonce",
+      "issued": "Émis",
+      "requestId": "ID de la demande",
+      "resources": "Ressources"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Le NFT sera affiché dans votre portefeuille si l’offre est acceptée.",
       "decoded_tooltip_list_nft": "Ne vous attendez à des changements que si quelqu’un achète vos NFT.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Non disponible"
     },
     "unlimited": "Illimité",
-    "none": "None"
+    "none": "Aucun"
   },
   "change_in_simulation_modal": {
     "title": "Les résultats ont changé",

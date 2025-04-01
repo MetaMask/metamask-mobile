@@ -1118,7 +1118,6 @@
     "security_alerts": "Sicherheitsbenachrichtigungen",
     "security_alerts_desc": "Diese Funktion warnt Sie vor bösartigen Aktivitäten, indem sie Ihre Transaktions- und Signaturanfragen lokal überprüft. Führen Sie immer Ihre eigene Prüfung durch, bevor Sie Anfragen genehmigen. Es gibt keine Garantie dafür, dass diese Funktion alle bösartigen Aktivitäten erkennt. Mit der Aktivierung dieser Funktion erklären Sie sich mit den Nutzungsbedingungen des Anbieters einverstanden.",
     "smart_transactions_opt_in_heading": "Smart Transactions",
-    "smart_transactions_opt_in_desc": "Schalten Sie Smart Transactions für zuverlässigere und sicherere Transaktionen im Ethereum Mainnet ein.",
     "smart_transactions_learn_more": "Erfahren Sie mehr.",
     "simulation_details": "Geschätzte Kontostandänderungen",
     "simulation_details_description": "Schalten Sie dies ein, um die Kontostandänderungen von Transaktionen zu schätzen, bevor Sie sie bestätigen. Dies ist keine Garantie für das endgültige Ergebnis Ihrer Transaktionen. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} Notierungen",
     "view_details": "Detail ansehen",
     "estimated_gas_fee": "Geschätzte Gas-Gebühr",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Maximale Gas-Gebühr",
     "edit": "Bearbeiten",
     "quotes_include_fee": "Angebote beinhalten eine MetaMask-Gebühr in Höhe von {{fee}} %.",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Zum Tauschen tippen",
     "swipe_to_swap": "Zum Tauschen wischen",
     "swipe_to": "Wischen, um zu",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Swaps sind normalerweise zeitkritisch. „Hoch“ wird Ihnen dabei helfen, möglichen Verluste durch Änderungen der Marktzustände zu vermeiden.",
     "recommended": "Empfohlen",
     "recommended_gas": "Empfohlene Gas-Gebühr",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Geschätzte Gas-Gebühren",
     "gas_education_1": "Gas-Gebühren werden an Crypto-Miner gezahlt, die Transaktionen auf dem",
     "gas_education_2_ethereum": "Ethereum-Netzwerk verarbeiten.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Nicht genügend ETH",
     "balance": "Kontostand",
     "stake_eth_and_earn": "ETH staken und verdienen",
-    "stake_any_amount_of_eth": "Jeden ETH-Betrag staken",
+    "stake_any_amount_of_eth": "Staken Sie jeden ETH-Betrag.",
     "no_minimum_required": "Kein Minimum erforderlich.",
-    "earn_eth_rewards": "ETH-Belohnungen verdienen",
+    "earn_eth_rewards": "Verdienen Sie ETH-Belohnungen.",
     "earn_eth_rewards_description": "Fangen Sie an zu verdienen, sobald Sie Ihren Einsatz leisten. Die Belohnungen werden automatisch erhöht.",
-    "flexible_unstaking": "Flexibles Unstaking",
+    "flexible_unstaking": "Flexibles Unstaking.",
     "flexible_unstaking_description": "Unstake jederzeit möglich. Die Bearbeitung dauert in der Regel weniger als 3 Tage, kann jedoch bis zu 11 Tage in Anspruch nehmen.",
     "disclaimer": "Staking garantiert keine Belohnungen und birgt Risiken, einschließlich des Verlusts von Geldern.",
     "learn_more": "Mehr erfahren",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 bis 11 Tage",
     "proceed_anyway": "Trotzdem fortfahren",
     "gas_cost_impact": "Auswirkungen auf Gas-Kosten",
-    "gas_cost_impact_warning": "Achtung: Die Transaktionskosten für Gas belaufen sich auf mehr als 30 % Ihrer Einzahlung."
+    "gas_cost_impact_warning": "Achtung: Die Transaktionsgaskosten belaufen sich auf mehr als {{percentOverDeposit}} % Ihrer Einzahlung.",
+    "view_earnings_history": "Verdienstverlauf anzeigen",
+    "earnings_history_title": "{{ticker}} Einnahmen",
+    "earnings_history_list_title": "Auszahlungsverlauf",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7T",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
+    },
+    "today": "Heute",
+    "one_week_average": "1-Woche-Durchschnitt",
+    "one_month_average": "1-Monat-Durchschnitt",
+    "three_month_average": "3-Monate-Durchschnitt",
+    "six_month_average": "6-Monate-Durchschnitt",
+    "one_year_average": "1-Jahr-Durchschnitt"
   },
   "default_settings": {
     "title": "Ihre Wallet ist bereit",
@@ -3580,12 +3602,15 @@
     "reject": "Ablehnen",
     "confirm": "Bestätigen",
     "title": {
-      "signature": "Signaturanfrage"
+      "signature": "Signaturanfrage",
+      "signature_siwe": "Anmeldeanfrage"
     },
     "sub_title": {
-      "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage."
+      "signature": "Überprüfen Sie vor der Bestätigung die Details der Anfrage.",
+      "signature_siwe": "Eine Website verlangt von Ihnen, sich anzumelden, um zu beweisen, dass Sie der Inhaber dieses Kontos sind."
     },
     "request_from": "Anfrage von",
+    "signing_in_with": "Anmelden mit",
     "message": "Nachricht",
     "primary_type": "Primäre Art",
     "personal_sign_tooltip": "Diese Website ersucht um Ihre Signatur",
@@ -3593,6 +3618,19 @@
     "account": "Konto",
     "balance": "Kontostand",
     "network": "Netzwerk",
+    "qr_get_sign": "Signatur abrufen",
+    "qr_scan_text": "Mit Ihrer Hardware-Wallet scannen",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Netzwerk",
+      "account": "Konto",
+      "version": "Version",
+      "chain_id": "Chain-ID",
+      "nonce": "Nonce",
+      "issued": "Ausgestellt",
+      "requestId": "ID anfordern",
+      "resources": "Ressourcen"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Der NFT wird in Ihrer Wallet angezeigt, sobald das Gebot akzeptiert wird.",
       "decoded_tooltip_list_nft": "Änderungen sind nur zu erwarten, wenn jemand Ihre NFTs kauft.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Nicht verfügbar"
     },
     "unlimited": "Unbegrenzt",
-    "none": "None"
+    "none": "Keine"
   },
   "change_in_simulation_modal": {
     "title": "Ergebnisse haben sich geändert",

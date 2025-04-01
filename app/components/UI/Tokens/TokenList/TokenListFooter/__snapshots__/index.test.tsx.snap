@@ -15,7 +15,7 @@ exports[`TokenListFooter renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Bold",
           "fontSize": 16,
           "fontWeight": "700",
@@ -39,7 +39,7 @@ exports[`TokenListFooter renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flexDirection": "row",
           "height": 48,
@@ -92,7 +92,7 @@ exports[`TokenListFooter renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -106,7 +106,7 @@ exports[`TokenListFooter renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
+              "color": "#686e7d",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",
@@ -123,7 +123,7 @@ exports[`TokenListFooter renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",

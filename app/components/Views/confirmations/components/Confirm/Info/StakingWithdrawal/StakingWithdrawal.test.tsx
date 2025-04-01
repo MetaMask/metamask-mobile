@@ -1,7 +1,9 @@
 import React from 'react';
 import { stakingWithdrawalConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
 import { getNavbar } from '../../Navbar/Navbar';
 import StakingWithdrawal from './StakingWithdrawal';
 
@@ -18,6 +20,10 @@ jest.mock('../../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../../hooks/useConfirmationMetricEvents', () => ({
+  useConfirmationMetricEvents: jest.fn(),
+}));
+
 jest.mock('../../../../hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(),
 }));
@@ -26,6 +32,7 @@ jest.mock('../../Navbar/Navbar', () => ({
   getNavbar: jest.fn(),
 }));
 
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -33,13 +40,19 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
 
 describe('StakingWithdrawal', () => {
+  const mockTrackPageViewedEvent = jest.fn();
+  const mockSetConfirmationMetric = jest.fn();
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockUseConfirmationMetricEvents = jest.mocked(
+    useConfirmationMetricEvents,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -47,25 +60,35 @@ describe('StakingWithdrawal', () => {
       onReject: jest.fn(),
       onConfirm: jest.fn(),
     });
+
+    mockUseConfirmationMetricEvents.mockReturnValue({
+      trackPageViewedEvent: mockTrackPageViewedEvent,
+      setConfirmationMetric: mockSetConfirmationMetric,
+    } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
   });
 
-  it('should render correctly', () => {
+  it('renders correctly', () => {
     const mockOnReject = jest.fn();
     mockUseConfirmActions.mockImplementation(() => ({
       onConfirm: jest.fn(),
       onReject: mockOnReject,
     }));
 
-    const { getByText } = renderWithProvider(<StakingWithdrawal route={{
-      params: {
-        amountWei: '1000000000000000000',
-        amountFiat: '1000000000000000000'
+    const { getByText } = renderWithProvider(
+      <StakingWithdrawal
+        route={{
+          params: {
+            amountWei: '1000000000000000000',
+            amountFiat: '1000000000000000000',
+          },
+          key: 'mockRouteKey',
+          name: 'params',
+        }}
+      />,
+      {
+        state: stakingWithdrawalConfirmationState,
       },
-      key: 'mockRouteKey',
-      name: 'params'
-    }} />, {
-      state: stakingWithdrawalConfirmationState,
-    });
+    );
     expect(getByText('Withdrawal time')).toBeDefined();
 
     expect(getByText('Unstaking to')).toBeDefined();
@@ -78,6 +101,37 @@ describe('StakingWithdrawal', () => {
     expect(mockGetNavbar).toHaveBeenCalledWith({
       title: 'Unstake',
       onReject: mockOnReject,
+      addBackButton: true,
     });
+  });
+
+  it('tracks metrics events', () => {
+    renderWithProvider(
+      <StakingWithdrawal
+        route={{
+          params: {
+            amountWei: '1000000000000000000',
+            amountFiat: '1000000000000000000',
+          },
+          key: 'mockRouteKey',
+          name: 'params',
+        }}
+      />,
+      {
+        state: stakingWithdrawalConfirmationState,
+      },
+    );
+
+    expect(mockTrackPageViewedEvent).toHaveBeenCalledTimes(1);
+
+    expect(mockSetConfirmationMetric).toHaveBeenCalledTimes(1);
+    expect(mockSetConfirmationMetric).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: expect.objectContaining({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          transaction_amount_eth: '1',
+        }),
+      }),
+    );
   });
 });

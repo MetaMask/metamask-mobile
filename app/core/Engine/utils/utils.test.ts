@@ -10,8 +10,20 @@ import {
   AccountsController,
   AccountsControllerMessenger,
 } from '@metamask/accounts-controller';
-import { cronjobControllerInit } from '../controllers/cronjob-controller/cronjob-controller-init';
-import { CronjobController } from '@metamask/snaps-controllers';
+import {
+  cronjobControllerInit,
+  executionServiceInit,
+  snapControllerInit,
+  snapInterfaceControllerInit,
+  snapsRegistryInit,
+} from '../controllers/snaps';
+import {
+  AbstractExecutionService,
+  CronjobController,
+  JsonSnapsRegistry,
+  SnapController,
+  SnapInterfaceController,
+} from '@metamask/snaps-controllers';
 import { multichainAssetsRatesControllerInit } from '../controllers/multichain-assets-rates-controller/multichain-assets-rates-controller-init';
 import {
   CurrencyRateController,
@@ -28,7 +40,7 @@ import { multichainTransactionsControllerInit } from '../controllers/multichain-
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
 
 jest.mock('../controllers/accounts-controller');
-jest.mock('../controllers/cronjob-controller/cronjob-controller-init');
+jest.mock('../controllers/snaps');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
 );
@@ -58,6 +70,12 @@ describe('initModularizedControllers', () => {
     currencyRateControllerInit,
   );
   const mockCronjobControllerInit = jest.mocked(cronjobControllerInit);
+  const mockExecutionServiceInit = jest.mocked(executionServiceInit);
+  const mockSnapControllerInit = jest.mocked(snapControllerInit);
+  const mockSnapInterfaceControllerInit = jest.mocked(
+    snapInterfaceControllerInit,
+  );
+  const mockSnapsRegistryInit = jest.mocked(snapsRegistryInit);
   const mockMultichainAssetsControllerInit = jest.mocked(
     multichainAssetsControllerInit,
   );
@@ -83,6 +101,10 @@ describe('initModularizedControllers', () => {
           MultichainNetworkController: mockMultichainNetworkControllerInit,
           CurrencyRateController: mockCurrencyRateControllerInit,
           CronjobController: mockCronjobControllerInit,
+          ExecutionService: mockExecutionServiceInit,
+          SnapController: mockSnapControllerInit,
+          SnapInterfaceController: mockSnapInterfaceControllerInit,
+          SnapsRegistry: mockSnapsRegistryInit,
           MultichainAssetsController: mockMultichainAssetsControllerInit,
           MultichainTransactionsController:
             mockMultichainTransactionsControllerInit,
@@ -117,6 +139,18 @@ describe('initModularizedControllers', () => {
     });
     mockCronjobControllerInit.mockReturnValue({
       controller: {} as unknown as CronjobController,
+    });
+    mockExecutionServiceInit.mockReturnValue({
+      controller: {} as unknown as AbstractExecutionService<unknown>,
+    });
+    mockSnapControllerInit.mockReturnValue({
+      controller: {} as unknown as SnapController,
+    });
+    mockSnapInterfaceControllerInit.mockReturnValue({
+      controller: {} as unknown as SnapInterfaceController,
+    });
+    mockSnapsRegistryInit.mockReturnValue({
+      controller: {} as unknown as JsonSnapsRegistry,
     });
     mockMultichainAssetsControllerInit.mockReturnValue({
       controller: {} as unknown as MultichainAssetsController,

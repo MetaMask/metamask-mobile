@@ -726,7 +726,7 @@
     "connected_and_active": "conectada e ativa.",
     "now_active": "agora ativa.",
     "network_added": "foi adicionada com sucesso",
-    "network_removed": "foi removido com sucesso",
+    "network_removed": "foi removida com sucesso",
     "network_deleted": "foi excluída com sucesso",
     "network_permissions_updated": "Permissões de rede atualizadas",
     "revoked": "revogada.",
@@ -1118,7 +1118,6 @@
     "security_alerts": "Alertas de segurança",
     "security_alerts_desc": "Esse recurso alerta sobre atividades mal-intencionadas por meio da análise local de solicitações de transações e assinaturas. Sempre realize sua própria devida diligência antes de aprovar solicitações. Não há garantia de que esse recurso detectará toda e qualquer atividade mal-intencionada. Ao ativar esse recurso, você concorda com os termos de uso do provedor.",
     "smart_transactions_opt_in_heading": "Transações inteligentes",
-    "smart_transactions_opt_in_desc": "Ative as transações inteligentes para fazer transações mais confiáveis ​​e seguras na Mainnet da Ethereum.",
     "smart_transactions_learn_more": "Saiba mais.",
     "simulation_details": "Estimar alterações de saldo",
     "simulation_details_description": "Ative esta opção para estimar as alterações de saldo pelas transações antes de confirmá-las. Isso não garante o resultado de suas transações. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} cotações",
     "view_details": "Ver detalhes",
     "estimated_gas_fee": "Taxa de gás estimada",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Taxa de gás máxima",
     "edit": "Editar",
     "quotes_include_fee": "As cotações incluem uma taxa de {{fee}}% da MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Toque para trocar",
     "swipe_to_swap": "Deslize para trocar",
     "swipe_to": "Deslize para",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "As trocas são geralmente suscetíveis ao tempo. \"Alta\" ajudará a evitar possíveis perdas devido a mudanças nas condições do mercado.",
     "recommended": "Recomendado",
     "recommended_gas": "Taxa de gás recomendada",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Taxas de gás estimadas",
     "gas_education_1": "As taxas de gás são pagas aos criptomineradores que processam as transações na ",
     "gas_education_2_ethereum": "rede Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "ETH insuficiente",
     "balance": "Saldo",
     "stake_eth_and_earn": "Faça staking de ETH e ganhe",
-    "stake_any_amount_of_eth": "Faça staking de qualquer quantia de ETH",
+    "stake_any_amount_of_eth": "Faça staking de qualquer quantia de ETH.",
     "no_minimum_required": "Não há um mínimo obrigatório.",
-    "earn_eth_rewards": "Ganhe recompensas em ETH",
+    "earn_eth_rewards": "Ganhe recompensas em ETH.",
     "earn_eth_rewards_description": "Comece a ganhar assim que fizer staking. As recompensas são automáticas e compostas.",
-    "flexible_unstaking": "Retirada flexível de staking",
+    "flexible_unstaking": "Retirada flexível de staking.",
     "flexible_unstaking_description": "Retire do staking quando quiser. Normalmente, leva menos de 3 dias, mas pode levar até 11 dias para processar.",
     "disclaimer": "O staking não garante recompensas e envolve riscos, incluindo perda de fundos.",
     "learn_more": "Saiba mais",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 a 11 dias",
     "proceed_anyway": "Prosseguir mesmo assim",
     "gas_cost_impact": "Impacto no custo do gás",
-    "gas_cost_impact_warning": "Aviso: o custo de gás da transação representará mais de 30% do seu depósito."
+    "gas_cost_impact_warning": "Aviso: o custo de gás da transação representará mais de {{percentOverDeposit}}% do seu depósito.",
+    "view_earnings_history": "Ver histórico de ganhos",
+    "earnings_history_title": "{{ticker}} ganhos",
+    "earnings_history_list_title": "Histórico de pagamentos",
+    "apr": "ABR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7D",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
+    },
+    "today": "Hoje",
+    "one_week_average": "Média de 1 semana",
+    "one_month_average": "Média de 1 mês",
+    "three_month_average": "Média de 3 meses",
+    "six_month_average": "Média de 6 meses",
+    "one_year_average": "Média de 1 ano"
   },
   "default_settings": {
     "title": "Sua carteira está pronta",
@@ -3580,12 +3602,15 @@
     "reject": "Recusar",
     "confirm": "Confirmar",
     "title": {
-      "signature": "Solicitação de assinatura"
+      "signature": "Solicitação de assinatura",
+      "signature_siwe": "Solicitação de login"
     },
     "sub_title": {
-      "signature": "Revise os detalhes da solicitação antes de confirmar."
+      "signature": "Revise os detalhes da solicitação antes de confirmar.",
+      "signature_siwe": "Um site deseja que você faça login para comprovar que você é o titular desta conta."
     },
     "request_from": "Solicitação de",
+    "signing_in_with": "Fazendo login com",
     "message": "Mensagem",
     "primary_type": "Tipo primário",
     "personal_sign_tooltip": "Este site está solicitando sua assinatura",
@@ -3593,6 +3618,19 @@
     "account": "Conta",
     "balance": "Saldo",
     "network": "Rede",
+    "qr_get_sign": "Obter assinatura",
+    "qr_scan_text": "Leia com sua carteira de hardware",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Rede",
+      "account": "Conta",
+      "version": "Versão",
+      "chain_id": "ID da cadeia",
+      "nonce": "Nonce",
+      "issued": "Emitida",
+      "requestId": "ID da solicitação",
+      "resources": "Recursos"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "O NFT será refletido em sua carteira quando o lance for aceito.",
       "decoded_tooltip_list_nft": "Espere alterações somente se alguém comprar seus NFTs.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Indisponível"
     },
     "unlimited": "Ilimitado",
-    "none": "None"
+    "none": "Nenhum"
   },
   "change_in_simulation_modal": {
     "title": "Os resultados mudaram",

@@ -20,6 +20,7 @@ import {
   type SetAppThemeAction,
   type CheckedAuthAction,
   type PersistedDataLoadedAction,
+  type SetAppServicesReadyAction,
   UserActionType,
 } from './types';
 
@@ -157,5 +158,14 @@ export function checkedAuth(initialScreen: string): CheckedAuthAction {
 export function onPersistedDataLoaded(): PersistedDataLoadedAction {
   return {
     type: UserActionType.ON_PERSISTED_DATA_LOADED,
+  };
+}
+
+/**
+ * Action to signal that app services are ready
+ */
+export function setAppServicesReady(): SetAppServicesReadyAction {
+  return {
+    type: UserActionType.SET_APP_SERVICES_READY,
   };
 }

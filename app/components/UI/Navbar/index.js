@@ -102,9 +102,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Device.isAndroid() ? 22 : 18,
     paddingVertical: Device.isAndroid() ? 14 : 8,
   },
-  notificationButton: {
-    marginHorizontal: 4,
-  },
   disabled: {
     opacity: 0.3,
   },
@@ -129,9 +126,6 @@ const styles = StyleSheet.create({
   leftElementContainer: {
     marginLeft: 16,
   },
-  notificationsWrapper: {
-    marginHorizontal: 4,
-  },
   notificationsBadge: {
     width: 8,
     height: 8,
@@ -139,7 +133,7 @@ const styles = StyleSheet.create({
 
     position: 'absolute',
     top: 2,
-    right: 10,
+    right: 4,
   },
   headerLeftButton: {
     marginHorizontal: 16,
@@ -149,6 +143,9 @@ const styles = StyleSheet.create({
   },
   addressCopyWrapper: {
     marginHorizontal: 4,
+  },
+  iconButton: {
+    marginHorizontal: 24,
   },
 });
 
@@ -1047,30 +1044,33 @@ export function getWalletNavbarOptions(
         >
           <AddressCopy />
         </View>
-        <View style={styles.notificationsWrapper}>
-          {isNotificationsFeatureEnabled() && (
+        {isNotificationsFeatureEnabled() && (
+          <View>
+            {/* Icon */}
             <ButtonIcon
-              iconColor={IconColor.Primary}
+              iconColor={IconColor.Default}
               onPress={handleNotificationOnPress}
               iconName={IconName.Notification}
               size={IconSize.Xl}
               testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
               style={styles.notificationButton}
             />
-          )}
-          {isNotificationEnabled && (
-            <View
-              style={[
-                styles.notificationsBadge,
-                {
-                  backgroundColor: unreadNotificationCount
-                    ? themeColors.error.default
-                    : themeColors.background.transparent,
-                },
-              ]}
-            />
-          )}
-        </View>
+
+            {/* Badge Dot */}
+            {isNotificationEnabled && (
+              <View
+                style={[
+                  styles.notificationsBadge,
+                  {
+                    backgroundColor: unreadNotificationCount
+                      ? themeColors.error.default
+                      : themeColors.background.transparent,
+                  },
+                ]}
+              />
+            )}
+          </View>
+        )}
 
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -1771,7 +1771,7 @@ export function getBridgeNavbar(navigation, route, themeColors) {
 
 export function getFiatOnRampAggNavbar(
   navigation,
-  { title, showBack = true, showCancel = true } = {},
+  { title = 'Buy', showBack = true, showCancel = true } = {},
   themeColors,
   onCancel,
 ) {
@@ -1793,7 +1793,6 @@ export function getFiatOnRampAggNavbar(
       ...(!showBack && { textAlign: 'center' }),
     },
   });
-  const headerTitle = title ?? 'Buy';
 
   const leftActionText = strings('navigation.back');
 
@@ -1803,7 +1802,7 @@ export function getFiatOnRampAggNavbar(
 
   return {
     headerTitle: () => (
-      <NavbarTitle title={headerTitle} disableNetwork translate={false} />
+      <NavbarTitle title={title} disableNetwork translate={false} />
     ),
     headerLeft: () => {
       if (!showBack) return <View />;
@@ -1904,8 +1903,8 @@ export const getSettingsNavigationOptions = (title, themeColors) => {
  * @param {String} title - Navbar Title.
  * @param {NavigationProp<ParamListBase>} navigation Navigation object returned from useNavigation hook.
  * @param {ThemeColors} themeColors theme.colors returned from useStyles hook.
- * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean }} [navBarOptions] - Optional navbar options.
- * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>} }} [metricsOptions] - Optional metrics options.
+ * @param {{ backgroundColor?: string, hasCancelButton?: boolean, hasBackButton?: boolean, hasIconButton?: boolean, handleIconPress?: () => void }} [navBarOptions] - Optional navbar options.
+ * @param {{ cancelButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> }, backButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string>}, iconButtonEvent?: { event: IMetaMetricsEvent, properties: Record<string, string> } }} [metricsOptions] - Optional metrics options.
  * @returns Staking Navbar Component.
  */
 export function getStakingNavbar(
@@ -1915,7 +1914,7 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true } = navBarOptions ?? {};
+  const { hasBackButton = true, hasCancelButton = true, hasIconButton = false, handleIconPress } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
@@ -1962,6 +1961,18 @@ export function getStakingNavbar(
     }
   }
 
+  function handleIconPressWrapper() {
+    if (!handleIconPress) return;
+    if (metricsOptions?.iconButtonEvent) {
+      withMetaMetrics(handleIconPress, {
+        event: metricsOptions.iconButtonEvent.event,
+        properties: metricsOptions.iconButtonEvent.properties,
+      })();
+    } else {
+      handleIconPress();
+    }
+  }
+
   return {
     headerTitle: () => (
       <View style={innerStyles.headerTitle}>
@@ -1989,6 +2000,13 @@ export function getStakingNavbar(
           <Text style={innerStyles.headerButtonText}>
             {strings('navigation.cancel')}
           </Text>
+        </TouchableOpacity>
+      ) : hasIconButton ? (
+        <TouchableOpacity
+          onPress={handleIconPressWrapper}
+          style={styles.iconButton}
+        >
+          <Icon name={IconName.Question} />
         </TouchableOpacity>
       ) : (
         <></>

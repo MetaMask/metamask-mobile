@@ -75,7 +75,7 @@ function SwapLiveness() {
     async () => {
       checkLiveness();
     },
-    isSwapsAllowed(chainId) && !isLive ? POLLING_FREQUENCY : null,
+    { delay: isSwapsAllowed(chainId) && !isLive ? POLLING_FREQUENCY : null },
   );
   return null;
 }

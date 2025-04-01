@@ -31,7 +31,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
@@ -47,7 +47,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -76,7 +76,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -104,7 +104,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 16,
             "fontWeight": "500",
@@ -120,7 +120,7 @@ exports[`EditAccountName should render correctly 1`] = `
           {
             "alignItems": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 8,
             "borderWidth": 1,
             "flexDirection": "row",
@@ -149,7 +149,7 @@ exports[`EditAccountName should render correctly 1`] = `
                 "backgroundColor": "#ffffff",
                 "borderColor": "transparent",
                 "borderWidth": 1,
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
                 "fontWeight": "400",
@@ -186,7 +186,7 @@ exports[`EditAccountName should render correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -202,7 +202,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -226,7 +226,7 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",

@@ -5,6 +5,8 @@
 
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
+# Allows the design system and mobile platform team to review and approve all snapshot changes. This allows for system wide design token changes to color, typography, etc.
+**/*.snap                            @MetaMask/design-system-engineers @MetaMask/mobile-platform
 
 # Platform Team
 .github/CODEOWNERS                                          @MetaMask/mobile-platform
@@ -19,6 +21,10 @@ bitrise.yml                                                 @MetaMask/mobile-pla
 yarn.lock                                                   @MetaMask/mobile-platform
 ios/Podfile.lock                                            @MetaMask/mobile-platform
 app/components/Views/BrowserTab/BrowserTab.tsx              @MetaMask/mobile-platform
+app/components/Nav/NavigationProvider                       @MetaMask/mobile-platform
+app/components/Nav/ControllersGate                          @MetaMask/mobile-platform
+app/components/Views/Root                                   @MetaMask/mobile-platform
+app/core/NavigationService                                  @MetaMask/mobile-platform
 app/core/Engine/messengers/                                 @MetaMask/mobile-platform
 app/core/Engine/utils/                                      @MetaMask/mobile-platform
 app/core/Engine/constants/                                  @MetaMask/mobile-platform
@@ -29,6 +35,9 @@ app/core/Engine/README.md                                   @MetaMask/mobile-pla
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
 
+# Platform & Snaps Code Fencing File
+metro.transform.js @MetaMask/mobile-platform @MetaMask/snaps-devs
+
 # Ramps Team
 app/components/UI/Ramp/              @MetaMask/ramp
 app/reducers/fiatOrders/             @MetaMask/ramp
@@ -36,6 +45,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 # Confirmation Team
 app/components/Views/confirmations   @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
+app/core/Analytics/events/confirmations   @MetaMask/confirmations
 ppom                                 @MetaMask/confirmations
 
 # All below files are maintained by the SDK team because they contain SDK related code, WalletConnect integrations, or critical SDK flows.
@@ -99,6 +109,8 @@ app/components/UI/Stake              @MetaMask/metamask-staking
 app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
 app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
 app/selectors/earnController         @MetaMask/metamask-staking
+**/Earn/**                           @MetaMask/metamask-staking
+**/earn/**                           @MetaMask/metamask-staking
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -151,3 +163,6 @@ app/reducers/navigation @MetaMask/wallet-ux
 app/reducers/onboarding @MetaMask/wallet-ux
 app/reducers/privacy @MetaMask/wallet-ux
 app/reducers/settings @MetaMask/wallet-ux
+
+# Transactions Team
+app/components/Views/transactions @MetaMask/transactions

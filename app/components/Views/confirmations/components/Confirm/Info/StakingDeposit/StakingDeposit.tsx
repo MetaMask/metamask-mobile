@@ -1,33 +1,64 @@
-import { useNavigation } from '@react-navigation/native';
 import React, { useEffect } from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
-import { useConfirmActions } from '../../../../hooks/useConfirmActions';
+import { EVENT_PROVIDERS } from '../../../../../../UI/Stake/constants/events';
+import useClearConfirmationOnBackSwipe from '../../../../hooks/useClearConfirmationOnBackSwipe';
+import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
+import useNavbar from '../../../../hooks/useNavbar';
+import { useTokenValues } from '../../../../hooks/useTokenValues';
 import InfoSectionAccordion from '../../../UI/InfoSectionAccordion';
-import { getNavbar } from '../../Navbar/Navbar';
 import StakingContractInteractionDetails from '../../StakingContractInteractionDetails/StakingContractInteractionDetails';
 import StakingDetails from '../../StakingDetails/StakingDetails';
 import TokenHero from '../../TokenHero';
 import GasFeesDetails from '../GasFeesDetails';
 
 const StakingDeposit = () => {
-  const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
+  useNavbar(strings('stake.stake'));
+  useClearConfirmationOnBackSwipe();
+
+  const {
+    trackAdvancedDetailsToggledEvent,
+    trackPageViewedEvent,
+    setConfirmationMetric,
+  } = useConfirmationMetricEvents();
+  const { tokenAmountDisplayValue } = useTokenValues();
+  useEffect(() => {
+    setConfirmationMetric({
+      properties: {
+        selected_provider: EVENT_PROVIDERS.CONSENSYS,
+        transaction_amount_eth: tokenAmountDisplayValue,
+      },
+    });
+  }, [tokenAmountDisplayValue, setConfirmationMetric]);
 
   useEffect(() => {
-    navigation.setOptions(
-      getNavbar({
-        title: strings('stake.stake'),
-        onReject,
-      }),
-    );
-  }, [navigation, onReject]);
+    trackPageViewedEvent();
+    setConfirmationMetric({
+      properties: {
+        advanced_details_viewed: false,
+      },
+    });
+  }, [trackPageViewedEvent, setConfirmationMetric]);
+
+  const handleAdvancedDetailsToggledEvent = (isExpanded: boolean) => {
+    trackAdvancedDetailsToggledEvent({ isExpanded });
+    if (isExpanded) {
+      setConfirmationMetric({
+        properties: {
+          advanced_details_viewed: true,
+        },
+      });
+    }
+  };
 
   return (
     <>
       <TokenHero />
       <StakingDetails />
       <GasFeesDetails />
-      <InfoSectionAccordion header={strings('stake.advanced_details')}>
+      <InfoSectionAccordion
+        onStateChange={handleAdvancedDetailsToggledEvent}
+        header={strings('stake.advanced_details')}
+      >
         <StakingContractInteractionDetails />
       </InfoSectionAccordion>
     </>

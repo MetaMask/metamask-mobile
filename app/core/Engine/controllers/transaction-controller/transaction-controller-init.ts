@@ -18,12 +18,20 @@ import {
   submitSmartTransactionHook,
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
+import {
+  handleTransactionAdded,
+  handleTransactionApproved,
+  handleTransactionFinalized,
+  handleTransactionRejected,
+  handleTransactionSubmitted,
+} from './transaction-event-handlers';
+import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
   ControllerInitFunction,
   ControllerInitRequest,
 } from '../../types';
-import type { RootState } from '../../../../reducers';
+import type { TransactionEventHandlerRequest } from './types';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -98,6 +106,13 @@ export const TransactionControllerInit: ControllerInitFunction<
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
       });
+
+    addTransactionControllerListeners({
+      initMessenger,
+      getState,
+      smartTransactionsController,
+    });
+
     return { controller: transactionController };
   } catch (error) {
     Logger.error(error as Error, 'Failed to initialize TransactionController');
@@ -170,4 +185,77 @@ function getControllers(
       'SmartTransactionsController',
     ),
   };
+}
+
+function addTransactionControllerListeners(
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) {
+  const { initMessenger } = transactionEventHandlerRequest;
+
+  initMessenger.subscribe(
+    'TransactionController:transactionApproved',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionApproved(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionConfirmed',
+    (transactionMeta: TransactionMeta) => {
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionDropped',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionFailed',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionFinalized(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionRejected',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionRejected(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionSubmitted',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionSubmitted(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:unapprovedTransactionAdded',
+    (transactionMeta: TransactionMeta) => {
+      handleTransactionAdded(transactionMeta, transactionEventHandlerRequest);
+    },
+  );
 }

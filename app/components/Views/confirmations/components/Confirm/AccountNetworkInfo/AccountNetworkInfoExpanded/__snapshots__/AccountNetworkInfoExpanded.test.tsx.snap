@@ -45,12 +45,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -63,7 +61,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -105,12 +103,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -123,7 +119,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -179,12 +175,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "fontWeight": "500",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -232,7 +226,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",

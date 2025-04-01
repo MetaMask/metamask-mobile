@@ -3,7 +3,7 @@ import type { EngineState } from '../../core/Engine';
 import { initialState as initialFiatOrdersState } from '../../reducers/fiatOrders';
 import { initialState as initialSecurityState } from '../../reducers/security';
 import { initialState as initialInpageProvider } from '../../core/redux/slices/inpageProvider';
-import { initialState as transactionMetrics } from '../../core/redux/slices/transactionMetrics';
+import { initialState as confirmationMetrics } from '../../core/redux/slices/confirmationMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
 import initialBackgroundState from './initial-background-state.json';
@@ -49,13 +49,16 @@ const initialRootState: RootState = {
   rpcEvents: undefined,
   accounts: undefined,
   inpageProvider: initialInpageProvider,
-  transactionMetrics,
+  confirmationMetrics,
   originThrottling,
   notifications: {},
   bridge: initialBridgeState,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   multichainSettings: initialMultichainSettingsState,
   ///: END:ONLY_INCLUDE_IF
+  banners: {
+    dismissedBanners: [],
+  },
 };
 
 export default initialRootState;

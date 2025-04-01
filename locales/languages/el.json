@@ -1118,7 +1118,6 @@
     "security_alerts": "Ειδοποιήσεις ασφαλείας",
     "security_alerts_desc": "Αυτή η λειτουργία σας προειδοποιεί για κακόβουλη δραστηριότητα, καθώς ελέγχει τοπικά τα αιτήματα συναλλαγών και υπογραφών σας. Πάντα να κάνετε τη δική σας επιμελή έρευνα προτού εγκρίνετε οποιαδήποτε αιτήματα. Δεν υπάρχει καμία εγγύηση ότι αυτή η λειτουργία θα εντοπίσει όλες τις κακόβουλες δραστηριότητες. Ενεργοποιώντας αυτή τη λειτουργία, συμφωνείτε με τους όρους χρήσης του παρόχου.",
     "smart_transactions_opt_in_heading": "Έξυπνες Συναλλαγές",
-    "smart_transactions_opt_in_desc": "Ενεργοποιήστε τις Έξυπνες Συναλλαγές για πιο αξιόπιστες και ασφαλείς συναλλαγές στο Ethereum Mainnet.",
     "smart_transactions_learn_more": "Μάθετε περισσότερα.",
     "simulation_details": "Εκτίμηση μεταβολών υπολοίπου",
     "simulation_details_description": "Ενεργοποιήστε το για να εκτιμήσετε τις αλλαγές στο υπόλοιπο των συναλλαγών πριν τις επιβεβαιώσετε. Αυτό δεν εγγυάται την τελική αποτίμηση των συναλλαγών σας. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} προσφορές",
     "view_details": "Δείτε λεπτομέρειες",
     "estimated_gas_fee": "Εκτιμώμενο τέλος συναλλαγής",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Μέγιστο τέλος συναλλαγής",
     "edit": "Επεξεργασία",
     "quotes_include_fee": "Οι προσφορές περιλαμβάνουν μια χρέωση {{fee}}% στο MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Πατήστε για Ανταλλαγή",
     "swipe_to_swap": "Σύρετε για ανταλλαγή",
     "swipe_to": "Σύρετε για",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Οι ανταλλαγές είναι συνήθως ευαίσθητες στον χρόνο. Το «Υψηλό» επίπεδο θα βοηθήσει στην αποφυγή πιθανών ζημιών λόγω αλλαγών στις συνθήκες της αγοράς.",
     "recommended": "Προτεινόμενο",
     "recommended_gas": "Προτεινόμενο τέλος συναλλαγής",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Εκτιμώμενα τέλη συναλλαγών",
     "gas_education_1": "Τα τέλη συναλλαγών καταβάλλονται στους αναλυτές κρυπτονομισμάτων που επεξεργάζονται τις συναλλαγές στο ",
     "gas_education_2_ethereum": "δίκτυο Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "Δεν έχετε αρκετά ETH",
     "balance": "Υπόλοιπο",
     "stake_eth_and_earn": "Ποντάρετε σε ETH και κερδίστε",
-    "stake_any_amount_of_eth": "Ποντάρετε οποιοδήποτε ποσό σε ETH",
+    "stake_any_amount_of_eth": "Ποντάρετε οποιοδήποτε ποσό σε ETH.",
     "no_minimum_required": "Δεν απαιτείται ελάχιστο ποσό.",
-    "earn_eth_rewards": "Κερδίστε ανταμοιβές σε ETH",
+    "earn_eth_rewards": "Κερδίστε ανταμοιβές σε ETH.",
     "earn_eth_rewards_description": "Ξεκινήστε να κερδίζετε μόλις βάλετε το ποντάρισμα. Οι ανταμοιβές προκύπτουν αυτόματα.",
-    "flexible_unstaking": "Ευέλικτη ακύρωση πονταρίσματος",
+    "flexible_unstaking": "Ευέλικτη ακύρωση πονταρίσματος.",
     "flexible_unstaking_description": "Ακύρωση πονταρίσματος ανά πάσα στιγμή. Συνήθως διαρκεί λιγότερο από 3 ημέρες, αλλά μπορεί να χρειαστούν έως και 11 ημέρες για τη διεκπεραίωση.",
     "disclaimer": "Το ποντάρισμα δεν εγγυάται ανταμοιβές και ενέχει κινδύνους, όπως απώλεια κεφαλαίων.",
     "learn_more": "Μάθετε περισσότερα",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "1 έως 11 ημέρες",
     "proceed_anyway": "Συνεχίστε παρόλα αυτά",
     "gas_cost_impact": "Επιπτώσεις στα έξοδα συναλλαγών",
-    "gas_cost_impact_warning": "Προειδοποίηση: το κόστος των τελών συναλλαγών θα αντιστοιχεί σε περισσότερο από το 30% της κατάθεσής σας."
+    "gas_cost_impact_warning": "Προειδοποίηση: το κόστος των τελών συναλλαγών θα αντιστοιχεί σε περισσότερο από το {{percentOverDeposit}}% της κατάθεσής σας.",
+    "view_earnings_history": "Προβολή ιστορικού κερδών",
+    "earnings_history_title": "{{ticker}} κέρδη",
+    "earnings_history_list_title": "Ιστορικό πληρωμών",
+    "apr": "APR",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7Η",
+        "1M": "1Μ",
+        "3M": "3Μ",
+        "6M": "6Μ"
+      }
+    },
+    "today": "Σήμερα",
+    "one_week_average": "1 εβδομάδα κατά μέσο όρο",
+    "one_month_average": "1 μήνας κατά μέσο όρο",
+    "three_month_average": "3 μήνες κατά μέσο όρο",
+    "six_month_average": "6 μήνες κατά μέσο όρο",
+    "one_year_average": "1 έτος κατά μέσο όρο"
   },
   "default_settings": {
     "title": "Το πορτοφόλι σας είναι έτοιμο",
@@ -3580,12 +3602,15 @@
     "reject": "Απόρριψη",
     "confirm": "Επιβεβαίωση",
     "title": {
-      "signature": "Αίτημα υπογραφής"
+      "signature": "Αίτημα υπογραφής",
+      "signature_siwe": "Αίτημα σύνδεσης"
     },
     "sub_title": {
-      "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε."
+      "signature": "Ελέγξτε τις λεπτομέρειες του αιτήματος πριν επιβεβαιώσετε.",
+      "signature_siwe": "Ένας ιστότοπος θέλει να συνδεθείτε για να αποδείξετε ότι είστε ο κάτοχος αυτού του λογαριασμού."
     },
     "request_from": "Ζητήθηκε από",
+    "signing_in_with": "Σύνδεση με",
     "message": "Μήνυμα",
     "primary_type": "Πρωτεύων τύπος",
     "personal_sign_tooltip": "Αυτός ο ιστότοπος ζητάει την υπογραφή σας",
@@ -3593,6 +3618,19 @@
     "account": "Λογαριασμός",
     "balance": "Υπόλοιπο",
     "network": "Δίκτυο",
+    "qr_get_sign": "Λήψη υπογραφής",
+    "qr_scan_text": "Σαρώστε με το πορτοφόλι υλικού σας",
+    "siwe_message": {
+      "url": "Διεύθυνση URL",
+      "network": "Δίκτυο",
+      "account": "Λογαριασμός",
+      "version": "Έκδοση",
+      "chain_id": "Αναγνωριστικό αλυσίδας",
+      "nonce": "Αριθμολέξημα (nonce)",
+      "issued": "Εκδόθηκε",
+      "requestId": "Αναγνωριστικό αιτήματος",
+      "resources": "Πόροι"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Το NFT θα εμφανιστεί στο πορτοφόλι σας, όταν η προσφορά γίνει αποδεκτή.",
       "decoded_tooltip_list_nft": "Αναμένετε αλλαγές μόνο αν κάποιος αγοράσει τα NFT σας.",
@@ -3611,7 +3649,7 @@
       "unavailable": "Μη διαθέσιμο"
     },
     "unlimited": "Απεριόριστα",
-    "none": "None"
+    "none": "Τίποτα"
   },
   "change_in_simulation_modal": {
     "title": "Τα αποτελέσματα έχουν αλλάξει",
