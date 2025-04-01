@@ -11,6 +11,7 @@ import WalletConnect from './WalletConnect';
 import WalletConnect2Session from './WalletConnect2Session';
 // eslint-disable-next-line import/no-namespace
 import * as wcUtils from './wc-utils';
+import { Core } from "@walletconnect/core";
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -153,6 +154,13 @@ jest.mock('../BackgroundBridge/BackgroundBridge', () => ({
 
 jest.mock('./WalletConnect', () => ({
   newSession: jest.fn().mockResolvedValue({}),
+}));
+
+jest.mock('@walletconnect/core', () => ({
+  Core: jest.fn().mockImplementation((opts) => ({
+    projectId: opts?.projectId,
+    logger: opts?.logger,
+  }))
 }));
 
 describe('WC2Manager', () => {
@@ -807,6 +815,157 @@ describe('WC2Manager', () => {
 
       expect(rejectSessionSpy).not.toHaveBeenCalled();
       expect(respondSessionRequestSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('WC2Manager session delete handling', () => {
+    let mockWeb3Wallet: IWalletKit;
+    let storageSetItemSpy: jest.SpyInstance;
+    let sessionDeleteCallback: jest.Mock;
+
+    beforeEach(() => {
+      mockWeb3Wallet = (manager as unknown as { web3Wallet: IWalletKit }).web3Wallet;
+      storageSetItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+      if (!sessionDeleteCallback) {
+        sessionDeleteCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
+          ([event]) => event === 'session_delete'
+        )?.[1];
+        expect(sessionDeleteCallback).toBeDefined();
+      }
+    })
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should handle session delete event for a deeplink session', async () => {
+      (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        'test-topic': {
+          topic: 'test-topic',
+          pairingTopic: 'test-topic',
+          peer: {
+            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+          },
+        }
+      });
+
+      // Trigger the session delete event
+      await sessionDeleteCallback({ topic: 'test-topic' });
+
+      // Verify that deeplinkSessions was updated and stored
+      expect((manager as any).deeplinkSessions['test-pairing']).toBeUndefined();
+      expect(storageSetItemSpy).toHaveBeenCalledWith(
+        AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
+        JSON.stringify({})
+      );
+    });
+
+    it('should handle session delete event for a non-deeplink session', async () => {
+      // Set up test data for a non-deeplink session
+      (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        'test-topic': {
+          topic: 'test-topic',
+          pairingTopic: 'test-pairing',
+          peer: {
+            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+          },
+        }
+      });
+
+      // Trigger the session delete event
+      await sessionDeleteCallback({ topic: 'test-topic' });
+
+      // Verify that storage was not called (since it's not a deeplink session)
+      expect(storageSetItemSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle session delete event for non-existent session', async () => {
+
+      (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        'test-topic': {
+          topic: 'test-topic',
+          pairingTopic: 'test-pairing',
+          peer: {
+            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+          },
+        }
+      });
+      // Trigger the session delete event with a non-existent topic
+      await sessionDeleteCallback({ topic: 'non-existent-topic' });
+
+      // Verify that nothing was called since the session doesn't exist
+      expect(storageSetItemSpy).not.toHaveBeenCalled();
+    });
+
+    it('should handle errors during storage update', async () => {
+      (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
+        'test-topic': {
+          topic: 'test-topic',
+          pairingTopic: 'test-pairing',
+          peer: {
+            metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
+          },
+        }
+      });
+
+      // Mock storage error
+      storageSetItemSpy.mockRejectedValueOnce(new Error('Storage error'));
+
+      // Trigger the session delete event
+      await sessionDeleteCallback({ topic: 'test-topic' });
+    });
+  });
+
+  describe('WC2Manager initCore', () => {
+    beforeEach(() => {
+      // Clear all mocks before each test
+      jest.clearAllMocks();
+      // Spy on console.warn
+      jest.spyOn(console, 'warn').mockImplementation();
+    });
+    
+    afterEach(() => {
+      // Restore console.warn after each test
+      jest.restoreAllMocks();
+    });
+
+    it('should throw error when projectId is undefined', async () => {
+      await expect(WC2Manager['initCore'](undefined))
+        .rejects
+        .toThrow('WC2::init Init Missing projectId');
+    });
+
+    it('should throw error when projectId is empty string', async () => {
+      await expect(WC2Manager['initCore'](''))
+        .rejects
+        .toThrow('WC2::init Init Missing projectId');
+    });
+
+    it('should throw error when Core initialization fails', async () => {
+      // Override the mock for this specific test
+      (Core as unknown as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('Core initialization failed');
+      });
+
+      await expect(WC2Manager['initCore']('valid-project-id'))
+        .rejects
+        .toThrow('Core initialization failed');
+
+      // Verify that the error was logged
+      expect(console.warn)
+        .toHaveBeenCalledWith(
+          'WC2::init Init failed due to Error: Core initialization failed'
+        );
+    });
+
+    it('should successfully initialize Core with valid projectId', async () => {
+      const result = await WC2Manager['initCore']('valid-project-id');
+      
+      expect(Core).toHaveBeenCalledWith({
+        projectId: 'valid-project-id',
+        logger: 'fatal'
+      });
+      expect(result).toBeDefined();
     });
   });
 });

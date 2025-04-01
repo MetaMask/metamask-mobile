@@ -261,6 +261,18 @@ export const getScopedPermissions = async ({ origin }: { origin: string }) => {
   };
 };
 
+export const onRequestUserApproval = (origin: string) => async (args: any) => {
+  await Engine.context.ApprovalController.clear(
+    providerErrors.userRejectedRequest(),
+  );
+  const responseData = await Engine.context.ApprovalController.add({
+    origin,
+    type: args.type,
+    requestData: args.requestData,
+  });
+  return responseData;
+};
+
 export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
@@ -322,18 +334,7 @@ export const checkWCPermissions = async ({
         controllers: Engine.context,
         // requestUserApproval: requestUserApproval(origin),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        requestUserApproval: async (args: any) => {
-          //console.log('🟢 requestUserApproval', JSON.stringify({args}, null, 2));
-          await Engine.context.ApprovalController.clear(
-            providerErrors.userRejectedRequest(),
-          );
-          const responseData = await Engine.context.ApprovalController.add({
-            origin,
-            type: args.type,
-            requestData: args.requestData,
-          });
-          return responseData;
-        },
+        requestUserApproval: onRequestUserApproval(origin),
         analytics: {},
         origin,
         isAddNetworkFlow: false,

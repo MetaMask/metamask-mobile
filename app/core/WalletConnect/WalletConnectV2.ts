@@ -74,7 +74,7 @@ export class WC2Manager {
       'session_delete',
       async (event: WalletKitTypes.SessionDelete) => {
         const session =
-          this.getSession(event.topic) || this.sessions[event.topic].session;
+          this.getSession(event.topic) || this.sessions[event.topic]?.session;
         if (session && deeplinkSessions[session?.pairingTopic]) {
           delete deeplinkSessions[session.pairingTopic];
           await StorageWrapper.setItem(
@@ -191,6 +191,22 @@ export class WC2Manager {
     }
   }
 
+  protected static async initCore(projectId: string | undefined) {
+    try {
+      if (typeof projectId === 'string' && projectId.length > 0) {
+        return new Core({
+          projectId,
+          logger: 'fatal',
+        });
+      } else {
+        throw new Error('WC2::init Init Missing projectId');
+      }
+    } catch (err) {
+      console.warn(`WC2::init Init failed due to ${err}`);
+      throw err;
+    }
+  }
+
   public static async init({
     navigation,
     sessions = {},
@@ -230,19 +246,7 @@ export class WC2Manager {
       `WalletConnectV2::init() chainId=${chainId} currentRouteName=${currentRouteName}`,
     );
 
-    try {
-      if (typeof PROJECT_ID === 'string') {
-        core = new Core({
-          projectId: PROJECT_ID,
-          logger: 'fatal',
-        });
-      } else {
-        throw new Error('WC2::init Init Missing projectId');
-      }
-    } catch (err) {
-      console.warn(`WC2::init Init failed due to ${err}`);
-      throw err;
-    }
+    core = await WC2Manager.initCore(PROJECT_ID);
 
     let web3Wallet;
     // Extract chainId from controller
