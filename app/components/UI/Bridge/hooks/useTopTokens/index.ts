@@ -1,13 +1,13 @@
 import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToHex } from '@metamask/bridge-controller';
-import { useAsyncResult } from '../../../hooks/useAsyncResult';
+import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
-import { BridgeToken } from '../types';
+import { BridgeToken } from '../../types';
 import { useEffect, useMemo, useRef } from 'react';
-import Engine from '../../../../core/Engine';
+import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
-import Logger from '../../../../util/Logger';
-import { selectChainCache } from '../../../../reducers/swaps';
+import Logger from '../../../../../util/Logger';
+import { selectChainCache } from '../../../../../reducers/swaps';
 import { SwapsControllerState } from '@metamask/swaps-controller';
 interface UseTopTokensProps {
   chainId?: Hex;
@@ -100,5 +100,5 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     return top;
   }, [bridgeTokens, swapsTopAssets]);
 
-  return { topTokens, pending: bridgeTokensPending || swapsTopAssetsPending };
+  return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
 };
