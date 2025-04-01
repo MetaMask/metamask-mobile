@@ -1,17 +1,16 @@
-import Text, { TextColor, TextVariant } from "../../../../../component-library/components/Texts/Text"
-import { AlignItems, FlexDirection, JustifyContent } from "../../../Box/box.types"
-import { AvatarSize } from "../../../../../component-library/components/Avatars/Avatar";
-import AvatarToken from "../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken";
-import Badge, { BadgeVariant } from "../../../../../component-library/components/Badges/Badge";
-import BadgeWrapper, { BadgePosition } from "../../../../../component-library/components/Badges/BadgeWrapper";
-import { TokenI } from "../../../Tokens/types";
-import { Box } from "../../../Box/Box";
-import { Hex } from "@metamask/utils";
-import { getNetworkImageSource } from "../../../../../util/networks";
-import { AllowedBridgeChainIds } from "../../../../../constants/bridge";
-import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from "../../../../../constants/bridge";
+import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
+import { AlignItems, FlexDirection, JustifyContent } from '../../../Box/box.types';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken/AvatarToken';
+import Badge, { BadgeVariant } from '../../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper';
+import { TokenI } from '../../../Tokens/types';
+import { Box } from '../../../Box/Box';
+import { Hex } from '@metamask/utils';
+import { getNetworkImageSource } from '../../../../../util/networks';
+import { AllowedBridgeChainIds , NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { StyleSheet, View } from 'react-native';
-import TokenIcon from "../../../Swaps/components/TokenIcon";
+import TokenIcon from '../../../Swaps/components/TokenIcon';
 
 
 const createStyles = () =>
@@ -87,7 +86,7 @@ const TransactionAsset = ({ token, tokenAmount, chainId }: TransactionAssetProps
         </Text>
       </Box>
     </Box>
-  )
-}
+  );
+};
 
 export default TransactionAsset;

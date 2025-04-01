@@ -1,5 +1,5 @@
-import { TransactionMeta } from "@metamask/transaction-controller";
-import { getHexGasTotal } from "../../../../util/confirm-tx";
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { getHexGasTotal } from '../../../../util/confirm-tx';
 
 /**
  * Calculates the total cost of a transaction in hex wei.

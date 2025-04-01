@@ -230,7 +230,7 @@ class TransactionElement extends PureComponent {
     onPressItem(tx.id, i);
     if (tx.type === 'bridge') {
       this.props.navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
-        tx: tx,
+        tx,
       });
     } else {
       this.setState({ detailsModalVisible: true });
