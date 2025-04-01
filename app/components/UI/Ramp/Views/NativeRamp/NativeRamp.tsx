@@ -834,6 +834,12 @@ function NativeRamp() {
           <Text style={styles.currencyText}>EUR</Text>
         </View>
       </View>
+      <Row style={styles.networkIndicatorContainer}>
+        <Text variant={TextVariant.BodyMD} style={styles.centered}>
+          Your USDC will be deposited on the{' '}
+          <Text style={styles.networkHighlight}>Arbitrum</Text> network
+        </Text>
+      </Row>
       {/* Dev only button */}
       <Row style={styles.devButtonContainer}>
         <Text
@@ -1013,6 +1019,12 @@ function NativeRamp() {
           </Text>
         </Row>
 
+        <Row style={styles.networkIndicatorContainer}>
+          <Text variant={TextVariant.BodyMD} style={styles.centered}>
+            on <Text style={styles.networkHighlight}>Arbitrum</Text> network
+          </Text>
+        </Row>
+
         <Row style={styles.bankTransferNote}>
           <Text variant={TextVariant.BodyMD} style={styles.centered}>
             Transfer funds to this account to complete your purchase
@@ -1100,6 +1112,12 @@ function NativeRamp() {
         </Text>
         <Text variant={TextVariant.BodyMD} style={styles.fiatAmount}>
           {orderData?.fiatAmount || amount} EUR
+        </Text>
+      </Row>
+
+      <Row style={styles.networkIndicatorContainer}>
+        <Text variant={TextVariant.BodyMD} style={styles.centered}>
+          on <Text style={styles.networkHighlight}>Arbitrum</Text> network
         </Text>
       </Row>
 

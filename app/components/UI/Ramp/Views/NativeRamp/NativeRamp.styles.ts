@@ -249,6 +249,14 @@ const styleSheet = (_params: { theme: Theme }) =>
       textDecorationLine: 'underline',
       fontSize: 14,
     },
+    networkIndicatorContainer: {
+      marginVertical: 8,
+      alignItems: 'center',
+    },
+    networkHighlight: {
+      color: _params.theme.colors.primary.default,
+      fontWeight: 'bold',
+    },
   });
 
 export default styleSheet;
