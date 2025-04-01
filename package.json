@@ -302,7 +302,6 @@
     "lottie-react-native": "5.1.6",
     "luxon": "^3.5.0",
     "mockttp": "^3.15.2",
-    "multiformats": "^13.3.2",
     "multihashes": "0.4.14",
     "number-to-bn": "1.7.0",
     "path": "0.12.7",
