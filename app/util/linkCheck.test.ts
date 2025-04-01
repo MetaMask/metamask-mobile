@@ -13,17 +13,6 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
-// Mock the store and the settings selector
-jest.mock('../store', () => ({
-  store: {
-    getState: jest.fn(() => ({}))
-  }
-}));
-
-jest.mock('../selectors/settings', () => ({
-  selectBasicFunctionalityEnabled: jest.fn(() => true)
-}));
-
 describe('linkCheck', () => {
   it('should correctly check links for safety', () => {
     expect(isLinkSafe('example.com')).toEqual(false);
