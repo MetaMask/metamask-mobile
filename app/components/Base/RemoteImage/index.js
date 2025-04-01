@@ -71,6 +71,7 @@ const RemoteImage = (props) => {
   const styles = createStyles();
   const currentChainId = useSelector(selectChainId);
   // The chainId would be passed in props from parent for collectible media
+  //TODO remove once migrated to TS and chainID is properly typed to hex
   const chainId = props.chainId ? toHex(props.chainId) : currentChainId;
   const networkName = useSelector(selectNetworkName);
   const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState(false);
