@@ -1,5 +1,5 @@
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index a390e86..4d0346d 100644
+index 0f15eb6..179932b 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -46,7 +46,7 @@ index a390e86..4d0346d 100644
          __classPrivateFieldSet(this, _NftController_useIpfsSubdomains, useIpfsSubdomains, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
          __classPrivateFieldSet(this, _NftController_onNftAdded, onNftAdded, "f");
-@@ -590,7 +590,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -597,7 +597,7 @@ class NftController extends base_controller_1.BaseController {
      }
  }
  exports.NftController = NftController;
@@ -55,7 +55,7 @@ index a390e86..4d0346d 100644
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
      __classPrivateFieldSet(this, _NftController_chainId, chainId, "f");
  }, _NftController_onPreferencesControllerStateChange = 
-@@ -598,20 +598,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
+@@ -605,20 +605,20 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
   * Handles the state change of the preference controller.
   * @param preferencesState - The new state of the preference controller.
   * @param preferencesState.ipfsGateway - The configured IPFS gateway.
@@ -81,7 +81,7 @@ index a390e86..4d0346d 100644
          if (needsUpdateNftMetadata && selectedAccount) {
              await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
          }
-@@ -625,7 +625,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
+@@ -632,7 +632,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
      const oldSelectedAccountId = __classPrivateFieldGet(this, _NftController_selectedAccountId, "f");
      __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
      const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
@@ -90,7 +90,7 @@ index a390e86..4d0346d 100644
          oldSelectedAccountId !== internalAccount.id;
      if (needsUpdateNftMetadata) {
          await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -700,6 +700,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
+@@ -707,6 +707,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
              description: null,
              image: null,
              standard: null,
@@ -98,7 +98,7 @@ index a390e86..4d0346d 100644
          };
      }
      // if we've reached this point, we have successfully fetched some data for nftInformation
-@@ -744,7 +745,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -751,7 +752,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              tokenURI: tokenURI ?? null,
          };
      }
@@ -107,7 +107,7 @@ index a390e86..4d0346d 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -753,6 +754,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -760,6 +761,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -115,7 +115,7 @@ index a390e86..4d0346d 100644
          };
      }
      if (hasIpfsTokenURI) {
-@@ -766,6 +768,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -773,6 +775,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -123,7 +123,7 @@ index a390e86..4d0346d 100644
          };
      }
      try {
-@@ -846,10 +849,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+@@ -853,10 +856,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      });
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
@@ -146,7 +146,7 @@ index a390e86..4d0346d 100644
      return {
          ...nftApiMetadata,
          name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
-@@ -991,6 +1005,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
+@@ -998,6 +1012,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
                  tokenId: tokenId.toString(),
                  standard: nftMetadata.standard,
                  source,
@@ -155,7 +155,7 @@ index a390e86..4d0346d 100644
          }
      }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
-index 7b0580e..e783176 100644
+index 4384784..e35e71c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 @@ -108,6 +108,7 @@ export type NftMetadata = {
@@ -167,7 +167,7 @@ index 7b0580e..e783176 100644
      address?: string;
      attributes?: Attributes[];
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
-index c6d715d..696a24b 100644
+index 419956e..c656f1c 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.cjs
 @@ -165,7 +165,7 @@ class TokenRatesController extends (0, polling_controller_1.StaticIntervalPollin
@@ -180,7 +180,7 @@ index c6d715d..696a24b 100644
              // This prevents redundant updates
              // This promise is resolved after the in-progress update has finished,
 diff --git a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
-index 396f361..9469ba4 100644
+index 9ade79f..49f6d17 100644
 --- a/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
 +++ b/node_modules/@metamask/assets-controllers/dist/TokenRatesController.mjs
 @@ -162,7 +162,7 @@ export class TokenRatesController extends StaticIntervalPollingController() {
