@@ -5,7 +5,6 @@ import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../types';
 import { useEffect, useMemo, useRef } from 'react';
 import Engine from '../../../../core/Engine';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { selectChainCache } from '../../../../reducers/swaps';
@@ -21,7 +20,6 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     [chainId, swapsChainCache],
   );
   const swapsTopAssetsPending = !swapsTopAssets;
-  const networkConfigurationsByChainId = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   const cachedBridgeTokens = useRef<Record<string, Record<string, BridgeToken>>>({});
 
@@ -31,13 +29,9 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       const { SwapsController } = Engine.context;
       try {
         if (chainId) {
-          const networkConfiguration = networkConfigurationsByChainId[chainId];
-          const defaultRpcEndpointIndex = networkConfiguration.defaultRpcEndpointIndex;
-          const networkClientId = networkConfiguration.rpcEndpoints[defaultRpcEndpointIndex].networkClientId;
-          
           // Maintains an internal cache, will fetch if past internal threshold
           await SwapsController.fetchTopAssetsWithCache({
-            networkClientId,
+            chainId,
           });
         }
       } catch (error: unknown) {
@@ -47,7 +41,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
         );
       }
     })();
-  }, [chainId, networkConfigurationsByChainId]);
+  }, [chainId]);
 
   // Get the token data from the bridge API
   const { value: bridgeTokens, pending: bridgeTokensPending } = useAsyncResult(async () => {
@@ -96,9 +90,9 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     }
 
     const top = swapsTopAssets.map((asset) => {
-      const candidateBridgeToken = bridgeTokens[asset.address.toLowerCase()] 
+      const candidateBridgeToken = bridgeTokens[asset.address.toLowerCase()]
         || bridgeTokens[toChecksumHexAddress(asset.address)];
-      
+
       return candidateBridgeToken;
     })
     .filter(Boolean) as BridgeToken[];
