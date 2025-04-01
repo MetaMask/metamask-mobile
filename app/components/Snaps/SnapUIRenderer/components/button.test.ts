@@ -7,19 +7,32 @@ import {
 } from '../../../../component-library/components/Texts/Text';
 import { UIComponent } from './types';
 
+type TestButtonElement = {
+  type: string;
+  props: {
+    variant: string;
+    disabled: boolean;
+    loading: boolean;
+    children?: (string | MockUIComponent)[];
+    [key: string]: unknown;
+  };
+  key: string;
+  children: (string | MockUIComponent)[];
+};
+
 interface MockUIComponent {
   element: string;
   props?: Record<string, unknown>;
-  children?: Array<string | MockUIComponent>;
+  children?: (string | MockUIComponent)[];
 }
 
 jest.mock('@metamask/snaps-utils', () => ({
-  getJsxChildren: jest.fn((element) => element.children || []),
+  getJsxChildren: jest.fn((elem) => elem.children || []),
 }));
 
 jest.mock('../utils', () => ({
-  mapTextToTemplate: jest.fn((children, params) => {
-    return children.map((child: string | MockUIComponent) => {
+  mapTextToTemplate: jest.fn((children) =>
+    children.map((child: string | MockUIComponent) => {
       if (typeof child === 'string') {
         return child;
       }
@@ -28,22 +41,24 @@ jest.mock('../utils', () => ({
         props: child.props || {},
         children: child.children || [],
       };
-    });
-  }),
+    }),
+  ),
 }));
 
 describe('button component factory', () => {
   const mockT = (key: string) => key;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const createButtonElement = (
     props: Record<string, unknown> = {},
-    children: Array<string | MockUIComponent> = ['Button Text'],
-  ): any => ({
+    children: (string | MockUIComponent)[] = ['Button Text'],
+  ): TestButtonElement => ({
     type: 'Button',
     props: {
       variant: 'primary',
       disabled: false,
       loading: false,
+      children,
       ...props,
     },
     key: 'test-key',
@@ -54,7 +69,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement();
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -88,7 +104,8 @@ describe('button component factory', () => {
     });
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: 'parent-form',
       map: {},
@@ -107,7 +124,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement();
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: 'parent-form',
       map: {},
@@ -122,7 +140,8 @@ describe('button component factory', () => {
     const mediumButtonElement = createButtonElement({ size: 'md' });
 
     const smallResult = button({
-      element: smallButtonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: smallButtonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -130,7 +149,8 @@ describe('button component factory', () => {
     });
 
     const mediumResult = button({
-      element: mediumButtonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: mediumButtonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -145,7 +165,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement({ disabled: true });
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -163,7 +184,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement({ variant: 'destructive' });
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -193,7 +215,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement({}, [complexTextComponent]);
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -231,7 +254,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement({}, [sectionContainer]);
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -241,10 +265,10 @@ describe('button component factory', () => {
     const container = (result.children as UIComponent[])[0] as UIComponent;
     expect(container.element).toBe('SectionContainer');
 
-    const sections = container.props?.sections as Array<{
+    const sections = container.props?.sections as {
       element: string;
       props: Record<string, unknown>;
-    }>;
+    }[];
     expect(sections).toHaveLength(2);
 
     const textSection = sections[0];
@@ -269,7 +293,8 @@ describe('button component factory', () => {
     const buttonElement = createButtonElement({}, [iconComponent]);
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -296,7 +321,8 @@ describe('button component factory', () => {
     ]);
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
@@ -336,7 +362,8 @@ describe('button component factory', () => {
     ]);
 
     const result = button({
-      element: buttonElement,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      element: buttonElement as any,
       theme: mockTheme,
       form: undefined,
       map: {},
