@@ -2,6 +2,8 @@ import { WalletDevice } from '@metamask/transaction-controller';
 //eslint-disable-next-line import/no-namespace
 import * as TransactionControllerUtils from './index';
 import Engine from '../../core/Engine';
+import { store } from '../../store';
+import { RootState } from '../../reducers';
 
 const {
   addTransaction,
@@ -103,6 +105,47 @@ describe('Transaction Controller Util', () => {
           ],
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('startIncomingTransactionPolling', () => {
+    it('should call Transaction controller API method if privacy mode is not enabled', () => {
+      TransactionControllerUtils.startIncomingTransactionPolling();
+      expect(
+        Engine.context.TransactionController.startIncomingTransactionPolling,
+      ).toHaveBeenCalled();
+    });
+
+    it('should not call Transaction controller API method if privacy mode is enabled', () => {
+      jest.spyOn(store, 'getState').mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as RootState);
+      TransactionControllerUtils.startIncomingTransactionPolling();
+      expect(
+        Engine.context.TransactionController.startIncomingTransactionPolling,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('updateIncomingTransactions', () => {
+    it('should call Transaction controller API method is privacy mode is not enabled', () => {
+      jest.spyOn(store, 'getState').mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+      } as RootState);
+      TransactionControllerUtils.updateIncomingTransactions();
+      expect(
+        Engine.context.TransactionController.updateIncomingTransactions,
+      ).toHaveBeenCalled();
+    });
+
+    it('should not call Transaction controller API method is privacy mode is enabled', () => {
+      jest.spyOn(store, 'getState').mockReturnValue({
+        settings: { basicFunctionalityEnabled: false },
+      } as RootState);
+      TransactionControllerUtils.updateIncomingTransactions();
+      expect(
+        Engine.context.TransactionController.updateIncomingTransactions,
+      ).not.toHaveBeenCalled();
     });
   });
 
