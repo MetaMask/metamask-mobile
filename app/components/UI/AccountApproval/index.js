@@ -19,7 +19,6 @@ import { CommonSelectorsIDs } from '../../../../e2e/selectors/Common.selectors';
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../../core/Engine';
 import SDKConnect from '../../../core/SDKConnect/SDKConnect';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
@@ -28,7 +27,6 @@ import {
   selectProviderType,
 } from '../../../selectors/networkController';
 import { selectTokensLength } from '../../../selectors/tokensController';
-import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { getAddressAccountType } from '../../../util/address';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { getDecimalChainId } from '../../../util/networks';
@@ -37,7 +35,6 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import store from '../../../store';
 import { getPhishingTestResult } from '../../../util/phishingProtection';
 
 /**
