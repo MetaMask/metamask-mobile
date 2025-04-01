@@ -32,7 +32,7 @@ const localStyles = StyleSheet.create({
     flexDirection: FlexDirection.Row,
     alignItems: AlignItems.center,
     justifyContent: JustifyContent.center,
-    gap: 4,
+    gap: 8,
   },
 });
 
@@ -100,7 +100,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
       return (
         <ActivityIndicator
           size="small"
-          color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
+          color={theme.colors.primary.inverse}
         />
       );
     } else if (isSnapAction && !hideSnapBranding) {
@@ -109,7 +109,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
           <SnapIcon snapId={snapId} avatarSize={IconSize.Sm} />
           <Text
             variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
-            color={DEFAULT_BUTTONPRIMARY_LABEL_COLOR}
+            color={theme.colors.primary.inverse}
           >
             {children}
           </Text>
@@ -121,7 +121,7 @@ export const SnapUIFooterButton: FunctionComponent<SnapUIFooterButtonProps> = ({
         variant={DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT}
         color={
           variant === ButtonVariants.Primary
-            ? DEFAULT_BUTTONPRIMARY_LABEL_COLOR
+            ? theme.colors.primary.inverse
             : theme.colors.primary.default
         }
       >
