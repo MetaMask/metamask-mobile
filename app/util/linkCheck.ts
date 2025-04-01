@@ -19,19 +19,7 @@ export const isLinkSafe = (link: string): boolean => {
   try {
     const url = new Url(link);
     const { protocol, href } = url;
-    
-    // Check if it has a valid protocol and hostname
-    if (!isAllowedProtocol(protocol)) {
-      return false;
-    }
-    
-    // Some URLs may not pass the isUrl check but are still valid
-    // Focus on protocol and hostname validation instead
-    if (url.hostname && url.hostname.includes('.')) {
-      return isAllowedUrl(url);
-    }
-    
-    return isUrl(href) && isAllowedUrl(url);
+    return isUrl(href) && isAllowedProtocol(protocol) && isAllowedUrl(url);
   } catch (err) {
     return false;
   }

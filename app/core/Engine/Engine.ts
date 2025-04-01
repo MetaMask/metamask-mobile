@@ -207,7 +207,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import { updatePhishingLists } from '../../util/phishingProtection';
+import { isPhishingProtectionEnabled, updatePhishingLists } from '../../util/phishingProtection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -430,8 +430,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-
-    updatePhishingLists();
+    if (isPhishingProtectionEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
