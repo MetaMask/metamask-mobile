@@ -19,17 +19,14 @@ import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
 
 const byoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-// const byoaServerUrl = 'https://organic-gannet-privately.ngrok-free.app';
 const Web3AuthNetwork = 'sapphire-testnet';
-const AppRedirect = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
+const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
 
 const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
 const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
 
-const AndroidWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
-const AndroidGID = AndroidWebGID;
+const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
 const AppleServerRedirectUri = `${byoaServerUrl}/api/v1/oauth/callback`;
-
 const AppleWebClientId = 'com.web3auth.appleloginextension';
 
 
@@ -69,12 +66,11 @@ export class Oauth2LoginService {
                     ],
                 });
                 if (credential.identityToken) {
-                    await this.handleCodeFlow({
+                    return await this.handleCodeFlow({
                             provider: 'apple',
                             idToken: credential.identityToken,
                             clientId: IosGID,
                     });
-                    return {type: 'success'};
                 }
                 return {type: 'dismiss'};
             } else if (provider === 'google') {
@@ -91,7 +87,7 @@ export class Oauth2LoginService {
                 });
 
                 if (result.type === 'success') {
-                    await this.handleCodeFlow({
+                    return this.handleCodeFlow({
                         provider: 'google',
                         code: result.params.code, // result.params.idToken
                         clientId: IosGID,
@@ -116,7 +112,7 @@ export class Oauth2LoginService {
             if (provider === 'apple') {
                 const state = JSON.stringify({
                     provider: 'apple',
-                    client_redirect_back_uri: AppRedirect,
+                    client_redirect_back_uri: AppRedirectUri,
                     redirectUri: AppleServerRedirectUri,
                     clientId: AppleWebClientId,
                     random: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
@@ -144,9 +140,9 @@ export class Oauth2LoginService {
 
                 return {type: 'pending'};
             } else if (provider === 'google') {
-                Logger.log('handleGoogleLogin: AndroidGID', AndroidGID);
+                Logger.log('handleGoogleLogin: AndroidGID', AndroidGoogleWebGID);
                 const result = await signInWithGoogle({
-                    serverClientId: AndroidGID,
+                    serverClientId: AndroidGoogleWebGID,
                     nonce: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
                     autoSelectEnabled: true,
                 });
@@ -155,11 +151,11 @@ export class Oauth2LoginService {
                 DevLogger.log('handleGoogleLogin: result', result);
 
                 if (result.type === 'success') {
-                    await this.handleCodeFlow({
+                    return this.handleCodeFlow({
                         provider: 'google',
                         code: result.params.code, // result.params.idToken
                         idToken: result.params.idToken,
-                        clientId: AndroidGID,
+                        clientId: AndroidGoogleWebGID,
                     });
                 }
                 return result;
@@ -172,7 +168,7 @@ export class Oauth2LoginService {
         }
     };
 
-    handleCodeFlow = async (params : HandleFlowParams) : Promise<{status: 'success' | 'error', error?: string}> => {
+    handleCodeFlow = async (params : HandleFlowParams) : Promise<{type: 'success' | 'error', error?: string}> => {
         const {code, idToken, provider, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
 
         const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
@@ -203,15 +199,22 @@ export class Oauth2LoginService {
             const data = await res.json();
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
-                // await Engine.context.SeedlessOnboardingController.authenticateOAuthUser(data);
-                return {status: 'success'};
+                await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
+                    idTokens: [data.id_token],
+                    verifier: data.verifier,
+                    verifierID: data.verifier_id,
+                    indexes: [data.index],
+                    endpoints: [data.endpoint],
+                });
+                return {type: 'success'};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
         } catch (error) {
+            Logger.log('handleCodeFlow: error', error);
             Logger.error( error as Error, {
                 message: 'handleCodeFlow',
             } );
-            return {status: 'error'};
+            return {type: 'error'};
         } finally {
             // ReduxService.store.dispatch({
             // });
