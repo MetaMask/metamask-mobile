@@ -144,19 +144,8 @@ export const mapTextToTemplate = (
         props: { color: params.textColor },
       };
     }
-    return mapToTemplate({
-      ...params,
-      element:
-        e.type === 'Icon'
-          ? ({
-              ...e,
-              props: {
-                size: params.size,
-                ...e.props,
-              },
-            } as JSXElement)
-          : e,
-    });
+
+    return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
 
 /**
