@@ -147,6 +147,34 @@ index 5ebaf48..f5dde30 100644
  
      defaultConfig {
          minSdkVersion 21
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
+index 18c4dd0..1e0e024 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
+@@ -1149,7 +1149,8 @@ public abstract class DevSupportManagerBase implements DevSupportManager {
+ 
+       // show the dev loading if it should be
+       if (mDevLoadingViewVisible) {
+-        mDevLoadingViewManager.showMessage("Reloading...");
++        if (mDevLoadingViewManager  != null)
++          mDevLoadingViewManager.showMessage("Reloading...");
+       }
+ 
+       mDevServerHelper.openPackagerConnection(
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
+index 4eaa3f2..525d41f 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
+@@ -46,7 +46,8 @@ public class DevLoadingModule extends NativeDevLoadingViewSpec {
+         new Runnable() {
+           @Override
+           public void run() {
+-            mDevLoadingViewManager.showMessage(message);
++            if(mDevLoadingViewManager != null)
++              mDevLoadingViewManager.showMessage(message);
+           }
+         });
+   }
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 index ced37be..a158541 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
