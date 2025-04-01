@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 
-import { renderWithConfirmProvider } from '../../../../../../util/test/renderWithConfirmProvider';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { personalSignatureConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
@@ -52,7 +52,7 @@ jest.mock('../../../../../../core/Engine', () => ({
 
 describe('Info', () => {
   it('renders correctly for personal sign', () => {
-    const { getByText } = renderWithConfirmProvider(<Info />, {
+    const { getByText } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('Message')).toBeDefined();
@@ -63,7 +63,7 @@ describe('Info', () => {
     jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
       isSigningQRObject: true,
     } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { getByText } = renderWithConfirmProvider(<Info />, {
+    const { getByText } = renderWithProvider(<Info />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('QR Scanning Component')).toBeTruthy();

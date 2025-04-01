@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectConfirmationMetricsById,
@@ -68,7 +68,7 @@ export function useConfirmationAlertMetrics() {
       });
   }, [confirmationMetrics, alertKey, setConfirmationMetric, alertProperties]);
 
-    const updateAlertMetrics = useCallback(() => {
+    const trackAlertMetrics = useCallback(() => {
       if (!alertProperties) {
         return;
       }
@@ -80,14 +80,10 @@ export function useConfirmationAlertMetrics() {
 
     }, [alertProperties, setConfirmationMetric]);
 
-    useEffect(() => {
-      updateAlertMetrics();
-    }, [updateAlertMetrics]);
-
   return {
     trackAlertRendered,
     trackInlineAlertClicked,
-    updateAlertMetrics,
+    trackAlertMetrics,
   };
 }
 

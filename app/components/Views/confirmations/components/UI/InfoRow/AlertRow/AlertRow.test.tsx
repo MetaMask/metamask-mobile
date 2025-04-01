@@ -4,14 +4,15 @@ import { useAlerts } from '../../../../AlertSystem/context';
 import AlertRow, { AlertRowProps } from './AlertRow';
 import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
-import { useAlertMetrics } from '../../../../context/AlertMetricsContext/AlertMetricsContext';
+import { useConfirmationAlertMetrics } from '../../../../hooks/useConfirmationAlertMetrics';
+
 
 jest.mock('../../../../AlertSystem/context', () => ({
   useAlerts: jest.fn(),
 }));
 
-jest.mock('../../../../context/AlertMetricsContext/AlertMetricsContext', () => ({
-  useAlertMetrics: jest.fn(),
+jest.mock('../../../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
 }));
 
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
@@ -55,7 +56,7 @@ describe('AlertRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAlerts as jest.Mock).mockReturnValue(useAlertsBase);
-    (useAlertMetrics as jest.Mock).mockReturnValue({
+    (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
       trackInlineAlertClicked: mockTrackInlineAlertClicked,
     });
   });
