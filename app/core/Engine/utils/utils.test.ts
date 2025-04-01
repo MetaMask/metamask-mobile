@@ -1,8 +1,9 @@
 import { merge } from 'lodash';
+import { Json } from '@metamask/utils';
 import { TransactionController } from '@metamask/transaction-controller';
 import { accountsControllerInit } from '../controllers/accounts-controller';
 import { TransactionControllerInit } from '../controllers/transaction-controller';
-import { getControllerOrThrow, initModularizedControllers } from './utils';
+import { getControllerOrThrow, initModularizedControllers, rejectOriginApprovals } from './utils';
 import { ExtendedControllerMessenger } from '../../ExtendedControllerMessenger';
 import { NetworkController } from '@metamask/network-controller';
 import { createMockControllerInitFunction } from './test-utils';
@@ -38,6 +39,12 @@ import { multichainBalancesControllerInit } from '../controllers/multichain-bala
 import { multichainNetworkControllerInit } from '../controllers/multichain-network-controller/multichain-network-controller-init';
 import { multichainTransactionsControllerInit } from '../controllers/multichain-transactions-controller/multichain-transactions-controller-init';
 import { MultichainNetworkController } from '@metamask/multichain-network-controller';
+import {
+  ApprovalController,
+  ApprovalRequest,
+} from '@metamask/approval-controller';
+import { ApprovalType } from '@metamask/controller-utils';
+import { providerErrors } from '@metamask/rpc-errors';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/snaps');
@@ -243,5 +250,45 @@ describe('getControllerOrThrow', () => {
         name: 'AccountsController',
       }),
     ).not.toThrow();
+  });
+});
+
+describe('rejectOriginApprovals', () => {
+  const ID_MOCK = '123';
+  const ID_MOCK_2 = '456';
+
+  function createApprovalControllerMock(
+    pendingApprovals: Partial<ApprovalRequest<Record<string, Json>>>[],
+  ) {
+    return {
+      state: {
+        pendingApprovals,
+      },
+      accept: jest.fn(),
+      reject: jest.fn(),
+    } as unknown as jest.Mocked<ApprovalController>;
+  }
+  it('rejects approval requests from given origin', () => {
+    const origin = 'https://example.com';
+    const approvalController = createApprovalControllerMock([
+      { id: ID_MOCK, origin, type: ApprovalType.Transaction },
+      {
+        id: ID_MOCK_2,
+        origin: 'www.test.com',
+        type: ApprovalType.EthSignTypedData,
+      },
+    ]);
+
+    rejectOriginApprovals({
+      approvalController,
+      deleteInterface: () => undefined,
+      origin,
+    });
+
+    expect(approvalController.reject).toHaveBeenCalledTimes(1);
+    expect(approvalController.reject).toHaveBeenCalledWith(
+      ID_MOCK,
+      providerErrors.userRejectedRequest(),
+    );
   });
 });

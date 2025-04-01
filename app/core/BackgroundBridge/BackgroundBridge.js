@@ -46,6 +46,8 @@ import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMe
 import createTracingMiddleware from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
 import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
+import { rejectOriginApprovals } from '../Engine/utils';
+import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -409,9 +411,13 @@ export class BackgroundBridge extends EventEmitter {
 
     const {
       ApprovalController,
+      KeyringController,
       PermissionController,
+      PreferencesController,
       NetworkController,
       SelectedNetworkController,
+      TokensController,
+      NftController,
     } = Engine.context;
 
     // If the origin is not in the selectedNetworkController's `domains` state
@@ -547,11 +553,61 @@ export class BackgroundBridge extends EventEmitter {
             PermissionController,
             origin,
           ),
-          // TODO: [jiexi] Fix these
-          getUnlockPromise: () => {},
-          rejectApprovalRequestsForOrigin: () => {},
-          handleWatchAssetRequest: () => {},
-          setTokenNetworkFilter: () => {},
+          // TODO: [ffmcgee] should this logic below live in Engine ?
+          getUnlockPromise: () => {
+            if (KeyringController.isUnlocked()) {
+              return Promise.resolve();
+            }
+            return new Promise((resolve) => {
+              Engine.controllerMessenger.subscribeOnceIf(
+                'KeyringController:unlock',
+                resolve,
+                () => true,
+              );
+            });
+          },
+          rejectApprovalRequestsForOrigin: (origin) => {
+            const deleteInterface = (id) =>
+              this.controllerMessenger.call(
+                'SnapInterfaceController:deleteInterface',
+                id,
+              );
+
+            rejectOriginApprovals({
+              approvalController: this.approvalController,
+              deleteInterface,
+              origin,
+            });
+          },
+          handleWatchAssetRequest: ({
+            asset,
+            type,
+            origin,
+            networkClientId,
+          }) => {
+            switch (type) {
+              case ERC20:
+                return TokensController.watchAsset({
+                  asset,
+                  type,
+                  networkClientId,
+                });
+              case ERC721:
+              case ERC1155:
+                return NftController.watchNft(asset, type, origin);
+              default:
+                throw new Error(`Asset type ${type} not supported`);
+            }
+          },
+          setTokenNetworkFilter: (chainId) => {
+            const { tokenNetworkFilter } =
+              PreferencesController.getPreferences();
+            if (chainId && Object.keys(tokenNetworkFilter).length === 1) {
+              PreferencesController.setPreference('tokenNetworkFilter', {
+                [chainId]: true,
+              });
+            }
+          },
         }),
       );
     } catch (err) {
