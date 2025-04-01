@@ -168,7 +168,7 @@ function extractLargeMessageValue(messageParamsData: string): string | undefined
  * This function has a workaround to extract the large value from the message and replace
  * the message value with the string value.
  */
-export const parseTypedDataMessage = (messageParamsData: string) => {
+export const parseSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
   const result = JSON.parse(messageParamsData);
@@ -184,20 +184,20 @@ export const parseTypedDataMessage = (messageParamsData: string) => {
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
-  const { message, primaryType, types } = parseTypedDataMessage(messageParamsData);
+  const { message, primaryType, types } = parseSignTypedData(messageParamsData);
   return sanitizeParsedMessage(message, primaryType, types);
 };
 
 export const parseSanitizeTypedDataMessage = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
   const { domain, message, primaryType, types } =
-    parseTypedDataMessage(messageParamsData);
+    parseSignTypedData(messageParamsData);
 
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
   return { sanitizedMessage, primaryType, domain };
 };
 
-export const parseTypedDataMessageFromSignatureRequest = (
+export const parseSignTypedDataFromSignatureRequest = (
   signatureRequest?: SignatureRequest,
 ) => {
   if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) {
@@ -205,14 +205,14 @@ export const parseTypedDataMessageFromSignatureRequest = (
   }
 
   const data = signatureRequest.messageParams?.data as string;
-  return parseTypedDataMessage(data);
+  return parseSignTypedData(data);
 };
 
 const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(request);
+  const { primaryType } = parseSignTypedDataFromSignatureRequest(request);
   return types.includes(primaryType);
 };
 

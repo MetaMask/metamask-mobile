@@ -1,12 +1,11 @@
 import {
-  parseTypedDataMessage,
+  parseSignTypedData,
   isRecognizedPermit,
   isTypedSignV3V4Request,
   isRecognizedOrder,
   sanitizeParsedMessage,
   parseAndSanitizeSignTypedData,
-  parseTypedDataMessageFromSignatureRequest,
-  parseSanitizeTypedDataMessage,
+  parseSignTypedDataFromSignatureRequest,
 } from './signature';
 import {
   PRIMARY_TYPES_ORDER,
@@ -52,14 +51,14 @@ const mockExpectedSanitizedTypedSignV3Message = {
 };
 
 describe('Signature Utils', () => {
-  describe('parseTypedDataMessage', () => {
+  describe('parseSignTypedData', () => {
     it('parses a typed data message correctly', () => {
       const data = JSON.stringify({
         message: {
           value: '123',
         },
       });
-      const result = parseTypedDataMessage(data);
+      const result = parseSignTypedData(data);
       expect(result).toEqual({
         message: {
           value: '123',
@@ -68,7 +67,7 @@ describe('Signature Utils', () => {
     });
 
     it('parses message.value as a string', () => {
-      const result = parseTypedDataMessage(
+      const result = parseSignTypedData(
         '{"test": "dummy", "message": { "value": 3000123} }',
       );
       expect(result.message.value).toBe('3000123');
@@ -81,13 +80,13 @@ describe('Signature Utils', () => {
           value: largeValue,
         },
       });
-      const result = parseTypedDataMessage(data);
+      const result = parseSignTypedData(data);
       expect(result.message.value).toBe(largeValue);
     });
 
     it('throws an error for invalid typedDataMessage', () => {
       expect(() => {
-        parseTypedDataMessage('');
+        parseSignTypedData('');
       }).toThrow(new Error('Unexpected end of JSON input'));
     });
   });
@@ -175,39 +174,40 @@ describe('Signature Utils', () => {
     });
   });
 
-  describe('parseTypedDataMessageFromSignatureRequest', () => {
+  describe('parseSignTypedDataFromSignatureRequest', () => {
     it('parses the correct primary type', () => {
       expect(
-        parseTypedDataMessageFromSignatureRequest(typedSignV3SignatureRequest)?.primaryType,
+        parseSignTypedDataFromSignatureRequest(typedSignV3SignatureRequest)?.primaryType,
       ).toBe('Mail');
       expect(
-        parseTypedDataMessageFromSignatureRequest(typedSignV4SignatureRequest)?.primaryType,
+        parseSignTypedDataFromSignatureRequest(typedSignV4SignatureRequest)?.primaryType,
       ).toBe('Permit');
     });
     it('parses {} for typed sign V1 message', () => {
       expect(
-        parseTypedDataMessageFromSignatureRequest(typedSignV1SignatureRequest),
+        parseSignTypedDataFromSignatureRequest(typedSignV1SignatureRequest),
       ).toBe({});
     });
     it('parses {} for personal sign message', () => {
       expect(
-        parseTypedDataMessageFromSignatureRequest(personalSignSignatureRequest),
+        parseSignTypedDataFromSignatureRequest(personalSignSignatureRequest),
       ).toBe({});
     });
   });
 
-  describe('parseSanitizeTypedDataMessage', () => {
+  describe('parseAndSanitizeSignTypedData', () => {
     it('returns parsed and sanitized types signature message', () => {
-      const { sanitizedMessage, primaryType, domain } =
-        parseSanitizeTypedDataMessage(JSON.stringify(mockTypedSignV3Message));
+      const parsedMessage =
+        parseAndSanitizeSignTypedData(JSON.stringify(mockTypedSignV3Message));
+      const { primaryType, domain } = parsedMessage;
 
       expect(primaryType).toBe('Mail');
-      expect(sanitizedMessage).toEqual(mockExpectedSanitizedTypedSignV3Message);
+      expect(parsedMessage).toEqual(mockExpectedSanitizedTypedSignV3Message);
       expect(domain).toEqual(mockTypedSignV3Message.domain);
     });
 
     it('returns an empty object if no data is passed', () => {
-      const result = parseSanitizeTypedDataMessage('');
+      const result = parseAndSanitizeSignTypedData('');
       expect(result).toMatchObject({});
     });
   });

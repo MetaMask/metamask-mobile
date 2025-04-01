@@ -8,7 +8,7 @@ import Engine from '../../../../../../../../../core/Engine';
 import { safeToChecksumAddress } from '../../../../../../../../../util/address';
 import { PrimaryType } from '../../../../../../constants/signatures';
 import { useSignatureRequest } from '../../../../../../hooks/useSignatureRequest';
-import { isPermitDaiRevoke, parseTypedDataMessage } from '../../../../../../utils/signature';
+import { isPermitDaiRevoke, parseSignTypedData } from '../../../../../../utils/signature';
 import InfoRow from '../../../../../UI/InfoRow';
 import InfoSection from '../../../../../UI/InfoRow/InfoSection';
 import PermitSimulationValueDisplay from '../components/ValueDisplay';
@@ -74,7 +74,7 @@ const PermitSimulation = () => {
     message,
     message: { allowed, tokenId, value },
     primaryType,
-  } = parseTypedDataMessage(msgData as string);
+  } = parseSignTypedData(msgData as string);
 
   const tokenDetails = extractTokenDetailsByPrimaryType(message, primaryType);
 

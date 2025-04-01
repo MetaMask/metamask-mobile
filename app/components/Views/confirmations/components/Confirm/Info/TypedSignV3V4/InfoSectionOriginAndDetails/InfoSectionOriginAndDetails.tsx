@@ -8,7 +8,10 @@ import { InfoRowDivider } from '../../../../UI/InfoRow/Divider/Divider';
 import InfoSection from '../../../../UI/InfoRow/InfoSection';
 import InfoRowAddress from '../../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../../UI/InfoRow/InfoValue/DisplayURL';
-import { isRecognizedPermit, parseTypedDataMessageFromSignatureRequest } from '../../../../../utils/signature';
+import {
+  isRecognizedPermit,
+  parseSignTypedDataFromSignatureRequest,
+} from '../../../../../utils/signature';
 import { useSignatureRequest } from '../../../../../hooks/useSignatureRequest';
 import useApprovalRequest from '../../../../../hooks/useApprovalRequest';
 import { View } from 'react-native';
@@ -26,7 +29,8 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest);
+  const parsedMessage =
+    parseSignTypedDataFromSignatureRequest(signatureRequest);
   const spender = parsedMessage.message?.spender;
   const verifyingContract = parsedMessage.domain?.verifyingContract;
 

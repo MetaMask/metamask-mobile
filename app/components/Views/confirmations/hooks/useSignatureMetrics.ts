@@ -14,7 +14,7 @@ import { getSignatureDecodingEventProps } from '../utils/signatureMetrics';
 import { useSignatureRequest } from './useSignatureRequest';
 import { useSecurityAlertResponse } from './useSecurityAlertResponse';
 import { useTypedSignSimulationEnabled } from './useTypedSignSimulationEnabled';
-import { parseTypedDataMessageFromSignatureRequest } from '../utils/signature';
+import { parseSignTypedDataFromSignatureRequest } from '../utils/signature';
 
 interface MessageParamsType {
   meta: Record<string, unknown>;
@@ -62,7 +62,7 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type } =
     signatureRequest ?? {};
-  const { primaryType } = parseTypedDataMessageFromSignatureRequest(signatureRequest);
+  const { primaryType } = parseSignTypedDataFromSignatureRequest(signatureRequest);
 
   const analyticsParams = useMemo(() => {
     if (!type || !isSignatureRequest(type)) {
