@@ -4,8 +4,6 @@ import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../selectors/preferencesController';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import Quote from '../Quote';
-import { RampType } from '../../../../../reducers/fiatOrders/types';
 import { fireEvent } from '@testing-library/react-native';
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../selectors/preferencesController', () => ({
