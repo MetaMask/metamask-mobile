@@ -111,7 +111,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -126,7 +126,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -136,7 +136,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -213,7 +213,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -230,7 +230,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -245,7 +245,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -292,7 +292,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -319,7 +319,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],
@@ -461,7 +461,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -476,7 +476,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -486,7 +486,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -563,7 +563,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -580,7 +580,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -595,7 +595,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -642,7 +642,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -669,7 +669,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],
@@ -811,7 +811,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -826,7 +826,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -836,7 +836,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -913,7 +913,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -930,7 +930,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -945,7 +945,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -992,7 +992,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -1019,7 +1019,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],
@@ -1161,7 +1161,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#141618",
+                            "color": "#121314",
                             "fontFamily": "EuclidCircularB-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
@@ -1176,7 +1176,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontSize": 10,
                             "textAlign": "center",
                           }
@@ -1186,7 +1186,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                       <Text
                         style={
                           {
-                            "color": "#6a737d",
+                            "color": "#686e7d",
                             "fontFamily": "EuclidCircularB-Regular",
                             "fontSize": 14,
                             "fontWeight": "400",
@@ -1263,7 +1263,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -1280,7 +1280,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -1295,7 +1295,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -1342,7 +1342,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderWidth": 1,
                 },
                 undefined,
@@ -1369,7 +1369,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                     "textAlign": "center",
                   },
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                   },
                   undefined,
                 ],

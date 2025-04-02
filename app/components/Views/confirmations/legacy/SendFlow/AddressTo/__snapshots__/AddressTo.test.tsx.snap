@@ -1,0 +1,134 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SendFlowAddressTo should render correctly 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "marginHorizontal": 8,
+      "minHeight": 52,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "width": "15%",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 16,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      To:
+    </Text>
+  </View>
+  <View
+    style={
+      [
+        {
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "marginLeft": 8,
+          "marginVertical": 8,
+          "minHeight": 52,
+          "paddingHorizontal": 10,
+        },
+        {
+          "borderColor": "#b7bbc8",
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "flexDirection": "row",
+        }
+      }
+    >
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoFocus={true}
+        keyboardAppearance="light"
+        numberOfLines={1}
+        onBlur={[Function]}
+        onFocus={[Function]}
+        onSubmitEditing={[Function]}
+        placeholder="Search, public address (0x), or ENS"
+        placeholderTextColor="#9ca1af"
+        spellCheck={false}
+        style={
+          [
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "paddingLeft": 0,
+              "paddingRight": 6,
+            },
+            undefined,
+          ]
+        }
+        testID="txn-to-address-input"
+      />
+    </View>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        allowFontScaling={false}
+        style={
+          [
+            {
+              "color": undefined,
+              "fontSize": 20,
+            },
+            [
+              {
+                "alignItems": "center",
+                "flexDirection": "column",
+              },
+              {
+                "color": "#121314",
+              },
+            ],
+            {
+              "fontFamily": "anticon",
+              "fontStyle": "normal",
+              "fontWeight": "normal",
+            },
+            {},
+          ]
+        }
+      >
+        
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

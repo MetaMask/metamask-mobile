@@ -6,7 +6,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 18,
         "fontWeight": "700",
@@ -44,7 +44,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -59,7 +59,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -84,7 +84,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -99,7 +99,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -124,7 +124,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -139,7 +139,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -164,7 +164,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -179,7 +179,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -204,7 +204,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -219,7 +219,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -244,7 +244,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -259,7 +259,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",
@@ -284,7 +284,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
@@ -299,7 +299,7 @@ exports[`MarketDetailsList should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 12,
             "fontWeight": "400",

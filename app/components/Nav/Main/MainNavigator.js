@@ -25,8 +25,8 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/Send';
-import SendTo from '../../Views/confirmations/SendFlow/SendTo';
+import Send from '../../Views/confirmations/legacy/Send';
+import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -41,8 +41,8 @@ import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
 import PaymentRequest from '../../UI/PaymentRequest';
 import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
-import Amount from '../../Views/confirmations/SendFlow/Amount';
-import Confirm from '../../Views/confirmations/SendFlow/Confirm';
+import Amount from '../../Views/confirmations/legacy/SendFlow/Amount';
+import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import SwapsAmountView from '../../UI/Swaps';
@@ -89,7 +89,7 @@ import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
-import BridgeView from '../../UI/Bridge';
+import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -195,7 +195,11 @@ const WalletTabModalFlow = () => (
 
 const TransactionsHome = () => (
   <Stack.Navigator>
-    <Stack.Screen name={Routes.TRANSACTIONS_VIEW} component={ActivityView} />
+    <Stack.Screen
+      name={Routes.TRANSACTIONS_VIEW}
+      component={ActivityView}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name={Routes.RAMP.ORDER_DETAILS} component={OrderDetails} />
     <Stack.Screen
       name={Routes.RAMP.SEND_TRANSACTION}
@@ -714,16 +718,6 @@ const Swaps = () => (
   </Stack.Navigator>
 );
 
-const Bridge = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="BridgeView"
-      component={BridgeView}
-      options={BridgeView.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 const SetPasswordFlow = () => (
   <Stack.Navigator>
     <Stack.Screen
@@ -828,7 +822,12 @@ const MainNavigator = () => (
       {() => <RampRoutes rampType={RampType.SELL} />}
     </Stack.Screen>
     <Stack.Screen name="Swaps" component={Swaps} />
-    <Stack.Screen name={Routes.BRIDGE} component={Bridge} />
+    <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+    <Stack.Screen
+      name={Routes.BRIDGE.MODALS.ROOT}
+      component={BridgeModalStack}
+      options={clearStackNavigatorOptions}
+    />
     <Stack.Screen name="StakeScreens" component={StakeScreenStack} />
     <Stack.Screen
       name="StakeModals"
