@@ -1,8 +1,4 @@
-import {
-  ButtonElement,
-  ButtonProps,
-  JSXElement,
-} from '@metamask/snaps-sdk/jsx';
+import { ButtonElement, JSXElement } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { NonEmptyArray } from '@metamask/utils';
 import { mapTextToTemplate } from '../utils';

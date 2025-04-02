@@ -1,13 +1,7 @@
 import React, { FunctionComponent } from 'react';
 import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
 import { TouchableOpacity } from 'react-native';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { ButtonLinkProps } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.types';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import AnimatedLottieView from 'lottie-react-native';
 
 export interface SnapUIButtonProps {
