@@ -195,6 +195,7 @@ Change these at any time.
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

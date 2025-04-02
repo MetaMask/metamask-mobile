@@ -11,6 +11,7 @@ import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
+import { initialOnboardingState } from '../../reducers/onboarding';
 ///: END:ONLY_INCLUDE_IF
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
@@ -31,7 +32,7 @@ const initialRootState: RootState = {
   transaction: undefined,
   user: userInitialState,
   wizard: undefined,
-  onboarding: undefined,
+  onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,

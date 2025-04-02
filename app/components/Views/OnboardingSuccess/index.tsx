@@ -23,6 +23,7 @@ import HintModal from '../../UI/HintModal';
 import { useTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
   IconColor,
@@ -32,6 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -46,6 +48,7 @@ const OnboardingSuccess = ({
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const dispatch = useDispatch();
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
 
@@ -61,6 +64,11 @@ const OnboardingSuccess = ({
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
+  };
+
+  const handleOnDone = async () => {
+    await dispatch(setCompletedOnboarding(true));
+    onDone();
   };
 
   const saveHint = async () => {
@@ -208,7 +216,7 @@ const OnboardingSuccess = ({
           testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
           label={strings('onboarding_success.done')}
           variant={ButtonVariants.Primary}
-          onPress={onDone}
+          onPress={handleOnDone}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
         />
