@@ -76,7 +76,7 @@ describe('SnapUIRenderer utils', () => {
       const result = mapTextToTemplate([iconElement], {
         map: {},
         theme: mockTheme,
-        size: 'sm',
+        textSize: 'sm',
       });
 
       expect(result[0]).toMatchObject({
@@ -99,7 +99,7 @@ describe('SnapUIRenderer utils', () => {
       const result = mapTextToTemplate([textElement], {
         map: {},
         theme: mockTheme,
-        size: 'sm',
+        textSize: 'sm',
       });
 
       expect(result[0]).toMatchObject({
