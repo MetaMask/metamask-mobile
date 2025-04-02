@@ -17,6 +17,7 @@ export function getTransactionControllerMessenger(
       'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
     ],
     allowedEvents: [`NetworkController:stateChange`],
   });
@@ -32,11 +33,13 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:transactionConfirmed',
       'TransactionController:transactionDropped',
       'TransactionController:transactionFailed',
+      'TransactionController:transactionNewSwapApproval',
+      'TransactionController:transactionNewSwap',
       'TransactionController:transactionRejected',
       'TransactionController:transactionSubmitted',
+      'TransactionController:postTransactionBalanceUpdated',
       'TransactionController:unapprovedTransactionAdded',
       'SmartTransactionsController:smartTransaction',
-      'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
     allowedActions: [
       'ApprovalController:addRequest',
@@ -44,6 +47,7 @@ export function getTransactionControllerInitMessenger(
       'ApprovalController:startFlow',
       'ApprovalController:updateRequestState',
       'NetworkController:getEIP1559Compatibility',
+      'RemoteFeatureFlagController:getState',
     ],
   });
 }
