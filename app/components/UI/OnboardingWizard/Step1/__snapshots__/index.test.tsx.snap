@@ -32,7 +32,7 @@ exports[`Step1 should render correctly 1`] = `
         style={
           [
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 8,
               "padding": 20,
             },
@@ -137,7 +137,7 @@ exports[`Step1 should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderColor": "#ffffff",
                 "borderRadius": 16,
                 "borderWidth": 1,
@@ -156,7 +156,7 @@ exports[`Step1 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -179,7 +179,7 @@ exports[`Step1 should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#0376c9",
+                "borderColor": "#4459ff",
                 "borderRadius": 16,
                 "borderWidth": 1,
                 "flex": 0.5,
@@ -196,8 +196,8 @@ exports[`Step1 should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -229,7 +229,7 @@ exports[`Step1 should render correctly 1`] = `
               "borderRightColor": "transparent",
               "borderRightWidth": 15,
               "borderStyle": "solid",
-              "borderTopColor": "#0376c9",
+              "borderTopColor": "#4459ff",
               "borderTopWidth": 12,
               "height": 0,
               "position": "absolute",

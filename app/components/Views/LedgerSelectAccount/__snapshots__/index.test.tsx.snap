@@ -59,7 +59,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
                 "fontSize": 15,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 28,
               },
               {
@@ -79,7 +79,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -159,7 +159,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
           style={
             [
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -211,7 +211,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -252,7 +252,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -293,7 +293,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -334,7 +334,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -375,7 +375,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -417,7 +417,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -448,7 +448,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
             undefined,
             undefined,
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
             },
             undefined,
             undefined,
@@ -542,7 +542,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
                 "fontSize": 15,
               },
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontSize": 28,
               },
               {
@@ -562,7 +562,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
       style={
         [
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 30,
             "fontWeight": "400",
@@ -642,7 +642,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
           style={
             [
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 30,
                 "fontWeight": "400",
@@ -694,7 +694,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -735,7 +735,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -776,7 +776,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -817,7 +817,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -858,7 +858,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -900,7 +900,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -931,7 +931,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
             undefined,
             undefined,
             {
-              "color": "#0376c9",
+              "color": "#4459ff",
             },
             undefined,
             undefined,

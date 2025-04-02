@@ -16,7 +16,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -103,8 +103,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Bold",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -135,7 +135,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
               testID="whats-new-modal-close-button"
             >
               <SvgMock
-                color="#141618"
+                color="#121314"
                 height={20}
                 name="Close"
                 style={
@@ -212,8 +212,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Medium",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Medium",
                             "fontSize": 16,
                             "fontWeight": "500",
                             "letterSpacing": 0,
@@ -254,8 +254,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -272,8 +272,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -290,8 +290,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -430,8 +430,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Medium",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Medium",
                             "fontSize": 16,
                             "fontWeight": "500",
                             "letterSpacing": 0,
@@ -448,8 +448,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -466,8 +466,8 @@ exports[`WhatsNewModal should render correctly 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,

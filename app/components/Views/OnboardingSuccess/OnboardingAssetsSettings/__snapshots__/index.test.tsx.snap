@@ -36,9 +36,9 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -62,7 +62,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -74,7 +74,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -82,7 +82,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="token-detection-toggle"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={true}
           />
         </View>
@@ -91,8 +91,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -123,9 +123,9 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -147,7 +147,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -159,7 +159,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -167,7 +167,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="nft-display-media-mode-section"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={false}
           />
         </View>
@@ -176,8 +176,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -208,9 +208,9 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -232,7 +232,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -244,7 +244,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -252,7 +252,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="nft-opensea-autodetect-mode-section"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={false}
           />
         </View>
@@ -261,8 +261,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -293,9 +293,9 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -317,7 +317,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -329,7 +329,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -337,7 +337,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="IPFS_GATEWAY_SECTION"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={true}
           />
         </View>
@@ -346,8 +346,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -369,8 +369,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#6a737d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -384,7 +384,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         <View
           style={
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 5,
               "borderWidth": 2,
               "marginTop": 16,
@@ -411,8 +411,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -426,8 +426,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -458,7 +458,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 0,
               "padding": 16,
@@ -515,8 +515,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -540,7 +540,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#4459ff"
                 style={
                   [
                     {
@@ -552,7 +552,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#BBC0C566",
+                        "backgroundColor": "#b7bbc866",
                         "borderRadius": 16,
                       },
                     ],
@@ -560,7 +560,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="incoming-mainnet-toggle"
                 thumbTintColor="#ffffff"
-                tintColor="#BBC0C566"
+                tintColor="#b7bbc866"
                 value={true}
               />
             </View>
@@ -577,7 +577,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 0,
               "padding": 16,
@@ -634,8 +634,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -659,7 +659,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#4459ff"
                 style={
                   [
                     {
@@ -671,7 +671,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#BBC0C566",
+                        "backgroundColor": "#b7bbc866",
                         "borderRadius": 16,
                       },
                     ],
@@ -679,7 +679,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="incoming-linea-mainnet-toggle"
                 thumbTintColor="#ffffff"
-                tintColor="#BBC0C566"
+                tintColor="#b7bbc866"
                 value={true}
               />
             </View>
@@ -696,7 +696,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 4,
               "borderWidth": 0,
               "padding": 16,
@@ -753,8 +753,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -778,7 +778,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 onChange={[Function]}
                 onResponderTerminationRequest={[Function]}
                 onStartShouldSetResponder={[Function]}
-                onTintColor="#0376c9"
+                onTintColor="#4459ff"
                 style={
                   [
                     {
@@ -790,7 +790,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                         "alignSelf": "flex-start",
                       },
                       {
-                        "backgroundColor": "#BBC0C566",
+                        "backgroundColor": "#b7bbc866",
                         "borderRadius": 16,
                       },
                     ],
@@ -798,7 +798,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                 }
                 testID="solana-incoming-transactions-toggle"
                 thumbTintColor="#ffffff"
-                tintColor="#BBC0C566"
+                tintColor="#b7bbc866"
                 value={false}
               />
             </View>
@@ -826,9 +826,9 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -850,7 +850,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -862,7 +862,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -870,7 +870,7 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
             }
             testID="security-settings-multi-account-balances-switch"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={true}
           />
         </View>
@@ -879,8 +879,8 @@ exports[`OnboardingAssetSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,

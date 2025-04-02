@@ -442,7 +442,7 @@ exports[`NftDetails should render correctly 1`] = `
                                                   "height": 16,
                                                   "justifyContent": "center",
                                                   "overflow": "hidden",
-                                                  "shadowColor": "#0000001A",
+                                                  "shadowColor": "#0000001a",
                                                   "shadowOffset": {
                                                     "height": 2,
                                                     "width": 0,
@@ -512,7 +512,7 @@ exports[`NftDetails should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 20,
                                       "fontWeight": "600",
@@ -525,12 +525,12 @@ exports[`NftDetails should render correctly 1`] = `
                                   Aura #44
                                 </Text>
                                 <SvgMock
-                                  color="#141618"
+                                  color="#121314"
                                   height={20}
                                   name="SecurityTick"
                                   style={
                                     {
-                                      "color": "#0376c9",
+                                      "color": "#4459ff",
                                       "height": 20,
                                       "marginLeft": 4,
                                       "paddingTop": 18,
@@ -545,7 +545,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 onTextLayout={[Function]}
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 12,
                                     "fontWeight": "400",
@@ -574,7 +574,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#848c96",
+                                      "borderColor": "#b7bbc8",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -600,7 +600,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
@@ -625,7 +625,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
@@ -642,7 +642,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#848c96",
+                                      "borderColor": "#b7bbc8",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -668,7 +668,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
@@ -693,7 +693,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "700",
@@ -722,12 +722,12 @@ exports[`NftDetails should render correctly 1`] = `
                                       }
                                     >
                                       <SvgMock
-                                        color="#141618"
+                                        color="#121314"
                                         height={12}
                                         name="Export"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "height": 12,
                                             "paddingLeft": 16,
                                             "width": 12,
@@ -743,7 +743,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#848c96",
+                                      "borderColor": "#b7bbc8",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -769,7 +769,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
@@ -794,7 +794,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 16,
                                         "fontWeight": "700",
@@ -811,7 +811,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#848c96",
+                                      "borderColor": "#b7bbc8",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -837,7 +837,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 10,
                                         "fontWeight": "500",
@@ -865,7 +865,7 @@ exports[`NftDetails should render correctly 1`] = `
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#4459ff",
                                           "fontFamily": "EuclidCircularB-Regular",
                                           "fontSize": 12,
                                           "fontWeight": "500",
@@ -895,7 +895,7 @@ exports[`NftDetails should render correctly 1`] = `
                                       }
                                     >
                                       <SvgMock
-                                        color="#0376c9"
+                                        color="#4459ff"
                                         height={12}
                                         name="Copy"
                                         style={
@@ -927,7 +927,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -942,7 +942,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -970,7 +970,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -985,7 +985,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1013,7 +1013,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1028,7 +1028,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1056,7 +1056,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1071,7 +1071,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1087,7 +1087,7 @@ exports[`NftDetails should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 20,
                                   "fontWeight": "600",
@@ -1115,7 +1115,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1130,7 +1130,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1146,7 +1146,7 @@ exports[`NftDetails should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 20,
                                   "fontWeight": "600",
@@ -1174,7 +1174,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
+                                    "color": "#686e7d",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "500",
@@ -1198,7 +1198,7 @@ exports[`NftDetails should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -1227,12 +1227,12 @@ exports[`NftDetails should render correctly 1`] = `
                                     }
                                   >
                                     <SvgMock
-                                      color="#141618"
+                                      color="#121314"
                                       height={12}
                                       name="Export"
                                       style={
                                         {
-                                          "color": "#6a737d",
+                                          "color": "#686e7d",
                                           "height": 12,
                                           "paddingLeft": 16,
                                           "width": 12,
@@ -1248,7 +1248,7 @@ exports[`NftDetails should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Bold",
                                   "fontSize": 20,
                                   "fontWeight": "600",
@@ -1277,7 +1277,7 @@ exports[`NftDetails should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "borderColor": "#848c96",
+                                      "borderColor": "#b7bbc8",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
                                       "flexGrow": 1,
@@ -1295,7 +1295,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "500",
@@ -1312,7 +1312,7 @@ exports[`NftDetails should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 14,
                                         "fontWeight": "400",
@@ -1337,8 +1337,8 @@ exports[`NftDetails should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#6a737d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "color": "#686e7d",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -1377,7 +1377,7 @@ exports[`NftDetails should render correctly 1`] = `
                                   "padding": 15,
                                 },
                                 {
-                                  "backgroundColor": "#0376c9",
+                                  "backgroundColor": "#4459ff",
                                   "minHeight": 50,
                                 },
                                 {
