@@ -168,7 +168,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
           }
         }
       >
-        MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
+        MetaMask flagged the site youre trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
       </Text>
       <Text
         style={

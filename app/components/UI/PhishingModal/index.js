@@ -111,7 +111,7 @@ export default class PhishingModal extends PureComponent {
   };
 
   shareToTwitter = () => {
-    const tweetText = "MetaMask just protected me from a phishing attack! Remember to always stay vigilant when clicking on links. Learn more at https://metamask.io";
+    const tweetText = 'MetaMask just protected me from a phishing attack! Remember to always stay vigilant when clicking on links. Learn more at https://metamask.io';
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
     Linking.canOpenURL(twitterUrl).then(supported => {
       if (supported) {
