@@ -100,8 +100,7 @@ class Matchers {
   static async getElementByWebID(webviewID, innerID) {
     const myWebView = this.getWebViewByID(webviewID);
 
-    const a = myWebView.element(by.web.id(innerID));
-    return a;
+    return myWebView.element(by.web.id(innerID));
   }
 
   /**
