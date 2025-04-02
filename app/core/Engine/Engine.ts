@@ -318,11 +318,10 @@ export class Engine {
         allowedEvents: [],
         allowedActions: [],
       }) as unknown as NetworkControllerMessenger,
-      // Metrics event tracking is handled in this repository instead
-      // TODO: Use events for controller metric events
-      trackMetaMetricsEvent: () => {
-        // noop
-      },
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
     };
     const networkController = new NetworkController(networkControllerOpts);
 
