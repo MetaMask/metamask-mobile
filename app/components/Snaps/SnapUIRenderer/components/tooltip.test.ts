@@ -37,6 +37,7 @@ describe('tooltip component', () => {
               children: 'Hover me',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },
@@ -59,6 +60,7 @@ describe('tooltip component', () => {
               children: 'Tooltip content',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },
@@ -101,6 +103,7 @@ describe('tooltip component', () => {
               children: 'Hover me',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },
@@ -123,6 +126,7 @@ describe('tooltip component', () => {
               children: 'Complex content',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },
@@ -165,6 +169,7 @@ describe('tooltip component', () => {
               children: 'Nested text',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },
@@ -187,6 +192,7 @@ describe('tooltip component', () => {
               children: 'Tooltip content',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               key: expect.any(String),
             },

@@ -42,6 +42,7 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               children: 'Test content',
             },
@@ -86,6 +87,7 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               children: 'Test content',
             },
@@ -130,6 +132,7 @@ describe('banner component', () => {
               element: 'Text',
               props: {
                 color: undefined,
+                variant: 'sBodyMD',
               },
               children: 'Test content',
             },

@@ -42,7 +42,7 @@ describe('box UIComponentFactory', () => {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
               element: 'Text',
               children: 'Test content',
-              props: { color: undefined },
+              props: { color: undefined, variant: 'sBodyMD' },
             },
           ],
           props: {
