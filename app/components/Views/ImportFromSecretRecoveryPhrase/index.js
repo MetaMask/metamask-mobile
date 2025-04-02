@@ -31,7 +31,6 @@ import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
@@ -65,7 +64,6 @@ import { ImportFromSeedSelectorsIDs } from '../../../../e2e/selectors/Onboarding
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { setIsAccountSyncingReadyToBeDispatched } from '../../../actions/identity';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 

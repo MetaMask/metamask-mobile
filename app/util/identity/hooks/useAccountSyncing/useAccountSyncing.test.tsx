@@ -1,38 +1,45 @@
-import { waitFor } from '@testing-library/react';
-import { renderHookWithProviderTyped } from '../../../../test/lib/render-helpers';
-import * as actions from '../../../store/actions';
-import { MetamaskIdentityProvider } from '../../../contexts/identity';
+import { act } from '@testing-library/react-hooks';
+import { renderHookWithProvider } from '../../../test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as actions from '../../../../actions/identity';
 import {
   useAccountSyncing,
-  useDeleteAccountSyncingDataFromUserStorage,
   useShouldDispatchAccountSyncing,
 } from './useAccountSyncing';
 
-type ArrangeMocksMetamaskStateOverrides = {
-  isSignedIn?: boolean;
-  isProfileSyncingEnabled?: boolean;
-  isUnlocked?: boolean;
-  useExternalServices?: boolean;
-  completedOnboarding?: boolean;
-  isAccountSyncingReadyToBeDispatched?: boolean;
-};
-
-const initialMetamaskState: ArrangeMocksMetamaskStateOverrides = {
-  isSignedIn: true,
-  isProfileSyncingEnabled: true,
-  isUnlocked: true,
-  useExternalServices: true,
-  completedOnboarding: true,
-  isAccountSyncingReadyToBeDispatched: true,
-};
+interface ArrangeMocksMetamaskStateOverrides {
+  isSignedIn: boolean;
+  isProfileSyncingEnabled: boolean;
+  isUnlocked: boolean;
+  useExternalServices: boolean;
+  completedOnboarding: boolean;
+  isAccountSyncingReadyToBeDispatched: boolean;
+}
 
 const arrangeMockState = (
-  metamaskStateOverrides?: ArrangeMocksMetamaskStateOverrides,
+  stateOverrides: ArrangeMocksMetamaskStateOverrides,
 ) => {
   const state = {
-    metamask: {
-      ...initialMetamaskState,
-      ...metamaskStateOverrides,
+    engine: {
+      backgroundState: {
+        KeyringController: {
+          isUnlocked: stateOverrides.isUnlocked,
+        },
+        AuthenticationController: {
+          isSignedIn: stateOverrides.isSignedIn,
+        },
+        UserStorageController: {
+          isProfileSyncingEnabled: stateOverrides.isProfileSyncingEnabled,
+          isAccountSyncingReadyToBeDispatched:
+            stateOverrides.isAccountSyncingReadyToBeDispatched,
+        },
+      },
+    },
+    settings: {
+      basicFunctionalityEnabled: stateOverrides.useExternalServices,
+    },
+    wizard: {
+      step: stateOverrides.completedOnboarding ? 0 : 1,
     },
   };
 
@@ -76,11 +83,9 @@ describe('useShouldDispatchAccountSyncing()', () => {
 
   it('should return true if all conditions are met', () => {
     const { state } = arrangeMockState(testCases.successTestCase.state);
-    const hook = renderHookWithProviderTyped(
+    const hook = renderHookWithProvider(
       () => useShouldDispatchAccountSyncing(),
-      state,
-      undefined,
-      MetamaskIdentityProvider,
+      { state },
     );
     expect(hook.result.current).toBe(true);
   });
@@ -93,11 +98,9 @@ describe('useShouldDispatchAccountSyncing()', () => {
       state: failureState,
     }: (typeof testCases)['failureStateCases'][number]) => {
       const { state } = arrangeMockState(failureState);
-      const hook = renderHookWithProviderTyped(
+      const hook = renderHookWithProvider(
         () => useShouldDispatchAccountSyncing(),
-        state,
-        undefined,
-        MetamaskIdentityProvider,
+        { state },
       );
       expect(hook.result.current).toBe(false);
     },
@@ -116,17 +119,14 @@ describe('useAccountSyncing', () => {
   };
 
   const arrangeAndAct = (
-    stateOverrides: ArrangeMocksMetamaskStateOverrides = initialMetamaskState,
+    stateOverrides: ArrangeMocksMetamaskStateOverrides,
   ) => {
     const mocks = arrangeMocks();
     const { state } = arrangeMockState(stateOverrides);
 
-    const { result } = renderHookWithProviderTyped(
-      () => useAccountSyncing(),
+    const { result } = renderHookWithProvider(() => useAccountSyncing(), {
       state,
-      undefined,
-      MetamaskIdentityProvider,
-    );
+    });
     const { dispatchAccountSyncing, shouldDispatchAccountSyncing } =
       result.current;
 
@@ -135,45 +135,35 @@ describe('useAccountSyncing', () => {
 
   it('should dispatch if conditions are met', async () => {
     const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
-      arrangeAndAct();
+      arrangeAndAct({
+        completedOnboarding: true,
+        isAccountSyncingReadyToBeDispatched: true,
+        isProfileSyncingEnabled: true,
+        isSignedIn: true,
+        isUnlocked: true,
+        useExternalServices: true,
+      });
 
-    await dispatchAccountSyncing();
+    await act(async () => dispatchAccountSyncing());
 
-    await waitFor(() => {
-      expect(mocks.mockSyncAccountsAction).toHaveBeenCalled();
-      expect(shouldDispatchAccountSyncing).toBe(true);
-    });
+    expect(mocks.mockSyncAccountsAction).toHaveBeenCalled();
+    expect(shouldDispatchAccountSyncing).toBe(true);
   });
 
   it('should not dispatch conditions are not met', async () => {
     const { mocks, dispatchAccountSyncing, shouldDispatchAccountSyncing } =
-      arrangeAndAct({ isAccountSyncingReadyToBeDispatched: false });
+      arrangeAndAct({
+        completedOnboarding: true,
+        isAccountSyncingReadyToBeDispatched: false,
+        isProfileSyncingEnabled: true,
+        isSignedIn: true,
+        isUnlocked: true,
+        useExternalServices: true,
+      });
 
-    await dispatchAccountSyncing();
+    await act(async () => dispatchAccountSyncing());
 
-    await waitFor(() => {
-      expect(mocks.mockSyncAccountsAction).not.toHaveBeenCalled();
-      expect(shouldDispatchAccountSyncing).toBe(false);
-    });
-  });
-});
-
-describe('useDeleteAccountSyncingDataFromUserStorage()', () => {
-  it('should dispatch account sync data deletion', async () => {
-    const mockDeleteAccountSyncAction = jest.spyOn(
-      actions,
-      'deleteAccountSyncingDataFromUserStorage',
-    );
-
-    const { result } = renderHookWithProviderTyped(
-      () => useDeleteAccountSyncingDataFromUserStorage(),
-      arrangeMockState().state,
-      undefined,
-      MetamaskIdentityProvider,
-    );
-
-    await result.current.dispatchDeleteAccountSyncingData();
-
-    expect(mockDeleteAccountSyncAction).toHaveBeenCalled();
+    expect(mocks.mockSyncAccountsAction).not.toHaveBeenCalled();
+    expect(shouldDispatchAccountSyncing).toBe(false);
   });
 });

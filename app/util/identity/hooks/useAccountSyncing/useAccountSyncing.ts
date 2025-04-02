@@ -1,14 +1,11 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectCurrentOnboardingStep } from '../../../../selectors/wizard';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
-import {
-  setIsAccountSyncingReadyToBeDispatched,
-  syncInternalAccountsWithUserStorage,
-} from '../../../../actions/identity';
+import { syncInternalAccountsWithUserStorage } from '../../../../actions/identity';
 import {
   selectIsAccountSyncingReadyToBeDispatched,
   selectIsProfileSyncingEnabled,
@@ -65,32 +62,4 @@ export const useAccountSyncing = () => {
     dispatchAccountSyncing,
     shouldDispatchAccountSyncing,
   };
-};
-
-/**
- * Custom hook to signify that account syncing is ready to be dispatched when the wallet is unlocked and onboarding is completed.
- * There is a potential race condition issue with app/util/importAdditionalAccounts.ts
- * Setting isAccountSyncingReadyToBeDispatched to true after the accounts have been imported should mitigate this.
- * (app/components/Views/ImportFromSecretRecoveryPhrase/index.js)
- * TODO: We should consider setting isAccountSyncingReadyToBeDispatched to true by default in the controllers
- */
-export const useAccountSyncingReadyToBeDispatchedEffect = () => {
-  const isAccountSyncingReadyToBeDispatched = useSelector(
-    selectIsAccountSyncingReadyToBeDispatched,
-  );
-  const isUnlocked: boolean | undefined = useSelector(selectIsUnlocked);
-  const completedOnboarding = useSelector(selectCurrentOnboardingStep) === 0;
-
-  useEffect(() => {
-    const updateAccountSyncingReadyToBeDispatched = async () => {
-      if (
-        isUnlocked &&
-        completedOnboarding &&
-        !isAccountSyncingReadyToBeDispatched
-      ) {
-        await setIsAccountSyncingReadyToBeDispatched(true);
-      }
-    };
-    updateAccountSyncingReadyToBeDispatched();
-  }, [isAccountSyncingReadyToBeDispatched, isUnlocked, completedOnboarding]);
 };
