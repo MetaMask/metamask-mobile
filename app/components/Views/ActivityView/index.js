@@ -3,9 +3,11 @@ import { View, StyleSheet } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { isNonEvmAddress } from '../../../core/Multichain/utils';
 import { getHasOrders } from '../../../reducers/fiatOrders';
 import { getTransactionsNavbarOptions } from '../../UI/Navbar';
 import TransactionsView from '../TransactionsView';
+import MultichainTransactionsView from '../MultichainTransactionsView';
 import TabBar from '../../Base/TabBar';
 import { strings } from '../../../../locales/i18n';
 import RampOrdersList from '../../UI/Ramp/Views/OrdersList';
@@ -95,7 +97,13 @@ const ActivityView = () => {
           renderTabBar={renderTabBar}
           locked={!hasOrders}
         >
-          <TransactionsView tabLabel={strings('transactions_view.title')} />
+          {isNonEvmAddress(selectedAddress) ? (
+            <MultichainTransactionsView
+              tabLabel={strings('transactions_view.title')}
+            />
+          ) : (
+            <TransactionsView tabLabel={strings('transactions_view.title')} />
+          )}
           {hasOrders && (
             <RampOrdersList
               tabLabel={strings('fiat_on_ramp_aggregator.orders')}

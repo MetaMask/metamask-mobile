@@ -23,7 +23,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 16,
           "fontWeight": "400",
@@ -49,7 +49,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
           "paddingHorizontal": 10,
         },
         {
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
         },
       ]
     }
@@ -73,12 +73,12 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search, public address (0x), or ENS"
-        placeholderTextColor="#9fa6ae"
+        placeholderTextColor="#9ca1af"
         spellCheck={false}
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
               "fontFamily": "EuclidCircularB-Regular",
               "fontWeight": "400",
@@ -114,7 +114,7 @@ exports[`SendFlowAddressTo should render correctly 1`] = `
                 "flexDirection": "column",
               },
               {
-                "color": "#141618",
+                "color": "#121314",
               },
             ],
             {

@@ -17,8 +17,8 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
   }
   style={
     {
-      "backgroundColor": "#BF52081A",
-      "borderColor": "#bf5208",
+      "backgroundColor": "#9a63001a",
+      "borderColor": "#9a6300",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -36,7 +36,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
     }
   >
     <SvgMock
-      color="#bf5208"
+      color="#9a6300"
       height={24}
       name="Danger"
       style={
@@ -59,7 +59,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Medium",
           "fontSize": 16,
           "fontWeight": "500",
@@ -74,7 +74,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -102,7 +102,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -132,7 +132,7 @@ exports[`TransactionBlockaidBanner should render correctly 1`] = `
         testID="accordionheader-arrow-icon-animation"
       >
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={16}
           name="ArrowDown"
           style={

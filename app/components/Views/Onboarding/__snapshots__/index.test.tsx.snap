@@ -126,7 +126,7 @@ exports[`Onboarding should render correctly 1`] = `
                   style={
                     {
                       "height": 35,
-                      "tintColor": "#141618",
+                      "tintColor": "#121314",
                       "width": 70,
                     }
                   }
@@ -387,7 +387,7 @@ exports[`Onboarding should render correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
+                                    "color": "#121314",
                                     "fontFamily": "EuclidCircularB-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "700",
@@ -411,7 +411,7 @@ exports[`Onboarding should render correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Regular",
                                       "fontSize": 14,
                                       "fontWeight": "400",
@@ -457,7 +457,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           },
                                           {
                                             "backgroundColor": "#ffffff",
-                                            "borderColor": "#0376c9",
+                                            "borderColor": "#4459ff",
                                             "borderWidth": 1,
                                           },
                                           undefined,
@@ -485,7 +485,7 @@ exports[`Onboarding should render correctly 1`] = `
                                               "textAlign": "center",
                                             },
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                             },
                                             undefined,
                                           ],
@@ -518,7 +518,7 @@ exports[`Onboarding should render correctly 1`] = `
                                             "padding": 15,
                                           },
                                           {
-                                            "backgroundColor": "#0376c9",
+                                            "backgroundColor": "#4459ff",
                                           },
                                           undefined,
                                         ],
