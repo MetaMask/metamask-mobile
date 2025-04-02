@@ -190,21 +190,6 @@ export const selectNativeTokensAcrossChains = createSelector(
   },
 );
 
-/**
- * Get the tokens for the selected account across all chains.
- *
- * @param {RootState} state - The root state.
- * @returns {TokensByChain} The tokens for the selected account across all chains.
- */
-export const selectAccountTokensAcrossChains = createDeepEqualSelector(
-  (state: RootState) => state,
-  selectSelectedInternalAccount,
-  (state, selectedAccount) => {
-    const selectedAddress = selectedAccount?.address;
-    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
-  },
-);
-
 export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector(
   selectAllTokens,
   selectEvmNetworkConfigurationsByChainId,
@@ -248,6 +233,23 @@ export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector
     return tokensByChain;
   },
 );
+
+
+/**
+ * Get the tokens for the selected account across all chains.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {TokensByChain} The tokens for the selected account across all chains.
+ */
+export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+  (state: RootState) => state,
+  selectSelectedInternalAccount,
+  (state, selectedAccount) => {
+    const selectedAddress = selectedAccount?.address;
+    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
+  },
+);
+
 
 export const selectNativeEvmAsset = createDeepEqualSelector(
   selectAccountBalanceByChainId,
