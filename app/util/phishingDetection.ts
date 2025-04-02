@@ -7,7 +7,7 @@ import { selectBasicFunctionalityEnabled } from '../selectors/settings';
  * Checks if phishing protection is enabled based on the basic functionality toggle
  * @returns {boolean} Whether phishing protection is enabled
  */
-export const isPhishingProtectionEnabled = (): boolean => selectBasicFunctionalityEnabled(store.getState());
+export const isPhishingDetectionEnabled = (): boolean => selectBasicFunctionalityEnabled(store.getState());
 
 /**
  * Checks if a URL origin is safe
@@ -16,7 +16,7 @@ export const isPhishingProtectionEnabled = (): boolean => selectBasicFunctionali
  * @returns {boolean} Whether the origin is considered safe
  */
 export const isOriginSafe = (origin: string, whitelist?: string[]): boolean => {
-  if (!isPhishingProtectionEnabled()) {
+  if (!isPhishingDetectionEnabled()) {
     return true;
   }
 
@@ -36,7 +36,7 @@ export const isOriginSafe = (origin: string, whitelist?: string[]): boolean => {
  * Should be called only when phishing protection is enabled
  */
 export const updatePhishingLists = (): void => {
-  if (!isPhishingProtectionEnabled()) {
+  if (!isPhishingDetectionEnabled()) {
     return;
   }
 
@@ -52,7 +52,7 @@ export const updatePhishingLists = (): void => {
  * @returns {Object} Phishing test result object or null if protection is disabled
  */
 export const getPhishingTestResult = (origin: string): PhishingDetectorResult | null => {
-  if (!isPhishingProtectionEnabled()) {
+  if (!isPhishingDetectionEnabled()) {
     return null;
   }
 

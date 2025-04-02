@@ -3,7 +3,7 @@ import Engine from '../core/Engine';
 import { store } from '../store';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 import {
-  isPhishingProtectionEnabled,
+  isPhishingDetectionEnabled,
   isOriginSafe,
   updatePhishingLists,
   getPhishingTestResult,
@@ -37,15 +37,15 @@ describe('Phishing Detection', () => {
     jest.clearAllMocks();
   });
 
-  describe('isPhishingProtectionEnabled', () => {
+  describe('isPhishingDetectionEnabled', () => {
     it('returns the value from the settings selector', () => {
       mockGetState.mockReturnValue({} as never);
       mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
 
-      expect(isPhishingProtectionEnabled()).toBe(true);
+      expect(isPhishingDetectionEnabled()).toBe(true);
 
       mockSelectBasicFunctionalityEnabled.mockReturnValue(false);
-      expect(isPhishingProtectionEnabled()).toBe(false);
+      expect(isPhishingDetectionEnabled()).toBe(false);
 
       expect(mockGetState).toHaveBeenCalledTimes(2);
       expect(mockSelectBasicFunctionalityEnabled).toHaveBeenCalledTimes(2);
