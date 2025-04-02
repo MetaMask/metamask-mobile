@@ -431,6 +431,9 @@ export class Engine {
       }),
     });
     if (isPhishingProtectionEnabled()) {
+      // Call maybeUpdateState() directly on the controller instance
+      // rather than using the utility function, as this is during initialization
+      // and we need immediate access to the controller we just created
       phishingController.maybeUpdateState();
     }
 

@@ -295,14 +295,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     (urlOrigin: string) => {
-      // Check whitelist first
       if (whitelist?.includes(urlOrigin)) {
         return true;
       }
       const phishingResult = getPhishingTestResult(urlOrigin);
-      // If protection is disabled or no phishing detected
+      // Is safe if no phishing result or if phishing result is false
       const isSafe = !phishingResult?.result;
-      // Set block list type if phishing is detected
       if (phishingResult && !isSafe && phishingResult.name) {
         blockListType.current = phishingResult.name;
       }
