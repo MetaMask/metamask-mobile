@@ -1182,7 +1182,12 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>
@@ -1411,7 +1416,12 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>
@@ -1629,48 +1639,36 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
+                  <TouchableOpacity
+                    accessibilityLabel="submit"
+                    accessibilityRole="button"
                     accessible={true}
                     disabled={false}
-                    id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
                     padding={0}
                     style={
                       {
-                        "backgroundColor": "transparent",
-                        "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderRadius": 8,
+                        "flexDirection": "row",
+                        "paddingVertical": 8,
                       }
                     }
-                    suppressHighlighting={true}
+                    textVariant="sBodyMDMedium"
+                    variant="primary"
                   >
                     <Text
-                      accessibilityRole="text"
+                      color="Info"
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
-                          "fontWeight": "500",
-                          "letterSpacing": 0,
-                          "lineHeight": 22,
                         }
                       }
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -2671,47 +2669,35 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
+            <TouchableOpacity
+              accessibilityLabel="submit"
+              accessibilityRole="button"
               accessible={true}
               disabled={false}
-              id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
               style={
                 {
-                  "backgroundColor": "transparent",
-                  "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "flexDirection": "row",
+                  "paddingVertical": 8,
                 }
               }
-              suppressHighlighting={true}
+              textVariant="sBodyMDMedium"
+              variant="primary"
             >
               <Text
-                accessibilityRole="text"
+                color="Info"
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
-                    "letterSpacing": 0,
-                    "lineHeight": 22,
                   }
                 }
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -3058,7 +3044,12 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              color="inherit"
+              color="Info"
+              style={
+                {
+                  "color": "#4459ff",
+                }
+              }
             >
               Foo
             </Text>
