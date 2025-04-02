@@ -587,6 +587,12 @@ const AccountConnect = (props: AccountConnectProps) => {
           );
           break;
         }
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        case USER_INTENT.ImportSrp: {
+          navigation.navigate('ImportSrpView');
+          break;
+        }
+        ///: END:ONLY_INCLUDE_IF
         case USER_INTENT.ConnectHW: {
           navigation.navigate('ConnectQRHardwareFlow');
           // TODO: Confirm if this is where we want to track connecting a hardware wallet or within ConnectQRHardwareFlow screen.

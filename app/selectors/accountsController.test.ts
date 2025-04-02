@@ -19,6 +19,8 @@ import {
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
   selectCanSignTransactions,
+  selectSolanaAccountAddress,
+  selectSolanaAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -36,6 +38,8 @@ import {
   MOCK_KEYRING_CONTROLLER,
 } from './keyringController/testUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
+// eslint-disable-next-line import/no-namespace
+import * as utils from '../core/Multichain/utils';
 
 /**
  * Generates a mocked AccountsController state
@@ -258,6 +262,111 @@ describe('Bitcoin Account Selectors', () => {
     it('returns false when no BTC testnet account exists', () => {
       const state = getStateWithAccount(btcMainnetAccount);
       expect(hasCreatedBtcTestnetAccount(state)).toBe(false);
+    });
+  });
+});
+
+describe('Solana Account Selectors', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(utils, 'isSolanaAccount')
+      .mockImplementation(
+        (account) => account?.address === 'solana_address_123',
+      );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const solanaAccount: InternalAccount = {
+    id: 'sol-account-id',
+    address: 'solana_address_123',
+    type: SolAccountType.DataAccount,
+    methods: [SolMethod.SignTransaction],
+    options: {},
+    metadata: {
+      name: 'Solana Account',
+      importTime: 1672531200,
+      keyring: {
+        type: KeyringTypes.snap,
+      },
+    },
+    scopes: [],
+  };
+
+  const ethAccount: InternalAccount = {
+    id: 'eth-account-id',
+    address: '0xabc123',
+    type: EthAccountType.Eoa,
+    methods: [EthMethod.SignTransaction],
+    options: {},
+    metadata: {
+      name: 'Ethereum Account',
+      importTime: 1672531200,
+      keyring: {
+        type: KeyringTypes.hd,
+      },
+    },
+    scopes: [],
+  };
+
+  const noSolanaAccountInState = {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [ethAccount.id]: ethAccount,
+            },
+            selectedAccount: ethAccount.id,
+          },
+        },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
+      },
+    },
+  } as RootState;
+
+  const solanaAccountExistsInState = {
+    engine: {
+      backgroundState: {
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [solanaAccount.id]: solanaAccount,
+              [ethAccount.id]: ethAccount,
+            },
+            selectedAccount: ethAccount.id,
+          },
+        },
+        KeyringController: MOCK_KEYRING_CONTROLLER,
+      },
+    },
+  } as RootState;
+
+  describe('selectSolanaAccount', () => {
+    it('returns the Solana account when it exists', () => {
+      expect(selectSolanaAccount(solanaAccountExistsInState)).toEqual(
+        solanaAccount,
+      );
+    });
+
+    it('returns undefined when no Solana account exists', () => {
+      expect(selectSolanaAccount(noSolanaAccountInState)).toBeUndefined();
+    });
+  });
+
+  describe('selectSolanaAccountAddress', () => {
+    it('returns the Solana account address when it exists', () => {
+      expect(selectSolanaAccountAddress(solanaAccountExistsInState)).toEqual(
+        'solana_address_123',
+      );
+    });
+
+    it('returns undefined when no Solana account exists', () => {
+      expect(
+        selectSolanaAccountAddress(noSolanaAccountInState),
+      ).toBeUndefined();
     });
   });
 });

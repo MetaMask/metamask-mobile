@@ -130,7 +130,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -166,7 +166,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -190,7 +190,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -422,12 +422,12 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -483,7 +483,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -499,7 +499,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -524,7 +524,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -542,7 +542,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -572,7 +572,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -600,7 +600,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -619,7 +619,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -667,7 +667,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -679,7 +679,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -698,7 +698,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -769,7 +769,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -803,7 +803,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -853,7 +853,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -886,7 +886,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -932,7 +932,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -983,7 +983,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -1016,7 +1016,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -1077,7 +1077,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -1110,7 +1110,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -1162,7 +1162,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -1197,7 +1197,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -1250,7 +1250,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -1283,7 +1283,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -1301,7 +1301,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -1344,7 +1344,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -1377,7 +1377,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -1424,7 +1424,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -1610,7 +1610,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -1646,7 +1646,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -1670,7 +1670,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -1902,12 +1902,12 @@ exports[`OrderDetails renders a completed order 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -1954,7 +1954,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c8234",
+                                              "color": "#1c7e33",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -1980,7 +1980,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -1996,7 +1996,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -2021,7 +2021,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -2039,7 +2039,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -2069,7 +2069,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -2097,7 +2097,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -2116,7 +2116,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -2164,7 +2164,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -2176,7 +2176,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -2195,7 +2195,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -2266,7 +2266,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -2300,7 +2300,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -2350,7 +2350,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -2383,7 +2383,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -2429,7 +2429,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -2480,7 +2480,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -2513,7 +2513,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -2574,7 +2574,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -2607,7 +2607,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -2659,7 +2659,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -2694,7 +2694,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -2747,7 +2747,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -2780,7 +2780,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -2798,7 +2798,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -2841,7 +2841,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -2874,7 +2874,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -2921,7 +2921,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -3107,7 +3107,7 @@ exports[`OrderDetails renders a created order 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -3143,7 +3143,7 @@ exports[`OrderDetails renders a created order 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -3167,7 +3167,7 @@ exports[`OrderDetails renders a created order 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -3399,12 +3399,12 @@ exports[`OrderDetails renders a created order 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -3449,7 +3449,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f2f4f6",
+                                            "borderColor": "#f3f5f9",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -3479,7 +3479,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "color": "#0376c9",
+                                                  "color": "#4459ff",
                                                   "fontSize": 36,
                                                 },
                                                 undefined,
@@ -3507,7 +3507,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -3532,7 +3532,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -3550,7 +3550,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -3580,7 +3580,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -3608,7 +3608,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -3627,7 +3627,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -3675,7 +3675,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -3687,7 +3687,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -3706,7 +3706,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -3777,7 +3777,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -3811,7 +3811,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -3861,7 +3861,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -3894,7 +3894,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -3940,7 +3940,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -3991,7 +3991,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -4024,7 +4024,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -4085,7 +4085,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -4118,7 +4118,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -4170,7 +4170,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -4205,7 +4205,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -4258,7 +4258,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -4291,7 +4291,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -4309,7 +4309,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -4352,7 +4352,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -4385,7 +4385,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -4565,7 +4565,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -4601,7 +4601,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -4625,7 +4625,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -4857,12 +4857,12 @@ exports[`OrderDetails renders a failed order 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -4918,7 +4918,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -4934,7 +4934,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -4959,7 +4959,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -4977,7 +4977,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -5007,7 +5007,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -5035,7 +5035,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -5054,7 +5054,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -5102,7 +5102,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -5114,7 +5114,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -5133,7 +5133,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -5204,7 +5204,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -5238,7 +5238,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -5288,7 +5288,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -5321,7 +5321,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -5367,7 +5367,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -5418,7 +5418,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -5451,7 +5451,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -5512,7 +5512,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -5545,7 +5545,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -5597,7 +5597,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -5632,7 +5632,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -5685,7 +5685,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -5718,7 +5718,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -5736,7 +5736,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -5779,7 +5779,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -5812,7 +5812,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -5859,7 +5859,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -6045,7 +6045,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -6081,7 +6081,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -6105,7 +6105,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -6337,12 +6337,12 @@ exports[`OrderDetails renders a pending order 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -6387,7 +6387,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f2f4f6",
+                                            "borderColor": "#f3f5f9",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -6417,7 +6417,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "color": "#0376c9",
+                                                  "color": "#4459ff",
                                                   "fontSize": 36,
                                                 },
                                                 undefined,
@@ -6445,7 +6445,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -6470,7 +6470,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -6488,7 +6488,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -6518,7 +6518,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -6546,7 +6546,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -6565,7 +6565,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -6613,7 +6613,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -6625,7 +6625,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -6644,7 +6644,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -6715,7 +6715,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -6749,7 +6749,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -6799,7 +6799,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -6832,7 +6832,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -6878,7 +6878,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -6929,7 +6929,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -6962,7 +6962,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -7023,7 +7023,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -7056,7 +7056,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -7108,7 +7108,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -7143,7 +7143,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -7196,7 +7196,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -7229,7 +7229,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -7247,7 +7247,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -7290,7 +7290,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -7323,7 +7323,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -7503,7 +7503,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7539,7 +7539,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -7563,7 +7563,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -7930,7 +7930,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -7966,7 +7966,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -7990,7 +7990,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -8265,7 +8265,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#d73847",
+                                          "color": "#ca3542",
                                         },
                                       ],
                                       {
@@ -8291,7 +8291,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
+                                      "color": "#121314",
                                       "fontFamily": "EuclidCircularB-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
@@ -8316,7 +8316,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                   style={
                                     [
                                       {
-                                        "color": "#141618",
+                                        "color": "#121314",
                                         "fontFamily": "EuclidCircularB-Regular",
                                         "fontSize": 30,
                                         "fontWeight": "400",
@@ -8331,7 +8331,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                       undefined,
                                       undefined,
                                       {
-                                        "color": "#6a737d",
+                                        "color": "#686e7d",
                                       },
                                       undefined,
                                       undefined,
@@ -8377,7 +8377,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -8563,7 +8563,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -8599,7 +8599,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -8623,7 +8623,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -8855,12 +8855,12 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -8905,7 +8905,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f2f4f6",
+                                            "borderColor": "#f3f5f9",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -8935,7 +8935,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             style={
                                               [
                                                 {
-                                                  "color": "#0376c9",
+                                                  "color": "#4459ff",
                                                   "fontSize": 36,
                                                 },
                                                 undefined,
@@ -8963,7 +8963,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -8979,7 +8979,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -9004,7 +9004,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -9022,7 +9022,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -9052,7 +9052,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -9080,7 +9080,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -9099,7 +9099,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -9147,7 +9147,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -9159,7 +9159,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -9178,7 +9178,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -9249,7 +9249,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -9283,7 +9283,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -9333,7 +9333,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -9366,7 +9366,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -9412,7 +9412,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -9463,7 +9463,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -9496,7 +9496,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -9557,7 +9557,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -9590,7 +9590,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -9642,7 +9642,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -9677,7 +9677,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -9730,7 +9730,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -9763,7 +9763,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -9781,7 +9781,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -9824,7 +9824,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -9857,7 +9857,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -9916,7 +9916,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                             "padding": 15,
                                           },
                                           {
-                                            "backgroundColor": "#0376c9",
+                                            "backgroundColor": "#4459ff",
                                             "minHeight": 50,
                                           },
                                           undefined,
@@ -10103,7 +10103,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -10139,7 +10139,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -10163,7 +10163,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -10395,12 +10395,12 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -10447,7 +10447,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "color": "#1c8234",
+                                              "color": "#1c7e33",
                                               "fontSize": 32,
                                             },
                                             undefined,
@@ -10473,7 +10473,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -10489,7 +10489,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -10514,7 +10514,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -10532,7 +10532,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -10560,7 +10560,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#0376c9",
+                                              "color": "#4459ff",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -10590,7 +10590,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -10618,7 +10618,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -10637,7 +10637,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -10685,7 +10685,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -10697,7 +10697,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -10716,7 +10716,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -10787,7 +10787,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -10821,7 +10821,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -10871,7 +10871,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -10904,7 +10904,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -10950,7 +10950,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -10968,7 +10968,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   onPress={[Function]}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -11021,7 +11021,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -11054,7 +11054,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -11115,7 +11115,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -11148,7 +11148,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -11200,7 +11200,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -11235,7 +11235,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -11288,7 +11288,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -11321,7 +11321,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -11339,7 +11339,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -11382,7 +11382,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -11415,7 +11415,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -11462,7 +11462,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -11648,7 +11648,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -11684,7 +11684,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -11708,7 +11708,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -11940,12 +11940,12 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -11990,7 +11990,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f2f4f6",
+                                            "borderColor": "#f3f5f9",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -12020,7 +12020,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             style={
                                               [
                                                 {
-                                                  "color": "#0376c9",
+                                                  "color": "#4459ff",
                                                   "fontSize": 36,
                                                 },
                                                 undefined,
@@ -12048,7 +12048,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -12073,7 +12073,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -12091,7 +12091,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -12121,7 +12121,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -12149,7 +12149,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -12168,7 +12168,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -12216,7 +12216,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -12228,7 +12228,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -12247,7 +12247,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -12318,7 +12318,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -12352,7 +12352,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -12402,7 +12402,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -12435,7 +12435,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -12481,7 +12481,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -12532,7 +12532,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -12565,7 +12565,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -12626,7 +12626,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -12659,7 +12659,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -12711,7 +12711,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -12746,7 +12746,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -12799,7 +12799,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -12832,7 +12832,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -12850,7 +12850,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -12893,7 +12893,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -12926,7 +12926,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -13106,7 +13106,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
+                      "color": "#4459ff",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
@@ -13142,7 +13142,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
@@ -13166,7 +13166,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
+                        "color": "#686e7d",
                         "fontFamily": "EuclidCircularB-Regular",
                         "fontSize": 12,
                         "fontWeight": "400",
@@ -13398,12 +13398,12 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                             <RefreshControlMock
                               colors={
                                 [
-                                  "#0376c9",
+                                  "#4459ff",
                                 ]
                               }
                               onRefresh={[Function]}
                               refreshing={false}
-                              tintColor="#141618"
+                              tintColor="#121314"
                             />
                           }
                         >
@@ -13448,7 +13448,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                       <View
                                         style={
                                           {
-                                            "borderColor": "#f2f4f6",
+                                            "borderColor": "#f3f5f9",
                                             "borderRadius": 64,
                                             "borderWidth": 3.5,
                                             "height": 36,
@@ -13478,7 +13478,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             style={
                                               [
                                                 {
-                                                  "color": "#0376c9",
+                                                  "color": "#4459ff",
                                                   "fontSize": 36,
                                                 },
                                                 undefined,
@@ -13506,7 +13506,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#141618",
+                                              "color": "#121314",
                                               "fontFamily": "EuclidCircularB-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
@@ -13522,7 +13522,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#6a737d",
+                                              "color": "#686e7d",
                                               "fontFamily": "EuclidCircularB-Regular",
                                               "fontSize": 12,
                                               "fontWeight": "400",
@@ -13547,7 +13547,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#141618",
+                                            "color": "#121314",
                                             "fontFamily": "EuclidCircularB-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
@@ -13565,7 +13565,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         accessibilityRole="text"
                                         style={
                                           {
-                                            "color": "#6a737d",
+                                            "color": "#686e7d",
                                             "fontFamily": "EuclidCircularB-Regular",
                                             "fontSize": 12,
                                             "fontWeight": "400",
@@ -13595,7 +13595,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           [
                                             {
-                                              "borderColor": "#848c96",
+                                              "borderColor": "#b7bbc8",
                                               "borderRadius": 8,
                                               "borderWidth": 1.5,
                                               "padding": 16,
@@ -13623,7 +13623,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                   "borderRadius": 100,
                                                   "flexDirection": "row",
                                                   "flexShrink": 1,
@@ -13642,7 +13642,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                             <View
                                               placeholderStyle={
                                                 {
-                                                  "backgroundColor": "#f2f4f6",
+                                                  "backgroundColor": "#f3f5f9",
                                                 }
                                               }
                                               useNativeDriver={true}
@@ -13690,7 +13690,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                         "backgroundColor": "#eee",
                                                       },
                                                       {
-                                                        "backgroundColor": "#f2f4f6",
+                                                        "backgroundColor": "#f3f5f9",
                                                       },
                                                     ]
                                                   }
@@ -13702,7 +13702,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               style={
                                                 [
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 30,
                                                     "fontWeight": "400",
@@ -13721,7 +13721,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   undefined,
                                                   undefined,
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                   },
                                                   undefined,
                                                   undefined,
@@ -13792,7 +13792,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -13826,7 +13826,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   selectable={true}
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -13876,7 +13876,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -13909,7 +13909,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -13955,7 +13955,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 accessibilityRole="text"
                                                 style={
                                                   {
-                                                    "color": "#141618",
+                                                    "color": "#121314",
                                                     "fontFamily": "EuclidCircularB-Regular",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
@@ -14006,7 +14006,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -14039,7 +14039,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -14100,7 +14100,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -14133,7 +14133,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -14185,7 +14185,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Regular",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
@@ -14220,7 +14220,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#141618",
+                                                        "color": "#121314",
                                                         "fontFamily": "EuclidCircularB-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
@@ -14273,7 +14273,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -14306,7 +14306,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
@@ -14324,7 +14324,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         <View
                                           style={
                                             {
-                                              "backgroundColor": "#BBC0C566",
+                                              "backgroundColor": "#b7bbc866",
                                               "height": 1,
                                               "marginVertical": 12,
                                             }
@@ -14367,7 +14367,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Regular",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
@@ -14400,7 +14400,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#141618",
+                                                      "color": "#121314",
                                                       "fontFamily": "EuclidCircularB-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
