@@ -144,10 +144,9 @@ describe('NetworkConnectMultiSelector', () => {
         sessionProperties: {},
       },
     });
-    // TODO: [ffmcgee] perhaps delegate this test suite to Arthur, the mockNetwork config looks bad
-    // we could just mock the multichain util function to return what we want, but yeah....
-    // that extra piece of code I put in, is not needed
 
+    // TODO: [ffmcgee] delegate this test suite to Arthur, the mockNetwork config looks bad
+    // we could just mock the `addPermittedChains` util function to return what we want, but yeah....
     const { getByText, getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
     );

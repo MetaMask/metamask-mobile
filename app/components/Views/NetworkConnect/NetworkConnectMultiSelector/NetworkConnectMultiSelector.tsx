@@ -40,7 +40,7 @@ import {
   getCaip25Caveat,
 } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { Hex, isHexString } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -122,24 +122,9 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
-      // TODO: [ffmcgee] discuss, `selectedChainIds` are not consistent. Sometimes I see chain Id hexes (ex.:0x1), sometimes I see an id shaped key (ex.:network-1).
-      // `addPermittedChains` call needs consistent hex chain ids.
-      let chainsToAdd = selectedChainIds;
-      const shouldReplaceWithChainIdHexes = selectedChainIds.some(
-        (id) => !isHexString(id),
-      );
-      if (shouldReplaceWithChainIdHexes) {
-        const selectedChainNames = Object.keys(networkConfigurations).filter(
-          (name) => selectedChainIds.includes(name),
-        );
-        chainsToAdd = selectedChainNames.map(
-          (name) => networkConfigurations[name as Hex].chainId,
-        );
-      }
-
       // TODO: Verify if this can be called before CAIP-25 permissions have been granted
       // Previous behavior was to incremental grant if no permittedChains permission existed
-      addPermittedChains(hostname, chainsToAdd as Hex[]);
+      addPermittedChains(hostname, selectedChainIds as Hex[]);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [
