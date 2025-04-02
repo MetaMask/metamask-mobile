@@ -80,7 +80,7 @@ const createStyles = (colors) =>
     backToSafetyText: {
       ...fontStyles.normal,
       fontSize: 16,
-      color: colors.primary.inverse,
+      color: colors.primary.default,
     },
     warningContainer: {
       alignItems: 'left',
@@ -105,7 +105,22 @@ export default class PhishingModal extends PureComponent {
      * Called when the user takes the recommended action
      */
     goBackToSafety: PropTypes.func,
+    /**
+     * Called to the user decides to share on Twitter
+     */
   };
+
+  shareToTwitter = () => {
+    const tweetText = "MetaMask just protected me from a phishing attack! Remember to always stay vigilant when clicking on links. Learn more at https://metamask.io";
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    Linking.canOpenURL(twitterUrl).then(supported => {
+      if (supported) {
+        Linking.openURL(twitterUrl);
+      }
+    });
+  };
+
+
 
   render() {
     const colors = this.context.colors || mockTheme.colors;
@@ -144,7 +159,7 @@ export default class PhishingModal extends PureComponent {
         
         <TouchableOpacity 
           style={styles.buttonContainer}
-          onPress={() => {}}
+          onPress={this.shareToTwitter}
         >
           <Icon name="twitter" size={16} style={styles.buttonIcon} />
           <Text style={styles.buttonText}>If you found this helpful, share on X!</Text>
