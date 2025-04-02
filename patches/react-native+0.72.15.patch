@@ -147,6 +147,67 @@ index 5ebaf48..f5dde30 100644
  
      defaultConfig {
          minSdkVersion 21
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
+index 18c4dd0..763d773 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/devsupport/DevSupportManagerBase.java
+@@ -790,9 +790,10 @@ public abstract class DevSupportManagerBase implements DevSupportManager {
+     }
+ 
+     int port = parsedURL.getPort() != -1 ? parsedURL.getPort() : parsedURL.getDefaultPort();
+-    mDevLoadingViewManager.showMessage(
+-        mApplicationContext.getString(
+-            R.string.catalyst_loading_from_url, parsedURL.getHost() + ":" + port));
++    if (mDevLoadingViewManager  != null)
++      mDevLoadingViewManager.showMessage(
++          mApplicationContext.getString(
++              R.string.catalyst_loading_from_url, parsedURL.getHost() + ":" + port));
+     mDevLoadingViewVisible = true;
+   }
+ 
+@@ -801,9 +802,9 @@ public abstract class DevSupportManagerBase implements DevSupportManager {
+     if (mApplicationContext == null) {
+       return;
+     }
+-
+-    mDevLoadingViewManager.showMessage(
+-        mApplicationContext.getString(R.string.catalyst_debug_connecting));
++    if (mDevLoadingViewManager  != null)
++      mDevLoadingViewManager.showMessage(
++          mApplicationContext.getString(R.string.catalyst_debug_connecting));
+     mDevLoadingViewVisible = true;
+   }
+ 
+@@ -1149,7 +1150,8 @@ public abstract class DevSupportManagerBase implements DevSupportManager {
+ 
+       // show the dev loading if it should be
+       if (mDevLoadingViewVisible) {
+-        mDevLoadingViewManager.showMessage("Reloading...");
++        if (mDevLoadingViewManager  != null)
++          mDevLoadingViewManager.showMessage("Reloading...");
+       }
+ 
+       mDevServerHelper.openPackagerConnection(
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
+index 4eaa3f2..c238ad9 100644
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/modules/devloading/DevLoadingModule.java
+@@ -41,14 +41,7 @@ public class DevLoadingModule extends NativeDevLoadingViewSpec {
+ 
+   @Override
+   public void showMessage(final String message, final Double color, final Double backgroundColor) {
+-
+-    UiThreadUtil.runOnUiThread(
+-        new Runnable() {
+-          @Override
+-          public void run() {
+-            mDevLoadingViewManager.showMessage(message);
+-          }
+-        });
++    // no-op
+   }
+ 
+   @Override
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java
 index ced37be..a158541 100644
 --- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.java

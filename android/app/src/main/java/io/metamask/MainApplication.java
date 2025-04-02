@@ -33,9 +33,6 @@ import android.content.BroadcastReceiver;
 import android.content.IntentFilter;
 import android.os.Build;
 
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.devsupport.NoOpDevLoadingViewManager;
-
 public class MainApplication extends Application implements ShareApplication, ReactApplication {
 
   @Override
@@ -119,15 +116,6 @@ public class MainApplication extends Application implements ShareApplication, Re
 
     ReactNativeFlipper.initializeFlipper(this, getReactNativeHost().getReactInstanceManager());
     ApplicationLifecycleDispatcher.onApplicationCreate(this);
-
-    if (BuildConfig.DEBUG) {
-      ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
-      if (reactInstanceManager != null && reactInstanceManager.getDevSupportManager() != null) {
-        reactInstanceManager.getDevSupportManager().setDevLoadingViewManager(
-          new NoOpDevLoadingViewManager(this, reactInstanceManager.getDevSupportManager())
-        );
-      }
-    }
   }
 
   @Override
