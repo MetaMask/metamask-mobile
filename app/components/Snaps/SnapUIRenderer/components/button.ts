@@ -22,7 +22,7 @@ function getTextColor(theme: Theme, props: ButtonElement['props']) {
     case 'primary':
       return theme.colors.info.default;
   }
-};
+}
 
 export const button: UIComponentFactory<ButtonElement> = ({
   element: e,
@@ -40,9 +40,13 @@ export const button: UIComponentFactory<ButtonElement> = ({
   },
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    { ...params, textColor: getTextColor(params.theme, e.props), textVariant:
-      e.props.size === 'sm'
-        ? TextVariant.BodySMMedium
-        : TextVariant.BodyMDMedium, },
+    {
+      ...params,
+      textColor: getTextColor(params.theme, e.props),
+      textVariant:
+        e.props.size === 'sm'
+          ? TextVariant.BodySMMedium
+          : TextVariant.BodyMDMedium,
+    },
   ),
 });

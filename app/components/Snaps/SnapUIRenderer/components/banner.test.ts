@@ -39,7 +39,7 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
-              element: 'RNText',
+              element: 'Text',
               props: {
                 color: undefined,
               },
@@ -83,7 +83,7 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_2',
-              element: 'RNText',
+              element: 'Text',
               props: {
                 color: undefined,
               },
@@ -127,7 +127,7 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
-              element: 'RNText',
+              element: 'Text',
               props: {
                 color: undefined,
               },

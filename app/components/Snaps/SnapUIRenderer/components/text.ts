@@ -50,9 +50,12 @@ function alignText(alignment: TextElement['props']['alignment']) {
     default:
       return 'left';
   }
-};
+}
 
-function getTextVariant(size: TextElement['props']['size'], inheritedVariant?: string) {
+function getTextVariant(
+  size: TextElement['props']['size'],
+  inheritedVariant?: string,
+) {
   switch (size) {
     case 'md':
       return TextVariant.BodyMD;

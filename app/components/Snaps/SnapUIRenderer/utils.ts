@@ -137,7 +137,13 @@ export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
   params: Pick<
     MapToTemplateParams,
-    'map' | 'useFooter' | 'onCancel' | 'theme' | 'textSize' | 'textColor' | 'textVariant'
+    | 'map'
+    | 'useFooter'
+    | 'onCancel'
+    | 'theme'
+    | 'textSize'
+    | 'textColor'
+    | 'textVariant'
   >,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
@@ -148,7 +154,7 @@ export const mapTextToTemplate = (
         element: 'Text',
         key,
         children: text,
-        props: { variant: params.textVariant, style: { color: params.textColor } },
+        props: { variant: params.textVariant, color: params.textColor },
       };
     }
 

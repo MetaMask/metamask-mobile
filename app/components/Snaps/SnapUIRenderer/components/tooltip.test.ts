@@ -33,7 +33,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Hover me',
               props: {
                 color: undefined,
@@ -55,7 +55,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Tooltip content',
               props: {
                 color: undefined,
@@ -97,7 +97,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Hover me',
               props: {
                 color: undefined,
@@ -119,7 +119,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Complex content',
               props: {
                 color: undefined,
@@ -161,7 +161,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Nested text',
               props: {
                 color: undefined,
@@ -183,7 +183,7 @@ describe('tooltip component', () => {
           element: 'Text',
           children: [
             {
-              element: 'RNText',
+              element: 'Text',
               children: 'Tooltip content',
               props: {
                 color: undefined,

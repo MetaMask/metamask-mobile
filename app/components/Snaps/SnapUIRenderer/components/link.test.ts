@@ -25,7 +25,7 @@ describe('link component', () => {
       element: 'SnapUILink',
       children: [
         {
-          element: 'RNText',
+          element: 'Text',
           children: 'link',
           key: expect.any(String),
           props: {

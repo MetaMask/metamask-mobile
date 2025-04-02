@@ -9,7 +9,10 @@ import {
 
 const ICON_NAMES = new Set(Object.values(IconName));
 
-export const icon: UIComponentFactory<IconElement> = ({ element, textSize }) => {
+export const icon: UIComponentFactory<IconElement> = ({
+  element,
+  textSize,
+}) => {
   const getIconName = () => {
     const rawName = element.props.name;
     // The icon names are formatted differently between extension and mobile,
