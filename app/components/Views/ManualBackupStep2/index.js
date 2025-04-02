@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   View,
   SafeAreaView,
+  FlatList,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import OnboardingProgress from '../../UI/OnboardingProgress';
@@ -166,18 +167,18 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
     return (
       <View key={`word_${i}`} style={styles.wordBoxWrapper}>
-        <Text style={styles.wordBoxIndex}>{i + 1}.</Text>
         <TouchableOpacity
           // eslint-disable-next-line react/jsx-no-bind
           onPress={() => {
             clearConfirmedWordAt(i);
           }}
           style={[
-            styles.wordWrapper,
+            styles.inputContainer,
             i === currentIndex && styles.currentWord,
             confirmedWords[i].word && styles.confirmedWord,
           ]}
         >
+          <Text style={styles.wordBoxIndex}>{i + 1}.</Text>
           <Text style={styles.word}>{word}</Text>
         </TouchableOpacity>
       </View>
@@ -224,55 +225,58 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={styles.onBoardingWrapper}>
+      {/* <View style={styles.onBoardingWrapper}>
         <OnboardingProgress
           currentStep={currentStep}
           steps={route.params?.steps}
         />
-      </View>
-      <ActionView
-        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        confirmText={strings('manual_backup_step_2.complete')}
-        onConfirmPress={goNext}
-        confirmDisabled={!seedPhraseReady || !validateWords()}
-        showCancelButton={false}
-        confirmButtonMode={'confirm'}
-      >
-        <View
-          style={styles.wrapper}
-          testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
+      </View> */}
+      <View style={styles.container}>
+        <Text style={styles.step}>Step 3 of 3</Text>
+        <ActionView
+          confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
+          confirmText={strings('manual_backup_step_2.complete')}
+          onConfirmPress={goNext}
+          confirmDisabled={!seedPhraseReady || !validateWords()}
+          showCancelButton={false}
+          confirmButtonMode={'confirm'}
         >
-          <Text style={styles.action}>
-            {strings('manual_backup_step_2.action')}
-          </Text>
-          <View style={styles.infoWrapper}>
-            <Text style={styles.info}>
-              {strings('manual_backup_step_2.info')}
-            </Text>
-          </View>
           <View
-            style={[
-              styles.seedPhraseWrapper,
-              seedPhraseReady && styles.seedPhraseWrapperError,
-              validateWords() && styles.seedPhraseWrapperComplete,
-            ]}
+            style={styles.wrapper}
+            testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <View style={styles.colLeft}>
-              {confirmedWords
-                .slice(0, confirmedWords.length / 2)
-                .map(({ word }, i) => renderWordBox(word, i))}
+            <Text style={styles.action}>
+              {strings('manual_backup_step_2.action')}
+            </Text>
+            <View style={styles.infoWrapper}>
+              <Text style={styles.info}>
+                {strings('manual_backup_step_2.info')}
+              </Text>
             </View>
-            <View style={styles.colRight}>
-              {confirmedWords
-                .slice(-confirmedWords.length / 2)
-                .map(({ word }, i) =>
-                  renderWordBox(word, i + confirmedWords.length / 2),
-                )}
+            <View
+              style={[
+                styles.seedPhraseContainer,
+                seedPhraseReady && styles.seedPhraseWrapperError,
+                validateWords() && styles.seedPhraseWrapperComplete,
+              ]}
+            >
+              <View style={styles.seedPhraseInnerContainer}>
+                <FlatList
+                  data={confirmedWords}
+                  numColumns={3}
+                  keyExtractor={(_, index) => index.toString()}
+                  renderItem={({ item, index }) => (
+                    <View style={styles.wordWrapperContainer}>
+                      {renderWordBox(item.word, index)}
+                    </View>
+                  )}
+                />
+              </View>
             </View>
+            {validateWords() ? renderSuccess() : renderWords()}
           </View>
-          {validateWords() ? renderSuccess() : renderWords()}
-        </View>
-      </ActionView>
+        </ActionView>
+      </View>
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

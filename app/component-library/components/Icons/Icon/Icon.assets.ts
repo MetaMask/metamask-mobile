@@ -167,6 +167,10 @@ import walletmoneySVG from './assets/wallet-money.svg';
 import walletSVG from './assets/wallet.svg';
 import warningSVG from './assets/warning.svg';
 import wifiSVG from './assets/wifi.svg';
+import googleSVG from './assets/google.svg';
+import appleSVG from './assets/apple.svg';
+import eyeSlashSolidSVG from './assets/eye-slash-solid.svg';
+import eyeSolidSVG from './assets/eye-solid.svg';
 
 /**
  * Asset stored by icon name
@@ -335,4 +339,8 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Wallet]: walletSVG,
   [IconName.Warning]: warningSVG,
   [IconName.Wifi]: wifiSVG,
+  [IconName.Google]: googleSVG,
+  [IconName.Apple]: appleSVG,
+  [IconName.EyeSlashSolid]: eyeSlashSolidSVG,
+  [IconName.EyeSolid]: eyeSolidSVG,
 };

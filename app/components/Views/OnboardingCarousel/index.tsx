@@ -13,8 +13,15 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import StyledButton from '../../UI/StyledButton';
-import { fontStyles, baseStyles } from '../../../styles/common';
+import Button, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
+import {
+  fontStyles,
+  baseStyles,
+  onboardingCarouselColors,
+  colors as constColors,
+} from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -34,6 +41,8 @@ import {
   saveOnboardingEvent as SaveEvent,
   OnboardingActionTypes,
 } from '../../../actions/onboarding';
+import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
+import { USE_TERMS } from '../../../constants/storage';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -56,21 +65,24 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
     },
     title: {
-      fontSize: 24,
+      fontSize: 40,
       marginBottom: 12,
-      color: colors.text.default,
+      // color: colors.text.default,
       justifyContent: 'center',
       textAlign: 'center',
-      ...fontStyles.bold,
+      letterSpacing: -0.26,
+      lineHeight: 38,
+      ...fontStyles.normal,
+      paddingHorizontal: 60,
     },
     subtitle: {
       fontSize: 14,
       lineHeight: 19,
       marginTop: 12,
-      marginBottom: 25,
-      color: colors.text.alternative,
+      // color: colors.text.alternative,
       justifyContent: 'center',
       textAlign: 'center',
+      paddingHorizontal: 20,
       ...fontStyles.normal,
     },
     ctas: {
@@ -83,7 +95,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     carouselImage: {},
     carouselImage1: {
-      marginTop: 30,
       ...carouselSize,
     },
     carouselImage2: {
@@ -99,12 +110,12 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
     },
     circle: {
-      width: 8,
-      height: 8,
-      borderRadius: 8 / 2,
+      width: 10,
+      height: 2,
+      // borderRadius: 8 / 2,
       backgroundColor: colors.icon.default,
       opacity: 0.4,
-      marginHorizontal: 8,
+      marginHorizontal: 2,
     },
     solidCircle: {
       opacity: 1,
@@ -112,7 +123,8 @@ const createStyles = (colors: ThemeColors) =>
     progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
-      marginVertical: 36,
+      marginTop: 60,
+      marginBottom: 24,
     },
     tab: {
       marginHorizontal: 30,
@@ -126,6 +138,12 @@ const createStyles = (colors: ThemeColors) =>
       fontSize: 10,
       color: colors.text.alternative,
       textAlign: 'center',
+    },
+    gettingStartedButton: {
+      borderRadius: 10,
+      width: '100%',
+      color: constColors.whiteTransparent,
+      backgroundColor: constColors.btnBlack,
     },
   });
 
@@ -165,13 +183,24 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     [saveOnboardingEvent],
   );
 
-  const onPressGetStarted = () => {
+  const navigateToOnboarding = () => {
     navigation.navigate('Onboarding');
     track(
       MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.ONBOARDING_STARTED,
       ).build(),
     );
+  };
+
+  const termsOfUse = async () => {
+    if (navigation) {
+      await navigateTermsOfUse(navigation.navigate, navigateToOnboarding);
+    }
+  };
+
+  const onPressGetStarted = async () => {
+    StorageWrapper.removeItem(USE_TERMS);
+    await termsOfUse();
   };
 
   const renderTabBar = () => <View />;
@@ -214,12 +243,20 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     updateNavBar();
   }, [colors, updateNavBar]);
 
+  const getBackgroundColor = () => {
+    const key = currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three';
+    return onboardingCarouselColors[key].background;
+  };
+
   return (
     <View
       style={baseStyles.flexGrow}
       testID={OnboardingCarouselSelectorIDs.CONTAINER_ID}
     >
-      <OnboardingScreenWithBg screen={'carousel'}>
+      <OnboardingScreenWithBg
+        screen={'carousel'}
+        backgroundColor={getBackgroundColor()}
+      >
         <ScrollView
           style={baseStyles.flexGrow}
           contentContainerStyle={styles.scroll}
@@ -245,9 +282,6 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
                       )}
                     >
-                      <Text style={styles.title}>
-                        {strings(`onboarding_carousel.title${key}`)}
-                      </Text>
                       {isTest && (
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
@@ -260,9 +294,6 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                           {appStartTime}
                         </Text>
                       )}
-                      <Text style={styles.subtitle}>
-                        {strings(`onboarding_carousel.subtitle${key}`)}
-                      </Text>
                     </View>
                     <View style={styles.carouselImageWrapper}>
                       <Image
@@ -272,11 +303,28 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         testID={`carousel-${value}-image`}
                       />
                     </View>
+                    <Text
+                      style={[
+                        styles.title,
+                        {
+                          color: onboardingCarouselColors[value].color,
+                        },
+                      ]}
+                    >
+                      {strings(`onboarding_carousel.title${key}`)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.subtitle,
+                        { color: onboardingCarouselColors[value].color },
+                      ]}
+                    >
+                      {strings(`onboarding_carousel.subtitle${key}`)}
+                    </Text>
                   </View>
                 );
               })}
             </ScrollableTabView>
-
             <View style={styles.progressContainer}>
               {[1, 2, 3].map((i) => (
                 <View
@@ -295,9 +343,12 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
           testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
         >
           <View style={styles.ctaWrapper}>
-            <StyledButton type={'normal'} onPress={onPressGetStarted}>
-              {strings('onboarding_carousel.get_started')}
-            </StyledButton>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('onboarding_carousel.get_started')}
+              onPress={onPressGetStarted}
+              style={styles.gettingStartedButton}
+            />
           </View>
         </View>
       </OnboardingScreenWithBg>

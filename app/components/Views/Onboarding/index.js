@@ -49,6 +49,13 @@ import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import ButtonComp, {
+  ButtonVariants,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -72,7 +79,7 @@ const createStyles = (colors) =>
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      marginVertical: 24,
+      marginVertical: 60,
     },
     foxImage: {
       width: 125,
@@ -81,10 +88,15 @@ const createStyles = (colors) =>
     },
     title: {
       textAlign: 'center',
+      fontSize: 32,
+      fontWeight: 700,
+      lineHeight: 38,
     },
     ctas: {
       flex: 1,
       position: 'relative',
+      width: '100%',
+      paddingHorizontal: 20,
     },
     footer: {
       marginTop: -20,
@@ -104,11 +116,15 @@ const createStyles = (colors) =>
     },
     createWrapper: {
       flex: 1,
+      flexDirection: 'column',
       justifyContent: 'flex-end',
-      marginBottom: 24,
+      gap: 16,
     },
     buttonWrapper: {
-      marginBottom: 16,
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      gap: 12,
+      width: '100%',
     },
     loader: {
       marginTop: 180,
@@ -131,6 +147,25 @@ const createStyles = (colors) =>
       flex: 0.1,
       flexDirection: 'row',
       alignItems: 'flex-end',
+    },
+    socialBtn: {
+      width: '100%',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border.muted,
+    },
+    dividerText: {
+      color: colors.text.muted,
+      fontSize: 16,
+      fontWeight: '500',
     },
   });
 
@@ -373,38 +408,53 @@ class Onboarding extends PureComponent {
           />
         </View>
         <Text
-          variant={TextVariant.HeadingLG}
+          variant={TextVariant.HeadingMD}
           style={styles.title}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
         >
           {strings('onboarding.title')}
         </Text>
-        <View style={styles.importWrapper}>
-          <Text
-            style={styles.buttonDescription}
-            testID={OnboardingSelectorIDs.SCREEN_DESCRIPTION}
-          >
-            {strings('onboarding.import')}
-          </Text>
-        </View>
         <View style={styles.createWrapper}>
           <View style={styles.buttonWrapper}>
-            <StyledButton
-              type={'normal'}
-              onPress={this.onPressImport}
-              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-            >
-              {strings('import_wallet.import_from_seed_button')}
-            </StyledButton>
-          </View>
-          <View style={styles.buttonWrapper}>
-            <StyledButton
-              type={'blue'}
+            <ButtonComp
+              variant={ButtonVariants.Secondary}
               onPress={this.onPressCreate}
               testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </StyledButton>
+              label={strings('onboarding.continue_with_google')}
+              startIconName={IconName.Google}
+              startIconSize={IconSize.Xl}
+              style={styles.socialBtn}
+            />
+            <ButtonComp
+              variant={ButtonVariants.Secondary}
+              onPress={this.onPressImport}
+              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+              label={strings('onboarding.continue_with_apple')}
+              startIconName={IconName.Apple}
+              startIconSize={IconSize.Xl}
+              style={styles.socialBtn}
+            />
+          </View>
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{strings('onboarding.or')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+          <View style={styles.buttonWrapper}>
+            <ButtonComp
+              variant={ButtonVariants.Primary}
+              onPress={this.onPressCreate}
+              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+              style={styles.socialBtn}
+              label={strings('onboarding.start_exploring_now')}
+            />
+            <ButtonComp
+              variant={ButtonVariants.Secondary}
+              onPress={this.onPressImport}
+              style={styles.socialBtn}
+              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+              label={strings('onboarding.import_existing_wallet')}
+            />
           </View>
         </View>
       </View>

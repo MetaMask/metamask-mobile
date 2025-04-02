@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { scale } from 'react-native-size-matters';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 
 // TODO: Replace "any" with type
@@ -15,18 +15,126 @@ const createStyles = (colors: any) =>
       flex: 1,
       paddingHorizontal: 32,
     },
+    step: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+      marginTop: 16,
+      marginBottom: 6,
+    },
     title: {
-      fontSize: Device.isAndroid() ? 20 : 25,
-      marginTop: 20,
-      marginBottom: 20,
+      fontSize: Device.isAndroid() ? 28 : 32,
       color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'left',
       ...fontStyles.bold,
     },
+    seedPhraseRootContainer: {
+      marginTop: 6,
+    },
+    seedPhraseLabel: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+    },
+    seedPhraseContainerText: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+    },
+    seedPhraseContainer: {
+      paddingTop: 16,
+      backgroundColor: colors.background.muted,
+      borderRadius: 10,
+      marginTop: 16,
+      marginBottom: 24,
+      minHeight: 264,
+    },
+    seedPhraseInnerContainer: {
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    },
+    seedPhraseContainerCta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+      marginTop: 'auto',
+      borderTopWidth: 1,
+      borderTopColor: colors.background.default,
+      paddingHorizontal: 16,
+    },
+    seedPhraseDefaultInput: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      borderWidth: 0,
+      outlineWidth: 0,
+      ...fontStyles.normal,
+      backgroundColor: colors.background.muted,
+      paddingHorizontal: 0,
+      height: 44,
+    },
+    seedPhraseInputContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap', // Allows wrapping to new lines
+      justifyContent: 'center',
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 40,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: colors.background.default,
+      flex: 1,
+      margin: 5,
+      columnGap: 8,
+    },
+    inputNumber: {
+      color: colors.text.muted,
+      fontSize: 14,
+      ...fontStyles.medium,
+    },
+    seedPhraseInput: {
+      color: colors.text.default,
+      fontSize: 14,
+      fontWeight: '500',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+    },
+    clearButton: {
+      width: '100%',
+      borderWidth: 0,
+      color: colors.text.muted,
+      padding: 0,
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+    },
+    pasteButton: {
+      width: '100%',
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      textAlign: 'center',
+    },
+    seedPhraseContinueCta: {
+      marginTop: 'auto',
+      marginBottom: 16,
+      width: '100%',
+    },
+    continueButton: {
+      width: '100%',
+    },
     field: {
-      marginVertical: 5,
       position: 'relative',
+      flexDirection: 'column',
+      gap: 8,
     },
     fieldRow: {
       flexDirection: 'row',
@@ -41,9 +149,9 @@ const createStyles = (colors: any) =>
     },
     label: {
       color: colors.text.default,
-      fontSize: 16,
-      marginBottom: 12,
-      ...fontStyles.normal,
+      fontSize: 14,
+      ...fontStyles.medium,
+      fontWeight: '500',
     },
     ctaWrapper: {
       marginTop: 20,
@@ -130,8 +238,51 @@ const createStyles = (colors: any) =>
     input: {
       ...fontStyles.normal,
       fontSize: 16,
-      paddingTop: 2,
       color: colors.text.default,
+    },
+    passwordContainer: {
+      flexDirection: 'column',
+      gap: 16,
+    },
+    passwordInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+      height: 48,
+    },
+    passwordInputContainerFocused: {
+      borderColor: colors.primary.default,
+      borderWidth: 2,
+    },
+    passwordInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text.default,
+      fontWeight: '500',
+    },
+    learnMoreContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+    },
+    learnMoreCheckbox: {
+      backgroundColor: importedColors.primaryDefault,
+    },
+    learnMoreText: {
+      color: colors.text.default,
+      fontSize: 12,
+      ...fontStyles.normal,
+    },
+    learnMoreTextLink: {
+      color: importedColors.primaryDefault,
+      fontSize: 12,
+      ...fontStyles.normal,
     },
   });
 

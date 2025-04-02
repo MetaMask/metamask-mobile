@@ -10,7 +10,7 @@ import {
   Image,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
@@ -34,6 +34,10 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import Routes from '../../../../app/constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import SRPDesign from '../../../images/srp-lock-design.png';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -49,7 +53,7 @@ const createStyles = (colors) =>
       padding: 20,
       paddingTop: 0,
       paddingBottom: 0,
-      marginTop: 16,
+      // marginTop: 16,
     },
     content: {
       alignItems: 'center',
@@ -58,16 +62,20 @@ const createStyles = (colors) =>
       marginBottom: 10,
     },
     title: {
-      fontSize: 24,
-      marginBottom: 24,
-      marginTop: 24,
+      fontSize: 32,
+      marginBottom: 8,
+      marginTop: 0,
       color: colors.text.default,
-      textAlign: 'center',
+      textAlign: 'left',
       ...fontStyles.bold,
+      alignSelf: 'flex-start',
     },
     text: {
       marginTop: 32,
       justifyContent: 'center',
+      alignSelf: 'flex-start',
+      flexDirection: 'column',
+      rowGap: 16,
     },
     label: {
       lineHeight: scaling.scale(20),
@@ -79,12 +87,14 @@ const createStyles = (colors) =>
     buttonWrapper: {
       flex: 1,
       justifyContent: 'flex-end',
+      flexDirection: 'column',
+      rowGap: 16,
     },
     bold: {
       ...fontStyles.bold,
     },
     blue: {
-      color: colors.primary.default,
+      color: importedColors.primaryDefault,
     },
     remindLaterText: {
       textAlign: 'center',
@@ -120,6 +130,18 @@ const createStyles = (colors) =>
     srpDesign: {
       width: 200,
       height: 225,
+      marginHorizontal: 'auto',
+    },
+    button: {
+      width: '100%',
+      backgroundColor: importedColors.primaryDefault,
+    },
+    step: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+      marginTop: 16,
+      marginBottom: 6,
     },
   });
 
@@ -174,7 +196,7 @@ const AccountBackupStep1 = (props) => {
   );
 
   const goNext = () => {
-    props.navigation.navigate('AccountBackupStep1B', { ...props.route.params });
+    props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
     track(MetaMetricsEvents.WALLET_SECURITY_STARTED);
   };
 
@@ -222,60 +244,61 @@ const AccountBackupStep1 = (props) => {
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <View style={styles.wrapper}>
-          <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
+          <Text style={styles.step}>Step 2 of 3</Text>
+          {/* <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} /> */}
           <View style={styles.content}>
             <Text style={styles.title}>
               {strings('account_backup_step_1.title')}
             </Text>
-
             <Image source={SRPDesign} style={styles.srpDesign} />
             <View style={styles.text}>
               <Text style={styles.label}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
-                <Text style={styles.blue} onPress={showWhatIsSeedphrase}>
-                  {strings('account_backup_step_1.info_text_1_2')}
-                </Text>{' '}
+                <Button
+                  variant={ButtonVariants.Link}
+                  onPress={showWhatIsSeedphrase}
+                  label={strings('account_backup_step_1.info_text_1_2')}
+                />{' '}
                 {strings('account_backup_step_1.info_text_1_3')}{' '}
-                <Text style={styles.bold}>
-                  {strings('account_backup_step_1.info_text_1_4')}
-                </Text>
+              </Text>
+
+              <Text style={styles.label}>
+                {strings('account_backup_step_1.info_text_1_4')}
               </Text>
             </View>
           </View>
+
           <View style={styles.buttonWrapper}>
-            {!hasFunds && (
-              <View style={styles.remindLaterContainer}>
-                <TouchableOpacity
-                  style={styles.remindLaterButton}
-                  onPress={showRemindLater}
-                  hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-                >
-                  <Text
-                    style={styles.remindLaterText}
-                    testID={
-                      ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON
-                    }
-                  >
-                    {strings('account_backup_step_1.remind_me_later')}
-                  </Text>
-                </TouchableOpacity>
-                <Text style={styles.remindLaterSubText}>
-                  {strings('account_backup_step_1.remind_me_later_subtext')}
-                </Text>
-              </View>
-            )}
-            <View style={styles.ctaContainer}>
-              <StyledButton
-                containerStyle={styles.button}
-                type={'confirm'}
+            <View>
+              <Button
+                variant={ButtonVariants.Primary}
                 onPress={goNext}
-              >
-                {strings('account_backup_step_1.cta_text')}
-              </StyledButton>
-              <Text style={styles.startSubText}>
-                {strings('account_backup_step_1.cta_subText')}
-              </Text>
+                label={strings('account_backup_step_1.cta_text')}
+                width={ButtonWidthTypes.Full}
+              />
             </View>
+            {!hasFunds && (
+              <View>
+                <Button
+                  variant={ButtonVariants.Secondary}
+                  onPress={showRemindLater}
+                  label={strings('account_backup_step_1.remind_me_later')}
+                  width={ButtonWidthTypes.Full}
+                />
+              </View>
+              // <View style={styles.remindLaterContainer}>
+              //   <StyledButton
+              //     style={styles.remindLaterButton}
+              //     onPress={showRemindLater}
+              //     hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+              //   >
+              //     {strings('account_backup_step_1.remind_me_later')}
+              //   </StyledButton>
+              //   {/* <Text style={styles.remindLaterSubText}>
+              //         {strings('account_backup_step_1.remind_me_later_subtext')}
+              //       </Text> */}
+              // </View>
+            )}
           </View>
         </View>
       </ScrollView>
