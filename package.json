@@ -180,7 +180,7 @@
     "@metamask/json-rpc-engine": "^10.0.3",
     "@metamask/json-rpc-middleware-stream": "^8.0.6",
     "@metamask/key-tree": "^10.1.1",
-    "@metamask/keyring-api": "^17.2.1",
+    "@metamask/keyring-api": "^17.3.0",
     "@metamask/keyring-controller": "^21.0.1",
     "@metamask/keyring-internal-api": "^4.0.3",
     "@metamask/keyring-snap-client": "^4.0.1",
