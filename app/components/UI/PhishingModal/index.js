@@ -1,11 +1,10 @@
 import React, { PureComponent } from 'react';
 import {
-  ScrollView,
   View,
   Text,
-  Image,
   StyleSheet,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -21,72 +20,72 @@ const createStyles = (colors) =>
   StyleSheet.create({
     warningIcon: {
       color: colors.error.default,
-      marginRight: 10,
+      fontSize: 40,
+      marginBottom: 20,
     },
     phishingModalWrapper: {
-      paddingHorizontal: 20,
-      justifyContent: 'center',
-    },
-    phishingModalContent: {
-      height: 495,
-      borderRadius: 4,
-      backgroundColor: colors.background.default,
+      flex: 1,
+      padding: 20,
+      paddingTop: 150,
+      backgroundColor: colors.background.alternative,
     },
     phishingModalTitle: {
       ...fontStyles.bold,
-      color: colors.error.default,
-      textAlign: 'center',
-    },
-    phishingModalHeader: {
-      backgroundColor: colors.background.default,
-      paddingVertical: 20,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    phishingModalInfo: {
-      backgroundColor: colors.background.alternative,
-      paddingTop: 20,
-      paddingHorizontal: 20,
-    },
-    phishingModalInfoContent: {
-      paddingBottom: 20,
+      color: colors.text.default,
+      fontSize: 24,
+      textAlign: 'left',
+      marginBottom: 16,
     },
     phishingText: {
       ...fontStyles.normal,
-      fontSize: 11,
+      fontSize: 14,
       color: colors.text.default,
-      marginBottom: 15,
+      marginBottom: 20,
     },
     link: {
-      textDecorationColor: colors.text.default,
+      color: colors.error.default,
       textDecorationLine: 'underline',
     },
-    bold: {
-      ...fontStyles.bold,
+    buttonContainer: {
+      marginVertical: 8,
+      borderRadius: 16,
+      backgroundColor: colors.background.default,
+      padding: 16,
+      flexDirection: 'row',
+      alignItems: 'center',
+      shadowColor: colors.shadow.default,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 2,
     },
-    phishingFooter: {
-      marginTop: 10,
-      alignItems: 'flex-end',
+    buttonText: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.text.default,
+      marginLeft: 12,
     },
-    backToSafetyContainer: {
-      borderWidth: 0,
-      padding: 10,
+    buttonIcon: {
+      color: colors.text.default,
+      width: 24,
+      textAlign: 'center',
+    },
+    backToSafetyButton: {
+      backgroundColor: colors.primary.default,
+      borderRadius: 30,
+      padding: 16,
+      alignItems: 'center',
+      marginTop: 32,
     },
     backToSafetyText: {
-      color: colors.error.default,
-      fontSize: 12,
+      ...fontStyles.normal,
+      fontSize: 16,
+      color: colors.primary.inverse,
     },
-    foxImage: {
-      alignSelf: 'center',
-      width: 48,
-      height: 48,
-      marginBottom: -15,
-      zIndex: 99999,
+    warningContainer: {
+      alignItems: 'left',
     },
   });
-
-const foxImage = require('../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
 
 export default class PhishingModal extends PureComponent {
   static propTypes = {
@@ -95,17 +94,9 @@ export default class PhishingModal extends PureComponent {
      */
     fullUrl: PropTypes.string,
     /**
-     * called when tapping on "Ethereum Phishing Detector"
-     */
-    goToETHPhishingDetector: PropTypes.func,
-    /**
      * Called to the user decides to proceed to the phishing site
      */
     continueToPhishingSite: PropTypes.func,
-    /**
-     * Called when the user decides to go to etherscam db website
-     */
-    goToEtherscam: PropTypes.func,
     /**
      * Called to the user decides to report an issue
      */
@@ -124,75 +115,49 @@ export default class PhishingModal extends PureComponent {
 
     return (
       <View style={styles.phishingModalWrapper}>
-        <Image
-          source={foxImage}
-          style={styles.foxImage}
-          resizeMethod={'auto'}
-        />
-        <View style={styles.phishingModalContent}>
-          <View style={styles.phishingModalHeader}>
-            <Icon name="warning" size={15} style={styles.warningIcon} />
-            <Text
-              style={styles.phishingModalTitle}
-              {...generateTestId(Platform, ETHEREUM_DETECTION_TITLE)}
-            >
-              {strings('phishing.ethereum_phishing_detection')}
-            </Text>
-          </View>
-          <ScrollView
-            style={styles.phishingModalInfo}
-            contentContainerStyle={styles.phishingModalInfoContent}
-          >
-            <Text style={styles.phishingText}>
-              <Text style={styles.bold}>{host}</Text>
-              {strings('phishing.intro')}
-            </Text>
-            <Text style={styles.phishingText}>
-              {strings('phishing.reasons')}
-              <Text
-                style={styles.link}
-                onPress={this.props.goToETHPhishingDetector}
-              >
-                {strings('phishing.ethereum_phishing_detector')}
-              </Text>
-              . {strings('phishing.list_content')}
-            </Text>
-            <Text style={styles.phishingText}>
-              {strings('phishing.to_read_more')}
-              <Text style={styles.link} onPress={this.props.goToEtherscam}>
-                {strings('phishing.review_on_etherscam')}
-              </Text>
-            </Text>
-            <Text style={styles.phishingText}>
-              {strings('phishing.warning')}
-              <Text
-                style={styles.link}
-                onPress={this.props.continueToPhishingSite}
-              >
-                {strings('phishing.continue_on_your_own')}
-              </Text>
-            </Text>
-            <Text style={styles.phishingText}>
-              {strings('phishing.reasons')}
-              <Text
-                style={styles.link}
-                onPress={this.props.goToFilePhishingIssue}
-              >
-                {strings('phishing.file_an_issue')}
-              </Text>
-            </Text>
-          </ScrollView>
+        <View style={styles.warningContainer}>
+          <Icon name="warning" style={styles.warningIcon} />
         </View>
-        <View style={styles.phishingFooter}>
-          <StyledButton
-            type={'neutral'}
-            onPress={this.props.goBackToSafety}
-            style={styles.backToSafetyText}
-            containerStyle={styles.backToSafetyContainer}
-          >
-            {strings('phishing.back_to_safety')}
-          </StyledButton>
-        </View>
+        
+        <Text
+          style={styles.phishingModalTitle}
+          {...generateTestId(Platform, ETHEREUM_DETECTION_TITLE)}
+        >
+          This website might be harmful
+        </Text>
+        
+        <Text style={styles.phishingText}>
+          MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
+        </Text>
+        
+        <Text style={styles.phishingText}>
+          You may also <Text style={styles.link} onPress={this.props.continueToPhishingSite}>proceed anyway</Text>, but please do so at your own risk.
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.buttonContainer}
+          onPress={this.props.goToFilePhishingIssue}
+        >
+          <Icon name="flag" size={16} style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>Report a detection problem</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.buttonContainer}
+          onPress={() => {}}
+        >
+          <Icon name="twitter" size={16} style={styles.buttonIcon} />
+          <Text style={styles.buttonText}>If you found this helpful, share on X!</Text>
+        </TouchableOpacity>
+        
+        <StyledButton
+          type={'confirm'}
+          onPress={this.props.goBackToSafety}
+          containerStyle={styles.backToSafetyButton}
+          styleText={styles.backToSafetyText}
+        >
+          Back to safety
+        </StyledButton>
       </View>
     );
   }

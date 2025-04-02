@@ -129,7 +129,7 @@ const PhishingModal = ({
       animationOut="slideOutDown"
       style={styles.fullScreenModal}
       backdropOpacity={1}
-      backdropColor={colors.error.default}
+      backdropColor={colors.background.alternative}
       animationInTiming={300}
       animationOutTiming={300}
       useNativeDriver
