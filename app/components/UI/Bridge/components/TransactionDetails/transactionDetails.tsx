@@ -124,13 +124,15 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
             )}
           </Box>
         </Box>
-        <Box style={styles.detailRow}>
-          <BridgeStepList
-            bridgeHistoryItem={bridgeTxHistoryItem}
+        { status.status !== StatusTypes.COMPLETE && (
+          <Box style={styles.detailRow}>
+            <BridgeStepList
+              bridgeHistoryItem={bridgeTxHistoryItem}
             srcChainTxMeta={props.route.params.tx}
             networkConfigurationsByChainId={networkConfigurationsByChainId}
           />
-        </Box>
+          </Box>
+        )}
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.date')}</Text>
           <Text>{submissionDateString}</Text>

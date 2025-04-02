@@ -167,6 +167,7 @@ import walletmoneySVG from './assets/wallet-money.svg';
 import walletSVG from './assets/wallet.svg';
 import warningSVG from './assets/warning.svg';
 import wifiSVG from './assets/wifi.svg';
+import filledcircleSVG from './assets/filled-circle.svg';
 
 /**
  * Asset stored by icon name
@@ -335,4 +336,5 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Wallet]: walletSVG,
   [IconName.Warning]: warningSVG,
   [IconName.Wifi]: wifiSVG,
+  [IconName.FilledCircle]: filledcircleSVG,
 };

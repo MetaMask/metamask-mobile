@@ -20,10 +20,10 @@ const VerticalLine = ({ color }: { color: IconColor }) => {
   return (
     <View
       style={{
-        height: 60,
-        marginTop: -16,
-        marginBottom: -16,
-        marginLeft: 5.5,
+        height: 40,
+        marginTop: -7,
+        marginBottom: -7,
+        marginLeft: 5.2,
         width: 1,
         backgroundColor: lineColor,
         zIndex: 0.1,
@@ -70,7 +70,7 @@ export default function StepProgressBarItem({
         )}
         {stepStatus === StatusTypes.COMPLETE && (
           <Icon
-            name={IconName.FullCircle}
+            name={IconName.FilledCircle}
             color={IconColor.Primary}
             size={ICON_SIZE}
           />

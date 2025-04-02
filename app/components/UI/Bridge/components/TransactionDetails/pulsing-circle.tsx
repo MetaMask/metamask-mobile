@@ -1,8 +1,35 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import { Animated, StyleSheet } from 'react-native';
 import HollowCircle from './hollow-circle';
-import { IconSize, IconColor } from '../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
-import { AlignItems, BackgroundColor, BorderRadius, JustifyContent } from '../../../Box/box.types';
+
+const createStyles = () =>
+  StyleSheet.create({
+    container: {
+      position: 'relative',
+      width: 12,
+      height: 12,
+    },
+    pulsingAura: {
+      position: 'absolute',
+      top: -2,
+      left: -2,
+      right: -2,
+      bottom: -2,
+      backgroundColor: 'rgba(3, 118, 201, 0.2)',
+      borderRadius: 8,
+    },
+    hollowCircleContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+  });
 
 /**
  * Renders the steps in the Bridge Transaction Details page
@@ -15,26 +42,37 @@ export default function PulsingCircle({
 }: {
   color: IconColor;
 }) {
+  const styles = createStyles();
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.5,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
   return (
-    <Box style={{ position: 'relative' }}>
-      <Box
-        // className="bridge-transaction-details__icon-loading" // Needed for animation
-        backgroundColor={BackgroundColor.primaryMuted}
-        justifyContent={JustifyContent.center}
-        alignItems={AlignItems.center}
-        // borderRadius={BorderRadius.full}
-        // style={{ width: '2rem', height: '2rem' }}
-      ></Box>
-      <HollowCircle
-        color={color}
-        // style={{
-        //   position: 'absolute',
-        //   left: '50%',
-        //   top: '50%',
-        //   transform: 'translate(-50%, -50%)',
-        //   borderWidth: '2px',
-        // }}
+    <Box style={styles.container}>
+      <Animated.View
+        style={[
+          styles.pulsingAura,
+          { transform: [{ scale: pulseAnim }] },
+        ]}
       />
+      <Box style={styles.hollowCircleContainer}>
+        <HollowCircle color={color} />
+      </Box>
     </Box>
   );
 }
