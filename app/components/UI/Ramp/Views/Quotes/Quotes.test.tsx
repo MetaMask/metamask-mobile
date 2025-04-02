@@ -272,11 +272,11 @@ describe('Quotes', () => {
   it('renders correctly after animation without quotes', async () => {
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
+      customActions: [],
       quotesWithoutError: [],
       quotesByPriceWithoutError: [],
       quotesByReliabilityWithoutError: [],
       recommendedQuote: undefined,
-      recommendedCustomAction: undefined,
     };
     render(Quotes);
     act(() => {

@@ -81,7 +81,7 @@ export interface FiatOrdersState {
   orders: FiatOrder[];
   customOrderIds: CustomIdData[];
   networks: AggregatorNetwork[];
-  selectedRegionAgg: Country | null;
+  selectedRegionAgg: Region | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
   getStartedSell: boolean;
