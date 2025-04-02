@@ -165,7 +165,9 @@ export const RampSDKProvider = ({
 
   const dispatch = useDispatch();
 
-  const INITIAL_SELECTED_REGION = useSelector(fiatOrdersRegionSelectorAgg);
+  const INITIAL_SELECTED_REGION: Region | null = useSelector(
+    fiatOrdersRegionSelectorAgg,
+  );
   const INITIAL_GET_STARTED = useSelector(fiatOrdersGetStartedAgg);
   const INITIAL_GET_STARTED_SELL = useSelector(fiatOrdersGetStartedSell);
   const selectedAddress = useSelector(selectedAddressSelector);
