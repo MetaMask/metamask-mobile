@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 
 import { typedSignV4SignatureRequest } from '../../../../util/test/confirm-data-helpers';
 import { DataTreeInput } from '../components/Confirm/DataTree/DataTree';
-import { parseSanitizeTypedDataMessage } from '../utils/signature';
+import { parseAndSanitizeSignTypedData2 } from '../utils/signature';
 // eslint-disable-next-line import/no-namespace
 import * as TokenDecimalHook from './useGetTokenStandardAndDetails';
 import { useTokenDecimalsInTypedSignRequest } from './useTokenDecimalsInTypedSignRequest';
@@ -12,7 +12,7 @@ describe('useTokenDecimalsInTypedSignRequest', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const typedSignData = signatureRequest?.messageParams?.data as any;
   const { domain: { verifyingContract } = {}, sanitizedMessage } =
-    parseSanitizeTypedDataMessage(typedSignData);
+    parseAndSanitizeSignTypedData2(typedSignData);
 
   it('returns correct decimal value for typed sign signature request', () => {
     jest

@@ -188,7 +188,7 @@ export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   return sanitizeParsedMessage(message, primaryType, types);
 };
 
-export const parseSanitizeTypedDataMessage = (messageParamsData: string) => {
+export const parseAndSanitizeSignTypedData2 = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
   const { domain, message, primaryType, types } =
     parseSignTypedData(messageParamsData);
