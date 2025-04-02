@@ -232,6 +232,10 @@ class Login extends PureComponent {
      * Full state of the app
      */
     fullState: PropTypes.object,
+    /**
+     * The flag to check if the oauth2 login was successful
+     */
+    oauth2LoginSuccess: PropTypes.bool,
   };
 
   state = {
@@ -248,6 +252,7 @@ class Login extends PureComponent {
     deleteText: '',
     showDeleteWarning: false,
     hasBiometricCredentials: false,
+    oauth2LoginSuccess: false,
   };
 
   fieldRef = React.createRef();
@@ -393,6 +398,7 @@ class Login extends PureComponent {
       this.state.biometryChoice,
       this.state.rememberMe,
     );
+    authType.oauth2Login = this.props.oauth2LoginSuccess;
 
     try {
       await trace(
@@ -402,7 +408,11 @@ class Login extends PureComponent {
           parentContext: this.parentSpan,
         },
         async () => {
-          await Authentication.userEntryAuth(password, authType);
+          if (this.props.oauth2LoginSuccess) {
+            await Authentication.rehydrateSeedPhrase(password, authType);
+          } else {
+            await Authentication.userEntryAuth(password, authType);
+          }
         },
       );
       Keyboard.dismiss();
@@ -676,6 +686,7 @@ Login.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   userLoggedIn: state.user.userLoggedIn,
   fullState: state,
+  oauth2LoginSuccess: state.user.oauth2LoginSuccess,
 });
 
 const mapDispatchToProps = (dispatch) => ({

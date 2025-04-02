@@ -1,8 +1,9 @@
 import DeeplinkManager from '../DeeplinkManager';
-import Oauth2LoginService from '../../Oauth2Login/Oauth2loginService';
+import Oauth2LoginService, { LoginMode, LoginProvider } from '../../Oauth2Login/Oauth2loginService';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
+import { UserActionType } from '../../../actions/user';
 
 function handleOauth2RedirectUrl({
   deeplinkManager,
@@ -18,8 +19,9 @@ function handleOauth2RedirectUrl({
 
   const state = JSON.parse(params.get('state') ?? '{}');
   const code = params.get('code') ?? undefined;
+  const mode = state.mode as LoginMode;
+  const provider = state.provider as LoginProvider;
 
-  const provider = state.provider as 'apple' | 'google';
   const clientId = state.clientId as string;
 
   Logger.log('handleOauth2RedirectUrl: provider', provider);
@@ -30,10 +32,22 @@ function handleOauth2RedirectUrl({
     Oauth2LoginService.handleCodeFlow({ code, provider , clientId, redirectUri: state.redirectUri, codeVerifier: Oauth2LoginService.localState.codeVerifier ?? undefined })
     .then((result) => {
       Logger.log('handleOauth2RedirectUrl: result', result);
+
+      Logger.log('handleOauth2RedirectUrl: result.existingUser', result.existingUser);
       if (result.type === 'success') {
-        // get current route
-        // const currentRoute = deeplinkManager.navigation.getCurrentRoute();
-        deeplinkManager.navigation.navigate('ChoosePassword');
+        // deeplinkManager.dispatch({type: UserActionType.OAUTH2_LOGIN_SUCCESS});
+
+        Logger.log('handleOauth2RedirectUrl: mode', mode);
+        Logger.log('handleOauth2RedirectUrl: result.existingUser', result.existingUser);
+        if (mode === 'onboarding') {
+          if (result.existingUser) {
+            deeplinkManager.navigation.navigate('Login');
+          } else {
+            deeplinkManager.navigation.navigate('ChoosePassword');
+          }
+        } else if (mode === 'change-password') {
+          deeplinkManager.navigation.navigate('ChangePassword');
+        }
         return code;
       }
     }).catch((error) => {

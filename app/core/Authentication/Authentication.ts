@@ -13,6 +13,7 @@ import {
   logIn,
   logOut,
   passwordSet,
+  UserActionType,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -31,6 +32,8 @@ import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
+import { getSeedPhrase } from '../Vault';
+import byteArrayToHex from '../../util/bytes';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -38,6 +41,7 @@ import ReduxService from '../redux';
 export interface AuthData {
   currentAuthType: AUTHENTICATION_TYPE; //Enum used to show type for authentication
   availableBiometryType?: BIOMETRY_TYPE;
+  oauth2Login?: boolean;
 }
 
 class AuthenticationService {
@@ -53,6 +57,12 @@ class AuthenticationService {
 
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
+  }
+
+  private dispatchOauth2Reset(): void {
+    ReduxService.store.dispatch({
+      type: UserActionType.OAUTH2_LOGIN_RESET,
+    });
   }
 
   /**
@@ -310,16 +320,16 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     try {
-      await this.createWalletVaultAndKeychain(password);
+      // check for oauth2 login
+      if (authData.oauth2Login) {
+        await this.createAndBackupSeedPhrase(password);
+      } else {
+        await this.createWalletVaultAndKeychain(password);
+      }
+
       await this.storePassword(password, authData?.currentAuthType);
       await StorageWrapper.setItem(EXISTING_USER, TRUE);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-
-
-      // if seedless onboarding is enabled, we need to create a seedphrase backup
-      // if (SeedlessOnboardingController.state.authToken.length > 0) {
-      //   await SeedlessOnboardingController.createSeedPhraseBackup(password, seedPhrase);
-      // }
 
       this.dispatchLogin();
       this.authData = authData;
@@ -471,6 +481,33 @@ class AuthenticationService {
 
   getType = async (): Promise<AuthData> =>
     await this.checkAuthenticationMethod();
+
+  createAndBackupSeedPhrase = async(
+    password: string,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController, KeyringController } = Engine.context;
+    await KeyringController.createNewVaultAndKeychain(password);
+    const seedPhrase = await getSeedPhrase(password);
+    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase: byteArrayToHex(seedPhrase)});
+    this.dispatchOauth2Reset();
+  };
+
+  rehydrateSeedPhrase = async(
+    password: string,
+    authData: AuthData,
+  ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const result = await SeedlessOnboardingController.fetchAndRestoreSeedPhraseMetadata(password);
+    if (result.secretData !== null) {
+      await this.newWalletAndRestore(password, authData, result.secretData[0], false);
+      // add in more srps
+    } else {
+      // should we throw an error here?
+      await this.newWalletAndKeychain(password, authData);
+    }
+    this.dispatchOauth2Reset();
+    // throw error if no secret data
+  };
 }
 
 export const Authentication = new AuthenticationService();

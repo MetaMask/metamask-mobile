@@ -17,29 +17,46 @@ import {signInWithGoogle} from 'react-native-google-acm';
 
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
+import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
+import { UserActionType } from '../../actions/user';
 
-const byoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-const Web3AuthNetwork = 'sapphire-testnet';
+const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
+// const ByoaServerUrl = 'https://organic-gannet-privately.ngrok-free.app';
+const Web3AuthNetwork = 'sapphire_devnet';
 const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
 
 const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
 const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
 
 const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
-const AppleServerRedirectUri = `${byoaServerUrl}/api/v1/oauth/callback`;
+const AppleServerRedirectUri = `${ByoaServerUrl}/api/v1/oauth/callback`;
 const AppleWebClientId = 'com.web3auth.appleloginextension';
 
 
-type HandleOauth2LoginResult = {type: 'pending'} | {type: AuthSessionResult['type']};
+export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
+export type LoginProvider = 'apple' | 'google';
+export type LoginMode = 'onboarding' | 'change-password';
+
 
 interface HandleFlowParams {
-    provider: 'apple' | 'google';
+    provider: LoginProvider;
     code?: string;
     idToken?: string;
     clientId: string;
     redirectUri?: string;
     codeVerifier?: string;
     web3AuthNetwork?: string;
+}
+
+interface ByoaResponse {
+    id_token: string;
+    verifier: string;
+    verifier_id: string;
+    indexes: Record<string, number>;
+    endpoints: Record<string, string>;
+    success: boolean;
+    message: string;
+    jwt_tokens: Record<string, string>;
 }
 
 export class Oauth2LoginService {
@@ -56,7 +73,7 @@ export class Oauth2LoginService {
         };
     }
 
-    #iosHandleOauth2Login = async (provider: 'apple' | 'google') : Promise<HandleOauth2LoginResult> => {
+    #iosHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
         try {
             if (provider === 'apple') {
                 const credential = await signInAsync({
@@ -70,10 +87,14 @@ export class Oauth2LoginService {
                             provider: 'apple',
                             idToken: credential.identityToken,
                             clientId: IosGID,
-                    });
+                    } );
                 }
-                return {type: 'dismiss'};
+                return {type: 'dismiss', existingUser: false};
             } else if (provider === 'google') {
+                const state = JSON.stringify({
+                    mode,
+                    random: Math.random().toString(36).substring(2, 15),
+                });
                 const authRequest = new AuthRequest({
                     clientId: IosGID,
                     redirectUri: IosGoogleRedirectUri,
@@ -81,6 +102,7 @@ export class Oauth2LoginService {
                     responseType: ResponseType.Code,
                     codeChallengeMethod: CodeChallengeMethod.S256,
                     usePKCE: true,
+                    state,
                 });
                 const result = await authRequest.promptAsync({
                     authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -95,7 +117,7 @@ export class Oauth2LoginService {
                         codeVerifier: authRequest.codeVerifier,
                     });
                 }
-                return result;
+                return {...result, existingUser: false};
             }
             throw new Error('Invalid provider : ' + provider);
         } catch (error) {
@@ -103,11 +125,11 @@ export class Oauth2LoginService {
                 message: 'iosHandleOauth2Login',
                 provider,
             } );
-            return {type: 'error'};
+            return {type: 'error', existingUser: false};
         }
     };
 
-    #androidHandleOauth2Login = async (provider: 'apple' | 'google') : Promise<HandleOauth2LoginResult> => {
+    #androidHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
         try {
             if (provider === 'apple') {
                 const state = JSON.stringify({
@@ -115,7 +137,8 @@ export class Oauth2LoginService {
                     client_redirect_back_uri: AppRedirectUri,
                     redirectUri: AppleServerRedirectUri,
                     clientId: AppleWebClientId,
-                    random: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
+                    random: Math.random().toString(36).substring(2, 15),
+                    mode,
                 });
                 const authRequest = new AuthRequest({
                     clientId: AppleWebClientId,
@@ -164,11 +187,11 @@ export class Oauth2LoginService {
         } catch (error) {
             Logger.log('handleGoogleLogin: error', error);
             DevLogger.log('handleGoogleLogin: error', error);
-            return {type: 'error'};
+            return {type: 'error', existingUser: false};
         }
     };
 
-    handleCodeFlow = async (params : HandleFlowParams) : Promise<{type: 'success' | 'error', error?: string}> => {
+    handleCodeFlow = async (params : HandleFlowParams) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean}> => {
         const {code, idToken, provider, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
 
         const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
@@ -188,25 +211,25 @@ export class Oauth2LoginService {
 
         Logger.log('handleCodeFlow: body', body);
         try {
-            const res = await fetch(`${byoaServerUrl}/${pathname}`, {
+            const res = await fetch(`${ByoaServerUrl}/${pathname}`, {
                 method: 'POST',
                 headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
             });
 
-            const data = await res.json();
+            const data = await res.json() as ByoaResponse;
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
-                await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
-                    idTokens: [data.id_token],
-                    verifier: data.verifier,
+                const result = await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
+                    idTokens: Object.values(data.jwt_tokens),
+                    verifier: data.verifier as OAuthVerifier,
                     verifierID: data.verifier_id,
-                    indexes: [data.index],
-                    endpoints: [data.endpoint],
+                    indexes: Object.values(data.indexes),
+                    endpoints: Object.values(data.endpoints),
                 });
-                return {type: 'success'};
+                return {type: 'success', existingUser: result.hasValidEncKey};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
         } catch (error) {
@@ -214,7 +237,7 @@ export class Oauth2LoginService {
             Logger.error( error as Error, {
                 message: 'handleCodeFlow',
             } );
-            return {type: 'error'};
+            return {type: 'error', existingUser: false};
         } finally {
             // ReduxService.store.dispatch({
             // });
@@ -223,19 +246,56 @@ export class Oauth2LoginService {
         }
     };
 
-    handleOauth2Login = async (provider: 'apple' | 'google') : Promise<HandleOauth2LoginResult> => {
+    handleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
         if (this.localState.loginInProgress) {
             throw new Error('Login already in progress');
         }
         this.localState.loginInProgress = true;
-
+        let result;
         if (Platform.OS === 'ios') {
-            return await this.#iosHandleOauth2Login(provider);
+            result = await this.#iosHandleOauth2Login(provider, mode);
         } else if (Platform.OS === 'android') {
-            return await this.#androidHandleOauth2Login(provider);
+            result = await this.#androidHandleOauth2Login(provider, mode);
         }
-        this.localState.loginInProgress = false;
-        throw new Error('Invalid platform');
+
+        if (result === undefined) {
+            this.localState.loginInProgress = false;
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_ERROR,
+                payload: {
+                    error: 'Invalid platform',
+                },
+            });
+            throw new Error('Invalid platform');
+        }
+
+        if (result.type === 'success') {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_SUCCESS,
+                payload: {
+                    existingUser: result.existingUser,
+                },
+            });
+        } else if (result.type === 'error' && 'error' in result) {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_ERROR,
+                payload: {
+                    error: result.error,
+                },
+            });
+        } else if (result.type === 'pending') {
+            setTimeout(() => {
+                ReduxService.store.dispatch({
+                    type: UserActionType.OAUTH2_LOGIN_COMPLETE,
+                });
+            }, 10000);
+        } else {
+            this.localState.loginInProgress = false;
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_RESET,
+            });
+        }
+        return result;
     };
 }
 

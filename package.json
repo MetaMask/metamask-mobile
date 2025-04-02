@@ -204,7 +204,7 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/seedless-onboarding-controller": "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?7e3d33696713d2644480de02409db6f570b56fc4",
+    "@metamask/seedless-onboarding-controller": "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?a46c7fb67392d78e3235a00dbea36e60e483c836",
     "@metamask/selected-network-controller": "^21.0.0",
     "@metamask/signature-controller": "^23.1.0",
     "@metamask/slip44": "^4.1.0",

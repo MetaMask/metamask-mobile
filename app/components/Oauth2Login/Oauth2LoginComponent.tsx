@@ -5,7 +5,6 @@ import { strings } from '../../../locales/i18n';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { useNavigation, ParamListBase, NavigationProp } from '@react-navigation/native';
 import Oauth2LoginService from '../../core/Oauth2Login/Oauth2loginService';
-
 const styles = StyleSheet.create({
   buttonWrapper: {
     marginBottom: 16,
@@ -22,13 +21,18 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          const result = await Oauth2LoginService.handleOauth2Login('apple' ).catch((e) => {
+          const result = await Oauth2LoginService.handleOauth2Login('apple', 'onboarding').catch((e) => {
             DevLogger.log(e);
-            return {type: 'error', error: e};
+            return {type: 'error', error: e, existingUser: false};
           });
 
           if (result.type === 'success') {
-            navigation.navigate('ChoosePassword');
+
+            if (result.existingUser) {
+              navigation.navigate('Login');
+            } else {
+              navigation.navigate('ChoosePassword');
+            }
           }
         }}
       > {strings('login.apple_button')} </StyledButton>
@@ -39,13 +43,17 @@ export default function Oauth2LoginComponent( ) {
         type={'normal'}
         testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
         onPress={async () => {
-          const result = await Oauth2LoginService.handleOauth2Login('google').catch((e) => {
+          const result = await Oauth2LoginService.handleOauth2Login('google', 'onboarding').catch((e) => {
             DevLogger.log(e);
-            return {type: 'error', error: e};
+            return {type: 'error', error: e, existingUser: false};
           });
 
           if (result.type === 'success') {
-            navigation.navigate('ChoosePassword');
+            if (result.existingUser) {
+              navigation.navigate('Login');
+            } else {
+              navigation.navigate('ChoosePassword');
+            }
           }
         }}
       > {strings('login.google_button')} </StyledButton>
