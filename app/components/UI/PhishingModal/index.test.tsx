@@ -34,7 +34,7 @@ describe('PhishingModal', () => {
 
     // Check the URL that was passed to canOpenURL
     expect(mockCanOpenURL).toHaveBeenCalledWith(expect.stringContaining('twitter.com/intent/tweet'));
-    expect(mockCanOpenURL).toHaveBeenCalledWith(expect.stringContaining('MetaMask just protected me from a phishing attack!'));
+    expect(mockCanOpenURL).toHaveBeenCalledWith(expect.stringContaining('MetaMask%20just%20protected%20me%20from%20a%20phishing%20attack!'));
 
     // Verify Linking.openURL was called with the expected URL pattern
     await Promise.resolve(); // Wait for the canOpenURL promise to resolve
