@@ -19,7 +19,7 @@ import { selectMultichainTokenListForAccountId } from '../../../../../selectors/
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
-
+import { renderNumber, renderFiat } from '../../../../../util/number';
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
   multiChainMarketData: ReturnType<typeof selectTokenMarketData>;
@@ -171,10 +171,10 @@ export const useTokensWithBalance: ({
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
       .map((token, i) => {
         const evmBalance = balances?.[i]?.balance;
-        const nonEvmBalance = token.balance ?? 0;
+        const nonEvmBalance = renderNumber(token.balance ?? '0');
 
         const evmBalanceFiat = balances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = token.balanceFiat;
+        const nonEvmBalanceFiat = renderFiat(Number(token.balanceFiat ?? 0), currentCurrency);
 
         const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
