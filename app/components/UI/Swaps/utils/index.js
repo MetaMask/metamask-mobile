@@ -4,6 +4,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+import { SolScope } from '@metamask/keyring-api';
 
 const {
   ETH_CHAIN_ID,
@@ -47,7 +48,7 @@ export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
-  return allowedChainIds.includes(chainId);
+  return allowedChainIds.includes(chainId) || chainId === SolScope.Mainnet;
 }
 
 export function isSwapsNativeAsset(token) {
