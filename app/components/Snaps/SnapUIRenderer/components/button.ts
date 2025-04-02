@@ -8,15 +8,23 @@ import { NonEmptyArray } from '@metamask/utils';
 import { mapTextToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
+import { Theme } from '../../../../util/theme/models';
 
-interface ButtonElementProps extends ButtonElement {
-  props: ButtonProps & {
-    loading?: boolean;
-    size?: 'sm' | 'md';
-  };
-}
+function getTextColor(theme: Theme, props: ButtonElement['props']) {
+  if (props.disabled) {
+    return theme.colors.text.muted;
+  }
 
-export const button: UIComponentFactory<ButtonElementProps> = ({
+  switch (props.variant) {
+    case 'destructive':
+      return theme.colors.error.default;
+    default:
+    case 'primary':
+      return theme.colors.info.default;
+  }
+};
+
+export const button: UIComponentFactory<ButtonElement> = ({
   element: e,
   ...params
 }) => ({
@@ -29,13 +37,12 @@ export const button: UIComponentFactory<ButtonElementProps> = ({
     name: e.props.name,
     disabled: e.props.disabled,
     loading: e.props.loading ?? false,
-    textVariant:
-      e.props.size === 'sm'
-        ? TextVariant.BodySMMedium
-        : TextVariant.BodyMDMedium,
   },
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    { ...params, textColor: params.theme.colors.info.default },
+    { ...params, textColor: getTextColor(params.theme, e.props), textVariant:
+      e.props.size === 'sm'
+        ? TextVariant.BodySMMedium
+        : TextVariant.BodyMDMedium, },
   ),
 });

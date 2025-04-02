@@ -11,7 +11,7 @@ export const link: UIComponentFactory<LinkElement> = ({
   element: 'SnapUILink',
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    { ...params, textColor: params.theme.colors.info.default }
+    { ...params, textColor: params.theme.colors.info.default },
   ),
   props: {
     href: e.props.href,

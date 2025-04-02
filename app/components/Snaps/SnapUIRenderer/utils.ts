@@ -22,13 +22,15 @@ export interface MapToTemplateParams {
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
-  
+
   // React Native specific props
   theme: Theme;
   // If the component must inherit the size of the parent, the parent must pass this size to their children.
-  size?: string;
+  textSize?: string;
   // If the component must inherit the color of the parent, the parent must pass this color to their children.
   textColor?: string;
+  // If the component must inherit the variant of the parent, the parent must pass this variant to their children.
+  textVariant?: string;
 }
 
 /**
@@ -135,7 +137,7 @@ export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
   params: Pick<
     MapToTemplateParams,
-    'map' | 'useFooter' | 'onCancel' | 'theme' | 'size' | 'textColor'
+    'map' | 'useFooter' | 'onCancel' | 'theme' | 'textSize' | 'textColor' | 'textVariant'
   >,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
@@ -143,10 +145,10 @@ export const mapTextToTemplate = (
       const text = unescapeFn(e);
       const key = generateKey(params.map, Text({ children: text }));
       return {
-        element: 'RNText',
+        element: 'Text',
         key,
         children: text,
-        props: { color: params.textColor },
+        props: { variant: params.textVariant, style: { color: params.textColor } },
       };
     }
 

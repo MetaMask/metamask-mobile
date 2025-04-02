@@ -39,7 +39,7 @@ function getFontWeight(color: TextElement['props']['fontWeight']) {
   }
 }
 
-const alignText = (alignment: TextElement['props']['alignment']) => {
+function alignText(alignment: TextElement['props']['alignment']) {
   switch (alignment) {
     case 'start':
       return 'left';
@@ -52,6 +52,17 @@ const alignText = (alignment: TextElement['props']['alignment']) => {
   }
 };
 
+function getTextVariant(size: TextElement['props']['size'], inheritedVariant?: string) {
+  switch (size) {
+    case 'md':
+      return TextVariant.BodyMD;
+    case 'sm':
+      return TextVariant.BodySM;
+    default:
+      return inheritedVariant ?? TextVariant.BodyMD;
+  }
+}
+
 export const text: UIComponentFactory<TextElement> = ({
   element: e,
   ...params
@@ -60,12 +71,12 @@ export const text: UIComponentFactory<TextElement> = ({
   children: mapTextToTemplate(
     getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
     {
-      size: e.props.size,
+      textSize: e.props.size,
       ...params,
     },
   ),
   props: {
-    variant: e.props.size === 'sm' ? TextVariant.BodySM : TextVariant.BodyMD,
+    variant: getTextVariant(e.props.size, params.textVariant),
     fontWeight: getFontWeight(e.props.fontWeight),
     color: getTextColor(e.props.color) ?? params.textColor,
     textAlign: alignText(e.props.alignment),
