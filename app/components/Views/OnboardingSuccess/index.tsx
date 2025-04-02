@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -64,10 +64,13 @@ const OnboardingSuccess = ({
     Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
   };
 
-  const handleOnDone = async () => {
-    await importAdditionalAccounts();
+  const handleOnDone = useCallback(() => {
+    const onOnboardingSuccess = async () => {
+      await importAdditionalAccounts();
+    };
+    onOnboardingSuccess();
     onDone();
-  };
+  }, [onDone]);
 
   const saveHint = async () => {
     if (!hintText) return;
