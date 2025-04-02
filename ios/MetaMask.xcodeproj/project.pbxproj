@@ -91,6 +91,9 @@
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
 		F961A37228105CF9007442B5 /* LinkPresentation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F961A36A28105CF9007442B5 /* LinkPresentation.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+		2DB185B146874CE1B7ED1521 /* MMPoly-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 37795AB495584378B0CAD569 /* MMPoly-Regular.otf */; };
+		A6341F6C52B741948AA7ADFC /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 7FA1B7E55D7B43799FE5DE30 /* MMSans-Bold.otf */; };
+		4DB885B4EC4547F3B3B01E16 /* MMSans-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 32F88EADD3B143808E390C45 /* MMSans-Medium.otf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -245,6 +248,9 @@
 		F97653CAD1D04E1B8713C428 /* CentraNo1-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "CentraNo1-Medium.otf"; path = "../app/fonts/CentraNo1-Medium.otf"; sourceTree = "<group>"; };
 		F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNShakeEvent.a; sourceTree = "<group>"; };
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
+		37795AB495584378B0CAD569 /* MMPoly-Regular.otf */ = {isa = PBXFileReference; name = "MMPoly-Regular.otf"; path = "../app/fonts/MMPoly-Regular.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		7FA1B7E55D7B43799FE5DE30 /* MMSans-Bold.otf */ = {isa = PBXFileReference; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		32F88EADD3B143808E390C45 /* MMSans-Medium.otf */ = {isa = PBXFileReference; name = "MMSans-Medium.otf"; path = "../app/fonts/MMSans-Medium.otf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -419,6 +425,9 @@
 				5F91BBBBADCB4C7286B1A950 /* CentraNo1-MediumItalic.otf */,
 				2679C48F8CD642C68116DD24 /* config.json */,
 				2EBD310362314C3ABFF40AD1 /* MMSans-Regular.otf */,
+				37795AB495584378B0CAD569 /* MMPoly-Regular.otf */,
+				7FA1B7E55D7B43799FE5DE30 /* MMSans-Bold.otf */,
+				32F88EADD3B143808E390C45 /* MMSans-Medium.otf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -702,6 +711,9 @@
 				7F5D30C6178D467D96653D0F /* CentraNo1-MediumItalic.otf in Resources */,
 				3466654F43654D36B5D478CA /* config.json in Resources */,
 				DADE8F39CE81410A98B9B805 /* MMSans-Regular.otf in Resources */,
+				2DB185B146874CE1B7ED1521 /* MMPoly-Regular.otf in Resources */,
+				A6341F6C52B741948AA7ADFC /* MMSans-Bold.otf in Resources */,
+				4DB885B4EC4547F3B3B01E16 /* MMSans-Medium.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
