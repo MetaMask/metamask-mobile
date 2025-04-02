@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
@@ -105,7 +105,7 @@ export const calculateBalances = ({
 export const useTokensWithBalance: ({
   chainIds,
 }: {
-  chainIds: Hex[];
+  chainIds: (Hex | CaipChainId)[] | undefined;
 }) => BridgeToken[] = ({ chainIds }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -127,18 +127,27 @@ export const useTokensWithBalance: ({
   );
   const evmTokenBalances = useSelector(selectTokensBalances);
 
+  // Already contains fiat values
+  let nonEvmTokens: ReturnType<typeof selectMultichainTokenList> = [];
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const nonEvmTokens = useSelector(selectMultichainTokenList);
-  console.log('nonEvmTokens', nonEvmTokens);
+  nonEvmTokens = useSelector(selectMultichainTokenList);
   ///: END:ONLY_INCLUDE_IF
 
+  if (!chainIds) {
+    return [];
+  }
+
   const sortedTokens = useMemo(() => {
-    const allAccountTokens = (
+    const allEvmAccountTokens = (
       Object.values(accountTokensAcrossChains).flat() as TokenI[]
     ).filter((token) => chainIds.includes(token.chainId as Hex));
 
+    const allNonEvmAccountTokens = (
+      Object.values(nonEvmTokens).flat()
+    ).filter((token) => chainIds.includes(token.chainId));
+
     const balances = calculateBalances({
-      assets: allAccountTokens,
+      assets: allEvmAccountTokens,
       multiChainMarketData,
       multiChainTokenBalance: evmTokenBalances,
       networkConfigurationsByChainId,
@@ -146,18 +155,18 @@ export const useTokensWithBalance: ({
       currentCurrency,
       selectedAddress: selectedInternalAccountAddress,
     });
-    const properTokens: BridgeToken[] = allAccountTokens
+    const properTokens: BridgeToken[] = [...allNonEvmAccountTokens]
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
       .map((token, i) => ({
         address: token.address,
         name: token.name,
         decimals: token.decimals,
         symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
-        chainId: token.chainId as Hex,
+        chainId: token.chainId,
         image: token.image,
-        tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
-        balance: balances[i].balance,
-        balanceFiat: balances[i].balanceFiat,
+        tokenFiatAmount: Number(token.balanceFiat) ?? balances[i].tokenFiatAmount ?? 0,
+        balance: token.balance ?? balances[i].balance,
+        balanceFiat: token.balanceFiat ?? balances[i].balanceFiat,
       }));
     return sortAssets(properTokens, tokenSortConfig);
   }, [
