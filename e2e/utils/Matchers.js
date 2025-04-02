@@ -87,9 +87,7 @@ class Matchers {
    * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
-    return device.getPlatform() === 'ios'
-      ? web(by.id(elementId))
-      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+    return web(by.id(elementId));
   }
 
   /**
@@ -153,7 +151,6 @@ class Matchers {
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
   }
-
 
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.
