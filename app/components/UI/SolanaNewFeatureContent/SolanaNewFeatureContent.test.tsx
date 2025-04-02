@@ -46,13 +46,12 @@ const initialMetrics: Metrics = {
   insets: { top: 0, left: 0, right: 0, bottom: 0 },
 };
 
-const renderWithProviders = (component: React.ReactElement) => {
-  return render(
+const renderWithProviders = (component: React.ReactElement) =>
+  render(
     <SafeAreaProvider initialMetrics={initialMetrics}>
       {component}
     </SafeAreaProvider>,
   );
-};
 
 describe('SolanaNewFeatureContent', () => {
   beforeEach(() => {
