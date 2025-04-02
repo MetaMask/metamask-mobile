@@ -2,8 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../util/theme';
-import Icon from '../../../component-library/components/Icons/Icon';
-import {
+import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
