@@ -608,7 +608,7 @@ PODS:
     - React-Core
   - react-native-camera/RN (3.44.3):
     - React-Core
-  - react-native-compat (2.18.1):
+  - react-native-compat (2.15.0):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
   - react-native-cookies (6.2.1):
@@ -1345,7 +1345,7 @@ SPEC CHECKSUMS:
   OpenSSL-Universal: ebc357f1e6bc71fa463ccb2fe676756aff50e88c
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
-  RCT-Folly: 424b8c9a7a0b9ab2886ffe9c3b041ef628fd4fb1
+  RCT-Folly: 8dc08ca5a393b48b1c523ab6220dfdcc0fe000ad
   RCTRequired: fb207f74935626041e7308c9e88dcdda680f1073
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
   RCTTypeSafety: 146fd11361680250b7580dd1f7f601995cfad1b1
@@ -1369,7 +1369,7 @@ SPEC CHECKSUMS:
   react-native-blur: 4024ea270983c8b3575768b1d7ecc94c1374f8b3
   react-native-branch: 76e1f947b40597727e6faa5cba5824d7ecf6c6b0
   react-native-camera: 1e6fefa515d3af8b4aeaca3a8bffa2925252c4ea
-  react-native-compat: 5df360fab7fb83c1a5346271b23de845261a5011
+  react-native-compat: 8050db8973090f2c764807e7fa74f163f78e4c32
   react-native-cookies: d648ab7025833b977c0b19e142503034f5f29411
   react-native-fast-crypto: 6b448866f5310cf203714a21147ef67f735bea8e
   react-native-flipper: ca4382a2b6cfd319b6e212539bc1fe7aafe36879
