@@ -222,7 +222,7 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
-  autoApprove,
+  autoApprove = false,
   hooks,
 }) {
   const {
