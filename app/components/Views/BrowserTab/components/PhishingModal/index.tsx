@@ -13,7 +13,6 @@ import styleSheet from './styles';
 import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
 import { useMetrics } from '../../../../hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { Linking } from 'react-native';
 
 interface PhishingModalProps {
   blockedUrl?: string;
