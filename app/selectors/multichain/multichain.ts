@@ -185,27 +185,27 @@ export function selectMultichainAssetsRates(state: RootState) {
     .conversionRates;
 }
 
-export const selectMultichainTokenList = createDeepEqualSelector(
-  selectSelectedInternalAccount,
+export const selectMultichainTokenListForAccountId = createDeepEqualSelector(
   selectMultichainBalances,
   selectMultichainAssets,
   selectMultichainAssetsMetadata,
   selectMultichainAssetsRates,
   selectSelectedNonEvmNetworkChainId,
+  (_: RootState, accountId: string | undefined) => accountId,
   (
-    selectedAccountAddress,
     multichainBalances,
     assets,
     assetsMetadata,
     assetsRates,
     nonEvmNetworkChainId,
+    accountId,
   ) => {
-    if (!selectedAccountAddress) {
+    if (!accountId) {
       return [];
     }
 
-    const assetIds = assets?.[selectedAccountAddress.id] || [];
-    const balances = multichainBalances?.[selectedAccountAddress.id];
+    const assetIds = assets?.[accountId] || [];
+    const balances = multichainBalances?.[accountId];
 
     const tokens = [];
 
@@ -254,6 +254,17 @@ export const selectMultichainTokenList = createDeepEqualSelector(
     }
 
     return tokens;
+  },
+);
+
+export const selectMultichainTokenList = createDeepEqualSelector(
+  (state: RootState) => state,
+  selectSelectedInternalAccount,
+  (state, selectedAccount) => {
+    return selectMultichainTokenListForAccountId(
+      state,
+      selectedAccount?.id,
+    );
   },
 );
 

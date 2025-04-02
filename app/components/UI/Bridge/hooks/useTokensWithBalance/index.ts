@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectLastSelectedEvmAccount, selectLastSelectedSolanaAccount } from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -15,8 +15,10 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-import { selectAccountTokensAcrossChains, selectMultichainTokenList } from '../../../../../selectors/multichain';
+import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
+import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
+import { RootState } from '../../../../../reducers';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -109,12 +111,12 @@ export const useTokensWithBalance: ({
 }) => BridgeToken[] = ({ chainIds }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const selectedInternalAccountAddress = useSelector(
-    selectSelectedInternalAccountAddress,
-  ) as Hex;
   const networkConfigurationsByChainId = useSelector(
     selectNetworkConfigurations,
   );
+
+  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
+  const lastSelectedSolanaAccount = useSelector(selectLastSelectedSolanaAccount);
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -122,22 +124,24 @@ export const useTokensWithBalance: ({
 
   // All tokens across chains and their balances
   // Includes native and non-native tokens
-  const accountTokensAcrossChains = useSelector(
-    selectAccountTokensAcrossChains,
+  const accountTokensAcrossChains = useSelector((state: RootState) =>
+    selectAccountTokensAcrossChainsForAddress(state, lastSelectedEvmAccount?.address),
   );
   const evmTokenBalances = useSelector(selectTokensBalances);
 
-  // Already contains fiat values
-  let nonEvmTokens: ReturnType<typeof selectMultichainTokenList> = [];
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  nonEvmTokens = useSelector(selectMultichainTokenList);
+  // Already contains balance and fiat values
+  // Balance and fiat values are not truncated
+  const nonEvmTokens = useSelector((state: RootState) =>
+    selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
+  );
   ///: END:ONLY_INCLUDE_IF
 
-  if (!chainIds) {
-    return [];
-  }
-
   const sortedTokens = useMemo(() => {
+    if (!chainIds) {
+      return [];
+    }
+
     const allEvmAccountTokens = (
       Object.values(accountTokensAcrossChains).flat() as TokenI[]
     ).filter((token) => chainIds.includes(token.chainId as Hex));
@@ -153,21 +157,39 @@ export const useTokensWithBalance: ({
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
-      selectedAddress: selectedInternalAccountAddress,
+      selectedAddress: lastSelectedEvmAccount?.address as Hex,
     });
-    const properTokens: BridgeToken[] = [...allNonEvmAccountTokens]
+
+    const allTokens = [
+      ...allEvmAccountTokens,
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      ...allNonEvmAccountTokens,
+      ///: END:ONLY_INCLUDE_IF
+    ];
+
+    const properTokens: BridgeToken[] = allTokens
       .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
-      .map((token, i) => ({
-        address: token.address,
-        name: token.name,
-        decimals: token.decimals,
-        symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
-        chainId: token.chainId,
-        image: token.image,
-        tokenFiatAmount: Number(token.balanceFiat) ?? balances[i].tokenFiatAmount ?? 0,
-        balance: token.balance ?? balances[i].balance,
-        balanceFiat: token.balanceFiat ?? balances[i].balanceFiat,
-      }));
+      .map((token, i) => {
+        const evmBalance = balances?.[i]?.balance;
+        const nonEvmBalance = token.balance ?? 0;
+
+        const evmBalanceFiat = balances?.[i]?.balanceFiat;
+        const nonEvmBalanceFiat = token.balanceFiat;
+
+        const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
+        const nonEvmTokenFiatAmount = Number(token.balanceFiat);
+
+        return ({
+          address: token.address,
+          name: token.name,
+          decimals: token.decimals,
+          symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
+          chainId: token.chainId as Hex | CaipChainId,
+          image: token.image,
+          tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
+          balance: evmBalance ?? nonEvmBalance,
+          balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
+      });});
     return sortAssets(properTokens, tokenSortConfig);
   }, [
     accountTokensAcrossChains,
@@ -176,9 +198,12 @@ export const useTokensWithBalance: ({
     networkConfigurationsByChainId,
     multiChainCurrencyRates,
     currentCurrency,
-    selectedInternalAccountAddress,
     tokenSortConfig,
+    lastSelectedEvmAccount?.address,
     chainIds,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    nonEvmTokens,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   return sortedTokens;
