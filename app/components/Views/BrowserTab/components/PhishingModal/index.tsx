@@ -51,7 +51,7 @@ const PhishingModal = ({
         createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
           .addProperties({
             url: hostname,
-            reason: 'eth-phishing-detect',
+            reason: 'blocklist',
           })
           .build(),
       );
@@ -71,10 +71,11 @@ const PhishingModal = ({
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
+    const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PROCEED_ANYWAY_CLICKED)
         .addProperties({
-          url: blockedUrl,
+          url: hostname,
         })
         .build(),
     );
