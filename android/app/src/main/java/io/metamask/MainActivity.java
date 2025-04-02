@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import com.facebook.react.ReactInstanceManager;
 
 public class MainActivity extends ReactActivity {
 
@@ -36,8 +37,11 @@ public class MainActivity extends ReactActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(null);
-		DevSupportManagerBase.setDevSupportEnabled(false); // Disable RN's dev loading view
+		super.onCreate(savedInstanceState);
+		ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
+		if (reactInstanceManager != null && reactInstanceManager.getDevSupportManager() != null) {
+			reactInstanceManager.getDevSupportManager().setDevSupportEnabled(false);
+		}
 	}
 
 	@Override
