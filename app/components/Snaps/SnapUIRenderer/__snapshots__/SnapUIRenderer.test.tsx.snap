@@ -1133,7 +1133,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1367,7 +1367,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1972,7 +1972,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     "flexDirection": "row",
                     "height": "auto",
                     "justifyContent": "center",
-                    "maxHeight": 64,
+                    "maxHeight": 58,
                     "minHeight": 48,
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -2377,7 +2377,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -2527,7 +2527,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -2995,7 +2995,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
