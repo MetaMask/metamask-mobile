@@ -36,6 +36,7 @@ public class MainActivity extends ReactActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(null);
+		DevSupportManagerBase.setDevSupportEnabled(false); // Disable RN's dev loading view
 	}
 
 	@Override
