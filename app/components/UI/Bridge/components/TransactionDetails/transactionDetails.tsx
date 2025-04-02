@@ -32,8 +32,9 @@ const createStyles = () =>
       paddingVertical: 4,
     },
     arrowContainer: {
-      paddingLeft: 16,
-      paddingVertical: 8,
+      paddingLeft: 11,
+      paddingTop: 1,
+      paddingBottom: 10,
     },
     transactionContainer: {
       paddingLeft: 8,

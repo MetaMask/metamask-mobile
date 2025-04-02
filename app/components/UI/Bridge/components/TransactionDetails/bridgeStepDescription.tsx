@@ -10,7 +10,7 @@ import { ActionTypes, BridgeHistoryItem, Step } from '@metamask/bridge-status-co
 import { decimalToPrefixedHex } from '../../../../../util/conversions';
 import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { Box } from '../../../Box/Box';
-import { AlignItems } from '../../../Box/box.types';
+import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -158,6 +158,7 @@ export default function BridgeStepDescription({
   return (
     <Box
       alignItems={AlignItems.center}
+      flexDirection={FlexDirection.Row}
       gap={2}
     >
       {time && <Text color={TextColor.Default}>{time}</Text>}

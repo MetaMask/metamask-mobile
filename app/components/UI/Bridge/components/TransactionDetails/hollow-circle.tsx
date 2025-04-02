@@ -12,7 +12,7 @@ interface HollowCircleProps {
 }
 
 const HollowCircle = React.forwardRef<View, HollowCircleProps>(
-  ({ size = IconSize.Md, color, style }, ref) => {
+  ({ color, style }, ref) => {
     return (
       <Box
         ref={ref}

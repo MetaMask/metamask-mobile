@@ -55,7 +55,7 @@ export default function BridgeStepList({
           (nextStepStatus === StatusTypes.PENDING ||
             nextStepStatus === StatusTypes.COMPLETE);
 
-        // Making a distinction betweeen displayedStepStatus and stepStatus
+        // Making a distinction between displayedStepStatus and stepStatus
         // stepStatus is determined independently of other steps
         // So despite both being technically PENDING,
         // We only want a single spinner animation at a time, so we need to take into account other steps

@@ -8,14 +8,11 @@ import { AlignItems, BackgroundColor, BorderRadius, JustifyContent } from '../..
  * Renders the steps in the Bridge Transaction Details page
  *
  * @param options
- * @param options.iconSize - The size of the icon
  * @param options.color - The color of the icon
  */
 export default function PulsingCircle({
-  iconSize,
   color,
 }: {
-  iconSize: IconSize;
   color: IconColor;
 }) {
   return (
@@ -29,7 +26,6 @@ export default function PulsingCircle({
         // style={{ width: '2rem', height: '2rem' }}
       ></Box>
       <HollowCircle
-        size={iconSize}
         color={color}
         // style={{
         //   position: 'absolute',

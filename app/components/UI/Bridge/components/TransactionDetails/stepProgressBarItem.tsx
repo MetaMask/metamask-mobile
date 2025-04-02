@@ -1,23 +1,36 @@
 import React from 'react';
+import { View } from 'react-native';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import HollowCircle from './hollow-circle';
 import PulsingCircle from './pulsing-circle';
 import { StatusTypes } from '@metamask/bridge-status-controller';
+import { useTheme } from '../../../../../util/theme';
+import { Box } from '../../../Box/Box';
+import { AlignItems, FlexDirection } from '../../../Box/box.types';
 
 const ICON_SIZE = IconSize.Xs;
 
-const VerticalLine = ({ color }: { color: IconColor }) => (
-  <div
-    style={{
-      height: '60px',
-      marginTop: '-1rem',
-      marginBottom: '-1rem',
-      width: '1px',
-      backgroundColor: `var(--color-${color})`,
-      zIndex: 0.1,
-    }}
-  />
-);
+const VerticalLine = ({ color }: { color: IconColor }) => {
+  const { colors } = useTheme();
+  let lineColor = colors.primary.default;
+  if (color === IconColor.Muted) {
+    lineColor = colors.icon.muted;
+  }
+
+  return (
+    <View
+      style={{
+        height: 60,
+        marginTop: -16,
+        marginBottom: -16,
+        marginLeft: 5.5,
+        width: 1,
+        backgroundColor: lineColor,
+        zIndex: 0.1,
+      }}
+    />
+  );
+};
 
 type StepsProgressBarItemProps = {
   stepStatus: StatusTypes | null;
@@ -43,24 +56,29 @@ export default function StepProgressBarItem({
 }: StepsProgressBarItemProps) {
   return (
     <>
-      {/* Indicator dots */}
-      {(stepStatus === null || stepStatus === StatusTypes.UNKNOWN) && (
-        <HollowCircle size={ICON_SIZE} color={IconColor.Muted} />
-      )}
-      {stepStatus === StatusTypes.PENDING && (
-        <PulsingCircle iconSize={ICON_SIZE} color={IconColor.Primary} />
-      )}
-      {stepStatus === StatusTypes.COMPLETE && (
-        <Icon
-          name={IconName.FullCircle}
-          color={IconColor.Primary}
-          size={ICON_SIZE}
-        />
-      )}
+      <Box
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={2}
+      >
+        {/* Indicator dots */}
+        {(stepStatus === null || stepStatus === StatusTypes.UNKNOWN) && (
+          <HollowCircle color={IconColor.Muted} />
+        )}
+        {stepStatus === StatusTypes.PENDING && (
+          <PulsingCircle color={IconColor.Primary} />
+        )}
+        {stepStatus === StatusTypes.COMPLETE && (
+          <Icon
+            name={IconName.FullCircle}
+            color={IconColor.Primary}
+            size={ICON_SIZE}
+          />
+        )}
 
-      {/* Description */}
-      {children}
-
+        {/* Description */}
+        {children}
+      </Box>
       {/* Line */}
       {!isLastItem && (
         <VerticalLine
@@ -71,7 +89,7 @@ export default function StepProgressBarItem({
       )}
 
       {/* Blank div to take up space to make sure everything is aligned */}
-      {!isLastItem && <div />}
+      {!isLastItem && <View />}
     </>
   );
 }

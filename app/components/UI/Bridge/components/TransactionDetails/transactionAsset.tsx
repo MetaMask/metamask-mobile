@@ -9,7 +9,7 @@ import { Box } from '../../../Box/Box';
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AllowedBridgeChainIds , NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 
 
@@ -79,7 +79,7 @@ const TransactionAsset = ({ token, tokenAmount, chainId }: TransactionAssetProps
       </BadgeWrapper>
       <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
         <Text variant={TextVariant.BodyLGMedium}>
-          {tokenAmount} {token.ticker}
+          {tokenAmount} {token.symbol}
         </Text>
         <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
           {token.name}
