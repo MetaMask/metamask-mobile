@@ -327,10 +327,11 @@ export async function switchToNetwork({
     });
   }
 
-  // TODO: This isn't right
+  // TODO: [jiexi] This isn't right (was originally checking just for eth_accounts)
+  // should we loop into each existing scope in the caip25 and verify if any of them have any accounts in the accounts array ?
   const originHasAccountsPermission = PermissionController.hasPermission(
     origin,
-    'eth_accounts',
+    Caip25EndowmentPermissionName,
   );
 
   if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {

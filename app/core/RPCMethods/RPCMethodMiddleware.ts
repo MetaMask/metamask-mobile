@@ -34,7 +34,10 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import {
@@ -54,6 +57,10 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { Hex } from '@metamask/utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
@@ -607,10 +614,18 @@ export const getRpcMethodMiddleware = ({
         } else {
           try {
             checkTabActive();
-            // TODO: This is definitely not right
             await Engine.context.PermissionController.requestPermissions(
               { origin },
-              { eth_accounts: {} },
+              {
+                [Caip25EndowmentPermissionName]: {
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: getDefaultCaip25CaveatValue(),
+                    },
+                  ],
+                },
+              },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
             const acc = await getPermittedAccounts(origin);

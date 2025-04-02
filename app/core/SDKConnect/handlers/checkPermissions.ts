@@ -3,7 +3,10 @@ import { PermissionController } from '@metamask/permission-controller';
 import { CommunicationLayerMessage } from '@metamask/sdk-communication-layer';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../Engine';
-import { getPermittedAccounts } from '../../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
 import { Connection } from '../Connection';
 import DevLogger from '../utils/DevLogger';
 import {
@@ -11,6 +14,10 @@ import {
   waitForCondition,
   waitForKeychainUnlocked,
 } from '../utils/wait.util';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 // TODO: should be more generic and be used in wallet connect and android service as well
 export const checkPermissions = async ({
@@ -88,23 +95,31 @@ export const checkPermissions = async ({
       return allowed;
     }
 
-    // TODO: this isn't right
-    const accountPermission = permissionsController.getPermission(
+    const caip25Permission = permissionsController.getPermission(
       connection.channelId,
-      'eth_accounts',
+      Caip25EndowmentPermissionName,
     );
     const moreAccountPermission = permissionsController.getPermissions(
       connection.channelId,
     );
     DevLogger.log(
-      `checkPermissions accountPermission`,
-      accountPermission,
+      `checkPermissions caip25Permission`,
+      caip25Permission,
       moreAccountPermission,
     );
-    if (!accountPermission) {
+    if (!caip25Permission) {
       connection.approvalPromise = permissionsController.requestPermissions(
         { origin: connection.channelId },
-        { eth_accounts: {} },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
+        },
         {
           preserveExistingPermissions: false,
         },

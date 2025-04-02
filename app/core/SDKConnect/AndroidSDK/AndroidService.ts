@@ -36,6 +36,11 @@ import getDefaultBridgeParams from './getDefaultBridgeParams';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { getDefaultCaip25CaveatValue } from '../../Permissions';
 
 export default class AndroidService extends EventEmitter2 {
   public communicationClient = NativeModules.CommunicationClient;
@@ -233,9 +238,12 @@ export default class AndroidService extends EventEmitter2 {
               `AndroidService::clients_connected error failed sending jsonrpc error to client`,
             );
           });
-          SDKConnect.getInstance().state.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
-          });
+          SDKConnect.getInstance().state.navigation?.navigate(
+            Routes.MODAL.ROOT_MODAL_FLOW,
+            {
+              screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+            },
+          );
           return;
         }
 
@@ -265,10 +273,18 @@ export default class AndroidService extends EventEmitter2 {
       }
     ).PermissionController;
 
-    // TODO: This isn't right
     return permissionsController.requestPermissions(
       { origin: channelId },
-      { eth_accounts: {} },
+      {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: getDefaultCaip25CaveatValue(),
+            },
+          ],
+        },
+      },
     );
   }
 

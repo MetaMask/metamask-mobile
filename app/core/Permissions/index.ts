@@ -6,6 +6,7 @@ import { Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Caip25CaveatType,
+  Caip25CaveatValue,
   Caip25EndowmentPermissionName,
   getEthAccounts,
   getPermittedEthChainIds,
@@ -65,6 +66,17 @@ export const getPermittedAccountsByHostname = (
 
   return accountsByHostname?.[hostname] || [];
 };
+
+/**
+ * Returns a default CAIP-25 caveat value.
+ * @returns Default {@link Caip25CaveatValue}
+ */
+export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => ({
+  requiredScopes: {},
+  optionalScopes: {},
+  sessionProperties: {},
+  isMultichainOrigin: false,
+});
 
 // Returns the CAIP-25 caveat or undefined if it does not exist
 export const getCaip25Caveat = (origin: string) => {
