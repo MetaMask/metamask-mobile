@@ -76,7 +76,11 @@ describe('CustomAction Component', () => {
 
   it('shows loading indicator when isLoading is true', () => {
     const { getByTestId } = renderWithProvider(
-      <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
+      <CustomAction
+        customAction={mockCustomAction}
+        showInfo={jest.fn()}
+        isLoading
+      />,
       { state: defaultState },
     );
 

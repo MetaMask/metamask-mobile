@@ -702,18 +702,39 @@ function Quotes() {
   ]);
 
   useEffect(() => {
-    if (quotesByPriceWithoutError && quotesByPriceWithoutError.length > 0) {
+    const doCustomActionsExist = customActions && customActions.length > 0;
+    const firstCustomActionId = customActions?.[0]?.buy?.provider?.id || null;
+    const recommendedCustomActionId =
+      recommendedCustomAction?.buy?.provider?.id || null;
+
+    const doQuotesExist = quotesWithoutError && quotesWithoutError.length > 0;
+    const firstQuoteId = quotesByPriceWithoutError?.[0]?.provider?.id || null;
+    const recommendedQuoteId = recommendedQuote?.provider?.id || null;
+
+    if (doCustomActionsExist) {
       if (isExpanded) {
-        setProviderId(quotesByPriceWithoutError[0].provider?.id);
-      } else if (recommendedQuote) {
-        setProviderId(recommendedQuote.provider?.id);
+        setProviderId(firstCustomActionId);
+        return;
+      } else if (recommendedCustomAction) {
+        setProviderId(recommendedCustomActionId);
+        return;
       }
-    } else if (recommendedCustomAction) {
-      setProviderId(recommendedCustomAction.buy?.provider?.id);
+    }
+
+    if (doQuotesExist) {
+      if (isExpanded) {
+        setProviderId(firstQuoteId);
+        return;
+      } else if (recommendedQuote) {
+        setProviderId(recommendedQuoteId);
+        return;
+      }
     }
   }, [
+    customActions,
     isExpanded,
     quotesByPriceWithoutError,
+    quotesWithoutError,
     recommendedCustomAction,
     recommendedQuote,
   ]);
