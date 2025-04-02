@@ -11,10 +11,6 @@ import {
   setSourceToken
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
-import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
-import { useGetTotalFiatBalanceCrossChains } from '../../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { addCurrencySymbol, renderNumber } from '../../../../../util/number';
 import Button, { ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
@@ -28,7 +24,7 @@ import Text, { TextVariant } from '../../../../../component-library/components/T
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 const createStyles = () => StyleSheet.create({
@@ -59,22 +55,11 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   );
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const evmNetworkConfigurations = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   // Local state for candidate network selections
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
-
-  const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
-    [selectedInternalAccount as InternalAccount],
-    true,
-    enabledSourceChainIds,
-  );
-  const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
-    [selectedInternalAccount as InternalAccount],
-    formattedTokensWithBalancesPerChain,
-  );
 
   const {
     chainId: selectedChainId,
@@ -87,11 +72,9 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     selectedNetworkName,
   });
 
-  const address = selectedInternalAccount?.address;
-
   const handleApply = useCallback(async () => {
     // Update the Redux state with the candidate selections
-    dispatch(setSelectedSourceChainIds(candidateSourceChainIds));
+    dispatch(setSelectedSourceChainIds(candidateSourceChainIds as (Hex | CaipChainId)[]));
 
     // If there's only 1 network selected, set the source token to native token of that chain and switch chains
     if (candidateSourceChainIds.length === 1) {
@@ -130,21 +113,6 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     }
   }, [candidateSourceChainIds, enabledSourceChainIds]);
 
-  // Calculate total fiat value per chain (native + tokens)
-  const getChainTotalFiatValue = useCallback((chainId: string) => {
-    if (!address || !totalFiatBalancesCrossChain[address]) return 0;
-
-    const chainData = totalFiatBalancesCrossChain[address].tokenFiatBalancesCrossChains.find(
-      (chain) => chain.chainId === chainId
-    );
-
-    if (!chainData) return 0;
-
-    // Sum native value and all token values
-    const tokenFiatSum = chainData.tokenFiatBalances.reduce((sum, value) => sum + value, 0);
-    return chainData.nativeFiatValue + tokenFiatSum;
-  }, [address, totalFiatBalancesCrossChain]);
-
   // Format currency value using the user's chosen currency
   const formatFiatValue = useCallback((value: number) =>
      addCurrencySymbol(renderNumber(value.toString()), currentCurrency)
@@ -156,7 +124,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
 
   const renderSourceNetworks = useCallback(() => (
     sortedSourceNetworks.map((chain) => {
-      const totalFiatValue = getChainTotalFiatValue(chain.chainId);
+      const totalFiatValue = chain.totalFiatValue;
       const isSelected = candidateSourceChainIds.includes(chain.chainId);
 
       return (
@@ -188,7 +156,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
         </TouchableOpacity>
       );
     })
-  ), [candidateSourceChainIds, formatFiatValue, getChainTotalFiatValue, styles, toggleChain, sortedSourceNetworks]);
+  ), [candidateSourceChainIds, formatFiatValue, styles, toggleChain, sortedSourceNetworks]);
 
   return (
     <BridgeNetworkSelectorBase>

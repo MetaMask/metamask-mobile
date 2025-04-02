@@ -1,6 +1,5 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { Hex, CaipChainId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import {
@@ -27,7 +26,7 @@ export interface BridgeState {
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
-  selectedDestChainId: SupportedCaipChainId | Hex | undefined;
+  selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string;
 }
 
@@ -58,7 +57,7 @@ const slice = createSlice({
     },
     setSelectedDestChainId: (
       state,
-      action: PayloadAction<SupportedCaipChainId | Hex | undefined>,
+      action: PayloadAction<Hex | CaipChainId | undefined>,
     ) => {
       state.selectedDestChainId = action.payload;
     },

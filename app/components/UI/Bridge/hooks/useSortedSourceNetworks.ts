@@ -5,30 +5,31 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 export const useSortedSourceNetworks = () => {
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledSourceChainIds = enabledSourceChains.map((chain) => chain.chainId);
-  const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
-  const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
-    [selectedInternalAccount as InternalAccount],
+  const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
+
+  const evmFormattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
+    [lastSelectedEvmAccount as InternalAccount],
     true,
     enabledSourceChainIds,
   );
-  const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
-    [selectedInternalAccount as InternalAccount],
-    formattedTokensWithBalancesPerChain,
+  const evmTotalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
+    [lastSelectedEvmAccount as InternalAccount],
+    evmFormattedTokensWithBalancesPerChain,
   );
 
-  const address = selectedInternalAccount?.address;
+  const address = lastSelectedEvmAccount?.address;
   // Calculate total fiat value per chain (native + tokens)
-  const getChainTotalFiatValue = useCallback((chainId: string) => {
-    if (!address || !totalFiatBalancesCrossChain[address]) return 0;
+  const getEvmChainTotalFiatValue = useCallback((chainId: string) => {
+    if (!address || !evmTotalFiatBalancesCrossChain[address]) return 0;
 
-    const chainData = totalFiatBalancesCrossChain[address].tokenFiatBalancesCrossChains.find(
+    const chainData = evmTotalFiatBalancesCrossChain[address].tokenFiatBalancesCrossChains.find(
       (chain) => chain.chainId === chainId
     );
 
@@ -37,16 +38,15 @@ export const useSortedSourceNetworks = () => {
     // Sum native value and all token values
     const tokenFiatSum = chainData.tokenFiatBalances.reduce((sum, value) => sum + value, 0);
     return chainData.nativeFiatValue + tokenFiatSum;
-  }, [address, totalFiatBalancesCrossChain]);
+  }, [address, evmTotalFiatBalancesCrossChain]);
 
   // Sort networks by total fiat value in descending order
   const sortedSourceNetworks = useMemo(() =>
-    [...enabledSourceChains].sort((a, b) => {
-      const valueA = getChainTotalFiatValue(a.chainId);
-      const valueB = getChainTotalFiatValue(b.chainId);
-      return valueB - valueA; // Descending order
-    })
-  , [enabledSourceChains, getChainTotalFiatValue]);
+    enabledSourceChains.map(chain => ({
+      ...chain,
+      totalFiatValue: getEvmChainTotalFiatValue(chain.chainId)
+    })).sort((a, b) => b.totalFiatValue - a.totalFiatValue)
+  , [enabledSourceChains, getEvmChainTotalFiatValue]);
 
   return {
     sortedSourceNetworks,
