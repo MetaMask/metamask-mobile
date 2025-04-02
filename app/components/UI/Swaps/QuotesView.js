@@ -566,6 +566,7 @@ function SwapsQuotesView({
     if (!selectedQuote) {
       return '0';
     }
+    cosole.log('test1')
     return (
       selectedQuoteValue?.tradeMaxGasLimit ||
       gasLimitWithMultiplier(

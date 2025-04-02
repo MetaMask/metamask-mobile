@@ -38,10 +38,6 @@ public class MainActivity extends ReactActivity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
-		if (reactInstanceManager != null && reactInstanceManager.getDevSupportManager() != null) {
-			reactInstanceManager.getDevSupportManager().setDevSupportEnabled(false);
-		}
 	}
 
 	@Override
@@ -79,6 +75,15 @@ public class MainActivity extends ReactActivity {
 			initialProperties.putString("foxCode", "debug");
 			}
 			return initialProperties;
+		}
+
+		@Override
+		protected void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			// Disable dev loading view after delegate creation
+			if (getReactInstanceManager() != null && getReactInstanceManager().getDevSupportManager() != null) {
+				getReactInstanceManager().getDevSupportManager().setDevSupportEnabled(false);
+			}
 		}
 		});
 	}
