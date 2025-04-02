@@ -1,9 +1,9 @@
+import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
 import { FlexDirection, JustifyContent, AlignItems } from '../../../Box/box.types';
-import { useEffect } from 'react';
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -12,11 +12,11 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
 import { TokenI } from '../../../Tokens/types';
-import Icon, { IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './transactionAsset';
 import { StatusTypes } from '@metamask/bridge-status-controller';
 import { calcTokenAmount } from '../../../../../util/transactions';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './bridgeStepList';
@@ -63,6 +63,7 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   const styles = createStyles();
   const navigation = useNavigation();
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({txMeta: props.route.params.tx});
+  const [isStepListExpanded, setIsStepListExpanded] = useState(false);
   if (!bridgeTxHistoryItem) {
     // TODO: display error page
     return null;
@@ -117,20 +118,29 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
         </Box>
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
-          <Box flexDirection={FlexDirection.Row} gap={4}>
+          <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
             <Text variant={TextVariant.BodyMDMedium} color={StatusToColorMap[status.status]} style={{ textTransform: 'capitalize' }}>{status.status}</Text>
             {status.status === StatusTypes.PENDING && estimatedCompletionString && (
-              <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>
+              <>
+                <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>
+                <TouchableOpacity onPress={() => setIsStepListExpanded(!isStepListExpanded)}>
+                  <Icon
+                    name={isStepListExpanded ? IconName.ArrowUp : IconName.ArrowDown}
+                    color={IconColor.Muted}
+                    size={IconSize.Sm}
+                  />
+                </TouchableOpacity>
+              </>
             )}
           </Box>
         </Box>
-        { status.status !== StatusTypes.COMPLETE && (
+        {status.status !== StatusTypes.COMPLETE && isStepListExpanded && (
           <Box style={styles.detailRow}>
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
-            srcChainTxMeta={props.route.params.tx}
-            networkConfigurationsByChainId={networkConfigurationsByChainId}
-          />
+              srcChainTxMeta={props.route.params.tx}
+              networkConfigurationsByChainId={networkConfigurationsByChainId}
+            />
           </Box>
         )}
         <Box style={styles.detailRow}>
