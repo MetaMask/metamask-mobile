@@ -87,25 +87,9 @@ class Matchers {
    * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
-    if (device.getPlatform() === 'ios') {
-      return web(by.id(elementId));
-    }
-
-    // Try multiple strategies for Android
-    try {
-      // Strategy 1: Try with android.webkit.WebView
-      return web(
-        by.type('android.webkit.WebView').withAncestor(by.id(elementId)),
-      );
-    } catch (e) {
-      try {
-        // Strategy 2: Try with just the ancestor
-        return web(by.id(elementId));
-      } catch (e) {
-        // Strategy 3: Try with a more generic WebView type
-        return web(by.type('WebView').withAncestor(by.id(elementId)));
-      }
-    }
+    return device.getPlatform() === 'ios'
+      ? web(by.id(elementId))
+      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
   }
 
   /**
