@@ -38,6 +38,7 @@ import { selectIsEvmNetworkSelected } from '../multichainNetworkController';
 import { isTestNet } from '../../util/networks';
 import { selectTokenMarketData } from '../tokenRatesController';
 import { deriveBalanceFromAssetMarketDetails } from '../../components/UI/Tokens/util';
+import { RootState } from '../../reducers';
 
 interface NativeTokenBalance {
   balance: string;
@@ -196,12 +197,20 @@ export const selectNativeTokensAcrossChains = createSelector(
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
 export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+  (state: RootState) => state,
   selectSelectedInternalAccount,
+  (state, selectedAccount) => {
+    const selectedAddress = selectedAccount?.address;
+    return selectAccountTokensAcrossChainsForAddress(state, selectedAddress);
+  },
+);
+
+export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector(
   selectAllTokens,
   selectEvmNetworkConfigurationsByChainId,
   selectNativeTokensAcrossChains,
-  (selectedAccount, allTokens, networkConfigurations, nativeTokens) => {
-    const selectedAddress = selectedAccount?.address;
+  (_: RootState, selectedAddress: string | undefined) => selectedAddress,
+  (allTokens, networkConfigurations, nativeTokens, selectedAddress) => {
     const tokensByChain: {
       [chainId: string]: (
         | TokenI
