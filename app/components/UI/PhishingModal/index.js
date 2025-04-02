@@ -4,13 +4,13 @@ import {
   Text,
   StyleSheet,
   Platform,
+  Linking,
   TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
-import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -142,7 +142,7 @@ export default class PhishingModal extends PureComponent {
         </Text>
         
         <Text style={styles.phishingText}>
-          MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
+          MetaMask flagged the site youre trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
         </Text>
         
         <Text style={styles.phishingText}>
