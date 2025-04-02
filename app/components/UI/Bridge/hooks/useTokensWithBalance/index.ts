@@ -15,7 +15,7 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
-import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
+import { selectAccountTokensAcrossChains, selectMultichainTokenList } from '../../../../../selectors/multichain';
 import { BridgeToken } from '../../types';
 
 interface CalculateFiatBalancesParams {
@@ -125,7 +125,12 @@ export const useTokensWithBalance: ({
   const accountTokensAcrossChains = useSelector(
     selectAccountTokensAcrossChains,
   );
-  const multiChainTokenBalance = useSelector(selectTokensBalances);
+  const evmTokenBalances = useSelector(selectTokensBalances);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const nonEvmTokens = useSelector(selectMultichainTokenList);
+  console.log('nonEvmTokens', nonEvmTokens);
+  ///: END:ONLY_INCLUDE_IF
 
   const sortedTokens = useMemo(() => {
     const allAccountTokens = (
@@ -135,7 +140,7 @@ export const useTokensWithBalance: ({
     const balances = calculateBalances({
       assets: allAccountTokens,
       multiChainMarketData,
-      multiChainTokenBalance,
+      multiChainTokenBalance: evmTokenBalances,
       networkConfigurationsByChainId,
       multiChainCurrencyRates,
       currentCurrency,
@@ -158,7 +163,7 @@ export const useTokensWithBalance: ({
   }, [
     accountTokensAcrossChains,
     multiChainMarketData,
-    multiChainTokenBalance,
+    evmTokenBalances,
     networkConfigurationsByChainId,
     multiChainCurrencyRates,
     currentCurrency,
