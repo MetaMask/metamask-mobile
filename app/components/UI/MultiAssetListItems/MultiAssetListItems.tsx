@@ -72,7 +72,7 @@ const MultiAssetListItems = ({
           {strings('token.no_tokens_found')}
         </Text>
       ) : null}
-      {searchResults.slice(0, 6).map((_, i) => {
+      {searchResults.slice(0, 6)?.map((_, i) => {
         const { symbol, name, address, iconUrl } = searchResults[i] || {};
         const isOnSelected = selectedAsset.some(
           (token) => token.address === address,
