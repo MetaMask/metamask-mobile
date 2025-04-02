@@ -35,9 +35,15 @@ const allowedChainIds = [
 export default function isBridgeAllowed(chainId: Hex | CaipChainId) {
   if (!AppConstants.BRIDGE.ACTIVE) return false;
 
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (chainId === SolScope.Mainnet) {
+    return true;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
   if (chainId === BtcScope.Mainnet) {
     return false;
   }
 
-  return allowedChainIds.includes(chainId as Hex) || chainId === SolScope.Mainnet;
+  return allowedChainIds.includes(chainId as Hex);
 }

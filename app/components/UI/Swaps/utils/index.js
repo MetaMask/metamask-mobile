@@ -48,7 +48,14 @@ export function isSwapsAllowed(chainId) {
   if (!AppConstants.SWAPS.ONLY_MAINNET) {
     allowedChainIds.push(SWAPS_TESTNET_CHAIN_ID);
   }
-  return allowedChainIds.includes(chainId) || chainId === SolScope.Mainnet;
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (chainId === SolScope.Mainnet) {
+    return true;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  return allowedChainIds.includes(chainId);
 }
 
 export function isSwapsNativeAsset(token) {
