@@ -144,7 +144,7 @@ exports[`Regions View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -168,7 +168,7 @@ exports[`Regions View renders correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -599,7 +599,7 @@ exports[`Regions View renders correctly 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -944,7 +944,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -968,7 +968,7 @@ exports[`Regions View renders correctly while loading 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1539,7 +1539,7 @@ exports[`Regions View renders correctly with error 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1563,7 +1563,7 @@ exports[`Regions View renders correctly with error 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2172,7 +2172,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2196,7 +2196,7 @@ exports[`Regions View renders correctly with no data 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2767,7 +2767,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2791,7 +2791,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3400,7 +3400,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3424,7 +3424,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3855,7 +3855,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4198,7 +4198,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4222,7 +4222,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -4653,7 +4653,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -5371,7 +5371,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -5395,7 +5395,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -5826,7 +5826,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6544,7 +6544,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -6568,7 +6568,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -6999,7 +6999,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -7705,7 +7705,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                                  "fontFamily": "CentraNo1-Book",
                                                                   "fontSize": 14,
                                                                   "fontWeight": "400",
                                                                   "letterSpacing": 0,
@@ -7722,7 +7722,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               style={
                                                                 {
                                                                   "color": "#121314",
-                                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                                  "fontFamily": "CentraNo1-Medium",
                                                                   "fontSize": 16,
                                                                   "fontWeight": "500",
                                                                   "letterSpacing": 0,
@@ -7814,7 +7814,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                             style={
                                                               {
                                                                 "color": "#121314",
-                                                                "fontFamily": "EuclidCircularB-Regular",
+                                                                "fontFamily": "CentraNo1-Book",
                                                                 "fontSize": 14,
                                                                 "fontWeight": "400",
                                                                 "letterSpacing": 0,
@@ -7831,7 +7831,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                             style={
                                                               {
                                                                 "color": "#121314",
-                                                                "fontFamily": "EuclidCircularB-Medium",
+                                                                "fontFamily": "CentraNo1-Medium",
                                                                 "fontSize": 16,
                                                                 "fontWeight": "500",
                                                                 "letterSpacing": 0,

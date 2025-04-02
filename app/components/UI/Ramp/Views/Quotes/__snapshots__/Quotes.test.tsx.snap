@@ -691,7 +691,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -715,7 +715,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1783,7 +1783,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1807,7 +1807,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2168,7 +2168,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -2584,7 +2584,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#1c7e33",
-                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontFamily": "CentraNo1-Bold",
                                                             "fontSize": 10,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -2673,7 +2673,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -2708,7 +2708,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -2899,7 +2899,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#4459ff",
-                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontFamily": "CentraNo1-Bold",
                                                             "fontSize": 10,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -2931,7 +2931,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         style={
                                                           {
                                                             "color": "#1c7e33",
-                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontFamily": "CentraNo1-Bold",
                                                             "fontSize": 10,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
@@ -3019,7 +3019,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -3054,7 +3054,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -3290,7 +3290,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -3325,7 +3325,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                       style={
                                                         {
                                                           "color": "#121314",
-                                                          "fontFamily": "EuclidCircularB-Medium",
+                                                          "fontFamily": "CentraNo1-Medium",
                                                           "fontSize": 16,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
@@ -3614,7 +3614,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3638,7 +3638,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -4018,7 +4018,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "700",
                                     "letterSpacing": 0,
@@ -4295,7 +4295,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   style={
                                                     {
                                                       "color": "#4459ff",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 10,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
@@ -4327,7 +4327,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   style={
                                                     {
                                                       "color": "#1c7e33",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 10,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
@@ -4416,7 +4416,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontFamily": "CentraNo1-Medium",
                                                     "fontSize": 16,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -4451,7 +4451,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Medium",
+                                                    "fontFamily": "CentraNo1-Medium",
                                                     "fontSize": 16,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
@@ -4592,7 +4592,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -4814,7 +4814,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4838,7 +4838,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -5556,7 +5556,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -5580,7 +5580,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -6298,7 +6298,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -6322,7 +6322,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -7040,7 +7040,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -7064,7 +7064,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
