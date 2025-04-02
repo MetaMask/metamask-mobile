@@ -170,8 +170,6 @@ function extractLargeMessageValue(messageParamsData: string): string | undefined
  * the message value with the string value.
  */
 export const parseSignTypedData = (messageParamsData: string) => {
-  if (!messageParamsData) { return {}; }
-
   const result = JSON.parse(messageParamsData);
 
   const largeMessageValue = extractLargeMessageValue(messageParamsData);
