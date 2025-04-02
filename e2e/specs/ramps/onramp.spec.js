@@ -82,7 +82,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
-    await Assertions.checkIfTextIsDisplayed('Dai');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
     await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsDisplayed(paymentMethod);
