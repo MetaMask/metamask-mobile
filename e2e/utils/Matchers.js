@@ -87,9 +87,7 @@ class Matchers {
    * @returns {Detox.WebViewElement} WebView element
    */
   static getWebViewByID(elementId) {
-    return device.getPlatform() === 'ios'
-      ? web(by.id(elementId))
-      : web(by.type('android.webkit.WebView').withAncestor(by.id(elementId)));
+    return web(by.id(elementId));
   }
 
   /**
@@ -101,7 +99,9 @@ class Matchers {
    */
   static async getElementByWebID(webviewID, innerID) {
     const myWebView = this.getWebViewByID(webviewID);
-    return myWebView.element(by.web.id(innerID));
+
+    const a = myWebView.element(by.web.id(innerID));
+    return a;
   }
 
   /**
