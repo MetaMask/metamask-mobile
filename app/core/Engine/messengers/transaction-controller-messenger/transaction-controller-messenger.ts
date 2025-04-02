@@ -1,59 +1,20 @@
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
-import { ApprovalControllerActions } from '@metamask/approval-controller';
-import { Messenger } from '@metamask/base-controller';
-import {
-  NetworkControllerFindNetworkClientIdByChainIdAction,
-  NetworkControllerGetEIP1559CompatibilityAction,
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerStateChangeEvent,
-} from '@metamask/network-controller';
-import {
-  TransactionControllerMessenger,
-  TransactionControllerTransactionApprovedEvent,
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerTransactionDroppedEvent,
-  TransactionControllerTransactionFailedEvent,
-  TransactionControllerTransactionRejectedEvent,
-  TransactionControllerTransactionSubmittedEvent,
-  TransactionControllerUnapprovedTransactionAddedEvent,
-} from '@metamask/transaction-controller';
-import {
-  SmartTransactionsControllerSmartTransactionEvent,
-  SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
-} from '@metamask/smart-transactions-controller';
-
-type MessengerActions =
-  | ApprovalControllerActions
-  | AccountsControllerGetSelectedAccountAction
-  | NetworkControllerFindNetworkClientIdByChainIdAction
-  | NetworkControllerGetEIP1559CompatibilityAction
-  | NetworkControllerGetNetworkClientByIdAction;
-
-type MessengerEvents =
-  | TransactionControllerTransactionApprovedEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerTransactionDroppedEvent
-  | TransactionControllerTransactionFailedEvent
-  | TransactionControllerTransactionRejectedEvent
-  | TransactionControllerTransactionSubmittedEvent
-  | TransactionControllerUnapprovedTransactionAddedEvent
-  | NetworkControllerStateChangeEvent
-  | SmartTransactionsControllerSmartTransactionEvent
-  | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
+import { TransactionControllerMessenger } from '@metamask/transaction-controller';
+import { BaseControllerMessenger } from '../../types';
 
 export type TransactionControllerInitMessenger = ReturnType<
   typeof getTransactionControllerInitMessenger
 >;
 
 export function getTransactionControllerMessenger(
-  messenger: Messenger<MessengerActions, MessengerEvents>,
+  messenger: BaseControllerMessenger,
 ): TransactionControllerMessenger {
-  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   return messenger.getRestricted({
     name: 'TransactionController',
     allowedActions: [
       'AccountsController:getSelectedAccount',
+      'AccountsController:getState',
       `ApprovalController:addRequest`,
+      'KeyringController:signEip7702Authorization',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
     ],
@@ -62,7 +23,7 @@ export function getTransactionControllerMessenger(
 }
 
 export function getTransactionControllerInitMessenger(
-  messenger: Messenger<MessengerActions, MessengerEvents>,
+  messenger: BaseControllerMessenger,
 ) {
   return messenger.getRestricted({
     name: 'TransactionControllerInit',
