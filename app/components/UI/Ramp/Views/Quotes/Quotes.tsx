@@ -334,15 +334,11 @@ function Quotes() {
           selectedAddress as string,
         );
 
-        console.log('11111');
         if (buyAction.browser === ProviderBuyFeatureBrowserEnum.AppBrowser) {
-          console.log('22222');
           const { url, orderId: customOrderId } = await buyAction.createWidget(
             callbackBaseUrl,
           );
-          console.log('3333', url, customOrderId);
 
-          console.log('calling mock navigation');
           navigation.navigate(
             ...createCheckoutNavDetails({
               url,
