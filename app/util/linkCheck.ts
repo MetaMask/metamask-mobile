@@ -1,6 +1,6 @@
 import Url from 'url-parse';
 import isUrl from 'is-url';
-import { isOriginSafe } from './phishingProtection';
+import { isOriginSafe } from './phishingDetection';
 
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
 const DENYLISTED_DOMAINS = ['metamask.app.link'];

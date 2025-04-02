@@ -109,7 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPhishingTestResult } from '../../../util/phishingProtection';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser

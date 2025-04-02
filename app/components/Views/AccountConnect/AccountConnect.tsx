@@ -82,7 +82,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isOriginSafe } from '../../../util/phishingProtection';
+import { isOriginSafe } from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({

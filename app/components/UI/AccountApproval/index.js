@@ -35,7 +35,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { getPhishingTestResult } from '../../../util/phishingProtection';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 
 /**
  * Account access approval component
