@@ -2,7 +2,6 @@ import React from 'react';
 import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
   CryptoCurrency,
-  Provider,
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
   QuoteResponse,
@@ -106,13 +105,11 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
-jest.mock('../../hooks/useFiatCurrencies', () => () => {
-  return {
-    currentFiatCurrency: {
-      symbol: 'USD',
-    } as CryptoCurrency,
-  };
-});
+jest.mock('../../hooks/useFiatCurrencies', () => () => ({
+  currentFiatCurrency: {
+    symbol: 'USD',
+  } as CryptoCurrency,
+}));
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
