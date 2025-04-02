@@ -1,6 +1,6 @@
 import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToHex } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
 import { useEffect, useMemo, useRef } from 'react';
@@ -9,8 +9,9 @@ import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { selectChainCache } from '../../../../../reducers/swaps';
 import { SwapsControllerState } from '@metamask/swaps-controller';
+
 interface UseTopTokensProps {
-  chainId?: Hex;
+  chainId?: Hex | CaipChainId;
 }
 
 export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: BridgeToken[] | undefined, pending: boolean } => {
@@ -28,7 +29,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        if (chainId) {
+        if (chainId && !isCaipChainId(chainId)) {
           // Maintains an internal cache, will fetch if past internal threshold
           await SwapsController.fetchTopAssetsWithCache({
             chainId,

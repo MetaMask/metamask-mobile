@@ -1,14 +1,14 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { createSelector } from 'reselect';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { getNativeSwapsToken } from '@metamask/swaps-controller/dist/swapsUtil';
 import {
   selectEvmChainId,
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
 } from '../../../../selectors/networkController';
 import { uniqBy } from 'lodash';
 import {
@@ -28,7 +28,7 @@ export interface BridgeState {
   destAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
-  selectedSourceChainIds: undefined | string[];
+  selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: SupportedCaipChainId | Hex | undefined;
   slippage: string;
 }
@@ -55,7 +55,7 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setSelectedSourceChainIds: (state, action: PayloadAction<string[]>) => {
+    setSelectedSourceChainIds: (state, action: PayloadAction<(Hex | CaipChainId)[]>) => {
       state.selectedSourceChainIds = action.payload;
     },
     setSelectedDestChainId: (
@@ -101,7 +101,7 @@ export const selectDestAmount = createSelector(
  * Will include them regardless of feature flag enabled or not.
  */
 export const selectAllBridgeableNetworks = createSelector(
-  selectEvmNetworkConfigurationsByChainId,
+  selectNetworkConfigurations,
   (networkConfigurations) => {
     const networks = uniqBy(
       Object.values(networkConfigurations),
