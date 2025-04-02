@@ -32,6 +32,7 @@ import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
+import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -61,6 +62,11 @@ const OnboardingSuccess = ({
 
   const handleLink = () => {
     Linking.openURL(AppConstants.URLS.WHAT_IS_SRP);
+  };
+
+  const handleOnDone = async () => {
+    await importAdditionalAccounts();
+    onDone();
   };
 
   const saveHint = async () => {
@@ -208,7 +214,7 @@ const OnboardingSuccess = ({
           testID={OnboardingSuccessSelectorIDs.DONE_BUTTON}
           label={strings('onboarding_success.done')}
           variant={ButtonVariants.Primary}
-          onPress={onDone}
+          onPress={handleOnDone}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
         />
