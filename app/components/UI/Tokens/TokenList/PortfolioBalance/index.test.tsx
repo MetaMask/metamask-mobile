@@ -11,6 +11,24 @@ import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 
 const { PreferencesController } = Engine.context;
 
+// Mock Date.now() to return a fixed timestamp for deterministic tests
+const FIXED_TIMESTAMP = 123;
+global.Date.now = jest.fn(() => FIXED_TIMESTAMP);
+
+// Mock the useMultichainBalances hook
+const mockSelectedAccountMultichainBalance = {
+  displayBalance: '$123.45',
+  totalFiatBalance: '123.45',
+  shouldShowAggregatedPercentage: true,
+  tokenFiatBalancesCrossChains: [],
+};
+
+jest.mock('../../../../hooks/useMultichainBalances', () => ({
+  useMultichainBalances: () => ({
+    selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
+  }),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
