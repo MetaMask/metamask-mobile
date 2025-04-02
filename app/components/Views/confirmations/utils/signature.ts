@@ -184,16 +184,9 @@ export const parseSignTypedData = (messageParamsData: string) => {
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
-  const { message, primaryType, types } = parseSignTypedData(messageParamsData);
-  return sanitizeParsedMessage(message, primaryType, types);
-};
-
-export const parseAndSanitizeSignTypedData2 = (messageParamsData: string) => {
-  if (!messageParamsData) { return {}; }
-  const { domain, message, primaryType, types } =
-    parseSignTypedData(messageParamsData);
-
+  const { domain, message, primaryType, types } = parseSignTypedData(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
+
   return { sanitizedMessage, primaryType, domain };
 };
 

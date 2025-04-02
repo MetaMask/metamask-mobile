@@ -7,7 +7,7 @@ import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
-import { parseAndSanitizeSignTypedData2 } from '../../../../utils/signature';
+import { parseAndSanitizeSignTypedData } from '../../../../utils/signature';
 import InfoRow from '../../../UI/InfoRow';
 import { useTokenDecimalsInTypedSignRequest } from '../../../../hooks/useTokenDecimalsInTypedSignRequest';
 import DataTree from '../../DataTree';
@@ -51,7 +51,7 @@ const Message = () => {
     sanitizedMessage,
     primaryType,
   } = useMemo(
-    () => parseAndSanitizeSignTypedData2(typedSignData),
+    () => parseAndSanitizeSignTypedData(typedSignData),
     [typedSignData],
   );
 
