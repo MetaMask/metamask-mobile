@@ -333,7 +333,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -347,7 +347,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
@@ -495,7 +495,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -509,7 +509,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
@@ -653,7 +653,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -667,7 +667,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
@@ -821,7 +821,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                         "alignSelf": "center",
                         "backgroundColor": "transparent",
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -835,7 +835,7 @@ exports[`CollectibleContractElement render matches snapshot 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,

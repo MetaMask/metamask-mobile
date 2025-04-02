@@ -24,7 +24,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -39,7 +39,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#9ca1af",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -66,7 +66,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -81,7 +81,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

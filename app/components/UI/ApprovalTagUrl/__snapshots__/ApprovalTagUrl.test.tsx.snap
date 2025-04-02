@@ -55,7 +55,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
       {
         "color": "#686e7d",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
