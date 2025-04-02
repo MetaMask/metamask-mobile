@@ -136,6 +136,8 @@ export class WC2Manager {
             `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
             JSON.stringify(permissionController.state, null, 2),
           );
+
+          // TODO: [ffmcgee] address this, should be caip25 permission value extracted accounts now
           const accountPermission = permissionController.getPermission(
             session.peer.metadata.url,
             'eth_accounts',

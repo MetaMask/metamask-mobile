@@ -587,6 +587,7 @@ export default class DeeplinkProtocolService {
       accountsController.getSelectedAccount().address,
     );
 
+    // TODO: [ffmcgee] address this, should be caip25 permission value extracted accounts now
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
 
