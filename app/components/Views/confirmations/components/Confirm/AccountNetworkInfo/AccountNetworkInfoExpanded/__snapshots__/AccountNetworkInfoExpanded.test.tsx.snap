@@ -45,7 +45,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -61,7 +61,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -103,7 +103,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -119,7 +119,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -175,7 +175,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -226,7 +226,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 14,
               "fontWeight": "400",

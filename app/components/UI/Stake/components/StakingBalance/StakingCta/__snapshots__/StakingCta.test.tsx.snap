@@ -6,7 +6,7 @@ exports[`StakingCta render matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 18,
         "fontWeight": "700",
@@ -31,7 +31,7 @@ exports[`StakingCta render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -47,7 +47,7 @@ exports[`StakingCta render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
+          "color": "#1c7e33",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -63,7 +63,7 @@ exports[`StakingCta render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -83,7 +83,7 @@ exports[`StakingCta render matches snapshot 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#141618",
+          "color": "#121314",
           "fontFamily": "EuclidCircularB-Regular",
           "fontSize": 14,
           "fontWeight": "400",
@@ -97,7 +97,7 @@ exports[`StakingCta render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Medium",
             "fontSize": 14,
             "fontWeight": "500",
