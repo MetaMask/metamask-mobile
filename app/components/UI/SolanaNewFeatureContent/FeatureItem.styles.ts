@@ -11,6 +11,7 @@ const createStyles = (colors: {
     },
     iconContainer: {
       marginRight: 12,
+      marginTop: 2,
     },
     content: {
       flex: 1,
