@@ -136,7 +136,8 @@ describe('AddNewHdAccount', () => {
     const secondSRP = getByText('Secret Recovery Phrase 2');
     fireEvent.press(secondSRP);
 
-    fireEvent.press(secondSRP);
+    // We get by text again because we go to the picker and the secondSrp node is unmounted.
+    fireEvent.press(getByText('Secret Recovery Phrase 2'));
 
     // The picker will now only show the second srp.
     expect(queryByText('Secret Recovery Phrase 1')).toBeNull();
