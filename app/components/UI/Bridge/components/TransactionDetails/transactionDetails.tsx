@@ -19,6 +19,8 @@ import { calcTokenAmount } from '../../../../../util/transactions';
 import { StyleSheet } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
+import BridgeStepList from './bridgeStepList';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -66,6 +68,9 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   }
   const { quote, status, startTime } = bridgeTxHistoryItem;
   const tokens = useSelector(selectEvmTokens);
+  const networkConfigurationsByChainId = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   useEffect(() => {
     navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
@@ -117,6 +122,13 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
               <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>
             )}
           </Box>
+        </Box>
+        <Box style={styles.detailRow}>
+          <BridgeStepList
+            bridgeHistoryItem={bridgeTxHistoryItem}
+            srcChainTxMeta={props.route.params.tx}
+            networkConfigurationsByChainId={networkConfigurationsByChainId}
+          />
         </Box>
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.date')}</Text>

@@ -3834,6 +3834,10 @@
     "status": "Status",
     "date": "Date",
     "total_gas_fee": "Total gas fee",
-    "estimated_completion": "Est. completion"
+    "estimated_completion": "Est. completion",
+    "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
+    "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
+    "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}"
   }
 }
