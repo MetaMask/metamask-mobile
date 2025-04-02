@@ -21,7 +21,7 @@ import {
 } from '../networkController';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { renderFromWei, weiToFiat } from '../../util/number';
-import { hexToBN, toHex } from '@metamask/controller-utils';
+import { hexToBN, toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import {
   selectConversionRate,
   selectCurrencyRates,
@@ -55,17 +55,19 @@ type ChainBalances = Record<string, NativeTokenBalance>;
  * @param {RootState} state - The root state.
  * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
  */
-export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
-  [selectSelectedInternalAccountFormattedAddress, selectAccountsByChainId],
-  (selectedAddress, accountsByChainId): ChainBalances => {
-    if (!selectedAddress || !accountsByChainId) {
+export const selectedAccountNativeTokenCachedBalanceByChainIdForAddress = createSelector(
+  [selectAccountsByChainId, (_: RootState, address: string | undefined) => address],
+  (accountsByChainId, address): ChainBalances => {
+    if (!accountsByChainId || !address) {
       return {};
     }
+
+    const checksumAddress = toChecksumHexAddress(address);
 
     const result: ChainBalances = {};
     for (const chainId in accountsByChainId) {
       const accounts = accountsByChainId[chainId];
-      const account = accounts[selectedAddress];
+      const account = accounts[checksumAddress];
       if (account) {
         result[chainId] = {
           balance: account.balance,
@@ -81,12 +83,27 @@ export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
 );
 
 /**
+ * Get the cached native token balance for the selected account by chainId.
+ *
+ * @param {RootState} state - The root state.
+ * @returns {ChainBalances} The cached native token balance for the selected account by chainId.
+ */
+export const selectedAccountNativeTokenCachedBalanceByChainId = createSelector(
+  [
+    (state: RootState) => state,
+    selectSelectedInternalAccountFormattedAddress,
+  ],
+  (state, selectedAddress): ChainBalances => selectedAccountNativeTokenCachedBalanceByChainIdForAddress(state, selectedAddress),
+);
+
+/**
  * Selector to get native tokens for the selected account across all chains.
  */
-export const selectNativeTokensAcrossChains = createSelector(
+export const selectNativeTokensAcrossChainsForAddress = createSelector(
   [
     selectEvmNetworkConfigurationsByChainId,
-    selectedAccountNativeTokenCachedBalanceByChainId,
+    (state: RootState, address: string | undefined) =>
+      selectedAccountNativeTokenCachedBalanceByChainIdForAddress(state, address),
     selectCurrencyRates,
     selectCurrentCurrency,
   ],
@@ -190,12 +207,24 @@ export const selectNativeTokensAcrossChains = createSelector(
   },
 );
 
+/**
+ * Selector to get native tokens for the selected account across all chains.
+ */
+export const selectNativeTokensAcrossChains = createSelector(
+  [
+    (state: RootState) => state,
+    selectSelectedInternalAccountFormattedAddress,
+  ],
+  (state, selectedAddress) => selectNativeTokensAcrossChainsForAddress(state, selectedAddress),
+);
+
 export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector(
   selectAllTokens,
   selectEvmNetworkConfigurationsByChainId,
-  selectNativeTokensAcrossChains,
-  (_: RootState, selectedAddress: string | undefined) => selectedAddress,
-  (allTokens, networkConfigurations, nativeTokens, selectedAddress) => {
+  (state: RootState, address: string | undefined) =>
+    selectNativeTokensAcrossChainsForAddress(state, address),
+  (_: RootState, address: string | undefined) => address,
+  (allTokens, networkConfigurations, nativeTokens, address) => {
     const tokensByChain: {
       [chainId: string]: (
         | TokenI
@@ -203,7 +232,7 @@ export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector
       )[];
     } = {};
 
-    if (!selectedAddress) {
+    if (!address) {
       return tokensByChain;
     }
 
@@ -213,7 +242,7 @@ export const selectAccountTokensAcrossChainsForAddress = createDeepEqualSelector
     for (const chainId of chainIds) {
       const currentChainId = chainId as Hex;
       const nonNativeTokens =
-        allTokens[currentChainId]?.[selectedAddress]?.map((token) => ({
+        allTokens[currentChainId]?.[address]?.map((token) => ({
           ...token,
           token: token.name,
           chainId,
