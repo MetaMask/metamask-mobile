@@ -111,7 +111,13 @@ import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
+///: END:ONLY_INCLUDE_IF
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectIsSolanaSupportEnabled,
+  ///: END:ONLY_INCLUDE_IF
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
@@ -193,6 +199,10 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Object containing the balance of the current selected account
@@ -708,6 +718,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          isSolanaSupportEnabled && <SolanaNewFeatureContent />
+          ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );
