@@ -69,19 +69,25 @@ function getTextVariant(
 export const text: UIComponentFactory<TextElement> = ({
   element: e,
   ...params
-}) => ({
-  element: 'Text',
-  children: mapTextToTemplate(
-    getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
-    {
-      textSize: e.props.size,
-      ...params,
+}) => {
+  const textColor = getTextColor(e.props.color) ?? params.textColor;
+  const textVariant = getTextVariant(e.props.size, params.textVariant);
+  return {
+    element: 'Text',
+    children: mapTextToTemplate(
+      getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
+      {
+        textSize: e.props.size,
+        textColor,
+        textVariant,
+        ...params,
+      },
+    ),
+    props: {
+      variant: textVariant,
+      fontWeight: getFontWeight(e.props.fontWeight),
+      color: textColor,
+      textAlign: alignText(e.props.alignment),
     },
-  ),
-  props: {
-    variant: getTextVariant(e.props.size, params.textVariant),
-    fontWeight: getFontWeight(e.props.fontWeight),
-    color: getTextColor(e.props.color) ?? params.textColor,
-    textAlign: alignText(e.props.alignment),
-  },
-});
+  };
+};
