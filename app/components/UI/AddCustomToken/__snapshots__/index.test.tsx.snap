@@ -232,7 +232,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,

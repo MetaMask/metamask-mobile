@@ -58,7 +58,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -114,7 +114,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -189,7 +189,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -278,7 +278,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -374,7 +374,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -451,7 +451,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -547,7 +547,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -591,7 +591,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
