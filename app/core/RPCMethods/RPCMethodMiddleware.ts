@@ -415,7 +415,6 @@ export const getRpcMethodMiddleware = ({
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
-
     const checkTabActive = () => {
       if (!tabId) return true;
       const { browser } = store.getState();

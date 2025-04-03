@@ -14,6 +14,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Logger from '../../../util/Logger';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -239,26 +240,6 @@ export async function switchToNetwork({
   } = controllers;
 
   const [networkConfigurationId, networkConfiguration] = network;
-  const requestData = {
-    rpcUrl:
-      networkConfiguration.rpcEndpoints[
-        networkConfiguration.defaultRpcEndpointIndex
-      ],
-    chainId,
-    chainName:
-      networkConfiguration.name ||
-      networkConfiguration.chainName ||
-      networkConfiguration.nickname ||
-      networkConfiguration.shortName,
-    ticker: networkConfiguration.ticker || 'ETH',
-    chainColor: networkConfiguration.color,
-  };
-
-  // for some reason this extra step is necessary for accessing the env variable in test environment
-  const chainPermissionsFeatureEnabled =
-    { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-      : isChainPermissionsFeatureEnabled;
 
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
@@ -290,59 +271,6 @@ export async function switchToNetwork({
       chainId,
       autoApprove,
     });
-  }
-
-  const shouldGrantPermissions =
-    chainPermissionsFeatureEnabled &&
-    (!ethChainIds || !ethChainIds.includes(chainId));
-
-  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-
-  const shouldShowRequestModal =
-    (!isAddNetworkFlow && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
-
-  if (shouldShowRequestModal) {
-    await requestUserApproval({
-      type: 'SWITCH_ETHEREUM_CHAIN',
-      requestData: { ...requestData, type: requestModalType },
-    });
-  }
-
-  if (shouldGrantPermissions) {
-    await PermissionController.grantPermissionsIncremental({
-      subject: { origin },
-      approvedPermissions: {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              // TODO: [ffmcgee] if we trigger L280, we should add the newly granted chain that wasn't in `chainIds` here.
-              // Look last test case `wallet_switchEthereumChain` and confirm with Jiexi ?
-              value: caip25Caveat.value,
-            },
-          ],
-        },
-      },
-    });
-  }
-
-  // TODO: [jiexi] This isn't right (was originally checking just for eth_accounts)
-  // should we loop into each existing scope in the caip25 and verify if any of them have any accounts in the accounts array ?
-  const originHasAccountsPermission = PermissionController.hasPermission(
-    origin,
-    Caip25EndowmentPermissionName,
-  );
-
-  if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
-    SelectedNetworkController.setNetworkClientIdForDomain(
-      origin,
-      networkConfigurationId || networkConfiguration.networkType,
-    );
-  } else {
-    await MultichainNetworkController.setActiveNetwork(
-      networkConfigurationId || networkConfiguration.networkType,
-    );
   }
 
   const analyticsParams = {

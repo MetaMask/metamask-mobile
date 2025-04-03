@@ -6,6 +6,7 @@ import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
+import Logger from '../../util/Logger';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
@@ -86,6 +87,7 @@ export function makeMethodMiddlewareMaker<U>(
       if (handler) {
         const { implementation, hookNames } = handler;
         try {
+          Logger.log({ req }, 'methodMiddleware:');
           // Implementations may or may not be async, so we must await them.
           return await implementation(
             req,
