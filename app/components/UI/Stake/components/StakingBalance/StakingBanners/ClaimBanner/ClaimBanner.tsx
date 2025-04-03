@@ -176,7 +176,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     [claimableAmount],
   );
 
-  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction
+  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction;
 
   return (
     <Banner
