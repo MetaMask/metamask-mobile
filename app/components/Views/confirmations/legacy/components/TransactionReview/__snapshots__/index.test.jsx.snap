@@ -390,7 +390,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -414,7 +414,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -431,7 +431,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -447,7 +447,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "700",
                                       "letterSpacing": 0,

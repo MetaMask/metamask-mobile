@@ -196,7 +196,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                       {
                         "color": "#686e7d",
                         "flexShrink": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -363,7 +363,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 12,
                               "fontWeight": "400",
                               "letterSpacing": 0,
@@ -387,7 +387,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
@@ -406,7 +406,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 12,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -422,7 +422,7 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 14,
                             "fontWeight": "700",
                             "letterSpacing": 0,
@@ -869,7 +869,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                       {
                         "color": "#686e7d",
                         "flexShrink": 1,
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1036,7 +1036,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 12,
                               "fontWeight": "400",
                               "letterSpacing": 0,
@@ -1060,7 +1060,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
@@ -1079,7 +1079,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 12,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -1095,7 +1095,7 @@ exports[`TypedSign onReject rejects message 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 14,
                             "fontWeight": "700",
                             "letterSpacing": 0,

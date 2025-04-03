@@ -22,7 +22,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -74,7 +74,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -97,7 +97,7 @@ exports[`IPFSGatewaySettings render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

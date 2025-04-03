@@ -11,6 +11,8 @@ import { act } from '@testing-library/react-hooks';
 
 // eslint-disable-next-line import/no-namespace
 import * as allSelectors from '../../../../app/reducers/collectibles/index.js';
+// eslint-disable-next-line import/no-namespace
+import * as networkSelectors from '../../../selectors/networkController';
 import { cleanup, waitFor } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
 
@@ -67,6 +69,9 @@ const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
 ]);
 
 describe('CollectibleContracts', () => {
+  beforeEach(() => {
+    jest.spyOn(networkSelectors, 'selectIsAllNetworks').mockReturnValue(false);
+  });
   afterEach(cleanup);
   it('should render correctly', () => {
     const wrapper = shallow(
@@ -98,6 +103,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
+        chainId: 1,
       },
     ];
 
@@ -114,6 +120,7 @@ describe('CollectibleContracts', () => {
         standard: 'ERC721',
         tokenId: '113',
         tokenURI: 'https://api.pudgypenguins.io/lil/113',
+        chainId: 1,
       },
     ];
     const mockState: DeepPartial<RootState> = {
@@ -155,12 +162,13 @@ describe('CollectibleContracts', () => {
     };
 
     const spyOnCollectibles = jest
-      .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData)
-      .mockReturnValueOnce(nftItemDataUpdated);
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValueOnce({ '0x1': nftItemData })
+      .mockReturnValueOnce({ '0x1': nftItemDataUpdated });
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
-      .mockReturnValue(collectibleData);
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValueOnce({ '0x1': collectibleData })
+      .mockReturnValueOnce({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
@@ -267,12 +275,12 @@ describe('CollectibleContracts', () => {
     };
 
     const spyOnCollectibles = jest
-      .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData)
-      .mockReturnValueOnce(nftItemDataUpdated);
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValueOnce({ '0x1': nftItemData })
+      .mockReturnValueOnce({ '0x1': nftItemDataUpdated });
     const spyOnContracts = jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
-      .mockReturnValue(collectibleData);
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);
@@ -378,12 +386,12 @@ describe('CollectibleContracts', () => {
     };
 
     jest
-      .spyOn(allSelectors, 'collectiblesSelector')
-      .mockReturnValueOnce(nftItemData)
-      .mockReturnValueOnce(nftItemDataUpdated);
+      .spyOn(allSelectors, 'multichainCollectiblesSelector')
+      .mockReturnValueOnce({ '0x1': nftItemData })
+      .mockReturnValueOnce({ '0x1': nftItemDataUpdated });
     jest
-      .spyOn(allSelectors, 'collectibleContractsSelector')
-      .mockReturnValue(collectibleData);
+      .spyOn(allSelectors, 'multichainCollectibleContractsSelector')
+      .mockReturnValue({ '0x1': collectibleData });
     const spyOnUpdateNftMetadata = jest
       .spyOn(Engine.context.NftController, 'updateNftMetadata')
       .mockImplementation(async () => undefined);

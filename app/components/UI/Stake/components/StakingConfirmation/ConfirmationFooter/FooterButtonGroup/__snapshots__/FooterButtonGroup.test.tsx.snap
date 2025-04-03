@@ -42,7 +42,7 @@ exports[`FooterButtonGroup attempts stake transaction on continue click 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -128,7 +128,7 @@ exports[`FooterButtonGroup attempts unstake transaction on continue click 1`] = 
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -214,7 +214,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -255,7 +255,7 @@ exports[`FooterButtonGroup navigates to Asset page when cancel is pressed 1`] = 
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -311,7 +311,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -352,7 +352,7 @@ exports[`FooterButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#ffffff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,

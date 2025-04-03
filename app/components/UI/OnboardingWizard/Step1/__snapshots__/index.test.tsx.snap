@@ -156,7 +156,7 @@ exports[`Step1 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -197,7 +197,7 @@ exports[`Step1 should render correctly 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,

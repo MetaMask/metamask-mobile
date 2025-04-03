@@ -378,7 +378,7 @@ exports[`SendTo Component should render 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,

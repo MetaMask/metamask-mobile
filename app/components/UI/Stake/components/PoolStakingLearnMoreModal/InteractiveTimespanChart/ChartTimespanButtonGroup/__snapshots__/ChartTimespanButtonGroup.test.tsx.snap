@@ -32,7 +32,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -62,7 +62,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -92,7 +92,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -122,7 +122,7 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,

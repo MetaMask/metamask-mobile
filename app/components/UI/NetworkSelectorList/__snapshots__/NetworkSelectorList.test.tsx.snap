@@ -182,7 +182,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -344,7 +344,7 @@ exports[`NetworkSelectorList renders correctly with default props 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,

@@ -144,7 +144,7 @@ exports[`AccountOverview should render correctly 1`] = `
                       "borderColor": "#ffffff",
                     },
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,

@@ -14,7 +14,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     style={
       {
         "color": "#1c7e33",
-        "fontFamily": "EuclidCircularB-Medium",
+        "fontFamily": "CentraNo1-Medium",
         "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,
@@ -30,7 +30,7 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     style={
       {
         "color": "#1c7e33",
-        "fontFamily": "EuclidCircularB-Medium",
+        "fontFamily": "CentraNo1-Medium",
         "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,

@@ -146,7 +146,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -170,7 +170,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -185,7 +185,7 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 12,
           "fontWeight": "700",
           "letterSpacing": 0,

@@ -13,7 +13,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -166,7 +166,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
           "alignSelf": "center",
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -192,7 +192,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -239,7 +239,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -392,7 +392,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
           "alignSelf": "center",
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -418,7 +418,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,

@@ -58,6 +58,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
 
   const name = useDisplayName(parsed);
 
+  // TODO: This component should inherit font color, e.g. for link.
   return (
     <Box
       flexDirection={FlexDirection.Row}
@@ -65,7 +66,7 @@ export const SnapUIAddress: React.FunctionComponent<SnapUIAddressProps> = ({
       gap={8}
     >
       {avatar && <SnapUIAvatar address={caipIdentifier} size={avatarSize} />}
-      <Text variant={TextVariant.BodyMD} color="inherit">
+      <Text variant={TextVariant.BodyMD}>
         {displayName && name ? name : formattedAddress}
       </Text>
     </Box>
