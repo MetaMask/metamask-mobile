@@ -31,16 +31,25 @@ describe('text component', () => {
       children: [
         {
           key: 'ac37e9a8c31a35346c51f0f9058d2e2f0aecde724a0d7192561af5625000f3d1_1',
-          element: 'RNText',
+          element: 'Text',
           children: 'Hello World',
-          props: { color: 'inherit' },
+          props: {
+            color: undefined,
+            variant: 'sBodyMD',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
+          },
         },
       ],
       props: {
         variant: TextVariant.BodyMD,
-        fontWeight: 'normal',
-        color: 'inherit',
-        textAlign: 'left',
+        color: undefined,
+        style: {
+          fontWeight: '400',
+          textAlign: 'left',
+        },
       },
     });
   });
@@ -73,19 +82,15 @@ describe('text component', () => {
   });
 
   it('should handle different font weights', () => {
-    const weights: TextElement['props']['fontWeight'][] = [
-      'bold',
-      'medium',
-      'regular',
-    ];
+    const weights = ['bold', 'medium', 'regular'] as const;
+
     const expectedWeights = {
-      bold: 'bold',
-      medium: 'medium',
-      regular: 'normal',
+      bold: '700',
+      medium: '500',
+      regular: '400',
     };
 
     weights.forEach((weight) => {
-      if (!weight) return;
       const el: TextElement = {
         type: 'Text',
         props: { fontWeight: weight, children: ['Test'] },
@@ -93,18 +98,16 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      if (weight in expectedWeights) {
-        expect(result.props?.fontWeight).toBe(expectedWeights[weight]);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((result.props as any)?.style?.fontWeight).toBe(
+        expectedWeights[weight],
+      );
     });
   });
 
   it('should handle different text alignments', () => {
-    const alignments: TextElement['props']['alignment'][] = [
-      'start',
-      'center',
-      'end',
-    ];
+    const alignments = ['start', 'center', 'end'] as const;
+
     const expectedAlignments = {
       start: 'left',
       center: 'center',
@@ -112,7 +115,6 @@ describe('text component', () => {
     };
 
     alignments.forEach((alignment) => {
-      if (!alignment) return;
       const el: TextElement = {
         type: 'Text',
         props: { alignment, children: ['Test'] },
@@ -120,9 +122,10 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
-      if (alignment in expectedAlignments) {
-        expect(result.props?.textAlign).toBe(expectedAlignments[alignment]);
-      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((result.props as any)?.style?.textAlign).toBe(
+        expectedAlignments[alignment],
+      );
     });
   });
 
