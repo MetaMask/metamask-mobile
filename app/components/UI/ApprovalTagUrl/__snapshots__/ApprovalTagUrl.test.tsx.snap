@@ -53,7 +53,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
+        "color": "#686e7d",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
@@ -121,7 +121,7 @@ exports[`ApprovalTagUrl renders correctly when only origin is provided 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
+        "color": "#686e7d",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
