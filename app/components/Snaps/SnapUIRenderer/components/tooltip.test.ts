@@ -38,14 +38,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),
@@ -61,14 +67,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),
@@ -104,14 +116,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),
@@ -127,14 +145,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),
@@ -170,14 +194,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),
@@ -193,14 +223,20 @@ describe('tooltip component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               key: expect.any(String),
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
           key: expect.any(String),

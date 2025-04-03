@@ -30,6 +30,10 @@ describe('link component', () => {
           key: expect.any(String),
           props: {
             color: '#4459ff',
+            style: {
+              fontWeight: undefined,
+              textAlign: undefined,
+            },
           },
         },
       ],

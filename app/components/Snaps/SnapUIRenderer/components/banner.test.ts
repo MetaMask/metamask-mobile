@@ -43,14 +43,20 @@ describe('banner component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -88,14 +94,20 @@ describe('banner component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -133,15 +145,21 @@ describe('banner component', () => {
               props: {
                 color: undefined,
                 variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
             color: undefined,
-            fontWeight: 'normal',
-            textAlign: 'left',
             variant: 'sBodyMD',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
           },
         },
       ],

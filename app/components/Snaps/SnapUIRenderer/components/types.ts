@@ -11,12 +11,12 @@ export interface UIComponentParams<T extends JSXElement> {
 
   // React Native specific props
   theme: Theme;
-  // If the component must inherit the size of the parent, the parent must pass this size to their children.
+  // If the component must inherit any of the following props from the parent, the parent must pass the props to its children.
   textSize?: string;
-  // If the component must inherit the color of the parent, the parent must pass this color to their children.
   textColor?: string;
-  // If the component must inherit the variant of the parent, the parent must pass this variant to their children.
   textVariant?: string;
+  textFontWeight?: string;
+  textAlignment?: string;
 }
 
 export interface UIComponent {

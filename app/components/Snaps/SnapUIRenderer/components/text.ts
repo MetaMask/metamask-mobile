@@ -7,6 +7,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text/Text.types';
+import { typography } from '@metamask/design-tokens';
 
 function getTextColor(color: TextElement['props']['color']) {
   switch (color) {
@@ -27,19 +28,25 @@ function getTextColor(color: TextElement['props']['color']) {
   }
 }
 
-function getFontWeight(color: TextElement['props']['fontWeight']) {
-  switch (color) {
+function getFontWeight(
+  color: TextElement['props']['fontWeight'],
+  inheritedWeight?: string,
+) {
+  switch (color ?? inheritedWeight) {
     case 'bold':
-      return 'bold';
+      return typography.sBodyMDBold.fontWeight;
     case 'medium':
-      return 'medium';
+      return typography.sBodyMDMedium.fontWeight;
     case 'regular':
     default:
-      return 'normal';
+      return typography.sBodyMD.fontWeight;
   }
 }
 
-function alignText(alignment: TextElement['props']['alignment']) {
+function getTextAlignment(
+  alignment: TextElement['props']['alignment'],
+  inheritedAlignment?: string,
+) {
   switch (alignment) {
     case 'start':
       return 'left';
@@ -48,7 +55,7 @@ function alignText(alignment: TextElement['props']['alignment']) {
     case 'end':
       return 'right';
     default:
-      return 'left';
+      return inheritedAlignment ?? 'left';
   }
 }
 
@@ -72,22 +79,34 @@ export const text: UIComponentFactory<TextElement> = ({
 }) => {
   const textColor = getTextColor(e.props.color) ?? params.textColor;
   const textVariant = getTextVariant(e.props.size, params.textVariant);
+  const textFontWeight = getFontWeight(
+    e.props.fontWeight,
+    params.textFontWeight,
+  );
+  const textAlignment = getTextAlignment(
+    e.props.alignment,
+    params.textAlignment,
+  );
   return {
     element: 'Text',
     children: mapTextToTemplate(
       getJsxChildren(e) as NonEmptyArray<string | JSXElement>,
       {
+        ...params,
         textSize: e.props.size,
         textColor,
         textVariant,
-        ...params,
+        textFontWeight,
+        textAlignment,
       },
     ),
     props: {
       variant: textVariant,
-      fontWeight: getFontWeight(e.props.fontWeight),
       color: textColor,
-      textAlign: alignText(e.props.alignment),
+      style: {
+        fontWeight: textFontWeight,
+        textAlign: textAlignment,
+      },
     },
   };
 };
