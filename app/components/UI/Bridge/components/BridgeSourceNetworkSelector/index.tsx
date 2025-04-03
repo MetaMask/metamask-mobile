@@ -66,7 +66,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const { onSetRpcTarget } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
     selectedNetworkName,
@@ -78,9 +78,11 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
 
     // If there's only 1 network selected, set the source token to native token of that chain and switch chains
     if (candidateSourceChainIds.length === 1) {
-      const networkConfiguration = evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
-      if (networkConfiguration) {
-        await onSetRpcTarget(networkConfiguration);
+      const evmNetworkConfiguration = evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
+      if (evmNetworkConfiguration) {
+        await onSetRpcTarget(evmNetworkConfiguration);
+      } else {
+        await onNonEvmNetworkChange(candidateSourceChainIds[0] as CaipChainId);
       }
 
       // Reset the source token, if undefined will be the native token of the selected chain
@@ -89,7 +91,14 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
 
     // Return to previous screen with selected networks
     navigation.goBack();
-  }, [navigation, dispatch, candidateSourceChainIds, evmNetworkConfigurations, onSetRpcTarget]);
+  }, [
+    navigation,
+    dispatch,
+    candidateSourceChainIds,
+    evmNetworkConfigurations,
+    onSetRpcTarget,
+    onNonEvmNetworkChange,
+  ]);
 
   // Toggle chain selection
   const toggleChain = useCallback((chainId: string) => {
