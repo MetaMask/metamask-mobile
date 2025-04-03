@@ -1288,6 +1288,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                       "opacity": 0,
                                     }
                                   }
+                                  testID="animated-view-opacity"
                                 >
                                   <TouchableOpacity
                                     accessibilityLabel="Paypal (Staging)"
@@ -1410,6 +1411,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                                 {},
                                               ]
                                             }
+                                            testID="animated-view-height"
                                           >
                                             <View
                                               style={
@@ -5271,6 +5273,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                         "opacity": 0,
                                       }
                                     }
+                                    testID="animated-view-opacity"
                                   >
                                     <TouchableOpacity
                                       accessibilityLabel="MoonPay (Staging)"
@@ -5532,6 +5535,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {},
                                                 ]
                                               }
+                                              testID="animated-view-height"
                                             >
                                               <View
                                                 style={
