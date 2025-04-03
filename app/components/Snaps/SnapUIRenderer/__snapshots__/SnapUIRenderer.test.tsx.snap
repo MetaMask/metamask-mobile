@@ -53,21 +53,31 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -125,8 +135,8 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -682,21 +692,31 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -818,7 +838,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontFamily": "CentraNo1-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
                       "letterSpacing": 0,
@@ -849,7 +869,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#9ca1af",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -864,7 +884,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -965,7 +985,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 14,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -981,7 +1001,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1012,7 +1032,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Medium",
+                      "fontFamily": "CentraNo1-Medium",
                       "fontSize": 14,
                       "fontWeight": "500",
                       "letterSpacing": 0,
@@ -1028,7 +1048,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1094,7 +1114,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1126,14 +1146,13 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1157,7 +1176,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1173,7 +1192,7 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1182,7 +1201,18 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1251,21 +1281,31 @@ exports[`SnapUIRenderer renders footers 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -1323,7 +1363,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -1355,14 +1395,13 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -1386,7 +1425,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1402,7 +1441,7 @@ exports[`SnapUIRenderer renders footers 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1411,7 +1450,18 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1515,7 +1565,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1629,48 +1679,28 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
-                    accessible={true}
+                  <TouchableOpacity
                     disabled={false}
                     id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
-                    padding={0}
-                    style={
-                      {
-                        "backgroundColor": "transparent",
-                        "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                    suppressHighlighting={true}
                   >
                     <Text
                       accessibilityRole="text"
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
-                          "fontWeight": "500",
+                          "fontWeight": undefined,
                           "letterSpacing": 0,
                           "lineHeight": 22,
+                          "textAlign": undefined,
                         }
                       }
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -1767,7 +1797,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1849,7 +1879,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1914,7 +1944,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1947,7 +1977,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1974,7 +2004,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     "flexDirection": "row",
                     "height": "auto",
                     "justifyContent": "center",
-                    "maxHeight": 64,
+                    "maxHeight": 58,
                     "minHeight": 48,
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
@@ -2034,7 +2064,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Medium",
+                            "fontFamily": "CentraNo1-Medium",
                             "fontSize": 14,
                             "fontWeight": "500",
                             "letterSpacing": 0,
@@ -2050,7 +2080,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -2081,7 +2111,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "EuclidCircularB-Medium",
+                          "fontFamily": "CentraNo1-Medium",
                           "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
@@ -2097,7 +2127,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2322,7 +2352,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 16,
                             "fontWeight": "700",
                             "letterSpacing": 0,
@@ -2379,7 +2409,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -2439,7 +2469,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -2455,7 +2485,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -2486,7 +2516,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -2502,7 +2532,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -2529,7 +2559,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                               "flexDirection": "row",
                               "height": "auto",
                               "justifyContent": "center",
-                              "maxHeight": 64,
+                              "maxHeight": 58,
                               "minHeight": 48,
                               "paddingBottom": 8,
                               "paddingHorizontal": 16,
@@ -2589,7 +2619,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
+                                      "fontFamily": "CentraNo1-Medium",
                                       "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
@@ -2605,7 +2635,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -2636,7 +2666,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
+                                    "fontFamily": "CentraNo1-Medium",
                                     "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
@@ -2652,7 +2682,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -2671,47 +2701,28 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
-              accessible={true}
+            <TouchableOpacity
               disabled={false}
               id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "backgroundColor": "transparent",
-                  "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-              suppressHighlighting={true}
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
-                    "fontWeight": "500",
+                    "fontWeight": undefined,
                     "letterSpacing": 0,
                     "lineHeight": 22,
+                    "textAlign": undefined,
                   }
                 }
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -2898,21 +2909,31 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -2970,7 +2991,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -3002,14 +3023,13 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
             {
               "alignItems": "center",
               "flexDirection": "row",
-              "gap": 4,
+              "gap": 8,
               "justifyContent": "center",
             }
           }
@@ -3033,7 +3053,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3049,7 +3069,7 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -3058,7 +3078,18 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
