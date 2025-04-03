@@ -242,11 +242,15 @@ export const swapsTokensSelector = createSelector(
   },
 );
 
-export const topAssets = (state) =>
-  state.engine.backgroundState.SwapsController.topAssets;
+export const topAssets = createSelector(
+  swapsStateSelector,
+  (swapsControllerState) => swapsControllerState.topAssets,
+);
 
-export const selectChainCache = (state) =>
-  state.engine.backgroundState.SwapsController.chainCache;
+export const selectChainCache = createSelector(
+  swapsStateSelector,
+  (swapsControllerState) => swapsControllerState.chainCache,
+);
 
 /**
  * Returns a memoized object that only has the addesses of the tokens as keys
