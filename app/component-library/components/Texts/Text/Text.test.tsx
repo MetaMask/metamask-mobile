@@ -9,7 +9,6 @@ import { mockTheme } from '../../../../util/theme';
 import Text from './Text';
 import { SAMPLE_TEXT_PROPS, DEFAULT_TEXT_VARIANT } from './Text.constants';
 import { getFontFamily } from './Text.utils';
-import { FontWeight } from './Text.types';
 
 describe('Text', () => {
   it('should render correctly', () => {
@@ -19,10 +18,7 @@ describe('Text', () => {
 
   it('should render the correct fontFamily', () => {
     const { getByRole } = render(<Text {...SAMPLE_TEXT_PROPS} />);
-    const fontFamily = getFontFamily(
-      mockTheme.typography[DEFAULT_TEXT_VARIANT].fontWeight as FontWeight,
-      'normal',
-    );
+    const fontFamily = getFontFamily(DEFAULT_TEXT_VARIANT);
 
     expect(getByRole('text').props.style.fontFamily).toBe(fontFamily);
   });
