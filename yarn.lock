@@ -4714,12 +4714,21 @@
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/utils" "^11.1.0"
+    ethereum-cryptography "^2.1.2"
+    randombytes "^2.1.0"
+
+"@metamask/eth-snap-keyring@^11.1.0":
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-11.1.0.tgz#a1eb56a7f6d1ee81b1a26b5ad9be6bf893dd31d4"
+  integrity sha512-gXnnzt9Tg4bhieUbC+5ox3O7KXSM3AfHQob0zQfm7QZ/i1XBoLrzt+1YDyE2CbZ1uIVbhfROC+rRrPfFM5peHA==
   dependencies:
     "@ethereumjs/tx" "^4.2.0"
     "@metamask/base-controller" "^7.1.1"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/keyring-api" "^17.2.0"
     "@metamask/keyring-internal-api" "^4.0.3"
+    "@metamask/keyring-internal-snap-client" "^4.0.1"
     "@metamask/keyring-utils" "^2.3.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.1.0"
@@ -4877,7 +4886,7 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.0", "@metamask/keyring-controller@^21.0.1":
+"@metamask/keyring-controller@^21.0.1":
   version "21.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
   integrity sha512-WvLZ7/C+wZsMLK6+D138ai9mlJesYdLuMOY6me4ClHJ24HALTgaZmCtsJ5wXcl4FR00fWucsn9TgayennrYAWg==
