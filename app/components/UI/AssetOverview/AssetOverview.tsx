@@ -3,7 +3,7 @@ import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { newAssetTransaction } from '../../../actions/transaction';
 import AppConstants from '../../../core/AppConstants';
@@ -54,6 +54,8 @@ import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
 import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { formatWithThreshold } from '../../../util/assets';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -93,6 +95,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const chainId = asset.chainId as Hex;
   const ticker = nativeCurrency;
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const currentAddress = asset.address as Hex;
 
@@ -296,10 +299,20 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
 
   let balance;
   if (asset.isETH || asset.isNative) {
-    balance = renderFromWei(
-      //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
-    );
+    if (isEvmSelected) {
+      balance = renderFromWei(
+        //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
+        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
+      );
+    } else {
+      const oneHundredThousandths = 0.00001;
+      balance = formatWithThreshold(
+        parseFloat(asset.balance),
+        oneHundredThousandths,
+        I18n.locale,
+        { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+      );
+    }
   } else {
     const multiChainTokenBalanceHex =
       itemAddress &&
