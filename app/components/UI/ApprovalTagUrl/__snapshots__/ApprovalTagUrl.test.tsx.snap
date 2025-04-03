@@ -7,7 +7,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#848c96",
       "borderRadius": 99,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -53,7 +53,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#6a737d",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
@@ -75,7 +75,7 @@ exports[`ApprovalTagUrl renders correctly when only origin is provided 1`] = `
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#b7bbc8",
+      "borderColor": "#848c96",
       "borderRadius": 99,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -121,9 +121,9 @@ exports[`ApprovalTagUrl renders correctly when only origin is provided 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#6a737d",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
