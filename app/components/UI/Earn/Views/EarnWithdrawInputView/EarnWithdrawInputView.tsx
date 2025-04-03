@@ -174,7 +174,7 @@ const EarnWithdrawInputView = () => {
 
   const handleUnstakePress = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_transactions;
+      confirmationRedesignFlags?.staking_confirmations;
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -240,7 +240,7 @@ const EarnWithdrawInputView = () => {
     trackEvent,
     attemptUnstakeTransaction,
     activeAccount?.address,
-    confirmationRedesignFlags?.staking_transactions,
+    confirmationRedesignFlags?.staking_confirmations,
   ]);
 
   return (

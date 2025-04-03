@@ -25,11 +25,15 @@ describe('link component', () => {
       element: 'SnapUILink',
       children: [
         {
-          element: 'RNText',
+          element: 'Text',
           children: 'link',
           key: expect.any(String),
           props: {
-            color: 'inherit',
+            color: '#4459ff',
+            style: {
+              fontWeight: undefined,
+              textAlign: undefined,
+            },
           },
         },
       ],
