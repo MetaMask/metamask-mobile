@@ -58,6 +58,7 @@ import Icon, {
 import ButtonComp, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -386,6 +387,69 @@ class Onboarding extends PureComponent {
     this.handleExistingUser(action);
   };
 
+
+  metricNavigationWrapper = (targetRoute, previousScreen) => {
+    const { metrics } = this.props;
+    if (metrics.isEnabled()) {
+      this.props.navigation.push(
+        targetRoute,
+        {
+          [PREVIOUS_SCREEN]: previousScreen,
+        }
+      );
+      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+    } else {
+      this.props.navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          this.props.navigation.replace(
+            targetRoute,
+            {
+              [PREVIOUS_SCREEN]: previousScreen,
+            }
+          );
+          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+        },
+      });
+    }
+  };
+
+  onPressContinueWithApple = async () => {
+    const action = async () => {
+      const result = await Oauth2loginService.handleOauth2Login('apple', 'onboarding').catch((e) => {
+        DevLogger.log(e);
+        return {type: 'error', error: e, existingUser: false};
+      });
+
+      if (result.type === 'success') {
+
+        if (result.existingUser) {
+          this.metricNavigationWrapper('Login', ONBOARDING);
+        } else {
+          this.metricNavigationWrapper('ChoosePassword', ONBOARDING);
+        }
+      }
+    };
+    this.handleExistingUser(action);
+  };
+
+  onPressContinueWithGoogle = async () => {
+    const action = async () => {
+      const result = await Oauth2loginService.handleOauth2Login('google', 'onboarding').catch((e) => {
+        DevLogger.log(e);
+        return {type: 'error', error: e, existingUser: false};
+      });
+
+      if (result.type === 'success') {
+        if (result.existingUser) {
+          this.metricNavigationWrapper('Login', ONBOARDING);
+        } else {
+          this.metricNavigationWrapper('ChoosePassword', ONBOARDING);
+        }
+      }
+    };
+    this.handleExistingUser(action);
+  };
+
   track = (event) => {
     trackOnboarding(MetricsEventBuilder.createEventBuilder(event).build());
   };
@@ -438,11 +502,10 @@ class Onboarding extends PureComponent {
           {strings('onboarding.title')}
         </Text>
         <View style={styles.createWrapper}>
-          <Oauth2LoginComponent />
           <View style={styles.buttonWrapper}>
             <ButtonComp
               variant={ButtonVariants.Secondary}
-              onPress={this.onPressCreate}
+              onPress={this.onPressContinueWithGoogle}
               testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
               label={strings('onboarding.continue_with_google')}
               startIconName={IconName.Google}
@@ -451,7 +514,7 @@ class Onboarding extends PureComponent {
             />
             <ButtonComp
               variant={ButtonVariants.Secondary}
-              onPress={this.onPressImport}
+              onPress={this.onPressContinueWithApple}
               testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
               label={strings('onboarding.continue_with_apple')}
               startIconName={IconName.Apple}
