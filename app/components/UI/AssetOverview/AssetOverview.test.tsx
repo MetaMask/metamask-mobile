@@ -323,6 +323,28 @@ describe('AssetOverview', () => {
     }
   });
 
+  it('should handle receive button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'QRTabSwitcher', {
+      disableTabber: true,
+      initialScreen: 1,
+      networkName: undefined,
+    });
+  });
+
   it('should not render swap button if displaySwapsButton is false', async () => {
     const { queryByTestId } = renderWithProvider(
       <AssetOverview
