@@ -30,7 +30,6 @@ jest.mock('react-redux', () => ({
 const PERMISSION_REQUEST_ID_MOCK = 'testId';
 
 const HOST_INFO_MOCK = {
-  // TODO: fix this file
   permissions: { [Caip25EndowmentPermissionName]: true },
   metadata: { id: PERMISSION_REQUEST_ID_MOCK },
 };
