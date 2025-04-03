@@ -72,6 +72,7 @@ import { PASSCODE_NOT_SET_ERROR } from './constants';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
+  PASSWORD_REQUIREMENTS_NOT_MET,
 } from './constants';
 import { VAULT_ERROR } from './constants';
 import {
@@ -237,18 +238,21 @@ const Login: React.FC = () => {
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
-    const locked = !passwordRequirementsMet(password);
-    if (locked) setError(strings('login.invalid_password'));
-    if (loading || locked) return;
-
-    setLoading(true);
-    setError(null);
-    const authType = await Authentication.componentAuthenticationType(
-      biometryChoice,
-      rememberMe,
-    );
-
     try {
+      const locked = !passwordRequirementsMet(password);
+      if (locked) {
+        // This will be caught by the catch block below
+        throw new Error(PASSWORD_REQUIREMENTS_NOT_MET);
+      }
+      if (loading || locked) return;
+
+      setLoading(true);
+      setError(null);
+      const authType = await Authentication.componentAuthenticationType(
+        biometryChoice,
+        rememberMe,
+      );
+
       await trace(
         {
           name: TraceName.AuthenticateUser,
@@ -280,7 +284,8 @@ const Login: React.FC = () => {
 
       if (
         toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID)
+        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID) ||
+        errorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         setLoading(false);
         setError(strings('login.invalid_password'));
