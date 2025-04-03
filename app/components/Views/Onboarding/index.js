@@ -92,7 +92,7 @@ const createStyles = (colors) =>
     title: {
       textAlign: 'center',
       fontSize: 32,
-      fontWeight: 700,
+      fontWeight: '700',
       lineHeight: 38,
     },
     ctas: {
