@@ -257,9 +257,10 @@ export const TokenListItem = React.memo(
       );
 
       // token details only currently supported for evm
-      // if (!isEvmNetworkSelected) {
-      //   return;
-      // }
+      // TODO: Remove this when shipping feature
+      if (!isEvmNetworkSelected) {
+        return;
+      }
 
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
