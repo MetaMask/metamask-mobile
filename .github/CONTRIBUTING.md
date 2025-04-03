@@ -7,8 +7,7 @@ Thank you for your interest in contributing to MetaMask Mobile! This guide will 
 To set up your development environment:
 
 - Please follow the instructions in our [repository README](https://github.com/MetaMask/metamask-mobile)
-- We recommend using Expo for development
-- For Android testing, you can use our development builds available [here](https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss)
+- We recommend using Expo for development and the Android builds provided
 
 ## Finding Issues to Work On
 
