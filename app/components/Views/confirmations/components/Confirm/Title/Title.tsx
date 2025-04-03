@@ -38,10 +38,10 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const parsedMessage =
+        const parsedData =
           parseSignTypedDataFromSignatureRequest(signatureRequest);
-        const { allowed, tokenId, value } = parsedMessage.message ?? {};
-        const { verifyingContract } = parsedMessage.domain ?? {};
+        const { allowed, tokenId, value } = parsedData.message ?? {};
+        const { verifyingContract } = parsedData.domain ?? {};
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {

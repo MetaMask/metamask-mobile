@@ -29,10 +29,9 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedMessage =
-    parseSignTypedDataFromSignatureRequest(signatureRequest);
-  const spender = parsedMessage.message?.spender;
-  const verifyingContract = parsedMessage.domain?.verifyingContract;
+  const parsedData = parseSignTypedDataFromSignatureRequest(signatureRequest);
+  const spender = parsedData.message?.spender;
+  const verifyingContract = parsedData.domain?.verifyingContract;
 
   if (!signatureRequest) {
     return null;
@@ -61,13 +60,10 @@ export const InfoSectionOriginAndDetails = () => {
         <DisplayURL url={origin} />
       </InfoRow>
       {isValidAddress(verifyingContract) && (
-          <InfoRow label={strings('confirm.label.interacting_with')}>
-            <InfoRowAddress
-              address={verifyingContract}
-              chainId={chainId}
-            />
-          </InfoRow>
-        )}
+        <InfoRow label={strings('confirm.label.interacting_with')}>
+          <InfoRowAddress address={verifyingContract} chainId={chainId} />
+        </InfoRow>
+      )}
     </InfoSection>
   );
 };
