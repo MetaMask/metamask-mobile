@@ -76,13 +76,13 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
 
     // Convert from BridgeAsset type to BridgeToken type
     const bridgeTokenObj: Record<string, BridgeToken> = {};
-    Object.keys(rawBridgeAssets).forEach((key) => {
-      const bridgeAsset = rawBridgeAssets[key];
+    Object.keys(rawBridgeAssets).forEach((addr) => {
+      const bridgeAsset = rawBridgeAssets[addr];
 
       const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
       const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
 
-      bridgeTokenObj[key] = {
+      bridgeTokenObj[addr] = {
         address: bridgeAsset.address,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
