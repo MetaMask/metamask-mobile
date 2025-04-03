@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps,multi-srp)
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { useSelector } from 'react-redux';
 ///: END:ONLY_INCLUDE_IF
 import { useNavigation } from '@react-navigation/native';
@@ -37,7 +37,6 @@ import Text, {
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectHDKeyrings } from '../../../selectors/keyringController';
@@ -48,6 +47,7 @@ import {
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = (props: AddAccountActionsProps) => {
@@ -156,7 +156,8 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   };
-
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
