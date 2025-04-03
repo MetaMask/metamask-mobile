@@ -91,5 +91,15 @@ describe('string utils', () => {
       );
       expect(result).toEqual('Secure ✅ \n');
     });
+
+    it('returns undefined if the input is undefined', async () => {
+      const result = stripMultipleNewlines(undefined);
+      expect(result).toEqual(undefined);
+    });
+
+    it('returns the value as is if it is not a string', async () => {
+      const result = stripMultipleNewlines(123);
+      expect(result).toEqual(123);
+    });
   });
 });

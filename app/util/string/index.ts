@@ -18,7 +18,7 @@ export const escapeSpecialUnicode = (str: string): string => {
   return str.split('\u202D').join('\\u202D').split('\u202E').join('\\u202E');
 };
 
-export const stripMultipleNewlines = (str: string): string => {
+export const stripMultipleNewlines = (str: string | unknown): string | unknown => {
   if (!str || typeof str !== 'string') {
     return str;
   }

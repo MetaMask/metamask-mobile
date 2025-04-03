@@ -108,7 +108,7 @@ export const sanitizeParsedMessage = (
     };
   } else if (isSolidityType(primaryType)) {
     return {
-      value: stripMultipleNewlines(message as string),
+      value: stripMultipleNewlines(message) as ValueType['value'],
       type: primaryType,
     };
   }
