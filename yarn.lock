@@ -4594,18 +4594,6 @@
     json-rpc-random-id "^1.0.1"
     pify "^5.0.0"
 
-"@metamask/eth-hd-keyring@^10.0.0":
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-10.0.1.tgz#43e817a07b9f50f39b27155d697db55d5fa4237c"
-  integrity sha512-Ebzpd/Gejcsuz5zX+qL5Wou/JHT2gb5zxxHz30NJIHRO1xIe/nFOaNW5Q6InIddb1reemQe21xqHHPTnVghnwQ==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/key-tree" "^10.0.2"
-    "@metamask/scure-bip39" "^2.1.1"
-    "@metamask/utils" "^11.1.0"
-    ethereum-cryptography "^2.1.2"
-
 "@metamask/eth-hd-keyring@^12.0.0", "@metamask/eth-hd-keyring@^12.1.0":
   version "12.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-hd-keyring/-/eth-hd-keyring-12.1.0.tgz#f70e421cc7fbecc039b3f6347172444dadb10168"
@@ -4725,17 +4713,6 @@
   integrity sha512-zdPIhKsQDfLG5m8yFDHpaXe8nPYc3sBeTiVWw1BPxwGNIW7Y8ToeHMMIlOYFZzUP98ezrtrBjiB86tQdRZ377w==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/utils" "^11.1.0"
-    ethereum-cryptography "^2.1.2"
-    randombytes "^2.1.0"
-
-"@metamask/eth-simple-keyring@^8.1.0":
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-simple-keyring/-/eth-simple-keyring-8.1.1.tgz#23bc2813dad92bffef5d7e37b4eed78c780db81f"
-  integrity sha512-/qcnwkzjtluM96IGTeCN7X2efI4GurxW8sMpj/oxN5sb69CMsr22WiMe1cRHQ0iM+hzlWRyxySFye4wPZENgvw==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/utils" "^11.1.0"
     ethereum-cryptography "^2.1.2"
@@ -4909,30 +4886,10 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^19.2.2":
-  version "19.2.2"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-19.2.2.tgz#07ac7c350c8209c5d15e16ad8909d6cce9d88f6a"
-  integrity sha512-xbQFWMXjmDQr2IoEp2XuWHil4nREyQ8cqYF4/K6RZR76JfdziyAsJIsUknLcm1h9DwoJHDs2EpX6UaPLeccT0A==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/browser-passworder" "^4.3.0"
-    "@metamask/eth-hd-keyring" "^10.0.0"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/eth-simple-keyring" "^8.1.0"
-    "@metamask/keyring-api" "^17.2.0"
-    "@metamask/keyring-internal-api" "^4.0.3"
-    "@metamask/utils" "^11.2.0"
-    async-mutex "^0.5.0"
-    ethereumjs-wallet "^1.0.1"
-    immer "^9.0.6"
-    ulid "^2.3.0"
-
-"@metamask/keyring-controller@^21.0.0":
-  version "21.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.0.tgz#eeace05df6c07baece0bea621b3c26269e1c2ca0"
-  integrity sha512-RXANJ9qaxn76XLjGvjQOECErUl6LqBd7jeK9JmFKg8zsVQHLWK9fbfO7GA3PdKs9c8DkBCZXx+fFE1J9LWh6sA==
+"@metamask/keyring-controller@^21.0.0", "@metamask/keyring-controller@^21.0.1":
+  version "21.0.1"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
+  integrity sha512-WvLZ7/C+wZsMLK6+D138ai9mlJesYdLuMOY6me4ClHJ24HALTgaZmCtsJ5wXcl4FR00fWucsn9TgayennrYAWg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@keystonehq/metamask-airgapped-keyring" "^0.14.1"
