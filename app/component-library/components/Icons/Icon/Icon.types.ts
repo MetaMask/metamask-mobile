@@ -237,4 +237,6 @@ export enum IconName {
   Apple = 'Apple',
   EyeSlashSolid = 'EyeSlashSolid',
   EyeSolid = 'EyeSolid',
+  DangerSolid = 'DangerSolid',
+  SuccessSolid = 'SuccessSolid',
 }

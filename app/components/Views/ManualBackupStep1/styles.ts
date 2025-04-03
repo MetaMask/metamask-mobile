@@ -57,6 +57,12 @@ export const createStyles = (colors: any) =>
       marginVertical: 16,
       // paddingHorizontal: 6,
     },
+    infoLink: {
+      color: colors.primary.default,
+    },
+    infoBold: {
+      ...fontStyles.bold,
+    },
     seedPhraseConcealerContainer: {
       flex: 1,
       borderRadius: 8,
@@ -67,6 +73,11 @@ export const createStyles = (colors: any) =>
       borderRadius: 8,
       paddingHorizontal: 24,
       paddingVertical: 45,
+      flexDirection: 'column',
+      rowGap: 16,
+      height: '100%',
+      flex: 1,
+      justifyContent: 'center',
     },
     blurView: {
       position: 'absolute',
@@ -74,28 +85,25 @@ export const createStyles = (colors: any) =>
       left: 0,
       bottom: 0,
       right: 0,
+      height: '100%',
       borderRadius: 8,
+      flex: 1,
     },
     icon: {
-      width: 24,
-      height: 24,
       color: colors.overlay.inverse,
       textAlign: 'center',
-      marginBottom: 32,
     },
     reveal: {
       fontSize: Device.isMediumDevice() ? 13 : 16,
       ...fontStyles.bold,
       color: colors.overlay.inverse,
       lineHeight: 22,
-      marginBottom: 8,
       textAlign: 'center',
     },
     watching: {
       fontSize: Device.isMediumDevice() ? 10 : 12,
       color: colors.overlay.inverse,
       lineHeight: 17,
-      marginBottom: 32,
       textAlign: 'center',
     },
     viewButtonContainer: {
@@ -123,7 +131,7 @@ export const createStyles = (colors: any) =>
       height: 'auto',
       flex: 1,
       flexDirection: 'column',
-      minHeight: 275,
+      minHeight: 230,
       marginBottom: 64,
     },
     seedPhraseInnerContainer: {
@@ -295,5 +303,13 @@ export const createStyles = (colors: any) =>
     },
     button: {
       backgroundColor: importedColors.primaryDefault,
+    },
+    ctaContainer: {
+      flexDirection: 'column',
+      marginTop: 'auto',
+      width: '100%',
+    },
+    continueButton: {
+      marginTop: 'auto',
     },
   });

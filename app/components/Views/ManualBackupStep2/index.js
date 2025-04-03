@@ -24,6 +24,15 @@ import createStyles from './styles';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -33,6 +42,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [wordsDict, setWordsDict] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seedPhraseReady, setSeedPhraseReady] = useState(false);
+  const [showStatusBottomSheet, setShowStatusBottomSheet] = useState(false);
 
   const currentStep = 2;
   const words =
@@ -95,8 +105,21 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       setWordsDict(tempWordsDict);
       setConfirmedWords(tempConfirmedWords);
       setSeedPhraseReady(findNextAvailableIndex() === -1);
+
+      const confirmedWordFinal = tempConfirmedWords
+        .map((word) => word.word)
+        .filter((word) => word !== undefined);
+      if (confirmedWordFinal.length === route.params?.words.length) {
+        setShowStatusBottomSheet(true);
+      }
     },
-    [confirmedWords, currentIndex, findNextAvailableIndex, wordsDict],
+    [
+      confirmedWords,
+      currentIndex,
+      findNextAvailableIndex,
+      wordsDict,
+      route.params?.words.length,
+    ],
   );
 
   const clearConfirmedWordAt = (i) => {
@@ -143,6 +166,10 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         strings('account_backup_step_5.error_message'),
       );
     }
+  };
+
+  const goBack = () => {
+    navigation.goBack();
   };
 
   const renderSuccess = () => {
@@ -240,6 +267,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           confirmDisabled={!seedPhraseReady || !validateWords()}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
+          showConfirmButton={false}
         >
           <View
             style={styles.wrapper}
@@ -273,10 +301,47 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 />
               </View>
             </View>
-            {validateWords() ? renderSuccess() : renderWords()}
+            {renderWords()}
           </View>
         </ActionView>
       </View>
+      {showStatusBottomSheet && (
+        <BottomSheet onClose={() => setShowStatusBottomSheet(false)}>
+          <View style={styles.statusContainer}>
+            <Icon
+              name={validateWords() ? IconName.SuccessSolid : IconName.CircleX}
+              size={IconSize.Xl}
+              color={
+                validateWords() ? colors.success.default : colors.error.default
+              }
+            />
+            <Text style={styles.statusTitle}>
+              {validateWords()
+                ? strings('manual_backup_step_2.success-title')
+                : strings('manual_backup_step_2.error-title')}
+            </Text>
+            <Text style={styles.statusDescription}>
+              {validateWords()
+                ? strings('manual_backup_step_2.success-description')
+                : strings('manual_backup_step_2.error-description')}
+            </Text>
+            <Button
+              variant={ButtonVariants.Primary}
+              label={
+                validateWords()
+                  ? strings('manual_backup_step_2.success-button')
+                  : strings('manual_backup_step_2.error-button')
+              }
+              widthType={ButtonWidthTypes.Full}
+              style={styles.statusButton}
+              onPress={() => {
+                setShowStatusBottomSheet(false);
+                validateWords() ? goNext() : goBack();
+              }}
+            />
+          </View>
+        </BottomSheet>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

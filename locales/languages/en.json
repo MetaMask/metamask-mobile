@@ -2103,11 +2103,16 @@
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
     "skip_title": "Skip account security?",
-    "skip_check": "I understand that if I lose my Secret Recovery Phrase I will not be able to access my wallet.",
-    "what_is_seedphrase_title": "What is a ‘Secret Recovery Phrase’",
-    "what_is_seedphrase_text_1": "A Secret Recovery Phrase is a set of twelve words that contains all the information about your wallet, including your funds. It’s like a secret code used to access your entire wallet.",
+    "skip_check": "If you lose this Secret Recovery Phrase, you won’t be able to access this wallet.",
+    "what_is_seedphrase_title": "What’s a Secret Recovery Phrase?",
+    "what_is_seedphrase_text_1": "A Secret Recovery Phrase, also called a seed phrase or mnemonic, is a set of words that lets you access and control your crypto wallet. To move your wallet to MetaMask, you need this phrase.",
     "what_is_seedphrase_text_2": "You must keep your Secret Recovery Phrase secret and safe. If someone gets your Secret Recovery Phrase, they’ll gain control over your accounts.",
-    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it."
+    "what_is_seedphrase_text_3": "Save it in a place where only you can access it. If you lose it, not even MetaMask can help you recover it.",
+    "what_is_seedphrase_text_4": "Anyone with your Secret Recovery Phrase can:",
+    "seedPhrase_point_1": "Take all your money",
+    "seedPhrase_point_2": "Confirm transactions",
+    "seedPhrase_point_3": "Change your login information",
+    "what_is_seedphrase_confirm": "Got it"
   },
   "account_backup_step_1B": {
     "title": "Secure your wallet",
@@ -2198,10 +2203,13 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
-    "action": "Confirm your Secret Recovery Phrase",
-    "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
+    "action": "Save your Secret Recovery Phrase",
+    "info-1": "This is your",
+    "info-2": "Secret Recovery Phrase",
+    "info-3": "Write it down in the correct order and keep it safe. If someone has your Secret Recovery Phrase, they can access your wallet.",
+    "info-4": "Don’t share it with anyone, ever.",
     "continue": "Continue",
-    "reveal": "Tap to reveal your Secret Recovery Phrase",
+    "reveal": "Tap to reveal",
     "watching": "Make sure no one is watching your screen.",
     "view": "View",
     "confirm_password": "Confirm your password",
@@ -2211,10 +2219,16 @@
     "learn_more": "Learn More"
   },
   "manual_backup_step_2": {
-    "action": "Confirm Secret Recovery Phrase",
+    "action": "Confirm your Secret Recovery Phrase",
     "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
-    "success": "Success"
+    "success": "Success",
+    "error-title": "Not quite right",
+    "error-description": "Double-check your Secret Recovery Phrase and try again.",
+    "success-title": "Perfect!",
+    "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
+    "success-button": "Got It",
+    "error-button": "Try Again"
   },
   "manual_backup_step_3": {
     "congratulations": "Congratulations",
