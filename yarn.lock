@@ -4675,24 +4675,6 @@
     pify "^5.0.0"
     safe-stable-stringify "^2.4.3"
 
-"@metamask/eth-json-rpc-middleware@^16.0.1":
-  version "16.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-middleware/-/eth-json-rpc-middleware-16.0.1.tgz#9707bbf6a6c2f980e400f6aa77e7f5f9875f8f84"
-  integrity sha512-d/imB71ublLjoxb2HgaoyXhM5QWCSRWG834mOWtR/cXd3FLXsgVUDt16WoydcEqHMinvl4buh89nxWtNxIpFsQ==
-  dependencies:
-    "@metamask/eth-block-tracker" "^11.0.4"
-    "@metamask/eth-json-rpc-provider" "^4.1.7"
-    "@metamask/eth-sig-util" "^8.1.2"
-    "@metamask/json-rpc-engine" "^10.0.2"
-    "@metamask/rpc-errors" "^7.0.2"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    "@types/bn.js" "^5.1.5"
-    bn.js "^5.2.1"
-    klona "^2.0.6"
-    pify "^5.0.0"
-    safe-stable-stringify "^2.4.3"
-
 "@metamask/eth-json-rpc-provider@^4.1.5", "@metamask/eth-json-rpc-provider@^4.1.6", "@metamask/eth-json-rpc-provider@^4.1.7", "@metamask/eth-json-rpc-provider@^4.1.8":
   version "4.1.8"
   resolved "https://registry.yarnpkg.com/@metamask/eth-json-rpc-provider/-/eth-json-rpc-provider-4.1.8.tgz#1ff84270b240b75d14064bcc2ecb3bb14e718401"
