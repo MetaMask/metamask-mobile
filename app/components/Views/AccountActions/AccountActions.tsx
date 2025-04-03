@@ -59,10 +59,7 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-import {
-  selectHDKeyrings,
-  selectKeyrings,
-} from '../../../selectors/keyringController';
+import { selectKeyrings } from '../../../selectors/keyringController';
 ///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 
