@@ -22,19 +22,20 @@ export const ConfirmButtonState = {
 const getStyles = (colors) =>
   StyleSheet.create({
     actionContainer: {
-      flex: 0,
-      flexDirection: 'row',
+      width: '100%',
       paddingVertical: 16,
-      paddingHorizontal: 24,
     },
     button: {
       flex: 1,
+      marginTop: 'auto',
     },
     cancel: {
       marginRight: 8,
     },
     confirm: {
+      marginTop: 'auto',
       marginLeft: 8,
+      backgroundColor: colors.primary.default,
     },
     confirmButtonError: {
       backgroundColor: colors.error.default,

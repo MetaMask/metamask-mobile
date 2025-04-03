@@ -1,12 +1,23 @@
 /* eslint-disable import/prefer-default-export */
 import { StyleSheet } from 'react-native';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const createStyles = (colors: any) =>
   StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: 16,
+      paddingTop: 0,
+    },
+    step: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+      marginBottom: 6,
+    },
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -14,7 +25,8 @@ export const createStyles = (colors: any) =>
     },
     wrapper: {
       flex: 1,
-      paddingHorizontal: 32,
+      height: '100%',
+      flexDirection: 'column',
     },
     onBoardingWrapper: {
       paddingHorizontal: 20,
@@ -27,23 +39,23 @@ export const createStyles = (colors: any) =>
       alignItems: 'center',
     },
     action: {
-      fontSize: 18,
-      marginVertical: 16,
+      fontSize: 32,
       color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'center',
+      justifyContent: 'flex-start',
+      textAlign: 'left',
       ...fontStyles.bold,
+      alignSelf: 'flex-start',
     },
     infoWrapper: {
-      marginBottom: 16,
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
     },
     info: {
       fontSize: 14,
       color: colors.text.default,
-      textAlign: 'center',
+      textAlign: 'left',
       ...fontStyles.normal,
-      paddingHorizontal: 6,
+      marginVertical: 16,
+      // paddingHorizontal: 6,
     },
     seedPhraseConcealerContainer: {
       flex: 1,
@@ -99,6 +111,76 @@ export const createStyles = (colors: any) =>
       marginBottom: 64,
       minHeight: 275,
     },
+    seedPhraseContainerText: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      ...fontStyles.normal,
+    },
+    seedPhraseContainer: {
+      paddingTop: 16,
+      backgroundColor: colors.background.muted,
+      borderRadius: 10,
+      height: 'auto',
+      flex: 1,
+      flexDirection: 'column',
+      minHeight: 275,
+      marginBottom: 64,
+    },
+    seedPhraseInnerContainer: {
+      paddingBottom: 16,
+    },
+    seedPhraseContainerCta: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      width: '100%',
+      marginTop: 'auto',
+      borderTopWidth: 1,
+      borderTopColor: colors.background.default,
+      paddingHorizontal: 16,
+    },
+    seedPhraseDefaultInput: {
+      fontSize: 14,
+      color: importedColors.textAlternative,
+      borderWidth: 0,
+      outlineWidth: 0,
+      ...fontStyles.normal,
+      backgroundColor: colors.background.muted,
+      paddingHorizontal: 0,
+      height: 44,
+    },
+    seedPhraseInputContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap', // Allows wrapping to new lines
+      justifyContent: 'center',
+      paddingHorizontal: 16,
+    },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      height: 40,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 8,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      backgroundColor: colors.background.default,
+      flex: 1,
+      margin: 5,
+      columnGap: 8,
+    },
+    inputNumber: {
+      color: colors.text.muted,
+      fontSize: 14,
+      ...fontStyles.medium,
+    },
+    seedPhraseInput: {
+      color: colors.text.default,
+      fontSize: 14,
+      fontWeight: '500',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flex: 1,
+    },
     wordColumn: {
       flex: 1,
       alignItems: 'center',
@@ -125,8 +207,8 @@ export const createStyles = (colors: any) =>
     },
     confirmPasswordWrapper: {
       flex: 1,
-      padding: 30,
-      paddingTop: 0,
+      // padding: 30,
+      // paddingTop: 0,
     },
     passwordRequiredContent: {
       marginBottom: 20,
@@ -136,8 +218,8 @@ export const createStyles = (colors: any) =>
     },
     title: {
       fontSize: 32,
-      marginTop: 20,
-      marginBottom: 10,
+      // marginTop: 20,
+      marginBottom: 8,
       color: colors.text.default,
       justifyContent: 'center',
       textAlign: 'left',
@@ -157,7 +239,7 @@ export const createStyles = (colors: any) =>
     },
     buttonWrapper: {
       flex: 1,
-      marginTop: 20,
+      marginTop: 0,
       justifyContent: 'flex-end',
     },
     input: {
@@ -178,5 +260,40 @@ export const createStyles = (colors: any) =>
       flex: 1,
       flexDirection: 'row',
       alignSelf: 'center',
+    },
+    passwordContainer: {
+      flexDirection: 'column',
+      gap: 16,
+      marginVertical: 16,
+    },
+    passwordInputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 8,
+      height: 48,
+    },
+    passwordInputContainerFocused: {
+      borderColor: colors.primary.default,
+      borderWidth: 2,
+    },
+    passwordInput: {
+      flex: 1,
+      fontSize: 16,
+      color: colors.text.default,
+      fontWeight: '500',
+    },
+    field: {
+      position: 'relative',
+      flexDirection: 'column',
+      gap: 8,
+      width: '100%',
+    },
+    button: {
+      backgroundColor: importedColors.primaryDefault,
     },
   });

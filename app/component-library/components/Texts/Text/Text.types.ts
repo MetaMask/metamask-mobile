@@ -37,6 +37,7 @@ export enum TextColor {
   ErrorAlternative = 'ErrorAlternative',
   Warning = 'Warning',
   Info = 'Info',
+  Link = 'Link',
 }
 
 /**

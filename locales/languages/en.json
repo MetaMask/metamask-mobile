@@ -82,7 +82,7 @@
     "ok": "OK"
   },
   "onboarding": {
-    "title": "Wallet setup",
+    "title": "Let’s get started!",
     "sync_desc": "If you’ve already got the MetaMask extension or another wallet, sync or import it to manage your existing assets.",
     "create_desc": "Set up your first wallet and start exploring decentralized apps.",
     "import": "Import an existing wallet or create a new one",
@@ -114,7 +114,11 @@
     "scan_step_4": "Scan the QR code to start syncing",
     "success": "Success",
     "your_wallet": "Your wallet was successfully erased",
-    "delete_current": "Deleting current wallet"
+    "delete_current": "Deleting current wallet",
+    "continue_with_google": "Continue with Google",
+    "continue_with_apple": "Continue with Apple",
+    "or": "OR",
+    "import_existing_wallet": "Import existing wallet"
   },
   "onboarding_success": {
     "title": "Congratulations!",
@@ -326,7 +330,7 @@
     "successfully_changed": "Your password has been successfully changed"
   },
   "import_from_seed": {
-    "title": "Import from Secret Recovery Phrase",
+    "title": "Import a wallet",
     "seed_phrase_placeholder": "Enter your Secret Recovery Phrase",
     "new_password": "New Password",
     "confirm_password": "Confirm password",
@@ -338,7 +342,15 @@
     "invalid_seed_phrase": "Invalid Secret Recovery Phrase",
     "error": "Error",
     "invalid_qr_code_title": "Invalid QR Code",
-    "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase"
+    "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
+    "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "create_password": "Create password",
+    "seed_phrase_required": "Secret Recovery Phrase is required",
+    "re_enter_password": "Re-enter your password",
+    "use_at_least_8_characters": "Use at least 8 characters",
+    "unlock_with_face_id": "Unlock with Face ID?",
+    "learn_more": "MetaMask can’t recover this password.",
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -2086,7 +2098,7 @@
     "info_text_1_2": "Secret Recovery Phrase",
     "info_text_1_3": "in a place you trust.",
     "info_text_1_4": "It’s the only way to recover your wallet if you get locked out of the app or get a new device.",
-    "cta_text": "Start",
+    "cta_text": "Get Started",
     "cta_subText": "Highly recommended",
     "skip_button_cancel": "Secure now",
     "skip_button_confirm": "Skip",
@@ -2186,7 +2198,7 @@
     "progressThree": "Confirm Secret Recovery Phrase"
   },
   "manual_backup_step_1": {
-    "action": "Write down your Secret Recovery Phrase",
+    "action": "Confirm your Secret Recovery Phrase",
     "info": "This is your Secret Recovery Phrase. Write it down on paper and keep it in a safe place. You'll be asked to re-enter this phrase (in order) on the next step.",
     "continue": "Continue",
     "reveal": "Tap to reveal your Secret Recovery Phrase",
@@ -2200,7 +2212,7 @@
   },
   "manual_backup_step_2": {
     "action": "Confirm Secret Recovery Phrase",
-    "info": "Select each word in the order it was presented to you.",
+    "info": "Select the missing words in the correct order.",
     "complete": "Complete Backup",
     "success": "Success"
   },
@@ -3275,7 +3287,7 @@
     "description": "Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed."
   },
   "terms_of_use_modal": {
-    "title": "Review our latest Terms of Use",
+    "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
     "accept_helper_description": "Please scroll to read all sections"

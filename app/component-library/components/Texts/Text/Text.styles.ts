@@ -11,6 +11,8 @@ import {
   getFontStyleVariantForBrandEvolution,
 } from './Text.utils';
 
+import { colors as importedColors } from '../../../../styles/common';
+
 /**
  * Style sheet function for Text component.
  *
@@ -59,6 +61,9 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
       break;
     case TextColor.Info:
       textColor = theme.colors.info.default;
+      break;
+    case TextColor.Link:
+      textColor = importedColors.primaryDefault;
       break;
     default:
       textColor = color;

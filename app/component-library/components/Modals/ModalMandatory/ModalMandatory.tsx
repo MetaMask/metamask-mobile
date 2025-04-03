@@ -122,13 +122,22 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     };
   }, []);
 
-  const renderHeader = () => (
-    <Text style={styles.headerText}>{headerTitle}</Text>
-  );
-
   const onPress = () => {
     modalRef.current?.dismissModal(onAccept);
   };
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.headerEmpty} />
+      <Text style={styles.headerText}>{headerTitle}</Text>
+      <ButtonIcon
+        testID={TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON}
+        onPress={onPress}
+        iconName={IconName.Close}
+        hitSlop={12}
+      />
+    </View>
+  );
 
   const onMessage = (event: { nativeEvent: { data: string } }) => {
     if (event.nativeEvent.data === WEBVIEW_SCROLL_END_EVENT) {

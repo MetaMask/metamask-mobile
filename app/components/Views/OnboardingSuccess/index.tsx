@@ -5,6 +5,7 @@ import {
   Linking,
   Keyboard,
   TouchableOpacity,
+  Image,
   Text as RNText,
 } from 'react-native';
 import Button from '../../../component-library/components/Buttons/Button';
@@ -32,6 +33,7 @@ import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
+const wallet_ready_image = require('../../../images/wallet-ready.png'); // eslint-disable-line
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -148,50 +150,62 @@ const OnboardingSuccess = ({
     }
     return (
       <>
-        <RNText style={styles.emoji}>🎉</RNText>
+        {/* <RNText style={styles.emoji}>🎉</RNText> */}
         <Text style={styles.title}>
           {strings('onboarding_success.import_title')}
         </Text>
+        <Image
+          source={wallet_ready_image}
+          resizeMethod={'auto'}
+          style={styles.walletReadyImage}
+        />
         <View style={styles.descriptionWrapper}>
           <Text style={styles.description}>
             {strings('onboarding_success.import_description')}
-            <Text style={styles.description}>
-              <Text color={TextColor.Info} onPress={handleLink}>
-                {strings('onboarding_success.learn_how')}{' '}
-              </Text>
-              {strings('onboarding_success.import_description2')}
+          </Text>
+
+          <Text style={styles.description}>
+            <Text color={TextColor.Link} onPress={handleLink}>
+              {strings('onboarding_success.learn_how')}{' '}
             </Text>
+            {strings('onboarding_success.import_description2')}
           </Text>
         </View>
       </>
     );
   };
 
-  const renderFooter = () => {
-    const linkStyle = { paddingTop: backedUpSRP ? 20 : 10 };
-    return (
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.linkWrapper, linkStyle]}
-          onPress={goToDefaultSettings}
-        >
+  const renderFooter = () => (
+    <View style={styles.footer}>
+      <TouchableOpacity
+        style={[styles.linkWrapper]}
+        onPress={goToDefaultSettings}
+      >
+        <View style={styles.row}>
           <View style={styles.iconWrapper}>
             <Icon
               name={IconName.Setting}
               size={IconSize.Sm}
-              color={IconColor.Info}
+              color={IconColor.Default}
             />
           </View>
-          <Text color={TextColor.Info}>
+          <Text color={TextColor.Default}>
             {strings('onboarding_success.manage_default_settings')}
           </Text>
-        </TouchableOpacity>
-        <Text style={styles.footerText}>
+        </View>
+        <View style={styles.iconWrapper}>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.Default}
+          />
+        </View>
+      </TouchableOpacity>
+      {/* <Text style={styles.footerText}>
           {strings('onboarding_success.default_settings_footer')}
-        </Text>
-      </View>
-    );
-  };
+        </Text> */}
+    </View>
+  );
 
   return (
     <ScrollView
@@ -211,6 +225,7 @@ const OnboardingSuccess = ({
           onPress={onDone}
           size={ButtonSize.Lg}
           width={ButtonWidthTypes.Full}
+          style={styles.doneButton}
         />
       </View>
       {renderHint()}

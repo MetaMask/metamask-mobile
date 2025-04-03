@@ -1,17 +1,21 @@
 import { StyleSheet } from 'react-native';
+import { colors } from '../../../styles/common';
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    flexDirection: 'column',
   },
   contentWrapper: {
     flex: 1,
     paddingTop: 24,
     padding: 24,
+    height: '100%',
   },
   buttonWrapper: {
     paddingHorizontal: 24,
-    paddingBottom: 50,
+    marginTop: 50,
+    flex: 1,
   },
   emoji: {
     textAlign: 'center',
@@ -22,7 +26,12 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     fontSize: 24,
     fontWeight: '700',
-    textAlign: 'center',
+    textAlign: 'left',
+  },
+  walletReadyImage: {
+    marginHorizontal: 'auto',
+    marginVertical: 20,
+    alignSelf: 'center',
   },
   description: {
     fontSize: 14,
@@ -46,21 +55,33 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   footer: {
-    minHeight: 50,
+    backgroundColor: colors.backgroundMuted,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginVertical: 24,
+    borderRadius: 8,
   },
   iconWrapper: {
     marginRight: 6,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   linkWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
+    justifyContent: 'space-between',
   },
   footerText: {
     fontSize: 12,
     marginTop: 10,
     lineHeight: 22,
     fontWeight: '400',
+  },
+  doneButton: {
+    marginTop: 'auto',
+    // backgroundColor: colors.primaryDefault,
   },
 });
 

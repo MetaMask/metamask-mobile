@@ -25,11 +25,22 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 16,
       marginHorizontal: 16,
     },
+    headerContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    headerEmpty: {
+      width: 32,
+      height: 32,
+    },
     headerText: {
       color: colors.text.default,
       ...(typography.sHeadingMD as TextStyle),
+      fontSize: 18,
+      fontWeight: 'bold',
       textAlign: 'center',
-      marginBottom: 16,
     },
     bodyContainer: { height: screenHeight / 2 },
     checkboxContainer: {

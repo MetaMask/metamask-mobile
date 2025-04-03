@@ -7,6 +7,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Appearance,
+  FlatList,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -38,7 +39,10 @@ import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -52,6 +56,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [
+    passwordInputContainerFocusedIndex,
+    setPasswordInputContainerFocusedIndex,
+  ] = useState(true);
 
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
@@ -165,7 +174,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <View style={styles.seedPhraseConcealerContainer}>
-        <BlurView blurType={blurType} blurAmount={5} style={styles.blurView} />
+        <BlurView blurType={blurType} blurAmount={1} style={styles.blurView} />
         <View style={styles.seedPhraseConcealer}>
           <FeatherIcons name="eye-off" size={24} style={styles.icon} />
           <Text style={styles.reveal}>
@@ -205,32 +214,46 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                 {strings('manual_backup_step_1.before_continiuing')}
               </Text>
             </View>
-            <TextInput
-              style={styles.input}
-              placeholder={'Password'}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={onPasswordChange}
-              secureTextEntry
-              onSubmitEditing={tryUnlock}
-              testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-              keyboardAppearance={themeAppearance}
-              autoCapitalize="none"
-            />
-            {warningIncorrectPassword && (
-              <Text style={styles.warningMessageText}>
-                {warningIncorrectPassword}
-              </Text>
-            )}
+
+            <View style={styles.field}>
+              <View
+                style={[
+                  styles.passwordInputContainer,
+                  passwordInputContainerFocusedIndex &&
+                    styles.passwordInputContainerFocused,
+                ]}
+              >
+                <TextInput
+                  placeholder={'Password'}
+                  style={styles.passwordInput}
+                  value={password}
+                  onChangeText={onPasswordChange}
+                  secureTextEntry
+                  placeholderTextColor={colors.text.muted}
+                  onSubmitEditing={tryUnlock}
+                  testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
+                  keyboardAppearance={themeAppearance}
+                  autoCapitalize="none"
+                  onFocus={() => setPasswordInputContainerFocusedIndex(true)}
+                  onBlur={() => setPasswordInputContainerFocusedIndex(false)}
+                  autoFocus
+                />
+              </View>
+              {warningIncorrectPassword && (
+                <Text style={styles.warningMessageText}>
+                  {warningIncorrectPassword}
+                </Text>
+              )}
+            </View>
           </View>
           <View style={styles.buttonWrapper}>
-            <StyledButton
-              containerStyle={styles.button}
-              type={'confirm'}
+            <Button
+              variant={ButtonVariants.Primary}
               onPress={tryUnlock}
+              label={strings('manual_backup_step_1.confirm')}
               testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
-            >
-              {strings('manual_backup_step_1.confirm')}
-            </StyledButton>
+              width={ButtonWidthTypes.Full}
+            />
           </View>
         </View>
       </KeyboardAwareScrollView>
@@ -262,31 +285,36 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               {strings('manual_backup_step_1.info')}
             </Text>
           </View>
-          <View style={styles.seedPhraseWrapper}>
-            {seedPhraseHidden ? (
-              renderSeedPhraseConcealer()
-            ) : (
-              <React.Fragment>
-                <View style={styles.wordColumn}>
-                  {words.slice(0, half).map((word, i) => (
-                    <View key={`word_${i}`} style={styles.wordWrapper}>
-                      <Text style={styles.word}>{`${i + 1}. ${word}`}</Text>
-                    </View>
-                  ))}
+
+          {seedPhraseHidden ? (
+            <View style={styles.seedPhraseWrapper}>
+              {renderSeedPhraseConcealer()}
+            </View>
+          ) : (
+            <View style={styles.seedPhraseContainer}>
+              <View style={styles.seedPhraseInnerContainer}>
+                <View style={styles.seedPhraseInputContainer}>
+                  <FlatList
+                    data={words}
+                    numColumns={3}
+                    keyExtractor={(_, index) => index.toString()}
+                    renderItem={({ item, index }) => (
+                      <View style={[styles.inputContainer]}>
+                        <Text style={styles.inputNumber}>{index + 1}.</Text>
+                        <TextInput
+                          editable={false}
+                          key={index}
+                          value={item}
+                          style={[styles.seedPhraseInput]}
+                          placeholderTextColor={colors.text.muted}
+                        />
+                      </View>
+                    )}
+                  />
                 </View>
-                <View style={styles.wordColumn}>
-                  {words.slice(-half).map((word, i) => (
-                    <View key={`word_${i}`} style={styles.wordWrapper}>
-                      <Text style={styles.word}>{`${
-                        i + (half + 1)
-                      }. ${word}`}</Text>
-                    </View>
-                  ))}
-                </View>
-                <ScreenshotDeterrent enabled isSRP />
-              </React.Fragment>
-            )}
-          </View>
+              </View>
+            </View>
+          )}
         </View>
       </ActionView>
     );
@@ -294,10 +322,12 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
-      <View style={styles.onBoardingWrapper}>
-        <OnboardingProgress currentStep={currentStep} steps={steps} />
+      <View style={styles.container}>
+        <Text style={styles.step}>Step 2 of 3</Text>
+        {view === SEED_PHRASE
+          ? renderSeedphraseView()
+          : renderConfirmPassword()}
       </View>
-      {view === SEED_PHRASE ? renderSeedphraseView() : renderConfirmPassword()}
     </SafeAreaView>
   ) : (
     <View style={styles.loader}>
