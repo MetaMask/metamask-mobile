@@ -115,6 +115,15 @@ export const selectBridgeFeatureFlags = createSelector(
   (bridgeControllerState) => bridgeControllerState.bridgeFeatureFlags,
 );
 
+export const selectTopAssetsFromFeatureFlags = createSelector(
+  selectBridgeFeatureFlags,
+  (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
+  (bridgeFeatureFlags, chainId) =>
+    chainId ?
+      bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[formatChainIdToCaip(chainId)].topAssets
+      : undefined,
+);
+
 export const selectEnabledSourceChains = createSelector(
   selectAllBridgeableNetworks,
   selectBridgeFeatureFlags,
