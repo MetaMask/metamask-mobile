@@ -309,7 +309,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
   },
 );
 
-interface MultichainNetworkAggregatedBalance {
+export interface MultichainNetworkAggregatedBalance {
   totalNativeTokenBalance: Balance;
   totalBalanceFiat: number;
   balances: Record<string, Balance>;
