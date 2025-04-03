@@ -19,7 +19,6 @@ const styleSheet = (params: { theme: Theme }) => {
       borderTopRightRadius: 24,
       minHeight: 200,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
-      maxHeight: '80%',
     },
     actionContainer: {
       flex: 0,

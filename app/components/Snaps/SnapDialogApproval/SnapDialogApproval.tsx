@@ -5,7 +5,6 @@ import { useStyles } from '../../hooks/useStyles';
 import { strings } from '../../../../locales/i18n';
 import stylesheet from './SnapDialogApproval.styles';
 import useApprovalRequest from '../../Views/confirmations/hooks/useApprovalRequest';
-import ApprovalModal from '../../Approvals/ApprovalModal';
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../component-library/components/BottomSheets/BottomSheetFooter';
@@ -17,6 +16,7 @@ import Engine from '../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 import { Json } from '@metamask/snaps-sdk';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
+import SnapsModal from '../SnapsModal/SnapsModal';
 
 export enum TemplateConfirmation {
   Ok = 'template_confirmation.ok',
@@ -109,7 +109,7 @@ const SnapDialogApproval = () => {
   const interfaceId = approvalRequest?.requestData?.id;
 
   return (
-    <ApprovalModal
+    <SnapsModal
       isVisible={
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.alert ||
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.confirmation ||
@@ -134,7 +134,7 @@ const SnapDialogApproval = () => {
           </View>
         )}
       </View>
-    </ApprovalModal>
+    </SnapsModal>
   );
 };
 
