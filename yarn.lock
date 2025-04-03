@@ -1428,13 +1428,13 @@
   dependencies:
     expo-build-properties "~0.12.1"
 
-"@consensys/on-ramp-sdk@^2.0.5":
-  version "2.0.5"
-  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.0.5.tgz#f8d137c6d6d5210c16d53e481606e093e1fd30dd"
-  integrity sha512-gU9e4KzdLaaewCNGtZrSzIUZzTJOtABEfEvcU3w3S06A8J0AbwihfW51GmenyZdLFu4u3raginiFn/3WA5mHpA==
+"@consensys/on-ramp-sdk@^2.0.14":
+  version "2.0.14"
+  resolved "https://registry.yarnpkg.com/@consensys/on-ramp-sdk/-/on-ramp-sdk-2.0.14.tgz#140f3fc114f9b45ce3f4e087e91176bb7f8dde04"
+  integrity sha512-/Q48Gl+ptGPnU5vAAmzoUzsHoO6ivqQNvnJ5msyuZ0Eok3EeuAFDohDcKy4R2xHTxMirRnj0e1ZF69YCwTUIvQ==
   dependencies:
     async "^3.2.3"
-    axios "^0.28.0"
+    axios "^1.8.3"
     axios-retry "^3.1.2"
     crypto-js "^4.2.0"
     reflect-metadata "^0.1.13"
@@ -12363,7 +12363,7 @@ axios-retry@^3.1.2:
     "@babel/runtime" "^7.15.4"
     is-retry-allowed "^2.2.0"
 
-axios@1.4.0, axios@1.7.7, axios@^0.28.0, axios@^1.6.7, axios@^1.8.2:
+axios@1.4.0, axios@1.7.7, axios@^1.6.7, axios@^1.8.2, axios@^1.8.3:
   version "1.8.2"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.8.2.tgz#fabe06e241dfe83071d4edfbcaa7b1c3a40f7979"
   integrity sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==
