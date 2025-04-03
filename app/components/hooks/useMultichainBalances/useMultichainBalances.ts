@@ -7,6 +7,7 @@ import {
   selectIsPopularNetwork,
   selectProviderConfig,
   selectEvmTicker,
+  selectEvmChainId,
 } from '../../../selectors/networkController';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { selectIsTokenNetworkFilterEqualCurrentNetwork } from '../../../selectors/preferencesController';
@@ -49,6 +50,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   const accountsList = useSelector(selectInternalAccounts);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const chainId = useSelector(selectChainId);
+  const evmChainId = useSelector(selectEvmChainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const allChainIDs = useSelector(getChainIdsToPoll);
   const isTokenNetworkFilterEqualCurrentNetwork = useSelector(
@@ -65,13 +67,13 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     allChainIDs,
   );
 
-  const totalFiatBalancesCrossChain = useGetTotalFiatBalanceCrossChains(
+  const totalFiatBalancesCrossEvmChain = useGetTotalFiatBalanceCrossChains(
     accountsList,
     formattedTokensWithBalancesPerChain,
   );
 
-  const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
-    chainId,
+  const isOriginalNativeEvmTokenSymbol = useIsOriginalNativeTokenSymbol(
+    evmChainId,
     ticker,
     type,
   );
@@ -92,10 +94,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       const balance = Engine.getTotalEvmFiatAccountBalance(account);
       let total;
 
-      if (isOriginalNativeTokenSymbol) {
+      if (isOriginalNativeEvmTokenSymbol) {
         if (isPortfolioEnabled) {
           total =
-            totalFiatBalancesCrossChain[account?.address as string]
+            totalFiatBalancesCrossEvmChain[account?.address as string]
               ?.totalFiatBalance ?? 0;
         } else {
           const tokenFiatTotal = balance?.tokenFiat ?? 0;
@@ -104,7 +106,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         }
       } else if (isPortfolioEnabled) {
         total =
-          totalFiatBalancesCrossChain[account?.address as string]
+          totalFiatBalancesCrossEvmChain[account?.address as string]
             ?.totalTokenFiat ?? 0;
       } else {
         total = balance?.tokenFiat ?? 0;
@@ -124,9 +126,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     },
     [
       currentCurrency,
-      isOriginalNativeTokenSymbol,
+      isOriginalNativeEvmTokenSymbol,
       isPortfolioEnabled,
-      totalFiatBalancesCrossChain,
+      totalFiatBalancesCrossEvmChain,
     ],
   );
 
@@ -243,7 +245,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         totalNativeTokenBalance: accountBalanceData.totalNativeTokenBalance,
         nativeTokenUnit: accountBalanceData.nativeTokenUnit,
         tokenFiatBalancesCrossChains:
-          totalFiatBalancesCrossChain[account.address]
+          totalFiatBalancesCrossEvmChain[account.address]
             ?.tokenFiatBalancesCrossChains ?? [],
         shouldShowAggregatedPercentage:
           getShouldShowAggregatedPercentage(account),
@@ -257,10 +259,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
     accountsList,
     currentCurrency,
     getAccountBalanceData,
+    getAggregatedBalance,
     getShouldShowAggregatedPercentage,
     isPortfolioEnabled,
-    totalFiatBalancesCrossChain,
-    getAggregatedBalance,
+    totalFiatBalancesCrossEvmChain,
   ]);
 
   const selectedAccountMultichainBalance = useMemo(() => {
@@ -273,7 +275,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         totalNativeTokenBalance: accountBalanceData.totalNativeTokenBalance,
         nativeTokenUnit: accountBalanceData.nativeTokenUnit,
         tokenFiatBalancesCrossChains:
-          totalFiatBalancesCrossChain[selectedInternalAccount.address]
+          totalFiatBalancesCrossEvmChain[selectedInternalAccount.address]
             ?.tokenFiatBalancesCrossChains ?? [],
         shouldShowAggregatedPercentage: getShouldShowAggregatedPercentage(
           selectedInternalAccount,
@@ -286,11 +288,11 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   }, [
     currentCurrency,
     getAccountBalanceData,
+    getAggregatedBalance,
     getShouldShowAggregatedPercentage,
     isPortfolioEnabled,
     selectedInternalAccount,
-    totalFiatBalancesCrossChain,
-    getAggregatedBalance,
+    totalFiatBalancesCrossEvmChain,
   ]);
 
   return {
