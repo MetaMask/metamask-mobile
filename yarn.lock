@@ -4886,7 +4886,7 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.0", "@metamask/keyring-controller@^21.0.1":
+"@metamask/keyring-controller@^21.0.1":
   version "21.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
   integrity sha512-WvLZ7/C+wZsMLK6+D138ai9mlJesYdLuMOY6me4ClHJ24HALTgaZmCtsJ5wXcl4FR00fWucsn9TgayennrYAWg==
@@ -5219,15 +5219,13 @@
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.4"
 
-"@metamask/profile-sync-controller@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-10.1.0.tgz#8fbb21711cc34c30aa04ee534aef315c4b2f4a91"
-  integrity sha512-vgtksldFNiPrwHDYashUSYWSGFlY9lIvJgTXKz+btTXWFTNTYIdZGEmutyAgKJaP/qBOmNJW7gHXRvziNfYXhQ==
+"@metamask/profile-sync-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-11.0.0.tgz#d51709ae4d0cb6cd593aab9532ca0c4b6468f33e"
+  integrity sha512-fHzo5E09G4P39UyfBZsnOzcr2Pbji3WvsVJKya6kPt0F2lBjjmD1sYGTQ+n3qv6vjID4CwsHOVDliWox6UCEXw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/keyring-api" "^17.2.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@noble/ciphers" "^0.5.2"
