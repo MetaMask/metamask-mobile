@@ -889,6 +889,12 @@ class FixtureBuilder {
     fixtures.NetworkController.networkConfigurationsByChainId['0x539'] =
       ganacheNetworkConfig;
 
+    fixtures.NetworkController.networksMetadata[newNetworkClientId] = {
+      EIPS: {
+        1559: true,
+      },
+    };
+
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
