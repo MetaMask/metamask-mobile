@@ -1,26 +1,82 @@
-# Welcome to MetaMask!
+# Welcome to MetaMask Mobile!
 
-If you're submitting code to MetaMask, there are some simple things we'd appreciate you doing to help us stay organized!
+Thank you for your interest in contributing to MetaMask Mobile! This guide will help you get started and ensure your contributions align with our project standards.
 
-### Finding the right project
+## Getting Started
 
-Before taking the time to code and implement something, feel free to open an issue and discuss it! There may even be an issue already open, and together we may come up with a specific strategy before you take your precious time to write code.
+To set up your development environment:
 
-There are also plenty of open issues we'd love help with. Search the [`good first issue`](https://github.com/MetaMask/metamask-mobile/contribute) label, or head to Gitcoin and earn ETH for completing projects we've posted bounties on.
+- Please follow the instructions in our [repository README](https://github.com/MetaMask/metamask-mobile)
+- We recommend using Expo for development
+- For Android testing, you can use our development builds available [here](https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss)
 
-If you're picking up a bounty or an existing issue, feel free to ask clarifying questions on the issue as you go about your work.
+## Finding Issues to Work On
 
-### Submitting a pull request
-When you're done with your project / bugfix / feature and ready to submit a PR, there are a couple guidelines we ask you to follow:
+We welcome contributions of all sizes! Here's how to find tasks that match your skills and interests:
 
-- [ ] **Make sure you followed our [`coding guidelines`](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md)**: These guidelines aim to maintain consistency and readability across the codebase. They help ensure that the code is easy to understand, maintain, and modify, which is particularly important when working with multiple contributors.
-- [ ] **Test it**: For any new programmatic functionality, we like unit tests when possible, so if you can keep your code cleanly isolated, please do add a test file to the `tests` folder.
-- [ ] **Add to the CHANGELOG**: Help us keep track of all the moving pieces by adding an entry to the [`CHANGELOG.md`](https://github.com/MetaMask/metamask-mobile/blob/main/CHANGELOG.md) with a link to your PR.
-- [ ] **Meet the spec**: Make sure the PR adds functionality that matches the issue you're closing. This is especially important for bounties: sometimes design or implementation details are included in the conversation, so read carefully!
-- [ ] **Close the issue**: If this PR closes an open issue, add the line `fixes #$ISSUE_NUMBER`. Ex. For closing issue 418, include the line `fixes #418`. If it doesn't close the issue but addresses it partially, just include a reference to the issue number, like `#418`.
-- [ ] **Keep it simple**: Try not to include multiple features in a single PR, and don't make extraneous changes outside the scope of your contribution. All those touched files make things harder to review ;)
-- [ ] **PR against `main`**: Submit your PR against the `main` branch. This is where we merge new features to be included in forthcoming releases. When we initiate a new release, we create a branch named `release/x.y.z`, serving as a snapshot of the `main` branch. This particular branch is utilized to construct the builds, which are then tested during the release regression testing phase before they are submitted to the stores for production. In the event your PR is a hot-fix for a bug identified on the `release/x.y.z` branch, you should still submit your PR against the `main` branch. This PR will subsequently be cherry-picked into the `release/x.y.z` branch by our release engineers.
-- [ ] **Get the PR reviewed by code owners**: At least two code owner approvals are mandatory before merging any PR.
-- [ ] **Ensure the PR is correctly labeled.**: More detail about labels definitions can be found [here](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md).
+### Good First Issues
 
-And that's it! Thanks for helping out.
+If you're new to the project, we recommend starting with our curated list of beginner-friendly tasks:
+
+- Visit our [Good First Issues](https://github.com/MetaMask/metamask-mobile/contribute) page
+- These issues are specifically tagged to be approachable for new contributors
+- They typically require less familiarity with the codebase while still making meaningful improvements
+
+### Other Ways to Find Projects
+
+- **Open issues**: Browse through our [issues list](https://github.com/MetaMask/metamask-mobile/issues) to find something that interests you
+- **Feature requests**: Look for issues labeled with `enhancement` for feature development opportunities
+- **Bug fixes**: Issues labeled with `bug` need attention to improve app stability
+- **Bounties**: Check Gitcoin for issues with ETH rewards
+
+Before starting work, comment on the issue to let maintainers know you're interested. This helps prevent duplicate efforts and allows us to provide guidance if needed.
+
+## Submitting a Pull Request
+
+When you're ready to submit your work, please follow these guidelines:
+
+- **Follow our [coding guidelines](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md)**:
+  - These guidelines aim to maintain consistency and readability across the codebase.
+  - They help ensure that the code is easy to understand, maintain, and modify.
+- **Test it**:
+  - For any new programmatic functionality, add unit tests when possible.
+  - Keep your code cleanly isolated and include a test file in the `tests` folder.
+- **Add to the CHANGELOG**:
+  - Help us keep track of all the moving pieces.
+  - Add an entry to the [CHANGELOG.md](https://github.com/MetaMask/metamask-mobile/blob/main/CHANGELOG.md) with a link to your PR.
+- **Meet the spec**:
+  - Ensure the PR adds functionality that matches the issue you're closing.
+  - For bounties, be sure to review conversations for any design or implementation details.
+- **Close the issue**:
+  - If the PR closes an issue, add `fixes #ISSUE_NUMBER`, e.g., `fixes #418`.
+  - If it only partially addresses the issue, use a reference like `#418`.
+- **Keep it simple**:
+  - Submit focused PRs with a single purpose.
+  - Avoid unrelated changes or touching files outside the scope of your contribution.
+- **PR against `main`**:
+  - Submit your PR to the `main` branch.
+  - Release branches (e.g., `release/x.y.z`) are created from `main` during release and used for regression testing.
+  - Even for hotfixes, target the `main` branch; our release engineers will cherry-pick as needed.
+- **Get the PR reviewed by code owners**:
+  - At least two code owner approvals are required before merging.
+- **Ensure the PR is correctly labeled**:
+  - Apply appropriate labels.
+  - See our [labeling guidelines](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md) for details.
+
+## Code Review Process
+
+After submitting your PR:
+
+1. Maintainers will review your code for quality, functionality, and adherence to guidelines.
+2. You may be asked to make changes before your PR is approved.
+3. Once approved by at least two code owners, your contribution will be merged.
+
+## Need Help?
+
+If you have questions or need assistance:
+
+- Comment on the relevant issue
+- Join our community channels (add links if available)
+- Reach out to maintainers
+
+Thank you for contributing to MetaMask Mobile! Your efforts help improve the experience for users worldwide and contribute to the broader open source community.
