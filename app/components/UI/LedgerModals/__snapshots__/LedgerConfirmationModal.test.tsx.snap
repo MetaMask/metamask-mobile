@@ -54,7 +54,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 22,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -86,7 +86,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -101,7 +101,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -117,7 +117,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -133,7 +133,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -149,7 +149,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -165,7 +165,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -188,7 +188,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               "color": "#4459ff",
               "flex": 1,
               "flexWrap": "wrap",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
