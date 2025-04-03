@@ -22,6 +22,7 @@ const createStyles = () =>
     tokenInfo: {
       flex: 1,
       marginLeft: 8,
+      marginTop: -6,
     },
     infoButton: {
       marginRight: 12,
@@ -77,12 +78,12 @@ const TransactionAsset = ({ token, tokenAmount, chainId }: TransactionAssetProps
           />
         )}
       </BadgeWrapper>
-      <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
+      <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={2}>
         <Text variant={TextVariant.BodyLGMedium}>
           {tokenAmount} {token.symbol}
         </Text>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {token.name}
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative} style={{ marginTop: -2 }}>
+          {networkName}
         </Text>
       </Box>
     </Box>
