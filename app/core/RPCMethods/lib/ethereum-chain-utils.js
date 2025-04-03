@@ -4,6 +4,7 @@ import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
+  isChainPermissionsFeatureEnabled,
   isPrefixedFormattedHexString,
 } from '../../../util/networks';
 import {
@@ -232,11 +233,8 @@ export async function switchToNetwork({
     toNetworkConfiguration,
     fromNetworkConfiguration,
   } = hooks;
-  const {
-    MultichainNetworkController,
-    PermissionController,
-    SelectedNetworkController,
-  } = controllers;
+  const { MultichainNetworkController, SelectedNetworkController } =
+    controllers;
 
   const [networkConfigurationId, networkConfiguration] = network;
 
@@ -249,6 +247,24 @@ export async function switchToNetwork({
 
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
+
+    // TODO: [ffmcgee] clean up below logic, can be optimized
+    // for some reason this extra step is necessary for accessing the env variable in test environment
+    const chainPermissionsFeatureEnabled =
+      { ...process.env }?.NODE_ENV === 'test'
+        ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
+        : isChainPermissionsFeatureEnabled;
+
+    if (hasApprovalRequestsForOrigin?.() && chainPermissionsFeatureEnabled) {
+      await requestUserApproval({
+        origin,
+        type: ApprovalType.SwitchEthereumChain,
+        requestData: {
+          toNetworkConfiguration,
+          fromNetworkConfiguration,
+        },
+      });
+    }
 
     if (!ethChainIds.includes(chainId)) {
       await requestPermittedChainsPermissionIncrementalForOrigin({

@@ -38,6 +38,9 @@ jest.mock('../Engine', () => ({
       setNetworkClientIdForDomain: jest.fn(),
       getNetworkClientIdForDomain: jest.fn(),
     },
+    KeyringController: {
+      isUnlocked: jest.fn(),
+    },
   },
 }));
 
@@ -146,6 +149,20 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
   });
 
   it('should should show a modal for user approval and not grant permissions', async () => {
+    otherOptions.hooks.getCaveat.mockReturnValue({
+      type: Caip25CaveatType,
+      value: {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:100': {
+            accounts: [],
+          },
+        },
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    });
+    otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
     const spyOnGrantPermissionsIncremental = jest.spyOn(
       Engine.context.PermissionController,
       'grantPermissionsIncremental',
@@ -200,11 +217,17 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       otherOptions.hooks.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
-          optionalScopes: { 'eip155:100': { accounts: [] } },
           requiredScopes: {},
+          optionalScopes: {
+            'eip155:100': {
+              accounts: [],
+            },
+          },
+          isMultichainOrigin: false,
+          sessionProperties: {},
         },
       });
-
+      otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(false);
       const spyOnSetActiveNetwork = jest.spyOn(
         Engine.context.MultichainNetworkController,
         'setActiveNetwork',
@@ -225,8 +248,8 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
 
     it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
       const spyOnGrantPermissionsIncremental = jest.spyOn(
-        Engine.context.PermissionController,
-        'grantPermissionsIncremental',
+        otherOptions.hooks,
+        'requestPermittedChainsPermissionIncrementalForOrigin',
       );
       jest
         .spyOn(
@@ -241,13 +264,17 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
         Engine.context.MultichainNetworkController,
         'setActiveNetwork',
       );
+      otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
       otherOptions.hooks.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
-          optionalScopes: {},
           requiredScopes: {},
+          optionalScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
         },
       });
+      otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
       await wallet_switchEthereumChain({
         req: {
           params: [{ chainId: '0x64' }],
@@ -258,22 +285,8 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       expect(otherOptions.requestUserApproval).toHaveBeenCalled();
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-        approvedPermissions: {
-          [Caip25EndowmentPermissionName]: {
-            type: Caip25CaveatType,
-            value: {
-              optionalScopes: {
-                'eip155:100': {
-                  accounts: [],
-                },
-              },
-              requiredScopes: {},
-            },
-          },
-        },
-        subject: {
-          origin: 'https://test.com',
-        },
+        autoApprove: false,
+        chainId: '0x64',
       });
       expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
         'test-network-configuration-id',
