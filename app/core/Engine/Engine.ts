@@ -318,14 +318,9 @@ export class Engine {
         allowedEvents: [],
         allowedActions: [],
       }) as unknown as NetworkControllerMessenger,
-      // Metrics event tracking is handled in this repository instead
-      // TODO: Use events for controller metric events
-      trackMetaMetricsEvent: () => {
-        // noop
-      },
       getRpcServiceOptions: () => ({
-        btoa,
         fetch,
+        btoa,
       }),
       additionalDefaultNetworks: [
         ChainId['megaeth-testnet'],
