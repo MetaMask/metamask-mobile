@@ -305,6 +305,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    this.props.oauth2LoginReset();
     const action = () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {
@@ -328,6 +329,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
+    this.props.oauth2LoginReset();
     const action = async () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {

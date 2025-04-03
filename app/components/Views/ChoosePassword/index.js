@@ -355,6 +355,7 @@ class ChoosePassword extends PureComponent {
         this.state.rememberMe,
       );
       authType.oauth2Login = this.props.oauth2LoginSuccess;
+      Logger.log('previous_screen', previous_screen);
 
       if (previous_screen === ONBOARDING) {
         try {

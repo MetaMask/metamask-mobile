@@ -33,7 +33,10 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, endTrace, trace } from '../../util/trace';
 import ReduxService from '../redux';
 import { getSeedPhrase } from '../Vault';
-import byteArrayToHex from '../../util/bytes';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import Logger from '../../util/Logger';
+import Oauth2LoginService  from '../Oauth2Login/Oauth2loginService';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -485,10 +488,25 @@ class AuthenticationService {
   createAndBackupSeedPhrase = async(
     password: string,
   ): Promise<void> => {
-    const { SeedlessOnboardingController, KeyringController } = Engine.context;
-    await KeyringController.createNewVaultAndKeychain(password);
-    const seedPhrase = await getSeedPhrase(password);
-    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase: byteArrayToHex(seedPhrase)});
+    const { SeedlessOnboardingController } = Engine.context;
+    const { verifier, verifierID } = Oauth2LoginService.getVerifierDetails();
+    if (!verifier || !verifierID) {
+      this.dispatchOauth2Reset();
+      throw new Error('Verifier details not found');
+    }
+    // rollback on fail ( reset wallet )
+    await this.createWalletVaultAndKeychain(password);
+    const uint8ArrayMnemonic =  await getSeedPhrase(password);
+    const seedPhrase = uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist);
+
+    Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
+
+    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase, verifier, verifierID }).catch((error) => {
+      // should allow user to link account later
+      // prompt that account linking failed but vault was created
+      Logger.log('error', error);
+
+    });
     this.dispatchOauth2Reset();
   };
 
@@ -497,7 +515,12 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
-    const result = await SeedlessOnboardingController.fetchAndRestoreSeedPhraseMetadata(password);
+    const { verifier, verifierID } = Oauth2LoginService.getVerifierDetails();
+    if (!verifier || !verifierID) {
+      this.dispatchOauth2Reset();
+      throw new Error('Verifier details not found');
+    }
+    const result = await SeedlessOnboardingController.fetchAndRestoreSeedPhraseMetadata( verifier, verifierID, password);
     if (result.secretData !== null) {
       await this.newWalletAndRestore(password, authData, result.secretData[0], false);
       // add in more srps

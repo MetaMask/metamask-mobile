@@ -20,6 +20,7 @@ import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
 import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
 
+
 const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
 // const ByoaServerUrl = 'https://organic-gannet-privately.ngrok-free.app';
 const Web3AuthNetwork = 'sapphire_devnet';
@@ -63,6 +64,8 @@ export class Oauth2LoginService {
     public localState: {
         loginInProgress: boolean;
         codeVerifier: string | null;
+        verifier: OAuthVerifier | null;
+        verifierID: string | null;
     };
 
 
@@ -70,6 +73,8 @@ export class Oauth2LoginService {
         this.localState = {
             loginInProgress: false,
             codeVerifier: null,
+            verifier: null,
+            verifierID: null,
         };
     }
 
@@ -222,6 +227,9 @@ export class Oauth2LoginService {
             const data = await res.json() as ByoaResponse;
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
+                this.localState.verifier = data.verifier as OAuthVerifier;
+                this.localState.verifierID = data.verifier_id;
+
                 const result = await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
                     idTokens: Object.values(data.jwt_tokens),
                     verifier: data.verifier as OAuthVerifier,
@@ -229,6 +237,8 @@ export class Oauth2LoginService {
                     indexes: Object.values(data.indexes),
                     endpoints: Object.values(data.endpoints),
                 });
+                Logger.log('handleCodeFlow: result', result);
+                Logger.log('handleCodeFlow: SeedlessOnboardingController state', Engine.context.SeedlessOnboardingController.state);
                 return {type: 'success', existingUser: result.hasValidEncKey};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
@@ -296,6 +306,16 @@ export class Oauth2LoginService {
             });
         }
         return result;
+    };
+
+    getVerifierDetails = () => ({
+        verifier: this.localState.verifier,
+        verifierID: this.localState.verifierID,
+    });
+
+    clearVerifierDetails = () => {
+        this.localState.verifier = null;
+        this.localState.verifierID = null;
     };
 }
 

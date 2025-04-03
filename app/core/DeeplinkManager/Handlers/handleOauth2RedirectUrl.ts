@@ -3,7 +3,6 @@ import Oauth2LoginService, { LoginMode, LoginProvider } from '../../Oauth2Login/
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
-import { UserActionType } from '../../../actions/user';
 
 function handleOauth2RedirectUrl({
   deeplinkManager,

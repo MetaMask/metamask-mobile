@@ -5357,9 +5357,9 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?a46c7fb67392d78e3235a00dbea36e60e483c836":
+"@metamask/seedless-onboarding-controller@https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?fe57cedde254f219d1958e8cd9b89549bda9c881":
   version "0.0.1"
-  resolved "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?a46c7fb67392d78e3235a00dbea36e60e483c836#c03ff8b5d762ef4da9a2bfaa62bd8ecb4f659642"
+  resolved "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?fe57cedde254f219d1958e8cd9b89549bda9c881#3f15adf062aaf13571e852800acdf071e1f75b3c"
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
