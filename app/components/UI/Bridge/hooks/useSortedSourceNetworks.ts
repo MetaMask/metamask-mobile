@@ -5,7 +5,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { useGetFormattedTokensPerChain } from '../../../hooks/useGetFormattedTokensPerChain';
 import { useGetTotalFiatBalanceCrossChains } from '../../../hooks/useGetTotalFiatBalanceCrossChains';
-import { selectLastSelectedEvmAccount, selectLastSelectedSolanaAccount } from '../../../../selectors/accountsController';
+import { selectLastSelectedEvmAccount } from '../../../../selectors/accountsController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useTokensWithBalance } from './useTokensWithBalance';
@@ -46,7 +46,7 @@ export const useSortedSourceNetworks = () => {
     const tokenFiatSum = chainData.tokenFiatBalances.reduce((sum, value) => sum + value, 0);
     return chainData.nativeFiatValue + tokenFiatSum;
   }, [evmAddress, evmTotalFiatBalancesCrossChain]);
-  
+
   // Calculate total fiat value per Solana chain (native + tokens)
   const solTokensWithBalance = useTokensWithBalance({
     chainIds: [SolScope.Mainnet],
@@ -58,8 +58,8 @@ export const useSortedSourceNetworks = () => {
   // Sort networks by total fiat value in descending order
   const sortedSourceNetworks = useMemo(() =>
     enabledSourceChains.map(chain => {
-      const totalFiatValue = chain.chainId === SolScope.Mainnet 
-        ? solFiatTotal 
+      const totalFiatValue = chain.chainId === SolScope.Mainnet
+        ? solFiatTotal
         : getEvmChainTotalFiatValue(chain.chainId);
 
       return {
