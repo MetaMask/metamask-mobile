@@ -4,7 +4,7 @@ import {
   JsonRpcRequest,
   PendingJsonRpcResponse,
 } from '@metamask/utils';
-import { shouldEmitDappViewedEvent, trackDappViewedEvent } from '../../util/metrics';
+import { trackDappViewedEvent } from '../../util/metrics';
 import requestEthereumAccounts from './eth-request-accounts';
 
 interface DeferredPromise {
@@ -17,8 +17,6 @@ jest.mock('../../util/metrics', () => ({
   shouldEmitDappViewedEvent: jest.fn(),
   trackDappViewedEvent: jest.fn(),
 }));
-
-const mockShouldEmitDappViewedEvent = shouldEmitDappViewedEvent as jest.Mock;
 
 const baseRequest = {
   jsonrpc: '2.0' as const,
@@ -201,28 +199,16 @@ describe('requestEthereumAccountsHandler', () => {
       expect(getAccounts).toHaveBeenCalledTimes(2);
     });
 
-    it('emits the dapp viewed metrics event when shouldEmitDappViewedEvent returns true', async () => {
+    it('emits the dapp viewed metrics event', async () => {
       const mockAccounts = ['0xdead', '0xbeef'];
       const { handler, getAccounts } = createMockedHandler();
       getAccounts.mockReturnValueOnce([]).mockReturnValueOnce(mockAccounts);
-      mockShouldEmitDappViewedEvent.mockReturnValue(true);
 
       await handler(baseRequest);
       expect(trackDappViewedEvent).toHaveBeenCalledWith(
         'http://test.com',
         mockAccounts.length,
       );
-    });
-
-    it('does not emit the dapp viewed metrics event when shouldEmitDappViewedEvent returns false', async () => {
-      const { handler, getAccounts } = createMockedHandler();
-      getAccounts
-        .mockReturnValueOnce([])
-        .mockReturnValueOnce(['0xdead', '0xbeef']);
-      mockShouldEmitDappViewedEvent.mockReturnValue(false);
-
-      await handler(baseRequest);
-      expect(trackDappViewedEvent).not.toHaveBeenCalled();
     });
   });
 });
