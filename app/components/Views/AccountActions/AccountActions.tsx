@@ -85,14 +85,14 @@ const AccountActions = () => {
   }, []);
 
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  const keyrings = useSelector(selectKeyrings);
+  const existingKeyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
-    const keyring = keyrings.find((kr) =>
+    const keyring = existingKeyrings.find((kr) =>
       kr.accounts.includes(selectedAccount.address.toLowerCase()),
     );
     return keyring?.metadata.id;
-  }, [keyrings, selectedAccount.address]);
+  }, [existingKeyrings, selectedAccount.address]);
   ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
