@@ -515,7 +515,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                         >
-                          Requesting for 4 networks
+                          Requesting for 5 networks
                         </Text>
                       </Text>
                     </View>
@@ -688,6 +688,23 @@ exports[`AccountConnect renders correctly 1`] = `
                             />
                           </View>
                         </View>
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#686e7d",
+                              "fontFamily": "CentraNo1-Medium",
+                              "fontSize": 12,
+                              "fontWeight": "500",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                              "marginLeft": 2,
+                            }
+                          }
+                          testID="avatargroup-overflowcounter"
+                        >
+                          +1
+                        </Text>
                       </View>
                     </View>
                   </View>
