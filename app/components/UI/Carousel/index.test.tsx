@@ -104,6 +104,28 @@ jest.mock('../../../images/banners/banner_image_aggregated.png', () => ({
   uri: 'aggregated-image',
 }));
 
+// Mock useMultichainBalances hook
+jest.mock('../../../components/hooks/useMultichainBalances', () => ({
+  useMultichainBalances: jest.fn().mockReturnValue({
+    selectedAccountMultichainBalance: {
+      displayBalance: '$0.00',
+      displayCurrency: 'USD',
+      totalFiatBalance: 0,
+      totalNativeTokenBalance: '0',
+      nativeTokenUnit: 'ETH',
+      tokenFiatBalancesCrossChains: [],
+      shouldShowAggregatedPercentage: false,
+      isPortfolioVieEnabled: true,
+      aggregatedBalance: {
+        ethFiat: 0,
+        tokenFiat: 0,
+        tokenFiat1dAgo: 0,
+        ethFiat1dAgo: 0,
+      },
+    },
+  }),
+}));
+
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 
