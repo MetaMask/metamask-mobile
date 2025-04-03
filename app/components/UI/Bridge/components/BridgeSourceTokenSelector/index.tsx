@@ -30,7 +30,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const { onSetRpcTarget } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
     selectedNetworkName,
@@ -47,9 +47,15 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       dispatch(setSourceToken(token));
 
       // Switch to the chain of the selected token
-      const networkConfiguration = evmNetworkConfigurations[token.chainId];
+      const networkConfiguration = allNetworkConfigurations[token.chainId];
+      const evmNetworkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
+
       if (networkConfiguration) {
-        await onSetRpcTarget(networkConfiguration);
+        if (networkConfiguration.isEvm) {
+          await onSetRpcTarget(evmNetworkConfiguration);
+        } else {
+          await onNonEvmNetworkChange(networkConfiguration.chainId);
+        }
       }
 
       navigation.goBack();
@@ -68,7 +74,15 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         }
       />
     );
-  }, [dispatch, navigation, evmNetworkConfigurations, allNetworkConfigurations, selectedSourceToken, onSetRpcTarget]);
+  }, [
+    dispatch,
+    navigation,
+    allNetworkConfigurations,
+    selectedSourceToken,
+    onSetRpcTarget,
+    onNonEvmNetworkChange,
+    evmNetworkConfigurations,
+   ]);
 
   const networksToShow = useMemo(() =>
     sortedSourceNetworks
