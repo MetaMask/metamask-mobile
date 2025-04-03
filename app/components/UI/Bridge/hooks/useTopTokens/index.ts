@@ -54,7 +54,11 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
   }, [chainId]);
 
   // Get the token data from the bridge API
-  const { value: bridgeTokens, pending: bridgeTokensPending, error: bridgeTokensError } = useAsyncResult(async () => {
+  const {
+    value: bridgeTokens,
+    pending: bridgeTokensPending,
+    error: bridgeTokensError,
+  } = useAsyncResult(async () => {
     if (!chainId || bridgeTokensError) {
       return {};
     }
