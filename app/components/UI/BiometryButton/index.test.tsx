@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import BiometryButton from './BiometryButton';
 import { Platform } from 'react-native';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
@@ -46,7 +46,7 @@ describe('BiometryButton', () => {
     const { toJSON } = render(
       <BiometryButton
         onPress={mockOnPress}
-        hidden={true}
+        hidden
         biometryType={BIOMETRY_TYPE.FACE}
       />,
     );
