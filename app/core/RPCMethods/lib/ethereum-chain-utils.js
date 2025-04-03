@@ -5,7 +5,6 @@ import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
   isPrefixedFormattedHexString,
-  isChainPermissionsFeatureEnabled,
 } from '../../../util/networks';
 import {
   Caip25CaveatType,
@@ -14,7 +13,7 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import Logger from '../../../util/Logger';
+import { getPermittedAccounts } from '../../Permissions';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -271,6 +270,19 @@ export async function switchToNetwork({
       chainId,
       autoApprove,
     });
+  }
+
+  const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
+
+  if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
+    SelectedNetworkController.setNetworkClientIdForDomain(
+      origin,
+      networkConfigurationId || networkConfiguration.networkType,
+    );
+  } else {
+    await MultichainNetworkController.setActiveNetwork(
+      networkConfigurationId || networkConfiguration.networkType,
+    );
   }
 
   const analyticsParams = {
