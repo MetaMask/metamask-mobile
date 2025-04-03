@@ -59,7 +59,10 @@ import BlockingActionModal from '../../UI/BlockingActionModal';
 import { useTheme } from '../../../util/theme';
 import { Hex } from '@metamask/utils';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-import { selectHDKeyrings } from '../../../selectors/keyringController';
+import {
+  selectHDKeyrings,
+  selectKeyrings,
+} from '../../../selectors/keyringController';
 ///: END:ONLY_INCLUDE_IF
 import { isEvmAccountType } from '@metamask/keyring-api';
 
@@ -85,14 +88,14 @@ const AccountActions = () => {
   }, []);
 
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-  const existingHdKeyrings = useSelector(selectHDKeyrings);
+  const keyrings = useSelector(selectKeyrings);
 
   const keyringId = useMemo(() => {
-    const keyring = existingHdKeyrings.find((kr) =>
+    const keyring = keyrings.find((kr) =>
       kr.accounts.includes(selectedAccount.address.toLowerCase()),
     );
     return keyring?.metadata.id;
-  }, [existingHdKeyrings, selectedAccount.address]);
+  }, [keyrings, selectedAccount.address]);
   ///: END:ONLY_INCLUDE_IF
 
   const providerConfig = useSelector(selectProviderConfig);
