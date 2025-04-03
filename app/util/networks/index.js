@@ -488,7 +488,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  * Gets the image source given both the network type and the chain ID.
  *
  * @param {object} params - Params that contains information about the network.
- * @param {string} params?.networkType - Type of network from the provider.
+ * @param {string} params.networkType - Type of network from the provider.
  * @param {string} params.chainId - ChainID of the network.
  * @returns {Object} - Image source of the network.
  */

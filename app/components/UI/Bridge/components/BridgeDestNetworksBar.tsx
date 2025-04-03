@@ -90,7 +90,7 @@ export const BridgeDestNetworksBar = () => {
       // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const networkImage = getNetworkImageSource({ chainId: chain.chainId});
 
-      const handleSelectNetwork = (chainId: Hex) => dispatch(setSelectedDestChainId(chainId));
+      const handleSelectNetwork = (chainId: Hex | CaipChainId) => dispatch(setSelectedDestChainId(chainId));
 
       return (
         <Button
