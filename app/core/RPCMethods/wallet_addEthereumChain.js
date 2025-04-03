@@ -288,7 +288,6 @@ export const wallet_addEthereumChain = async ({
           .build(),
       );
     }
-
     switchToNetworkAndMetrics(newNetworkConfiguration, true);
   } finally {
     endApprovalFlow({ id: approvalFlowId });

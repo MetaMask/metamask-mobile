@@ -6,6 +6,10 @@ import { CaveatFactories, PermissionKeys } from '../Permissions/specifications';
 import { CaveatTypes } from '../Permissions/constants';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 const mockEngine = Engine;
 
@@ -113,6 +117,13 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       requestUserApproval: jest.fn(() => Promise.resolve()),
       startApprovalFlow: jest.fn(() => ({ id: '1', loadingText: null })),
       endApprovalFlow: jest.fn(),
+      hooks: {
+        getCurrentChainIdForDomain: jest.fn(),
+        getNetworkConfigurationByChainId: jest.fn(),
+        getCaveat: jest.fn(),
+        requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
+        hasApprovalRequestsForOrigin: jest.fn(),
+      },
     };
 
     jest
@@ -421,6 +432,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'addNetwork')
       .mockReturnValue(networkConfigurationResult);
 
+    // TODO: [ffmcge] this is passed to switchToNetwork utils function, under `controllers`. For some reason it's not detecting it's call, even though the flow goes to this edge case...
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
@@ -451,6 +463,7 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'updateNetwork')
       .mockReturnValue(networkConfigurationResult);
 
+    // TODO: [ffmcge] this is passed to switchToNetwork utils function, under `controllers`. For some reason it's not detecting it's call, even though the flow goes to this edge case...
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',
@@ -503,6 +516,24 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       jest.clearAllMocks();
     });
     it('should grant permissions when chain is not already permitted', async () => {
+      jest
+        .spyOn(Engine.context.NetworkController, 'addNetwork')
+        .mockReturnValue(networkConfigurationResult);
+
+      // otherOptions.hooks.getCaveat.mockReturnValue({
+      //   type: Caip25CaveatType,
+      //   value: {
+      //     requiredScopes: {},
+      //     optionalScopes: {
+      //       'eip155:100': {
+      //         accounts: [],
+      //       },
+      //     },
+      //     isMultichainOrigin: false,
+      //     sessionProperties: {},
+      //   },
+      // });
+
       const spyOnGrantPermissionsIncremental = jest.spyOn(
         Engine.context.PermissionController,
         'grantPermissionsIncremental',
@@ -519,9 +550,21 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
         subject: { origin: 'https://example.com' },
         approvedPermissions: {
-          [PermissionKeys.permittedChains]: {
+          [Caip25EndowmentPermissionName]: {
             caveats: [
-              CaveatFactories[CaveatTypes.restrictNetworkSwitching](['0x64']),
+              {
+                type: Caip25CaveatType,
+                value: {
+                  requiredScopes: {},
+                  optionalScopes: {
+                    'eip155:100': {
+                      accounts: [],
+                    },
+                  },
+                  isMultichainOrigin: false,
+                  sessionProperties: {},
+                },
+              },
             ],
           },
         },
