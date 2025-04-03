@@ -225,7 +225,7 @@ describe('Quote Component', () => {
     );
 
     const animatedView = getByTestId('animated-view-height');
-    const layoutEvent: LayoutChangeEvent = {
+    const layoutEvent = {
       nativeEvent: {
         layout: { height: 100, width: 0, x: 0, y: 0 },
       },
