@@ -72,7 +72,7 @@ exports[`LoadingAnimation renders 1`] = `
           "fontSize": 18,
           "fontWeight": "600",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "marginVertical": 3,
           "textAlign": "center",
         }

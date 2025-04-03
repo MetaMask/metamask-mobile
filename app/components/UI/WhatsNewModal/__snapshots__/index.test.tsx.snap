@@ -214,7 +214,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Medium",
-                            "fontSize": 16,
+                            "fontSize": 18,
                             "fontWeight": "500",
                             "letterSpacing": 0,
                             "lineHeight": 24,
@@ -432,7 +432,7 @@ exports[`WhatsNewModal should render correctly 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Medium",
-                            "fontSize": 16,
+                            "fontSize": 18,
                             "fontWeight": "500",
                             "letterSpacing": 0,
                             "lineHeight": 24,

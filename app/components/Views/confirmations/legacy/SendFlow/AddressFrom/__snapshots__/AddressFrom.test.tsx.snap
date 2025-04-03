@@ -28,7 +28,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
           "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -154,7 +154,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -170,7 +170,7 @@ exports[`SendFlowAddressFrom should render correctly 1`] = `
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

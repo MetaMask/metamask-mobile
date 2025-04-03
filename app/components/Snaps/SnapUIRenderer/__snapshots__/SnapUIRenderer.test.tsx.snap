@@ -57,10 +57,10 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "textAlign": "left",
               }
             }
@@ -71,10 +71,10 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": "left",
                 }
               }
@@ -137,10 +137,10 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -252,7 +252,7 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -374,7 +374,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -434,7 +434,7 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -555,7 +555,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -614,7 +614,7 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -696,10 +696,10 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "textAlign": "left",
               }
             }
@@ -710,10 +710,10 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": "left",
                 }
               }
@@ -839,10 +839,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "500",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -870,10 +870,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     {
                       "color": "#9ca1af",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -885,10 +885,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -986,10 +986,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       {
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Medium",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1002,10 +1002,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1033,10 +1033,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Medium",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "500",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1049,10 +1049,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     {
                       "color": "#686e7d",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1115,10 +1115,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1177,10 +1177,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1193,10 +1193,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               {
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -1206,10 +1206,10 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                 {
                   "color": "inherit",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": undefined,
                 }
               }
@@ -1285,10 +1285,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "textAlign": "left",
               }
             }
@@ -1299,10 +1299,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": "left",
                 }
               }
@@ -1364,10 +1364,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1426,10 +1426,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1442,10 +1442,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
               {
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -1455,10 +1455,10 @@ exports[`SnapUIRenderer renders footers 1`] = `
                 {
                   "color": "inherit",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": undefined,
                 }
               }
@@ -1566,10 +1566,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1659,7 +1659,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,
                         "letterSpacing": 0,
@@ -1690,10 +1690,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         {
                           "color": "#4459ff",
                           "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": undefined,
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": undefined,
                         }
                       }
@@ -1798,10 +1798,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1845,7 +1845,7 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         "borderWidth": 1,
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,
                         "letterSpacing": 0,
@@ -1880,10 +1880,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1945,10 +1945,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       {
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1978,10 +1978,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -2065,10 +2065,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Medium",
-                            "fontSize": 14,
+                            "fontSize": 16,
                             "fontWeight": "500",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -2081,10 +2081,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                           {
                             "color": "#686e7d",
                             "fontFamily": "CentraNo1-Book",
-                            "fontSize": 14,
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -2112,10 +2112,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -2128,10 +2128,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -2470,10 +2470,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2486,10 +2486,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                     {
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2517,10 +2517,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -2533,10 +2533,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   {
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -2620,10 +2620,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2636,10 +2636,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                     {
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -2667,10 +2667,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -2683,10 +2683,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                                   {
                                     "color": "#686e7d",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -2712,10 +2712,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   {
                     "color": "#4459ff",
                     "fontFamily": "CentraNo1-Medium",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": undefined,
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                     "textAlign": undefined,
                   }
                 }
@@ -2831,7 +2831,7 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                       "borderWidth": 1,
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Book",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -2913,10 +2913,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "textAlign": "left",
               }
             }
@@ -2927,10 +2927,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": "left",
                 }
               }
@@ -2992,10 +2992,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -3054,10 +3054,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -3070,10 +3070,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               {
                 "color": "#ffffff",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -3083,10 +3083,10 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
                 {
                   "color": "inherit",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": undefined,
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "textAlign": undefined,
                 }
               }

@@ -197,10 +197,10 @@ exports[`TypedSign onConfirm signs message 1`] = `
                         "color": "#686e7d",
                         "flexShrink": 1,
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -364,10 +364,10 @@ exports[`TypedSign onConfirm signs message 1`] = `
                             {
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Book",
-                              "fontSize": 12,
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -388,10 +388,10 @@ exports[`TypedSign onConfirm signs message 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Bold",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >
@@ -407,10 +407,10 @@ exports[`TypedSign onConfirm signs message 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
-                            "fontSize": 12,
+                            "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 20,
+                            "lineHeight": 22,
                             "marginLeft": "auto",
                           }
                         }
@@ -423,10 +423,10 @@ exports[`TypedSign onConfirm signs message 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Bold",
-                            "fontSize": 14,
+                            "fontSize": 16,
                             "fontWeight": "700",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -870,10 +870,10 @@ exports[`TypedSign onReject rejects message 1`] = `
                         "color": "#686e7d",
                         "flexShrink": 1,
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1037,10 +1037,10 @@ exports[`TypedSign onReject rejects message 1`] = `
                             {
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Book",
-                              "fontSize": 12,
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -1061,10 +1061,10 @@ exports[`TypedSign onReject rejects message 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Bold",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "700",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >
@@ -1080,10 +1080,10 @@ exports[`TypedSign onReject rejects message 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
-                            "fontSize": 12,
+                            "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 20,
+                            "lineHeight": 22,
                             "marginLeft": "auto",
                           }
                         }
@@ -1096,10 +1096,10 @@ exports[`TypedSign onReject rejects message 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Bold",
-                            "fontSize": 14,
+                            "fontSize": 16,
                             "fontWeight": "700",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
