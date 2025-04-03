@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -80,10 +80,22 @@ const PermissionsSummary = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
+  // Ref to store the original hostname at mount time
+  const originalHostnameRef = useRef<string>('');
+
+  // Capture the origin hostname when the component mounts
+  useEffect(() => {
+    if (currentPageInformation?.url) {
+      originalHostnameRef.current = new URL(currentPageInformation.url).hostname;
+    }
+  }, [currentPageInformation?.url]);
+
+  // Use the captured hostname or fall back to the current one if ref is empty
   const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
+    () => originalHostnameRef.current || new URL(currentPageInformation.url).hostname,
     [currentPageInformation.url],
   );
+  
   const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -165,9 +177,10 @@ const PermissionsSummary = ({
                   params: {
                     hostInfo: {
                       metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                        // Use the captured hostname for security
+                        origin: originalHostnameRef.current || 
+                          (currentPageInformation?.url && 
+                          new URL(currentPageInformation?.url).hostname),
                       },
                     },
                     connectionDateTime: new Date().getTime(),
@@ -200,17 +213,21 @@ const PermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    // Always use the original captured hostname for security
+    const hostnameToRevoke = originalHostnameRef.current || hostname;
+    await Engine.context.PermissionController.revokeAllPermissions(hostnameToRevoke);
     navigate('PermissionsManager');
   }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
+    // Always use the original captured hostname for security
+    const hostnameForModal = originalHostnameRef.current || hostname;
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
           metadata: {
-            origin: hostname,
+            origin: hostnameForModal,
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
