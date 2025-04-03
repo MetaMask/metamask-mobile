@@ -176,7 +176,7 @@
     "@metamask/ethjs-contract": "^0.4.1",
     "@metamask/ethjs-query": "^0.7.1",
     "@metamask/ethjs-unit": "^0.3.0",
-    "@metamask/gas-fee-controller": "^22.0.3",
+    "@metamask/gas-fee-controller": "^23.0.0",
     "@metamask/json-rpc-engine": "^10.0.3",
     "@metamask/json-rpc-middleware-stream": "^8.0.6",
     "@metamask/key-tree": "^10.1.1",
