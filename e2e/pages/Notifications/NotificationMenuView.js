@@ -37,6 +37,12 @@ class EnableNotificationsModal {
   async tapOnAnnouncementsTab() {
     await Gestures.waitAndTap(this.announcements_tab);
   }
+  async tapOnNotificationItem(
+    /** @type {string} */
+    id,
+  ) {
+    await Gestures.waitAndTap(this.selectNotificationItem(id));
+  }
 }
 
 export default new EnableNotificationsModal();
