@@ -493,7 +493,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         {
                                           "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -697,7 +697,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -1082,7 +1082,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1097,7 +1097,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1122,7 +1122,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1364,7 +1364,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1379,7 +1379,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1404,7 +1404,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1615,7 +1615,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1630,7 +1630,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1655,7 +1655,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1907,7 +1907,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -1922,7 +1922,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -1947,7 +1947,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
