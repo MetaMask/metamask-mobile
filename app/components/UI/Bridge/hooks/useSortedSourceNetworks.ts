@@ -67,7 +67,7 @@ export const useSortedSourceNetworks = () => {
         totalFiatValue,
       };
     }).sort((a, b) => b.totalFiatValue - a.totalFiatValue)
-  , [enabledSourceChains, getEvmChainTotalFiatValue]);
+  , [enabledSourceChains, getEvmChainTotalFiatValue, solFiatTotal]);
 
   return {
     sortedSourceNetworks,
