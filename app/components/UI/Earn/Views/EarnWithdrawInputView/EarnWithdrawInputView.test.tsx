@@ -129,7 +129,7 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
   }),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
+jest.mock('../../../../../selectors/featureFlagController/confirmations', () => ({
   selectConfirmationRedesignFlags: jest.fn(() => ({
     staking_confirmations: false,
   })),

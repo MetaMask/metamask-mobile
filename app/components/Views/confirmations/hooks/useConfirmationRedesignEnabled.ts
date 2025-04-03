@@ -6,9 +6,11 @@ import {
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
+} from '../../../../selectors/featureFlagController/confirmations';
+import {
+  ConfirmationRedesignRemoteFlags,
+} from '../../../../selectors/featureFlagController/confirmations/types';
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';

@@ -32,7 +32,7 @@ import { StakeNavigationParamsList } from '../../../Stake/types';
 import { withMetaMetrics } from '../../../Stake/utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './EarnWithdrawInputView.styles';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 import { EarnWithdrawInputViewProps } from './EarnWithdrawInputView.types';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import { RootState } from '../../../../../reducers';
