@@ -315,7 +315,11 @@ class TransactionDetails extends PureComponent {
       !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
-    return updatedTransactionDetails ? (
+    return (
+      <>
+      <Text>chainId: {chainId}</Text>
+      <Text>transaction object chain id: {this.props.transactionObject.chainId}</Text>
+      {updatedTransactionDetails ? (
       <DetailsModal.Body>
         <DetailsModal.Section borderBottom>
           <DetailsModal.Column>
@@ -414,7 +418,10 @@ class TransactionDetails extends PureComponent {
             </TouchableOpacity>
           )}
       </DetailsModal.Body>
-    ) : null;
+    ) : null}
+      </>
+    )
+    ;
   };
 }
 
