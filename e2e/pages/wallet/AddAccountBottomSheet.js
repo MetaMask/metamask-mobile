@@ -15,6 +15,12 @@ class AddAccountBottomSheet {
     );
   }
 
+  get createSolanaAccountButton() {
+    return Matchers.getElementByID(
+      AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
+    );
+  }
+
   get importSrpButton() {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
@@ -27,6 +33,10 @@ class AddAccountBottomSheet {
 
   async tapCreateAccount() {
     await Gestures.waitAndTap(this.createAccountButton);
+  }
+
+  async tapCreateSolanaAccount() {
+    await Gestures.waitAndTap(this.createSolanaAccountButton);
   }
 
   async tapImportSrp() {
