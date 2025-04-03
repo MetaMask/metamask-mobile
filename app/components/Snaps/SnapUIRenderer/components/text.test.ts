@@ -5,7 +5,6 @@ import {
 } from '../../../../component-library/components/Texts/Text/Text.types';
 import { TextElement } from '@metamask/snaps-sdk/jsx';
 import { mockTheme } from '../../../../util/theme';
-import { TextProps } from 'react-native';
 
 describe('text component', () => {
   const defaultParams = {
@@ -99,6 +98,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((result.props as any)?.style?.fontWeight).toBe(
         expectedWeights[weight],
       );
@@ -122,6 +122,7 @@ describe('text component', () => {
       };
 
       const result = text({ element: el, ...defaultParams });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((result.props as any)?.style?.textAlign).toBe(
         expectedAlignments[alignment],
       );
