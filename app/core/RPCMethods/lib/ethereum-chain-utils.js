@@ -238,6 +238,12 @@ export async function switchToNetwork({
 
   const [networkConfigurationId, networkConfiguration] = network;
 
+  // for some reason this extra step is necessary for accessing the env variable in test environment
+  const chainPermissionsFeatureEnabled =
+    { ...process.env }?.NODE_ENV === 'test'
+      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
+      : isChainPermissionsFeatureEnabled;
+
   const caip25Caveat = getCaveat({
     target: Caip25EndowmentPermissionName,
     caveatType: Caip25CaveatType,
@@ -247,24 +253,6 @@ export async function switchToNetwork({
 
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
-
-    // TODO: [ffmcgee] clean up below logic, can be optimized
-    // for some reason this extra step is necessary for accessing the env variable in test environment
-    const chainPermissionsFeatureEnabled =
-      { ...process.env }?.NODE_ENV === 'test'
-        ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-        : isChainPermissionsFeatureEnabled;
-
-    if (hasApprovalRequestsForOrigin?.() && chainPermissionsFeatureEnabled) {
-      await requestUserApproval({
-        origin,
-        type: ApprovalType.SwitchEthereumChain,
-        requestData: {
-          toNetworkConfiguration,
-          fromNetworkConfiguration,
-        },
-      });
-    }
 
     if (!ethChainIds.includes(chainId)) {
       await requestPermittedChainsPermissionIncrementalForOrigin({
@@ -285,6 +273,38 @@ export async function switchToNetwork({
     await requestPermittedChainsPermissionIncrementalForOrigin({
       chainId,
       autoApprove,
+    });
+  }
+
+  const shouldGrantPermissions =
+    chainPermissionsFeatureEnabled &&
+    (!ethChainIds || !ethChainIds.includes(chainId));
+
+  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+
+  const shouldShowRequestModal =
+    (!isAddNetworkFlow && shouldGrantPermissions) ||
+    !chainPermissionsFeatureEnabled;
+
+  const requestData = {
+    rpcUrl:
+      networkConfiguration.rpcEndpoints[
+        networkConfiguration.defaultRpcEndpointIndex
+      ],
+    chainId,
+    chainName:
+      networkConfiguration.name ||
+      networkConfiguration.chainName ||
+      networkConfiguration.nickname ||
+      networkConfiguration.shortName,
+    ticker: networkConfiguration.ticker || 'ETH',
+    chainColor: networkConfiguration.color,
+  };
+
+  if (shouldShowRequestModal) {
+    await requestUserApproval({
+      type: 'SWITCH_ETHEREUM_CHAIN',
+      requestData: { ...requestData, type: requestModalType },
     });
   }
 
