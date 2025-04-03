@@ -4,8 +4,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import SnapsModal from './SnapsModal';
 
 jest.mock('react-native-modal', () => {
-  const React = require('react');
-  const { View } = require('react-native');
   return jest.fn(
     ({ children, isVisible, onBackdropPress, onSwipeComplete }) => {
       if (!isVisible) return null;
@@ -49,7 +47,7 @@ describe('SnapsModal', () => {
 
   it('renders modal when isVisible is true', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <Text>Modal content</Text>
       </SnapsModal>,
     );
@@ -61,7 +59,7 @@ describe('SnapsModal', () => {
   it('renders children inside the modal', () => {
     const testId = 'test-child';
     const { getByTestId } = render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <View testID={testId}>
           <Text>Modal content</Text>
         </View>
@@ -74,7 +72,7 @@ describe('SnapsModal', () => {
 
   it('calls onCancel when backdrop is pressed', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <Text>Modal content</Text>
       </SnapsModal>,
     );
@@ -85,7 +83,7 @@ describe('SnapsModal', () => {
 
   it('calls onCancel when modal is swiped down', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <Text>Modal content</Text>
       </SnapsModal>,
     );
@@ -98,7 +96,7 @@ describe('SnapsModal', () => {
     const mockReactNativeModal = require('react-native-modal');
 
     render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <Text>Modal content</Text>
       </SnapsModal>,
     );
@@ -115,7 +113,7 @@ describe('SnapsModal', () => {
 
   it('passes the correct props to the Modal component', () => {
     render(
-      <SnapsModal isVisible={true} onCancel={mockOnCancel}>
+      <SnapsModal isVisible onCancel={mockOnCancel}>
         <Text>Modal content</Text>
       </SnapsModal>,
     );
