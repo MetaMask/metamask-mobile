@@ -21,7 +21,7 @@ describe(SmokeRamps('Off-ramp token amounts'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it('should deep link to offramp ETH', async () => {
+  it('should change token amounts directly and by percentage', async () => {
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
       emoji: '🇫🇷',
