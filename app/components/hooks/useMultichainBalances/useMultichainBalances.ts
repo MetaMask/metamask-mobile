@@ -31,6 +31,7 @@ import {
   selectMultichainBalances,
   selectMultichainAssets,
   selectMultichainAssetsRates,
+  MultichainNetworkAggregatedBalance,
 } from '../../../selectors/multichain';
 import { selectSelectedNonEvmNetworkChainId } from '../../../selectors/multichainNetworkController';
 import { isEvmAccountType } from '@metamask/keyring-api';
@@ -141,33 +142,17 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
   );
 
   const getNonEvmDisplayBalance = useCallback(
-    (account: InternalAccount) => {
-      const accountBalance = getMultichainNetworkAggregatedBalance(
-        account,
-        multichainBalances,
-        multichainAssets,
-        multichainAssetsRates,
-        nonEvmChainId,
-      );
-
+    (nonEvmAccountBalance: MultichainNetworkAggregatedBalance) => {
       if (!shouldShowFiat) {
-        return `${accountBalance.totalNativeTokenBalance.amount} ${accountBalance.totalNativeTokenBalance.unit}`;
+        return `${nonEvmAccountBalance.totalNativeTokenBalance.amount} ${nonEvmAccountBalance.totalNativeTokenBalance.unit}`;
       }
 
       return getMultiChainFiatBalance(
-        accountBalance.totalBalanceFiat,
+        nonEvmAccountBalance.totalBalanceFiat,
         currentCurrency,
       );
     },
-    [
-      currentCurrency,
-      getMultiChainFiatBalance,
-      multichainAssets,
-      multichainAssetsRates,
-      multichainBalances,
-      nonEvmChainId,
-      shouldShowFiat,
-    ],
+    [currentCurrency, getMultiChainFiatBalance, shouldShowFiat],
   );
   ///: END:ONLY_INCLUDE_IF
 
@@ -203,7 +188,7 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
           nonEvmChainId,
         );
         return {
-          displayBalance: getNonEvmDisplayBalance(account),
+          displayBalance: getNonEvmDisplayBalance(nonEvmAccountBalance),
           totalFiatBalance: nonEvmAccountBalance.totalBalanceFiat,
           totalNativeTokenBalance:
             nonEvmAccountBalance.totalNativeTokenBalance.amount,
