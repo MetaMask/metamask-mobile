@@ -1,5 +1,6 @@
-import { ChainId, NetworkType } from '@metamask/controller-utils';
-import {
+import { ChainId } from '@metamask/controller-utils';
+import networksWithImages from 'images/image-icons';
+import NetworkList, {
   isMainNet,
   isTestNet,
   getAllNetworks,
@@ -11,6 +12,8 @@ import {
   isPrivateConnection,
   findBlockExplorerForNonEvmAccount,
   isLineaMainnetChainId,
+  getTestNetImageByChainId,
+  TESTNET_CHAIN_IDS,
 } from '.';
 import {
   convertNetworkId,
@@ -24,6 +27,7 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  MEGAETH_TESTNET
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -110,11 +114,11 @@ describe('network-utils', () => {
   describe('getAllNetworks', () => {
     const allNetworks = getAllNetworks();
     it('should get all networks', () => {
-      expect(allNetworks.includes(MAINNET)).toEqual(true);
-      expect(allNetworks.includes(SEPOLIA)).toEqual(true);
-      expect(allNetworks.includes(LINEA_SEPOLIA)).toEqual(true);
-      expect(allNetworks.includes(LINEA_MAINNET)).toEqual(true);
+      expect(allNetworks).toStrictEqual([
+        MAINNET,LINEA_MAINNET, SEPOLIA, LINEA_SEPOLIA, MEGAETH_TESTNET
+      ])
     });
+  
     it('should exclude rpc', () => {
       expect(allNetworks.includes(RPC)).toEqual(false);
     });
@@ -130,17 +134,9 @@ describe('network-utils', () => {
   });
 
   describe('isTestNet', () => {
-    const testnets = [
-      NetworkType.sepolia,
-      NetworkType['linea-goerli'],
-      NetworkType['linea-sepolia'],
-    ];
-
-    for (const networkType of testnets) {
-      it(`should return true if the given chain ID is for '${networkType}'`, () => {
-        expect(isTestNet(ChainId[networkType])).toEqual(true);
-      });
-    }
+    it.each(TESTNET_CHAIN_IDS)('should return true if the given chain ID is %s', (chainId) => {
+      expect(isTestNet(chainId)).toEqual(true);
+    });
 
     it(`should return false if the given chain ID is not a known testnet`, () => {
       expect(isTestNet('42')).toEqual(false);
@@ -148,15 +144,21 @@ describe('network-utils', () => {
   });
 
   describe('getNetworkTypeById', () => {
-    it('should get network type by Id', () => {
-      const type = getNetworkTypeById(11155111);
-      expect(type).toEqual(SEPOLIA);
+    it.each([getAllNetworks()])('should get network type by Id - %s', (networkKey) => {
+      const network = NetworkList[networkKey as keyof typeof NetworkList] as unknown as {
+        networkId: string;
+        networkType: string;
+      }
+      const type = getNetworkTypeById(network.networkId);
+      expect(type).toStrictEqual(network.networkType);
     });
+  
     it('should fail if network Id is missing', () => {
       expect(() => getNetworkTypeById()).toThrow(
         NetworkSwitchErrorType.missingNetworkId,
       );
     });
+  
     it('should fail if network Id is unknown', () => {
       const id = 9999;
       expect(() => getNetworkTypeById(id)).toThrow(
@@ -739,5 +741,34 @@ describe('network-utils', () => {
     it('returns false for linea testnet chain id', () => {
       expect(isLineaMainnetChainId('0x13882')).toBe(false);
     });
+  });
+
+  describe('getTestNetImageByChainId', () => {
+    it.each(
+      [
+        {
+          chainId: ChainId.sepolia,
+          expectedImage: networksWithImages?.SEPOLIA,
+        },
+        {
+          chainId: ChainId['linea-goerli'],
+          expectedImage: networksWithImages?.['LINEA-GOERLI'],
+        },
+        {
+          chainId: ChainId['linea-sepolia'],
+          expectedImage: networksWithImages?.['LINEA-SEPOLIA'],
+        },
+        {
+          chainId: ChainId['megaeth-testnet'],
+          expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
+        }
+      ]
+    )('returns corresponding image for the testnet - $.chainId', ({
+      chainId,
+      expectedImage,
+    }) => {
+      const testnetImage = getTestNetImageByChainId(chainId);
+      expect(testnetImage).toEqual(expectedImage);
+    })
   });
 });
