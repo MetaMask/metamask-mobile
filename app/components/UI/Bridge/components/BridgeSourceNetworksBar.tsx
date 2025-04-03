@@ -76,6 +76,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
       <Box key={chainId} style={styles.avatarContainer}>
       <AvatarNetwork
         key={chainId}
+        // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         imageSource={getNetworkImageSource({ chainId })}
         name={networkConfigurations[chainId]?.name}
         size={AvatarSize.Xs}
