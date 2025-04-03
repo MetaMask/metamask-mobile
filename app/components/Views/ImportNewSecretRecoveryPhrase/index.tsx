@@ -433,7 +433,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={srpError || !isValidSrp}
+            disabled={Boolean(srpError || !isValidSrp)}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (
