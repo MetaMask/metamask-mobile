@@ -1,10 +1,7 @@
 import { wallet_switchEthereumChain } from './wallet_switchEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
-import {
-  Caip25CaveatType,
-  Caip25EndowmentPermissionName,
-} from '@metamask/chain-agnostic-permission';
+import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
@@ -274,7 +271,6 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
           sessionProperties: {},
         },
       });
-      otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
       await wallet_switchEthereumChain({
         req: {
           params: [{ chainId: '0x64' }],
