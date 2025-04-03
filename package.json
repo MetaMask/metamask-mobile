@@ -144,9 +144,7 @@
     "nanoid": "^3.3.8",
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
-    "**/@walletconnect/utils/elliptic": "^6.6.1",
-    "@metamask/controller-utils": "npm:@metamask-previews/controller-utils@11.6.0-preview-57dc1075",
-    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.1.0-preview-57dc1075"
+    "**/@walletconnect/utils/elliptic": "^6.6.1"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -191,7 +189,7 @@
     "@metamask/metamask-eth-abis": "3.1.1",
     "@metamask/multichain-network-controller": "^0.1.1",
     "@metamask/multichain-transactions-controller": "^0.7.2",
-    "@metamask/network-controller": "npm:@metamask-previews/network-controller@23.1.0-preview-57dc1075",
+    "@metamask/network-controller": "23.2.0",
     "@metamask/notification-services-controller": "^2.0.0",
     "@metamask/permission-controller": "^11.0.6",
     "@metamask/phishing-controller": "^12.0.3",
