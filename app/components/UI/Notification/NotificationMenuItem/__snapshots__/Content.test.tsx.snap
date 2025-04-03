@@ -22,9 +22,9 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
+          "color": "#686e7d",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -38,8 +38,8 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#9fa6ae",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#9ca1af",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -64,9 +64,9 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -80,8 +80,8 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

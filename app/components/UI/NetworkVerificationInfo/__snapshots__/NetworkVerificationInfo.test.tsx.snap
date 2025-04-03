@@ -41,8 +41,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -83,7 +83,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 16,
             "flexDirection": "row",
             "height": 32,
@@ -129,9 +129,9 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -147,8 +147,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       <View
         style={
           {
-            "backgroundColor": "#BF52081A",
-            "borderColor": "#bf5208",
+            "backgroundColor": "#9a63001a",
+            "borderColor": "#9a6300",
             "borderLeftWidth": 4,
             "borderRadius": 4,
             "flexDirection": "row",
@@ -168,7 +168,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#bf5208"
+            color="#9a6300"
             height={24}
             name="Danger"
             style={
@@ -191,8 +191,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -230,7 +230,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             testID="banner-close-button-icon"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="Close"
               style={
@@ -248,8 +248,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -265,8 +265,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -286,7 +286,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           [
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 10,
               "borderWidth": 1,
               "marginVertical": 16,
@@ -301,8 +301,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -316,8 +316,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -341,8 +341,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -357,8 +357,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -386,8 +386,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -416,7 +416,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
               testID="accordionheader-arrow-icon-animation"
             >
               <SvgMock
-                color="#0376c9"
+                color="#4459ff"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -457,7 +457,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -473,8 +473,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -496,7 +496,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -514,7 +514,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -570,8 +570,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -612,7 +612,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 16,
             "flexDirection": "row",
             "height": 32,
@@ -658,9 +658,9 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           numberOfLines={1}
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -677,8 +677,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -691,8 +691,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -712,7 +712,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           [
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 10,
               "borderWidth": 1,
               "marginVertical": 16,
@@ -727,8 +727,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -742,8 +742,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -767,8 +767,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -786,7 +786,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#0376C91A",
+                    "backgroundColor": "#4459ff1a",
                     "borderRadius": 4,
                     "height": 20,
                     "justifyContent": "center",
@@ -806,7 +806,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                   testID="networks.rpc-url-missmatch-review-and-compare"
                 >
                   <SvgMock
-                    color="#0376c9"
+                    color="#4459ff"
                     height={16}
                     name="Info"
                     style={
@@ -821,8 +821,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#0376c9",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#4459ff",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -833,7 +833,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
                     Review
                   </Text>
                   <SvgMock
-                    color="#0376c9"
+                    color="#4459ff"
                     height={12}
                     name="ArrowRight"
                     style={
@@ -852,8 +852,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -881,8 +881,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -911,7 +911,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
               testID="accordionheader-arrow-icon-animation"
             >
               <SvgMock
-                color="#0376c9"
+                color="#4459ff"
                 height={16}
                 name="ArrowDown"
                 style={
@@ -952,7 +952,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flex": 1,
@@ -968,8 +968,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -991,7 +991,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -1009,7 +1009,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,

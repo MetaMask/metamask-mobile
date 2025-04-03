@@ -29,8 +29,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -54,8 +54,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "alignItems": "center",
           "alignSelf": "stretch",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 24,
           "borderWidth": 1,
           "flexBasis": 0,
@@ -107,8 +107,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -132,7 +132,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flexBasis": 0,
           "flexDirection": "row",
@@ -149,7 +149,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,

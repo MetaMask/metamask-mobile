@@ -23,7 +23,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -70,14 +70,14 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#BBC0C566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -127,7 +127,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={24}
           name="Info"
           style={
@@ -162,8 +162,8 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -193,8 +193,8 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -216,7 +216,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "borderRadius": 24,
               "flexDirection": "row",
               "height": 48,
@@ -230,7 +230,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,

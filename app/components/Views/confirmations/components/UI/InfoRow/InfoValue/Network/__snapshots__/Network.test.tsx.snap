@@ -40,7 +40,7 @@ exports[`Network should match snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",

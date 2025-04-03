@@ -6,7 +6,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -58,8 +58,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -91,7 +91,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -135,8 +135,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#1c8234",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#1c7e33",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -195,8 +195,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -247,8 +247,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -262,8 +262,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -322,8 +322,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -355,7 +355,7 @@ exports[`RewardsCard render matches snapshot 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -399,8 +399,8 @@ exports[`RewardsCard render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -424,7 +424,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -476,8 +476,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -509,7 +509,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -553,8 +553,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#1c8234",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#1c7e33",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -613,8 +613,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -665,8 +665,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -680,8 +680,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -740,8 +740,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -773,7 +773,7 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -817,8 +817,8 @@ exports[`RewardsCard reward frequency tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -842,7 +842,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 8,
       "borderWidth": 0,
       "gap": 16,
@@ -894,8 +894,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -927,7 +927,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -971,8 +971,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#1c8234",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#1c7e33",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -1031,8 +1031,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1083,8 +1083,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1098,8 +1098,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1158,8 +1158,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1191,7 +1191,7 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             }
           >
             <SvgMock
-              color="#9fa6ae"
+              color="#9ca1af"
               height={16}
               name="Question"
               style={
@@ -1235,8 +1235,8 @@ exports[`RewardsCard reward rate tooltip displayed when pressed 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
