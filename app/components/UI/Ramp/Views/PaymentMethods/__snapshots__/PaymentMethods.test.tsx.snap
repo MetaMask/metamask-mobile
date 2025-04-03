@@ -167,7 +167,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -191,7 +191,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -591,7 +591,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -669,7 +669,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -706,7 +706,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -721,7 +721,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -736,7 +736,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -876,7 +876,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -969,7 +969,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1006,7 +1006,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1021,7 +1021,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1036,7 +1036,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1178,7 +1178,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -1271,7 +1271,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -1308,7 +1308,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1323,7 +1323,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1338,7 +1338,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -1621,7 +1621,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1645,7 +1645,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2045,7 +2045,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -2123,7 +2123,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -2160,7 +2160,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2175,7 +2175,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2190,7 +2190,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2330,7 +2330,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -2423,7 +2423,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -2460,7 +2460,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2475,7 +2475,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2490,7 +2490,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2632,7 +2632,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -2725,7 +2725,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -2762,7 +2762,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2777,7 +2777,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -2792,7 +2792,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -3075,7 +3075,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3099,7 +3099,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3517,7 +3517,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -3766,7 +3766,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -4017,7 +4017,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -4307,7 +4307,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4331,7 +4331,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -4972,7 +4972,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4996,7 +4996,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -5637,7 +5637,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -5661,7 +5661,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -6300,7 +6300,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -6324,7 +6324,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -6742,7 +6742,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -6991,7 +6991,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -7242,7 +7242,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -7532,7 +7532,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -7556,7 +7556,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -7956,7 +7956,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -8034,7 +8034,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -8071,7 +8071,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8086,7 +8086,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8101,7 +8101,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8241,7 +8241,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -8334,7 +8334,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -8371,7 +8371,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8386,7 +8386,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8401,7 +8401,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8543,7 +8543,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -8636,7 +8636,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -8673,7 +8673,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8688,7 +8688,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -8703,7 +8703,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -9044,7 +9044,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -9068,7 +9068,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -9684,7 +9684,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -9708,7 +9708,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -10108,7 +10108,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -10186,7 +10186,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -10223,7 +10223,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10238,7 +10238,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10253,7 +10253,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10393,7 +10393,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -10486,7 +10486,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -10523,7 +10523,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10538,7 +10538,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10553,7 +10553,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10695,7 +10695,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Medium",
+                                                  "fontFamily": "CentraNo1-Medium",
                                                   "fontSize": 16,
                                                   "fontWeight": "500",
                                                   "letterSpacing": 0,
@@ -10788,7 +10788,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Regular",
+                                                "fontFamily": "CentraNo1-Book",
                                                 "fontSize": 12,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
@@ -10825,7 +10825,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#121314",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10840,7 +10840,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,
@@ -10855,7 +10855,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                               style={
                                                 {
                                                   "color": "#9ca1af",
-                                                  "fontFamily": "EuclidCircularB-Regular",
+                                                  "fontFamily": "CentraNo1-Book",
                                                   "fontSize": 14,
                                                   "fontWeight": "400",
                                                   "letterSpacing": 0,

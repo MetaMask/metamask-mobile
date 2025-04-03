@@ -167,7 +167,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -191,7 +191,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -830,7 +830,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -854,7 +854,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1493,7 +1493,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1517,7 +1517,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2156,7 +2156,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -2180,7 +2180,7 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3095,7 +3095,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3119,7 +3119,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3758,7 +3758,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3782,7 +3782,7 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -4697,7 +4697,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4721,7 +4721,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -5360,7 +5360,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -5384,7 +5384,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -5763,7 +5763,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "EuclidCircularB-Medium",
+                                          "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 14,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -5835,7 +5835,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -5880,7 +5880,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -6027,7 +6027,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -6192,7 +6192,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -6212,7 +6212,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -6292,7 +6292,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -6475,7 +6475,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -6507,7 +6507,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -6613,7 +6613,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -8323,7 +8323,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -8347,7 +8347,7 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -9262,7 +9262,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -9286,7 +9286,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -9925,7 +9925,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -9949,7 +9949,7 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -10864,7 +10864,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -10888,7 +10888,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -11267,7 +11267,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "EuclidCircularB-Medium",
+                                          "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 14,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -11339,7 +11339,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -11384,7 +11384,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -11531,7 +11531,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -11696,7 +11696,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -11716,7 +11716,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -11796,7 +11796,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -11979,7 +11979,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -12011,7 +12011,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -12117,7 +12117,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -13873,7 +13873,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -13897,7 +13897,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -14276,7 +14276,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         {
                                           "color": "#121314",
                                           "flexShrink": 1,
-                                          "fontFamily": "EuclidCircularB-Medium",
+                                          "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 14,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -14348,7 +14348,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
@@ -14417,7 +14417,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Medium",
+                                          "fontFamily": "CentraNo1-Medium",
                                           "fontSize": 16,
                                           "fontWeight": "500",
                                           "letterSpacing": 0,
@@ -14460,7 +14460,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -14607,7 +14607,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -14772,7 +14772,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -14792,7 +14792,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
@@ -14872,7 +14872,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 24,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -14905,7 +14905,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 12,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -14934,7 +14934,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
@@ -15040,7 +15040,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
+                                                "fontFamily": "CentraNo1-Medium",
                                                 "fontSize": 16,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
@@ -16861,7 +16861,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -16885,7 +16885,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -17524,7 +17524,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -17548,7 +17548,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,

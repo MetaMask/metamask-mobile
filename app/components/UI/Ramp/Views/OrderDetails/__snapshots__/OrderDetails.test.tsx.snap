@@ -167,7 +167,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -191,7 +191,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -491,7 +491,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -507,7 +507,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -532,7 +532,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -550,7 +550,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -777,7 +777,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -811,7 +811,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -861,7 +861,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -894,7 +894,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -940,7 +940,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -991,7 +991,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -1024,7 +1024,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -1085,7 +1085,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -1118,7 +1118,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -1170,7 +1170,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -1205,7 +1205,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -1258,7 +1258,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -1291,7 +1291,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -1352,7 +1352,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -1385,7 +1385,7 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -1654,7 +1654,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -1678,7 +1678,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1995,7 +1995,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -2011,7 +2011,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -2036,7 +2036,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -2054,7 +2054,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -2281,7 +2281,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -2315,7 +2315,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -2365,7 +2365,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -2398,7 +2398,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -2444,7 +2444,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -2495,7 +2495,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -2528,7 +2528,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -2589,7 +2589,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -2622,7 +2622,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -2674,7 +2674,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -2709,7 +2709,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -2762,7 +2762,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -2795,7 +2795,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -2856,7 +2856,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -2889,7 +2889,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -3158,7 +3158,7 @@ exports[`OrderDetails renders a created order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -3182,7 +3182,7 @@ exports[`OrderDetails renders a created order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -3529,7 +3529,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -3554,7 +3554,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -3572,7 +3572,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -3799,7 +3799,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -3833,7 +3833,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -3883,7 +3883,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -3916,7 +3916,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -3962,7 +3962,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -4013,7 +4013,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -4046,7 +4046,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -4107,7 +4107,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -4140,7 +4140,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -4192,7 +4192,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -4227,7 +4227,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -4280,7 +4280,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -4313,7 +4313,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -4374,7 +4374,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -4407,7 +4407,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -4623,7 +4623,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -4647,7 +4647,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -4947,7 +4947,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -4963,7 +4963,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -4988,7 +4988,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -5006,7 +5006,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -5233,7 +5233,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -5267,7 +5267,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -5317,7 +5317,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -5350,7 +5350,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -5396,7 +5396,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -5447,7 +5447,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -5480,7 +5480,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -5541,7 +5541,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -5574,7 +5574,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -5626,7 +5626,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -5661,7 +5661,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -5714,7 +5714,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -5747,7 +5747,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -5808,7 +5808,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -5841,7 +5841,7 @@ exports[`OrderDetails renders a failed order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -6110,7 +6110,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -6134,7 +6134,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -6481,7 +6481,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -6506,7 +6506,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -6524,7 +6524,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -6751,7 +6751,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -6785,7 +6785,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -6835,7 +6835,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -6868,7 +6868,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -6914,7 +6914,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -6965,7 +6965,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -6998,7 +6998,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -7059,7 +7059,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -7092,7 +7092,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -7144,7 +7144,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -7179,7 +7179,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -7232,7 +7232,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -7265,7 +7265,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -7326,7 +7326,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -7359,7 +7359,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -7575,7 +7575,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -7599,7 +7599,7 @@ exports[`OrderDetails renders an empty screen layout if there is no order 1`] = 
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -8009,7 +8009,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -8033,7 +8033,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -8649,7 +8649,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -8673,7 +8673,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -9020,7 +9020,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -9036,7 +9036,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -9061,7 +9061,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -9079,7 +9079,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -9306,7 +9306,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -9340,7 +9340,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -9390,7 +9390,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -9423,7 +9423,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -9469,7 +9469,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -9520,7 +9520,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -9553,7 +9553,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -9614,7 +9614,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -9647,7 +9647,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -9699,7 +9699,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -9734,7 +9734,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -9787,7 +9787,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -9820,7 +9820,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -9881,7 +9881,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -9914,7 +9914,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -10196,7 +10196,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -10220,7 +10220,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -10537,7 +10537,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -10553,7 +10553,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -10578,7 +10578,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -10596,7 +10596,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -10624,7 +10624,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           style={
                                             {
                                               "color": "#4459ff",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -10851,7 +10851,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -10885,7 +10885,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -10935,7 +10935,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -10968,7 +10968,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -11014,7 +11014,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -11032,7 +11032,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -11085,7 +11085,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -11118,7 +11118,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -11179,7 +11179,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -11212,7 +11212,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -11264,7 +11264,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -11299,7 +11299,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -11352,7 +11352,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -11385,7 +11385,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -11446,7 +11446,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -11479,7 +11479,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -11748,7 +11748,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -11772,7 +11772,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -12119,7 +12119,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -12144,7 +12144,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -12162,7 +12162,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -12389,7 +12389,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -12423,7 +12423,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -12473,7 +12473,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -12506,7 +12506,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -12552,7 +12552,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -12603,7 +12603,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -12636,7 +12636,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -12697,7 +12697,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -12730,7 +12730,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -12782,7 +12782,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -12817,7 +12817,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -12870,7 +12870,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -12903,7 +12903,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -12964,7 +12964,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -12997,7 +12997,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -13213,7 +13213,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -13237,7 +13237,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -13584,7 +13584,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Medium",
+                                              "fontFamily": "CentraNo1-Medium",
                                               "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
@@ -13600,7 +13600,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                           style={
                                             {
                                               "color": "#686e7d",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 12,
                                               "fontWeight": "400",
                                               "letterSpacing": 0,
@@ -13625,7 +13625,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Medium",
+                                            "fontFamily": "CentraNo1-Medium",
                                             "fontSize": 24,
                                             "fontWeight": "500",
                                             "letterSpacing": 0,
@@ -13643,7 +13643,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         style={
                                           {
                                             "color": "#686e7d",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 12,
                                             "fontWeight": "400",
                                             "letterSpacing": 0,
@@ -13870,7 +13870,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -13904,7 +13904,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -13954,7 +13954,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -13987,7 +13987,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -14033,7 +14033,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                 style={
                                                   {
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 12,
                                                     "fontWeight": "400",
                                                     "letterSpacing": 0,
@@ -14084,7 +14084,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -14117,7 +14117,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -14178,7 +14178,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -14211,7 +14211,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -14263,7 +14263,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Regular",
+                                                        "fontFamily": "CentraNo1-Book",
                                                         "fontSize": 12,
                                                         "fontWeight": "400",
                                                         "letterSpacing": 0,
@@ -14298,7 +14298,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                     style={
                                                       {
                                                         "color": "#121314",
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 12,
                                                         "fontWeight": "700",
                                                         "letterSpacing": 0,
@@ -14351,7 +14351,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -14384,7 +14384,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,
@@ -14445,7 +14445,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Regular",
+                                                      "fontFamily": "CentraNo1-Book",
                                                       "fontSize": 12,
                                                       "fontWeight": "400",
                                                       "letterSpacing": 0,
@@ -14478,7 +14478,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                                   style={
                                                     {
                                                       "color": "#121314",
-                                                      "fontFamily": "EuclidCircularB-Bold",
+                                                      "fontFamily": "CentraNo1-Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "700",
                                                       "letterSpacing": 0,

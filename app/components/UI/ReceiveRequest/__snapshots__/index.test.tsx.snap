@@ -553,7 +553,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -567,7 +567,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -583,7 +583,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -634,7 +634,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -1280,7 +1280,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -1294,7 +1294,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -1310,7 +1310,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -1361,7 +1361,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -2007,7 +2007,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -2021,7 +2021,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
@@ -2037,7 +2037,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#9ca1af",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -2088,7 +2088,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,

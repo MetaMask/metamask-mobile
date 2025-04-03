@@ -176,7 +176,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -193,7 +193,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -432,7 +432,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -449,7 +449,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -620,7 +620,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -637,7 +637,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -772,7 +772,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -789,7 +789,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -960,7 +960,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -977,7 +977,7 @@ exports[`Carousel should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
