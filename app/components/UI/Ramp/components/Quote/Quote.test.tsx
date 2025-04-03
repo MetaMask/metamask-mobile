@@ -13,6 +13,7 @@ import { QuoteTags } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../selectors/preferencesController';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import CustomAction from '../CustomAction';
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -24,6 +25,18 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
 (selectIpfsGateway as unknown as jest.Mock).mockReturnValue(
   'https://mock-ipfs-gateway.com',
 );
+
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  // eslint-disable-next-line no-empty-function
+  Reanimated.default.call = () => {};
+  // simulate expanded value > 0
+  Reanimated.useSharedValue = jest.fn(() => ({
+    value: 1,
+  }));
+  Reanimated.useAnimatedStyle = jest.fn((callback) => callback());
+  return Reanimated;
+});
 
 const mockQuote: QuoteResponse = {
   networkFee: 1,
@@ -203,5 +216,61 @@ describe('Quote Component', () => {
 
     fireEvent.press(getByLabelText('Mock Provider logo'));
     expect(showInfoMock).toHaveBeenCalled();
+  });
+
+  it('sets expandedHeight on layout', () => {
+    const { getByTestId } = renderWithProvider(
+      <Quote rampType={RampType.BUY} quote={mockQuote} showInfo={jest.fn()} />,
+      { state: defaultState },
+    );
+
+    const animatedView = getByTestId('animated-view-height');
+    const layoutEvent: LayoutChangeEvent = {
+      nativeEvent: {
+        layout: { height: 100, width: 0, x: 0, y: 0 },
+      },
+    };
+
+    fireEvent(animatedView, 'layout', layoutEvent);
+    expect(animatedView.props.style[1].height).toBeDefined();
+  });
+
+  it('applies animated styles when highlighted', () => {
+    const { getByTestId } = renderWithProvider(
+      <Quote
+        rampType={RampType.BUY}
+        quote={mockQuote}
+        showInfo={jest.fn()}
+        highlighted
+      />,
+      { state: defaultState },
+    );
+    const animatedView = getByTestId('animated-view-height');
+    expect(animatedView.props.style[1].height).toBeGreaterThan(0);
+    expect(animatedView.props.style[1].opacity).toBe(1);
+  });
+
+  it('resets animated styles when not highlighted', () => {
+    const { getByTestId } = renderWithProvider(
+      <Quote
+        rampType={RampType.BUY}
+        quote={mockQuote}
+        showInfo={jest.fn()}
+        highlighted={false}
+      />,
+      { state: defaultState },
+    );
+    const animatedView = getByTestId('animated-view-height');
+    expect(animatedView.props.style[1].height).toBe(0);
+    expect(animatedView.props.style[1].opacity).toBe(0);
+  });
+
+  it('applies animated opacity based on expandedHeight', () => {
+    const { getByTestId } = renderWithProvider(
+      <Quote rampType={RampType.BUY} quote={mockQuote} showInfo={jest.fn()} />,
+      { state: defaultState },
+    );
+    const animatedView = getByTestId('animated-view-opacity');
+    expect(animatedView.props.style.opacity).toBe(1);
   });
 });
