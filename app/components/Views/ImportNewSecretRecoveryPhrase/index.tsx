@@ -316,10 +316,18 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
       navigation.navigate('WalletView');
     } catch (e) {
-      Alert.alert(
-        strings('import_new_secret_recovery_phrase.error_title'),
-        strings('import_new_secret_recovery_phrase.error_message'),
-      );
+      if (
+        (e as Error)?.message === 'This mnemonic has already been imported.'
+      ) {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
+        );
+      } else {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_title'),
+          strings('import_new_secret_recovery_phrase.error_message'),
+        );
+      }
       setLoading(false);
     }
   };
@@ -415,7 +423,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={srpError || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (
