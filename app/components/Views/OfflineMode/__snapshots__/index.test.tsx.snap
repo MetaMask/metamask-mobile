@@ -41,7 +41,7 @@ exports[`OfflineMode should render correctly 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -76,7 +76,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             undefined,
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 18,
               "fontWeight": "600",
@@ -91,7 +91,7 @@ exports[`OfflineMode should render correctly 1`] = `
         style={
           [
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 30,
               "fontWeight": "400",
@@ -123,7 +123,7 @@ exports[`OfflineMode should render correctly 1`] = `
             undefined,
             undefined,
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Regular",
               "fontSize": 12,
               "fontWeight": "400",
@@ -155,7 +155,7 @@ exports[`OfflineMode should render correctly 1`] = `
                 "padding": 15,
               },
               {
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
               },
               undefined,
             ],

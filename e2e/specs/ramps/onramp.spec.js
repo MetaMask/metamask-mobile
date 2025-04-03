@@ -75,14 +75,14 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCurrencySelector();
     await SelectCurrencyView.tapCurrencyOption('Euro');
     await BuildQuoteView.tapTokenDropdown('Ethereum');
-    await TokenSelectBottomSheet.tapTokenByName('LINK');
+    await TokenSelectBottomSheet.tapTokenByName('DAI');
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
     await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
     await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
-    await Assertions.checkIfTextIsDisplayed('Chainlink');
+    await Assertions.checkIfTextIsDisplayed('Dai');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
     await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsDisplayed(paymentMethod);

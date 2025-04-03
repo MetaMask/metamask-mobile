@@ -6,7 +6,7 @@ exports[`TestForm renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
+        "color": "#121314",
         "fontFamily": "EuclidCircularB-Bold",
         "fontSize": 16,
         "fontWeight": "700",
@@ -38,7 +38,7 @@ exports[`TestForm renders correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "flex-start",
-        "backgroundColor": "#0376c9",
+        "backgroundColor": "#4459ff",
         "borderRadius": 20,
         "flexDirection": "row",
         "height": 40,
