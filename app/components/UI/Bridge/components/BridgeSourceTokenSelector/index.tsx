@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -47,15 +47,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       dispatch(setSourceToken(token));
 
       // Switch to the chain of the selected token
-      const networkConfiguration = allNetworkConfigurations[token.chainId];
       const evmNetworkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
 
-      if (networkConfiguration) {
-        if (networkConfiguration.isEvm) {
-          await onSetRpcTarget(evmNetworkConfiguration);
-        } else {
-          await onNonEvmNetworkChange(networkConfiguration.chainId);
-        }
+      if (evmNetworkConfiguration) {
+        await onSetRpcTarget(evmNetworkConfiguration);
+      } else {
+        await onNonEvmNetworkChange(token.chainId as CaipChainId);
       }
 
       navigation.goBack();
