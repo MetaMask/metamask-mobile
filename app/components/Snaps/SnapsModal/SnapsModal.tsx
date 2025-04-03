@@ -39,7 +39,12 @@ const SnapsModal = (props: SnapsModalProps) => {
       avoidKeyboard
       useNativeDriverForBackdrop
     >
-      <View style={styles.contentContainer}>{props.children}</View>
+      <View
+        style={styles.contentContainer}
+        testID="snaps-modal-content-container"
+      >
+        {props.children}
+      </View>
     </Modal>
   );
 };
