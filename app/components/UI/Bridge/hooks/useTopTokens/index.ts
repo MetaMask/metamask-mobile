@@ -70,7 +70,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       BRIDGE_PROD_API_BASE_URL,
     );
 
-    // Convert from BridgeAsset to BridgeToken
+    // Convert from BridgeAsset type to BridgeToken type
     const bridgeTokenObj: Record<string, BridgeToken> = {};
     Object.keys(rawBridgeAssets).forEach((key) => {
       const bridgeAsset = rawBridgeAssets[key];
@@ -101,13 +101,13 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     const swapsTopAssetsAddrs = swapsTopAssets?.map((asset) => asset.address);
 
     // Prioritize top assets from feature flags
-    const topAssets = topAssetsFromFeatureFlags || swapsTopAssetsAddrs;
+    const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssetsAddrs;
 
-    if (!bridgeTokens || !topAssets) {
+    if (!bridgeTokens || !topAssetAddrs) {
       return [];
     }
 
-    const top = topAssets.map((topAssetAddr) => {
+    const top = topAssetAddrs.map((topAssetAddr) => {
       // Note that Solana addresses are CASE-SENSITIVE, EVM addresses are NOT
       const candidateBridgeToken =
         bridgeTokens[topAssetAddr]
@@ -117,6 +117,32 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       return candidateBridgeToken;
     })
     .filter(Boolean) as BridgeToken[];
+
+    // Create a Set of normalized addresses for O(1) lookups
+    const topTokenAddresses = new Set(
+      top.map(token =>
+        token.chainId === SolScope.Mainnet
+          ? token.address // Solana addresses are case-sensitive
+          : token.address.toLowerCase() // EVM addresses are case-insensitive
+      )
+    );
+
+    // Create a new object with only non-top tokens
+    const nonTopBridgeTokens: Record<string, BridgeToken> = {};
+    for (const [address, token] of Object.entries(bridgeTokens)) {
+      const normalizedAddress = token.chainId === SolScope.Mainnet
+        ? address // Solana addresses are case-sensitive
+        : address.toLowerCase(); // EVM addresses are case-insensitive
+
+      if (!topTokenAddresses.has(normalizedAddress)) {
+        nonTopBridgeTokens[address] = token;
+      }
+    }
+
+    // Append unique bridge tokens to the top tokens
+    Object.values(nonTopBridgeTokens).forEach((token) => {
+      top.push(token);
+    });
 
     return top;
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
