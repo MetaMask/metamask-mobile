@@ -182,7 +182,7 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -379,7 +379,7 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

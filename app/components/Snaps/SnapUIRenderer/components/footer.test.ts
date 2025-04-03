@@ -59,16 +59,21 @@ describe('footer', () => {
             loading: false,
             name: undefined,
             onCancel: undefined,
-            textVariant: 'sBodyMDMedium',
             type: undefined,
             variant: 'Primary',
           },
           children: [
             {
               key: '57fd48ba929aa415dc4c3996c826a75f8686418c77765eb14fad2658efa73d87_1',
-              element: 'RNText',
+              element: 'Text',
               children: 'Button',
-              props: { color: 'inherit' },
+              props: {
+                color: 'inherit',
+                style: {
+                  fontWeight: undefined,
+                  textAlign: undefined,
+                },
+              },
             },
           ],
         },
