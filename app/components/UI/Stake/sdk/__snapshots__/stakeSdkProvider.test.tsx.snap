@@ -6,8 +6,8 @@ exports[`Stake Modals With Stake Sdk Provider renders stake screen with stake sd
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,

@@ -6,7 +6,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 12,
       "padding": 16,
     }
@@ -24,7 +24,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#1C82341A",
+          "backgroundColor": "#1c7e331a",
           "borderRadius": 100,
           "height": 36,
           "justifyContent": "center",
@@ -34,7 +34,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
       }
     >
       <SvgMock
-        color="#1c8234"
+        color="#1c7e33"
         height={20}
         name="Plant"
         style={
@@ -51,8 +51,8 @@ exports[`EmptyStateCta renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -67,8 +67,8 @@ exports[`EmptyStateCta renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Regular",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -84,8 +84,8 @@ exports[`EmptyStateCta renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -115,7 +115,7 @@ exports[`EmptyStateCta renders correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
+        "borderColor": "#4459ff",
         "borderRadius": 24,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -129,8 +129,8 @@ exports[`EmptyStateCta renders correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,

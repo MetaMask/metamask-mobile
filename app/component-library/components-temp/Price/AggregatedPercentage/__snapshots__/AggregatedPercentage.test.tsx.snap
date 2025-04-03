@@ -13,8 +13,8 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#1c8234",
-        "fontFamily": "EuclidCircularB-Medium",
+        "color": "#1c7e33",
+        "fontFamily": "CentraNo1-Medium",
         "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,
@@ -29,8 +29,8 @@ exports[`AggregatedPercentage should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#1c8234",
-        "fontFamily": "EuclidCircularB-Medium",
+        "color": "#1c7e33",
+        "fontFamily": "CentraNo1-Medium",
         "fontSize": 14,
         "fontWeight": "500",
         "letterSpacing": 0,

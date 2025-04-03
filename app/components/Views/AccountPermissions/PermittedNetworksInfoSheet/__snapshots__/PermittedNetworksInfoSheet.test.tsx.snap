@@ -47,8 +47,8 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -83,8 +83,8 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -115,7 +115,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
           "flex": 1,
           "flexDirection": "row",
@@ -131,7 +131,7 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,

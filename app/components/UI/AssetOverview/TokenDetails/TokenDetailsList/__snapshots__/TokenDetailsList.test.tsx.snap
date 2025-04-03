@@ -6,8 +6,8 @@ exports[`TokenDetails should render correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -44,8 +44,8 @@ exports[`TokenDetails should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -60,7 +60,7 @@ exports[`TokenDetails should render correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "borderRadius": 20,
             "flexDirection": "row",
             "marginLeft": 8,
@@ -72,8 +72,8 @@ exports[`TokenDetails should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -84,7 +84,7 @@ exports[`TokenDetails should render correctly 1`] = `
           0x6B17...1d0F
         </Text>
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={16}
           name="Copy"
           style={
@@ -111,8 +111,8 @@ exports[`TokenDetails should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -126,8 +126,8 @@ exports[`TokenDetails should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -156,8 +156,8 @@ exports[`TokenDetails should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -171,8 +171,8 @@ exports[`TokenDetails should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,

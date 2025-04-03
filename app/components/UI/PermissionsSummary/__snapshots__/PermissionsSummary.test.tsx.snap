@@ -83,7 +83,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 24,
                       "fontWeight": "400",
@@ -125,8 +125,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -157,7 +157,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001A",
+                "backgroundColor": "#0000001a",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -167,7 +167,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           >
             <SvgMock
-              color="#6a737d"
+              color="#686e7d"
               height={20}
               name="Wallet"
               style={
@@ -191,8 +191,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -224,8 +224,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -238,8 +238,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -407,7 +407,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             testID="connection-details-button"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -441,7 +441,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001A",
+                "backgroundColor": "#0000001a",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -451,7 +451,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           >
             <SvgMock
-              color="#6a737d"
+              color="#686e7d"
               height={20}
               name="Data"
               style={
@@ -475,8 +475,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -508,8 +508,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -521,8 +521,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -558,7 +558,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
             testID="connection-details-button"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -601,7 +601,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "borderColor": "#d73847",
+              "borderColor": "#ca3542",
               "borderRadius": 24,
               "borderWidth": 1,
               "flex": 1,
@@ -614,7 +614,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           testID="disconnect_all"
         >
           <SvgMock
-            color="#d73847"
+            color="#ca3542"
             height={16}
             name="Logout"
             style={
@@ -630,8 +630,8 @@ exports[`PermissionsSummary should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#d73847",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#ca3542",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -668,7 +668,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#6a737d",
+                  "borderColor": "#686e7d",
                   "borderWidth": 1,
                 },
                 [
@@ -703,7 +703,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                   },
                   undefined,
                 ],
@@ -729,7 +729,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "minHeight": 50,
                 },
                 [
@@ -864,7 +864,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 style={
                   [
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 24,
                       "fontWeight": "400",
@@ -906,8 +906,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -938,7 +938,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#0000001A",
+                "backgroundColor": "#0000001a",
                 "borderRadius": 16,
                 "height": 32,
                 "justifyContent": "center",
@@ -948,7 +948,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             }
           >
             <SvgMock
-              color="#6a737d"
+              color="#686e7d"
               height={20}
               name="Data"
               style={
@@ -972,8 +972,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1005,8 +1005,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -1018,8 +1018,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1033,8 +1033,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -1105,7 +1105,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               "alignItems": "center",
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "borderColor": "#d73847",
+              "borderColor": "#ca3542",
               "borderRadius": 24,
               "borderWidth": 1,
               "flex": 1,
@@ -1118,7 +1118,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           testID="disconnect_all"
         >
           <SvgMock
-            color="#d73847"
+            color="#ca3542"
             height={16}
             name="Logout"
             style={
@@ -1134,8 +1134,8 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#d73847",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#ca3542",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1172,7 +1172,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#6a737d",
+                  "borderColor": "#686e7d",
                   "borderWidth": 1,
                 },
                 [
@@ -1207,7 +1207,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     "textAlign": "center",
                   },
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                   },
                   undefined,
                 ],
@@ -1233,7 +1233,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   "padding": 15,
                 },
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "minHeight": 50,
                 },
                 [

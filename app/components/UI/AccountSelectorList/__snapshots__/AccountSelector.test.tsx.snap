@@ -61,7 +61,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "flexDirection": "row",
           }
         }
@@ -269,8 +269,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -314,8 +314,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -347,8 +347,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -363,8 +363,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -385,7 +385,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376C91A",
+                "backgroundColor": "#4459ff1a",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -399,7 +399,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 2,
                   "marginLeft": 4,
                   "marginVertical": 4,
@@ -437,7 +437,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
             testID="main-wallet-account-actions-0"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -669,8 +669,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -714,8 +714,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -747,8 +747,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -763,8 +763,8 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -809,7 +809,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
             testID="main-wallet-account-actions-1"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -1098,8 +1098,8 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1143,8 +1143,8 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -1201,7 +1201,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
             testID="main-wallet-account-actions-0"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -1434,8 +1434,8 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1479,8 +1479,8 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -1537,7 +1537,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
             testID="main-wallet-account-actions-1"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -1617,7 +1617,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "flexDirection": "row",
           }
         }
@@ -1825,8 +1825,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -1870,8 +1870,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -1903,8 +1903,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -1919,8 +1919,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -1941,7 +1941,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376C91A",
+                "backgroundColor": "#4459ff1a",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -1955,7 +1955,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 2,
                   "marginLeft": 4,
                   "marginVertical": 4,
@@ -1993,7 +1993,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
             testID="main-wallet-account-actions-0"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -2225,8 +2225,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2270,8 +2270,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2303,8 +2303,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2319,8 +2319,8 @@ exports[`AccountSelectorList renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2365,7 +2365,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
             testID="main-wallet-account-actions-1"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -2442,7 +2442,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#0376C91A",
+            "backgroundColor": "#4459ff1a",
             "flexDirection": "row",
           }
         }
@@ -2534,8 +2534,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2579,8 +2579,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2612,8 +2612,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2628,8 +2628,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2650,7 +2650,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             accessible={true}
             style={
               {
-                "backgroundColor": "#0376C91A",
+                "backgroundColor": "#4459ff1a",
                 "bottom": 0,
                 "flexDirection": "row",
                 "left": 0,
@@ -2664,7 +2664,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             <View
               style={
                 {
-                  "backgroundColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 2,
                   "marginLeft": 4,
                   "marginVertical": 4,
@@ -2702,7 +2702,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             testID="main-wallet-account-actions-0"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
@@ -2818,8 +2818,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
@@ -2863,8 +2863,8 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#6a737d",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
@@ -2908,7 +2908,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
             testID="main-wallet-account-actions-1"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={16}
               name="MoreVertical"
               style={
