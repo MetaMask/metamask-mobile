@@ -32,19 +32,16 @@ import Text, {
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
-import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { useSelector } from 'react-redux';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import {
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
-import {
-  selectIsBitcoinSupportEnabled,
-  selectIsBitcoinTestnetSupportEnabled,
-  selectIsSolanaSupportEnabled,
-} from '../../../selectors/multichain';
+import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { useSelector } from 'react-redux';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -100,15 +97,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     }
   }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
-
-  const isBitcoinTestnetSupportEnabled = useSelector(
-    selectIsBitcoinTestnetSupportEnabled,
-  );
-
-  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
-
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(
     selectHasCreatedBtcMainnetAccount,
   );
@@ -133,7 +122,8 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   };
-
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
@@ -182,49 +172,43 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           }
-          {isSolanaSupportEnabled && (
-            <AccountAction
-              actionTitle={strings('account_actions.add_solana_account')}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createSolanaAccount(SolScope.Mainnet);
-              }}
-              disabled={isLoading}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON
-              }
-            />
-          )}
-          {isBitcoinSupportEnabled && (
-            <AccountAction
-              actionTitle={strings(
-                'account_actions.add_bitcoin_account_mainnet',
-              )}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createBitcoinAccount(BtcScope.Mainnet);
-              }}
-              disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
-              }
-            />
-          )}
-          {isBitcoinTestnetSupportEnabled && (
-            <AccountAction
-              actionTitle={strings(
-                'account_actions.add_bitcoin_account_testnet',
-              )}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createBitcoinAccount(BtcScope.Testnet);
-              }}
-              disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
-              }
-            />
-          )}
+          <AccountAction
+            actionTitle={strings('account_actions.add_solana_account')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createSolanaAccount(SolScope.Mainnet);
+            }}
+            disabled={isLoading}
+            testID={AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON}
+          />
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+          }
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(BtcScope.Mainnet);
+            }}
+            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
+            }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(BtcScope.Testnet);
+            }}
+            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
+            }
+          />
           {
             ///: END:ONLY_INCLUDE_IF
           }

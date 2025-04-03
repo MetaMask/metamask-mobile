@@ -58,11 +58,6 @@ const mockInitialState = {
       KeyringController: MOCK_KEYRING_CONTROLLER,
     },
   },
-  multichainSettings: {
-    bitcoinSupportEnabled: true,
-    bitcoinTestnetSupportEnabled: true,
-    solanaSupportEnabled: true,
-  },
 };
 
 const mockProps = {
