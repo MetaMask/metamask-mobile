@@ -1,4 +1,5 @@
 import Engine from '../../../core/Engine';
+import { isE2E } from '../../test/utils';
 
 /**
  * This feature flag compromises of a build-time flag as well as a remote flag.
@@ -7,12 +8,19 @@ import Engine from '../../../core/Engine';
  *
  * @returns boolean if notifications feature is enabled.
  */
-export const isNotificationsFeatureEnabled = () =>
-  process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true' &&
-  Boolean(
-    Engine?.context?.RemoteFeatureFlagController?.state?.remoteFeatureFlags
-      ?.assetsNotificationsEnabled,
+export const isNotificationsFeatureEnabled = () => {
+  if (isE2E) {
+    return true;
+  }
+
+  return (
+    process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true' &&
+    Boolean(
+      Engine?.context?.RemoteFeatureFlagController?.state?.remoteFeatureFlags
+        ?.assetsNotificationsEnabled,
+    )
   );
+};
 
 export enum ModalFieldType {
   ASSET = 'ModalField-Asset',
