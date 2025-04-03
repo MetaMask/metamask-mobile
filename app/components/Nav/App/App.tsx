@@ -132,6 +132,7 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+import SelectSRP from '../../Views/SelectSRP';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 
@@ -302,7 +303,18 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = () => (
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+interface RootModalFlowProps {
+  route: {
+    params: Record<string, unknown>;
+  };
+}
+///: END:ONLY_INCLUDE_IF(multi-srp)
+const RootModalFlow = (
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  props: RootModalFlowProps,
+  ///: END:ONLY_INCLUDE_IF
+) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -414,7 +426,18 @@ const RootModalFlow = () => (
       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
       component={EnableAutomaticSecurityChecksModal}
     />
-    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+      ///: END:ONLY_INCLUDE_IF
+    }
+    <Stack.Screen
+      name={Routes.MODAL.SRP_REVEAL_QUIZ}
+      component={SRPQuiz}
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      initialParams={{ ...props.route.params }}
+      ///: END:ONLY_INCLUDE_IF
+    />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
       component={AccountActions}
@@ -479,7 +502,10 @@ const ImportSRPView = () => (
       headerShown: false,
     }}
   >
-    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+    <Stack.Screen
+      name={Routes.MULTI_SRP.IMPORT}
+      component={ImportNewSecretRecoveryPhrase}
+    />
   </Stack.Navigator>
 );
 ///: END:ONLY_INCLUDE_IF
