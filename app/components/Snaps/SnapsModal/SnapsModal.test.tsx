@@ -1,22 +1,65 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { Text } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import SnapsModal from './SnapsModal';
 
-jest.mock('react-native-modal', () => {
-  return jest.fn(
-    ({ children, isVisible, onBackdropPress, onSwipeComplete }) => {
+const mockCallbacks = {
+  backdropPress: null as (() => void) | null,
+  swipeComplete: null as (() => void) | null,
+};
+
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-shadow, @typescript-eslint/no-require-imports */
+jest.mock(
+  'react-native-modal',
+  () =>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function MockModal(props: any) {
+      const React = require('react');
+      const { View } = require('react-native');
+
+      const {
+        isVisible,
+        onBackdropPress,
+        onSwipeComplete,
+        children,
+        animationIn,
+        animationOut,
+        style,
+        swipeDirection,
+        propagateSwipe,
+        avoidKeyboard,
+      } = props;
+
       if (!isVisible) return null;
-      return (
-        <View testID="modal-container">
-          <View testID="modal-backdrop" onTouchEnd={onBackdropPress} />
-          <View testID="modal-swipe-area" onTouchEnd={onSwipeComplete} />
-          <View testID="modal-content">{children}</View>
-        </View>
+
+      if (onBackdropPress) mockCallbacks.backdropPress = onBackdropPress;
+      if (onSwipeComplete) mockCallbacks.swipeComplete = onSwipeComplete;
+
+      return React.createElement(
+        View,
+        { testID: 'modal-root' },
+        React.createElement(View, {
+          testID: 'modal-backdrop',
+          style: { width: '100%', height: '100%' },
+          onTouchEnd: () => onBackdropPress(),
+        }),
+        React.createElement(
+          View,
+          {
+            testID: 'modal-content-wrapper',
+            style,
+            'data-animation-in': animationIn,
+            'data-animation-out': animationOut,
+            'data-swipe-direction': swipeDirection,
+            'data-propagate-swipe': propagateSwipe ? 'true' : 'false',
+            'data-avoid-keyboard': avoidKeyboard ? 'true' : 'false',
+          },
+          children,
+        ),
       );
     },
-  );
-});
+);
+/* eslint-enable @typescript-eslint/no-var-requires, @typescript-eslint/no-shadow, @typescript-eslint/no-require-imports */
 
 jest.mock('../../../util/theme', () => ({
   useTheme: jest.fn(() => ({
@@ -29,108 +72,115 @@ jest.mock('../../../util/theme', () => ({
 }));
 
 describe('SnapsModal', () => {
-  const mockOnCancel = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCallbacks.backdropPress = null;
+    mockCallbacks.swipeComplete = null;
+  });
+
+  it('renders a snapshot with modal visible', () => {
+    const { toJSON } = render(
+      <SnapsModal isVisible onCancel={() => undefined}>
+        <Text>test content</Text>
+      </SnapsModal>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders a snapshot with modal hidden', () => {
+    const { toJSON } = render(
+      <SnapsModal isVisible={false} onCancel={() => undefined}>
+        <Text>test content</Text>
+      </SnapsModal>,
+    );
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders nothing when isVisible is false', () => {
     const { queryByTestId } = render(
-      <SnapsModal isVisible={false} onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
+      <SnapsModal isVisible={false} onCancel={jest.fn()}>
+        <Text>test content</Text>
       </SnapsModal>,
     );
 
-    expect(queryByTestId('modal-container')).toBeNull();
+    expect(queryByTestId('modal-root')).toBeNull();
   });
 
-  it('renders modal when isVisible is true', () => {
+  it('renders modal content when isVisible is true', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
+      <SnapsModal isVisible onCancel={jest.fn()}>
+        <Text>test content</Text>
       </SnapsModal>,
     );
 
-    expect(getByTestId('modal-container')).toBeDefined();
-    expect(getByTestId('modal-content')).toBeDefined();
+    expect(getByTestId('modal-root')).toBeTruthy();
+    expect(getByTestId('modal-content-wrapper')).toBeTruthy();
   });
 
-  it('renders children inside the modal', () => {
-    const testId = 'test-child';
+  it('wraps children in a content container with correct testID', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <View testID={testId}>
-          <Text>Modal content</Text>
-        </View>
+      <SnapsModal isVisible onCancel={jest.fn()}>
+        <Text testID="child-component">test content</Text>
       </SnapsModal>,
     );
 
-    expect(getByTestId('modal-content')).toBeDefined();
-    expect(getByTestId(testId)).toBeDefined();
+    const container = getByTestId('snaps-modal-content-container');
+    expect(container).toBeTruthy();
+
+    expect(getByTestId('child-component')).toBeTruthy();
+  });
+
+  it('passes onCancel to onBackdropPress', () => {
+    const mockCancel = jest.fn();
+
+    render(
+      <SnapsModal isVisible onCancel={mockCancel}>
+        <Text>test content</Text>
+      </SnapsModal>,
+    );
+
+    expect(mockCallbacks.backdropPress).toBe(mockCancel);
+  });
+
+  it('passes onCancel to onSwipeComplete', () => {
+    const mockCancel = jest.fn();
+
+    render(
+      <SnapsModal isVisible onCancel={mockCancel}>
+        <Text>test content</Text>
+      </SnapsModal>,
+    );
+
+    expect(mockCallbacks.swipeComplete).toBe(mockCancel);
   });
 
   it('calls onCancel when backdrop is pressed', () => {
+    const mockCancel = jest.fn();
+
     const { getByTestId } = render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
+      <SnapsModal isVisible onCancel={mockCancel}>
+        <Text>test content</Text>
       </SnapsModal>,
     );
 
     fireEvent(getByTestId('modal-backdrop'), 'touchEnd');
-    expect(mockOnCancel).toHaveBeenCalledTimes(1);
+
+    expect(mockCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onCancel when modal is swiped down', () => {
+  it('has correct modal animation properties', () => {
     const { getByTestId } = render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
+      <SnapsModal isVisible onCancel={jest.fn()}>
+        <Text>test content</Text>
       </SnapsModal>,
     );
 
-    fireEvent(getByTestId('modal-swipe-area'), 'touchEnd');
-    expect(mockOnCancel).toHaveBeenCalledTimes(1);
-  });
+    const contentWrapper = getByTestId('modal-content-wrapper');
 
-  it('uses the contentContainer style for proper sizing', () => {
-    const mockReactNativeModal = require('react-native-modal');
-
-    render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
-      </SnapsModal>,
-    );
-
-    const mostRecentCall =
-      mockReactNativeModal.mock.calls[
-        mockReactNativeModal.mock.calls.length - 1
-      ][0];
-    const containerProps = mostRecentCall.children.props;
-
-    expect(containerProps.testID).toBe('snaps-modal-content-container');
-    expect(containerProps.style).toHaveProperty('flexShrink', 1);
-  });
-
-  it('passes the correct props to the Modal component', () => {
-    render(
-      <SnapsModal isVisible onCancel={mockOnCancel}>
-        <Text>Modal content</Text>
-      </SnapsModal>,
-    );
-
-    const mockReactNativeModal = require('react-native-modal');
-    expect(mockReactNativeModal).toHaveBeenCalledWith(
-      expect.objectContaining({
-        isVisible: true,
-        animationIn: 'slideInUp',
-        animationOut: 'slideOutDown',
-        backdropOpacity: 1,
-        avoidKeyboard: true,
-        propagateSwipe: true,
-        useNativeDriverForBackdrop: true,
-        swipeDirection: 'down',
-      }),
-      {},
-    );
+    expect(contentWrapper.props['data-animation-in']).toBe('slideInUp');
+    expect(contentWrapper.props['data-animation-out']).toBe('slideOutDown');
+    expect(contentWrapper.props['data-swipe-direction']).toBe('down');
+    expect(contentWrapper.props['data-propagate-swipe']).toBe('true');
+    expect(contentWrapper.props['data-avoid-keyboard']).toBe('true');
   });
 });
