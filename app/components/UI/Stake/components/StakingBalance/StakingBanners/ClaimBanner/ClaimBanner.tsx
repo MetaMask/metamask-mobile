@@ -58,7 +58,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const navigation = useNavigation();
 
   useFocusEffect(
