@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex } from '@metamask/bridge-controller';
+import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -125,7 +125,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     // Create a Set of normalized addresses for O(1) lookups
     const topTokenAddresses = new Set(
       top.map(token =>
-        token.chainId === SolScope.Mainnet
+        isSolanaChainId(token.chainId)
           ? token.address // Solana addresses are case-sensitive
           : token.address.toLowerCase() // EVM addresses are case-insensitive
       )
@@ -134,7 +134,7 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     // Create a new object with only non-top tokens
     const nonTopBridgeTokens: Record<string, BridgeToken> = {};
     for (const [address, token] of Object.entries(bridgeTokens)) {
-      const normalizedAddress = token.chainId === SolScope.Mainnet
+      const normalizedAddress = isSolanaChainId(token.chainId)
         ? address // Solana addresses are case-sensitive
         : address.toLowerCase(); // EVM addresses are case-insensitive
 
