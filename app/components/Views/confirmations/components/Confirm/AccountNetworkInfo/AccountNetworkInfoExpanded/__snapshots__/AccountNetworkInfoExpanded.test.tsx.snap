@@ -47,10 +47,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -66,7 +66,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -105,10 +105,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -124,7 +124,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -177,10 +177,10 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -231,7 +231,7 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "marginLeft": 8,
             }
           }

@@ -168,10 +168,10 @@ exports[`SendTransaction View renders correctly 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -192,10 +192,10 @@ exports[`SendTransaction View renders correctly 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -464,10 +464,10 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                       "textAlign": "center",
                                     }
                                   }
@@ -718,10 +718,10 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
+                                    "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "lineHeight": 22,
                                     "textAlign": "center",
                                   }
                                 }
@@ -768,7 +768,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 18,
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -963,10 +963,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -987,10 +987,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1259,10 +1259,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                       "textAlign": "center",
                                     }
                                   }
@@ -1433,10 +1433,10 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
+                                    "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "lineHeight": 22,
                                     "textAlign": "center",
                                   }
                                 }
@@ -1483,7 +1483,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 18,
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1678,10 +1678,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1702,10 +1702,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1974,10 +1974,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                       "textAlign": "center",
                                     }
                                   }
@@ -2232,10 +2232,10 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 16,
+                                    "fontSize": 14,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "lineHeight": 22,
                                     "textAlign": "center",
                                   }
                                 }
@@ -2282,7 +2282,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     {
                                       "color": "#ffffff",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 18,
+                                      "fontSize": 16,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

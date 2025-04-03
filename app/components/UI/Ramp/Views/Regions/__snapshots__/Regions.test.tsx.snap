@@ -145,10 +145,10 @@ exports[`Regions View renders correctly 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -169,10 +169,10 @@ exports[`Regions View renders correctly 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -600,7 +600,7 @@ exports[`Regions View renders correctly 1`] = `
                                             {
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -945,10 +945,10 @@ exports[`Regions View renders correctly while loading 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -969,10 +969,10 @@ exports[`Regions View renders correctly while loading 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1540,10 +1540,10 @@ exports[`Regions View renders correctly with error 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -1564,10 +1564,10 @@ exports[`Regions View renders correctly with error 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -1891,7 +1891,7 @@ exports[`Regions View renders correctly with error 1`] = `
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -2173,10 +2173,10 @@ exports[`Regions View renders correctly with no data 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -2197,10 +2197,10 @@ exports[`Regions View renders correctly with no data 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -2768,10 +2768,10 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -2792,10 +2792,10 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3119,7 +3119,7 @@ exports[`Regions View renders correctly with sdkError 1`] = `
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -3401,10 +3401,10 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -3425,10 +3425,10 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -3856,7 +3856,7 @@ exports[`Regions View renders correctly with selectedRegion 1`] = `
                                             {
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -4199,10 +4199,10 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -4223,10 +4223,10 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -4654,7 +4654,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                                             {
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -5372,10 +5372,10 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -5396,10 +5396,10 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -5827,7 +5827,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                                             {
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -6545,10 +6545,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 16,
+                      "fontSize": 14,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 24,
+                      "lineHeight": 22,
                     }
                   }
                 >
@@ -6569,10 +6569,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 14,
+                        "fontSize": 12,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                       }
                     }
                   >
@@ -7000,7 +7000,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                             {
                                               "color": "#121314",
                                               "fontFamily": "CentraNo1-Medium",
-                                              "fontSize": 18,
+                                              "fontSize": 16,
                                               "fontWeight": "500",
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
@@ -7706,10 +7706,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 {
                                                                   "color": "#121314",
                                                                   "fontFamily": "CentraNo1-Book",
-                                                                  "fontSize": 16,
+                                                                  "fontSize": 14,
                                                                   "fontWeight": "400",
                                                                   "letterSpacing": 0,
-                                                                  "lineHeight": 24,
+                                                                  "lineHeight": 22,
                                                                 }
                                                               }
                                                             >
@@ -7723,7 +7723,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                                 {
                                                                   "color": "#121314",
                                                                   "fontFamily": "CentraNo1-Medium",
-                                                                  "fontSize": 18,
+                                                                  "fontSize": 16,
                                                                   "fontWeight": "500",
                                                                   "letterSpacing": 0,
                                                                   "lineHeight": 24,
@@ -7815,10 +7815,10 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               {
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Book",
-                                                                "fontSize": 16,
+                                                                "fontSize": 14,
                                                                 "fontWeight": "400",
                                                                 "letterSpacing": 0,
-                                                                "lineHeight": 24,
+                                                                "lineHeight": 22,
                                                               }
                                                             }
                                                           >
@@ -7832,7 +7832,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                                               {
                                                                 "color": "#121314",
                                                                 "fontFamily": "CentraNo1-Medium",
-                                                                "fontSize": 18,
+                                                                "fontSize": 16,
                                                                 "fontWeight": "500",
                                                                 "letterSpacing": 0,
                                                                 "lineHeight": 24,

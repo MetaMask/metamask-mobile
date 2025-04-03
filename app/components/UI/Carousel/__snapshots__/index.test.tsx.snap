@@ -180,7 +180,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                         "marginLeft": 14,
                       }
                     }
@@ -197,7 +197,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                         "marginLeft": 14,
                         "marginTop": -4,
                       }
@@ -436,7 +436,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                         "marginLeft": 14,
                       }
                     }
@@ -453,7 +453,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                         "marginLeft": 14,
                         "marginTop": -4,
                       }
@@ -624,7 +624,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                         "marginLeft": 14,
                       }
                     }
@@ -641,7 +641,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                         "marginLeft": 14,
                         "marginTop": -4,
                       }
@@ -776,7 +776,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                         "marginLeft": 14,
                       }
                     }
@@ -793,7 +793,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                         "marginLeft": 14,
                         "marginTop": -4,
                       }
@@ -964,7 +964,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                         "marginLeft": 14,
                       }
                     }
@@ -981,7 +981,7 @@ exports[`Carousel should render correctly 1`] = `
                         "fontSize": 10.4,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 20,
                         "marginLeft": 14,
                         "marginTop": -4,
                       }

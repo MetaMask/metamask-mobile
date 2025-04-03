@@ -99,7 +99,7 @@ exports[`TabThumbnail should render correctly 1`] = `
               "fontSize": 18,
               "fontWeight": "600",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "marginLeft": 5,
               "marginRight": 40,
               "marginTop": 0,

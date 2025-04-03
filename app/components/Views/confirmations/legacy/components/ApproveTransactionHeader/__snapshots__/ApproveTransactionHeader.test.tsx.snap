@@ -64,10 +64,10 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           "color": "#686e7d",
           "flexShrink": 1,
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -347,10 +347,10 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 20,
               }
             }
           >
@@ -371,10 +371,10 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
-                  "fontSize": 16,
+                  "fontSize": 14,
                   "fontWeight": "700",
                   "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "lineHeight": 22,
                 }
               }
             >
@@ -390,10 +390,10 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 20,
               "marginLeft": "auto",
             }
           }
@@ -406,10 +406,10 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Bold",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -703,10 +703,10 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 20,
               }
             }
           >
@@ -727,10 +727,10 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                 {
                   "color": "#121314",
                   "fontFamily": "CentraNo1-Bold",
-                  "fontSize": 16,
+                  "fontSize": 14,
                   "fontWeight": "700",
                   "letterSpacing": 0,
-                  "lineHeight": 24,
+                  "lineHeight": 22,
                 }
               }
             >
@@ -746,10 +746,10 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 20,
               "marginLeft": "auto",
             }
           }
@@ -762,10 +762,10 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Bold",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >

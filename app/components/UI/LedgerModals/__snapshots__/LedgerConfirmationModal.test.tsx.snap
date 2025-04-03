@@ -58,7 +58,7 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               "fontSize": 22,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -87,10 +87,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
             }
           }
         >
@@ -102,10 +102,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "paddingLeft": 7,
             }
           }
@@ -118,10 +118,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "paddingLeft": 7,
             }
           }
@@ -134,10 +134,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "paddingLeft": 7,
             }
           }
@@ -150,10 +150,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "paddingLeft": 7,
             }
           }
@@ -166,10 +166,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "paddingLeft": 7,
             }
           }
@@ -189,10 +189,10 @@ exports[`LedgerConfirmationModal render matches latest snapshot 1`] = `
               "flex": 1,
               "flexWrap": "wrap",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 16,
+              "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 24,
+              "lineHeight": 22,
               "marginLeft": 20,
               "marginRight": 20,
               "marginTop": 40,

@@ -21,10 +21,10 @@ exports[`TagColored should render TagColored 1`] = `
       {
         "color": "#686e7d",
         "fontFamily": "CentraNo1-Bold",
-        "fontSize": 12,
+        "fontSize": 10,
         "fontWeight": "bold",
         "letterSpacing": 0.25,
-        "lineHeight": 20,
+        "lineHeight": 16,
         "textTransform": "uppercase",
       }
     }

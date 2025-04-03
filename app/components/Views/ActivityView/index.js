@@ -35,6 +35,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DEFAULT_HEADERBASE_TITLE_TEXTVARIANT } from '../../../component-library/components/HeaderBase/HeaderBase.constants';
 import { typography } from '@metamask/design-tokens';
 import { useStyles } from '../../hooks/useStyles';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (params) => {
   const { theme } = params;
@@ -74,7 +78,12 @@ const createStyles = (params) => {
       flexDirection: 'row',
       paddingHorizontal: 16,
     },
-    title: { marginTop: 20, fontSize: 20, ...typography.headingMd },
+    title: {
+      marginTop: 20,
+      fontSize: 20,
+      ...typography.sHeadingMD,
+      fontFamily: getFontFamily(TextVariant.HeadingMD),
+    },
   });
 };
 

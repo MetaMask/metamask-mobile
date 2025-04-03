@@ -23,10 +23,10 @@ exports[`OrderListItem should render correctly 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -83,10 +83,10 @@ exports[`OrderListItem should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -101,10 +101,10 @@ exports[`OrderListItem should render correctly 1`] = `
           {
             "color": "#1c7e33",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -135,10 +135,10 @@ exports[`OrderListItem should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -152,10 +152,10 @@ exports[`OrderListItem should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -189,10 +189,10 @@ exports[`OrderListItem should render correctly 2`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -249,10 +249,10 @@ exports[`OrderListItem should render correctly 2`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -267,10 +267,10 @@ exports[`OrderListItem should render correctly 2`] = `
           {
             "color": "#ca3542",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -301,10 +301,10 @@ exports[`OrderListItem should render correctly 2`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -318,10 +318,10 @@ exports[`OrderListItem should render correctly 2`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -355,10 +355,10 @@ exports[`OrderListItem should render correctly 3`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -415,10 +415,10 @@ exports[`OrderListItem should render correctly 3`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -433,10 +433,10 @@ exports[`OrderListItem should render correctly 3`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -467,10 +467,10 @@ exports[`OrderListItem should render correctly 3`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -484,10 +484,10 @@ exports[`OrderListItem should render correctly 3`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -521,10 +521,10 @@ exports[`OrderListItem should render correctly 4`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -581,10 +581,10 @@ exports[`OrderListItem should render correctly 4`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -599,10 +599,10 @@ exports[`OrderListItem should render correctly 4`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -633,10 +633,10 @@ exports[`OrderListItem should render correctly 4`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -650,10 +650,10 @@ exports[`OrderListItem should render correctly 4`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -687,10 +687,10 @@ exports[`OrderListItem should render correctly 5`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -747,10 +747,10 @@ exports[`OrderListItem should render correctly 5`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -765,10 +765,10 @@ exports[`OrderListItem should render correctly 5`] = `
           {
             "color": "#ca3542",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -799,10 +799,10 @@ exports[`OrderListItem should render correctly 5`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -816,10 +816,10 @@ exports[`OrderListItem should render correctly 5`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -853,10 +853,10 @@ exports[`OrderListItem should render correctly 6`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -913,10 +913,10 @@ exports[`OrderListItem should render correctly 6`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -931,10 +931,10 @@ exports[`OrderListItem should render correctly 6`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -965,10 +965,10 @@ exports[`OrderListItem should render correctly 6`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -982,10 +982,10 @@ exports[`OrderListItem should render correctly 6`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -1019,10 +1019,10 @@ exports[`OrderListItem should render correctly 7`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -1079,10 +1079,10 @@ exports[`OrderListItem should render correctly 7`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -1097,10 +1097,10 @@ exports[`OrderListItem should render correctly 7`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -1131,10 +1131,10 @@ exports[`OrderListItem should render correctly 7`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -1148,10 +1148,10 @@ exports[`OrderListItem should render correctly 7`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -1185,10 +1185,10 @@ exports[`OrderListItem should render correctly 8`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 12,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 20,
         }
       }
     >
@@ -1245,10 +1245,10 @@ exports[`OrderListItem should render correctly 8`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -1263,10 +1263,10 @@ exports[`OrderListItem should render correctly 8`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >
@@ -1297,10 +1297,10 @@ exports[`OrderListItem should render correctly 8`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -1314,10 +1314,10 @@ exports[`OrderListItem should render correctly 8`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 20,
           }
         }
       >

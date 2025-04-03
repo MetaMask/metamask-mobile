@@ -125,7 +125,7 @@ exports[`Tabs should render correctly 1`] = `
                     "fontSize": 18,
                     "fontWeight": "600",
                     "letterSpacing": 0,
-                    "lineHeight": 24,
+                    "lineHeight": 22,
                     "marginLeft": 5,
                     "marginRight": 40,
                     "marginTop": 0,
@@ -240,10 +240,10 @@ exports[`Tabs should render correctly 1`] = `
             "1": null,
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -339,10 +339,10 @@ exports[`Tabs should render correctly 1`] = `
             "2": null,
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >

@@ -343,10 +343,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 12,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 20,
                                 }
                               }
                             >
@@ -422,10 +422,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 16,
+                                    "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "lineHeight": 22,
                                   }
                                 }
                               >
@@ -495,10 +495,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -535,10 +535,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                     {
                                       "color": "#1c7e33",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -550,10 +550,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                     {
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 14,
+                                      "fontSize": 12,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 20,
                                     }
                                   }
                                 >
@@ -602,10 +602,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -639,10 +639,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -676,10 +676,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -726,10 +726,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -1573,10 +1573,10 @@ exports[`StakeInputView render matches snapshot 1`] = `
                                 {
                                   "color": "#ffffff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -1941,10 +1941,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 12,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 20,
                                 }
                               }
                             >
@@ -2020,10 +2020,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 16,
+                                    "fontSize": 14,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "lineHeight": 22,
                                   }
                                 }
                               >
@@ -2093,10 +2093,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -2133,10 +2133,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                     {
                                       "color": "#1c7e33",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 16,
+                                      "fontSize": 14,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
+                                      "lineHeight": 22,
                                     }
                                   }
                                 >
@@ -2148,10 +2148,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                     {
                                       "color": "#686e7d",
                                       "fontFamily": "CentraNo1-Medium",
-                                      "fontSize": 14,
+                                      "fontSize": 12,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 20,
                                     }
                                   }
                                 >
@@ -2200,10 +2200,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -2237,10 +2237,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -2274,10 +2274,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -2324,10 +2324,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >
@@ -3171,10 +3171,10 @@ exports[`StakeInputView when values are entered in the keypad updates ETH and fi
                                 {
                                   "color": "#ffffff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 16,
+                                  "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 24,
+                                  "lineHeight": 22,
                                 }
                               }
                             >

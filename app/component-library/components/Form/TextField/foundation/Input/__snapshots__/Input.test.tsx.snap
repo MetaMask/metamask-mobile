@@ -13,7 +13,7 @@ exports[`Input should render correctly 1`] = `
       "borderWidth": 1,
       "color": "#121314",
       "fontFamily": "CentraNo1-Book",
-      "fontSize": 16,
+      "fontSize": 14,
       "fontWeight": "400",
       "height": 24,
       "letterSpacing": 0,

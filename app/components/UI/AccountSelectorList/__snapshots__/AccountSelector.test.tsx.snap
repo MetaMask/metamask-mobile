@@ -316,10 +316,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -349,10 +349,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -365,10 +365,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -716,10 +716,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -749,10 +749,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -765,10 +765,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -1145,10 +1145,10 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -1481,10 +1481,10 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -1872,10 +1872,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -1905,10 +1905,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -1921,10 +1921,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -2272,10 +2272,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -2305,10 +2305,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -2321,10 +2321,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -2581,10 +2581,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -2614,10 +2614,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -2630,10 +2630,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                           "textAlign": "right",
                         }
                       }
@@ -2865,10 +2865,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >

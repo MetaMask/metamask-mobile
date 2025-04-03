@@ -90,10 +90,10 @@ exports[`Name recognized address should render image 1`] = `
         "color": "#121314",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 16,
+        "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 24,
+        "lineHeight": 22,
       }
     }
   >
@@ -192,10 +192,10 @@ exports[`Name recognized address should return name 1`] = `
         "color": "#121314",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 16,
+        "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 24,
+        "lineHeight": 22,
       }
     }
   >
@@ -244,10 +244,10 @@ exports[`Name unknown address displays checksummed address 1`] = `
         "color": "#121314",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 16,
+        "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 24,
+        "lineHeight": 22,
       }
     }
   >

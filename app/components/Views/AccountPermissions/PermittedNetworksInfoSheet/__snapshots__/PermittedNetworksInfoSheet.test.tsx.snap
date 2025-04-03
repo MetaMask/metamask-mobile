@@ -85,10 +85,10 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -132,10 +132,10 @@ exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
           {
             "color": "#ffffff",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >

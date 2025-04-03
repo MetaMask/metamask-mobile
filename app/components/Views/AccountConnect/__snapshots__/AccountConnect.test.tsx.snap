@@ -307,10 +307,10 @@ exports[`AccountConnect renders correctly 1`] = `
                       {
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -340,10 +340,10 @@ exports[`AccountConnect renders correctly 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
-                            "fontSize": 16,
+                            "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 24,
+                            "lineHeight": 22,
                           }
                         }
                         testID="permission-summary-account-text"
@@ -354,10 +354,10 @@ exports[`AccountConnect renders correctly 1`] = `
                             {
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Book",
-                              "fontSize": 14,
+                              "fontSize": 12,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 20,
                             }
                           }
                         >
@@ -393,10 +393,10 @@ exports[`AccountConnect renders correctly 1`] = `
                         {
                           "color": "#4459ff",
                           "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >
@@ -462,10 +462,10 @@ exports[`AccountConnect renders correctly 1`] = `
                       {
                         "color": "#121314",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -495,10 +495,10 @@ exports[`AccountConnect renders correctly 1`] = `
                           {
                             "color": "#121314",
                             "fontFamily": "CentraNo1-Book",
-                            "fontSize": 16,
+                            "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 24,
+                            "lineHeight": 22,
                           }
                         }
                       >
@@ -508,10 +508,10 @@ exports[`AccountConnect renders correctly 1`] = `
                             {
                               "color": "#121314",
                               "fontFamily": "CentraNo1-Book",
-                              "fontSize": 14,
+                              "fontSize": 12,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 22,
+                              "lineHeight": 20,
                             }
                           }
                         >
@@ -709,10 +709,10 @@ exports[`AccountConnect renders correctly 1`] = `
                         {
                           "color": "#4459ff",
                           "fontFamily": "CentraNo1-Medium",
-                          "fontSize": 16,
+                          "fontSize": 14,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 24,
+                          "lineHeight": 22,
                         }
                       }
                     >

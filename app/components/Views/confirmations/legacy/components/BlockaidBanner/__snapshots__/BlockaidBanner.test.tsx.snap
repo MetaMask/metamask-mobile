@@ -72,7 +72,7 @@ exports[`BlockaidBanner should render correctly 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -87,10 +87,10 @@ exports[`BlockaidBanner should render correctly 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -115,10 +115,10 @@ exports[`BlockaidBanner should render correctly 1`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
         testID="accordionheader-title"
@@ -225,7 +225,7 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -240,10 +240,10 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -268,10 +268,10 @@ exports[`BlockaidBanner should render correctly with list attack details 1`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
         testID="accordionheader-title"
@@ -378,7 +378,7 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -393,10 +393,10 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -421,10 +421,10 @@ exports[`BlockaidBanner should render correctly with reason "raw_signature_farmi
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
         testID="accordionheader-title"
@@ -540,7 +540,7 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 18,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -555,10 +555,10 @@ exports[`BlockaidBanner should render normal banner alert if resultType is faile
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
       >
@@ -633,7 +633,7 @@ exports[`BlockaidBanner should render something does not look right with contact
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 18,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -648,10 +648,10 @@ exports[`BlockaidBanner should render something does not look right with contact
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >
@@ -676,10 +676,10 @@ exports[`BlockaidBanner should render something does not look right with contact
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 16,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 24,
+            "lineHeight": 22,
           }
         }
         testID="accordionheader-title"

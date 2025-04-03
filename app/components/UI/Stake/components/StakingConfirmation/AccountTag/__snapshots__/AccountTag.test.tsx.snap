@@ -183,10 +183,10 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
         {
           "color": "#4459ff",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
       testID="tagbase-text"
@@ -380,10 +380,10 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
         {
           "color": "#4459ff",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 16,
+          "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
       testID="tagbase-text"
