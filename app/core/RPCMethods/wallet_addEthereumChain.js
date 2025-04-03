@@ -65,6 +65,9 @@ export const wallet_addEthereumChain = async ({
   Logger.log('wallet_addEthereumChain executing:');
   // FIXME: [ffmcgee] so, the request comes from `app/core/RPCMethods/utils.ts` (eip1193MethodMiddleware.ts) instead of RPCMethodMiddleware.ts
   // Issue => Logging the request upstream, we see it's content, but when it comes here it's undefined. Why is that happening ?
+  // Solution => in makeMethodMiddleware, we do impl(arg1, arg2, arg3), and this implementation takes only one object arg...
+  // Solution 2 => removing it from the eip1193MethodMiddleware file makes this work as expected (kinda, it just didn't switch to this chain, probably because I removed some code)
+  //    => perhaps do the same on switchEthChain and wallet_watchAsset
   const {
     NetworkController,
     MultichainNetworkController,
