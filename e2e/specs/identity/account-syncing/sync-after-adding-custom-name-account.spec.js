@@ -8,7 +8,7 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
+import { getAccountsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
@@ -29,6 +29,8 @@ describe(SmokeIdentity('Account syncing'), () => {
     await TestHelpers.reverseServerPort();
 
     const mockServer = await startMockServer();
+
+    const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
     const { userStorageMockttpControllerInstance } = await mockIdentityServices(
       mockServer,

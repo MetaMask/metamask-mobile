@@ -8,7 +8,7 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
+import { getAccountsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
@@ -23,6 +23,8 @@ describe(SmokeIdentity('Account syncing'), () => {
     const mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
     });
+
+    const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
     const { userStorageMockttpControllerInstance } = await mockIdentityServices(
       mockServer,
@@ -50,6 +52,8 @@ describe(SmokeIdentity('Account syncing'), () => {
   });
 
   it('retrieves all previously synced accounts', async () => {
+    const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+
     const decryptedAccountNames = await Promise.all(
       accountsSyncMockResponse.map(async (response) => {
         const decryptedAccountName = await SDK.Encryption.decryptString(

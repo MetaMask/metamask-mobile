@@ -31,7 +31,6 @@ import {
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
-import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import { useTheme } from '../../../util/theme';
@@ -250,7 +249,6 @@ const ImportFromSecretRecoveryPhrase = ({
           index: 1,
           routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
         });
-        await importAdditionalAccounts();
       } catch (error) {
         // Should we force people to enable passcode / biometrics?
         if (error.toString() === PASSCODE_NOT_SET_ERROR) {
