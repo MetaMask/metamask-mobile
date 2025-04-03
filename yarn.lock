@@ -5379,15 +5379,15 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/signature-controller@^23.1.0":
-  version "23.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-23.1.0.tgz#45b3b545e5a4e890ff41a737b6526cb08fd9f1b3"
-  integrity sha512-HPUDjVjsZ/HU5QZlmllh1yN2Z1+VhqjTPmzxqXBqD28iKYwUU0YEMN+Jahyh9Ukl7BH/UgzGaaHytGXJ1Xf2Xw==
+"@metamask/signature-controller@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-25.0.0.tgz#05105413417fc968ad69facee3ecbdf4b93c75f0"
+  integrity sha512-npkXSMdM/QVLeETBzjOkHXH0ZRCtm8/imP5ngGhv4zC1bOlOUuItOhRB06UlivztLKANwyvtoeP7Fs330e2+Ew==
   dependencies:
-    "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.4"
-    "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/utils" "^10.0.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/utils" "^11.2.0"
     jsonschema "^1.4.1"
     lodash "^4.17.21"
     uuid "^8.3.2"
