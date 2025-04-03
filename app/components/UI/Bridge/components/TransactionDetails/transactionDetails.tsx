@@ -21,6 +21,8 @@ import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './bridgeStepList';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import Button, { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -41,6 +43,11 @@ const createStyles = () =>
     },
     transactionAssetsContainer: {
       paddingVertical: 16,
+    },
+    blockExplorerButton: {
+      width: '90%',
+      alignSelf: 'center',
+      marginTop: 12,
     },
   });
 
@@ -151,6 +158,21 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.total_gas_fee')}</Text>
           <Text>{totalGasFee} ETH</Text>
         </Box>
+      </Box>
+      <Box>
+        <Button
+          style={styles.blockExplorerButton}
+          variant={ButtonVariants.Secondary}
+          label={strings('bridge_transaction_details.view_on_block_explorer')}
+          onPress={() => {
+            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+              screen: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+              params: {
+                tx: props.route.params.tx,
+              },
+            });
+          }}
+        />
       </Box>
     </ScreenView>
   );

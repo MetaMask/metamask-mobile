@@ -3838,6 +3838,7 @@
     "bridge_step_action_bridge_complete": "{{destSymbol}} received on {{destChainName}}",
     "bridge_step_action_bridge_pending": "Receiving {{destSymbol}} on {{destChainName}}",
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
-    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}"
+    "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
+    "view_on_block_explorer": "View on Block Explorer"
   }
 }
