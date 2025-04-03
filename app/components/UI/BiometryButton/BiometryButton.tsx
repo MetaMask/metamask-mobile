@@ -41,7 +41,7 @@ const BiometryButton = ({
             name="ios-finger-print"
           />
         );
-      } else if (type && type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+      } else if (type?.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
           <Ionicons
             color={colors.text.default}
@@ -68,7 +68,7 @@ const BiometryButton = ({
         return <ImageRN style={styles.image} source={androidFaceRecognition} />;
       } else if (type === 'Iris') {
         return <ImageRN style={styles.image} source={androidIris} />;
-      } else if (type && type.includes(AUTHENTICATION_TYPE.PASSCODE)) {
+      } else if (type?.includes(AUTHENTICATION_TYPE.PASSCODE)) {
         return (
           <MaterialIcon
             color={colors.text.default}

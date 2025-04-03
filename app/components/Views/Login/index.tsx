@@ -68,30 +68,40 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
-import { PASSCODE_NOT_SET_ERROR } from './constants';
 import {
   DENY_PIN_ERROR_ANDROID,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
   PASSWORD_REQUIREMENTS_NOT_MET,
-} from './constants';
-import { VAULT_ERROR } from './constants';
-import {
+  VAULT_ERROR,
+  PASSCODE_NOT_SET_ERROR,
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
 } from './constants';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import {
+  ParamListBase,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import stylesheet from './styles';
 import ReduxService from '../../../core/redux';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
+import FOX_LOGO from '../../../images/branding/fox.png';
 
 /**
  * View where returning users can authenticate
  */
 const Login: React.FC = () => {
   const fieldRef = useRef<TextInput>(null);
-
+  const parentSpanRef = useRef(
+    trace({
+      name: TraceName.Login,
+      op: TraceOperation.Login,
+      tags: getTraceTags(store.getState()),
+    }),
+  );
   const [password, setPassword] = useState('');
   const [biometryType, setBiometryType] = useState<
     BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null
@@ -103,8 +113,7 @@ const Login: React.FC = () => {
   const [biometryPreviouslyDisabled, setBiometryPreviouslyDisabled] =
     useState(false);
   const [hasBiometricCredentials, setHasBiometricCredentials] = useState(false);
-
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
   const route =
     useRoute<RouteProp<{ params: { locked: boolean } }, 'params'>>();
   const {
@@ -112,19 +121,16 @@ const Login: React.FC = () => {
     theme: { colors, themeAppearance },
   } = useStyles(stylesheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-  const parentSpanRef = useRef(
-    trace({
-      name: TraceName.Login,
-      op: TraceOperation.Login,
-      tags: getTraceTags(store.getState()),
-    }),
-  );
-
   const dispatch = useDispatch();
   const setOnboardingWizardStep = (step: number) =>
     dispatch(setOnboardingWizardStepUtil(step));
   const setAllowLoginWithRememberMe = (enabled: boolean) =>
     setAllowLoginWithRememberMeUtil(enabled);
+
+  const handleBackPress = () => {
+    Authentication.lockApp();
+    return false;
+  };
 
   useEffect(() => {
     trace({
@@ -177,12 +183,8 @@ const Login: React.FC = () => {
     return () => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleBackPress = () => {
-    Authentication.lockApp();
-    return false;
-  };
 
   const handleVaultCorruption = async () => {
     // This is so we can log vault corruption error in sentry
@@ -235,6 +237,11 @@ const Login: React.FC = () => {
     }
   };
 
+  const updateBiometryChoice = async (newBiometryChoice: boolean) => {
+    await updateAuthTypeStorageFlags(newBiometryChoice);
+    setBiometryChoice(newBiometryChoice);
+  };
+
   const onLogin = async () => {
     endTrace({ name: TraceName.LoginUserInteraction });
 
@@ -278,48 +285,51 @@ const Login: React.FC = () => {
       setLoading(false);
       setHasBiometricCredentials(false);
       fieldRef.current?.clear();
-    } catch (e: unknown) {
-      const error = e as Error;
-      const errorMessage = error.toString();
+    } catch (loginErr: unknown) {
+      const loginError = loginErr as Error;
+      const loginErrorMessage = loginError.toString();
 
       if (
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR) ||
-        toLowerCaseEquals(error, WRONG_PASSWORD_ERROR_ANDROID) ||
-        errorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
+        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR) ||
+        toLowerCaseEquals(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
+        loginErrorMessage.includes(PASSWORD_REQUIREMENTS_NOT_MET)
       ) {
         setLoading(false);
         setError(strings('login.invalid_password'));
 
-        trackErrorAsAnalytics('Login: Invalid Password', errorMessage);
+        trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
 
         return;
-      } else if (errorMessage === PASSCODE_NOT_SET_ERROR) {
+      } else if (loginErrorMessage === PASSCODE_NOT_SET_ERROR) {
         Alert.alert(
           strings('login.security_alert_title'),
           strings('login.security_alert_desc'),
         );
         setLoading(false);
       } else if (
-        containsErrorMessage(error, VAULT_ERROR) ||
-        containsErrorMessage(error, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
+        containsErrorMessage(loginError, VAULT_ERROR) ||
+        containsErrorMessage(loginError, JSON_PARSE_ERROR_UNEXPECTED_TOKEN)
       ) {
         try {
           await handleVaultCorruption();
-        } catch (e: unknown) {
-          const error = e as Error;
+        } catch (vaultCorruptionErr: unknown) {
+          const vaultCorruptionError = vaultCorruptionErr as Error;
           // we only want to display this error to the user IF we fail to handle vault corruption
-          Logger.error(error, 'Failed to handle vault corruption');
+          Logger.error(
+            vaultCorruptionError,
+            'Failed to handle vault corruption',
+          );
           setLoading(false);
           setError(strings('login.clean_vault_error'));
         }
-      } else if (toLowerCaseEquals(error, DENY_PIN_ERROR_ANDROID)) {
+      } else if (toLowerCaseEquals(loginError, DENY_PIN_ERROR_ANDROID)) {
         setLoading(false);
         updateBiometryChoice(false);
       } else {
         setLoading(false);
-        setError(errorMessage);
+        setError(loginErrorMessage);
       }
-      Logger.error(error, 'Failed to unlock');
+      Logger.error(loginError, 'Failed to unlock');
     }
     endTrace({ name: TraceName.Login });
   };
@@ -347,9 +357,9 @@ const Login: React.FC = () => {
       setPassword('');
       setHasBiometricCredentials(false);
       fieldRef.current?.clear();
-    } catch (error) {
+    } catch (tryBiometricError) {
       setHasBiometricCredentials(true);
-      Logger.log(error);
+      Logger.log(tryBiometricError);
     }
     fieldRef.current?.blur();
   };
@@ -360,14 +370,9 @@ const Login: React.FC = () => {
     });
   };
 
-  const updateBiometryChoice = async (biometryChoice: boolean) => {
-    await updateAuthTypeStorageFlags(biometryChoice);
-    setBiometryChoice(biometryChoice);
-  };
-
   const renderSwitch = () => {
-    const handleUpdateRememberMe = (rememberMe: boolean) => {
-      setRememberMe(rememberMe);
+    const handleUpdateRememberMe = (rememberMeChoice: boolean) => {
+      setRememberMe(rememberMeChoice);
     };
 
     const shouldRenderBiometricLogin =
@@ -414,7 +419,7 @@ const Login: React.FC = () => {
               activeOpacity={1}
             >
               <Image
-                source={require('../../../images/branding/fox.png')}
+                source={FOX_LOGO}
                 style={styles.image}
                 resizeMethod={'auto'}
               />
