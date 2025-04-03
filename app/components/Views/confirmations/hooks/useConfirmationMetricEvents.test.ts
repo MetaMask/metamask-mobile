@@ -97,7 +97,7 @@ describe('useConfirmationMetricEvents', () => {
   it('tracks tooltip clicked event', () => {
     const expectedProperties = {
       location: MOCK_LOCATION,
-      tooltip: 'test-tooltip' as TOOLTIP_TYPES,
+      tooltip: 'test_tooltip' as TOOLTIP_TYPES,
     };
 
     mockBuild.mockReturnValue(expectedProperties);
@@ -105,7 +105,7 @@ describe('useConfirmationMetricEvents', () => {
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
     result.current.trackTooltipClickedEvent({
-      tooltip: 'test-tooltip' as TOOLTIP_TYPES,
+      tooltip: 'test_tooltip' as TOOLTIP_TYPES,
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

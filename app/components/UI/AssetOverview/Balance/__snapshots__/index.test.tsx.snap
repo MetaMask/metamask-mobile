@@ -12,8 +12,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -127,7 +127,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -164,9 +164,9 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -191,8 +191,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -207,7 +207,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -238,8 +238,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -353,7 +353,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -390,9 +390,9 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -417,8 +417,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,

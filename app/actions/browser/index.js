@@ -109,7 +109,7 @@ export function setActiveTab(id) {
  * Selects an exiting tab
  *
  * @param {number} id - The Tab ID
- * @param {string} url - The website's url
+ * @param {Object} data - { isArchived: boolean, url: string, image: string }
  */
 export function updateTab(id, data) {
   return {

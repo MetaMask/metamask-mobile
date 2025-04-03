@@ -210,6 +210,25 @@ describe('useSortedQuotes', () => {
     });
   });
 
+  it('defaults the recommended quote to the first quote', () => {
+    (useSelector as jest.Mock).mockReturnValue([]);
+    (useQuotes as jest.Mock).mockReturnValue({
+      quotes: [
+        { id: 'quote-1', provider: { id: 'provider-id-1' }, error: null },
+        { id: 'quote-2', provider: { id: 'provider-id-2' }, error: null },
+      ],
+      sorted: [],
+      error: null,
+      isFetching: false,
+    });
+    const { result } = renderHookWithProvider(() => useSortedQuotes(100));
+    expect(result.current.recommendedQuote).toEqual({
+      id: 'quote-1',
+      provider: { id: 'provider-id-1' },
+      error: null,
+    });
+  });
+
   it('handles fetching state', () => {
     (useQuotes as jest.Mock).mockReturnValue({
       quotes: [],

@@ -8,11 +8,11 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
   style={
     {
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376C91A",
-      "borderColor": "#0376c9",
+      "backgroundColor": "#4459ff1a",
+      "borderColor": "#4459ff",
       "borderRadius": 999,
       "borderWidth": 0,
-      "color": "#0376c9",
+      "color": "#4459ff",
       "padding": 16,
       "paddingHorizontal": 8,
       "paddingVertical": 2,
@@ -181,8 +181,8 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -205,11 +205,11 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
   style={
     {
       "alignSelf": "flex-start",
-      "backgroundColor": "#0376C91A",
-      "borderColor": "#0376c9",
+      "backgroundColor": "#4459ff1a",
+      "borderColor": "#4459ff",
       "borderRadius": 999,
       "borderWidth": 0,
-      "color": "#0376c9",
+      "color": "#4459ff",
       "padding": 16,
       "paddingHorizontal": 8,
       "paddingVertical": 2,
@@ -378,8 +378,8 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,

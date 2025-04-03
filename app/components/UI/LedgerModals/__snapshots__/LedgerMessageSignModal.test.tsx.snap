@@ -317,7 +317,7 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -438,8 +438,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 22,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -470,8 +470,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -485,8 +485,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -501,8 +501,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -517,8 +517,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -533,8 +533,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -549,8 +549,8 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
@@ -570,10 +570,10 @@ exports[`LedgerMessageSignModal should render correctly 1`] = `
                                     numberOfLines={2}
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#4459ff",
                                         "flex": 1,
                                         "flexWrap": "wrap",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,

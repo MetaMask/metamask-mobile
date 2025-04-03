@@ -10,6 +10,7 @@ import {
   getBlockExplorerTxUrl,
   isPrivateConnection,
   findBlockExplorerForNonEvmAccount,
+  isLineaMainnetChainId,
 } from '.';
 import {
   convertNetworkId,
@@ -100,6 +101,9 @@ jest.mock('../../store', () => ({
 jest.mock('../../selectors/multichainNetworkController', () => ({
   selectMultichainNetworkControllerState: jest.fn(),
   selectSelectedNonEvmNetworkChainId: jest.fn(),
+  selectSelectedNonEvmNetworkSymbol: jest.fn(),
+  selectIsEvmNetworkSelected: jest.fn(),
+  selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
 describe('network-utils', () => {
@@ -668,7 +672,7 @@ describe('network-utils', () => {
         });
 
         expect(url).toBe(
-          `https://explorer.solana.com/address/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
+          `https://solscan.io/account/${MOCK_SOLANA_ACCOUNT.address}?cluster=testnet`,
         );
       });
 
@@ -724,6 +728,16 @@ describe('network-utils', () => {
           `https://mempool.space/testnet/address/${mockBitcoinTestnetAccount.address}`,
         );
       });
+    });
+  });
+
+  describe('isLineaMainnetChainId', () => {
+    it('returns true for linea mainnet chain id', () => {
+      expect(isLineaMainnetChainId('0xe708')).toBe(true);
+    });
+
+    it('returns false for linea testnet chain id', () => {
+      expect(isLineaMainnetChainId('0x13882')).toBe(false);
     });
   });
 });
