@@ -39,17 +39,24 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
-              element: 'RNText',
+              element: 'Text',
               props: {
-                color: 'inherit',
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -83,17 +90,24 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_2',
-              element: 'RNText',
+              element: 'Text',
               props: {
-                color: 'inherit',
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -127,18 +141,25 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
-              element: 'RNText',
+              element: 'Text',
               props: {
-                color: 'inherit',
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
             variant: 'sBodyMD',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
           },
         },
       ],
