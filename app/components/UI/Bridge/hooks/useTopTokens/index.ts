@@ -1,4 +1,4 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToHex } from '@metamask/bridge-controller';
+import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -9,7 +9,9 @@ import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { selectChainCache } from '../../../../../reducers/swaps';
 import { SwapsControllerState } from '@metamask/swaps-controller';
-
+import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
@@ -20,7 +22,14 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
     [chainId, swapsChainCache],
   );
-  const swapsTopAssetsPending = !swapsTopAssets;
+  // For non-EVM chains, we don't need to fetch top assets from the Swaps API
+  const swapsTopAssetsPending = isCaipChainId(chainId) ? false : !swapsTopAssets;
+
+  // Get top assets for Solana from Bridge API feature flags for now,
+  // Swap API doesn't have top assets for Solana
+  const topAssetsFromFeatureFlags = useSelector(
+    (state: RootState) => selectTopAssetsFromFeatureFlags(state, chainId),
+  );
 
   const cachedBridgeTokens = useRef<Record<string, Record<string, BridgeToken>>>({});
 
@@ -45,8 +54,8 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
   }, [chainId]);
 
   // Get the token data from the bridge API
-  const { value: bridgeTokens, pending: bridgeTokensPending } = useAsyncResult(async () => {
-    if (!chainId) {
+  const { value: bridgeTokens, pending: bridgeTokensPending, error: bridgeTokensError } = useAsyncResult(async () => {
+    if (!chainId || bridgeTokensError) {
       return {};
     }
 
@@ -66,13 +75,16 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
     Object.keys(rawBridgeAssets).forEach((key) => {
       const bridgeAsset = rawBridgeAssets[key];
 
+      const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
+      const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
+
       bridgeTokenObj[key] = {
         address: bridgeAsset.address,
         symbol: bridgeAsset.symbol,
         name: bridgeAsset.name,
         image: bridgeAsset.iconUrl || bridgeAsset.icon,
         decimals: bridgeAsset.decimals,
-        chainId: formatChainIdToHex(bridgeAsset.chainId), // TODO handle solana properly
+        chainId: caipChainId === SolScope.Mainnet ? caipChainId : hexChainId,
       };
     });
 
@@ -86,20 +98,28 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const topTokens = useMemo(() => {
-    if (!bridgeTokens || !swapsTopAssets) {
+    const swapsTopAssetsAddrs = swapsTopAssets?.map((asset) => asset.address);
+
+    // Prioritize top assets from feature flags
+    const topAssets = topAssetsFromFeatureFlags || swapsTopAssetsAddrs;
+
+    if (!bridgeTokens || !topAssets) {
       return [];
     }
 
-    const top = swapsTopAssets.map((asset) => {
-      const candidateBridgeToken = bridgeTokens[asset.address.toLowerCase()]
-        || bridgeTokens[toChecksumHexAddress(asset.address)];
+    const top = topAssets.map((topAssetAddr) => {
+      // Note that Solana addresses are CASE-SENSITIVE, EVM addresses are NOT
+      const candidateBridgeToken =
+        bridgeTokens[topAssetAddr]
+        || bridgeTokens[topAssetAddr.toLowerCase()]
+        || bridgeTokens[toChecksumHexAddress(topAssetAddr)];
 
       return candidateBridgeToken;
     })
     .filter(Boolean) as BridgeToken[];
 
     return top;
-  }, [bridgeTokens, swapsTopAssets]);
+  }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
   return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
 };
