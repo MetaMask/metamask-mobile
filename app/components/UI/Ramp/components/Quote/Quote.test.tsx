@@ -13,7 +13,7 @@ import { QuoteTags } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../selectors/preferencesController';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import CustomAction from '../CustomAction';
+
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
