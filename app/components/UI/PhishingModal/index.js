@@ -11,6 +11,7 @@ import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
+import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -133,45 +134,39 @@ export default class PhishingModal extends PureComponent {
         <View style={styles.warningContainer}>
           <Icon name="warning" style={styles.warningIcon} />
         </View>
-        
         <Text
           style={styles.phishingModalTitle}
           {...generateTestId(Platform, ETHEREUM_DETECTION_TITLE)}
         >
-          This website might be harmful
+          {strings('phishing.site_might_be_harmful')}
         </Text>
-        
         <Text style={styles.phishingText}>
-          MetaMask flagged the site youre trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
+          {strings('phishing.metamask_flagged_site')}
         </Text>
-        
         <Text style={styles.phishingText}>
-          You may also <Text style={styles.link} onPress={this.props.continueToPhishingSite}>proceed anyway</Text>, but please do so at your own risk.
+          {strings('phishing.you_may_proceed_anyway')} <Text style={styles.link} onPress={this.props.continueToPhishingSite}>{strings('phishing.proceed_anyway')}</Text>, {strings('phishing.but_please_do_so_at_your_own_risk')}
         </Text>
-        
         <TouchableOpacity 
           style={styles.buttonContainer}
           onPress={this.props.goToFilePhishingIssue}
         >
           <Icon name="flag" size={16} style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>Report a detection problem</Text>
+          <Text style={styles.buttonText}>{strings('phishing.report_detection_problem')}</Text>
         </TouchableOpacity>
-        
         <TouchableOpacity 
           style={styles.buttonContainer}
           onPress={this.shareToTwitter}
         >
           <Icon name="twitter" size={16} style={styles.buttonIcon} />
-          <Text style={styles.buttonText}>If you found this helpful, share on X!</Text>
+          <Text style={styles.buttonText}>{strings('phishing.share_on_twitter')}</Text>
         </TouchableOpacity>
-        
         <StyledButton
           type={'confirm'}
           onPress={this.props.goBackToSafety}
           containerStyle={styles.backToSafetyButton}
           styleText={styles.backToSafetyText}
         >
-          Back to safety
+          {strings('phishing.back_to_safety')}
         </StyledButton>
       </View>
     );
