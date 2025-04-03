@@ -65,13 +65,16 @@ const createStyles = (colors: ThemeColors, typography: ThemeTypography) =>
     },
     listItemStatus: {
       ...(typography.sBodyMDBold as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     },
     listItemFiatAmount: {
       ...(typography.sBodyLGMedium as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
       marginTop: 0,
     },
     listItemAmount: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.alternative,
     },
     itemContainer: {

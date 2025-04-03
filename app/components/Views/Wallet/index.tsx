@@ -78,6 +78,8 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -148,6 +150,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -719,9 +722,9 @@ const Wallet = ({
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
           {
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          isSolanaSupportEnabled && <SolanaNewFeatureContent />
-          ///: END:ONLY_INCLUDE_IF
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            isSolanaSupportEnabled && <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
           }
         </>
       </View>
