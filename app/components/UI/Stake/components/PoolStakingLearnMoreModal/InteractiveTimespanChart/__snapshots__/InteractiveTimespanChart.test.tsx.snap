@@ -35,7 +35,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -65,7 +65,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -95,7 +95,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -121,7 +121,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -136,7 +136,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -307,7 +307,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -337,7 +337,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -367,7 +367,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -393,7 +393,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -406,7 +406,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -575,7 +575,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -605,7 +605,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -635,7 +635,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -661,7 +661,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -674,7 +674,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -845,7 +845,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -875,7 +875,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -905,7 +905,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -931,7 +931,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -946,7 +946,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -1115,7 +1115,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1145,7 +1145,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1175,7 +1175,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1201,7 +1201,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -1216,7 +1216,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -1387,7 +1387,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1417,7 +1417,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1447,7 +1447,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1473,7 +1473,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "color": "#1c7e33",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -1488,7 +1488,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,

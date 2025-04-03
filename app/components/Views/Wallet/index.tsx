@@ -111,11 +111,18 @@ import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
+///: END:ONLY_INCLUDE_IF
 import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectIsSolanaSupportEnabled,
+  ///: END:ONLY_INCLUDE_IF
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -192,6 +199,10 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
+  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Object containing the balance of the current selected account
@@ -493,6 +504,26 @@ const Wallet = ({
     readNotificationCount,
   ]);
 
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: string; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
+
   useEffect(() => {
     const importAllDetectedTokens = async () => {
       // If autodetect tokens toggle is OFF, return
@@ -540,17 +571,26 @@ const Wallet = ({
           );
         }
 
-        currentDetectedTokens.forEach(({ address, symbol }) =>
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-              .addProperties({
-                token_address: address,
-                token_symbol: symbol,
-                chain_id: getDecimalChainId(chainId),
-                source: 'detected',
-              })
-              .build(),
-          ),
+        currentDetectedTokens.forEach(
+          ({ address, symbol }: { address: string; symbol: string }) => {
+            const analyticsParams = getTokenAddedAnalyticsParams({
+              address,
+              symbol,
+            });
+
+            if (analyticsParams) {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                  .addProperties({
+                    token_address: address,
+                    token_symbol: symbol,
+                    chain_id: getDecimalChainId(chainId),
+                    source: 'detected',
+                  })
+                  .build(),
+              );
+            }
+          },
         );
       }
     };
@@ -678,6 +718,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+          isSolanaSupportEnabled && <SolanaNewFeatureContent />
+          ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );
