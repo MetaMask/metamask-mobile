@@ -31,9 +31,9 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -55,7 +55,7 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
             onChange={[Function]}
             onResponderTerminationRequest={[Function]}
             onStartShouldSetResponder={[Function]}
-            onTintColor="#0376c9"
+            onTintColor="#4459ff"
             style={
               [
                 {
@@ -67,7 +67,7 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
                     "alignSelf": "flex-start",
                   },
                   {
-                    "backgroundColor": "#BBC0C566",
+                    "backgroundColor": "#b7bbc866",
                     "borderRadius": 16,
                   },
                 ],
@@ -75,7 +75,7 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
             }
             testID="display-use-safe-list-validation"
             thumbTintColor="#ffffff"
-            tintColor="#BBC0C566"
+            tintColor="#b7bbc866"
             value={false}
           />
         </View>
@@ -84,8 +84,8 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -99,8 +99,8 @@ exports[`OnboardingSecuritySettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,

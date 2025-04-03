@@ -85,7 +85,7 @@ exports[`Login should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "fontFamily": "EuclidCircularB-Bold",
               "fontSize": 35,
               "fontWeight": "600",
@@ -114,8 +114,8 @@ exports[`Login should render correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -132,7 +132,7 @@ exports[`Login should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
-                "borderColor": "#848c96",
+                "borderColor": "#b7bbc8",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "flexDirection": "row",
@@ -153,7 +153,7 @@ exports[`Login should render correctly 1`] = `
               <TextInput
                 autoCapitalize="none"
                 autoFocus={false}
-                baseColor="#848c96"
+                baseColor="#b7bbc8"
                 editable={true}
                 keyboardAppearance="light"
                 onBlur={[Function]}
@@ -161,7 +161,7 @@ exports[`Login should render correctly 1`] = `
                 onFocus={[Function]}
                 onSubmitEditing={[Function]}
                 placeholder="Password"
-                placeholderTextColor="#9fa6ae"
+                placeholderTextColor="#9ca1af"
                 returnKeyType="done"
                 secureTextEntry={true}
                 style={
@@ -169,7 +169,7 @@ exports[`Login should render correctly 1`] = `
                     "backgroundColor": "#ffffff",
                     "borderColor": "transparent",
                     "borderWidth": 1,
-                    "color": "#141618",
+                    "color": "#121314",
                     "fontFamily": "Euclid Circular B",
                     "fontSize": 14,
                     "fontWeight": "400",
@@ -180,7 +180,7 @@ exports[`Login should render correctly 1`] = `
                   }
                 }
                 testID="login-password-input"
-                tintColor="#0376c9"
+                tintColor="#4459ff"
                 value=""
               />
             </View>
@@ -213,7 +213,7 @@ exports[`Login should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#0376c9",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 24,
                 "flexDirection": "row",
                 "height": 48,
@@ -227,7 +227,7 @@ exports[`Login should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -252,8 +252,8 @@ exports[`Login should render correctly 1`] = `
             style={
               {
                 "alignSelf": "center",
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "justifyContent": "center",
@@ -275,8 +275,8 @@ exports[`Login should render correctly 1`] = `
             style={
               {
                 "backgroundColor": "transparent",
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -291,8 +291,8 @@ exports[`Login should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 14,
                   "fontWeight": "500",
                   "letterSpacing": 0,

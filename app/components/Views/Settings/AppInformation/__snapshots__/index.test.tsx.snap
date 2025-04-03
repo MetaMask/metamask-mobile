@@ -137,7 +137,7 @@ exports[`AppInformation should render correctly 1`] = `
                 testID="back-arrow-button"
               >
                 <SvgMock
-                  color="#141618"
+                  color="#121314"
                   height={24}
                   name="ArrowLeft"
                   style={
@@ -168,7 +168,7 @@ exports[`AppInformation should render correctly 1`] = `
                 onLayout={[Function]}
                 style={
                   {
-                    "color": "#0376c9",
+                    "color": "#4459ff",
                     "fontSize": 17,
                     "fontWeight": "600",
                   }
@@ -178,8 +178,8 @@ exports[`AppInformation should render correctly 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "700",
                       "letterSpacing": 0,
@@ -410,7 +410,7 @@ exports[`AppInformation should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#6a737d",
+                                  "color": "#686e7d",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 18,
                                   "fontWeight": "400",
@@ -424,7 +424,7 @@ exports[`AppInformation should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Regular",
                                 "fontSize": 18,
                                 "fontWeight": "400",
@@ -442,7 +442,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",
@@ -460,7 +460,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",
@@ -478,7 +478,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",
@@ -494,7 +494,7 @@ exports[`AppInformation should render correctly 1`] = `
                           <View
                             style={
                               {
-                                "borderBottomColor": "#BBC0C566",
+                                "borderBottomColor": "#b7bbc866",
                                 "borderBottomWidth": 1,
                                 "marginBottom": 20,
                                 "width": "30%",
@@ -508,7 +508,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",
@@ -526,7 +526,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",
@@ -544,7 +544,7 @@ exports[`AppInformation should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 18,
                                     "fontWeight": "400",

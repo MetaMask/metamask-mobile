@@ -55,17 +55,17 @@ exports[`Wallet should render correctly 1`] = `
             style={
               {
                 "backgroundColor": {
-                  "alternative": "#f2f4f6",
-                  "alternativeHover": "#E7EBEE",
-                  "alternativePressed": "#DBE0E6",
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
                   "default": "#ffffff",
-                  "defaultHover": "#F5F5F5",
-                  "defaultPressed": "#EBEBEB",
-                  "hover": "#0000000A",
-                  "muted": "#f2f4f6",
-                  "mutedHover": "#E7EBEE",
-                  "mutedPressed": "#DBE0E6",
-                  "pressed": "#00000014",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
                 },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
@@ -142,7 +142,7 @@ exports[`Wallet should render correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -188,7 +188,7 @@ exports[`Wallet should render correctly 1`] = `
                     </View>
                   </View>
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -236,7 +236,7 @@ exports[`Wallet should render correctly 1`] = `
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
@@ -415,8 +415,8 @@ exports[`Wallet should render correctly 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -431,7 +431,7 @@ exports[`Wallet should render correctly 1`] = `
                       </View>
                     </View>
                     <SvgMock
-                      color="#141618"
+                      color="#121314"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -448,8 +448,8 @@ exports[`Wallet should render correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -523,7 +523,7 @@ exports[`Wallet should render correctly 1`] = `
                         }
                       >
                         <SvgMock
-                          color="#141618"
+                          color="#121314"
                           height={24}
                           name="Copy"
                           style={
@@ -538,13 +538,6 @@ exports[`Wallet should render correctly 1`] = `
                     </RNGestureHandlerButton>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "marginHorizontal": 4,
-                    }
-                  }
-                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -565,7 +558,7 @@ exports[`Wallet should render correctly 1`] = `
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -792,7 +785,7 @@ exports[`Wallet should render correctly 1`] = `
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 24,
                                 "fontWeight": "600",
@@ -808,8 +801,8 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376C91A",
-                              "borderColor": "#0376c9",
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -828,7 +821,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={24}
                               name="Info"
                               style={
@@ -851,8 +844,8 @@ exports[`Wallet should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -867,8 +860,8 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#BF52081A",
-                              "borderColor": "#bf5208",
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -886,7 +879,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#bf5208"
+                              color="#9a6300"
                               height={24}
                               name="Danger"
                               style={
@@ -908,7 +901,7 @@ exports[`Wallet should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -922,7 +915,7 @@ exports[`Wallet should render correctly 1`] = `
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                   }
                                 }
                               >
@@ -936,7 +929,7 @@ exports[`Wallet should render correctly 1`] = `
                         <Text
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -948,7 +941,7 @@ exports[`Wallet should render correctly 1`] = `
                             onPress={[Function]}
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                               }
                             }
                           >
@@ -982,7 +975,7 @@ exports[`Wallet should render correctly 1`] = `
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -996,7 +989,7 @@ exports[`Wallet should render correctly 1`] = `
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "paddingLeft": 5,
@@ -1010,7 +1003,7 @@ exports[`Wallet should render correctly 1`] = `
                         <View
                           style={
                             {
-                              "backgroundColor": "#D738471A",
+                              "backgroundColor": "#ca35421a",
                               "borderRadius": 8,
                               "flexShrink": 1,
                               "marginTop": 10,
@@ -1027,7 +1020,7 @@ exports[`Wallet should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#d73847",
+                                    "color": "#ca3542",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -1037,7 +1030,7 @@ exports[`Wallet should render correctly 1`] = `
                                 }
                               >
                                 View: Wallet
-TypeError: Cannot read properties of undefined (reading 'tabs')
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                               </Text>
                             </View>
                           </RCTScrollView>
@@ -1055,8 +1048,8 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "backgroundColor": "#0376c9",
-                                "borderColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1083,7 +1076,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1096,7 +1089,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -1110,7 +1103,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -1123,7 +1116,1154 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Try again
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <Modal
+                          animationType="slide"
+                          hardwareAccelerated={false}
+                          onRequestClose={[Function]}
+                          visible={false}
+                        />
+                      </View>
+                    </RNCSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;
+
+exports[`Wallet should render correctly when Solana support is enabled 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": {
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
+                  "default": "#ffffff",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
+                },
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <TouchableOpacity
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "center",
+                      "backgroundColor": "#f3f5f9",
+                      "borderRadius": 16,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "paddingHorizontal": 8,
+                    }
+                  }
+                  testID="open-networks-button"
+                >
+                  <View
+                    style={
+                      {
+                        "marginRight": 8,
+                      }
+                    }
+                  >
+                    <View
+                      accessibilityLabel="Ethereum Mainnet"
+                      style={
+                        {
+                          "alignItems": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 8,
+                          "height": 16,
+                          "justifyContent": "center",
+                          "overflow": "hidden",
+                          "width": 16,
+                        }
+                      }
+                      testID="network-avatar-picker"
+                    >
+                      <Image
+                        onError={[Function]}
+                        resizeMode="contain"
+                        source={1}
+                        style={
+                          {
+                            "height": 16,
+                            "width": 16,
+                          }
+                        }
+                        testID="network-avatar-image"
+                      />
+                    </View>
+                  </View>
+                  <SvgMock
+                    color="#121314"
+                    height={12}
+                    name="ArrowDown"
+                    style={
+                      {
+                        "height": 12,
+                        "width": 12,
+                      }
+                    }
+                    testID="pickernetwork-arrow"
+                    width={12}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "marginTop": 5,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <TouchableOpacity
+                    onPress={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#b7bbc8",
+                        "borderRadius": 4,
+                        "borderWidth": 0,
+                        "flexDirection": "row",
+                        "padding": 0,
+                      }
+                    }
+                    testID="account-picker"
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "justifyContent": "center",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "justifyContent": "center",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "flexDirection": "row",
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderRadius": 8,
+                                "height": 16,
+                                "marginRight": 8,
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "backgroundColor": "#FC4800",
+                                    "borderRadius": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <RNSVGSvgView
+                                bbHeight={16}
+                                bbWidth={16}
+                                focusable={false}
+                                height={16}
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": 16,
+                                      "width": 16,
+                                    },
+                                  ]
+                                }
+                                width={16}
+                              >
+                                <RNSVGGroup
+                                  fill={
+                                    {
+                                      "payload": 4278190080,
+                                      "type": 0,
+                                    }
+                                  }
+                                >
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278291575,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.41310442982454204,
+                                        -0.910683660806177,
+                                        0.910683660806177,
+                                        -0.41310442982454204,
+                                        4.404802817153955,
+                                        20.16808402411075,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278410587,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        0.903335292863301,
+                                        -0.42893513340314526,
+                                        0.42893513340314526,
+                                        0.903335292863301,
+                                        -9.297010789302583,
+                                        3.362634662066926,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4294382337,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.6921431738704069,
+                                        -0.7217602280983622,
+                                        0.7217602280983622,
+                                        -0.6921431738704069,
+                                        -6.169639630140347,
+                                        15.20799235933167,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
+                                "fontSize": 14,
+                                "fontWeight": "500",
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
+                            testID="account-label"
+                          >
+                            Account 2
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <SvgMock
+                      color="#121314"
+                      height={12}
+                      name="ArrowDown"
+                      style={
+                        {
+                          "height": 12,
+                          "marginLeft": 8,
+                          "width": 12,
+                        }
+                      }
+                      width={12}
+                    />
+                  </TouchableOpacity>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 12,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                        "textAlign": "center",
+                      }
+                    }
+                  >
+                    0xC496...a756
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flexDirection": "row",
+                    "marginRight": 12,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "marginHorizontal": 4,
+                    }
+                  }
+                  testID="navbar-address-copy-button"
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <RNGestureHandlerButton
+                      collapsable={false}
+                      onGestureEvent={[Function]}
+                      onGestureHandlerEvent={[Function]}
+                      onGestureHandlerStateChange={[Function]}
+                      onHandlerStateChange={[Function]}
+                      rippleColor={0}
+                      testID="wallet-account-copy-button"
+                    >
+                      <View
+                        accessible={true}
+                        collapsable={false}
+                        style={
+                          {
+                            "opacity": 1,
+                            "padding": 4,
+                          }
+                        }
+                      >
+                        <SvgMock
+                          color="#121314"
+                          height={24}
+                          name="Copy"
+                          style={
+                            {
+                              "height": 24,
+                              "width": 24,
+                            }
+                          }
+                          width={24}
+                        />
+                      </View>
+                    </RNGestureHandlerButton>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  accessible={true}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
+                  }
+                  testID="wallet-scan-button"
+                >
+                  <SvgMock
+                    color="#121314"
+                    height={24}
+                    name="ScanBarcode"
+                    style={
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
+                    }
+                    width={24}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RNCSafeAreaView
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flex": 1,
+                          "paddingHorizontal": 8,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flex": 1,
+                            "paddingHorizontal": 8,
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "alignItems": "center",
+                              "paddingTop": 20,
+                            }
+                          }
+                        >
+                          <Image
+                            source={1}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 32,
+                              }
+                            }
+                          />
+                          <Text
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontSize": 24,
+                                "fontWeight": "600",
+                                "lineHeight": 34,
+                                "paddingBottom": 20,
+                                "paddingTop": 10,
+                              }
+                            }
+                          >
+                            An error occurred
+                          </Text>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "marginBottom": 20,
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#4459ff"
+                              height={24}
+                              name="Info"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              accessibilityRole="text"
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "letterSpacing": 0,
+                                  "lineHeight": 22,
+                                }
+                              }
+                            >
+                              Your information can't be shown. Don’t worry, your wallet and funds are safe.
+                            </Text>
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
+                              "borderLeftWidth": 4,
+                              "borderRadius": 4,
+                              "flexDirection": "row",
+                              "padding": 12,
+                              "paddingLeft": 8,
+                            }
+                          }
+                          testID="banneralert"
+                        >
+                          <View
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#9a6300"
+                              height={24}
+                              name="Danger"
+                              style={
+                                {
+                                  "height": 24,
+                                  "width": 24,
+                                }
+                              }
+                              width={24}
+                            />
+                          </View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontSize": 14,
+                                  "fontWeight": "400",
+                                  "lineHeight": 20,
+                                }
+                              }
+                            >
+                              If you keep getting this error,
+                               
+                              <Text
+                                onPress={[Function]}
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                  }
+                                }
+                              >
+                                save your Secret Recovery Phrase
+                              </Text>
+                               
+                              and re-install the app. Remember: without your Secret Recovery Phrase, you can't restore your wallet.
+                            </Text>
+                          </View>
+                        </View>
+                        <Text
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "lineHeight": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            onPress={[Function]}
+                            style={
+                              {
+                                "color": "#4459ff",
+                              }
+                            }
+                          >
+                            save your Secret Recovery Phrase
+                          </Text>
+                        </Text>
+                        <View
+                          style={
+                            {
+                              "flexDirection": "row",
+                              "justifyContent": "space-between",
+                              "marginTop": 20,
+                            }
+                          }
+                        >
+                          <Text
+                            style={
+                              {
+                                "fontWeight": "600",
+                              }
+                            }
+                          >
+                            Error message:
+                          </Text>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "flexDirection": "row",
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#4459ff"
+                              height={16}
+                              name="Copy"
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                            <Text
+                              style={
+                                {
+                                  "color": "#4459ff",
+                                  "fontSize": 14,
+                                  "fontWeight": "500",
+                                  "paddingLeft": 5,
+                                }
+                              }
+                            >
+                              Copy
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#ca35421a",
+                              "borderRadius": 8,
+                              "flexShrink": 1,
+                              "marginTop": 10,
+                              "padding": 10,
+                            }
+                          }
+                        >
+                          <RCTScrollView
+                            collapsable={false}
+                            onGestureHandlerEvent={[Function]}
+                            onGestureHandlerStateChange={[Function]}
+                          >
+                            <View>
+                              <Text
+                                style={
+                                  {
+                                    "color": "#ca3542",
+                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontSize": 14,
+                                    "fontWeight": "400",
+                                    "lineHeight": 20,
+                                    "padding": 8,
+                                  }
+                                }
+                              >
+                                View: Wallet
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
+                              </Text>
+                            </View>
+                          </RCTScrollView>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "bottom": 10,
+                              "flexGrow": 1,
+                              "justifyContent": "flex-end",
+                            }
+                          }
+                        >
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#ffffff",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Describe what happened
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#4459ff",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#4459ff",
+                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontWeight": "400",
+                                  "textAlign": "center",
+                                }
+                              }
+                            >
+                              Contact support
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={[Function]}
+                            style={
+                              {
+                                "borderColor": "#4459ff",
+                                "borderRadius": 48,
+                                "borderWidth": 1,
+                                "height": 48,
+                                "marginTop": 16,
+                                "padding": 12,
+                                "paddingHorizontal": 34,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -1209,17 +2349,17 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             style={
               {
                 "backgroundColor": {
-                  "alternative": "#f2f4f6",
-                  "alternativeHover": "#E7EBEE",
-                  "alternativePressed": "#DBE0E6",
+                  "alternative": "#f3f5f9",
+                  "alternativeHover": "#f6f6f7",
+                  "alternativePressed": "#ebecef",
                   "default": "#ffffff",
-                  "defaultHover": "#F5F5F5",
-                  "defaultPressed": "#EBEBEB",
-                  "hover": "#0000000A",
-                  "muted": "#f2f4f6",
-                  "mutedHover": "#E7EBEE",
-                  "mutedPressed": "#DBE0E6",
-                  "pressed": "#00000014",
+                  "defaultHover": "#f6f6f7",
+                  "defaultPressed": "#ebecef",
+                  "hover": "#858b9a14",
+                  "muted": "#f3f5f9",
+                  "mutedHover": "#e7ebee",
+                  "mutedPressed": "#ebecef",
+                  "pressed": "#858b9a29",
                 },
                 "borderBottomColor": "rgb(216, 216, 216)",
                 "elevation": 0,
@@ -1296,7 +2436,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     {
                       "alignItems": "center",
                       "alignSelf": "center",
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                       "borderRadius": 16,
                       "flexDirection": "row",
                       "height": 32,
@@ -1342,7 +2482,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </View>
                   </View>
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={12}
                     name="ArrowDown"
                     style={
@@ -1390,7 +2530,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       {
                         "alignItems": "center",
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#848c96",
+                        "borderColor": "#b7bbc8",
                         "borderRadius": 4,
                         "borderWidth": 0,
                         "flexDirection": "row",
@@ -1569,8 +2709,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -1585,7 +2725,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       </View>
                     </View>
                     <SvgMock
-                      color="#141618"
+                      color="#121314"
                       height={12}
                       name="ArrowDown"
                       style={
@@ -1602,8 +2742,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Medium",
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Medium",
                         "fontSize": 12,
                         "fontWeight": "500",
                         "letterSpacing": 0,
@@ -1677,7 +2817,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         }
                       >
                         <SvgMock
-                          color="#141618"
+                          color="#121314"
                           height={24}
                           name="Copy"
                           style={
@@ -1692,13 +2832,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                     </RNGestureHandlerButton>
                   </View>
                 </View>
-                <View
-                  style={
-                    {
-                      "marginHorizontal": 4,
-                    }
-                  }
-                />
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -1719,7 +2852,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                   testID="wallet-scan-button"
                 >
                   <SvgMock
-                    color="#141618"
+                    color="#121314"
                     height={24}
                     name="ScanBarcode"
                     style={
@@ -1946,7 +3079,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                           <Text
                             style={
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                                 "fontFamily": "EuclidCircularB-Bold",
                                 "fontSize": 24,
                                 "fontWeight": "600",
@@ -1962,8 +3095,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#0376C91A",
-                              "borderColor": "#0376c9",
+                              "backgroundColor": "#4459ff1a",
+                              "borderColor": "#4459ff",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -1982,7 +3115,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={24}
                               name="Info"
                               style={
@@ -2005,8 +3138,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -2021,8 +3154,8 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#BF52081A",
-                              "borderColor": "#bf5208",
+                              "backgroundColor": "#9a63001a",
+                              "borderColor": "#9a6300",
                               "borderLeftWidth": 4,
                               "borderRadius": 4,
                               "flexDirection": "row",
@@ -2040,7 +3173,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#bf5208"
+                              color="#9a6300"
                               height={24}
                               name="Danger"
                               style={
@@ -2062,7 +3195,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             <Text
                               style={
                                 {
-                                  "color": "#141618",
+                                  "color": "#121314",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontSize": 14,
                                   "fontWeight": "400",
@@ -2076,7 +3209,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 onPress={[Function]}
                                 style={
                                   {
-                                    "color": "#0376c9",
+                                    "color": "#4459ff",
                                   }
                                 }
                               >
@@ -2090,7 +3223,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <Text
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "fontFamily": "EuclidCircularB-Regular",
                               "fontSize": 14,
                               "fontWeight": "400",
@@ -2102,7 +3235,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             onPress={[Function]}
                             style={
                               {
-                                "color": "#0376c9",
+                                "color": "#4459ff",
                               }
                             }
                           >
@@ -2136,7 +3269,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             }
                           >
                             <SvgMock
-                              color="#0376c9"
+                              color="#4459ff"
                               height={16}
                               name="Copy"
                               style={
@@ -2150,7 +3283,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "paddingLeft": 5,
@@ -2164,7 +3297,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                         <View
                           style={
                             {
-                              "backgroundColor": "#D738471A",
+                              "backgroundColor": "#ca35421a",
                               "borderRadius": 8,
                               "flexShrink": 1,
                               "marginTop": 10,
@@ -2181,7 +3314,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                               <Text
                                 style={
                                   {
-                                    "color": "#d73847",
+                                    "color": "#ca3542",
                                     "fontFamily": "EuclidCircularB-Regular",
                                     "fontSize": 14,
                                     "fontWeight": "400",
@@ -2191,7 +3324,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                                 }
                               >
                                 View: Wallet
-TypeError: Cannot read properties of undefined (reading 'tabs')
+TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                               </Text>
                             </View>
                           </RCTScrollView>
@@ -2209,8 +3342,8 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "backgroundColor": "#0376c9",
-                                "borderColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2237,7 +3370,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2250,7 +3383,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",
@@ -2264,7 +3397,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             onPress={[Function]}
                             style={
                               {
-                                "borderColor": "#0376c9",
+                                "borderColor": "#4459ff",
                                 "borderRadius": 48,
                                 "borderWidth": 1,
                                 "height": 48,
@@ -2277,7 +3410,7 @@ TypeError: Cannot read properties of undefined (reading 'tabs')
                             <Text
                               style={
                                 {
-                                  "color": "#0376c9",
+                                  "color": "#4459ff",
                                   "fontFamily": "EuclidCircularB-Regular",
                                   "fontWeight": "400",
                                   "textAlign": "center",

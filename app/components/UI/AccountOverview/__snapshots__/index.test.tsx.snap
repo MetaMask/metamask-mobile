@@ -35,7 +35,7 @@ exports[`AccountOverview should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "borderColor": "#0376c9",
+              "borderColor": "#4459ff",
               "borderRadius": 80,
               "borderWidth": 2,
               "padding": 2,
@@ -46,7 +46,7 @@ exports[`AccountOverview should render correctly 1`] = `
           <View
             placeholderStyle={
               {
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#f3f5f9",
               }
             }
             useNativeDriver={true}
@@ -94,7 +94,7 @@ exports[`AccountOverview should render correctly 1`] = `
                       "backgroundColor": "#eee",
                     },
                     {
-                      "backgroundColor": "#f2f4f6",
+                      "backgroundColor": "#f3f5f9",
                     },
                   ]
                 }
@@ -127,7 +127,7 @@ exports[`AccountOverview should render correctly 1`] = `
                 style={
                   {
                     "0": {
-                      "color": "#141618",
+                      "color": "#121314",
                       "fontFamily": "EuclidCircularB-Regular",
                       "fontSize": 24,
                       "fontWeight": "400",
@@ -143,8 +143,8 @@ exports[`AccountOverview should render correctly 1`] = `
                     "2": {
                       "borderColor": "#ffffff",
                     },
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -160,7 +160,7 @@ exports[`AccountOverview should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "backgroundColor": "#0376C91A",
+              "backgroundColor": "#4459ff1a",
               "borderRadius": 40,
               "marginBottom": 20,
               "marginTop": 20,
@@ -173,7 +173,7 @@ exports[`AccountOverview should render correctly 1`] = `
             numberOfLines={1}
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 12,
                 "fontWeight": "400",

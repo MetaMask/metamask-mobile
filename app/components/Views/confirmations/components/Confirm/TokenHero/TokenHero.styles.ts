@@ -25,8 +25,7 @@ const styleSheet = (params: { theme: Theme }) => {
       height: 48,
     },
     container: {
-      paddingBottom: 8,
-      paddingTop: 16,
+      paddingVertical: 16,
     },
   });
 };

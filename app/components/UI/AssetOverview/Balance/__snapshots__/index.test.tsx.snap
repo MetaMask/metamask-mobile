@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Balance should render correctly with a fiat balance 1`] = `
+exports[`Balance should render correctly with main and secondary balance 1`] = `
 <View
   style={
     {
@@ -12,8 +12,8 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -85,17 +85,17 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
           {
             "alignItems": "center",
             "aspectRatio": 1,
+            "bottom": 0,
             "height": 0,
             "justifyContent": "center",
             "position": "absolute",
             "right": 0,
-            "top": 0,
             "transform": [
               {
                 "translateX": 0,
               },
               {
-                "translateY": -0,
+                "translateY": 0,
               },
             ],
           }
@@ -122,12 +122,12 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
                 "borderColor": "#ffffff",
-                "borderRadius": 16,
+                "borderRadius": 8,
                 "borderWidth": 2,
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -164,9 +164,9 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -191,23 +191,23 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
         }
-        testID="fiat-balance-test-id"
+        testID="balance-test-id"
       >
-        456
+        123
       </Text>
       <Text
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
+            "color": "#686e7d",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -217,16 +217,16 @@ exports[`Balance should render correctly with a fiat balance 1`] = `
             "textTransform": "uppercase",
           }
         }
-        testID="main-balance-test-id"
+        testID="secondary-balance-test-id"
       >
-        123
+        456
       </Text>
     </View>
   </TouchableOpacity>
 </View>
 `;
 
-exports[`Balance should render correctly without a fiat balance 1`] = `
+exports[`Balance should render correctly without a secondary balance 1`] = `
 <View
   style={
     {
@@ -238,8 +238,8 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -311,17 +311,17 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
           {
             "alignItems": "center",
             "aspectRatio": 1,
+            "bottom": 0,
             "height": 0,
             "justifyContent": "center",
             "position": "absolute",
             "right": 0,
-            "top": 0,
             "transform": [
               {
                 "translateX": 0,
               },
               {
-                "translateY": -0,
+                "translateY": 0,
               },
             ],
           }
@@ -348,12 +348,12 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
                 "alignItems": "center",
                 "backgroundColor": "#ffffff",
                 "borderColor": "#ffffff",
-                "borderRadius": 16,
+                "borderRadius": 8,
                 "borderWidth": 2,
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -390,9 +390,9 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -417,17 +417,15 @@ exports[`Balance should render correctly without a fiat balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
-            "fontWeight": "400",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
-            "paddingHorizontal": 0,
-            "textTransform": "uppercase",
+            "lineHeight": 24,
           }
         }
-        testID="main-balance-test-id"
+        testID="balance-test-id"
       >
         123
       </Text>

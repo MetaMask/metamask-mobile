@@ -322,9 +322,9 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
                               "fontWeight": "500",
                               "letterSpacing": 0,
@@ -343,10 +343,11 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         >
                           <RCTSwitch
                             accessibilityRole="switch"
+                            disabled={false}
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            onTintColor="#0376c9"
+                            onTintColor="#4459ff"
                             style={
                               [
                                 {
@@ -358,7 +359,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#BBC0C566",
+                                    "backgroundColor": "#b7bbc866",
                                     "borderRadius": 16,
                                   },
                                 ],
@@ -366,7 +367,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             }
                             testID="metametrics-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#BBC0C566"
+                            tintColor="#b7bbc866"
                             value={false}
                           />
                         </View>
@@ -375,8 +376,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#6a737d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#686e7d",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,
@@ -396,8 +397,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           style={
                             {
                               "backgroundColor": "transparent",
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
@@ -410,8 +411,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             accessibilityRole="text"
                             style={
                               {
-                                "color": "#0376c9",
-                                "fontFamily": "EuclidCircularB-Medium",
+                                "color": "#4459ff",
+                                "fontFamily": "CentraNo1-Medium",
                                 "fontSize": 14,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
@@ -444,9 +445,9 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
+                              "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "EuclidCircularB-Medium",
+                              "fontFamily": "CentraNo1-Medium",
                               "fontSize": 16,
                               "fontWeight": "500",
                               "letterSpacing": 0,
@@ -465,10 +466,11 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         >
                           <RCTSwitch
                             accessibilityRole="switch"
+                            disabled={false}
                             onChange={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            onTintColor="#0376c9"
+                            onTintColor="#4459ff"
                             style={
                               [
                                 {
@@ -480,7 +482,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                                     "alignSelf": "flex-start",
                                   },
                                   {
-                                    "backgroundColor": "#BBC0C566",
+                                    "backgroundColor": "#b7bbc866",
                                     "borderRadius": 16,
                                   },
                                 ],
@@ -488,7 +490,7 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                             }
                             testID="data-collection-switch"
                             thumbTintColor="#ffffff"
-                            tintColor="#BBC0C566"
+                            tintColor="#b7bbc866"
                             value={false}
                           />
                         </View>
@@ -497,8 +499,8 @@ exports[`MetaMetricsAndDataCollectionSection render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#6a737d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#686e7d",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "letterSpacing": 0,

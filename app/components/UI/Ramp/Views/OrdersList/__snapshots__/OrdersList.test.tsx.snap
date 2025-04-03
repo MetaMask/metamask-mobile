@@ -178,7 +178,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -192,8 +192,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -215,8 +215,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -231,7 +231,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -254,7 +254,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -268,8 +268,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -297,10 +297,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -322,8 +322,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -382,8 +382,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -400,8 +400,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c8234",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -434,8 +434,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -451,8 +451,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -480,10 +480,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -505,8 +505,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -565,8 +565,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -583,8 +583,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -617,8 +617,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -634,8 +634,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -663,10 +663,10 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -688,8 +688,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -748,8 +748,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -766,8 +766,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -800,8 +800,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -817,8 +817,8 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1035,8 +1035,8 @@ exports[`OrdersList renders correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1051,7 +1051,7 @@ exports[`OrdersList renders correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1074,7 +1074,7 @@ exports[`OrdersList renders correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1088,8 +1088,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1112,7 +1112,7 @@ exports[`OrdersList renders correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -1126,8 +1126,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -1155,10 +1155,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1180,8 +1180,8 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1240,8 +1240,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1258,8 +1258,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c8234",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1292,8 +1292,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1309,8 +1309,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1338,10 +1338,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1363,8 +1363,8 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1423,8 +1423,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1441,8 +1441,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1475,8 +1475,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1492,8 +1492,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1521,10 +1521,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1546,8 +1546,8 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1606,8 +1606,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1624,8 +1624,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1658,8 +1658,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1675,8 +1675,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1704,10 +1704,10 @@ exports[`OrdersList renders correctly 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -1729,8 +1729,8 @@ exports[`OrdersList renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1789,8 +1789,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1807,8 +1807,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -1841,8 +1841,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1858,8 +1858,8 @@ exports[`OrdersList renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -1987,7 +1987,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2001,8 +2001,8 @@ exports[`OrdersList renders empty buy message 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2024,8 +2024,8 @@ exports[`OrdersList renders empty buy message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2040,7 +2040,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2063,7 +2063,7 @@ exports[`OrdersList renders empty buy message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2077,8 +2077,8 @@ exports[`OrdersList renders empty buy message 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2110,8 +2110,8 @@ exports[`OrdersList renders empty buy message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#9fa6ae",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#9ca1af",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2236,7 +2236,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2250,8 +2250,8 @@ exports[`OrdersList renders empty sell message 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2274,7 +2274,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2288,8 +2288,8 @@ exports[`OrdersList renders empty sell message 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2311,8 +2311,8 @@ exports[`OrdersList renders empty sell message 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2327,7 +2327,7 @@ exports[`OrdersList renders empty sell message 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2359,8 +2359,8 @@ exports[`OrdersList renders empty sell message 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#9fa6ae",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#9ca1af",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2511,7 +2511,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2525,8 +2525,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2549,7 +2549,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2563,8 +2563,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2586,8 +2586,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2602,7 +2602,7 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2630,10 +2630,10 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -2655,8 +2655,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2715,8 +2715,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2733,8 +2733,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -2767,8 +2767,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2784,8 +2784,8 @@ exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -2939,7 +2939,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2953,8 +2953,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -2977,7 +2977,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -2991,8 +2991,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -3014,8 +3014,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3030,7 +3030,7 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -3058,10 +3058,10 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -3083,8 +3083,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3143,8 +3143,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3161,8 +3161,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -3195,8 +3195,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3212,8 +3212,8 @@ exports[`OrdersList resets filter to all after other filter was set 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3430,8 +3430,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#0376c9",
-                  "borderColor": "#0376c9",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3446,7 +3446,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -3469,7 +3469,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3483,8 +3483,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -3507,7 +3507,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 16,
                   "borderWidth": 1,
                   "flexDirection": "row",
@@ -3521,8 +3521,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
                     "fontSize": 14,
                     "fontWeight": "500",
                     "letterSpacing": 0,
@@ -3550,10 +3550,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -3575,8 +3575,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3635,8 +3635,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3653,8 +3653,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#1c8234",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -3687,8 +3687,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3704,8 +3704,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3733,10 +3733,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -3758,8 +3758,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3818,8 +3818,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3836,8 +3836,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -3870,8 +3870,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3887,8 +3887,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -3916,10 +3916,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -3941,8 +3941,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -4001,8 +4001,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4019,8 +4019,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4053,8 +4053,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4070,8 +4070,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4099,10 +4099,10 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
         style={
           {
             "borderBottomWidth": 0.5,
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
           }
         }
-        underlayColor="#f2f4f6"
+        underlayColor="#f3f5f9"
       >
         <View
           accessibilityRole="none"
@@ -4124,8 +4124,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -4184,8 +4184,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4202,8 +4202,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 12,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -4236,8 +4236,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                     "letterSpacing": 0,
@@ -4253,8 +4253,8 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 12,
                     "fontWeight": "400",
                     "letterSpacing": 0,

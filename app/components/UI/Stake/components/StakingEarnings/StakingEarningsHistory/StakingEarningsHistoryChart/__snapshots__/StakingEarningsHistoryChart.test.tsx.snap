@@ -21,8 +21,8 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#1c8234",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#1c7e33",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -38,8 +38,8 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -163,9 +163,9 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                   gradient={
                     [
                       0,
-                      1868340,
+                      1867315,
                       1,
-                      438075956,
+                      438074931,
                     ]
                   }
                   gradientTransform={null}
@@ -192,7 +192,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280058420,
+                    "payload": 4280057395,
                     "type": 0,
                   }
                 }
@@ -218,7 +218,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280058420,
+                    "payload": 4280057395,
                     "type": 0,
                   }
                 }
@@ -244,7 +244,7 @@ exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
                 }
                 stroke={
                   {
-                    "payload": 4280058420,
+                    "payload": 4280057395,
                     "type": 0,
                   }
                 }

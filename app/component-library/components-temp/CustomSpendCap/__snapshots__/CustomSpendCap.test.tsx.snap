@@ -4,7 +4,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 8,
       "padding": 16,
     }
@@ -31,8 +31,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Bold",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 14,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -75,7 +75,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onStartShouldSetResponder={[Function]}
       >
         <SvgMock
-          color="#d73847"
+          color="#ca3542"
           height={16}
           name="Danger"
           style={
@@ -98,8 +98,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       style={
         {
           "backgroundColor": "transparent",
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -112,8 +112,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -164,7 +164,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           style={
             [
               {
-                "color": "#141618",
+                "color": "#121314",
                 "flexGrow": 1,
                 "fontFamily": "Euclid Circular B",
                 "fontSize": 14,
@@ -176,7 +176,7 @@ exports[`CustomSpendCap should match snapshot 1`] = `
                 "paddingTop": 0,
               },
               {
-                "color": "#d73847",
+                "color": "#ca3542",
               },
             ]
           }
@@ -189,8 +189,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         onPress={[Function]}
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 12,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -214,8 +214,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Regular",
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "letterSpacing": 0,
@@ -234,8 +234,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         style={
           {
             "backgroundColor": "transparent",
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -248,8 +248,8 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,

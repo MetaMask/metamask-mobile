@@ -317,7 +317,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -404,8 +404,8 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 32,
                                   "fontWeight": "700",
                                   "letterSpacing": 0,
@@ -421,8 +421,8 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
@@ -454,7 +454,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#0376c9",
+                                "backgroundColor": "#4459ff",
                                 "borderRadius": 20,
                                 "flexDirection": "row",
                                 "height": undefined,
@@ -470,7 +470,7 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
@@ -505,8 +505,8 @@ exports[`UpdateNeeded should render correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#0376c9",
-                                  "fontFamily": "EuclidCircularB-Medium",
+                                  "color": "#4459ff",
+                                  "fontFamily": "CentraNo1-Medium",
                                   "fontSize": 14,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
