@@ -24,12 +24,14 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { useAccountNotificationsToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
 
-export const NOTIFICATION_OPTIONS_TOGGLE_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle`;
-export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle--loading`;
-export const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle--switch`;
+const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID =
+  'notification_options_toggle_switch';
+export const NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID = (
+  testID = NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
+) => `${testID}:notification_options_toggle--container`;
+export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (
+  testID = NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
+) => `${testID}:notification_options_toggle--loading`;
 
 interface NotificationOptionsToggleProps {
   address: string;
@@ -113,7 +115,7 @@ const NotificationOptionToggle = ({
   return (
     <View
       style={styles.container}
-      testID={NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(testID)}
+      testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}
     >
       {type === NotificationsToggleTypes.ACTIONS && icon ? (
         <Icon
@@ -160,7 +162,7 @@ const NotificationOptionToggle = ({
             thumbColor={theme.brandColors.white}
             disabled={disabledSwitch}
             ios_backgroundColor={colors.border.muted}
-            testID={NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(testID)}
+            testID={testID}
           />
         )}
       </View>

@@ -1,10 +1,13 @@
 // @ts-check
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import TestHelpers from '../../helpers';
+import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
+import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
+import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNotifications } from '../../tags';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import Assertions from '../../utils/Assertions';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import {
   NOTIFICATIONS_TEAM_PASSWORD,
   NOTIFICATIONS_TEAM_SEED_PHRASE,
@@ -14,9 +17,6 @@ import {
   getMockWalletNotificationItemId,
   mockNotificationServices,
 } from './utils/mocks';
-import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
-import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
-import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 
 /** @type {import('detox/detox').DeviceLaunchAppConfig} */
 const launchAppSettings = {
