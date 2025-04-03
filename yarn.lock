@@ -4800,17 +4800,17 @@
     is-hex-prefixed "1.0.0"
     strip-hex-prefix "1.0.0"
 
-"@metamask/gas-fee-controller@^22.0.3":
-  version "22.0.3"
-  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-22.0.3.tgz#111ebc1fdcb655d11adf912f0b300b2302783efd"
-  integrity sha512-BbIMLbiL4UO0LNu1SuhCO7QSwOTEGim1xi8oqyuXncdsBht4OVav4AEZL28vQkC2xZrVGGeicDZyZS2XCe3utg==
+"@metamask/gas-fee-controller@^23.0.0":
+  version "23.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/gas-fee-controller/-/gas-fee-controller-23.0.0.tgz#fdb35152c6a0bb2e6a3aa09891d1109af9e6488c"
+  integrity sha512-bP1YNNPktZQVg3AlUxC8gTTX9Rtkq3hI2RkD/nf9+2O4AJbQvTjNQ6PmkpHcy60GFnYf4QEb6tFC0LYrLV1zAQ==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
+    "@metamask/controller-utils" "^11.6.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/ethjs-unit" "^0.3.0"
-    "@metamask/polling-controller" "^12.0.3"
-    "@metamask/utils" "^11.1.0"
+    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/utils" "^11.2.0"
     "@types/bn.js" "^5.1.5"
     "@types/uuid" "^8.3.0"
     bn.js "^5.2.1"
@@ -4886,7 +4886,7 @@
     "@metamask/utils" "^11.1.0"
     bech32 "^2.0.0"
 
-"@metamask/keyring-controller@^21.0.0", "@metamask/keyring-controller@^21.0.1":
+"@metamask/keyring-controller@^21.0.1":
   version "21.0.1"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-controller/-/keyring-controller-21.0.1.tgz#19cf28006e20fb165553a349adc10a5cc1967141"
   integrity sha512-WvLZ7/C+wZsMLK6+D138ai9mlJesYdLuMOY6me4ClHJ24HALTgaZmCtsJ5wXcl4FR00fWucsn9TgayennrYAWg==
@@ -5152,7 +5152,7 @@
     immer "^9.0.6"
     nanoid "^3.3.8"
 
-"@metamask/phishing-controller@^12.0.3", "@metamask/phishing-controller@^12.4.1":
+"@metamask/phishing-controller@^12.4.1":
   version "12.4.1"
   resolved "https://registry.yarnpkg.com/@metamask/phishing-controller/-/phishing-controller-12.4.1.tgz#afce80b16d04856c53a8be9d24961d3fb272a2db"
   integrity sha512-UOTl0z8lVXlx3p32Kp0YtLN5YiXgodT0JXNNS/f5Q2KLlwoYTvVctb/cDyKzBDf/mWvECy1+npKCM43aQ5clTA==
@@ -5219,15 +5219,13 @@
     "@metamask/base-controller" "^7.0.2"
     "@metamask/controller-utils" "^11.4.4"
 
-"@metamask/profile-sync-controller@^10.1.0":
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-10.1.0.tgz#8fbb21711cc34c30aa04ee534aef315c4b2f4a91"
-  integrity sha512-vgtksldFNiPrwHDYashUSYWSGFlY9lIvJgTXKz+btTXWFTNTYIdZGEmutyAgKJaP/qBOmNJW7gHXRvziNfYXhQ==
+"@metamask/profile-sync-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-11.0.0.tgz#d51709ae4d0cb6cd593aab9532ca0c4b6468f33e"
+  integrity sha512-fHzo5E09G4P39UyfBZsnOzcr2Pbji3WvsVJKya6kPt0F2lBjjmD1sYGTQ+n3qv6vjID4CwsHOVDliWox6UCEXw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/keyring-api" "^17.2.0"
-    "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/network-controller" "^22.2.1"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@noble/ciphers" "^0.5.2"
@@ -5379,15 +5377,15 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.0.1"
 
-"@metamask/signature-controller@^23.1.0":
-  version "23.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-23.1.0.tgz#45b3b545e5a4e890ff41a737b6526cb08fd9f1b3"
-  integrity sha512-HPUDjVjsZ/HU5QZlmllh1yN2Z1+VhqjTPmzxqXBqD28iKYwUU0YEMN+Jahyh9Ukl7BH/UgzGaaHytGXJ1Xf2Xw==
+"@metamask/signature-controller@^25.0.0":
+  version "25.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-25.0.0.tgz#05105413417fc968ad69facee3ecbdf4b93c75f0"
+  integrity sha512-npkXSMdM/QVLeETBzjOkHXH0ZRCtm8/imP5ngGhv4zC1bOlOUuItOhRB06UlivztLKANwyvtoeP7Fs330e2+Ew==
   dependencies:
-    "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.4"
-    "@metamask/eth-sig-util" "^8.0.0"
-    "@metamask/utils" "^10.0.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/eth-sig-util" "^8.2.0"
+    "@metamask/utils" "^11.2.0"
     jsonschema "^1.4.1"
     lodash "^4.17.21"
     uuid "^8.3.2"
