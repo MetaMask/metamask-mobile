@@ -157,6 +157,7 @@ describe('PPOM Utils', () => {
                 type: RpcEndpointType.Custom,
                 name: 'ethereum',
                 url: 'https://mainnet.infura.io/v3',
+                failoverUrls: undefined,
               },
             ],
             lastUpdatedAt: Date.now(),
