@@ -1,6 +1,5 @@
 import Matchers from '../../utils/Matchers';
 import Gestures from '../../utils/Gestures';
-import Assertions from '../../utils/Assertions';
 import { BuildQuoteSelectors } from '../../selectors/Ramps/BuildQuote.selectors';
 
 class BuildQuoteView {
