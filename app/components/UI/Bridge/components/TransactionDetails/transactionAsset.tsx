@@ -21,7 +21,7 @@ const createStyles = () =>
     },
     tokenInfo: {
       flex: 1,
-      marginLeft: 8,
+      marginLeft: 12,
       marginTop: -6,
     },
     infoButton: {

@@ -20,7 +20,7 @@ const VerticalLine = ({ color }: { color: IconColor }) => {
   return (
     <View
       style={{
-        height: 40,
+        height: 30,
         marginTop: -7,
         marginBottom: -7,
         marginLeft: 5.2,
