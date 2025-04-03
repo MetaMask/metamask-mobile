@@ -27,7 +27,8 @@ const createStyles = (colors) =>
     phishingModalWrapper: {
       flex: 1,
       padding: 20,
-      paddingTop: 150,
+      justifyContent: 'center',
+      marginTop: -100,
       backgroundColor: colors.background.alternative,
     },
     phishingModalTitle: {
