@@ -207,7 +207,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import { isPhishingDetectionEnabled } from '../../util/phishingDetection';
+import { isPhishingDetectionEnabled, isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -430,7 +430,7 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    if (isPhishingDetectionEnabled()) {
+    if (isPhishingDetectionEnabled() && !isProductSafetyDappScanningEnabled()) {
       // Call maybeUpdateState() directly on the controller instance
       // rather than using the utility function, as this is during initialization
       // and we need immediate access to the controller we just created
