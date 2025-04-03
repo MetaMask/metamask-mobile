@@ -25,7 +25,6 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   });
 
   it('sends a failing contract transaction', async () => {
-
     const testSpecificMock  = {
         GET: [
           mockEvents.GET.suggestedGasFeesApiGanache

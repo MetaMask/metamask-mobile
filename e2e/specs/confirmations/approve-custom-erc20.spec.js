@@ -14,6 +14,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
