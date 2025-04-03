@@ -104,7 +104,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     try {
       const multichainNetworkController = Engine.context
         .MultichainNetworkController as MultichainNetworkController;
-      await multichainNetworkController.getNetworksWithActivityByAccounts();
+      await multichainNetworkController.getNetworksWithTransactionActivityByAccounts();
     } catch (error) {
       console.error('Error fetching accounts with activity', error);
     }

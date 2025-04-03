@@ -157,7 +157,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
           },
         },
-        "networksWithActivity": {},
+        "networksWithTransactionActivity": {},
         "selectedMultichainNetworkChainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
       },
       "MultichainTransactionsController": {

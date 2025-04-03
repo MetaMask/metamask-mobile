@@ -105,8 +105,8 @@ export const selectSelectedNonEvmNetworkSymbol = createSelector(
  * @returns An object where the keys are hex addresses and the values contain the namespace and an array of active chain IDs for that address.
  * @returns {ActiveNetworksByAddress} Object mapping hex addresses to their network activity status.
  */
-export const selectActiveEVMNetworksWithActivity = createSelector(
+export const selectNetworksWithActivity = createSelector(
   selectMultichainNetworkControllerState,
   (multichainNetworkControllerState: MultichainNetworkControllerState) =>
-    multichainNetworkControllerState.networksWithActivity,
+    multichainNetworkControllerState.networksWithTransactionActivity,
 );
