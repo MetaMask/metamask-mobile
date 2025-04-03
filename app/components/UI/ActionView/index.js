@@ -21,9 +21,18 @@ export const ConfirmButtonState = {
 
 const getStyles = (colors) =>
   StyleSheet.create({
+    actionView: {
+      flex: 1,
+      flexDirection: 'column',
+      height: '100%',
+    },
     actionContainer: {
       width: '100%',
       paddingVertical: 16,
+      marginTop: 'auto',
+      flexDirection: 'column',
+      flex: 1,
+      height: '100%',
     },
     button: {
       flex: 1,
@@ -76,15 +85,15 @@ export default function ActionView({
   const styles = getStyles(colors);
 
   return (
-    <View style={baseStyles.flexGrow}>
+    <View style={[baseStyles.flexGrow, styles.actionView]}>
       <KeyboardAwareScrollView
-        style={[baseStyles.flexGrow, style]}
+        style={[baseStyles.flexGrow, style, styles.actionView]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
       >
         <TouchableWithoutFeedback
-          style={baseStyles.flexGrow}
+          style={[baseStyles.flexGrow, styles.actionView]}
           // eslint-disable-next-line react/jsx-no-bind
           onPress={() => {
             if (keyboardShouldPersistTaps === 'handled') {

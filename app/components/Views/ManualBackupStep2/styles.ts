@@ -196,6 +196,27 @@ const createStyles = (colors: any) =>
       margin: 5,
       columnGap: 8,
     },
+    statusContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      gap: 16,
+      padding: 16,
+      width: '100%',
+    },
+    statusTitle: {
+      ...fontStyles.bold,
+      fontSize: 16,
+      color: colors.text.default,
+    },
+    statusDescription: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.text.default,
+    },
+    statusButton: {
+      width: '100%',
+    },
   });
 
 export default createStyles;

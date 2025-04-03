@@ -569,9 +569,13 @@ const ImportFromSecretRecoveryPhrase = ({
         error_type: error,
       });
     } else {
-      navigation.reset({
-        index: 1,
-        routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+      navigation.navigate('OptinMetrics', {
+        onContinue: () => {
+          navigation.reset({
+            index: 1,
+            routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+          });
+        },
       });
     }
   };
@@ -614,7 +618,7 @@ const ImportFromSecretRecoveryPhrase = ({
                         onKeyPress={(e) => handleKeyPress(e, 0)}
                       />
                     ) : (
-                      <View style={styles.seedPhraseInputContainer}>
+                      <View style={[styles.seedPhraseInputContainer]}>
                         <FlatList
                           data={seedPhrase}
                           numColumns={numColumns}
@@ -624,6 +628,8 @@ const ImportFromSecretRecoveryPhrase = ({
                               style={[
                                 styles.inputContainer,
                                 { width: itemWidth },
+                                seedPhraseInputFocusedIndex === index &&
+                                  styles.seedPhraseInputFocused,
                               ]}
                             >
                               <Text style={styles.inputNumber}>

@@ -8,11 +8,15 @@ import {
   KeyboardAvoidingView,
   Appearance,
   FlatList,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import FeatherIcons from 'react-native-vector-icons/Feather';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
@@ -174,26 +178,27 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <View style={styles.seedPhraseConcealerContainer}>
-        <BlurView blurType={blurType} blurAmount={1} style={styles.blurView} />
-        <View style={styles.seedPhraseConcealer}>
-          <FeatherIcons name="eye-off" size={24} style={styles.icon} />
-          <Text style={styles.reveal}>
-            {strings('manual_backup_step_1.reveal')}
-          </Text>
-          <Text style={styles.watching}>
-            {strings('manual_backup_step_1.watching')}
-          </Text>
-          <View style={styles.viewButtonWrapper}>
-            <StyledButton
-              type={'onOverlay'}
-              onPress={revealSeedPhrase}
-              testID={ManualBackUpStepsSelectorsIDs.VIEW_BUTTON}
-              containerStyle={styles.viewButtonContainer}
-            >
-              {strings('manual_backup_step_1.view')}
-            </StyledButton>
+        <TouchableOpacity onPress={revealSeedPhrase} style={styles.blurView}>
+          <BlurView
+            blurType={blurType}
+            blurAmount={1}
+            style={styles.blurView}
+            onPress={revealSeedPhrase}
+          />
+          <View style={styles.seedPhraseConcealer}>
+            <Icon
+              name={IconName.EyeSlashSolid}
+              size={IconSize.Xl}
+              style={styles.icon}
+            />
+            <Text style={styles.reveal}>
+              {strings('manual_backup_step_1.reveal')}
+            </Text>
+            <Text style={styles.watching}>
+              {strings('manual_backup_step_1.watching')}
+            </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -282,7 +287,14 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           </Text>
           <View style={styles.infoWrapper}>
             <Text style={styles.info}>
-              {strings('manual_backup_step_1.info')}
+              {strings('manual_backup_step_1.info-1')}{' '}
+              <Text style={styles.infoLink}>
+                {strings('manual_backup_step_1.info-2')}{' '}
+              </Text>
+              {strings('manual_backup_step_1.info-3')}{' '}
+              <Text style={styles.infoBold}>
+                {strings('manual_backup_step_1.info-4')}
+              </Text>
             </Text>
           </View>
 

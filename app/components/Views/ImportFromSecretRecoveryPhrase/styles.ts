@@ -114,14 +114,12 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 0,
     },
     pasteButton: {
-      width: '100%',
       paddingHorizontal: 16,
       paddingVertical: 16,
-      flex: 1,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      textAlign: 'center',
+    },
+    seedPhraseInputFocused: {
+      borderColor: colors.primary.default,
+      borderWidth: 1,
     },
     seedPhraseContinueCta: {
       marginTop: 'auto',
