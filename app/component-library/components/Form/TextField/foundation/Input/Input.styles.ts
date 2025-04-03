@@ -4,6 +4,10 @@ import { StyleSheet, TextStyle } from 'react-native';
 // External dependencies.
 import { Theme } from '../../../../../../util/theme/models';
 import { colors } from '../../../../../../styles/common';
+import {
+  getFontStyleVariant,
+  FontWeight,
+} from '../../../../Texts/Text/Text.utils';
 
 // Internal dependencies
 import { InputStyleSheetVars } from './Input.types';
@@ -40,7 +44,9 @@ const styleSheet = (params: { theme: Theme; vars: InputStyleSheetVars }) => {
         height: 24,
         ...stateObj,
         paddingVertical: 0,
-        fontFamily: theme.typography[textVariant].fontFamily,
+        fontFamily: getFontStyleVariant(
+          theme.typography[textVariant].fontWeight as FontWeight,
+        ),
         fontWeight: theme.typography[textVariant].fontWeight,
         fontSize: theme.typography[textVariant].fontSize,
         letterSpacing: theme.typography[textVariant].letterSpacing,

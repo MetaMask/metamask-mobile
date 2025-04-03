@@ -35,11 +35,10 @@ exports[`CustomInput should render correctly 1`] = `
           {
             "color": "#121314",
             "flexGrow": 1,
-            "fontFamily": "Euclid Circular B",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "marginRight": 16,
             "paddingBottom": 0,
             "paddingTop": 0,

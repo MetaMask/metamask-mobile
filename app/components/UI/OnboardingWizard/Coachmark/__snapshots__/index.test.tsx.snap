@@ -95,7 +95,7 @@ exports[`Coachmark should render correctly 1`] = `
           {
             "alignSelf": "center",
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "600",
           }
@@ -206,7 +206,7 @@ exports[`Coachmark should render correctly 1`] = `
               null,
               [
                 {
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 14,
                   "fontWeight": "600",
                   "textAlign": "center",

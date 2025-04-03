@@ -31,7 +31,7 @@ const createStyles = (colors: Colors) =>
       marginTop: 130,
     },
     emptyTokensViewText: {
-      fontFamily: 'EuclidCircularB-Medium',
+      fontFamily: 'CentraNo1-Medium',
     },
     text: {
       fontSize: 20,
