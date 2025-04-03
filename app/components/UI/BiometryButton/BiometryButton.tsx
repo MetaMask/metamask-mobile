@@ -17,7 +17,7 @@ const androidIris = require('../../../images/android-iris.png');
 type BiometryType = BIOMETRY_TYPE | AUTHENTICATION_TYPE | string | null;
 
 interface BiometryButtonProps {
-  onPress: () => Promise<void>;
+  onPress: () => void;
   hidden: boolean;
   biometryType: BiometryType | null;
 }
