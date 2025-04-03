@@ -6,8 +6,9 @@ exports[`PhishingModal should render correctly 1`] = `
     {
       "backgroundColor": "#f3f5f9",
       "flex": 1,
+      "justifyContent": "center",
+      "marginTop": -100,
       "padding": 20,
-      "paddingTop": 150,
     }
   }
 >
@@ -68,7 +69,7 @@ exports[`PhishingModal should render correctly 1`] = `
       }
     }
   >
-    MetaMask flagged the site youre trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
+    MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.
   </Text>
   <Text
     style={
@@ -81,7 +82,8 @@ exports[`PhishingModal should render correctly 1`] = `
       }
     }
   >
-    You may also 
+    You may also
+     
     <Text
       style={
         {
@@ -92,7 +94,8 @@ exports[`PhishingModal should render correctly 1`] = `
     >
       proceed anyway
     </Text>
-    , but please do so at your own risk.
+    , 
+    but please do so at your own risk.
   </Text>
   <TouchableOpacity
     style={
