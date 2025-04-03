@@ -1,7 +1,8 @@
+/* eslint-disable import/no-nodejs-modules */
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
-import * as fs from 'fs/promises'
+import { readFile, writeFile, access, mkdir } from 'fs/promises';
 import path from 'path';
 
 const LOGS_DIR = 'api-monitor-logs';
@@ -20,7 +21,7 @@ const CONSOLE_LOG_CONFIG = {
  */
 const dirExists = async (dir) => {
   try {
-    await fs.access(dir);
+    await access(dir);
     return true;
   }
   catch (error) {
@@ -35,7 +36,7 @@ const dirExists = async (dir) => {
 const createLogFile = async () => {
   const logsDirExists = await dirExists(LOGS_DIR);
   if (!logsDirExists) {
-    await fs.mkdir(LOGS_DIR, { recursive: true });
+    await mkdir(LOGS_DIR, { recursive: true });
   }
 
   const timestamp = new Date()
@@ -45,7 +46,7 @@ const createLogFile = async () => {
     .replace('Z', '');
   
   const logFile = path.join(LOGS_DIR, `api-monitor-${timestamp}.json`);
-  await fs.writeFile(logFile, '[]');
+  await writeFile(logFile, '[]');
   return logFile;
 };
 
@@ -84,7 +85,7 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
   try {
     for (let i = 0; i < retries; i++) {
       try {
-        const fileContent = await fs.readFile(logFile, 'utf8');
+        const fileContent = await readFile(logFile, 'utf8');
         let logs;
         
         try {
@@ -106,7 +107,7 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
         
         logs.push(logEntry);
         
-        await fs.writeFile(logFile, JSON.stringify(logs, null, 2));
+        await writeFile(logFile, JSON.stringify(logs, null, 2));
         return;
       } catch (error) {
         if (i === retries - 1) {
