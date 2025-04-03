@@ -122,15 +122,15 @@ export const useTokensWithBalance: ({
   const multiChainMarketData = useSelector(selectTokenMarketData);
   const multiChainCurrencyRates = useSelector(selectCurrencyRates);
 
-  // All tokens across chains and their balances
+  // All EVM tokens across chains and their balances
   // Includes native and non-native tokens
-  const accountTokensAcrossChains = useSelector((state: RootState) =>
+  const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
     selectAccountTokensAcrossChainsForAddress(state, lastSelectedEvmAccount?.address),
   );
   const evmTokenBalances = useSelector(selectTokensBalances);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // Already contains balance and fiat values
+  // Already contains balance and fiat values for native SOL and SPL tokens
   // Balance and fiat values are not truncated
   const nonEvmTokens = useSelector((state: RootState) =>
     selectMultichainTokenListForAccountId(state, lastSelectedSolanaAccount?.id),
@@ -143,7 +143,7 @@ export const useTokensWithBalance: ({
     }
 
     const allEvmAccountTokens = (
-      Object.values(accountTokensAcrossChains).flat() as TokenI[]
+      Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
     ).filter((token) => chainIds.includes(token.chainId as Hex));
 
     const allNonEvmAccountTokens = (
@@ -192,7 +192,7 @@ export const useTokensWithBalance: ({
       });});
     return sortAssets(properTokens, tokenSortConfig);
   }, [
-    accountTokensAcrossChains,
+    evmAccountTokensAcrossChains,
     multiChainMarketData,
     evmTokenBalances,
     networkConfigurationsByChainId,

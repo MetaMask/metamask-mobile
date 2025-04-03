@@ -1,9 +1,10 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip , BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 
 const ethChainId = '0x1' as Hex;
 const optimismChainId = '0xa' as Hex;
-const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
+const mockEvmAddress = '0x1234567890123456789012345678901234567890' as Hex;
+const mockSolanaAddress = 'kljad90afSCjkladasASKLSD' as Hex;
 
 // Ethereum tokens
 export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
@@ -11,6 +12,9 @@ export const ethToken2Address = '0x0000000000000000000000000000000000000002' as 
 
 // Optimism tokens
 export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
+
+// Solana tokens
+export const solanaToken1Address = 'solana:mainnet/spl:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -27,7 +31,7 @@ export const initialState = {
       },
       TokenBalancesController: {
         tokenBalances: {
-          [mockAddress]: {
+          [mockEvmAddress]: {
             [ethChainId]: {
               [ethToken1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
               [ethToken2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
@@ -41,7 +45,7 @@ export const initialState = {
       TokensController: {
         allTokens: {
           [ethChainId]: {
-            [mockAddress]: [
+            [mockEvmAddress]: [
               {
                 address: ethToken1Address,
                 symbol: 'TOKEN1',
@@ -61,7 +65,7 @@ export const initialState = {
             ],
           },
           [optimismChainId]: {
-            [mockAddress]: [
+            [mockEvmAddress]: [
               {
                 address: optimismToken1Address,
                 symbol: 'FOO',
@@ -139,18 +143,18 @@ export const initialState = {
       },
       AccountTrackerController: {
         accounts: {
-          [mockAddress]: {
+          [mockEvmAddress]: {
             balance: '0x29a2241af62c0000' as Hex, // 3 ETH
           },
         },
         accountsByChainId: {
           [ethChainId]: {
-            [mockAddress]: {
+            [mockEvmAddress]: {
               balance: '0x29a2241af62c0000' as Hex, // 3 ETH
             },
           },
           [optimismChainId]: {
-            [mockAddress]: {
+            [mockEvmAddress]: {
               balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
             },
           },
@@ -161,13 +165,53 @@ export const initialState = {
         selectedMultichainNetworkChainId: undefined,
         multichainNetworkConfigurationsByChainId: {},
       },
+      MultichainBalancesController: {
+        balances: {
+          [mockSolanaAddress]: {
+            [solanaToken1Address]: {
+              amount: '100',
+              unit: 'USDC',
+            },
+          },
+        },
+      },
+      MultichainAssetsController: {
+        accountsAssets: {
+          [mockSolanaAddress]: [
+            solanaToken1Address,
+          ],
+        },
+        assetsMetadata: {
+          [solanaToken1Address]: {
+            name: 'USD Coin',
+            symbol: 'USDC',
+            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            fungible: true as const,
+            units: [
+              {
+                name: 'USDC',
+                symbol: 'USDC',
+                decimals: 6,
+              },
+            ],
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          [solanaToken1Address]: {
+            rate: '1',
+            conversionTime: 0,
+          },
+        },
+      },
       AccountsController: {
         internalAccounts: {
           selectedAccount: 'account1',
           accounts: {
             account1: {
               id: 'account1',
-              address: mockAddress,
+              address: mockEvmAddress,
               name: 'Account 1',
             },
           },
