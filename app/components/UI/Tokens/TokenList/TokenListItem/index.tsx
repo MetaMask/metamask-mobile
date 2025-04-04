@@ -211,40 +211,43 @@ export const TokenListItem = React.memo(
 
     const { isStakingSupportedChain } = useStakingChainByChainId(chainId);
 
-    const networkBadgeSource = useCallback((currentChainId: Hex) => {
-      if (isTestNet(currentChainId))
-        return getTestNetImageByChainId(currentChainId);
-      const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
-        | {
-            imageSource: string;
-          }
-        | undefined;
+    const networkBadgeSource = useCallback(
+      (currentChainId: Hex) => {
+        if (isTestNet(currentChainId))
+          return getTestNetImageByChainId(currentChainId);
+        const defaultNetwork = getDefaultNetworkByChainId(currentChainId) as
+          | {
+              imageSource: string;
+            }
+          | undefined;
 
-      if (defaultNetwork) {
-        return defaultNetwork.imageSource;
-      }
+        if (defaultNetwork) {
+          return defaultNetwork.imageSource;
+        }
 
-      const unpopularNetwork = UnpopularNetworkList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
+        const unpopularNetwork = UnpopularNetworkList.find(
+          (networkConfig) => networkConfig.chainId === currentChainId,
+        );
 
-      const customNetworkImg = CustomNetworkImgMapping[currentChainId];
+        const customNetworkImg = CustomNetworkImgMapping[currentChainId];
 
-      const popularNetwork = PopularList.find(
-        (networkConfig) => networkConfig.chainId === currentChainId,
-      );
+        const popularNetwork = PopularList.find(
+          (networkConfig) => networkConfig.chainId === currentChainId,
+        );
 
-      const network = unpopularNetwork || popularNetwork;
-      if (network) {
-        return network.rpcPrefs.imageSource;
-      }
-      if (isCaipChainId(chainId)) {
-        return getNonEvmNetworkImageSourceByChainId(chainId);
-      }
-      if (customNetworkImg) {
-        return customNetworkImg;
-      }
-    }, []);
+        const network = unpopularNetwork || popularNetwork;
+        if (network) {
+          return network.rpcPrefs.imageSource;
+        }
+        if (isCaipChainId(chainId)) {
+          return getNonEvmNetworkImageSourceByChainId(chainId);
+        }
+        if (customNetworkImg) {
+          return customNetworkImg;
+        }
+      },
+      [chainId],
+    );
 
     const onItemPress = (token: TokenI) => {
       // Track the event

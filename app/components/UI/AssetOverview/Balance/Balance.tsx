@@ -85,8 +85,6 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   const tokenChainId = asset.chainId;
 
-  console.log(asset.chainId);
-
   const renderNetworkAvatar = useCallback(() => {
     if (asset.isNative) {
       return (
