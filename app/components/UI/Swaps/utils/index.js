@@ -50,7 +50,10 @@ export function isSwapsAllowed(chainId) {
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (chainId === SolScope.Mainnet) {
+  if (
+    chainId === SolScope.Mainnet &&
+    process.env.MM_BRIDGE_UI_ENABLED === 'true'
+  ) {
     return true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)
