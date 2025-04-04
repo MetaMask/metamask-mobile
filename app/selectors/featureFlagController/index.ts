@@ -16,3 +16,11 @@ export const selectRemoteFeatureFlags = createSelector(
   },
 );
 
+/*
+ *
+ * This file is intended to include only this feature flag root selector
+ *
+ * Please follow the contributor docs when adding your remote feature flag selector
+ * https://github.com/MetaMask/contributor-docs/blob/main/docs/remote-feature-flags.md#mobile
+ *
+ */
