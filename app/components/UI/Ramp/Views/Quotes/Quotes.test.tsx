@@ -1,6 +1,7 @@
 import React from 'react';
 import { BackHandler, NativeEventSubscription } from 'react-native';
 import {
+  CryptoCurrency,
   ProviderBuyFeatureBrowserEnum,
   QuoteError,
   QuoteResponse,
@@ -22,11 +23,12 @@ import Timer from './Timer';
 import LoadingQuotes from './LoadingQuotes';
 
 import { RampSDK } from '../../sdk';
-import useSortedQuotes from '../../hooks/useSortedQuotes';
+import useQuotesAndCustomActions from '../../hooks/useQuotesAndCustomActions';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { RampType } from '../../types';
+import { RampType, Region } from '../../types';
+import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -81,11 +83,15 @@ const mockUseRampSDKInitialValues: Partial<RampSDK> = {
     POLLING_INTERVAL: 10000,
     POLLING_INTERVAL_HIGHLIGHT: 1000,
   },
-  callbackBaseUrl: '',
+  callbackBaseUrl: 'fake-callback-url',
   sdkError: undefined,
   rampType: RampType.BUY,
   isBuy: true,
   isSell: false,
+  selectedAddress: '0x1234567890',
+  selectedRegion: { id: 'mock-region-id' } as Region,
+  selectedAsset: { id: 'mock-asset-id' } as CryptoCurrency,
+  selectedFiatCurrencyId: 'mock-fiat-currency-id',
 };
 
 let mockUseRampSDKValues: DeepPartial<RampSDK> = {
@@ -99,6 +105,11 @@ jest.mock('../../sdk', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 jest.mock('../../hooks/useInAppBrowser', () => () => mockRenderInAppBrowser);
+jest.mock('../../hooks/useFiatCurrencies', () => () => ({
+  currentFiatCurrency: {
+    symbol: 'USD',
+  } as CryptoCurrency,
+}));
 
 const mockUseParamsInitialValues: DeepPartial<QuotesParams> = {
   amount: 50,
@@ -121,14 +132,39 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 const mockQueryGetQuotes = jest.fn();
 
-const mockUseSortedQuotesInitialValues: Partial<
-  ReturnType<typeof useSortedQuotes>
+const mockCustomAction: PaymentCustomAction = {
+  buy: {
+    providerId: '/providers/paypal-staging',
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    provider: {
+      description: 'Per Paypal: [Paypal Description]',
+      environmentType: 'STAGING',
+      hqAddress: '123 PayPal Staging Address',
+      id: '/providers/paypal-staging',
+      logos: {
+        dark: 'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_dark.png',
+        height: 24,
+        light:
+          'https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png',
+        width: 65,
+      },
+      name: 'Paypal (Staging)',
+    },
+  },
+  supportedPaymentMethodIds: ['/payments/paypal', '/payments/paypal-staging'],
+  paymentMethodId: '/payments/paypal',
+};
+
+const mockUseQuotesAndCustomActionsInitialValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
 > = {
   quotes: mockQuotesData as (QuoteResponse | QuoteError)[],
   quotesWithoutError: mockQuotesData as QuoteResponse[],
   quotesWithError: [],
   quotesByPriceWithoutError: mockQuotesData as QuoteResponse[],
   quotesByReliabilityWithoutError: mockQuotesData as QuoteResponse[],
+  recommendedCustomAction: undefined,
   recommendedQuote: mockQuotesData[1] as QuoteResponse,
   sorted: [],
   isFetching: false,
@@ -136,12 +172,14 @@ const mockUseSortedQuotesInitialValues: Partial<
   query: mockQueryGetQuotes,
 };
 
-let mockUseSortedQuotesValues: Partial<ReturnType<typeof useSortedQuotes>> = {
-  ...mockUseSortedQuotesInitialValues,
+let mockUseQuotesAndCustomActionsValues: Partial<
+  ReturnType<typeof useQuotesAndCustomActions>
+> = {
+  ...mockUseQuotesAndCustomActionsInitialValues,
 };
 
-jest.mock('../../hooks/useSortedQuotes', () =>
-  jest.fn(() => mockUseSortedQuotesValues),
+jest.mock('../../hooks/useQuotesAndCustomActions', () =>
+  jest.fn(() => mockUseQuotesAndCustomActionsValues),
 );
 
 describe('Quotes', () => {
@@ -161,14 +199,14 @@ describe('Quotes', () => {
     mockUseParamsValues = {
       ...mockUseParamsInitialValues,
     };
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
     };
   });
 
   it('calls setOptions when rendering', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
       quotesWithoutError: [],
@@ -189,7 +227,8 @@ describe('Quotes', () => {
       chain_id_destination: '1',
       location: 'Quotes Screen',
       results_count:
-        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -206,7 +245,8 @@ describe('Quotes', () => {
       chain_id_source: '1',
       location: 'Quotes Screen',
       results_count:
-        mockUseSortedQuotesInitialValues.quotesByPriceWithoutError?.length,
+        mockUseQuotesAndCustomActionsInitialValues.quotesByPriceWithoutError
+          ?.length,
     });
     act(() => {
       jest.useRealTimers();
@@ -215,8 +255,8 @@ describe('Quotes', () => {
 
   it('renders animation on first fetching', async () => {
     jest.useRealTimers();
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
       quotes: undefined,
     };
@@ -227,8 +267,9 @@ describe('Quotes', () => {
   });
 
   it('renders correctly after animation without quotes', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      customActions: [],
       quotesWithoutError: [],
       quotesByPriceWithoutError: [],
       quotesByReliabilityWithoutError: [],
@@ -320,7 +361,7 @@ describe('Quotes', () => {
     browser: ProviderBuyFeatureBrowserEnum,
   ) => {
     const mockedRecommendedQuote =
-      mockUseSortedQuotesInitialValues.recommendedQuote;
+      mockUseQuotesAndCustomActionsInitialValues.recommendedQuote;
 
     if (!mockedRecommendedQuote) {
       throw new Error('No recommended quote found');
@@ -342,8 +383,8 @@ describe('Quotes', () => {
     (mockedRecommendedQuote as QuoteResponse).buy = () =>
       Promise.resolve(mockedBuyAction);
 
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       recommendedQuote: mockedRecommendedQuote,
     };
     render(Quotes);
@@ -366,6 +407,222 @@ describe('Quotes', () => {
 
     return { mockedRecommendedQuote, mockedBuyAction };
   };
+
+  describe('custom action', () => {
+    const createWidgetMock = jest.fn().mockResolvedValue({
+      url: 'https://test-url.on-ramp.metamask',
+      orderId: 'test-order-id',
+    });
+
+    let mockedBuyAction = {
+      url: 'https://test-url.on-ramp.metamask',
+      orderId: 'test-order-id',
+      browser:
+        ProviderBuyFeatureBrowserEnum.AppBrowser as ProviderBuyFeatureBrowserEnum,
+      createWidget: createWidgetMock,
+    };
+
+    const getSellUrl = jest.fn().mockResolvedValue(mockedBuyAction);
+    const getBuyUrl = jest.fn().mockResolvedValue(mockedBuyAction);
+
+    const mockSdk = {
+      getSellUrl,
+      getBuyUrl,
+    };
+
+    const simulateCustomActionCtaPress = async () => {
+      mockUseQuotesAndCustomActionsValues = {
+        ...mockUseQuotesAndCustomActionsInitialValues,
+        recommendedCustomAction: mockCustomAction,
+      };
+
+      // pull out the custom action provider name
+      const mockCustomActionProviderName = mockCustomAction.buy.provider
+        ?.name as string;
+
+      const getUrlMethod = mockUseRampSDKValues.isBuy
+        ? 'getBuyUrl'
+        : 'getSellUrl';
+
+      mockSdk[getUrlMethod].mockResolvedValue(mockedBuyAction);
+
+      render(Quotes);
+
+      act(() => {
+        jest.advanceTimersByTime(3000);
+        jest.clearAllTimers();
+        jest.useRealTimers();
+      });
+
+      const customActionToSelect = screen.getByLabelText(
+        mockCustomActionProviderName,
+      );
+
+      fireEvent.press(customActionToSelect);
+
+      const customActionContinueButton = screen.getByRole('button', {
+        name: `Continue with ${mockCustomActionProviderName}`,
+      });
+
+      await act(async () => {
+        fireEvent.press(customActionContinueButton);
+      });
+    };
+
+    it('renders correctly after animation with the recommended custom action', async () => {
+      mockUseQuotesAndCustomActionsValues = {
+        ...mockUseQuotesAndCustomActionsInitialValues,
+        recommendedCustomAction: mockCustomAction,
+      };
+
+      render(Quotes);
+      act(() => {
+        jest.advanceTimersByTime(3000);
+        jest.clearAllTimers();
+      });
+      expect(screen.toJSON()).toMatchSnapshot();
+      act(() => {
+        jest.useRealTimers();
+      });
+    });
+
+    it('does nothing is there is no SDK or custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: undefined,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getBuyUrl).not.toHaveBeenCalled();
+      expect(mockSdk.getSellUrl).not.toHaveBeenCalled();
+    });
+
+    it('calls the correct analytics event for buy custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: true,
+        isSell: false,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "ONRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_destination": "1",
+          "currency_destination": undefined,
+          "currency_source": "USD",
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_onramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
+    });
+
+    it('calls the correct analytics event for sell custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: false,
+        isSell: true,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
+      [
+        "OFFRAMP_DIRECT_PROVIDER_CLICKED",
+        {
+          "chain_id_source": "1",
+          "currency_destination": "USD",
+          "currency_source": undefined,
+          "payment_method_id": "/payment-methods/test-payment-method",
+          "provider_offramp": "Paypal (Staging)",
+          "region": "mock-region-id",
+        },
+      ]
+    `);
+    });
+
+    it('calls the correct sdk method for buy custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: true,
+        isSell: false,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getBuyUrl).toHaveBeenCalledWith(
+        mockCustomAction.buy.provider,
+        'mock-region-id',
+        '/payment-methods/test-payment-method',
+        'mock-asset-id',
+        'mock-fiat-currency-id',
+        50,
+        '0x1234567890',
+      );
+    });
+
+    it('calls the correct sdk method for sell custom action', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+        isBuy: false,
+        isSell: true,
+      };
+      await simulateCustomActionCtaPress();
+      expect(mockSdk.getSellUrl).toHaveBeenCalledWith(
+        mockCustomAction.buy.provider,
+        'mock-region-id',
+        '/payment-methods/test-payment-method',
+        'mock-asset-id',
+        'mock-fiat-currency-id',
+        50,
+        '0x1234567890',
+      );
+    });
+
+    it('calls createWidget and navigates to the url when pressing custom action CTA in the App Browser', async () => {
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+      };
+      await simulateCustomActionCtaPress();
+
+      expect(createWidgetMock).toBeCalledWith(
+        mockUseRampSDKValues.callbackBaseUrl,
+      );
+
+      expect(mockNavigate).toBeCalledTimes(1);
+      expect(mockNavigate).toBeCalledWith(Routes.RAMP.CHECKOUT, {
+        provider: mockCustomAction.buy.provider,
+        customOrderId: 'test-order-id',
+        url: 'https://test-url.on-ramp.metamask',
+      });
+      expect(mockRenderInAppBrowser).not.toBeCalled();
+    });
+
+    it('calls renderInAppBrowser hook when pressing CTA in the iOSBrowser', async () => {
+      mockedBuyAction = {
+        ...mockedBuyAction,
+        browser: ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
+      };
+
+      mockUseRampSDKValues = {
+        ...mockUseRampSDKInitialValues,
+        sdk: mockSdk,
+      };
+
+      await simulateCustomActionCtaPress();
+
+      expect(mockRenderInAppBrowser).toBeCalledWith(
+        mockedBuyAction,
+        mockCustomAction.buy.provider,
+        50,
+        'USD',
+      );
+
+      expect(mockNavigate).not.toBeCalled();
+    });
+  });
 
   it('navigates and tracks events when pressing buy button with app browser quote', async () => {
     const { mockedRecommendedQuote } = await simulateQuoteSelection(
@@ -515,7 +772,8 @@ describe('Quotes', () => {
       jest.clearAllTimers();
     });
 
-    const mockRecommendedQuote = mockUseSortedQuotesValues.recommendedQuote;
+    const mockRecommendedQuote =
+      mockUseQuotesAndCustomActionsValues.recommendedQuote;
 
     if (!mockRecommendedQuote) {
       throw new Error('No recommended quote found');
@@ -713,8 +971,8 @@ describe('Quotes', () => {
   });
 
   it('renders correctly when fetching quotes errors', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);
@@ -725,8 +983,8 @@ describe('Quotes', () => {
   });
 
   it('fetches quotes again when pressing button after fetching quotes errors', async () => {
-    mockUseSortedQuotesValues = {
-      ...mockUseSortedQuotesInitialValues,
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
       error: 'Test Error',
     };
     render(Quotes);

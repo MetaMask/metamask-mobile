@@ -239,6 +239,20 @@ const ImportNewSecretRecoveryPhrase = () => {
         return state;
       };
 
+      const hideErrorIfSrpIsEmpty = (
+        state: { error: string; words: boolean[] },
+        phrase: string[],
+      ) => {
+        if (phrase.every((word) => word === '')) {
+          return {
+            words: Array(phrase.length).fill(false),
+            error: '',
+          };
+        }
+
+        return state;
+      };
+
       const joinedDraftSrp = newDraftSrp.join(' ').trim();
       const invalidWords = Array(newDraftSrp.length).fill(false);
       let validationResult = validateSRP(newDraftSrp, invalidWords);
@@ -246,6 +260,7 @@ const ImportNewSecretRecoveryPhrase = () => {
       validationResult = validateCase(validationResult, joinedDraftSrp);
       validationResult = validateWords(validationResult);
       validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+      validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
 
       setSecretRecoveryPhrase(newDraftSrp);
       setSrpError(validationResult.error);
@@ -316,10 +331,18 @@ const ImportNewSecretRecoveryPhrase = () => {
       });
       navigation.navigate('WalletView');
     } catch (e) {
-      Alert.alert(
-        strings('import_new_secret_recovery_phrase.error_title'),
-        strings('import_new_secret_recovery_phrase.error_message'),
-      );
+      if (
+        (e as Error)?.message === 'This mnemonic has already been imported.'
+      ) {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_duplicate_srp'),
+        );
+      } else {
+        Alert.alert(
+          strings('import_new_secret_recovery_phrase.error_title'),
+          strings('import_new_secret_recovery_phrase.error_message'),
+        );
+      }
       setLoading(false);
     }
   };
@@ -406,7 +429,10 @@ const ImportNewSecretRecoveryPhrase = () => {
           </View>
         </View>
         {srpError && (
-          <BannerAlert severity={BannerAlertSeverity.Error}>
+          <BannerAlert
+            severity={BannerAlertSeverity.Error}
+            testID={ImportSRPIDs.SRP_ERROR}
+          >
             <Text>{srpError}</Text>
           </BannerAlert>
         )}
@@ -415,7 +441,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             containerStyle={styles.button}
             type={'confirm'}
             onPress={onSubmit}
-            disabled={srpError || !isValidSrp}
+            disabled={Boolean(srpError) || !isValidSrp}
             testID={ImportSRPIDs.IMPORT_BUTTON}
           >
             {loading ? (
