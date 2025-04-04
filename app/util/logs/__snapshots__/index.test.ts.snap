@@ -46,7 +46,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "quoteFetchError": null,
         "quoteRequest": {
-          "slippage": 0.5,
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
         },
         "quotes": [],
@@ -173,6 +172,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "mainnet",
                 "type": "infura",
                 "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
@@ -187,6 +187,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "SepoliaETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "sepolia",
                 "type": "infura",
                 "url": "https://sepolia.infura.io/v3/{infuraProjectId}",
@@ -201,6 +202,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "LineaETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "linea-sepolia",
                 "type": "infura",
                 "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}",
@@ -215,6 +217,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "nativeCurrency": "ETH",
             "rpcEndpoints": [
               {
+                "failoverUrls": [],
                 "networkClientId": "linea-mainnet",
                 "type": "infura",
                 "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}",
