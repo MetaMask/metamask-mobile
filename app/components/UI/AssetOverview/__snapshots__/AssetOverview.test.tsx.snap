@@ -22,7 +22,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -40,7 +40,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -90,7 +90,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -203,7 +203,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -234,7 +234,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -265,7 +265,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -296,7 +296,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -327,7 +327,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -358,7 +358,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -448,7 +448,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -461,7 +461,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -476,7 +476,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -554,7 +554,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -567,7 +567,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -582,7 +582,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -660,7 +660,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -673,7 +673,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -688,7 +688,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -766,7 +766,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -779,7 +779,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -794,7 +794,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -872,7 +872,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -885,7 +885,7 @@ exports[`AssetOverview should render correctly 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -900,7 +900,7 @@ exports[`AssetOverview should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -924,7 +924,7 @@ exports[`AssetOverview should render correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1077,7 +1077,7 @@ exports[`AssetOverview should render correctly 1`] = `
               "alignSelf": "center",
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "justifyContent": "center",
@@ -1103,7 +1103,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -1169,7 +1169,7 @@ exports[`AssetOverview should render correctly 2`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -1187,7 +1187,7 @@ exports[`AssetOverview should render correctly 2`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -1237,7 +1237,7 @@ exports[`AssetOverview should render correctly 2`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -1350,7 +1350,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1381,7 +1381,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1412,7 +1412,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1443,7 +1443,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1474,7 +1474,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1505,7 +1505,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -1595,7 +1595,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -1608,7 +1608,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1623,7 +1623,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1701,7 +1701,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -1714,7 +1714,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1729,7 +1729,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1807,7 +1807,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -1820,7 +1820,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1835,7 +1835,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -1913,7 +1913,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -1926,7 +1926,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -1941,7 +1941,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2019,7 +2019,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2032,7 +2032,7 @@ exports[`AssetOverview should render correctly 2`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2047,7 +2047,7 @@ exports[`AssetOverview should render correctly 2`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2071,7 +2071,7 @@ exports[`AssetOverview should render correctly 2`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2224,7 +2224,7 @@ exports[`AssetOverview should render correctly 2`] = `
               "alignSelf": "center",
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "justifyContent": "center",
@@ -2250,7 +2250,7 @@ exports[`AssetOverview should render correctly 2`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -2316,7 +2316,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Medium",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -2334,7 +2334,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 24,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -2384,7 +2384,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -2497,7 +2497,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2528,7 +2528,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2559,7 +2559,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2590,7 +2590,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2621,7 +2621,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2652,7 +2652,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#686e7d",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 12,
               "fontWeight": "400",
               "letterSpacing": 3,
@@ -2742,7 +2742,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2755,7 +2755,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2770,7 +2770,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2848,7 +2848,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2861,7 +2861,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2876,7 +2876,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -2954,7 +2954,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -2967,7 +2967,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -2982,7 +2982,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -3060,7 +3060,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -3073,7 +3073,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3088,7 +3088,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -3166,7 +3166,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -3179,7 +3179,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -3194,7 +3194,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -3218,7 +3218,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 18,
             "fontWeight": "700",
             "letterSpacing": 0,
@@ -3387,7 +3387,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
@@ -3408,7 +3408,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               "alignSelf": "center",
               "color": "#121314",
               "flex": 1,
-              "fontFamily": "EuclidCircularB-Medium",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 16,
               "fontWeight": "500",
               "justifyContent": "center",
@@ -3434,7 +3434,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Medium",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
