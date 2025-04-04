@@ -20,7 +20,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import { Box } from '../../Box/Box';
-import { AlignItems, Display, FlexDirection, JustifyContent } from '../../Box/box.types';
+import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
