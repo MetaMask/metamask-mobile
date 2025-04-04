@@ -125,8 +125,8 @@ const SnapDialogApproval = () => {
           isLoading={isLoading}
           onCancel={onCancel}
           useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
+          // eslint-disable-next-line react-native/no-inline-styles
           style={{
-            // eslint-disable-next-line react-native/no-inline-styles
             marginBottom:
               approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default ? 80 : 0,
           }}
