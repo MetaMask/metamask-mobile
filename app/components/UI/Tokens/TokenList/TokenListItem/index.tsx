@@ -257,6 +257,7 @@ export const TokenListItem = React.memo(
       );
 
       // token details only currently supported for evm
+      // TODO: Remove this when shipping feature
       if (!isEvmNetworkSelected) {
         return;
       }

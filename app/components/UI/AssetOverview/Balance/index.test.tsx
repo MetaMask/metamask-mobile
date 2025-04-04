@@ -198,28 +198,28 @@ describe('Balance', () => {
 
   describe('NetworkBadgeSource', () => {
     it('returns testnet image for a testnet chainId', () => {
-      const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+      const result = NetworkBadgeSource('0xaa36a7');
       expect(result).toBeDefined();
     });
 
     it('returns mainnet Ethereum image for mainnet chainId', () => {
-      const result = NetworkBadgeSource('0x1', 'ETH');
+      const result = NetworkBadgeSource('0x1');
       expect(result).toBeDefined();
     });
 
     it('returns Linea Mainnet image for Linea mainnet chainId', () => {
-      const result = NetworkBadgeSource('0xe708', 'LINEA');
+      const result = NetworkBadgeSource('0xe708');
       expect(result).toBeDefined();
     });
 
     it('returns undefined if no image is found', () => {
-      const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+      const result = NetworkBadgeSource('0x999');
       expect(result).toBeUndefined();
     });
 
-    it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
+    it('returns Linea Mainnet image for Linea mainnet chainId', () => {
       if (isPortfolioViewEnabled()) {
-        const result = NetworkBadgeSource('0xe708', 'LINEA');
+        const result = NetworkBadgeSource('0xe708');
         expect(result).toBeDefined();
       }
     });
@@ -228,28 +228,28 @@ describe('Balance', () => {
 
 describe('NetworkBadgeSource', () => {
   it('returns testnet image for a testnet chainId', () => {
-    const result = NetworkBadgeSource('0xaa36a7', 'ETH');
+    const result = NetworkBadgeSource('0xaa36a7');
     expect(result).toBeDefined();
   });
 
   it('returns mainnet Ethereum image for mainnet chainId', () => {
-    const result = NetworkBadgeSource('0x1', 'ETH');
+    const result = NetworkBadgeSource('0x1');
     expect(result).toBeDefined();
   });
 
   it('returns Linea Mainnet image for Linea mainnet chainId', () => {
-    const result = NetworkBadgeSource('0xe708', 'LINEA');
+    const result = NetworkBadgeSource('0xe708');
     expect(result).toBeDefined();
   });
 
   it('returns undefined if no image is found', () => {
-    const result = NetworkBadgeSource('0x999', 'UNKNOWN');
+    const result = NetworkBadgeSource('0x999');
     expect(result).toBeUndefined();
   });
 
-  it('returns Linea Mainnet image for Linea mainnet chainId isPortfolioViewEnabled is true', () => {
+  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
     if (isPortfolioViewEnabled()) {
-      const result = NetworkBadgeSource('0xe708', 'LINEA');
+      const result = NetworkBadgeSource('0xe708');
       expect(result).toBeDefined();
     }
   });
