@@ -239,6 +239,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -360,6 +362,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -420,6 +424,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input2"
@@ -542,6 +548,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -601,6 +609,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input2"
@@ -1646,6 +1656,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                 >
                   <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     autoFocus={false}
                     editable={true}
                     id="input"
@@ -1832,6 +1844,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   }
                 >
                   <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     autoFocus={false}
                     editable={true}
                     id="input"
@@ -2851,6 +2865,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
