@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -30,7 +30,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const { onSetRpcTarget } = useSwitchNetworks({
+  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
     selectedNetworkName,
@@ -47,20 +47,25 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       dispatch(setSourceToken(token));
 
       // Switch to the chain of the selected token
-      const networkConfiguration = evmNetworkConfigurations[token.chainId];
-      if (networkConfiguration) {
-        await onSetRpcTarget(networkConfiguration);
+      const evmNetworkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
+
+      if (evmNetworkConfiguration) {
+        await onSetRpcTarget(evmNetworkConfiguration);
+      } else {
+        await onNonEvmNetworkChange(token.chainId as CaipChainId);
       }
 
       navigation.goBack();
     };
 
+    const networkName = allNetworkConfigurations[item.chainId]?.name;
+
     return (
       <TokenSelectorItem
         token={item}
         onPress={handleTokenPress}
-        networkName={allNetworkConfigurations[item.chainId as Hex].name}
-        //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        networkName={networkName}
+        // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
         networkImageSource={getNetworkImageSource({ chainId: item.chainId })}
         isSelected={
           selectedSourceToken?.address === item.address &&
@@ -68,7 +73,15 @@ export const BridgeSourceTokenSelector: React.FC = () => {
         }
       />
     );
-  }, [dispatch, navigation, evmNetworkConfigurations, allNetworkConfigurations, selectedSourceToken, onSetRpcTarget]);
+  }, [
+    dispatch,
+    navigation,
+    allNetworkConfigurations,
+    selectedSourceToken,
+    onSetRpcTarget,
+    onNonEvmNetworkChange,
+    evmNetworkConfigurations,
+   ]);
 
   const networksToShow = useMemo(() =>
     sortedSourceNetworks
