@@ -32,12 +32,14 @@ import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakeInputView.styles';
 import { StakeInputViewProps } from './StakeInputView.types';
 import { getStakeInputViewTitle } from './utils';
+import usePooledStakes from '../../hooks/usePooledStakes';
 
 const StakeInputView = ({ route }: StakeInputViewProps) => {
   const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
   const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const { refreshPooledStakesOnTxConfirmation } = usePooledStakes();
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
   );
@@ -135,7 +137,7 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
       // redesigned confirmations architecture relies on the transaction
       // metadata object being defined by the time the confirmation is displayed
       // to the user.
-      await attemptDepositTransaction(
+      const txRes = await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,
         undefined,
@@ -155,8 +157,14 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
           .addProperties(withRedesignedPropEventProperties)
           .build(),
       );
+
+      const transactionId = txRes?.transactionMeta?.id;
+
+      refreshPooledStakesOnTxConfirmation(transactionId);
+
       return;
     }
+
     navigation.navigate('StakeScreens', {
       screen: Routes.STAKING.STAKE_CONFIRMATION,
       params: {
@@ -175,20 +183,21 @@ const StakeInputView = ({ route }: StakeInputViewProps) => {
     );
   }, [
     isHighGasCostImpact,
-    navigation,
     amountWei,
+    amountEth,
     fiatAmount,
+    isStakingDepositRedesignedEnabled,
+    navigation,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
     trackEvent,
     createEventBuilder,
-    amountEth,
     estimatedGasFeeWei,
     getDepositTxGasPercentage,
-    isStakingDepositRedesignedEnabled,
-    activeAccount,
     attemptDepositTransaction,
+    activeAccount?.address,
+    refreshPooledStakesOnTxConfirmation,
   ]);
 
   const handleMaxButtonPress = () => {

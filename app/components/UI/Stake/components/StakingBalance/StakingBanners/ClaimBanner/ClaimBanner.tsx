@@ -49,7 +49,8 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
   const { stakingContract } = useStakeContext();
   const {
     pooledStakesData,
-    refreshPooledStakes
+    refreshPooledStakes,
+    refreshPooledStakesOnTxConfirmation,
   } = usePooledStakes();
 
   const chainId = useSelector(selectEvmChainId);
@@ -86,7 +87,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
         // redesigned confirmations architecture relies on the transaction
         // metadata object being defined by the time the confirmation is displayed
         // to the user.
-        await attemptPoolStakedClaimTransaction(
+        const txRes = await attemptPoolStakedClaimTransaction(
           activeAccount?.address,
           pooledStakesData,
         );
@@ -96,6 +97,11 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
             amountWei: claimableAmount,
           },
         });
+
+        const transactionId = txRes?.transactionMeta?.id;
+
+        refreshPooledStakesOnTxConfirmation(transactionId);
+
         return;
       }
 
@@ -134,15 +140,16 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
       setIsSubmittingClaimTransaction(false);
     }
   }, [
-    activeAccount,
-    pooledStakesData,
-    attemptPoolStakedClaimTransaction,
-    createEventBuilder,
+    activeAccount?.address,
     trackEvent,
-    refreshPooledStakes,
-    claimableAmount,
+    createEventBuilder,
     isStakingDepositRedesignedEnabled,
+    attemptPoolStakedClaimTransaction,
+    pooledStakesData,
     navigation,
+    claimableAmount,
+    refreshPooledStakesOnTxConfirmation,
+    refreshPooledStakes,
   ]);
 
   useEffect(() => {
