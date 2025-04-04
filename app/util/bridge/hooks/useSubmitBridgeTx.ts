@@ -35,9 +35,10 @@ export default function useSubmitBridgeTx() {
     // TESTING: Add mocked quote metadata
     const quoteMetadata = {} as QuoteMetadataSerialized;
     if (quoteMetadata) {
-      Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
-        bridgeTxMeta: txResult,
-        statusRequest: {
+      try {
+        Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
+          bridgeTxMeta: txResult,
+          statusRequest: {
           bridgeId: quoteResponse.quote.bridgeId,
           bridge: quoteResponse.quote.bridges[0],
           srcChainId: quoteResponse.quote.srcChainId,
@@ -52,8 +53,11 @@ export default function useSubmitBridgeTx() {
           ...quoteMetadata,
         },
         slippagePercentage: slippage ?? 0,
-        startTime: txResult.time,
-      });
+          startTime: txResult.time,
+        });
+      } catch (error) {
+        throw new Error('error starting bridge tx status polling: ' + error);
+      }
     }
 
     // Add tokens if not the native gas token
