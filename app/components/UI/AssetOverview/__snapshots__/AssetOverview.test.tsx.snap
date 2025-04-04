@@ -1147,7 +1147,7 @@ exports[`AssetOverview should render correctly 1`] = `
 </View>
 `;
 
-exports[`AssetOverview should render correctly when portfolio view is enabled 1`] = `
+exports[`AssetOverview should render correctly 2`] = `
 <View
   style={
     {
