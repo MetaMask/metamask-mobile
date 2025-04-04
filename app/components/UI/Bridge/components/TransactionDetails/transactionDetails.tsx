@@ -49,6 +49,9 @@ const createStyles = () =>
       alignSelf: 'center',
       marginTop: 12,
     },
+    textTransform: {
+      textTransform: 'capitalize',
+    },
   });
 
 interface BridgeTransactionDetailsProps {
@@ -71,11 +74,6 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   const navigation = useNavigation();
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({txMeta: props.route.params.tx});
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
-  if (!bridgeTxHistoryItem) {
-    // TODO: display error page
-    return null;
-  }
-  const { quote, status, startTime } = bridgeTxHistoryItem;
   const tokens = useSelector(selectEvmTokens);
   const networkConfigurationsByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -84,6 +82,14 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   useEffect(() => {
     navigation.setOptions(getBridgeTransactionDetailsNavbar(navigation));
   }, [navigation]);
+
+  if (!bridgeTxHistoryItem) {
+    // TODO: display error page
+    return null;
+  }
+  const { quote, status, startTime } = bridgeTxHistoryItem;
+
+  
 
   const sourceToken = tokens.find((token: TokenI) => token.address === quote.srcAsset.address);
   const sourceTokenAmount = calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(5);
@@ -126,7 +132,7 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
           <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodyMDMedium} color={StatusToColorMap[status.status]} style={{ textTransform: 'capitalize' }}>{status.status}</Text>
+            <Text variant={TextVariant.BodyMDMedium} color={StatusToColorMap[status.status]} style={styles.textTransform}>{status.status}</Text>
             {status.status === StatusTypes.PENDING && estimatedCompletionString && (
               <>
                 <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>

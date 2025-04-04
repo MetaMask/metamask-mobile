@@ -1,3 +1,4 @@
+import React from 'react';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { AlignItems, FlexDirection, JustifyContent } from '../../../Box/box.types';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
@@ -29,6 +30,9 @@ const createStyles = () =>
     },
     container: {
       padding: 4,
+    },
+    networkName: {
+      marginTop: -2,
     },
   });
 
@@ -82,7 +86,7 @@ const TransactionAsset = ({ token, tokenAmount, chainId }: TransactionAssetProps
         <Text variant={TextVariant.BodyLGMedium}>
           {tokenAmount} {token.symbol}
         </Text>
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative} style={{ marginTop: -2 }}>
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Alternative} style={styles.networkName}>
           {networkName}
         </Text>
       </Box>

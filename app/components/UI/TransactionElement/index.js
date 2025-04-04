@@ -178,6 +178,12 @@ class TransactionElement extends PureComponent {
      * Network configurations by chain id
      */
     networkConfigurationsByChainId: PropTypes.object,
+    /**
+     * Navigation object for routing
+     */
+    navigation: PropTypes.shape({
+      navigate: PropTypes.func.isRequired,
+    }).isRequired,
   };
 
   state = {
@@ -369,9 +375,9 @@ class TransactionElement extends PureComponent {
       isLedgerAccount,
       i,
       tx: { time, status, isSmartTransaction, chainId, type },
+      bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
     } = this.props;
     const isBridgeTransaction = type === 'bridge';
-    const { bridgeTxHistoryItem, isBridgeComplete } = this.props?.bridgeTxHistoryData;
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -692,6 +698,10 @@ const TransactionElementWithBridge = (props) => {
   const bridgeTxHistoryData = useBridgeTxHistoryData({txMeta: props.tx});
 
   return <TransactionElement {...props} bridgeTxHistoryData={bridgeTxHistoryData} />;
+};
+
+TransactionElementWithBridge.propTypes = {
+  tx: PropTypes.object.isRequired,
 };
 
 export default connect(mapStateToProps)(TransactionElementWithBridge);

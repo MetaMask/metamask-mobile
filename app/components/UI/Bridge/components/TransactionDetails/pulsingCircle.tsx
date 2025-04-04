@@ -17,6 +17,7 @@ const createStyles = () =>
       left: -2,
       right: -2,
       bottom: -2,
+      // eslint-disable-next-line react-native/no-color-literals
       backgroundColor: 'rgba(3, 118, 201, 0.2)',
       borderRadius: 8,
     },
@@ -60,7 +61,7 @@ export default function PulsingCircle({
         }),
       ])
     ).start();
-  }, []);
+  }, [pulseAnim]);
 
   return (
     <Box style={styles.container}>

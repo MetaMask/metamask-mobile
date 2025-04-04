@@ -72,41 +72,35 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
     selectEvmNetworkConfigurationsByChainId,
   );
 
-  // Helper function to get explorer data for a chain
-  const getExplorerData = (chainId: number, txHash?: string) => {
-    const chainIdHex = decimalToPrefixedHex(chainId);
-    const networkConfig = networkConfigurations[chainIdHex as Hex];
-    const providerConfig = useMemo(() =>
-      getProviderConfigForNetwork(networkConfig),
-      [networkConfig]
-    );
-    const explorer = useBlockExplorer(
-      networkConfigurations,
-      providerConfig,
-    );
-    const explorerTxUrl = txHash ? explorer.tx(txHash) : undefined;
-    //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-    const networkImageSource = getNetworkImageSource({ chainId: chainIdHex });
-
-    return {
-      networkConfig,
-      explorer,
-      explorerTxUrl,
-      networkImageSource
-    };
-  };
-
   // Get source chain explorer data
-  const srcExplorerData = getExplorerData(
-    bridgeTxHistoryItem.quote.srcChainId,
-    props.route.params.tx.hash
+  const srcChainIdHex = decimalToPrefixedHex(bridgeTxHistoryItem.quote.srcChainId);
+  const srcNetworkConfig = networkConfigurations[srcChainIdHex as Hex];
+  const srcProviderConfig = useMemo(() =>
+    getProviderConfigForNetwork(srcNetworkConfig),
+    [srcNetworkConfig]
   );
+  const srcExplorer = useBlockExplorer(
+    networkConfigurations,
+    srcProviderConfig,
+  );
+  const srcExplorerTxUrl = props.route.params.tx.hash ? srcExplorer.tx(props.route.params.tx.hash) : undefined;
+  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+  const srcNetworkImageSource = getNetworkImageSource({ chainId: srcChainIdHex });
 
   // Get destination chain explorer data
-  const destExplorerData = getExplorerData(
-    bridgeTxHistoryItem.quote.destChainId,
-    bridgeTxHistoryItem?.status.destChain?.txHash
+  const destChainIdHex = decimalToPrefixedHex(bridgeTxHistoryItem.quote.destChainId);
+  const destNetworkConfig = networkConfigurations[destChainIdHex as Hex];
+  const destProviderConfig = useMemo(() =>
+    getProviderConfigForNetwork(destNetworkConfig),
+    [destNetworkConfig]
   );
+  const destExplorer = useBlockExplorer(
+    networkConfigurations,
+    destProviderConfig,
+  );
+  const destExplorerTxUrl = bridgeTxHistoryItem?.status.destChain?.txHash ? destExplorer.tx(bridgeTxHistoryItem.status.destChain.txHash) : undefined;
+  //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+  const destNetworkImageSource = getNetworkImageSource({ chainId: destChainIdHex });
 
   return (
     <BottomSheet>
@@ -121,22 +115,22 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
         alignItems={AlignItems.center}
         justifyContent={JustifyContent.center}
       >
-        {srcExplorerData.explorerTxUrl && <Button
+        {srcExplorerTxUrl && <Button
           variant={ButtonVariants.Secondary}
           label={<>
             <Badge
               variant={BadgeVariant.Network}
-              name={srcExplorerData.networkConfig.name}
-              imageSource={srcExplorerData.networkImageSource}
+              name={srcNetworkConfig.name}
+              imageSource={srcNetworkImageSource}
               style={styles.badge}
             />
-            <Text variant={TextVariant.BodyMDMedium} style={styles.text}>{srcExplorerData.explorer.name}</Text>
+            <Text variant={TextVariant.BodyMDMedium} style={styles.text}>{srcExplorer.name}</Text>
           </>}
           onPress={() => {
             navigation.navigate(Routes.BROWSER.HOME, {
               screen: Routes.BROWSER.VIEW,
               params: {
-                newTabUrl: srcExplorerData.explorerTxUrl,
+                newTabUrl: srcExplorerTxUrl,
                 timestamp: Date.now(),
               },
             });
@@ -144,22 +138,22 @@ const BlockExplorersModal = (props: BlockExplorersModalProps) => {
           style={{...styles.button, ...styles.firstButton}}
         />}
 
-        {destExplorerData.explorerTxUrl && <Button
+        {destExplorerTxUrl && <Button
           variant={ButtonVariants.Secondary}
           label={<>
             <Badge
               variant={BadgeVariant.Network}
-              name={destExplorerData.networkConfig.name}
-              imageSource={destExplorerData.networkImageSource}
+              name={destNetworkConfig.name}
+              imageSource={destNetworkImageSource}
               style={styles.badge}
             />
-            <Text variant={TextVariant.BodyMDMedium} style={styles.text}>{destExplorerData.explorer.name}</Text>
+            <Text variant={TextVariant.BodyMDMedium} style={styles.text}>{destExplorer.name}</Text>
           </>}
           onPress={() => {
             navigation.navigate(Routes.BROWSER.HOME, {
               screen: Routes.BROWSER.VIEW,
               params: {
-                newTabUrl: destExplorerData.explorerTxUrl,
+                newTabUrl: destExplorerTxUrl,
                 timestamp: Date.now(),
               },
             });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import HollowCircle from './hollowCircle';
 import PulsingCircle from './pulsingCircle';
@@ -7,27 +7,36 @@ import { StatusTypes } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../../../util/theme';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
+import { ThemeColors } from '@metamask/design-tokens';
 
 const ICON_SIZE = IconSize.Xs;
 
-const VerticalLine = ({ color }: { color: IconColor }) => {
-  const { colors } = useTheme();
+const createStyles = (colors: ThemeColors, color?: IconColor) => {
   let lineColor = colors.primary.default;
   if (color === IconColor.Muted) {
     lineColor = colors.icon.muted;
   }
 
+  return StyleSheet.create({
+    verticalLine: {
+      height: 30,
+      marginTop: -7,
+      marginBottom: -7,
+      marginLeft: 5.2,
+      width: 1,
+      backgroundColor: lineColor,
+      zIndex: 0.1,
+    },
+  });
+};
+
+const VerticalLine = ({ color }: { color: IconColor }) => {
+  const { colors } = useTheme();
+  const styles = createStyles(colors, color);
+
   return (
     <View
-      style={{
-        height: 30,
-        marginTop: -7,
-        marginBottom: -7,
-        marginLeft: 5.2,
-        width: 1,
-        backgroundColor: lineColor,
-        zIndex: 0.1,
-      }}
+      style={styles.verticalLine}
     />
   );
 };

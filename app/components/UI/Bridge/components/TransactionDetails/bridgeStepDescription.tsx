@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import {
@@ -13,11 +13,7 @@ import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
-
-type I18nFunction = (
-  key: string,
-  params?: Record<string, string | number | undefined | null>,
-) => string;
+import { StyleSheet } from 'react-native';
 
 /**
  * bridge actions will have step.srcChainId !== step.destChainId
@@ -30,7 +26,6 @@ type I18nFunction = (
  * @param networkConfigurationsByChainId - The network configurations by chain id
  */
 const getBridgeActionText = (
-  strings: I18nFunction,
   stepStatus: StatusTypes | null,
   step: Step,
   networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>,
@@ -98,7 +93,6 @@ const getSwapActionStatus = (
 };
 
 const getSwapActionText = (
-  strings: I18nFunction,
   status: StatusTypes | null,
   step: Step,
 ) => {
@@ -136,6 +130,12 @@ export const getStepStatus = ({
   return StatusTypes.UNKNOWN;
 };
 
+const styles = StyleSheet.create({
+  stepDescription: {
+    marginLeft: 8,
+  },
+});
+
 interface BridgeStepProps {
   step: Step;
   networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>;
@@ -158,7 +158,7 @@ export default function BridgeStepDescription({
       alignItems={AlignItems.center}
       flexDirection={FlexDirection.Row}
       gap={2}
-      style={{ marginLeft: 8 }}
+      style={styles.stepDescription}
     >
       <Text
         color={
@@ -176,13 +176,12 @@ export default function BridgeStepDescription({
         {time && `${time} `}
         {step.action === ActionTypes.BRIDGE &&
           getBridgeActionText(
-            strings,
             stepStatus,
             step,
             networkConfigurationsByChainId,
           )}
         {step.action === ActionTypes.SWAP &&
-          getSwapActionText(strings, stepStatus, step)}
+          getSwapActionText(stepStatus, step)}
       </Text>
     </Box>
   );
