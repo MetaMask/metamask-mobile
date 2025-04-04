@@ -92,8 +92,18 @@ const PermissionsSummary = ({
 
   // Use the captured hostname or fall back to the current one if ref is empty
   const hostname = useMemo(
-    () => originalHostnameRef.current || new URL(currentPageInformation.url).hostname,
-    [currentPageInformation.url],
+    () => {
+      // Always use the captured hostname for security
+      if (originalHostnameRef.current) {
+        return originalHostnameRef.current;
+      }
+      // Fall back only if we don't have the original hostname
+      if (currentPageInformation?.url) {
+        return new URL(currentPageInformation.url).hostname;
+      }
+      return '';
+    },
+    [currentPageInformation?.url],
   );
   
   const networkInfo = useNetworkInfo(hostname);
