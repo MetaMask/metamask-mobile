@@ -320,12 +320,6 @@ export class Engine {
       allowedActions: [],
     });
 
-    // eslint-disable-next-line
-    console.log(
-      'Initial network controller state',
-      JSON.stringify(initialState.NetworkController),
-    );
-
     let initialNetworkControllerState = initialState.NetworkController;
     if (!initialNetworkControllerState) {
       initialNetworkControllerState = getDefaultNetworkControllerState();
