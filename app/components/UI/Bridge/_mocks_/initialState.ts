@@ -1,10 +1,15 @@
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { formatChainIdToCaip , BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { SolScope } from '@metamask/keyring-api';
 
-const ethChainId = '0x1' as Hex;
-const optimismChainId = '0xa' as Hex;
-const mockEvmAddress = '0x1234567890123456789012345678901234567890' as Hex;
-const mockSolanaAddress = 'kljad90afSCjkladasASKLSD' as Hex;
+export const ethChainId = '0x1' as Hex;
+export const optimismChainId = '0xa' as Hex;
+
+export const evmAccountId = 'evmAccountId';
+export const evmAccountAddress = '0x1234567890123456789012345678901234567890' as Hex;
+
+export const solanaAccountId = 'solanaAccountId';
+export const solanaAccountAddress = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
 // Ethereum tokens
 export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
@@ -14,7 +19,8 @@ export const ethToken2Address = '0x0000000000000000000000000000000000000002' as 
 export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
 
 // Solana tokens
-export const solanaToken1Address = 'solana:mainnet/spl:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
+export const solanaNativeTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
+export const solanaToken2Address = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
 
 export const initialState = {
   engine: {
@@ -31,7 +37,7 @@ export const initialState = {
       },
       TokenBalancesController: {
         tokenBalances: {
-          [mockEvmAddress]: {
+          [evmAccountAddress]: {
             [ethChainId]: {
               [ethToken1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
               [ethToken2Address]: '0x1bc16d674ec80000' as Hex, // 2 HELLO
@@ -45,7 +51,7 @@ export const initialState = {
       TokensController: {
         allTokens: {
           [ethChainId]: {
-            [mockEvmAddress]: [
+            [evmAccountAddress]: [
               {
                 address: ethToken1Address,
                 symbol: 'TOKEN1',
@@ -65,7 +71,7 @@ export const initialState = {
             ],
           },
           [optimismChainId]: {
-            [mockEvmAddress]: [
+            [evmAccountAddress]: [
               {
                 address: optimismToken1Address,
                 symbol: 'FOO',
@@ -143,18 +149,18 @@ export const initialState = {
       },
       AccountTrackerController: {
         accounts: {
-          [mockEvmAddress]: {
+          [evmAccountAddress]: {
             balance: '0x29a2241af62c0000' as Hex, // 3 ETH
           },
         },
         accountsByChainId: {
           [ethChainId]: {
-            [mockEvmAddress]: {
+            [evmAccountAddress]: {
               balance: '0x29a2241af62c0000' as Hex, // 3 ETH
             },
           },
           [optimismChainId]: {
-            [mockEvmAddress]: {
+            [evmAccountAddress]: {
               balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
             },
           },
@@ -162,14 +168,18 @@ export const initialState = {
       },
       MultichainNetworkController: {
         isEvmSelected: true,
-        selectedMultichainNetworkChainId: undefined,
+        selectedMultichainNetworkChainId: SolScope.Mainnet as const,
         multichainNetworkConfigurationsByChainId: {},
       },
       MultichainBalancesController: {
         balances: {
-          [mockSolanaAddress]: {
-            [solanaToken1Address]: {
-              amount: '100',
+          [solanaAccountId]: {
+            [solanaNativeTokenAddress]: {
+              amount: '100.123',
+              unit: 'SOL',
+            },
+            [solanaToken2Address]: {
+              amount: '20000.456',
               unit: 'USDC',
             },
           },
@@ -177,43 +187,70 @@ export const initialState = {
       },
       MultichainAssetsController: {
         accountsAssets: {
-          [mockSolanaAddress]: [
-            solanaToken1Address,
+          [solanaAccountId]: [
+            solanaNativeTokenAddress,
+            solanaToken2Address,
           ],
         },
         assetsMetadata: {
-          [solanaToken1Address]: {
+          [solanaNativeTokenAddress]: {
+            name: 'Solana',
+            symbol: 'SOL',
+            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            fungible: true as const,
+            units: [
+              {
+                name: 'Solana',
+                symbol: 'SOL',
+                decimals: 9,
+              },
+            ],
+          },
+          [solanaToken2Address]: {
             name: 'USD Coin',
             symbol: 'USDC',
             iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
             fungible: true as const,
             units: [
               {
-                name: 'USDC',
+                name: 'USD Coin',
                 symbol: 'USDC',
                 decimals: 6,
               },
             ],
           },
-        },
+        }
       },
       MultichainAssetsRatesController: {
         conversionRates: {
-          [solanaToken1Address]: {
-            rate: '1',
+          [solanaNativeTokenAddress]: {
+            rate: '100', // 1 SOL = 100 USD
+            conversionTime: 0,
+          },
+          [solanaToken2Address]: {
+            rate: '1', // 1 USDC = 1 USD
             conversionTime: 0,
           },
         },
       },
       AccountsController: {
         internalAccounts: {
-          selectedAccount: 'account1',
+          selectedAccount: evmAccountId,
           accounts: {
-            account1: {
-              id: 'account1',
-              address: mockEvmAddress,
+            [evmAccountId]: {
+              id: evmAccountId,
+              address: evmAccountAddress,
               name: 'Account 1',
               type: 'eip155:eoa' as const,
+              metadata: {
+                lastSelected: 0,
+              },
+            },
+            [solanaAccountId]: {
+              id: solanaAccountId,
+              address: solanaAccountAddress,
+              name: 'Account 2',
+              type: 'solana:data-account' as const,
               metadata: {
                 lastSelected: 0,
               },
