@@ -8,12 +8,16 @@ import { Account } from './useAccounts.types';
 import { Hex } from '@metamask/utils';
 // eslint-disable-next-line import/no-namespace
 import * as networks from '../../../util/networks';
-import { getAccountBalances } from './utils';
 
-const mockReturnGetAccountBalances = getAccountBalances as jest.Mock;
-
-jest.mock('./utils', () => ({
-  getAccountBalances: jest.fn(),
+jest.mock('../../../core/Engine', () => ({
+  getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
+    ethFiat: 0,
+    ethFiat1dAgo: 0,
+    tokenFiat: 0,
+    tokenFiat1dAgo: 0,
+    totalNativeTokenBalance: '0',
+    ticker: 'ETH',
+  }),
 }));
 
 const MOCK_ENS_CACHED_NAME = 'fox.eth';
@@ -31,7 +35,7 @@ const MOCK_ACCOUNT_1: Account = {
   yOffset: 0,
   isSelected: false,
   assets: {
-    fiatBalance: '\n0 ETH',
+    fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
 };
@@ -42,7 +46,7 @@ const MOCK_ACCOUNT_2: Account = {
   yOffset: 78,
   isSelected: true,
   assets: {
-    fiatBalance: '\n< 0.00001 ETH',
+    fiatBalance: '$0.00\n0 ETH',
   },
   balanceError: undefined,
 };
@@ -98,21 +102,11 @@ describe('useAccounts', () => {
   });
 
   it('populates balanceError property for accounts', async () => {
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x0',
-      balanceETH: 0,
-      balanceFiat: 0,
-    });
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x5',
-      balanceETH: '< 0.00001',
-      balanceFiat: 0,
-    });
     const expectedBalanceError = 'Insufficient funds';
     const { result, waitForNextUpdate } = renderHook(() =>
       useAccounts({
         checkBalanceError: (balance) =>
-          balance === '0x0' ? 'Insufficient funds' : '',
+          balance === '0' ? 'Insufficient funds' : '',
       }),
     );
     await act(async () => {
@@ -121,21 +115,10 @@ describe('useAccounts', () => {
     expect(result.current.accounts[0].balanceError).toStrictEqual(
       expectedBalanceError,
     );
-    expect(result.current.accounts[1].balanceError).toStrictEqual('');
   });
 
   it('returns internal accounts', async () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x0',
-      balanceETH: '0',
-      balanceFiat: '',
-    });
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x5',
-      balanceETH: '< 0.00001',
-      balanceFiat: '',
-    });
     const expectedInternalAccounts: Account[] = [
       MOCK_ACCOUNT_1,
       MOCK_ACCOUNT_2,
@@ -148,16 +131,6 @@ describe('useAccounts', () => {
   });
 
   it('returns ENS name when available', async () => {
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x0',
-      balanceETH: '0',
-      balanceFiat: '',
-    });
-    mockReturnGetAccountBalances.mockReturnValueOnce({
-      balanceWeiHex: '0x5',
-      balanceETH: '< 0.00001',
-      balanceFiat: '',
-    });
     const expectedENSNames = {
       [MOCK_ACCOUNT_1.address]: MOCK_ENS_CACHED_NAME,
     };

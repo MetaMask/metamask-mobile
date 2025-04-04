@@ -18,7 +18,7 @@ const useAccountInfo = (address: string) => {
     address,
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const balance = Engine.getTotalFiatAccountBalance();
+  const balance = Engine.getTotalEvmFiatAccountBalance();
   const accountFiatBalance = `${formatWithThreshold(
     balance.tokenFiat,
     0,

@@ -5,7 +5,7 @@ import { typedSignV1ConfirmationState } from '../../../../../../../util/test/con
 import TypedSignV1 from './TypedSignV1';
 
 jest.mock('../../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {
