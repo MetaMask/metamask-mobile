@@ -38,7 +38,10 @@ import AppConstants from '../../../core/AppConstants';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
-import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
+import {
+  ONBOARDING,
+  PREVIOUS_SCREEN,
+} from '../../../constants/navigation';
 import {
   EXISTING_USER,
   TRUE,
@@ -63,6 +66,8 @@ import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import Routes from '../../../constants/navigation/Routes';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {
@@ -376,7 +381,15 @@ class ChoosePassword extends PureComponent {
       this.props.passwordSet();
       this.props.setLockTime(AppConstants.DEFAULT_LOCK_TIMEOUT);
       this.setState({ loading: false });
-      this.props.navigation.replace('AccountBackupStep1');
+
+      if (authType.oauth2Login) {
+        this.props.navigation.reset({
+          index: 1,
+          routes: [{ name: Routes.ONBOARDING.SUCCESS }],
+        });
+      } else {
+        this.props.navigation.replace('AccountBackupStep1');
+      }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
       });
