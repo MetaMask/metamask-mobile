@@ -1,7 +1,7 @@
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { BtcScope, SolScope } from '@metamask/keyring-api';
 
 const {
   MAINNET,
@@ -35,7 +35,13 @@ const allowedChainIds = [
 export default function isBridgeAllowed(chainId: Hex | CaipChainId) {
   if (!AppConstants.BRIDGE.ACTIVE) return false;
 
-  if (isNonEvmChainId(chainId)) {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (chainId === SolScope.Mainnet && process.env.MM_BRIDGE_UI_ENABLED === 'true') {
+    return true;
+  }
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+
+  if (chainId === BtcScope.Mainnet) {
     return false;
   }
 
