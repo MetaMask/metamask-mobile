@@ -73,6 +73,7 @@ describe('useCryptoCurrencies', () => {
       'getSellCryptoCurrencies',
       'test-region-id',
       [],
+      ['test-payment-method-id'],
       'test-fiat-currency-id',
     );
   });
