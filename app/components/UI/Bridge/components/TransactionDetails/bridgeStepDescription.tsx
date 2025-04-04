@@ -160,9 +160,8 @@ export default function BridgeStepDescription({
       alignItems={AlignItems.center}
       flexDirection={FlexDirection.Row}
       gap={2}
-      marginLeft={8}
+      style={{ marginLeft: 8 }}
     >
-      {time && <Text color={TextColor.Default}>{time}</Text>}
       <Text
         color={
           stepStatus === StatusTypes.PENDING ||
@@ -176,6 +175,7 @@ export default function BridgeStepDescription({
             : TextVariant.BodyMD
         }
       >
+        {time && `${time} `}
         {step.action === ActionTypes.BRIDGE &&
           getBridgeActionText(
             strings,
