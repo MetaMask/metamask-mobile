@@ -65,7 +65,7 @@ const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
 
 function mockAccountsApi(transactions) {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1&sortDirection=ASC`,
+    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0x7a69,0x19,0xa,0xa4b1,0x7a69&sortDirection=ASC`,
     response: {
       data: transactions ?? [RESPONSE_STANDARD_MOCK, RESPONSE_STANDARD_2_MOCK],
       pageInfo: {
