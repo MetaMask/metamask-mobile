@@ -43,7 +43,6 @@ import { showNetworkOnboardingAction } from '../../../../../actions/onboardNetwo
 import sanitizeUrl, {
   compareSanitizedUrl,
 } from '../../../../../util/sanitizeUrl';
-import hideKeyFromUrl from '../../../../../util/hideKeyFromUrl';
 import onlyKeepHost from '../../../../../util/onlyKeepHost';
 import { themeAppearanceLight } from '../../../../../constants/storage';
 import { scale, moderateScale } from 'react-native-size-matters';
@@ -60,11 +59,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import {
-  NetworksTicker,
-  isSafeChainId,
-  toHex,
-} from '@metamask/controller-utils';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -94,6 +89,11 @@ import { AvatarVariant } from '../../../../../component-library/components/Avata
 import ReusableModal from '../../../../../components/UI/ReusableModal';
 import Device from '../../../../../util/device';
 import { ScrollView } from 'react-native-gesture-handler';
+import { DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT } from '../../../../../component-library/components/Cells/Cell/foundation/CellBase/CellBase.constants';
+import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
+import { CellComponentSelectorsIDs } from '../../../../../../e2e/selectors/wallet/CellComponent.selectors';
+import stripProtocol from '../../../../../util/stripProtocol';
+import stripKeyFromInfuraUrl from '../../../../../util/stripKeyFromInfuraUrl';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -214,7 +214,7 @@ const createStyles = (colors) =>
       borderColor: staticColors.transparent,
       padding: 0,
     },
-    onboardingInputDisabled: {
+    inputDisabled: {
       borderColor: colors.border.muted,
       color: colors.text.muted,
     },
@@ -384,6 +384,11 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'column',
     },
+    rpcTitleWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
   });
 
 const allNetworks = getAllNetworks();
@@ -550,32 +555,31 @@ export class NetworkSettings extends PureComponent {
       if (allNetworks.find((net) => networkTypeOrRpcUrl === net)) {
         const networkInformation = Networks[networkTypeOrRpcUrl];
         chainId = networkInformation.chainId.toString();
+        const networkConfiguration = networkConfigurations?.[chainId];
+        const defaultRpcEndpoint = networkConfiguration
+          ? networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultRpcEndpointIndex
+            ]
+          : undefined;
 
-        nickname = networkConfigurations?.[chainId]?.name;
+        nickname = networkConfiguration?.name;
         editable = false;
-        blockExplorerUrl =
-          networkConfigurations?.[chainId]?.blockExplorerUrls[
-            networkConfigurations?.[chainId]?.defaultBlockExplorerUrlIndex
-          ];
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
-        failoverRpcUrls =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.failoverUrls;
-        rpcName =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.type ??
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.name;
-        rpcUrls = networkConfigurations?.[chainId]?.rpcEndpoints;
-        blockExplorerUrls = networkConfigurations?.[chainId]?.blockExplorerUrls;
+        blockExplorerUrl = networkConfiguration
+          ? networkConfiguration.blockExplorerUrls[
+              networkConfiguration.defaultBlockExplorerUrlIndex
+            ]
+          : undefined;
+        rpcUrl = defaultRpcEndpoint?.url;
+        failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
+        rpcName = defaultRpcEndpoint
+          ? defaultRpcEndpoint.type === 'infura'
+            ? 'Infura'
+            : defaultRpcEndpoint.name
+          : undefined;
+        rpcUrls = networkConfiguration?.rpcEndpoints;
+        blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
 
-        ticker = networkConfigurations?.[chainId]?.nativeCurrency;
+        ticker = networkConfiguration?.nativeCurrency;
       } else {
         const networkConfiguration = Object.values(networkConfigurations).find(
           ({ rpcEndpoints, defaultRpcEndpointIndex }) =>
@@ -583,6 +587,11 @@ export class NetworkSettings extends PureComponent {
             rpcEndpoints[defaultRpcEndpointIndex].networkClientId ===
               networkTypeOrRpcUrl,
         );
+        const defaultRpcEndpoint = networkConfiguration
+          ? networkConfiguration.rpcEndpoints[
+              networkConfiguration.defaultRpcEndpointIndex
+            ]
+          : undefined;
         nickname = networkConfiguration?.name;
         chainId = networkConfiguration?.chainId;
         blockExplorerUrl =
@@ -591,23 +600,15 @@ export class NetworkSettings extends PureComponent {
           ];
         ticker = networkConfiguration?.nativeCurrency;
         editable = true;
-        rpcUrl =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.url;
-        failoverRpcUrls =
-          networkConfigurations?.[chainId]?.rpcEndpoints[
-            networkConfigurations?.[chainId]?.defaultRpcEndpointIndex
-          ]?.failoverUrls;
+        rpcUrl = defaultRpcEndpoint?.url;
+        failoverRpcUrls = defaultRpcEndpoint?.failoverUrls;
         rpcUrls = networkConfiguration?.rpcEndpoints;
         blockExplorerUrls = networkConfiguration?.blockExplorerUrls;
-        rpcName =
-          networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultRpcEndpointIndex
-          ]?.name ??
-          networkConfiguration?.rpcEndpoints[
-            networkConfiguration?.defaultRpcEndpointIndex
-          ]?.type;
+        rpcName = defaultRpcEndpoint
+          ? defaultRpcEndpoint.type === 'infura'
+            ? 'Infura'
+            : defaultRpcEndpoint.name
+          : undefined;
 
         selectedRpcEndpointIndex =
           networkConfiguration?.defaultRpcEndpointIndex;
@@ -1318,17 +1319,21 @@ export class NetworkSettings extends PureComponent {
     }
 
     const rpcName = name ?? '';
+    const newRpcUrl = {
+      url,
+      failoverUrls: [],
+      name: rpcName,
+      type: RpcEndpointType.Custom,
+    };
 
     await this.setState((prevState) => ({
-      rpcUrls: [
-        ...prevState.rpcUrls,
-        { url, failoverUrls: [], name: rpcName, type: RpcEndpointType.Custom },
-      ],
+      rpcUrls: [...prevState.rpcUrls, newRpcUrl],
     }));
 
     await this.setState({
-      rpcUrl: url,
-      rpcName: name,
+      rpcUrl: newRpcUrl.url,
+      failoverRpcUrls: newRpcUrl.failoverUrls,
+      rpcName: newRpcUrl.name,
     });
 
     this.closeAddRpcForm();
@@ -1384,20 +1389,18 @@ export class NetworkSettings extends PureComponent {
     this.getCurrentState();
   };
 
-  onRpcUrlChangeWithName = async (url, name, type) => {
+  onRpcUrlChangeWithName = async (url, failoverUrls, name, type) => {
     const nameToUse = name ?? type;
     const { addMode } = this.state;
     await this.setState({
+      rpcName: nameToUse,
       rpcUrl: url,
+      failoverRpcUrls: failoverUrls,
       validatedRpcURL: false,
       warningRpcUrl: undefined,
       warningChainId: undefined,
       warningSymbol: undefined,
       warningName: undefined,
-    });
-
-    await this.setState({
-      rpcName: nameToUse,
     });
 
     this.validateName();
@@ -1633,7 +1636,10 @@ export class NetworkSettings extends PureComponent {
         ...networkConfiguration,
         formattedRpcUrl: networkConfiguration.warning
           ? null
-          : hideKeyFromUrl(networkConfiguration.rpcUrl),
+          : formatNetworkRpcUrl(
+              networkConfiguration.rpcUrl,
+              networkConfiguration.chainId,
+            ),
       },
     });
   };
@@ -1669,6 +1675,14 @@ export class NetworkSettings extends PureComponent {
       rpcName,
       blockExplorerUrlForm,
     } = this.state;
+    console.log(
+      'rpcName',
+      rpcName,
+      'rpcUrl',
+      rpcUrl,
+      'failoverRpcUrls',
+      failoverRpcUrls,
+    );
     const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;
@@ -1676,16 +1690,8 @@ export class NetworkSettings extends PureComponent {
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl, chainId) => {
-      const isNetworkPrePopulated = PopularList.find(
-        (val) => val.rpcUrl === rpcUrl && val.chainId === chainId,
-      );
-      if (isNetworkPrePopulated !== undefined) {
-        if (isNetworkPrePopulated.warning) {
-          return null;
-        }
-        return hideKeyFromUrl(isNetworkPrePopulated.rpcUrl);
-      }
+    const formatNetworkRpcUrl = (rpcUrl) => {
+      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
     };
     const inputStyle = [
       styles.input,
@@ -1731,7 +1737,7 @@ export class NetworkSettings extends PureComponent {
         : styles.input,
       inputWidth,
       isCustomMainnet ? styles.onboardingInput : undefined,
-      !addMode ? styles.onboardingInputDisabled : undefined,
+      !addMode ? styles.inputDisabled : undefined,
     ];
 
     const isRPCEditable = isCustomMainnet || editable;
@@ -1993,25 +1999,24 @@ export class NetworkSettings extends PureComponent {
                   key={rpcUrl}
                   testID={NetworksViewSelectorsIDs.ICON_BUTTON_RPC}
                   variant={CellVariant.SelectWithMenu}
-                  title={rpcName || rpcUrl}
-                  {...(rpcName
-                    ? {
-                        secondaryText:
-                          hideKeyFromUrl(rpcUrl) ??
-                          hideKeyFromUrl(
-                            networkConfigurations?.[chainId]?.rpcEndpoints?.[
-                              networkConfigurations?.[chainId]
-                                ?.defaultRpcEndpointIndex
-                            ]?.url,
-                          ),
-                      }
-                    : {})}
-                  {...(failoverRpcUrls.length > 0
-                    ? {
-                        tertiaryText:
-                          '(' + onlyKeepHost(failoverRpcUrls[0]) + ')',
-                      }
-                    : {})}
+                  title={
+                    <View style={styles.rpcTitleWrapper}>
+                      <View>
+                        <Text
+                          numberOfLines={1}
+                          variant={DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT}
+                          testID={CellComponentSelectorsIDs.BASE_TITLE}
+                        >
+                          {rpcName || formatNetworkRpcUrl(rpcUrl)}
+                        </Text>
+                      </View>
+                      {failoverRpcUrls.length > 0 && (
+                        <Tag label={strings('app_settings.failover')} />
+                      )}
+                    </View>
+                  }
+                  secondaryText={rpcName ? formatNetworkRpcUrl(rpcUrl) : ''}
+                  showSecondaryTextIcon={false}
                   isSelected={false}
                   withAvatar={false}
                   onPress={this.openRpcModal}
@@ -2027,7 +2032,7 @@ export class NetworkSettings extends PureComponent {
                 style={inputErrorRpcStyle}
                 autoCapitalize={'none'}
                 autoCorrect={false}
-                value={formatNetworkRpcUrl(rpcUrl, chainId) || rpcUrl}
+                value={formatNetworkRpcUrl(rpcUrl)}
                 editable={isRPCEditable}
                 onChangeText={this.onRpcUrlChange}
                 onBlur={() => {
@@ -2057,6 +2062,19 @@ export class NetworkSettings extends PureComponent {
                   </View>
                 )
               : null}
+
+            {failoverRpcUrls.length > 0 && (
+              <>
+                <Text style={styles.label}>
+                  {strings('app_settings.network_failover_rpc_url_label')}
+                </Text>
+                <TextInput
+                  style={[styles.input, styles.inputDisabled]}
+                  value={onlyKeepHost(failoverRpcUrls[0])}
+                  editable={false}
+                />
+              </>
+            )}
 
             <Text style={styles.label}>
               {strings('app_settings.network_chain_id_label')}
@@ -2409,41 +2427,69 @@ export class NetworkSettings extends PureComponent {
               <ScrollView contentContainerStyle={styles.scrollViewContent}>
                 {rpcUrls.length > 0 ? (
                   <View>
-                    {rpcUrls.map(({ url, failoverUrls, name, type }) => (
-                      <Cell
-                        key={`${url}-${name}`}
-                        variant={CellVariant.SelectWithMenu}
-                        title={name || type}
-                        secondaryText={hideKeyFromUrl(url)}
-                        tertiaryText={
-                          failoverUrls.length > 0
-                            ? '(' + onlyKeepHost(failoverUrls[0]) + ')'
-                            : null
-                        }
-                        isSelected={rpcUrl === url}
-                        withAvatar={false}
-                        onPress={async () => {
-                          await this.onRpcUrlChangeWithName(url, name, type);
-                          this.closeRpcModal();
-                        }}
-                        showButtonIcon={
-                          rpcUrl !== url && type !== RpcEndpointType.Infura
-                        }
-                        buttonIcon={IconName.Trash}
-                        buttonProps={{
-                          onButtonClick: () => {
-                            this.onRpcUrlDelete(url);
-                          },
-                        }}
-                        onTextClick={async () => {
-                          await this.onRpcUrlChangeWithName(url, name, type);
-                          this.closeRpcModal();
-                        }}
-                        avatarProps={{
-                          variant: AvatarVariant.Token,
-                        }}
-                      />
-                    ))}
+                    {rpcUrls.map(({ url, failoverUrls, name, type }) => {
+                      const formattedName = type === 'infura' ? 'Infura' : name;
+                      return (
+                        <Cell
+                          key={`${url}-${name}`}
+                          variant={CellVariant.SelectWithMenu}
+                          title={
+                            <View style={styles.rpcTitleWrapper}>
+                              <View>
+                                <Text
+                                  numberOfLines={1}
+                                  variant={
+                                    DEFAULT_CELLBASE_AVATAR_TITLE_TEXTVARIANT
+                                  }
+                                  testID={CellComponentSelectorsIDs.BASE_TITLE}
+                                >
+                                  {formattedName || formatNetworkRpcUrl(url)}
+                                </Text>
+                              </View>
+                              {failoverUrls.length > 0 && (
+                                <Tag label={strings('app_settings.failover')} />
+                              )}
+                            </View>
+                          }
+                          secondaryText={
+                            formattedName ? formatNetworkRpcUrl(rpcUrl) : ''
+                          }
+                          showSecondaryTextIcon={false}
+                          isSelected={rpcUrl === url}
+                          withAvatar={false}
+                          onPress={async () => {
+                            await this.onRpcUrlChangeWithName(
+                              url,
+                              failoverUrls,
+                              name,
+                              type,
+                            );
+                            this.closeRpcModal();
+                          }}
+                          showButtonIcon={
+                            rpcUrl !== url && type !== RpcEndpointType.Infura
+                          }
+                          buttonIcon={IconName.Trash}
+                          buttonProps={{
+                            onButtonClick: () => {
+                              this.onRpcUrlDelete(url);
+                            },
+                          }}
+                          onTextClick={async () => {
+                            await this.onRpcUrlChangeWithName(
+                              url,
+                              failoverUrls,
+                              name,
+                              type,
+                            );
+                            this.closeRpcModal();
+                          }}
+                          avatarProps={{
+                            variant: AvatarVariant.Token,
+                          }}
+                        />
+                      );
+                    })}
                   </View>
                 ) : null}
                 <View style={styles.scrollableBox}>

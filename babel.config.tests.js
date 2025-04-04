@@ -8,10 +8,13 @@ const newPlugins = baseConfig.plugins.filter(
 
 const newOverrides = [
   ...baseConfig.overrides,
-  // Don't transform environment variables for migration files when running
-  // tests as some tests rely on them to be set or unset, depending on the case.
+  // Don't transform environment variables for files that depend on them.
   {
-    exclude: ['app/store/migrations/**'],
+    exclude: [
+      'app/store/migrations/**',
+      'app/core/Engine/controllers/network-controller/messenger-action-handlers.test.ts',
+      'app/util/networks/customNetworks.tsx',
+    ],
     plugins: ['transform-inline-environment-variables'],
   },
 ];
