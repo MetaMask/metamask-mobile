@@ -89,10 +89,8 @@ describe('PermissionsSummary', () => {
       { state: mockInitialState },
     );
     const originalHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
-    console.log('originalHostnameSyntax', originalHostnameSyntax)
     expect(originalHostnameSyntax.includes(maliciousHostname)).toBe(true);
     // now change the url for that same instance and change the URL
-    // use rerender
     // use act to rerender
     await act(async () => {
       rerender(
@@ -106,7 +104,6 @@ describe('PermissionsSummary', () => {
       );
     });
     const newHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
-    console.log('newHostnameSyntax', newHostnameSyntax)
     expect(newHostnameSyntax.includes(safeHostname)).toBe(false);
     expect(newHostnameSyntax.includes(maliciousHostname)).toBe(true);
   });
