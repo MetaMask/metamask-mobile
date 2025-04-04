@@ -913,7 +913,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     }
                                   >
                                     <TouchableOpacity
-                                      onLongPress={[Function]}
                                       onPress={[Function]}
                                       style={
                                         {
@@ -1093,16 +1092,16 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           Hello Token
                                         </Text>
                                       </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-end",
-                                            "alignSelf": "flex-end",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      />
                                     </TouchableOpacity>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "flex-end",
+                                          "alignSelf": "flex-end",
+                                          "flex": 1,
+                                        }
+                                      }
+                                    />
                                     <TouchableOpacity
                                       accessible={true}
                                       activeOpacity={1}
@@ -1162,7 +1161,6 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                     }
                                   >
                                     <TouchableOpacity
-                                      onLongPress={[Function]}
                                       onPress={[Function]}
                                       style={
                                         {
@@ -1342,16 +1340,16 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                           Token One
                                         </Text>
                                       </View>
-                                      <View
-                                        style={
-                                          {
-                                            "alignItems": "flex-end",
-                                            "alignSelf": "flex-end",
-                                            "flex": 1,
-                                          }
-                                        }
-                                      />
                                     </TouchableOpacity>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "flex-end",
+                                          "alignSelf": "flex-end",
+                                          "flex": 1,
+                                        }
+                                      }
+                                    />
                                     <TouchableOpacity
                                       accessible={true}
                                       activeOpacity={1}
