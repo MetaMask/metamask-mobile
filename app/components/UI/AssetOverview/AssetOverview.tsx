@@ -220,9 +220,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       ).then(() => {
-        setTimeout(() => {
-          handleSwapNavigation();
-        }, 500);
+        handleSwapNavigation();
       });
     } else {
       handleSwapNavigation();
@@ -298,7 +296,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
 
   let balance;
-  const hundredThousandthsThreshold = 0.00001;
+  const minimumDisplayThreshold = 0.00001;
 
   const isMultichainAsset = !isEvmSelected;
   const isEthOrNative = asset.isETH || asset.isNative;
@@ -306,7 +304,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   if (isMultichainAsset) {
     balance = formatWithThreshold(
       parseFloat(asset.balance),
-      hundredThousandthsThreshold,
+      minimumDisplayThreshold,
       I18n.locale,
       { minimumFractionDigits: 0, maximumFractionDigits: 5 },
     );
