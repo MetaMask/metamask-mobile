@@ -72,6 +72,8 @@ export const SnapUIInput = ({
         id={name}
         value={value}
         onChangeText={handleChange}
+        autoCapitalize="none"
+        autoCorrect={false}
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles
