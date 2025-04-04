@@ -1675,14 +1675,6 @@ export class NetworkSettings extends PureComponent {
       rpcName,
       blockExplorerUrlForm,
     } = this.state;
-    console.log(
-      'rpcName',
-      rpcName,
-      'rpcUrl',
-      rpcUrl,
-      'failoverRpcUrls',
-      failoverRpcUrls,
-    );
     const { route, networkConfigurations } = this.props;
     const isCustomMainnet = route.params?.isCustomMainnet;
     const colors = this.context.colors || mockTheme.colors;

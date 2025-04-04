@@ -221,34 +221,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             >
               Orangefox.eth
             </Text>
-            <TouchableOpacity
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessible={true}
-              focusable={false}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "marginBottom": 0,
-                  "zIndex": 1,
-                }
-              }
-            >
+            <View>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
@@ -279,52 +252,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 }
                 width={10}
               />
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessible={true}
-              focusable={false}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "marginBottom": 0,
-                  "zIndex": 1,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                numberOfLines={1}
-                style={
-                  {
-                    "color": "#6a737d",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 12,
-                    "fontWeight": "400",
-                    "letterSpacing": 0,
-                    "lineHeight": 20,
-                  }
-                }
-              >
-                Updated 1 sec ago
-              </Text>
-            </TouchableOpacity>
+            </View>
             <View
               style={
                 {
