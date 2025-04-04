@@ -5,7 +5,6 @@ import {
   useNotificationAccountListProps,
 } from './AccountsList.hooks';
 import NotificationOptionToggle from './NotificationOptionToggle';
-import { NotificationsToggleTypes } from './NotificationsSettings.constants';
 import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 export const AccountsList = () => {
@@ -25,7 +24,6 @@ export const AccountsList = () => {
         renderItem={({ item }) => (
           <NotificationOptionToggle
             key={item.address}
-            type={NotificationsToggleTypes.ACCOUNT}
             icon={accountAvatarType}
             title={item.name}
             address={item.address}

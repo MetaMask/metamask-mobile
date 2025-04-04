@@ -170,7 +170,7 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<Record<string, undefined>>;
+  navigation: NavigationProp<ParamListBase>;
 }) => ({
   headerRight: () => (
     <ButtonIcon
