@@ -1,0 +1,143 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsSettings render matches snapshot 1`] = `
+<RCTScrollView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "padding": 24,
+      "paddingBottom": 48,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "display": "flex",
+          "flexDirection": "row",
+          "justifyContent": "space-between",
+          "marginTop": 16,
+        }
+      }
+      testID="main-notification-toggle"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Allow notifications
+      </Text>
+      <RCTSwitch
+        accessibilityRole="switch"
+        onChange={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onTintColor="#4459ff"
+        style={
+          [
+            {
+              "height": 31,
+              "width": 51,
+            },
+            [
+              {
+                "alignSelf": "flex-end",
+              },
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 16,
+              },
+            ],
+          ]
+        }
+        testID="main-notification-toggle--switch"
+        thumbTintColor="#ffffff"
+        tintColor="#b7bbc866"
+        value={false}
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginVertical": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Stay in the loop on what’s happening in your wallet with notifications. To use notifications, we use a profile to sync some settings across your devices.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="main-notification-toggle--learn-more-button"
+        >
+          Learn how we protect your privacy while using this feature.
+        </Text>
+      </Text>
+    </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
+  </View>
+</RCTScrollView>
+`;

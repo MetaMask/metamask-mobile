@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Collectibles should render correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+  testID="collectibles"
+>
+  <RCTScrollView
+    refreshControl={
+      <RefreshControlMock
+        colors={
+          [
+            "#4459ff",
+          ]
+        }
+        refreshing={false}
+        tintColor="#121314"
+      />
+    }
+  >
+    <RCTRefreshControl />
+    <View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "justifyContent": "center",
+            "marginTop": 50,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#9ca1af",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 20,
+              "fontWeight": "400",
+            }
+          }
+        >
+          Don’t see your NFT?
+        </Text>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
+`;

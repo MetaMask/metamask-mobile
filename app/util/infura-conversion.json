@@ -1,0 +1,312 @@
+{
+  "objects": [
+    {
+      "symbol": "ethaud",
+      "quote": {
+        "code": "aud",
+        "name": "Australian Dollar"
+      }
+    },
+    {
+      "symbol": "ethhkd",
+      "quote": {
+        "code": "hkd",
+        "name": "Hong Kong Dollar"
+      }
+    },
+    {
+      "symbol": "ethsgd",
+      "quote": {
+        "code": "sgd",
+        "name": "Singapore Dollar"
+      }
+    },
+    {
+      "symbol": "ethidr",
+      "quote": {
+        "code": "idr",
+        "name": "Indonesian Rupiah"
+      }
+    },
+    {
+      "symbol": "ethinr",
+      "quote": {
+        "code": "inr",
+        "name": "Indian Rupee"
+      }
+    },
+    {
+      "symbol": "ethnzd",
+      "quote": {
+        "code": "nzd",
+        "name": "New Zealand Dollar"
+      }
+    },
+    {
+      "symbol": "ethphp",
+      "quote": {
+        "code": "php",
+        "name": "Philippine Peso"
+      }
+    },
+    {
+      "symbol": "ethbtc",
+      "quote": {
+        "code": "btc",
+        "name": "Bitcoin"
+      }
+    },
+    {
+      "symbol": "ethcad",
+      "quote": {
+        "code": "cad",
+        "name": "Canadian Dollar"
+      }
+    },
+    {
+      "symbol": "etheur",
+      "quote": {
+        "code": "eur",
+        "name": "Euro"
+      }
+    },
+    {
+      "symbol": "ethgbp",
+      "quote": {
+        "code": "gbp",
+        "name": "Pound Sterling"
+      }
+    },
+    {
+      "symbol": "ethjpy",
+      "quote": {
+        "code": "jpy",
+        "name": "Japanese Yen"
+      }
+    },
+    {
+      "symbol": "ethltc",
+      "quote": {
+        "code": "ltc",
+        "name": "Litecoin"
+      }
+    },
+    {
+      "symbol": "ethrub",
+      "quote": {
+        "code": "rub",
+        "name": "Russian Ruble"
+      }
+    },
+    {
+      "symbol": "ethuah",
+      "quote": {
+        "code": "uah",
+        "name": "Ukrainian Hryvnia"
+      }
+    },
+    {
+      "symbol": "ethusd",
+      "quote": {
+        "code": "usd",
+        "name": "United States Dollar"
+      }
+    },
+    {
+      "symbol": "ethxlm",
+      "quote": {
+        "code": "xlm",
+        "name": "Stellar Lumen"
+      }
+    },
+    {
+      "symbol": "ethxrp",
+      "quote": {
+        "code": "xrp",
+        "name": "Ripple"
+      }
+    },
+    {
+      "symbol": "ethsek",
+      "quote": {
+        "code": "sek",
+        "name": "Swedish Krona"
+      }
+    },
+    {
+      "symbol": "ethaed",
+      "quote": {
+        "code": "aed",
+        "name": "United Arab Emirates Dirham"
+      }
+    },
+    {
+      "symbol": "ethars",
+      "quote": {
+        "code": "ars",
+        "name": "Argentine Peso"
+      }
+    },
+    {
+      "symbol": "ethbch",
+      "quote": {
+        "code": "bch",
+        "name": "Bitcoin Cash"
+      }
+    },
+    {
+      "symbol": "ethbnb",
+      "quote": {
+        "code": "bnb",
+        "name": "Binance Coin"
+      }
+    },
+    {
+      "symbol": "ethbrl",
+      "quote": {
+        "code": "brl",
+        "name": "Brazilian Real"
+      }
+    },
+    {
+      "symbol": "ethclp",
+      "quote": {
+        "code": "clp",
+        "name": "Chilean Peso"
+      }
+    },
+    {
+      "symbol": "ethcny",
+      "quote": {
+        "code": "cny",
+        "name": "Chinese Yuan"
+      }
+    },
+    {
+      "symbol": "ethczk",
+      "quote": {
+        "code": "czk",
+        "name": "Czech Koruna"
+      }
+    },
+    {
+      "symbol": "ethdkk",
+      "quote": {
+        "code": "dkk",
+        "name": "Danish Krone"
+      }
+    },
+    {
+      "symbol": "ethchf",
+      "quote": {
+        "code": "chf",
+        "name": "Swiss Franc"
+      }
+    },
+    {
+      "symbol": "ethdot",
+      "quote": {
+        "code": "dot",
+        "name": "Polkadot"
+      }
+    },
+    {
+      "symbol": "etheos",
+      "quote": {
+        "code": "eos",
+        "name": "EOS"
+      }
+    },
+    {
+      "symbol": "etheth",
+      "quote": {
+        "code": "eth",
+        "name": "Ethereum"
+      }
+    },
+    {
+      "symbol": "ethgel",
+      "quote": {
+        "code": "gel",
+        "name": "Georgian Lari"
+      }
+    },
+    {
+      "symbol": "ethhuf",
+      "quote": {
+        "code": "huf",
+        "name": "Hungarian Forint"
+      }
+    },
+    {
+      "symbol": "ethils",
+      "quote": {
+        "code": "ils",
+        "name": "Israeli Shekel"
+      }
+    },
+    {
+      "symbol": "ethkrw",
+      "quote": {
+        "code": "krw",
+        "name": "South Korean Won"
+      }
+    },
+    {
+      "symbol": "ethmxn",
+      "quote": {
+        "code": "mxn",
+        "name": "Mexican Peso"
+      }
+    },
+    {
+      "symbol": "ethmyr",
+      "quote": {
+        "code": "myr",
+        "name": "Malaysian Ringgit"
+      }
+    },
+    {
+      "symbol": "ethngn",
+      "quote": {
+        "code": "ngn",
+        "name": "Nigerian Naira"
+      }
+    },
+    {
+      "symbol": "ethnok",
+      "quote": {
+        "code": "nok",
+        "name": "Norwegian Krone"
+      }
+    },
+    {
+      "symbol": "ethpln",
+      "quote": {
+        "code": "pln",
+        "name": "Polish Zloty"
+      }
+    },
+    {
+      "symbol": "eththb",
+      "quote": {
+        "code": "thb",
+        "name": "Thai Baht"
+      }
+    },
+    {
+      "symbol": "ethtry",
+      "quote": {
+        "code": "try",
+        "name": "Turkish Lira"
+      }
+    },
+    {
+      "symbol": "ethzar",
+      "quote": {
+        "code": "zar",
+        "name": "South African Rand"
+      }
+    }
+  ]
+}

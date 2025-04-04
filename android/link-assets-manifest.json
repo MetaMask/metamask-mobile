@@ -1,0 +1,53 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "app/fonts/CentraNo1-Bold.otf",
+      "sha1": "1b26ab89462645088b88fab8e07d16a93cb648e4"
+    },
+    {
+      "path": "app/fonts/CentraNo1-BoldItalic.otf",
+      "sha1": "481aeb0f274cc53bfd10bf3d14a234ed0ed18ac5"
+    },
+    {
+      "path": "app/fonts/CentraNo1-Book.otf",
+      "sha1": "d49acfcbd516e824e7fd3e843ead5de73bcca276"
+    },
+    {
+      "path": "app/fonts/CentraNo1-BookItalic.otf",
+      "sha1": "c161b047be337f3deb86c863487118851eeaeb27"
+    },
+    {
+      "path": "app/fonts/CentraNo1-Medium.otf",
+      "sha1": "28459fca973e639679f5bfba2b37016da86f1688"
+    },
+    {
+      "path": "app/fonts/CentraNo1-MediumItalic.otf",
+      "sha1": "c129a146979b642a446574e109b7bcdd8516d5d7"
+    },
+    {
+      "path": "app/fonts/MMPoly-Regular.otf",
+      "sha1": "b6cd0bc868fe5f53469bf52246917210c807954d"
+    },
+    {
+      "path": "app/fonts/MMSans-Bold.otf",
+      "sha1": "048a70c36b9a3453853ecff2ded9b0e88b411dc0"
+    },
+    {
+      "path": "app/fonts/MMSans-Medium.otf",
+      "sha1": "4a304a2ce85a51be718c56ec71e7cad713ab7f84"
+    },
+    {
+      "path": "app/fonts/MMSans-Regular.otf",
+      "sha1": "db0290dd245c9a6496fe9b1a0b3b544f976af2d9"
+    },
+    {
+      "path": "app/fonts/Metamask.ttf",
+      "sha1": "d274323055489d231d009cb3aa7ccfba3620e340"
+    },
+    {
+      "path": "app/fonts/config.json",
+      "sha1": "47efd6cacd9d899349b5b491425b288619ba712d"
+    }
+  ]
+}

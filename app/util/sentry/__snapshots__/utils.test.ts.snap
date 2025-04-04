@@ -1,0 +1,276 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] = `
+{
+  "accounts": {
+    "reloadAccounts": false,
+  },
+  "alert": {
+    "autodismiss": null,
+    "content": null,
+    "data": null,
+    "isVisible": false,
+  },
+  "bookmarks": {},
+  "browser": {
+    "activeTab": null,
+    "favicons": [],
+    "history": [],
+    "tabs": [],
+    "visitedDappsByHostname": {},
+    "whitelist": [],
+  },
+  "collectibles": {
+    "favorites": {},
+    "isNftFetchingProgress": false,
+  },
+  "confirmationMetrics": "object",
+  "engine": {
+    "backgroundState": {
+      "AccountTrackerController": {
+        "accounts": "object",
+        "accountsByChainId": "object",
+      },
+      "AccountsController": {
+        "internalAccounts": {
+          "accounts": {
+            "1be55f5b-eba9-41a7-a9ed-a6a8274aca27": {
+              "address": "string",
+              "id": "1be55f5b-eba9-41a7-a9ed-a6a8274aca27",
+              "metadata": {
+                "importTime": 1720023898234,
+                "keyring": {
+                  "type": "HD Key Tree",
+                },
+                "lastSelected": 1720023898236,
+                "name": "Account 1",
+              },
+              "methods": [
+                "personal_sign",
+                "eth_signTransaction",
+                "eth_signTypedData_v1",
+                "eth_signTypedData_v3",
+                "eth_signTypedData_v4",
+              ],
+              "options": {},
+              "scopes": [
+                "eip155:0",
+              ],
+              "type": "eip155:eoa",
+            },
+            "2be55f5b-eba9-41a7-a9ed-a6a8274aca28": {
+              "address": "string",
+              "id": "2be55f5b-eba9-41a7-a9ed-a6a8274aca28",
+              "metadata": {
+                "importTime": 1720023898235,
+                "keyring": {
+                  "type": "HD Key Tree",
+                },
+                "lastSelected": 1720023898237,
+                "name": "Account 2",
+              },
+              "methods": [
+                "personal_sign",
+                "eth_signTransaction",
+              ],
+              "options": {},
+              "scopes": [
+                "eip155:0",
+              ],
+              "type": "eip155:eoa",
+            },
+          },
+          "selectedAccount": "1be55f5b-eba9-41a7-a9ed-a6a8274aca27",
+        },
+      },
+      "AddressBookController": {
+        "addressBook": "object",
+      },
+      "ApprovalController": {
+        "approvalFlows": "object",
+        "pendingApprovalCount": "number",
+        "pendingApprovals": "object",
+      },
+      "CurrencyRateController": {
+        "currencyRates": {
+          "ETH": {
+            "conversionDate": 1720196397083,
+            "conversionRate": 298514,
+            "usdConversionRate": 298514,
+          },
+        },
+        "currentCurrency": "usd",
+      },
+      "GasFeeController": {
+        "estimatedGasFeeTimeBounds": {},
+        "gasEstimateType": "none",
+        "gasFeeEstimates": {},
+        "gasFeeEstimatesByChainId": {},
+        "nonRPCGasFeeApisDisabled": "boolean",
+      },
+      "KeyringController": {
+        "isUnlocked": true,
+        "keyrings": {
+          "0": {
+            "accounts": {
+              "0": "string",
+              "1": "string",
+            },
+            "type": "HD Key Tree",
+          },
+          "1": {
+            "accounts": {},
+            "type": "QR Hardware Wallet Device",
+          },
+        },
+        "vault": "string",
+      },
+      "LoggingController": {
+        "logs": "object",
+      },
+      "NetworkController": {
+        "networkConfigurationsByChainId": "object",
+        "networksMetadata": {
+          "mainnet": {
+            "EIPS": {
+              "1559": true,
+            },
+            "status": "available",
+          },
+        },
+        "selectedNetworkClientId": "string",
+      },
+      "NftController": {
+        "allNftContracts": "object",
+        "allNfts": "object",
+        "ignoredNfts": "object",
+      },
+      "PermissionController": {},
+      "PreferencesController": {
+        "displayNftMedia": true,
+        "featureFlags": {},
+        "identities": "object",
+        "ipfsGateway": "string",
+        "isIpfsGatewayEnabled": true,
+        "isMultiAccountBalancesEnabled": "boolean",
+        "lostIdentities": "object",
+        "securityAlertsEnabled": "boolean",
+        "selectedAddress": "string",
+        "showIncomingTransactions": "object",
+        "showTestNetworks": "boolean",
+        "smartTransactionsOptInStatus": "boolean",
+        "useNftDetection": true,
+        "useSafeChainsListValidation": "boolean",
+        "useTokenDetection": true,
+        "useTransactionSimulations": true,
+      },
+      "SmartTransactionsController": {
+        "smartTransactionsState": {
+          "fees": {},
+          "feesByChainId": "object",
+          "liveness": true,
+          "livenessByChainId": "object",
+          "smartTransactions": "object",
+        },
+      },
+    },
+  },
+  "experimentalSettings": {
+    "securityAlertsEnabled": true,
+  },
+  "fiatOrders": "object",
+  "infuraAvailability": {
+    "isBlocked": false,
+  },
+  "inpageProvider": {
+    "networkId": "1",
+  },
+  "legalNotices": {
+    "newPrivacyPolicyToastClickedOrClosed": true,
+    "newPrivacyPolicyToastShownDate": null,
+  },
+  "modals": {
+    "collectibleContractModalVisible": false,
+    "dappTransactionModalVisible": false,
+    "networkModalVisible": false,
+    "receiveAsset": undefined,
+    "receiveModalVisible": false,
+    "shouldNetworkSwitchPopToWallet": true,
+    "signMessageModalVisible": true,
+  },
+  "navigation": {
+    "currentBottomNavRoute": "Wallet",
+    "currentRoute": "Login",
+  },
+  "networkOnboarded": {
+    "networkOnboardedState": {},
+    "networkState": {
+      "nativeToken": "",
+      "networkType": "",
+      "networkUrl": "",
+      "showNetworkOnboarding": false,
+    },
+    "switchedNetwork": {
+      "networkStatus": false,
+      "networkUrl": "",
+    },
+  },
+  "notification": {
+    "notification": {
+      "notificationsSettings": {},
+    },
+    "notifications": [],
+  },
+  "onboarding": {
+    "events": [],
+  },
+  "privacy": {},
+  "rpcEvents": {
+    "signingEvent": {
+      "eventStage": "idle",
+      "rpcName": "",
+    },
+  },
+  "sdk": {
+    "approvedHosts": {},
+    "connections": {},
+    "dappConnections": {},
+    "wc2Metadata": undefined,
+  },
+  "security": {
+    "allowLoginWithRememberMe": false,
+    "automaticSecurityChecksEnabled": false,
+    "dataCollectionForMarketing": null,
+    "hasUserSelectedAutomaticSecurityCheckOption": false,
+    "isAutomaticSecurityChecksModalOpen": false,
+    "isNFTAutoDetectionModalViewed": false,
+  },
+  "settings": {
+    "basicFunctionalityEnabled": true,
+    "hideZeroBalanceTokens": false,
+    "lockTime": 30000,
+    "primaryCurrency": "ETH",
+    "searchEngine": "Google",
+    "useBlockieIcon": true,
+  },
+  "signatureRequest": "object",
+  "swaps": "object",
+  "transaction": "object",
+  "user": {
+    "ambiguousAddressEntries": "object",
+    "backUpSeedphraseVisible": false,
+    "gasEducationCarouselSeen": false,
+    "initialScreen": "",
+    "isAuthChecked": false,
+    "loadingMsg": "",
+    "loadingSet": false,
+    "passwordSet": true,
+    "protectWalletModalVisible": false,
+    "seedphraseBackedUp": true,
+    "userLoggedIn": true,
+  },
+  "wizard": {
+    "step": 1,
+  },
+}
+`;

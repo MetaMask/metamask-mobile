@@ -1,0 +1,265 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakingEarningsHistoryChart renders to match snapshot 1`] = `
+<View
+  onLayout={[Function]}
+  testID="earnings-history-chart-container"
+>
+  <View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "justifyContent": "center",
+          "paddingBottom": 16,
+          "paddingTop": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#1c7e33",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 32,
+          }
+        }
+      >
+        6.00000
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Lifetime earnings
+      </Text>
+    </View>
+    <View
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      style={
+        {
+          "flex": 1,
+          "width": "100%",
+        }
+      }
+      testID="earnings-history-chart"
+    >
+      <View
+        style={
+          [
+            {
+              "flex": 1,
+              "height": 75,
+              "marginBottom": 4,
+              "paddingBottom": 16,
+              "paddingTop": 16,
+            },
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <RNSVGSvgView
+            bbHeight={200}
+            bbWidth={500}
+            focusable={false}
+            style={
+              [
+                {
+                  "backgroundColor": "transparent",
+                  "borderWidth": 0,
+                },
+                {
+                  "height": 200,
+                  "width": 500,
+                },
+                {
+                  "flex": 0,
+                  "height": 200,
+                  "width": 500,
+                },
+              ]
+            }
+          >
+            <RNSVGGroup
+              fill={
+                {
+                  "payload": 4278190080,
+                  "type": 0,
+                }
+              }
+            >
+              <RNSVGPath
+                d="M0,133.66666666666669L155.17241379310346,133.66666666666669L155.17241379310346,200L0,200Z"
+                fill={
+                  {
+                    "brushRef": "bar-gradient",
+                    "type": 1,
+                  }
+                }
+                propList={
+                  [
+                    "fill",
+                  ]
+                }
+                testID="earning-history-chart-bar-0"
+              />
+              <RNSVGPath
+                d="M172.41379310344828,1L327.58620689655174,1L327.58620689655174,200L172.41379310344828,200Z"
+                fill={
+                  {
+                    "brushRef": "bar-gradient",
+                    "type": 1,
+                  }
+                }
+                propList={
+                  [
+                    "fill",
+                  ]
+                }
+                testID="earning-history-chart-bar-1"
+              />
+              <RNSVGPath
+                d="M344.82758620689657,67.33333333333334L500,67.33333333333334L500,200L344.82758620689657,200Z"
+                fill={
+                  {
+                    "brushRef": "bar-gradient",
+                    "type": 1,
+                  }
+                }
+                propList={
+                  [
+                    "fill",
+                  ]
+                }
+                testID="earning-history-chart-bar-2"
+              />
+              <RNSVGDefs>
+                <RNSVGLinearGradient
+                  gradient={
+                    [
+                      0,
+                      1867315,
+                      1,
+                      438074931,
+                    ]
+                  }
+                  gradientTransform={null}
+                  gradientUnits={0}
+                  name="bar-gradient"
+                  x1="0%"
+                  x2="0%"
+                  y1="100%"
+                  y2="0%"
+                />
+              </RNSVGDefs>
+              <RNSVGLine
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+                propList={
+                  [
+                    "stroke",
+                    "strokeWidth",
+                  ]
+                }
+                stroke={
+                  {
+                    "payload": 4280057395,
+                    "type": 0,
+                  }
+                }
+                strokeWidth={1}
+                testID="earning-history-chart-line-0"
+                x1={0}
+                x2={155.17241379310346}
+                y1={133.16666666666669}
+                y2={133.16666666666669}
+              />
+              <RNSVGLine
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+                propList={
+                  [
+                    "stroke",
+                    "strokeWidth",
+                  ]
+                }
+                stroke={
+                  {
+                    "payload": 4280057395,
+                    "type": 0,
+                  }
+                }
+                strokeWidth={1}
+                testID="earning-history-chart-line-1"
+                x1={172.41379310344828}
+                x2={327.58620689655174}
+                y1={0.5}
+                y2={0.5}
+              />
+              <RNSVGLine
+                fill={
+                  {
+                    "payload": 4278190080,
+                    "type": 0,
+                  }
+                }
+                propList={
+                  [
+                    "stroke",
+                    "strokeWidth",
+                  ]
+                }
+                stroke={
+                  {
+                    "payload": 4280057395,
+                    "type": 0,
+                  }
+                }
+                strokeWidth={1}
+                testID="earning-history-chart-line-2"
+                x1={344.82758620689657}
+                x2={500}
+                y1={66.83333333333334}
+                y2={66.83333333333334}
+              />
+            </RNSVGGroup>
+          </RNSVGSvgView>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;

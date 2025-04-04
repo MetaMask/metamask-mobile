@@ -1,0 +1,65 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Empty should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flex": 1,
+      "justifyContent": "center",
+    }
+  }
+>
+  <SvgMock
+    color="#121314"
+    height={32}
+    name="Notification"
+    style={
+      {
+        "height": 32,
+        "marginBottom": 8,
+        "paddingHorizontal": 32,
+        "textAlign": "center",
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
+        "fontSize": 18,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+        "marginBottom": 8,
+        "paddingHorizontal": 32,
+        "textAlign": "center",
+      }
+    }
+  >
+    Nothing to see here
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginBottom": 8,
+        "paddingHorizontal": 32,
+        "textAlign": "center",
+      }
+    }
+  >
+    This is where you can find notifications once there’s activity in your wallet. 
+  </Text>
+</View>
+`;

@@ -1,0 +1,904 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountConnect renders correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000066",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc866",
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
+            "borderWidth": 1,
+            "maxHeight": 1334,
+            "overflow": "hidden",
+            "paddingBottom": 0,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#b7bbc866",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
+      <RCTSafeAreaView
+        style={
+          {
+            "backgroundColor": "#ffffff",
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderTopLeftRadius": 20,
+              "borderTopRightRadius": 20,
+              "height": undefined,
+              "justifyContent": "flex-start",
+              "minHeight": 200,
+              "paddingTop": 8,
+            }
+          }
+        >
+          <View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                    "paddingLeft": 16,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "alignItems": "center",
+                      "flex": 1,
+                      "justifyContent": "center",
+                    },
+                    false,
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 10,
+                      "justifyContent": "center",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "alignContent": "center",
+                          "backgroundColor": "#ffffff",
+                          "borderRadius": 27,
+                          "height": 54,
+                          "justifyContent": "center",
+                          "width": 54,
+                        },
+                        {
+                          "borderRadius": 16,
+                          "height": 32,
+                          "width": 32,
+                        },
+                      ]
+                    }
+                  >
+                    <Text
+                      style={
+                        [
+                          {
+                            "color": "#121314",
+                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontSize": 24,
+                            "fontWeight": "400",
+                            "textAlign": "center",
+                            "textTransform": "uppercase",
+                          },
+                          undefined,
+                        ]
+                      }
+                    >
+                      h
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                    "paddingRight": 16,
+                  }
+                }
+              />
+            </View>
+            <View
+              style={
+                {
+                  "alignSelf": "center",
+                  "marginBottom": 16,
+                  "marginLeft": 24,
+                  "marginRight": 24,
+                  "marginTop": 8,
+                }
+              }
+              testID="permission-network-permissions-container"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 16,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+              >
+                mockorigin wants to:
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "marginBottom": 12,
+                    "marginHorizontal": 24,
+                    "marginTop": 8,
+                  }
+                }
+                testID="permission-summary-container"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "flex-start",
+                      "backgroundColor": "#0000001a",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    height={20}
+                    name="Wallet"
+                    style={
+                      {
+                        "height": 20,
+                        "width": 20,
+                      }
+                    }
+                    width={20}
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "marginLeft": 12,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    See your accounts and suggest transactions
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                        "gap": 2,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "maxWidth": "75%",
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        numberOfLines={1}
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                        testID="permission-summary-account-text"
+                      >
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 12,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                            }
+                          }
+                        >
+                          Connect an account
+                        </Text>
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "flexGrow": 1,
+                          "marginLeft": 2,
+                          "minWidth": "25%",
+                        }
+                      }
+                    />
+                  </View>
+                </View>
+                <View
+                  testID="connection-details-button"
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "width": 56,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Edit
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={[Function]}
+              testID="navigate_to_edit_networks_permissions_button"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "marginBottom": 16,
+                    "marginHorizontal": 24,
+                    "marginTop": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "flex-start",
+                      "backgroundColor": "#0000001a",
+                      "borderRadius": 16,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "width": 32,
+                    }
+                  }
+                >
+                  <SvgMock
+                    color="#686e7d"
+                    height={20}
+                    name="Data"
+                    style={
+                      {
+                        "height": 20,
+                        "width": 20,
+                      }
+                    }
+                    width={20}
+                  />
+                </View>
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "marginLeft": 12,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Use your enabled networks
+                  </Text>
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "marginRight": 4,
+                          "maxWidth": "75%",
+                        }
+                      }
+                    >
+                      <Text
+                        accessibilityRole="text"
+                        ellipsizeMode="tail"
+                        numberOfLines={1}
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 12,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 20,
+                            }
+                          }
+                        >
+                          Requesting for 4 networks
+                        </Text>
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "flexGrow": 1,
+                          "marginLeft": 2,
+                          "minWidth": "25%",
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-1"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-2"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                        <View
+                          style={
+                            {
+                              "marginLeft": -6,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-3"
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              testID="network-avatar-image"
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                <View
+                  testID="connection-details-button"
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "width": 56,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      Edit
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 8,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 0,
+                  "flexDirection": "row",
+                  "marginTop": 8,
+                  "paddingHorizontal": 24,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={0.2}
+                onPress={[Function]}
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 100,
+                        "justifyContent": "center",
+                        "padding": 15,
+                      },
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#686e7d",
+                        "borderWidth": 1,
+                      },
+                      [
+                        {
+                          "flex": 1,
+                        },
+                        {
+                          "marginRight": 8,
+                        },
+                      ],
+                    ],
+                    null,
+                  ]
+                }
+                testID="cancel-button"
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#007aff",
+                        "fontSize": 17,
+                        "fontWeight": "500",
+                        "textAlign": "center",
+                      },
+                      null,
+                      [
+                        {
+                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#686e7d",
+                        },
+                        undefined,
+                      ],
+                      null,
+                    ]
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={1}
+                disabled={true}
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 100,
+                        "justifyContent": "center",
+                        "padding": 15,
+                      },
+                      {
+                        "backgroundColor": "#4459ff",
+                        "minHeight": 50,
+                      },
+                      [
+                        {
+                          "flex": 1,
+                        },
+                        {
+                          "marginLeft": 8,
+                        },
+                      ],
+                    ],
+                    {
+                      "opacity": 0.6,
+                    },
+                  ]
+                }
+                testID="connect-button"
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#007aff",
+                        "fontSize": 17,
+                        "fontWeight": "500",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#dcdcdc",
+                      },
+                      [
+                        {
+                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#ffffff",
+                        },
+                        undefined,
+                      ],
+                      {
+                        "opacity": 0.6,
+                      },
+                    ]
+                  }
+                >
+                  Connect
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </RCTSafeAreaView>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+    </View>
+  </View>
+</View>
+`;

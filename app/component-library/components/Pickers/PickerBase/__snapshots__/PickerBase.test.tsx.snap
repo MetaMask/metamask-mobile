@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickerBase should render correctly 1`] = `
+<TouchableOpacity
+  onPress={[MockFunction]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 4,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <Text>
+    Test Content
+  </Text>
+  <SvgMock
+    color="#121314"
+    height={20}
+    name="ArrowDown"
+    style={
+      {
+        "height": 20,
+        "marginLeft": 16,
+        "width": 20,
+      }
+    }
+    width={20}
+  />
+</TouchableOpacity>
+`;

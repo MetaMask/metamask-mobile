@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`HintModal should render correctly 1`] = `
+<ActionModal
+  cancelButtonDisabled={false}
+  cancelButtonMode="neutral"
+  cancelTestID=""
+  cancelText="Cancel"
+  confirmButtonMode="confirm"
+  confirmDisabled={false}
+  confirmTestID=""
+  confirmText="Save"
+  displayCancelButton={true}
+  displayConfirmButton={true}
+  modalVisible={false}
+  onCancelPress={[Function]}
+  onConfirmPress={[Function]}
+  onRequestClose={[Function]}
+>
+  <TouchableWithoutFeedback
+    accessible={false}
+    onPress={[Function]}
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "borderRadius": 16,
+          "flex": 1,
+          "padding": 24,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "marginBottom": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "width": 24,
+            }
+          }
+        />
+        <Text
+          style={
+            {
+              "flex": 1,
+              "textAlign": "center",
+            }
+          }
+          variant="sHeadingMD"
+        >
+          Recovery hint
+        </Text>
+        <ButtonIcon
+          iconName="Close"
+          onPress={[Function]}
+          size="24"
+        />
+      </View>
+      <Text
+        style={
+          {
+            "marginBottom": 16,
+          }
+        }
+        variant="sBodyMD"
+      >
+        Leave yourself a hint. Write the location / where you saved it to remind yourself how you can access it. This information does not leave your device.
+      </Text>
+      <Text
+        color="Error"
+        style={
+          {
+            "marginBottom": 16,
+          }
+        }
+        variant="sBodyMD"
+      >
+        Do not use this to write your Secret Recovery Phrase.
+      </Text>
+      <TextInput
+        keyboardAppearance="light"
+        multiline={true}
+        onChangeText={[Function]}
+        placeholder="e.g. Mom's house"
+        placeholderTextColor="#9ca1af"
+        style={
+          {
+            "borderColor": "#b7bbc8",
+            "borderRadius": 6,
+            "borderWidth": 1,
+            "color": "#121314",
+            "minHeight": 76,
+            "padding": 16,
+            "paddingTop": 16,
+          }
+        }
+        textAlignVertical="top"
+        value="hint"
+      />
+    </View>
+  </TouchableWithoutFeedback>
+</ActionModal>
+`;

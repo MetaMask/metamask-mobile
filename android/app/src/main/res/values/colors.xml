@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="theme">#FFFFFF</color>
+	<color name="themeInverse">#000000</color>
+	<color name="navBar">#000000</color>
+	<color name="lightgray">#EBEBED</color>
+	<color name="alertTextColor">#000000</color>
+	<color name="alertBackground">#FFFFFF</color>
+	<color name="notificationColor">#0376C9</color> <!-- brand: primary-default -->
+</resources>

@@ -1,0 +1,266 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomSpendCap should match snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 8,
+      "padding": 16,
+    }
+  }
+  testID="custom-spend-cap"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 14,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginRight": 4,
+          }
+        }
+      >
+        Spending cap
+      </Text>
+      <View
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessibilityValue={
+          {
+            "max": undefined,
+            "min": undefined,
+            "now": undefined,
+            "text": undefined,
+          }
+        }
+        accessible={true}
+        collapsable={false}
+        focusable={true}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onFocus={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+      >
+        <SvgMock
+          color="#ca3542"
+          height={16}
+          name="Danger"
+          style={
+            {
+              "height": 16,
+              "width": 16,
+            }
+          }
+          width={16}
+        />
+      </View>
+    </View>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      labelTextVariant="sBodyMD"
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      suppressHighlighting={true}
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Use site suggestion
+      </Text>
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "marginTop": 8,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderRadius": 8,
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "padding": 16,
+          },
+          false,
+        ]
+      }
+      testID="custom-spend-cap-input-test-id"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "flexDirection": "row",
+          }
+        }
+      >
+        <TextInput
+          keyboardType="numeric"
+          multiline={false}
+          onChangeText={[Function]}
+          placeholder="Enter a number here"
+          style={
+            [
+              {
+                "color": "#121314",
+                "flexGrow": 1,
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginRight": 16,
+                "paddingBottom": 0,
+                "paddingTop": 0,
+              },
+              {
+                "color": "#ca3542",
+              },
+            ]
+          }
+          testID="custom-spend-cap-input-input-id"
+          value="115792089237316195423570985008687907853269984665640564039457.584007913129639936"
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        onPress={[Function]}
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+        testID="custom-spend-cap-max-test-id"
+      >
+        Max
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "marginTop": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This allows the third party to spend all your token balance until it reaches the cap or you revoke the spending cap. If this is not intended, consider setting a lower spending cap.
+       
+      <Text
+        accessibilityRole="link"
+        accessible={true}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "backgroundColor": "transparent",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+        suppressHighlighting={true}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more
+        </Text>
+      </Text>
+    </Text>
+  </View>
+</View>
+`;

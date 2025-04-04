@@ -1,0 +1,166 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TransactionHeader render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "borderRadius": 10,
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View
+      placeholderStyle={
+        {
+          "backgroundColor": "#f3f5f9",
+        }
+      }
+      useNativeDriver={true}
+    >
+      <Image
+        onError={[Function]}
+        onLoadEnd={[Function]}
+        source={
+          {
+            "uri": "http://metamask.github.io/favicon.ico",
+          }
+        }
+        style={
+          {
+            "borderRadius": 32,
+            "height": 56,
+            "width": 56,
+          }
+        }
+      />
+      <View
+        collapsable={false}
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "opacity": 1,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          style={
+            [
+              {
+                "borderRadius": 32,
+                "height": 56,
+                "width": 56,
+              },
+              {
+                "backgroundColor": "#eee",
+              },
+              {
+                "backgroundColor": "#f3f5f9",
+              },
+            ]
+          }
+        />
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginTop": 10,
+      }
+    }
+    testID="transaction-header-origin"
+  >
+    <Text
+      allowFontScaling={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 15,
+          },
+          {
+            "color": "#121314",
+            "marginRight": 5,
+          },
+          {
+            "fontFamily": "FontAwesome",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Bold",
+          "fontSize": 14,
+          "fontWeight": "600",
+          "textAlign": "center",
+        }
+      }
+    >
+      metamask.github.io
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 2.5,
+            "height": 5,
+            "width": 5,
+          },
+          {
+            "backgroundColor": "#f2f3f4",
+          },
+        ]
+      }
+    />
+    <Text
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "padding": 5,
+          "textAlign": "center",
+          "textTransform": "capitalize",
+        }
+      }
+    >
+      Sepolia
+    </Text>
+  </View>
+</View>
+`;

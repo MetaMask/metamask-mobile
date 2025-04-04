@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BlockaidSettings should render correctly 1`] = `
+[
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+        "marginTop": 32,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Security alerts
+    </Text>
+    <RCTSwitch
+      accessibilityRole="switch"
+      onChange={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      onTintColor="#4459ff"
+      style={
+        [
+          {
+            "height": 31,
+            "width": 51,
+          },
+          [
+            {
+              "alignSelf": "flex-end",
+            },
+            {
+              "backgroundColor": "#b7bbc866",
+              "borderRadius": 16,
+            },
+          ],
+        ]
+      }
+      testID="security-alerts-toggle"
+      thumbTintColor="#ffffff"
+      tintColor="#b7bbc866"
+      value={true}
+    />
+  </View>,
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginTop": 8,
+      }
+    }
+  >
+    This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+     
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Learn more.
+    </Text>
+  </Text>,
+]
+`;

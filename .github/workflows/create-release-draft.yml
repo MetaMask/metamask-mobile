@@ -1,0 +1,29 @@
+name: create-release-draft
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+      contents: write
+      pull-requests: read
+
+jobs:
+  draft_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.ref }}  # Explicitly specifies the tag ref
+
+
+      - name: Setup GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install gh
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+
+      - name: Create Draft Release
+        run: ./scripts/create-release-draft.sh ${{ github.ref_name }} ${{ github.workspace }}

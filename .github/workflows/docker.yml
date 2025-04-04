@@ -1,0 +1,44 @@
+name: docker
+on:
+  push:
+    branches: main
+  pull_request:
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@49b3bc8e6bdd4a60e6116a5414239cba5943d3cf # v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # v3
+
+      - uses: actions/checkout@v3
+
+      - name: Build and load
+        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25 # v5
+        with:
+          context: .
+          file: scripts/docker/Dockerfile
+          # test with nonstandard uid and gid
+          build-args: |
+            UID=1234
+            GID=1235
+          load: true
+          tags: metamask-mobile-builder:latest
+          # could enable push to gh registry
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Test yarn setup
+        run: |
+          sudo chown -R 1234:1235 .
+          docker run \
+            --rm \
+            -v "$(pwd):/app" -w /app \
+            metamask-mobile-builder:latest \
+            bash -c 'yarn && yarn setup --build-ios --no-install-pods'
+            # restore ownership for cleanup
+            sudo chown -R "$(id -u):$(id -g)" .

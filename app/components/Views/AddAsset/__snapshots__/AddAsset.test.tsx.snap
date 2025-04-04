@@ -1,0 +1,423 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddAsset component renders correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+  testID="add-collectible-screen"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "marginTop": 10,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#9a63001a",
+          "borderColor": "#9a6300",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#9a6300"
+          height={24}
+          name="Danger"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="warning-display-media-enabled-text"
+        >
+          Displaying NFT media and data may expose your IP address to centralized servers. Only import an NFT if you understand the risks involved.
+        </Text>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+    testID="import-nft-screen"
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RCTScrollView
+        automaticallyAdjustContentInsets={false}
+        contentInset={
+          {
+            "bottom": 0,
+          }
+        }
+        enableAutomaticScroll={true}
+        enableOnAndroid={false}
+        enableResetScrollToCoords={true}
+        extraHeight={75}
+        extraScrollHeight={0}
+        getScrollResponder={[Function]}
+        handleOnScroll={[Function]}
+        keyboardDismissMode="interactive"
+        keyboardOpeningTime={250}
+        keyboardShouldPersistTaps="never"
+        keyboardSpace={0}
+        onScroll={[Function]}
+        resetKeyboardSpace={[Function]}
+        resetScrollToCoords={
+          {
+            "x": 0,
+            "y": 0,
+          }
+        }
+        scrollEventThrottle={1}
+        scrollForExtraHeightOnAndroid={[Function]}
+        scrollIntoView={[Function]}
+        scrollToEnd={[Function]}
+        scrollToFocusedInput={[Function]}
+        scrollToPosition={[Function]}
+        showsVerticalScrollIndicator={true}
+        style={
+          [
+            {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+        update={[Function]}
+        viewIsInsideTabBar={false}
+      >
+        <View>
+          <View
+            accessibilityState={
+              {
+                "busy": undefined,
+                "checked": undefined,
+                "disabled": undefined,
+                "expanded": undefined,
+                "selected": undefined,
+              }
+            }
+            accessible={true}
+            focusable={true}
+            onClick={[Function]}
+            onResponderGrant={[Function]}
+            onResponderMove={[Function]}
+            onResponderRelease={[Function]}
+            onResponderTerminate={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+          >
+            <View
+              style={
+                {
+                  "padding": 20,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "paddingBottom": 3,
+                  }
+                }
+              >
+                Address
+              </Text>
+              <TextInput
+                keyboardAppearance="light"
+                onBlur={[Function]}
+                onChangeText={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="0x..."
+                placeholderTextColor="#9ca1af"
+                style={
+                  [
+                    {
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontWeight": "400",
+                      "padding": 16,
+                    },
+                    {},
+                  ]
+                }
+                testID="input-collectible-address"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ca3542",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "marginTop": 15,
+                  }
+                }
+                testID="collectible-address-warning"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "padding": 20,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "paddingBottom": 3,
+                  }
+                }
+              >
+                ID
+              </Text>
+              <TextInput
+                keyboardAppearance="light"
+                keyboardType="numeric"
+                onBlur={[Function]}
+                onChangeText={[Function]}
+                onSubmitEditing={[Function]}
+                placeholder="Enter the collectible ID"
+                placeholderTextColor="#9ca1af"
+                returnKeyType="done"
+                style={
+                  [
+                    {
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 4,
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontWeight": "400",
+                      "padding": 16,
+                    },
+                    {},
+                  ]
+                }
+                testID="input-collectible-identifier"
+                value=""
+              />
+              <Text
+                style={
+                  {
+                    "color": "#ca3542",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontWeight": "400",
+                    "marginTop": 15,
+                  }
+                }
+                testID="collectible-identifier-warning"
+              />
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 0,
+                "flexDirection": "row",
+                "paddingHorizontal": 24,
+                "paddingVertical": 16,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#686e7d",
+                      "borderWidth": 1,
+                    },
+                    [
+                      {
+                        "flex": 1,
+                      },
+                      {
+                        "marginRight": 8,
+                      },
+                    ],
+                  ],
+                  null,
+                ]
+              }
+              testID=""
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#686e7d",
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                CANCEL
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              disabled={true}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#4459ff",
+                      "borderWidth": 1,
+                    },
+                    [
+                      {
+                        "flex": 1,
+                      },
+                      {
+                        "marginLeft": 8,
+                      },
+                      {},
+                      {},
+                    ],
+                  ],
+                  {
+                    "opacity": 0.6,
+                  },
+                ]
+              }
+              testID=""
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    {
+                      "color": "#dcdcdc",
+                    },
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": "#4459ff",
+                      },
+                      undefined,
+                    ],
+                    {
+                      "opacity": 0.6,
+                    },
+                  ]
+                }
+              >
+                IMPORT
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;

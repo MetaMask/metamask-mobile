@@ -1,0 +1,31 @@
+name: Crowdin - Upload Both Sources and Translations Crowdin Action
+# This action is intended to ensure our main branch on crowdin is in sync with our
+# main branch on github and will run on every push to main that has changes to any
+# locales files.
+
+# TODO: Change to trigger on merge to main when locales files are changed (after testing)
+# This should replace the current crowdin_action.yml file (after testing)
+on: workflow_dispatch
+
+jobs:
+  crowdin-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract current branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> "$GITHUB_OUTPUT"
+        id: extract_current_branch
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Crowdin push
+        uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
+        with:
+          crowdin_branch_name: ${{ steps.extract_current_branch.outputs.branch }}
+          upload_sources: true
+          upload_translations: true
+          upload_translations_args: --import-eq-suggestions --auto-approve-imported --verbose
+          download_translations: false
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

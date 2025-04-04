@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeNetwork should render BadgeNetwork 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "aspectRatio": 1,
+      "height": "50%",
+      "justifyContent": "center",
+      "maxHeight": 24,
+      "minHeight": 8,
+      "opacity": 0,
+    }
+  }
+  testID="badgenetwork"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderColor": "#ffffff",
+        "borderRadius": 8,
+        "borderWidth": 2,
+        "height": 32,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "shadowColor": "#0000001a",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 4,
+        "transform": [
+          {
+            "scale": 1,
+          },
+        ],
+        "width": 32,
+      }
+    }
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={1}
+      style={
+        {
+          "height": 32,
+          "width": 32,
+        }
+      }
+      testID="network-avatar-image"
+    />
+  </View>
+</View>
+`;

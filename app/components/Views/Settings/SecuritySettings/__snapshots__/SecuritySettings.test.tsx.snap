@@ -1,0 +1,3187 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SecuritySettings should render correctly 1`] = `
+<RCTScrollView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "paddingBottom": 48,
+      "paddingHorizontal": 16,
+      "paddingTop": 8,
+    }
+  }
+  testID="security-settings-scrollview"
+>
+  <View>
+    <View
+      style={
+        {
+          "paddingBottom": 112,
+        }
+      }
+    >
+      <View
+        style={
+          [
+            {
+              "marginTop": 32,
+            },
+            {
+              "marginTop": 0,
+            },
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 24,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 32,
+              "marginBottom": 24,
+            }
+          }
+        >
+          Security
+        </Text>
+      </View>
+      <View
+        style={
+          [
+            {
+              "marginTop": 30,
+            },
+            {
+              "marginTop": 0,
+            },
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          This is your wallet’s 12 word phrase. This phrase can be used to take control of all your current and future accounts, including the ability to send away funds in your wallet. Keep this phrase stored safely, DO NOT share it with anyone. MetaMask cannot help you recover this key.
+        </Text>
+        <Text
+          accessibilityRole="link"
+          accessible={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "backgroundColor": "transparent",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          suppressHighlighting={true}
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Learn more.
+          </Text>
+        </Text>
+        <View
+          style={
+            {
+              "backgroundColor": "#ca35421a",
+              "borderColor": "#ca3542",
+              "borderLeftWidth": 4,
+              "borderRadius": 4,
+              "flexDirection": "row",
+              "marginTop": 16,
+              "padding": 12,
+              "paddingLeft": 8,
+            }
+          }
+          testID="banneralert"
+          variant="Alert"
+        >
+          <View
+            style={
+              {
+                "marginRight": 8,
+              }
+            }
+          >
+            <SvgMock
+              color="#ca3542"
+              height={24}
+              name="Danger"
+              style={
+                {
+                  "height": 24,
+                  "width": 24,
+                }
+              }
+              width={24}
+            />
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Important! Secret Recovery Phrase not backed up
+            </Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 24,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginTop": 16,
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Back up now
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+        testID="change-password-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Password
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Choose a strong password to unlock MetaMask app on your device. If you lose this password, you will need your Secret Recovery Phrase to re-import your wallet.
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "transparent",
+              "borderColor": "#4459ff",
+              "borderRadius": 24,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginTop": 16,
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="change-password-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Change password
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+        testID="auto-lock-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Auto-lock
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Choose the amount of time before the application automatically locks.
+        </Text>
+        <View
+          style={
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+              >
+                <View
+                  style={
+                    {
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    numberOfLines={1}
+                    style={
+                      {
+                        "alignSelf": "flex-start",
+                        "color": "#121314",
+                        "flex": 1,
+                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "paddingBottom": 10,
+                        "paddingHorizontal": 15,
+                        "paddingTop": 10,
+                      }
+                    }
+                  />
+                  <Text
+                    allowFontScaling={false}
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "fontSize": 24,
+                        },
+                        {
+                          "height": 25,
+                          "justifyContent": "flex-end",
+                          "marginRight": 10,
+                          "marginTop": 7,
+                          "textAlign": "right",
+                        },
+                        {
+                          "fontFamily": "Material Icons",
+                          "fontStyle": "normal",
+                          "fontWeight": "normal",
+                        },
+                        {},
+                      ]
+                    }
+                  >
+                    
+                  </Text>
+                </View>
+              </TouchableOpacity>
+              <Modal
+                animationType="none"
+                deviceHeight={null}
+                deviceWidth={null}
+                hardwareAccelerated={false}
+                hideModalContentWhileAnimating={false}
+                onBackdropPress={[Function]}
+                onModalHide={[Function]}
+                onModalWillHide={[Function]}
+                onModalWillShow={[Function]}
+                onRequestClose={[Function]}
+                panResponderThreshold={4}
+                scrollHorizontal={false}
+                scrollOffset={0}
+                scrollOffsetMax={0}
+                scrollTo={null}
+                statusBarTranslucent={false}
+                supportedOrientations={
+                  [
+                    "portrait",
+                    "landscape",
+                  ]
+                }
+                swipeThreshold={100}
+                transparent={true}
+                visible={false}
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <View
+        testID="login-options"
+      />
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Turn on Remember me
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="turn-on-remember-me"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            When Remember me is on, anyone with access to your phone can access your MetaMask account.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+        testID="reveal-private-key-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Show private key for "Account 2"
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          This is the private key for the current selected account: Account 2. Never disclose this key. Anyone with your private key can fully control your account, including transferring away any of your funds.
+        </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 24,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "marginTop": 16,
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="show-private-key"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Show private key
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "display": "flex",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+            "marginTop": 32,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Security alerts
+        </Text>
+        <RCTSwitch
+          accessibilityRole="switch"
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#4459ff"
+          style={
+            [
+              {
+                "height": 31,
+                "width": 51,
+              },
+              [
+                {
+                  "alignSelf": "flex-end",
+                },
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "borderRadius": 16,
+                },
+              ],
+            ]
+          }
+          testID="security-alerts-toggle"
+          thumbTintColor="#ffffff"
+          tintColor="#b7bbc866"
+          value={true}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        This feature alerts you to malicious activity by actively reviewing transaction and signature requests.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more.
+        </Text>
+      </Text>
+      <View
+        style={
+          [
+            {
+              "marginTop": 32,
+            },
+            undefined,
+          ]
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 24,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 32,
+              "marginBottom": 24,
+            }
+          }
+        >
+          Privacy
+        </Text>
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginTop": 0,
+            }
+          }
+        >
+          General
+        </Text>
+        <View
+          style={
+            {
+              "marginVertical": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
+                "paddingBottom": 8,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Basic functionality
+            </Text>
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ]
+              }
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            MetaMask offers basic features like token details and gas settings through internet services. When you use internet services, your IP address is shared, in this case with MetaMask. This is just like when you visit any website. MetaMask uses this data temporarily and never sells your data. You can use a VPN or turn off these services, but it may affect your MetaMask experience. Read our 
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Privacy policy
+            </Text>
+             to learn more.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginVertical": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "justifyContent": "space-between",
+              "paddingBottom": 8,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 16,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Profile Sync
+          </Text>
+          <RCTSwitch
+            accessibilityRole="switch"
+            disabled={false}
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                {
+                  "backgroundColor": "#b7bbc866",
+                  "borderRadius": 16,
+                },
+              ]
+            }
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={false}
+          />
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+          <Text
+            accessibilityRole="text"
+            onPress={[Function]}
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Learn how we protect your privacy
+          </Text>
+        </Text>
+        <Modal
+          animationType="none"
+          deviceHeight={null}
+          deviceWidth={null}
+          hardwareAccelerated={false}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          onRequestClose={[Function]}
+          onSwipeComplete={[Function]}
+          panResponderThreshold={4}
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
+          }
+          swipeDirection="down"
+          swipeThreshold={100}
+          transparent={true}
+          visible={false}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 0,
+          }
+        }
+      >
+        Clear privacy or browser data
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="sdk-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Manage connections
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Remove connections to sites and/or MetaMask SDK.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Manage connections
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View
+        style={
+          [
+            {
+              "marginTop": 32,
+            },
+          ]
+        }
+        testID="clear-privacy-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Clear privacy data
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Clear privacy data so all websites must request access to view account information again.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="clear-privacy-data-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear privacy data
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <Modal
+          animationType="none"
+          deviceHeight={null}
+          deviceWidth={null}
+          hardwareAccelerated={false}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          onRequestClose={[Function]}
+          onSwipeComplete={[Function]}
+          panResponderThreshold={4}
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
+          }
+          swipeDirection="down"
+          swipeThreshold={100}
+          transparent={true}
+          visible={false}
+        />
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+        testID="clear-browser-history-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Clear browser history
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Choose this option to clear your entire browsing history.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            disabled={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear browser history
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Clear browser cookies
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Choose this option to clear your browser's cookies.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            disabled={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "opacity": 0.5,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Clear browser cookies
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Network provider
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="use-chains-list-validation"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Network details check
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="display-use-safe-list-validation"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          MetaMask uses a third-party service called 
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            chainid.network 
+          </Text>
+          to show accurate and standardized network details. This reduces your chances of connecting to malicious or incorrect network. When using this feature, your IP address is exposed to  
+           
+          chainid.network
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Transactions
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="batch-balance-requests-section"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Batch account balance requests
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="security-settings-multi-account-balances-switch"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+        testID="incoming-transactions-section"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Show incoming transactions
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          This relies on the network you select which will expose your Ethereum address and your IP address.
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": -16,
+              "marginRight": -16,
+              "marginTop": 24,
+            }
+          }
+        >
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": 1,
+                "name": "Ethereum Mainnet",
+                "variant": "Network",
+              }
+            }
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Ethereum Mainnet"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Ethereum Mainnet
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#4459ff"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#b7bbc866",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID="incoming-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#b7bbc866"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": 1,
+                "name": "Linea",
+                "variant": "Network",
+              }
+            }
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Linea"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Linea
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#4459ff"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#b7bbc866",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID="incoming-linea-mainnet-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#b7bbc866"
+                  value={true}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": 1,
+                "name": "Solana Mainnet",
+                "variant": "Network",
+              }
+            }
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 4,
+                "borderWidth": 0,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Solana Mainnet"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "marginRight": 16,
+                    "overflow": "hidden",
+                    "width": 32,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Solana Mainnet
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <RCTSwitch
+                  accessibilityRole="switch"
+                  onChange={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onTintColor="#4459ff"
+                  style={
+                    [
+                      {
+                        "height": 31,
+                        "width": 51,
+                      },
+                      [
+                        {
+                          "alignSelf": "flex-start",
+                        },
+                        {
+                          "backgroundColor": "#b7bbc866",
+                          "borderRadius": 16,
+                        },
+                      ],
+                    ]
+                  }
+                  testID="solana-incoming-transactions-toggle"
+                  thumbTintColor="#ffffff"
+                  tintColor="#b7bbc866"
+                  value={false}
+                />
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Estimate balance changes
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Turn this on to estimate balance changes of transactions before you confirm them. This doesn't guarantee the final outcome of your transactions. 
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
+        </Text>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Token, NFT, and ENS autodetection
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Display NFT Media
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="nft-display-media-mode-section"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
+        </Text>
+      </View>
+      <View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Autodetect NFTs
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="nft-opensea-autodetect-mode-section"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            IPFS Gateway
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="IPFS_GATEWAY_SECTION"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={true}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Choose your preferred IPFS gateway.
+          </Text>
+          <View
+            style={
+              {
+                "borderColor": "#b7bbc8",
+                "borderRadius": 5,
+                "borderWidth": 2,
+                "marginTop": 16,
+              }
+            }
+          >
+            <View>
+              <ActivityIndicator
+                size="small"
+              />
+            </View>
+          </View>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Security checks
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Automatic security checks
+            </Text>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Automatically checking for updates may expose your IP address to GitHub servers. This only indicates that your IP address is using MetaMask. No other information or account addresses are exposed.
+          </Text>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "marginTop": 32,
+          }
+        }
+      >
+        Analytics
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="metametrics-section"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Participate in MetaMetrics
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              disabled={false}
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="metametrics-switch"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={false}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Allow MetaMetrics to collect basic usage and diagnostics data to improve our product. You can disable MetaMetrics for this device.
+           
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+        testID="metametrics-data-marketing-section"
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "flex": 1,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Data collection for marketing
+          </Text>
+          <View
+            style={
+              {
+                "marginLeft": 16,
+              }
+            }
+          >
+            <RCTSwitch
+              accessibilityRole="switch"
+              disabled={false}
+              onChange={[Function]}
+              onResponderTerminationRequest={[Function]}
+              onStartShouldSetResponder={[Function]}
+              onTintColor="#4459ff"
+              style={
+                [
+                  {
+                    "height": 31,
+                    "width": 51,
+                  },
+                  [
+                    {
+                      "alignSelf": "flex-start",
+                    },
+                    {
+                      "backgroundColor": "#b7bbc866",
+                      "borderRadius": 16,
+                    },
+                  ],
+                ]
+              }
+              testID="data-collection-switch"
+              thumbTintColor="#ffffff"
+              tintColor="#b7bbc866"
+              value={false}
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          We’ll use MetaMetrics to learn how you interact with our marketing communications. We may share relevant news (like product features and other materials).
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Delete MetaMetrics data
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            This will delete historical
+          </Text>
+           
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              MetaMetrics
+            </Text>
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            data associated with your wallet.
+          </Text>
+           
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Your wallet and accounts will remain exactly as they are now after this data has been deleted. This process may take up to 30 days. View our
+          </Text>
+           
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "backgroundColor": "transparent",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            suppressHighlighting={true}
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Privacy Policy.
+            </Text>
+          </Text>
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="delete-metrics-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Delete MetaMetrics data
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+      <View
+        style={
+          {
+            "marginTop": 32,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Delete wallet
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          <Text>
+            This will remove all wallet related data from your device. Your accounts exist on the blockchain and are not related to MetaMask. You can always recover your accounts using your Secret Recovery Phrase.
+          </Text>
+        </Text>
+        <View
+          style={
+            {
+              "marginTop": 16,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="security-settings-delete-wallet-buttons"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Delete wallet
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+    </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
+  </View>
+</RCTScrollView>
+`;

@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SensitiveText should render correctly 1`] = `
+<Text
+  accessibilityRole="text"
+  style={
+    {
+      "color": "#121314",
+      "fontFamily": "CentraNo1-Book",
+      "fontSize": 14,
+      "fontWeight": "400",
+      "letterSpacing": 0,
+      "lineHeight": 22,
+    }
+  }
+>
+  Sensitive Information
+</Text>
+`;

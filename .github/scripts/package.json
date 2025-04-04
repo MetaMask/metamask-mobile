@@ -1,0 +1,35 @@
+{
+  "name": "@metamask/mobile-ci-scripts",
+  "private": true,
+  "scripts": {
+    "add-release-label-to-pr-and-linked-issues": "ts-node ./add-release-label-to-pr-and-linked-issues.ts",
+    "fitness-functions": "ts-node ./fitness-functions/index.ts",
+    "check-pr-has-required-labels": "ts-node ./check-pr-has-required-labels.ts",
+    "close-release-bug-report-issue": "ts-node ./close-release-bug-report-issue.ts",
+    "check-template-and-add-labels": "ts-node ./check-template-and-add-labels.ts",
+    "create-bug-report-issue": "ts-node ./create-bug-report-issue.ts",
+    "run-bitrise-e2e-check": "ts-node ./bitrise/run-bitrise-e2e-check.ts",
+    "bitrise-results-check": "ts-node ./bitrise/bitrise-results-check.ts",
+    "gen:commits": "node generate-rc-commits.mjs"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "axios": "^1.7.4",
+    "simple-git": "^3.25.0"
+  },
+  "devDependencies": {
+    "@lavamoat/allow-scripts": "^3.2.0",
+    "@lavamoat/preinstall-always-fail": "^2.1.0",
+    "@types/node": "^20.16.2",
+    "ts-node": "^10.5.0",
+    "typescript": "~5.4.5"
+  },
+  "packageManager": "yarn@1.22.22",
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false,
+      "ts-node>@swc/core": false
+    }
+  }
+}

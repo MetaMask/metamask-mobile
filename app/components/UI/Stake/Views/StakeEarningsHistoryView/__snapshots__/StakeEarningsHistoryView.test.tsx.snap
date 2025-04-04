@@ -1,0 +1,980 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakeEarningsHistoryView renders correctly and matches snapshot 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "backgroundColor": "#ffffff",
+      "flexGrow": 1,
+      "justifyContent": "space-between",
+      "paddingHorizontal": 16,
+      "paddingTop": 8,
+    }
+  }
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+>
+  <View>
+    <View>
+      <View>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "justifyContent": "center",
+              "paddingBottom": 32,
+              "paddingTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginLeft": 8,
+                "marginRight": 8,
+                "width": 50,
+              }
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  7D
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "marginLeft": 8,
+                "marginRight": 8,
+                "width": 45,
+              }
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "backgroundColor": "#f3f5f9",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  M
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View
+            style={
+              {
+                "marginLeft": 8,
+                "marginRight": 8,
+                "width": 42,
+              }
+            }
+          >
+            <TouchableOpacity
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 32,
+                  "paddingHorizontal": 14,
+                  "paddingVertical": 7,
+                  "width": "100%",
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 3,
+                    "lineHeight": 22,
+                    "textAlign": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#686e7d",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Y
+                </Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View
+          onLayout={[Function]}
+          testID="earnings-history-chart-container"
+        >
+          <View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flex": 1,
+                  "justifyContent": "center",
+                  "paddingBottom": 16,
+                  "paddingTop": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 24,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 32,
+                  }
+                }
+              >
+                2
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Lifetime earnings
+              </Text>
+            </View>
+            <View
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "width": "100%",
+                }
+              }
+              testID="earnings-history-chart"
+            >
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "height": 75,
+                      "marginBottom": 4,
+                      "paddingBottom": 16,
+                      "paddingTop": 16,
+                    },
+                  ]
+                }
+              >
+                <View
+                  onLayout={[Function]}
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <RNSVGSvgView
+                    bbHeight={100}
+                    bbWidth={300}
+                    focusable={false}
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        {
+                          "height": 100,
+                          "width": 300,
+                        },
+                        {
+                          "flex": 0,
+                          "height": 100,
+                          "width": 300,
+                        },
+                      ]
+                    }
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    >
+                      <RNSVGPath
+                        d="M0,100L22.689075630252102,100L22.689075630252102,100L0,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-0"
+                      />
+                      <RNSVGPath
+                        d="M25.210084033613445,100L47.89915966386555,100L47.89915966386555,100L25.210084033613445,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-1"
+                      />
+                      <RNSVGPath
+                        d="M50.42016806722689,100L73.10924369747899,100L73.10924369747899,100L50.42016806722689,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-2"
+                      />
+                      <RNSVGPath
+                        d="M75.63025210084034,100L98.31932773109244,100L98.31932773109244,100L75.63025210084034,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-3"
+                      />
+                      <RNSVGPath
+                        d="M100.84033613445378,100L123.52941176470588,100L123.52941176470588,100L100.84033613445378,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-4"
+                      />
+                      <RNSVGPath
+                        d="M126.05042016806722,100L148.73949579831933,100L148.73949579831933,100L126.05042016806722,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-5"
+                      />
+                      <RNSVGPath
+                        d="M151.26050420168067,100L173.94957983193277,100L173.94957983193277,100L151.26050420168067,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-6"
+                      />
+                      <RNSVGPath
+                        d="M176.47058823529412,100L199.1596638655462,100L199.1596638655462,100L176.47058823529412,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-7"
+                      />
+                      <RNSVGPath
+                        d="M201.68067226890756,100L224.36974789915965,100L224.36974789915965,100L201.68067226890756,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-8"
+                      />
+                      <RNSVGPath
+                        d="M226.890756302521,100L249.5798319327731,100L249.5798319327731,100L226.890756302521,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-9"
+                      />
+                      <RNSVGPath
+                        d="M252.10084033613444,100L274.78991596638656,100L274.78991596638656,100L252.10084033613444,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-10"
+                      />
+                      <RNSVGPath
+                        d="M277.3109243697479,1L300,1L300,100L277.3109243697479,100Z"
+                        fill={
+                          {
+                            "brushRef": "bar-gradient",
+                            "type": 1,
+                          }
+                        }
+                        propList={
+                          [
+                            "fill",
+                          ]
+                        }
+                        testID="earning-history-chart-bar-11"
+                      />
+                      <RNSVGDefs>
+                        <RNSVGLinearGradient
+                          gradient={
+                            [
+                              0,
+                              1867315,
+                              1,
+                              438074931,
+                            ]
+                          }
+                          gradientTransform={null}
+                          gradientUnits={0}
+                          name="bar-gradient"
+                          x1="0%"
+                          x2="0%"
+                          y1="100%"
+                          y2="0%"
+                        />
+                      </RNSVGDefs>
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-0"
+                        x1={0}
+                        x2={22.689075630252102}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-1"
+                        x1={25.210084033613445}
+                        x2={47.89915966386555}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-2"
+                        x1={50.42016806722689}
+                        x2={73.10924369747899}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-3"
+                        x1={75.63025210084034}
+                        x2={98.31932773109244}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-4"
+                        x1={100.84033613445378}
+                        x2={123.52941176470588}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-5"
+                        x1={126.05042016806722}
+                        x2={148.73949579831933}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-6"
+                        x1={151.26050420168067}
+                        x2={173.94957983193277}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-7"
+                        x1={176.47058823529412}
+                        x2={199.1596638655462}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-8"
+                        x1={201.68067226890756}
+                        x2={224.36974789915965}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-9"
+                        x1={226.890756302521}
+                        x2={249.5798319327731}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-10"
+                        x1={252.10084033613444}
+                        x2={274.78991596638656}
+                        y1={99.5}
+                        y2={99.5}
+                      />
+                      <RNSVGLine
+                        fill={
+                          {
+                            "payload": 4278190080,
+                            "type": 0,
+                          }
+                        }
+                        propList={
+                          [
+                            "stroke",
+                            "strokeWidth",
+                          ]
+                        }
+                        stroke={
+                          {
+                            "payload": 4280057395,
+                            "type": 0,
+                          }
+                        }
+                        strokeWidth={1}
+                        testID="earning-history-chart-line-11"
+                        x1={277.3109243697479}
+                        x2={300}
+                        y1={0.5}
+                        y2={0.5}
+                      />
+                    </RNSVGGroup>
+                  </RNSVGSvgView>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+              "paddingBottom": 35,
+              "paddingTop": 24,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 14,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+            testID="label"
+          >
+            Payout history
+          </Text>
+          <View>
+            <View
+              style={
+                {
+                  "paddingBottom": 10,
+                  "paddingTop": 10,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+                testID="label"
+              >
+                2023
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "paddingVertical": 8,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                    "justifyContent": "center",
+                    "paddingBottom": 10,
+                    "paddingTop": 10,
+                    "width": "50%",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 14,
+                      "fontWeight": "500",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                  testID="label"
+                >
+                  January
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                    "justifyContent": "space-between",
+                    "width": "50%",
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    + 
+                    2
+                     
+                    ETH
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    $6727.58
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;

@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ListItemMultiSelect should render snapshot correctly 1`] = `
+<TouchableOpacity
+  disabled={false}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 4,
+      "opacity": 1,
+      "padding": 16,
+    }
+  }
+>
+  <View
+    accessibilityRole="none"
+    accessible={true}
+    style={
+      {
+        "padding": 0,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+        }
+      }
+    >
+      <TouchableOpacity
+        disabled={false}
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "height": 24,
+            "marginRight": -8,
+            "opacity": 1,
+          }
+        }
+      >
+        <View
+          accessibilityRole="checkbox"
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#ffffff",
+              "borderColor": "#121314",
+              "borderRadius": 4,
+              "borderWidth": 2,
+              "height": 20,
+              "justifyContent": "center",
+              "width": 20,
+            }
+          }
+        />
+      </TouchableOpacity>
+      <View
+        accessible={false}
+        style={
+          {
+            "width": 16,
+          }
+        }
+        testID="listitem-gap"
+      />
+      <View />
+    </View>
+  </View>
+</TouchableOpacity>
+`;

@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FoxLoader renders correctly and matches snapshot 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "justifyContent": "center",
+    }
+  }
+>
+  <Image
+    resizeMode="contain"
+    source={1}
+    style={
+      {
+        "height": 72,
+        "width": 72,
+      }
+    }
+  />
+  <View
+    style={
+      {
+        "marginVertical": 16,
+      }
+    }
+  />
+  <ActivityIndicator
+    color="orange"
+    size="large"
+  />
+</View>
+`;

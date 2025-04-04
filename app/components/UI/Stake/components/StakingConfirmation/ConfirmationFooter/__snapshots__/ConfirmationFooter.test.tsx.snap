@@ -1,0 +1,165 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfirmationFooter render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "paddingBottom": 40,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Terms of service
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      activeOpacity={0.5}
+      onPress={[Function]}
+      style={
+        {
+          "padding": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Risk disclosure
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "gap": 16,
+        "justifyContent": "center",
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flexBasis": 0,
+          "flexDirection": "row",
+          "flexGrow": 1,
+          "flexShrink": 0,
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      loading={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flexBasis": 0,
+          "flexDirection": "row",
+          "flexGrow": 1,
+          "flexShrink": 0,
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Continue
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

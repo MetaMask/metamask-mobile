@@ -1,0 +1,15 @@
+diff --git a/node_modules/@ledgerhq/evm-tools/lib/message/EIP712/index.js b/node_modules/@ledgerhq/evm-tools/lib/message/EIP712/index.js
+index a5c677e..58b4d74 100644
+--- a/node_modules/@ledgerhq/evm-tools/lib/message/EIP712/index.js
++++ b/node_modules/@ledgerhq/evm-tools/lib/message/EIP712/index.js
+@@ -29,8 +29,8 @@ const sha224_1 = __importDefault(require("crypto-js/sha224"));
+ const live_env_1 = require("@ledgerhq/live-env");
+ const constants_1 = require("@ethersproject/constants");
+ const hash_1 = require("@ethersproject/hash");
+-const eip712_1 = __importDefault(require("@ledgerhq/cryptoassets-evm-signatures/data/eip712"));
+-const eip712_v2_1 = __importDefault(require("@ledgerhq/cryptoassets-evm-signatures/data/eip712_v2"));
++const eip712_1 = __importDefault(require("@ledgerhq/cryptoassets-evm-signatures/lib/data/eip712"));
++const eip712_v2_1 = __importDefault(require("@ledgerhq/cryptoassets-evm-signatures/lib/data/eip712_v2"));
+ // As defined in [spec](https://eips.ethereum.org/EIPS/eip-712), the properties below are all required.
+ function isEIP712Message(message) {
+     return (!!message &&

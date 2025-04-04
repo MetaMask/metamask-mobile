@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarFavicon should match the snapshot 1`] = `
+<AvatarBase
+  size="32"
+  style={{}}
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      {
+        "uri": "https://uniswap.org/favicon.ico",
+      }
+    }
+    style={
+      {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
+  />
+</AvatarBase>
+`;
+
+exports[`AvatarFavicon should render SVG 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderRadius": 16,
+      "height": 32,
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
+>
+  <RNSVGSvgView
+    bbHeight="100%"
+    bbWidth="100%"
+    focusable={false}
+    height="100%"
+    onError={[Function]}
+    style={
+      [
+        {
+          "backgroundColor": "transparent",
+          "borderWidth": 0,
+        },
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        },
+        {
+          "flex": 0,
+          "height": "100%",
+          "width": "100%",
+        },
+      ]
+    }
+    testID="favicon-avatar-svg-image"
+    uri="https://metamask.github.io/test-dapp/metamask-fox.svg"
+    width="100%"
+  >
+    <RNSVGGroup
+      fill={
+        {
+          "payload": 4278190080,
+          "type": 0,
+        }
+      }
+    />
+  </RNSVGSvgView>
+</View>
+`;
+
+exports[`AvatarFavicon should render fallback when svg has error 1`] = `
+<AvatarBase
+  size="32"
+  style={{}}
+>
+  <Image
+    onError={[Function]}
+    resizeMode="contain"
+    source={
+      {
+        "uri": "https://metamask.github.io/test-dapp/metamask-fox.svg",
+      }
+    }
+    style={
+      {
+        "flex": 1,
+        "height": undefined,
+        "width": undefined,
+      }
+    }
+    testID="favicon-avatar-image"
+  />
+</AvatarBase>
+`;

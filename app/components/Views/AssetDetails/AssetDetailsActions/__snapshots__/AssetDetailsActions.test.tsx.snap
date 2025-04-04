@@ -1,0 +1,553 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetDetailsActions should render correctly 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-evenly",
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "column",
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={true}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
+      }
+      testID="token-buy-button"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#ffffff"
+          height={24}
+          name="Add"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Buy
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "column",
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={true}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
+      }
+      testID="token-swap-button"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#ffffff"
+          height={24}
+          name="SwapHorizontal"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Swap
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "column",
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={true}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
+      }
+      testID="token-bridge-button"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#ffffff"
+          height={24}
+          name="Bridge"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Bridge
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "column",
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={true}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          {
+            "opacity": 0.5,
+          },
+        ]
+      }
+      testID="token-send-button"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#ffffff"
+          height={24}
+          name="Arrow2Upright"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Send
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "display": "flex",
+        "flexDirection": "column",
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[MockFunction]}
+      style={
+        [
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingVertical": 16,
+            "width": "100%",
+          },
+          {
+            "alignItems": "flex-start",
+            "flexDirection": "row",
+            "justifyContent": "flex-start",
+            "paddingTop": 16,
+            "paddingVertical": 2,
+            "width": "100%",
+          },
+          false,
+        ]
+      }
+      testID="token-receive-button"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 20,
+            "height": 40,
+            "justifyContent": "center",
+            "marginHorizontal": 16,
+            "overflow": "hidden",
+            "width": 40,
+          }
+        }
+      >
+        <SvgMock
+          color="#ffffff"
+          height={24}
+          name="QrCode"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        />
+      </View>
+    </TouchableOpacity>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Receive
+    </Text>
+  </View>
+</View>
+`;

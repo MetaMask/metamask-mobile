@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SwitchChainApproval renders 1`] = `
+<ApprovalModal
+  isVisible={true}
+>
+  <SwitchCustomNetwork
+    onConfirm={[Function]}
+  />
+</ApprovalModal>
+`;
+
+exports[`SwitchChainApproval returns null if incorrect approval request type 1`] = `""`;
+
+exports[`SwitchChainApproval returns null if no approval request 1`] = `""`;

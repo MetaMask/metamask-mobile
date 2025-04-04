@@ -1,0 +1,4274 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have any buy orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={true}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={false}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={
+    [
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-3",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-4",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+    ]
+  }
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                ...
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                ...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList renders correctly 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      />
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={true}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={false}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={
+    [
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-2",
+        "network": "1",
+        "orderType": "SELL",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-3",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-4",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+    ]
+  }
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Sold ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Processing
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                ...
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                ...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList renders empty buy message 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have any buy orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={true}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={false}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={[]}
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "marginVertical": 8,
+          },
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9ca1af",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "textAlign": "center",
+          }
+        }
+      >
+        You don't have any buy orders
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList renders empty sell message 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have any sell orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={true}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={[]}
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "marginVertical": 8,
+          },
+          undefined,
+          undefined,
+          undefined,
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#9ca1af",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "textAlign": "center",
+          }
+        }
+      >
+        You don't have any sell orders
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList renders sell only correctly when pressing sell filter 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have any sell orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={true}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={
+    [
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-2",
+        "network": "1",
+        "orderType": "SELL",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+    ]
+  }
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Sold ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Processing
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList resets filter to all after other filter was set 1`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      >
+        You don't have any sell orders
+      </Text>
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={true}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={
+    [
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-2",
+        "network": "1",
+        "orderType": "SELL",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+    ]
+  }
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Sold ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Processing
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+  </View>
+</RCTScrollView>
+`;
+
+exports[`OrdersList resets filter to all after other filter was set 2`] = `
+<RCTScrollView
+  ListEmptyComponent={
+    <Row>
+      <Text
+        color="Muted"
+        style={
+          {
+            "textAlign": "center",
+          }
+        }
+        variant="sHeadingMD"
+      />
+    </Row>
+  }
+  ListHeaderComponent={
+    <ScrollView
+      horizontal={true}
+    >
+      <Row
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "marginHorizontal": 24,
+            "marginVertical": 16,
+          }
+        }
+      >
+        <FilterButton
+          label="All"
+          onPress={[Function]}
+          selected={true}
+        />
+        <FilterButton
+          label="Purchased"
+          onPress={[Function]}
+          selected={false}
+        />
+        <FilterButton
+          label="Sold"
+          onPress={[Function]}
+          selected={false}
+        />
+      </Row>
+    </ScrollView>
+  }
+  data={
+    [
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-1",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "COMPLETED",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-2",
+        "network": "1",
+        "orderType": "SELL",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "amount": "34.23",
+        "createdAt": 1697242033399,
+        "cryptoAmount": "0.01231324",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-3",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+      {
+        "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
+        "cryptocurrency": "ETH",
+        "currency": "USD",
+        "data": {
+          "cryptoCurrency": {
+            "decimals": 18,
+            "name": "Ethereum",
+            "symbol": "ETH",
+          },
+          "provider": {
+            "name": "Test Provider",
+          },
+        },
+        "id": "test-order-4",
+        "network": "1",
+        "orderType": "BUY",
+        "provider": "AGGREGATOR",
+        "state": "PENDING",
+      },
+    ]
+  }
+  getItem={[Function]}
+  getItemCount={[Function]}
+  keyExtractor={[Function]}
+  onContentSizeChange={[Function]}
+  onLayout={[Function]}
+  onMomentumScrollBegin={[Function]}
+  onMomentumScrollEnd={[Function]}
+  onScroll={[Function]}
+  onScrollBeginDrag={[Function]}
+  onScrollEndDrag={[Function]}
+  removeClippedSubviews={false}
+  renderItem={[Function]}
+  scrollEventThrottle={50}
+  stickyHeaderIndices={[]}
+  viewabilityConfigCallbackPairs={[]}
+>
+  <View>
+    <View
+      collapsable={false}
+      onLayout={[Function]}
+    >
+      <RCTScrollView
+        collapsable={false}
+        horizontal={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+      >
+        <View>
+          <View
+            style={
+              [
+                {
+                  "marginVertical": 8,
+                },
+                undefined,
+                undefined,
+                {
+                  "alignItems": "center",
+                  "columnGap": 8,
+                  "flexDirection": "row",
+                  "marginHorizontal": 24,
+                  "marginVertical": 16,
+                },
+              ]
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "#4459ff",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#ffffff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Purchased
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 16,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 32,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Sold
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </RCTScrollView>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#1c7e33",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Completed
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Sold ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Processing
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              Oct 13 at 8:07 pm
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                0.01231
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                $34.23 
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+    <View
+      onFocusCapture={[Function]}
+      onLayout={[Function]}
+      style={null}
+    >
+      <TouchableHighlight
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        style={
+          {
+            "borderBottomWidth": 0.5,
+            "borderColor": "#b7bbc866",
+          }
+        }
+        underlayColor="#f3f5f9"
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "marginBottom": 10,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 12,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 20,
+                }
+              }
+            >
+              [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Image
+                resizeMode="stretch"
+                source={1}
+                style={
+                  {
+                    "height": 28,
+                    "width": 28,
+                  }
+                }
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "flex": 1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Test Provider
+                :
+                 
+                Purchased ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Bold",
+                    "fontSize": 12,
+                    "fontWeight": "700",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                Pending
+              </Text>
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 16,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": -1,
+                }
+              }
+              testID="listitemcolumn"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                ...
+                 
+                ETH
+              </Text>
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#686e7d",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 12,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 20,
+                  }
+                }
+              >
+                ...
+              </Text>
+            </View>
+          </View>
+        </View>
+      </TouchableHighlight>
+    </View>
+  </View>
+</RCTScrollView>
+`;

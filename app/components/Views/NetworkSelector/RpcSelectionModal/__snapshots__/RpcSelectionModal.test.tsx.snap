@@ -1,0 +1,375 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`RpcSelectionModal should render correctly when visible 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000066",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc866",
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
+            "borderWidth": 1,
+            "maxHeight": 1333,
+            "overflow": "hidden",
+            "paddingBottom": 3,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#b7bbc866",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          [
+            {
+              "backgroundColor": "#ffffff",
+              "flexDirection": "row",
+              "padding": 16,
+            },
+            false,
+          ]
+        }
+        testID="header"
+      >
+        <View
+          style={
+            {
+              "width": undefined,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          />
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "marginHorizontal": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Select RPC URL
+             
+          </Text>
+          <TouchableOpacity
+            avatarProps={
+              {
+                "imageSource": 1,
+                "name": "Mainnet",
+                "size": "24",
+                "style": {
+                  "marginRight": 0,
+                },
+                "variant": "Network",
+              }
+            }
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b7bbc8",
+                "borderRadius": 4,
+                "borderWidth": 1,
+                "padding": 16,
+              }
+            }
+            testID="celldisplay"
+            title="Ethereum Main Network"
+          >
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 8,
+                    "height": 24,
+                    "justifyContent": "center",
+                    "marginRight": 0,
+                    "overflow": "hidden",
+                    "width": 24,
+                  }
+                }
+                testID="cellbase-avatar"
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 24,
+                      "width": 24,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                  testID="cellbase-avatar-title"
+                >
+                  Ethereum Main Network
+                </Text>
+              </View>
+              <View
+                style={
+                  {
+                    "marginLeft": 16,
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Mainnet
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "width": undefined,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+          />
+        </View>
+      </View>
+      <View
+        style={{}}
+      >
+        <TouchableOpacity
+          disabled={false}
+          onPress={[Function]}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderRadius": 4,
+              "opacity": 1,
+              "position": "relative",
+            }
+          }
+        >
+          <View
+            accessibilityRole="none"
+            accessible={true}
+            style={
+              {
+                "padding": 16,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                }
+              }
+            >
+              <View
+                style={{}}
+              >
+                <Text
+                  accessibilityRole="text"
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  mainnet.infura.io/v3
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View
+            accessibilityRole="checkbox"
+            accessible={true}
+            style={
+              {
+                "backgroundColor": "#4459ff1a",
+                "bottom": 0,
+                "flexDirection": "row",
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "backgroundColor": "#4459ff",
+                  "borderRadius": 2,
+                  "marginLeft": 4,
+                  "marginVertical": 4,
+                  "width": 4,
+                }
+              }
+            />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;

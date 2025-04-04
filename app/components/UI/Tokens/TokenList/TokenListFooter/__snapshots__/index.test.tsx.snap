@@ -1,0 +1,141 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TokenListFooter renders correctly 1`] = `
+[
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "marginHorizontal": 15,
+        "marginVertical": 5,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginVertical": 5,
+          "textAlign": "center",
+        }
+      }
+    >
+      ETH is needed to continue
+    </Text>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginVertical": 5,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Next
+      </Text>
+    </TouchableOpacity>
+  </View>,
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "marginTop": 9,
+        "paddingBottom": 30,
+      }
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[MockFunction]}
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "justifyContent": "center",
+        }
+      }
+      testID="import-token-footer-link"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "textAlign": "center",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 8,
+            }
+          }
+        >
+          Don't see your token?
+        </Text>
+         
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Import tokens
+        </Text>
+      </Text>
+    </TouchableOpacity>
+  </View>,
+]
+`;

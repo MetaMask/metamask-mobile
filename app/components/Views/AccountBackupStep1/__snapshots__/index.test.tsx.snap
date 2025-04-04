@@ -1,0 +1,1051 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AccountBackupStep1 should render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Image
+                  resizeMethod="auto"
+                  source={1}
+                  style={
+                    {
+                      "height": 35,
+                      "tintColor": "#121314",
+                      "width": 70,
+                    }
+                  }
+                />
+              </View>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <View />
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <RCTSafeAreaView
+                      style={
+                        {
+                          "backgroundColor": "#ffffff",
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <RCTScrollView
+                        contentContainerStyle={
+                          {
+                            "flexGrow": 1,
+                          }
+                        }
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flex": 1,
+                          }
+                        }
+                        testID="protect-your-account-screen"
+                      >
+                        <View>
+                          <View
+                            style={
+                              {
+                                "flex": 1,
+                                "marginTop": 16,
+                                "padding": 20,
+                                "paddingBottom": 0,
+                                "paddingTop": 0,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "backgroundColor": "rgba(1,0,0,0)",
+                                  },
+                                  {
+                                    "flexDirection": "column",
+                                  },
+                                ]
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "backgroundColor": "rgba(1,0,0,0)",
+                                      "flexDirection": "row",
+                                      "justifyContent": "space-around",
+                                    },
+                                    {
+                                      "flexDirection": "row",
+                                      "height": 20,
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#4459ff",
+                                        "borderColor": "#4459ff",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        {
+                                          "color": "#ffffff",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      1
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#4459ff",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      2
+                                    </Text>
+                                  </View>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "flex": 1,
+                                        "flexDirection": "row",
+                                        "justifyContent": "center",
+                                      },
+                                      {
+                                        "flexDirection": "row",
+                                      },
+                                    ]
+                                  }
+                                >
+                                  <View
+                                    collapsable={false}
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#ffffff",
+                                        "borderColor": "#9ca1af",
+                                        "borderRadius": 10,
+                                        "borderWidth": 2,
+                                        "height": 20,
+                                        "justifyContent": "center",
+                                        "overflow": "hidden",
+                                        "width": 20,
+                                        "zIndex": 2,
+                                      }
+                                    }
+                                  >
+                                    <Text
+                                      style={
+                                        {
+                                          "color": "#9ca1af",
+                                          "fontSize": 9,
+                                          "overflow": "hidden",
+                                        }
+                                      }
+                                    >
+                                      3
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                              <View
+                                style={
+                                  [
+                                    {
+                                      "justifyContent": "space-around",
+                                    },
+                                    {
+                                      "flexDirection": "row",
+                                      "paddingVertical": 4,
+                                    },
+                                    {
+                                      "alignItems": "center",
+                                    },
+                                  ]
+                                }
+                              >
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#9ca1af",
+                                        },
+                                        {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Create password
+                                  </Text>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#4459ff",
+                                        },
+                                        {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Secure wallet
+                                  </Text>
+                                </View>
+                                <View
+                                  accessibilityState={
+                                    {
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": undefined,
+                                      "expanded": undefined,
+                                      "selected": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  focusable={true}
+                                  onClick={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "flex": 1,
+                                      "justifyContent": "center",
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "fontSize": 12,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        {
+                                          "color": "#9ca1af",
+                                        },
+                                        {
+                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontSize": 10,
+                                        },
+                                      ]
+                                    }
+                                  >
+                                    Confirm Secret Recovery Phrase
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "justifyContent": "flex-start",
+                                  "marginBottom": 10,
+                                }
+                              }
+                            >
+                              <Text
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontSize": 24,
+                                    "fontWeight": "600",
+                                    "marginBottom": 24,
+                                    "marginTop": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
+                              >
+                                Secure your wallet
+                              </Text>
+                              <Image
+                                source={1}
+                                style={
+                                  {
+                                    "height": 225,
+                                    "width": 200,
+                                  }
+                                }
+                              />
+                              <View
+                                style={
+                                  {
+                                    "justifyContent": "center",
+                                    "marginTop": 32,
+                                  }
+                                }
+                              >
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 14,
+                                      "fontWeight": "400",
+                                      "lineHeight": 20,
+                                      "textAlign": "left",
+                                    }
+                                  }
+                                >
+                                  Don’t risk losing your funds. Protect your wallet by saving your
+                                   
+                                  <Text
+                                    onPress={[Function]}
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                      }
+                                    }
+                                  >
+                                    Secret Recovery Phrase
+                                  </Text>
+                                   
+                                  in a place you trust.
+                                   
+                                  <Text
+                                    style={
+                                      {
+                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontWeight": "600",
+                                      }
+                                    }
+                                  >
+                                    It’s the only way to recover your wallet if you get locked out of the app or get a new device.
+                                  </Text>
+                                </Text>
+                              </View>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "flex": 1,
+                                  "justifyContent": "flex-end",
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "marginBottom": 34,
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  hitSlop={
+                                    {
+                                      "bottom": 10,
+                                      "left": 10,
+                                      "right": 10,
+                                      "top": 10,
+                                    }
+                                  }
+                                  onPress={[Function]}
+                                  style={
+                                    {
+                                      "elevation": 10,
+                                      "zIndex": 10,
+                                    }
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      {
+                                        "color": "#4459ff",
+                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontSize": 15,
+                                        "fontWeight": "400",
+                                        "lineHeight": 20,
+                                        "textAlign": "center",
+                                      }
+                                    }
+                                    testID="remind-me-later-button"
+                                  >
+                                    Remind me later
+                                  </Text>
+                                </TouchableOpacity>
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 11,
+                                      "fontWeight": "400",
+                                      "lineHeight": 20,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  (Not recommended)
+                                </Text>
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "marginBottom": 30,
+                                  }
+                                }
+                              >
+                                <TouchableOpacity
+                                  accessibilityRole="button"
+                                  accessible={true}
+                                  activeOpacity={0.2}
+                                  onPress={[Function]}
+                                  style={
+                                    [
+                                      [
+                                        {
+                                          "borderRadius": 100,
+                                          "justifyContent": "center",
+                                          "padding": 15,
+                                        },
+                                        {
+                                          "backgroundColor": "#4459ff",
+                                          "minHeight": 50,
+                                        },
+                                        undefined,
+                                      ],
+                                      null,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    style={
+                                      [
+                                        {
+                                          "color": "#007aff",
+                                          "fontSize": 17,
+                                          "fontWeight": "500",
+                                          "textAlign": "center",
+                                        },
+                                        null,
+                                        [
+                                          {
+                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontSize": 14,
+                                            "fontWeight": "600",
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "color": "#ffffff",
+                                          },
+                                          undefined,
+                                        ],
+                                        null,
+                                      ]
+                                    }
+                                  >
+                                    Start
+                                  </Text>
+                                </TouchableOpacity>
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontSize": 11,
+                                      "fontWeight": "400",
+                                      "marginTop": 12,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  Highly recommended
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      </RCTScrollView>
+                      <Modal
+                        animationType="none"
+                        deviceHeight={null}
+                        deviceWidth={null}
+                        hardwareAccelerated={false}
+                        hideModalContentWhileAnimating={false}
+                        onBackdropPress={[Function]}
+                        onModalHide={[Function]}
+                        onModalWillHide={[Function]}
+                        onModalWillShow={[Function]}
+                        onRequestClose={[Function]}
+                        panResponderThreshold={4}
+                        scrollHorizontal={false}
+                        scrollOffset={0}
+                        scrollOffsetMax={0}
+                        scrollTo={null}
+                        statusBarTranslucent={false}
+                        supportedOrientations={
+                          [
+                            "portrait",
+                            "landscape",
+                          ]
+                        }
+                        swipeDirection="down"
+                        swipeThreshold={100}
+                        transparent={true}
+                        visible={false}
+                      />
+                      <Modal
+                        animationType="none"
+                        deviceHeight={null}
+                        deviceWidth={null}
+                        hardwareAccelerated={false}
+                        hideModalContentWhileAnimating={false}
+                        onBackdropPress={[Function]}
+                        onModalHide={[Function]}
+                        onModalWillHide={[Function]}
+                        onModalWillShow={[Function]}
+                        onRequestClose={[Function]}
+                        onSwipeComplete={[Function]}
+                        panResponderThreshold={4}
+                        scrollHorizontal={false}
+                        scrollOffset={0}
+                        scrollOffsetMax={0}
+                        scrollTo={null}
+                        statusBarTranslucent={false}
+                        supportedOrientations={
+                          [
+                            "portrait",
+                            "landscape",
+                          ]
+                        }
+                        swipeDirection="down"
+                        swipeThreshold={100}
+                        transparent={true}
+                        visible={false}
+                      />
+                    </RCTSafeAreaView>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;

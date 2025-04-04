@@ -1,0 +1,94 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ModalConfirmation should render correctly 1`] = `
+<ForwardRef
+  onDismiss={[Function]}
+  style={
+    {
+      "justifyContent": "center",
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 10,
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "padding": 24,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "marginBottom": 8,
+          }
+        }
+        variant="sHeadingMD"
+      >
+        Title!
+      </Text>
+      <Text
+        variant="sBodyMD"
+      >
+        Description.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "backgroundColor": "#b7bbc866",
+          "height": 1,
+        }
+      }
+    />
+    <View
+      style={
+        {
+          "flexDirection": "row",
+          "padding": 16,
+        }
+      }
+    >
+      <Button
+        label="Cancel"
+        onPress={[Function]}
+        size="48"
+        style={
+          {
+            "flex": 1,
+          }
+        }
+        variant="Secondary"
+      />
+      <View
+        style={
+          {
+            "width": 8,
+          }
+        }
+      />
+      <Button
+        isDanger={true}
+        label="Confirm"
+        onPress={[Function]}
+        size="48"
+        style={
+          {
+            "flex": 1,
+          }
+        }
+        testID="modal-confirmation-normal-button"
+        variant="Primary"
+      />
+    </View>
+  </View>
+</ForwardRef>
+`;

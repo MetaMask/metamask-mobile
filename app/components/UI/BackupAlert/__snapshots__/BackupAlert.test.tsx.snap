@@ -1,0 +1,156 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BackupAlert should render correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "shadowOffset": {
+          "height": 59.4,
+        },
+        "shadowOpacity": 0.3285,
+        "shadowRadius": 53.46,
+      },
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#9a6300",
+          "borderRadius": 8,
+          "borderWidth": 1,
+          "left": 16,
+          "position": "absolute",
+          "right": 16,
+        },
+        {
+          "bottom": 120,
+        },
+      ],
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#9a63001a",
+        "flex": 1,
+        "padding": 14,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flexDirection": "row",
+        }
+      }
+      testID="backup-alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 10,
+          }
+        }
+      >
+        <SvgMock
+          color="#121314"
+          height={20}
+          name="Notification"
+          style={
+            {
+              "height": 20,
+              "width": 20,
+            }
+          }
+          width={20}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 14,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 14,
+            }
+          }
+        >
+          Protect your wallet
+        </Text>
+        <View
+          style={
+            {
+              "alignContent": "flex-end",
+              "flex": 1,
+              "flexDirection": "row-reverse",
+            }
+          }
+        >
+          <TouchableOpacity
+            onPress={[Function]}
+            testID="protect-your-wallet-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 14,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "marginLeft": 14,
+                  "textAlign": "right",
+                }
+              }
+            >
+              Protect wallet
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={[Function]}
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "marginLeft": 14,
+                  "textAlign": "right",
+                }
+              }
+              testID="notification-remind-later-button"
+            >
+              Remind me later
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;

@@ -1,0 +1,147 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PermittedNetworksInfoSheet should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+  testID="permitted-networks-info-sheet"
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flexDirection": "row",
+          "padding": 16,
+        },
+        false,
+      ]
+    }
+    testID="header"
+  >
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "marginHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Permitted networks
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "marginBottom": 16,
+      }
+    }
+    testID="description-container"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      This is a list of networks that you've previously granted permissions to use on this site. Select one from the list or edit network permissions for this site.
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "gap": 16,
+      }
+    }
+    testID="buttons-container"
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="got-it-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Got it
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

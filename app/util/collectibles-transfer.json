@@ -1,0 +1,54 @@
+{
+  "0x5d00d312e171be5342067c09bae883f9bcb2003b": {
+    "name": "ethermon",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x06012c8cf97bead5deae237070f9587f8e7a266d": {
+    "name": "cryptokitties",
+    "tradable": true,
+    "method": "transfer"
+  },
+  "0x8c9b261faef3b3c2e64ab5e58e04615f8c788099": {
+    "name": "LucidSight-MLB-NFT",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x7b00ae36c7485b678fe945c2dd9349eb5baf7b6b": {
+    "name": "Spheroid SPACE",
+    "tradable": false
+  },
+  "0xbd13e53255ef917da7557db1b7d2d5c38a2efe24": {
+    "name": "DozerDoll",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x8bc67d00253fd60b1afcce88b78820413139f4c6": {
+    "name": "CryptoFlowers",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x1d963688fe2209a98db35c67a041524822cf04ff": {
+    "name": "MARBLE-NFT",
+    "tradable": false
+  },
+  "0x6ebeaf8e8e946f0716e6533a6f2cefc83f60e8ab": {
+    "name": "Gods Unchained",
+    "tradable": false
+  },
+  "0xdceaf1652a131f32a821468dc03a92df0edd86ea": {
+    "name": "MyCryptoHeroes:Extension",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x273f7f8e6489682df756151f5525576e322d51a3": {
+    "name": "MyCryptoHeroes:Hero",
+    "tradable": true,
+    "method": "transferFrom"
+  },
+  "0x2aea4add166ebf38b63d09a75de1a7b94aa24163": {
+    "name": "KudosToken",
+    "tradable": true,
+    "method": "transferFrom"
+  }
+}

@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Badge should render badge network given the badge network variant 1`] = `
+<BadgeNetwork
+  imageSource={1}
+  isScaled={true}
+  name="Ethereum"
+  testID="badge-badgenetwork"
+/>
+`;
+
+exports[`Badge should render badge notifications given the badge notification variant 1`] = `
+<BadgeNotifications
+  iconName="Send2"
+  testID="badge-badgenotifications"
+/>
+`;
+
+exports[`Badge should render badge status given the badge status variant 1`] = `
+<BadgeStatus
+  state="Inactive"
+  testID="badge-badgestatus"
+/>
+`;

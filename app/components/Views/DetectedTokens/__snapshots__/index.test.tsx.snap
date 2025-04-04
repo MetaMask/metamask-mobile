@@ -1,0 +1,888 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] = `
+[
+  <Text
+    style={
+      {
+        "color": "black",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 18,
+        "fontWeight": "400",
+        "paddingVertical": 16,
+        "textAlign": "center",
+      }
+    }
+  >
+    0 new token found
+  </Text>,
+  <RCTScrollView
+    collapsable={false}
+    data={[]}
+    getItem={[Function]}
+    getItemCount={[Function]}
+    keyExtractor={[Function]}
+    onContentSizeChange={[Function]}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    onLayout={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onMomentumScrollEnd={[Function]}
+    onScroll={[Function]}
+    onScrollBeginDrag={[Function]}
+    onScrollEndDrag={[Function]}
+    removeClippedSubviews={false}
+    renderItem={[Function]}
+    renderScrollComponent={[Function]}
+    scrollEventThrottle={50}
+    showsVerticalScrollIndicator={false}
+    stickyHeaderIndices={[]}
+    style={
+      {
+        "paddingHorizontal": 16,
+      }
+    }
+    viewabilityConfigCallbackPairs={[]}
+  >
+    <View />
+  </RCTScrollView>,
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "padding": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "white",
+              "borderColor": "blue",
+              "borderWidth": 1,
+            },
+            {
+              "flex": 1,
+            },
+          ],
+          null,
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "blue",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Hide All
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "width": 8,
+        }
+      }
+    />
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "blue",
+              "minHeight": 50,
+            },
+            {
+              "flex": 1,
+            },
+          ],
+          {
+            "opacity": 0.6,
+          },
+        ]
+      }
+      testID="token-detection-import-button"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            {
+              "color": "#dcdcdc",
+            },
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "orange",
+              },
+              undefined,
+            ],
+            {
+              "opacity": 0.6,
+            },
+          ]
+        }
+      >
+        Import (0)
+      </Text>
+    </TouchableOpacity>
+  </View>,
+]
+`;
+
+exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
+[
+  <Text
+    style={
+      {
+        "color": "black",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 18,
+        "fontWeight": "400",
+        "paddingVertical": 16,
+        "textAlign": "center",
+      }
+    }
+  >
+    2 new tokens found
+  </Text>,
+  <RCTScrollView
+    collapsable={false}
+    data={
+      [
+        {
+          "address": "0xToken1",
+          "chainId": "1",
+          "symbol": "TKN1",
+        },
+        {
+          "address": "0xToken2",
+          "chainId": "1",
+          "symbol": "TKN2",
+        },
+      ]
+    }
+    getItem={[Function]}
+    getItemCount={[Function]}
+    keyExtractor={[Function]}
+    onContentSizeChange={[Function]}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    onLayout={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onMomentumScrollEnd={[Function]}
+    onScroll={[Function]}
+    onScrollBeginDrag={[Function]}
+    onScrollEndDrag={[Function]}
+    removeClippedSubviews={false}
+    renderItem={[Function]}
+    renderScrollComponent={[Function]}
+    scrollEventThrottle={50}
+    showsVerticalScrollIndicator={false}
+    stickyHeaderIndices={[]}
+    style={
+      {
+        "paddingHorizontal": 16,
+      }
+    }
+    viewabilityConfigCallbackPairs={[]}
+  >
+    <View>
+      <View
+        onFocusCapture={[Function]}
+        onLayout={[Function]}
+        style={null}
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "paddingVertical": 16,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              {
+                "alignSelf": "flex-start",
+                "position": "relative",
+              }
+            }
+            testID="badge-wrapper-badge"
+          >
+            <View />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "bottom": 0,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateY": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "maxHeight": 24,
+                    "minHeight": 8,
+                    "opacity": 0,
+                  }
+                }
+                testID="badgenetwork"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#ffffff",
+                      "borderRadius": 8,
+                      "borderWidth": 2,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "shadowColor": "#0000001a",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source="mocked-network-badge-source"
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "marginLeft": 8,
+                "marginRight": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "black",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 18,
+                  "fontWeight": "400",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              0 TKN1
+            </Text>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": undefined,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Token address: 
+              </Text>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "blue",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  0xToke...ken1
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": undefined,
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "blue",
+                        "marginLeft": 4,
+                      },
+                      {
+                        "fontFamily": "Feather",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "black",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Token lists: 
+              </Text>
+            </View>
+          </View>
+          <View
+            accessibilityRole="checkbox"
+            accessibilityState={
+              {
+                "checked": true,
+                "disabled": false,
+              }
+            }
+            accessibilityValue={
+              {
+                "text": "on",
+              }
+            }
+            accessible={true}
+            pointerEvents="auto"
+          >
+            <RNCCheckbox
+              boxType="square"
+              forwardedRef={null}
+              onValueChange={[Function]}
+              style={
+                [
+                  {
+                    "backgroundColor": "transparent",
+                    "height": 32,
+                    "width": 32,
+                  },
+                  {
+                    "height": 18,
+                  },
+                ]
+              }
+              tintColors={
+                {
+                  "false": "red",
+                  "true": "blue",
+                }
+              }
+              value={true}
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        onFocusCapture={[Function]}
+        onLayout={[Function]}
+        style={null}
+      >
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "paddingVertical": 16,
+            }
+          }
+        >
+          <View
+            onLayout={[Function]}
+            style={
+              {
+                "alignSelf": "flex-start",
+                "position": "relative",
+              }
+            }
+            testID="badge-wrapper-badge"
+          >
+            <View />
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "bottom": 0,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateY": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "maxHeight": 24,
+                    "minHeight": 8,
+                    "opacity": 0,
+                  }
+                }
+                testID="badgenetwork"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "#ffffff",
+                      "borderRadius": 8,
+                      "borderWidth": 2,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "shadowColor": "#0000001a",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source="mocked-network-badge-source"
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "flex": 1,
+                "marginLeft": 8,
+                "marginRight": 16,
+              }
+            }
+          >
+            <Text
+              style={
+                {
+                  "color": "black",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 18,
+                  "fontWeight": "400",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              0 TKN2
+            </Text>
+            <View
+              style={
+                {
+                  "flexDirection": "row",
+                  "marginBottom": 4,
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": undefined,
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Token address: 
+              </Text>
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                  }
+                }
+              >
+                <Text
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "blue",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 14,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  0xToke...ken2
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": undefined,
+                        "fontSize": 16,
+                      },
+                      {
+                        "color": "blue",
+                        "marginLeft": 4,
+                      },
+                      {
+                        "fontFamily": "Feather",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "flexWrap": "wrap",
+                }
+              }
+            >
+              <Text
+                style={
+                  {
+                    "color": "black",
+                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontSize": 14,
+                    "fontWeight": "400",
+                  }
+                }
+              >
+                Token lists: 
+              </Text>
+            </View>
+          </View>
+          <View
+            accessibilityRole="checkbox"
+            accessibilityState={
+              {
+                "checked": true,
+                "disabled": false,
+              }
+            }
+            accessibilityValue={
+              {
+                "text": "on",
+              }
+            }
+            accessible={true}
+            pointerEvents="auto"
+          >
+            <RNCCheckbox
+              boxType="square"
+              forwardedRef={null}
+              onValueChange={[Function]}
+              style={
+                [
+                  {
+                    "backgroundColor": "transparent",
+                    "height": 32,
+                    "width": 32,
+                  },
+                  {
+                    "height": 18,
+                  },
+                ]
+              }
+              tintColors={
+                {
+                  "false": "red",
+                  "true": "blue",
+                }
+              }
+              value={true}
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>,
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "padding": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "white",
+              "borderColor": "blue",
+              "borderWidth": 1,
+            },
+            {
+              "flex": 1,
+            },
+          ],
+          null,
+        ]
+      }
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "blue",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Hide All
+      </Text>
+    </TouchableOpacity>
+    <View
+      style={
+        {
+          "width": 8,
+        }
+      }
+    />
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={0.2}
+      disabled={false}
+      onPress={[Function]}
+      style={
+        [
+          [
+            {
+              "borderRadius": 100,
+              "justifyContent": "center",
+              "padding": 15,
+            },
+            {
+              "backgroundColor": "blue",
+              "minHeight": 50,
+            },
+            {
+              "flex": 1,
+            },
+          ],
+          null,
+        ]
+      }
+      testID="token-detection-import-button"
+    >
+      <Text
+        style={
+          [
+            {
+              "color": "#007aff",
+              "fontSize": 17,
+              "fontWeight": "500",
+              "textAlign": "center",
+            },
+            null,
+            [
+              {
+                "fontFamily": "EuclidCircularB-Bold",
+                "fontSize": 14,
+                "fontWeight": "600",
+                "textAlign": "center",
+              },
+              {
+                "color": "orange",
+              },
+              undefined,
+            ],
+            null,
+          ]
+        }
+      >
+        Import (2)
+      </Text>
+    </TouchableOpacity>
+  </View>,
+]
+`;

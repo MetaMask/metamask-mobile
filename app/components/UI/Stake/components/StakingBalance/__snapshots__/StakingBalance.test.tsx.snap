@@ -1,0 +1,939 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakingBalance render matches snapshot 1`] = `
+<View
+  testID="staking-balance-container"
+>
+  <TouchableOpacity
+    onLongPress={[Function]}
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+        "paddingHorizontal": 15,
+        "paddingVertical": 10,
+      }
+    }
+    testID="asset-Ethereum"
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignSelf": "center",
+          "position": "relative",
+        }
+      }
+      testID="badge-wrapper-badge"
+    >
+      <View>
+        <View
+          useNativeDriver={true}
+        >
+          <Image
+            fadeIn={true}
+            onError={[Function]}
+            onLoadEnd={[Function]}
+            source={
+              {
+                "uri": "",
+              }
+            }
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "height": 24,
+                  "width": 24,
+                },
+                undefined,
+                false,
+                false,
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                },
+              ]
+            }
+            testID="staking-balance-asset-logo"
+          />
+          <View
+            collapsable={false}
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 16,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "width": 32,
+                  },
+                  {
+                    "backgroundColor": "#eee",
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "aspectRatio": 1,
+            "bottom": 0,
+            "height": 0,
+            "justifyContent": "center",
+            "position": "absolute",
+            "right": 0,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+              {
+                "translateY": 0,
+              },
+            ],
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "aspectRatio": 1,
+              "height": "50%",
+              "justifyContent": "center",
+              "maxHeight": 24,
+              "minHeight": 8,
+              "opacity": 0,
+            }
+          }
+          testID="badgenetwork"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 8,
+                "borderWidth": 2,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "shadowColor": "#0000001a",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 1,
+                "shadowRadius": 4,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "justifyContent": "center",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginLeft": 20,
+        }
+      }
+      testID="staked-ethereum-label"
+    >
+      Staked Ethereum
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "alignSelf": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginVertical": 8,
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#4459ff"
+          height={24}
+          name="Info"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="unstaking-banner"
+        >
+          Unstaking 0.0010 ETH in progress. Come back in a few days to claim it.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "backgroundColor": "#1c7e331a",
+          "borderColor": "#1c7e33",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginVertical": 8,
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#1c7e33"
+          height={24}
+          name="Confirmation"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          You can claim 0.00214 ETH. Once claimed, you'll get ETH back in your wallet.
+        </Text>
+        <Text
+          accessibilityRole="link"
+          accessible={true}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignSelf": "flex-start",
+              "backgroundColor": "transparent",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          suppressHighlighting={true}
+          testID="claim-banner-claim-eth-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Claim
+             ETH
+          </Text>
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 8,
+            "justifyContent": "space-between",
+          },
+          {
+            "paddingTop": 8,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="unstake-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Unstake
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="stake-more-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Stake more
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`StakingBalance should match the snapshot when portfolio view is enabled   1`] = `
+<View
+  testID="staking-balance-container"
+>
+  <TouchableOpacity
+    onLongPress={[Function]}
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "flex-start",
+        "flex": 1,
+        "flexDirection": "row",
+        "paddingHorizontal": 15,
+        "paddingVertical": 10,
+      }
+    }
+    testID="asset-Ethereum"
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignSelf": "center",
+          "position": "relative",
+        }
+      }
+      testID="badge-wrapper-badge"
+    >
+      <View>
+        <View
+          useNativeDriver={true}
+        >
+          <Image
+            fadeIn={true}
+            onError={[Function]}
+            onLoadEnd={[Function]}
+            source={
+              {
+                "uri": "",
+              }
+            }
+            style={
+              [
+                {
+                  "borderRadius": 12,
+                  "height": 24,
+                  "width": 24,
+                },
+                undefined,
+                false,
+                false,
+                {
+                  "borderRadius": 16,
+                  "height": 32,
+                  "overflow": "hidden",
+                  "width": 32,
+                },
+              ]
+            }
+            testID="staking-balance-asset-logo"
+          />
+          <View
+            collapsable={false}
+            style={
+              {
+                "bottom": 0,
+                "left": 0,
+                "opacity": 1,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "borderRadius": 16,
+                    "height": 32,
+                    "overflow": "hidden",
+                    "width": 32,
+                  },
+                  {
+                    "backgroundColor": "#eee",
+                  },
+                  undefined,
+                ]
+              }
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "aspectRatio": 1,
+            "bottom": 0,
+            "height": 0,
+            "justifyContent": "center",
+            "position": "absolute",
+            "right": 0,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+              {
+                "translateY": 0,
+              },
+            ],
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "aspectRatio": 1,
+              "height": "50%",
+              "justifyContent": "center",
+              "maxHeight": 24,
+              "minHeight": 8,
+              "opacity": 0,
+            }
+          }
+          testID="badgenetwork"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#ffffff",
+                "borderRadius": 8,
+                "borderWidth": 2,
+                "height": 32,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "shadowColor": "#0000001a",
+                "shadowOffset": {
+                  "height": 2,
+                  "width": 0,
+                },
+                "shadowOpacity": 1,
+                "shadowRadius": 4,
+                "transform": [
+                  {
+                    "scale": 1,
+                  },
+                ],
+                "width": 32,
+              }
+            }
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 32,
+                  "width": 32,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "alignSelf": "center",
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "justifyContent": "center",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "marginLeft": 20,
+        }
+      }
+      testID="staked-ethereum-label"
+    >
+      Staked Ethereum
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "alignSelf": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </TouchableOpacity>
+  <View
+    style={
+      {
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginVertical": 8,
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#4459ff"
+          height={24}
+          name="Info"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          testID="unstaking-banner"
+        >
+          Unstaking 0.0010 ETH in progress. Come back in a few days to claim it.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "backgroundColor": "#1c7e331a",
+          "borderColor": "#1c7e33",
+          "borderLeftWidth": 4,
+          "borderRadius": 4,
+          "flexDirection": "row",
+          "marginVertical": 8,
+          "padding": 12,
+          "paddingLeft": 8,
+        }
+      }
+      testID="banneralert"
+      variant="Alert"
+    >
+      <View
+        style={
+          {
+            "marginRight": 8,
+          }
+        }
+      >
+        <SvgMock
+          color="#1c7e33"
+          height={24}
+          name="Confirmation"
+          style={
+            {
+              "height": 24,
+              "width": 24,
+            }
+          }
+          width={24}
+        />
+      </View>
+      <View
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          You can claim 0.00214 ETH. Once claimed, you'll get ETH back in your wallet.
+        </Text>
+        <Text
+          accessibilityRole="link"
+          accessible={true}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignSelf": "flex-start",
+              "backgroundColor": "transparent",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+          suppressHighlighting={true}
+          testID="claim-banner-claim-eth-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Claim
+             ETH
+          </Text>
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        [
+          {
+            "flexDirection": "row",
+            "gap": 8,
+            "justifyContent": "space-between",
+          },
+          {
+            "paddingTop": 8,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="unstake-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Unstake
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 20,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="stake-more-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Stake more
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</View>
+`;

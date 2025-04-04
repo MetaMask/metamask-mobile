@@ -1,0 +1,710 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AdvancedSettings should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView
+    automaticallyAdjustContentInsets={false}
+    contentInset={
+      {
+        "bottom": 0,
+      }
+    }
+    enableAutomaticScroll={true}
+    enableOnAndroid={false}
+    enableResetScrollToCoords={true}
+    extraHeight={75}
+    extraScrollHeight={0}
+    getScrollResponder={[Function]}
+    handleOnScroll={[Function]}
+    keyboardDismissMode="interactive"
+    keyboardOpeningTime={250}
+    keyboardSpace={0}
+    onScroll={[Function]}
+    resetKeyboardSpace={[Function]}
+    resetScrollToCoords={
+      {
+        "x": 0,
+        "y": 0,
+      }
+    }
+    scrollEventThrottle={1}
+    scrollForExtraHeightOnAndroid={[Function]}
+    scrollIntoView={[Function]}
+    scrollToEnd={[Function]}
+    scrollToFocusedInput={[Function]}
+    scrollToPosition={[Function]}
+    showsVerticalScrollIndicator={true}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+        "padding": 16,
+        "paddingBottom": 100,
+      }
+    }
+    testID="advanced-settings-scrollview"
+    update={[Function]}
+    viewIsInsideTabBar={false}
+  >
+    <View>
+      <View
+        style={
+          {
+            "paddingBottom": 48,
+          }
+        }
+        testID="advanced-settings"
+      >
+        <Modal
+          animationType="none"
+          deviceHeight={null}
+          deviceWidth={null}
+          hardwareAccelerated={false}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          onRequestClose={[Function]}
+          onSwipeComplete={[Function]}
+          panResponderThreshold={4}
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
+          }
+          swipeDirection="down"
+          swipeThreshold={100}
+          transparent={true}
+          visible={false}
+        />
+        <View
+          style={
+            [
+              {
+                "marginTop": 32,
+              },
+              {
+                "marginTop": 0,
+              },
+            ]
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Reset Account
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            This action will clear your transaction activity. This data might not be retrievable.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Reset Account
+            </Text>
+          </TouchableOpacity>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Smart Transactions
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityLabel="Smart Transactions"
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="smart_transactions_opt_in_switch"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Turn on Smart Transactions for more reliable and secure transactions on supported networks.
+             
+            <Text
+              accessibilityRole="text"
+              link={true}
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn more.
+            </Text>
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Show Hex Data
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Select this to show the hex data field on the send screen.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Customize transaction nonce
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Turn this on to change the nonce (transaction number) on confirmation screens. This is an advanced feature, use cautiously.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Autodetect tokens
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="token-detection-toggle"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 16,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Show conversion on test networks
+            </Text>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="show-fiat-on-testnets"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={false}
+              />
+            </View>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            Select this to show fiat conversion on test networks
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginTop": 32,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            State Logs
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 8,
+              }
+            }
+          >
+            This will help MetaMask debug any issue you might encounter. Please send it to MetaMask support via hamburger icon &gt; Send Feedback, or reply to your existing ticket if you have one.
+          </Text>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "marginTop": 16,
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Download State Logs
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+</RCTSafeAreaView>
+`;

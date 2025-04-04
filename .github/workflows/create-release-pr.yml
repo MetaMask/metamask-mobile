@@ -1,0 +1,57 @@
+name: Create Release Pull Request
+
+on:
+  workflow_dispatch:
+    inputs:
+      base-branch:
+        description: 'The base branch, tag, or SHA for git operations and the pull request.'
+        required: true
+      semver-version:
+        description: 'A semantic version. eg: x.x.x'
+        required: true
+      previous-version-tag:
+        description: 'Previous release version tag. eg: v7.7.0'
+        required: true
+jobs:
+  generate-build-version:
+    uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.2.0
+    permissions:
+      id-token: write
+
+  create-release-pr:
+    runs-on: ubuntu-latest
+    needs: generate-build-version
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          # This is to guarantee that the most recent tag is fetched.
+          # This can be configured to a more reasonable value by consumers.
+          fetch-depth: 0
+          # We check out the specified branch, which will be used as the base
+          # branch for all git operations and the release PR.
+          ref: ${{ github.event.inputs.base-branch }}
+          # The last step of this workflow creates a release branch, which shall itself
+          # trigger another workflow: 'create-bug-report.yml'. However, there is a security
+          # feature in Github that prevents workflows from triggering other workflows by default.
+          # The workaround is to use a personal access token (BUG_REPORT_TOKEN) instead of
+          # the default GITHUB_TOKEN for the checkout action.
+          token: ${{ secrets.BUG_REPORT_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+      - name: Install dependencies
+        run: yarn --immutable
+      - name: Create Release & Changelog PR
+        id: create-release-changelog-pr
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.event.inputs.base-branch }}
+        run: |
+          ./scripts/create-release-pr.sh ${{ github.event.inputs.previous-version-tag }} ${{ github.event.inputs.semver-version }} ${{ needs.generate-build-version.outputs.build-version }}

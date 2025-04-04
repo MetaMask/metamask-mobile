@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BadgeNotifications should render badge notifications correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "aspectRatio": 1,
+      "backgroundColor": "#4459ff",
+      "borderColor": "#ffffff",
+      "borderRadius": 9,
+      "borderWidth": 1,
+      "height": "50%",
+      "justifyContent": "center",
+      "minHeight": 18,
+      "opacity": 0,
+    }
+  }
+  testID="transaction"
+>
+  <SvgMock
+    color="#ffffff"
+    height={10}
+    name="Send2"
+    style={
+      {
+        "height": 10,
+        "width": 10,
+      }
+    }
+    width={10}
+  />
+</View>
+`;

@@ -1,0 +1,125 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationIcon matches snapshot when icon is provided 1`] = `
+[
+  <View
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+  >
+    <View
+      onLayout={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "justifyContent": "center",
+          "position": "absolute",
+          "top": "10%",
+        }
+      }
+      testID="badge-wrapper-badge"
+    >
+      <View>
+        <Image
+          onError={[Function]}
+          placeholderStyle={
+            {
+              "backgroundColor": "#f3f5f9",
+              "borderColor": "#f3f5f9",
+              "borderRadius": 16,
+              "borderWidth": 0.5,
+              "height": 32,
+              "width": 32,
+            }
+          }
+          source={
+            {
+              "uri": "",
+            }
+          }
+          style={
+            {
+              "borderColor": "#f3f5f9",
+              "borderRadius": 16,
+              "borderWidth": 0.5,
+              "height": 32,
+              "overflow": "hidden",
+              "width": 32,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "aspectRatio": 1,
+            "bottom": 0,
+            "height": 0,
+            "justifyContent": "center",
+            "position": "absolute",
+            "right": 0,
+            "transform": [
+              {
+                "translateX": 0,
+              },
+              {
+                "translateY": 0,
+              },
+            ],
+          }
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "aspectRatio": 1,
+              "backgroundColor": "#4459ff",
+              "borderColor": "#ffffff",
+              "borderRadius": 9,
+              "borderWidth": 1,
+              "height": "50%",
+              "justifyContent": "center",
+              "minHeight": 18,
+              "opacity": 0,
+            }
+          }
+          testID="badge-badgenotifications"
+        >
+          <SvgMock
+            color="#ffffff"
+            height={10}
+            name="Send2"
+            style={
+              {
+                "height": 10,
+                "width": 10,
+              }
+            }
+            width={10}
+          />
+        </View>
+      </View>
+    </View>
+  </View>,
+  <View
+    style={
+      {
+        "backgroundColor": "#4459ff",
+        "borderRadius": 2,
+        "height": 4,
+        "marginLeft": 8,
+        "marginTop": 16,
+        "position": "absolute",
+        "width": 4,
+      }
+    }
+  />,
+]
+`;

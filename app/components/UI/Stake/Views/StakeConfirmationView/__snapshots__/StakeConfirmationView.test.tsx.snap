@@ -1,0 +1,1703 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StakeConfirmationView render matches snapshot 1`] = `
+<RCTScrollView
+  collapsable={false}
+  contentContainerStyle={
+    {
+      "backgroundColor": "#f3f5f9",
+      "flexGrow": 1,
+      "justifyContent": "space-between",
+      "paddingHorizontal": 16,
+      "paddingTop": 8,
+    }
+  }
+  onGestureHandlerEvent={[Function]}
+  onGestureHandlerStateChange={[Function]}
+>
+  <View>
+    <View>
+      <View
+        style={
+          [
+            {
+              "alignItems": "center",
+              "gap": 8,
+              "paddingVertical": 8,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          onLayout={[Function]}
+          style={
+            {
+              "alignSelf": "center",
+              "position": "relative",
+            }
+          }
+          testID="badge-wrapper-badge"
+        >
+          <View>
+            <View
+              useNativeDriver={true}
+            >
+              <Image
+                fadeIn={true}
+                onError={[Function]}
+                onLoadEnd={[Function]}
+                source={
+                  {
+                    "uri": "",
+                  }
+                }
+                style={
+                  [
+                    {
+                      "borderRadius": 12,
+                      "height": 24,
+                      "width": 24,
+                    },
+                    undefined,
+                    undefined,
+                    undefined,
+                    {
+                      "borderRadius": 24,
+                      "height": 48,
+                      "width": 48,
+                    },
+                  ]
+                }
+              />
+              <View
+                collapsable={false}
+                style={
+                  {
+                    "bottom": 0,
+                    "left": 0,
+                    "opacity": 1,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              >
+                <View
+                  style={
+                    [
+                      {
+                        "borderRadius": 24,
+                        "height": 48,
+                        "width": 48,
+                      },
+                      {
+                        "backgroundColor": "#eee",
+                      },
+                      undefined,
+                    ]
+                  }
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "aspectRatio": 1,
+                "bottom": 0,
+                "height": 0,
+                "justifyContent": "center",
+                "position": "absolute",
+                "right": 0,
+                "transform": [
+                  {
+                    "translateX": 0,
+                  },
+                  {
+                    "translateY": 0,
+                  },
+                ],
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "height": "50%",
+                  "justifyContent": "center",
+                  "maxHeight": 24,
+                  "minHeight": 8,
+                  "opacity": 0,
+                }
+              }
+              testID="badgenetwork"
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderColor": "#ffffff",
+                    "borderRadius": 8,
+                    "borderWidth": 2,
+                    "height": 32,
+                    "justifyContent": "center",
+                    "overflow": "hidden",
+                    "shadowColor": "#0000001a",
+                    "shadowOffset": {
+                      "height": 2,
+                      "width": 0,
+                    },
+                    "shadowOpacity": 1,
+                    "shadowRadius": 4,
+                    "transform": [
+                      {
+                        "scale": 1,
+                      },
+                    ],
+                    "width": 32,
+                  }
+                }
+              >
+                <Image
+                  onError={[Function]}
+                  resizeMode="contain"
+                  source={1}
+                  style={
+                    {
+                      "height": 32,
+                      "width": 32,
+                    }
+                  }
+                  testID="network-avatar-image"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Bold",
+                "fontSize": 24,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 32,
+              }
+            }
+          >
+            0.01
+             
+            ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            $26.21
+          </Text>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "gap": 8,
+            "paddingTop": 16,
+          }
+        }
+      >
+        <View>
+          <TouchableOpacity
+            disabled={true}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomLeftRadius": 0,
+                "borderBottomRightRadius": 0,
+                "borderColor": "#b7bbc8",
+                "borderRadius": 8,
+                "borderWidth": 0,
+                "gap": 16,
+                "padding": 16,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "overflow": "hidden",
+                  },
+                  [
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                      testID="label"
+                    >
+                      Staking from
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      accessibilityRole="none"
+                      accessible={true}
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignSelf": "flex-start",
+                          "backgroundColor": "#4459ff1a",
+                          "borderColor": "#4459ff",
+                          "borderRadius": 999,
+                          "borderWidth": 0,
+                          "color": "#4459ff",
+                          "padding": 16,
+                          "paddingHorizontal": 8,
+                          "paddingVertical": 2,
+                        }
+                      }
+                      testID="tagbase"
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#ffffff",
+                              "borderRadius": 8,
+                              "height": 16,
+                              "overflow": "hidden",
+                              "width": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "overflow": "hidden",
+                                },
+                                {
+                                  "backgroundColor": "#1593F2",
+                                  "borderRadius": 8,
+                                  "height": 16,
+                                  "width": 16,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <RNSVGSvgView
+                              bbHeight={16}
+                              bbWidth={16}
+                              focusable={false}
+                              height={16}
+                              style={
+                                [
+                                  {
+                                    "backgroundColor": "transparent",
+                                    "borderWidth": 0,
+                                  },
+                                  {
+                                    "flex": 0,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                ]
+                              }
+                              width={16}
+                            >
+                              <RNSVGGroup
+                                fill={
+                                  {
+                                    "payload": 4278190080,
+                                    "type": 0,
+                                  }
+                                }
+                              >
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4280574177,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.14608302856241107,
+                                      0.9892723329629884,
+                                      -0.9892723329629884,
+                                      -0.14608302856241107,
+                                      18.877507984599454,
+                                      -1.41266974682138,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294395137,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.02094241988335673,
+                                      -0.9997806834748455,
+                                      0.9997806834748455,
+                                      -0.02094241988335673,
+                                      -7.512435753557014,
+                                      20.161960644608932,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294736640,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.458649554484315,
+                                      0.8886172326549487,
+                                      -0.8886172326549487,
+                                      -0.458649554484315,
+                                      14.2400072574634,
+                                      19.300266514976617,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                              </RNSVGGroup>
+                            </RNSVGSvgView>
+                          </View>
+                        </View>
+                        <View
+                          accessible={false}
+                          style={
+                            {
+                              "width": 4,
+                            }
+                          }
+                          testID="listitem-gap"
+                        />
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#4459ff",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 22,
+                            }
+                          }
+                          testID="tagbase-text"
+                        >
+                          Account 1
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "overflow": "hidden",
+                  },
+                  [
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                      testID="label"
+                    >
+                      Interacting with
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      accessibilityRole="none"
+                      accessible={true}
+                      onLayout={[Function]}
+                      style={
+                        {
+                          "alignSelf": "flex-start",
+                          "backgroundColor": "#f3f5f9",
+                          "borderColor": "#b7bbc8",
+                          "borderRadius": 999,
+                          "borderWidth": 0,
+                          "color": "#686e7d",
+                          "padding": 16,
+                          "paddingHorizontal": 8,
+                          "paddingVertical": 2,
+                        }
+                      }
+                      testID="tagbase"
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "backgroundColor": "#ffffff",
+                              "borderRadius": 8,
+                              "height": 16,
+                              "overflow": "hidden",
+                              "width": 16,
+                            }
+                          }
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "overflow": "hidden",
+                                },
+                                {
+                                  "backgroundColor": "#1593F2",
+                                  "borderRadius": 8,
+                                  "height": 16,
+                                  "width": 16,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <RNSVGSvgView
+                              bbHeight={16}
+                              bbWidth={16}
+                              focusable={false}
+                              height={16}
+                              style={
+                                [
+                                  {
+                                    "backgroundColor": "transparent",
+                                    "borderWidth": 0,
+                                  },
+                                  {
+                                    "flex": 0,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                ]
+                              }
+                              width={16}
+                            >
+                              <RNSVGGroup
+                                fill={
+                                  {
+                                    "payload": 4278190080,
+                                    "type": 0,
+                                  }
+                                }
+                              >
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4280574177,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.14608302856241107,
+                                      0.9892723329629884,
+                                      -0.9892723329629884,
+                                      -0.14608302856241107,
+                                      18.877507984599454,
+                                      -1.41266974682138,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294395137,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.02094241988335673,
+                                      -0.9997806834748455,
+                                      0.9997806834748455,
+                                      -0.02094241988335673,
+                                      -7.512435753557014,
+                                      20.161960644608932,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                                <RNSVGRect
+                                  fill={
+                                    {
+                                      "payload": 4294736640,
+                                      "type": 0,
+                                    }
+                                  }
+                                  height={16}
+                                  matrix={
+                                    [
+                                      -0.458649554484315,
+                                      0.8886172326549487,
+                                      -0.8886172326549487,
+                                      -0.458649554484315,
+                                      14.2400072574634,
+                                      19.300266514976617,
+                                    ]
+                                  }
+                                  propList={
+                                    [
+                                      "fill",
+                                    ]
+                                  }
+                                  width={16}
+                                  x={0}
+                                  y={0}
+                                />
+                              </RNSVGGroup>
+                            </RNSVGSvgView>
+                          </View>
+                        </View>
+                        <View
+                          accessible={false}
+                          style={
+                            {
+                              "width": 4,
+                            }
+                          }
+                          testID="listitem-gap"
+                        />
+                        <Text
+                          accessibilityRole="text"
+                          style={
+                            {
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 22,
+                            }
+                          }
+                        >
+                          MM Pooled Staking
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={true}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomLeftRadius": 8,
+                "borderBottomRightRadius": 8,
+                "borderBottomWidth": 0,
+                "borderColor": "#b7bbc866",
+                "borderLeftWidth": 0,
+                "borderRadius": 4,
+                "borderRightWidth": 0,
+                "borderTopLeftRadius": 0,
+                "borderTopRightRadius": 0,
+                "borderWidth": 1,
+                "padding": 16,
+              }
+            }
+          >
+            <View
+              style={
+                [
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "justifyContent": "space-between",
+                    "overflow": "hidden",
+                  },
+                  [
+                    undefined,
+                  ],
+                ]
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "flex-start",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 14,
+                          "fontWeight": "500",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                      testID="label"
+                    >
+                      Network
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "flex-end",
+                    "flex": 1,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 8,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "alignItems": "center",
+                        "flexDirection": "row",
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        {
+                          "alignItems": "center",
+                          "flexDirection": "row",
+                          "gap": 8,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "backgroundColor": "#ffffff",
+                            "borderRadius": 8,
+                            "height": 16,
+                            "justifyContent": "center",
+                            "overflow": "hidden",
+                            "width": 16,
+                          }
+                        }
+                      >
+                        <Image
+                          onError={[Function]}
+                          resizeMode="contain"
+                          source={1}
+                          style={
+                            {
+                              "height": 16,
+                              "width": 16,
+                            }
+                          }
+                          testID="network-avatar-image"
+                        />
+                      </View>
+                      <Text
+                        accessibilityRole="text"
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 14,
+                            "fontWeight": "400",
+                            "letterSpacing": 0,
+                            "lineHeight": 22,
+                          }
+                        }
+                      >
+                        Ethereum Main Network
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          disabled={true}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 8,
+              "borderWidth": 0,
+              "gap": 16,
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Reward rate
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Reward rate tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#1c7e33",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    2.6%
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Estimated annual rewards
+                  </Text>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flexDirection": "row",
+                        "gap": 8,
+                      }
+                    }
+                  >
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#686e7d",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      $0.68
+                    </Text>
+                    <Text
+                      accessibilityRole="text"
+                      style={
+                        {
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 14,
+                          "fontWeight": "400",
+                          "letterSpacing": 0,
+                          "lineHeight": 22,
+                        }
+                      }
+                    >
+                      0.00026 ETH
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Reward frequency
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Reward frequency tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    12 hours
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          disabled={true}
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 8,
+              "borderWidth": 0,
+              "gap": 16,
+              "padding": 16,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "justifyContent": "space-between",
+                  "overflow": "hidden",
+                },
+                [
+                  undefined,
+                ],
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    Unstaking time
+                  </Text>
+                  <TouchableOpacity
+                    accessibilityLabel="Unstaking time tooltip"
+                    accessibilityRole="button"
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 24,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 24,
+                      }
+                    }
+                  >
+                    <SvgMock
+                      color="#9ca1af"
+                      height={16}
+                      name="Question"
+                      style={
+                        {
+                          "height": 16,
+                          "width": 16,
+                        }
+                      }
+                      width={16}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "flex": 1,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flexDirection": "row",
+                    "gap": 8,
+                  }
+                }
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                    testID="label"
+                  >
+                    1 to 11 days
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingBottom": 40,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "justifyContent": "center",
+          }
+        }
+      >
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[Function]}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Terms of service
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={[Function]}
+          style={
+            {
+              "padding": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Risk disclosure
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 16,
+            "justifyContent": "center",
+            "paddingTop": 24,
+          }
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "transparent",
+              "borderColor": "#4459ff",
+              "borderRadius": 24,
+              "borderWidth": 1,
+              "flexBasis": 0,
+              "flexDirection": "row",
+              "flexGrow": 1,
+              "flexShrink": 0,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Cancel
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          disabled={false}
+          loading={false}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 24,
+              "flexBasis": 0,
+              "flexDirection": "row",
+              "flexGrow": 1,
+              "flexShrink": 0,
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Continue
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</RCTScrollView>
+`;

@@ -1,0 +1,196 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PermissionItem renders correctly 1`] = `
+<TouchableOpacity
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "paddingVertical": 10,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <View>
+      <View
+        placeholderStyle={
+          {
+            "backgroundColor": "#f3f5f9",
+          }
+        }
+        useNativeDriver={true}
+      >
+        <Image
+          onError={[Function]}
+          onLoadEnd={[Function]}
+          source={
+            {
+              "uri": undefined,
+            }
+          }
+          style={
+            {
+              "height": 24,
+              "resizeMode": "contain",
+              "width": 24,
+            }
+          }
+        />
+        <View
+          collapsable={false}
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            }
+          }
+        >
+          <View
+            style={
+              [
+                {
+                  "height": 24,
+                  "width": 24,
+                },
+                {
+                  "backgroundColor": "#eee",
+                },
+                {
+                  "backgroundColor": "#f3f5f9",
+                },
+              ]
+            }
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "justifyContent": "center",
+        "marginLeft": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginBottom": 4,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        uniswap.org
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flexDirection": "row",
+          "marginBottom": 4,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        5
+         
+        accounts
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginHorizontal": 4,
+          }
+        }
+      >
+         • 
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        2
+         
+        networks
+      </Text>
+    </View>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "justifyContent": "center",
+      }
+    }
+  >
+    <SvgMock
+      color="#121314"
+      height={20}
+      name="ArrowRight"
+      style={
+        {
+          "height": 20,
+          "width": 20,
+        }
+      }
+      width={20}
+    />
+  </View>
+</TouchableOpacity>
+`;

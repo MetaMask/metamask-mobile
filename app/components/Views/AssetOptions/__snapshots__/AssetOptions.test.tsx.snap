@@ -1,0 +1,273 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetOptions Component matches the snapshot 1`] = `
+<View>
+  <View
+    style={
+      [
+        undefined,
+        {
+          "opacity": undefined,
+        },
+      ]
+    }
+  />
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      [
+        [
+          undefined,
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ],
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+    />
+    <View
+      style={
+        [
+          undefined,
+          {
+            "paddingBottom": 10,
+          },
+        ]
+      }
+    >
+      <View />
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Export"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            View on Portfolio
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Export"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            View on block explorer
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="DocumentCode"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            Token details
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Trash"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            Remove token
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`AssetOptions Component should match the snapshot when portfolio view is enabled   1`] = `
+<View>
+  <View
+    style={
+      [
+        undefined,
+        {
+          "opacity": undefined,
+        },
+      ]
+    }
+  />
+  <View
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      [
+        [
+          undefined,
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ],
+        undefined,
+      ]
+    }
+  >
+    <TouchableOpacity
+      disabled={false}
+      onPress={[Function]}
+    />
+    <View
+      style={
+        [
+          undefined,
+          {
+            "paddingBottom": 10,
+          },
+        ]
+      }
+    >
+      <View />
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Export"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            View on Portfolio
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Export"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            View on block explorer
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="DocumentCode"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            Token details
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={[Function]}
+        >
+          <SvgMock
+            color="#121314"
+            height={20}
+            name="Trash"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+          <Text>
+            Remove token
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</View>
+`;

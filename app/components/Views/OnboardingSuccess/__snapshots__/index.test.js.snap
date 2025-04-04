@@ -1,0 +1,262 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingSuccess should render correctly 1`] = `
+<RCTScrollView
+  style={
+    {
+      "flex": 1,
+    }
+  }
+  testID="onboarding-success-screen"
+>
+  <View>
+    <View
+      style={
+        {
+          "flex": 1,
+          "padding": 24,
+          "paddingTop": 24,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "fontSize": 65,
+            "marginBottom": 16,
+            "textAlign": "center",
+          }
+        }
+      >
+        🎉
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 24,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "paddingTop": 20,
+            "textAlign": "center",
+          }
+        }
+      >
+        Your Wallet is ready
+      </Text>
+      <View
+        style={
+          {
+            "width": "90%",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 14,
+              "textAlign": "left",
+            }
+          }
+        >
+          Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. 
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginTop": 14,
+                "textAlign": "left",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              onPress={[Function]}
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Learn how
+               
+            </Text>
+            to keep this set of words safe so you can always access your funds.
+          </Text>
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "minHeight": 50,
+          }
+        }
+      >
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            [
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "marginTop": 16,
+              },
+              {
+                "paddingTop": 10,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              {
+                "marginRight": 6,
+              }
+            }
+          >
+            <SvgMock
+              color="#4459ff"
+              height={16}
+              name="Setting"
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Manage default settings
+          </Text>
+        </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 12,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 10,
+            }
+          }
+        >
+          Settings are optimized for ease of use and security.
+Change these at any time.
+        </Text>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "paddingBottom": 50,
+          "paddingHorizontal": 24,
+        }
+      }
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 24,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="onboarding-success-done-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Done
+        </Text>
+      </TouchableOpacity>
+    </View>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      onSwipeComplete={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeDirection="down"
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
+  </View>
+</RCTScrollView>
+`;

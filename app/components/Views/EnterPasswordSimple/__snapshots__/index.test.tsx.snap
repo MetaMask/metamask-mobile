@@ -1,0 +1,163 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EnterPasswordSimple should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "white",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+        "padding": 16,
+      }
+    }
+  >
+    <RCTScrollView
+      automaticallyAdjustContentInsets={false}
+      contentInset={
+        {
+          "bottom": 0,
+        }
+      }
+      enableAutomaticScroll={true}
+      enableOnAndroid={false}
+      enableResetScrollToCoords={true}
+      extraHeight={75}
+      extraScrollHeight={0}
+      getScrollResponder={[Function]}
+      handleOnScroll={[Function]}
+      keyboardDismissMode="interactive"
+      keyboardOpeningTime={250}
+      keyboardSpace={0}
+      onScroll={[Function]}
+      resetKeyboardSpace={[Function]}
+      resetScrollToCoords={
+        {
+          "x": 0,
+          "y": 0,
+        }
+      }
+      scrollEventThrottle={1}
+      scrollForExtraHeightOnAndroid={[Function]}
+      scrollIntoView={[Function]}
+      scrollToEnd={[Function]}
+      scrollToFocusedInput={[Function]}
+      scrollToPosition={[Function]}
+      showsVerticalScrollIndicator={true}
+      style={
+        {
+          "flex": 1,
+          "padding": 16,
+        }
+      }
+      update={[Function]}
+      viewIsInsideTabBar={false}
+    >
+      <View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <View>
+            <Text
+              style={
+                {
+                  "color": "black",
+                  "fontSize": 16,
+                  "marginBottom": 15,
+                }
+              }
+            >
+              Please enter your password in order to continue
+            </Text>
+            <TextInput
+              keyboardAppearance="light"
+              onChangeText={[Function]}
+              onSubmitEditing={[Function]}
+              placeholder="Password"
+              secureTextEntry={true}
+              style={
+                {
+                  "borderColor": "red",
+                  "borderRadius": 5,
+                  "borderWidth": 2,
+                  "color": "black",
+                  "padding": 10,
+                }
+              }
+            />
+          </View>
+          <View
+            style={
+              {
+                "marginTop": 10,
+              }
+            }
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={0.2}
+              disabled={false}
+              onPress={[Function]}
+              style={
+                [
+                  [
+                    {
+                      "borderRadius": 100,
+                      "justifyContent": "center",
+                      "padding": 15,
+                    },
+                    {
+                      "backgroundColor": "blue",
+                    },
+                    undefined,
+                  ],
+                  null,
+                ]
+              }
+            >
+              <Text
+                style={
+                  [
+                    {
+                      "color": "#007aff",
+                      "fontSize": 17,
+                      "fontWeight": "500",
+                      "textAlign": "center",
+                    },
+                    null,
+                    [
+                      {
+                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontSize": 14,
+                        "fontWeight": "600",
+                        "textAlign": "center",
+                      },
+                      {
+                        "color": undefined,
+                      },
+                      undefined,
+                    ],
+                    null,
+                  ]
+                }
+              >
+                Confirm
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+</RCTSafeAreaView>
+`;

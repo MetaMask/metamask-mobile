@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "flexWrap": "wrap",
+      "gap": 12,
+      "justifyContent": "center",
+      "marginTop": 24,
+      "paddingBottom": 16,
+    }
+  }
+>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 32,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+        "paddingVertical": 7,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      7D
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderRadius": 32,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+        "paddingVertical": 7,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      1M
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderRadius": 32,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+        "paddingVertical": 7,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      3M
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "borderRadius": 32,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+        "paddingVertical": 7,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      6M
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

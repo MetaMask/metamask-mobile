@@ -1,0 +1,166 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SliderButton should render correctly 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "elevation": 0,
+        "shadowColor": "#4459ff33",
+        "shadowOffset": {
+          "height": 2,
+          "width": 0,
+        },
+        "shadowOpacity": 1,
+        "shadowRadius": 8,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#2c3dc5",
+        "borderRadius": 60,
+        "height": 60,
+        "justifyContent": "center",
+        "overflow": "hidden",
+        "position": "relative",
+        "width": "100%",
+      }
+    }
+  >
+    <Image
+      resizeMode="stretch"
+      source={1}
+      style={
+        [
+          {
+            "height": "100%",
+            "position": "absolute",
+            "width": "100%",
+          },
+          false,
+        ]
+      }
+    />
+    <Image
+      collapsable={false}
+      resizeMode="contain"
+      source={1}
+      style={
+        {
+          "height": "200%",
+          "left": 0,
+          "opacity": 1,
+          "position": "absolute",
+          "transform": [
+            {
+              "translateX": -142,
+            },
+          ],
+        }
+      }
+    />
+    <View
+      collapsable={false}
+      style={
+        {
+          "opacity": 1,
+        }
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Incomplete Text
+      </Text>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      {
+        "backgroundColor": "rgba(44, 61, 197, 1)",
+        "borderRadius": 60,
+        "height": "100%",
+        "overflow": "hidden",
+        "position": "absolute",
+        "width": 60,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "alignItems": "center",
+            "height": "100%",
+            "justifyContent": "center",
+            "position": "absolute",
+            "width": "100%",
+          },
+          {
+            "width": 0,
+          },
+        ]
+      }
+    >
+      <Text
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 16,
+            "fontWeight": "400",
+          }
+        }
+      >
+        Complete Text
+      </Text>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#2c3dc5",
+        "borderRadius": 60,
+        "borderWidth": 9.6,
+        "height": 60,
+        "opacity": 1,
+        "position": "absolute",
+        "transform": [
+          {
+            "translateX": 0,
+          },
+        ],
+        "width": 60,
+      }
+    }
+  />
+</View>
+`;

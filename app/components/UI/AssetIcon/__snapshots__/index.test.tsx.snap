@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetIcon should render correctly 1`] = `
+<View
+  placeholderStyle={
+    {
+      "backgroundColor": "#f3f5f9",
+    }
+  }
+  useNativeDriver={true}
+>
+  <Image
+    fadeIn={true}
+    onError={[Function]}
+    onLoadEnd={[Function]}
+    placeholderStyle={
+      {
+        "backgroundColor": "#f3f5f9",
+      }
+    }
+    source={
+      {
+        "uri": "https://s3.amazonaws.com/airswap-token-images/WBTC.png",
+      }
+    }
+    style={
+      [
+        {
+          "borderRadius": 25,
+          "height": 50,
+          "overflow": "hidden",
+          "width": 50,
+        },
+        undefined,
+      ]
+    }
+  />
+  <View
+    collapsable={false}
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "opacity": 1,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 25,
+            "height": 50,
+            "overflow": "hidden",
+            "width": 50,
+          },
+          {
+            "backgroundColor": "#eee",
+          },
+          {
+            "backgroundColor": "#f3f5f9",
+          },
+        ]
+      }
+    />
+  </View>
+</View>
+`;

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonPill should render correctly 1`] = `
+<TouchableOpacity
+  accessible={true}
+  activeOpacity={1}
+  disabled={false}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 99,
+      "color": "#121314",
+      "justifyContent": "center",
+      "paddingHorizontal": 8,
+      "paddingVertical": 4,
+    }
+  }
+/>
+`;

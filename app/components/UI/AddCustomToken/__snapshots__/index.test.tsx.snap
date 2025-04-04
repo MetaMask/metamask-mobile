@@ -1,0 +1,248 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddCustomToken render matches previous snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView>
+    <View>
+      <View
+        style={
+          [
+            {
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "flexDirection": "row",
+              "paddingHorizontal": 12,
+              "paddingVertical": 8,
+            },
+            undefined,
+            {
+              "backgroundColor": "#4459ff1a",
+              "borderColor": "#4459ff",
+            },
+            {
+              "marginHorizontal": 20,
+              "marginTop": 20,
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+            }
+          }
+        >
+          <Text
+            allowFontScaling={false}
+            style={
+              [
+                {
+                  "color": "#4459ff",
+                  "fontSize": 18,
+                },
+                {
+                  "paddingRight": 8,
+                  "paddingTop": 4,
+                },
+                {
+                  "fontFamily": "FontAwesome",
+                  "fontStyle": "normal",
+                  "fontWeight": "normal",
+                },
+                {},
+              ]
+            }
+          >
+            
+          </Text>
+        </View>
+        <Text
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              [
+                {
+                  "color": "#121314",
+                  "flex": 1,
+                  "fontSize": 14,
+                  "lineHeight": 17,
+                },
+                {
+                  "marginRight": 12,
+                },
+              ],
+            ]
+          }
+        >
+          <Text
+            style={
+              {
+                "color": "#121314",
+              }
+            }
+          >
+            Token detection is not available on this network yet. Please import token manually and make sure you trust it. Learn about 
+          </Text>
+          <Text
+            onPress={[Function]}
+            style={
+              {
+                "color": "#4459ff",
+              }
+            }
+            suppressHighlighting={true}
+          >
+            token scams and security risks.
+          </Text>
+        </Text>
+      </View>
+      <View
+        style={
+          {
+            "paddingHorizontal": 16,
+            "paddingTop": 16,
+          }
+        }
+      >
+        <Text
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+            }
+          }
+        >
+          Token contract address
+        </Text>
+        <TextInput
+          keyboardAppearance="light"
+          onBlur={[Function]}
+          onChangeText={[Function]}
+          onFocus={[Function]}
+          onSubmitEditing={[Function]}
+          placeholder="0x..."
+          placeholderTextColor="#9ca1af"
+          returnKeyType="next"
+          style={
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 8,
+              "borderWidth": 1,
+              "color": "#121314",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "paddingHorizontal": 16,
+              "paddingVertical": 12,
+            }
+          }
+          testID="input-token-address"
+          value=""
+        />
+        <Text
+          style={
+            {
+              "color": "#ca3542",
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontWeight": "400",
+              "marginTop": 0,
+              "paddingBottom": 8,
+            }
+          }
+          testID="token-address-warning"
+        />
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "paddingVertical": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "color": "#4459ff",
+          "flexDirection": "row",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "height": 48,
+          "justifyContent": "center",
+          "opacity": 0.5,
+          "paddingHorizontal": 16,
+          "position": "relative",
+          "width": "90%",
+        }
+      }
+      testID="token-import-next-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Next
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

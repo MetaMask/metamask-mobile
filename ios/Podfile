@@ -1,0 +1,149 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+platform :ios, '13.0'
+prepare_react_native_project!
+# Ensures that versions from Gemfile is respected
+ensure_bundler!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+  $RNFirebaseAsStaticFramework = true
+end
+
+# react_native_post_install:
+# Disabled to fix SentryPrivate Xcode 15 build error
+# - https://github.com/getsentry/sentry-react-native/issues/3322
+
+# def react_native_post_install(installer)
+# 	installer.pods_project.targets.each do |target|
+#   		target.build_configurations.each do |config|
+# 			if Gem::Version.new('9.0') > Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'])
+# 				config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = "12.0"
+# 			end
+# 			config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
+#   		end
+#  	end
+
+# 	projects = installer.aggregate_targets
+# 	  .map{ |t| t.user_project }
+# 	  .uniq{ |p| p.path }
+# 	  .push(installer.pods_project)
+
+# 	arm_value = `/usr/sbin/sysctl -n hw.optional.arm64 2>&1`.to_i
+
+# 	projects.each do |project|
+# 	  project.build_configurations.each do |config|
+# 		  if arm_value == 1 then
+# 		    config.build_settings.delete("EXCLUDED_ARCHS[sdk=iphonesimulator*]")
+# 		  else
+# 		    config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+# 		  end
+# 	  end
+
+# 	  project.save()
+# 	end
+# end
+
+def common_target_logic
+  use_expo_modules!
+	config = use_native_modules!
+
+  # Flags change depending on the env values.
+  flags = get_default_flags()
+
+  # If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
+  # because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
+  #
+  # To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
+  # ```js
+  # module.exports = {
+  #   dependencies: {
+  #     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
+  # ```
+  flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # to enable hermes on iOS, change `false` to `true` and then install pods
+    # Hermes is now enabled by default. Disable by setting this flag to false.
+    # Upcoming versions of React Native may rely on get_default_flags(), but
+    # we make it explicit here to aid in the React Native upgrade process.
+    #:hermes_enabled => flags[:hermes_enabled],
+    :hermes_enabled => false,
+    :fabric_enabled => flags[:fabric_enabled],
+    # Enables Flipper.
+    #
+    # Note that if you have use_frameworks! enabled, Flipper will not work and
+    # you should disable the next line.
+    :flipper_configuration => flipper_config,
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/..",
+  )
+
+  # Pods for MetaMask
+  pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'
+  pod 'ReactNativePayments', :path => '../node_modules/@metamask/react-native-payments/lib/ios/'
+
+    # Pods for Push Notifications
+  pod 'Firebase', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+
+
+   # Comment the next line if you don't want to use dynamic frameworks
+  # use_frameworks!
+	pod 'Permission-BluetoothPeripheral', :path => '../node_modules/react-native-permissions/ios/BluetoothPeripheral'
+  pod 'GzipSwift'
+
+  # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
+  pod 'OpenSSL-Universal', :modular_headers => true
+end
+
+post_integrate do |installer|
+  begin
+    expo_patch_react_imports!(installer)
+  rescue => e
+    Pod::UI.warn e
+  end
+end
+
+target 'MetaMask' do
+  common_target_logic
+end
+
+target 'MetaMask-QA' do
+  common_target_logic
+end
+
+target 'MetaMask-Flask' do
+	common_target_logic
+end
+
+post_install do |installer|
+  # fix flipper with pika 15.3 toolchain
+  installer.pods_project.targets.each do |target|
+    if target.name == 'Flipper'
+      file_path = 'ios/Pods/Flipper/xplat/Flipper/FlipperTransportTypes.h'
+      system("chmod +w " + file_path)
+      contents = File.read(file_path)
+      unless contents.include?('#include <functional>')
+        File.open(file_path, 'w') do |file|
+          file.puts('#include <functional>')
+          file.puts(contents)
+        end
+      end
+    end
+  end
+
+  react_native_post_install(
+    installer,
+    # Set `mac_catalyst_enabled` to `true` in order to apply patches
+    # necessary for Mac Catalyst builds
+    :mac_catalyst_enabled => false
+  )
+  __apply_Xcode_12_5_M1_post_install_workaround(installer)
+end

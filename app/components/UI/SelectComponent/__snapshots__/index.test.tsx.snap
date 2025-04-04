@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SelectComponent should render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          numberOfLines={1}
+          style={
+            {
+              "alignSelf": "flex-start",
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "EuclidCircularB-Regular",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "paddingBottom": 10,
+              "paddingHorizontal": 15,
+              "paddingTop": 10,
+            }
+          }
+        />
+        <Text
+          allowFontScaling={false}
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontSize": 24,
+              },
+              {
+                "height": 25,
+                "justifyContent": "flex-end",
+                "marginRight": 10,
+                "marginTop": 7,
+                "textAlign": "right",
+              },
+              {
+                "fontFamily": "Material Icons",
+                "fontStyle": "normal",
+                "fontWeight": "normal",
+              },
+              {},
+            ]
+          }
+        >
+          
+        </Text>
+      </View>
+    </TouchableOpacity>
+    <Modal
+      animationType="none"
+      deviceHeight={null}
+      deviceWidth={null}
+      hardwareAccelerated={false}
+      hideModalContentWhileAnimating={false}
+      onBackdropPress={[Function]}
+      onModalHide={[Function]}
+      onModalWillHide={[Function]}
+      onModalWillShow={[Function]}
+      onRequestClose={[Function]}
+      panResponderThreshold={4}
+      scrollHorizontal={false}
+      scrollOffset={0}
+      scrollOffsetMax={0}
+      scrollTo={null}
+      statusBarTranslucent={false}
+      supportedOrientations={
+        [
+          "portrait",
+          "landscape",
+        ]
+      }
+      swipeThreshold={100}
+      transparent={true}
+      visible={false}
+    />
+  </View>
+</View>
+`;

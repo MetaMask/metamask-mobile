@@ -1,0 +1,414 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
+<View
+  style={
+    {
+      "paddingVertical": 16,
+    }
+  }
+  testID="add-confirm-custom-asset"
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "textAlign": "center",
+      }
+    }
+  >
+    Would you like to import this token?
+  </Text>
+  <RCTScrollView
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "height": "85%",
+        "paddingHorizontal": 16,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "gap": 20,
+            "marginRight": 10,
+            "paddingVertical": 20,
+          }
+        }
+      >
+        <View>
+          <View
+            onLayout={[Function]}
+            style={
+              {
+                "alignSelf": "flex-start",
+                "position": "relative",
+              }
+            }
+            testID="badge-wrapper-badge"
+          >
+            <View>
+              <View
+                placeholderStyle={
+                  {
+                    "backgroundColor": "#f3f5f9",
+                  }
+                }
+                useNativeDriver={true}
+              >
+                <Image
+                  address="0xdac17f958d2ee523a2206206994597c13d831ec7"
+                  fadeIn={true}
+                  onError={[Function]}
+                  onLoadEnd={[Function]}
+                  placeholderStyle={
+                    {
+                      "backgroundColor": "#f3f5f9",
+                    }
+                  }
+                  source={
+                    {
+                      "uri": "https://example.com/usdt.png",
+                    }
+                  }
+                  style={
+                    [
+                      {
+                        "borderRadius": 25,
+                        "height": 50,
+                        "overflow": "hidden",
+                        "width": 50,
+                      },
+                      {
+                        "height": 32,
+                        "width": 32,
+                      },
+                    ]
+                  }
+                />
+                <View
+                  collapsable={false}
+                  style={
+                    {
+                      "bottom": 0,
+                      "left": 0,
+                      "opacity": 1,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      [
+                        {
+                          "borderRadius": 25,
+                          "height": 32,
+                          "overflow": "hidden",
+                          "width": 32,
+                        },
+                        {
+                          "backgroundColor": "#eee",
+                        },
+                        {
+                          "backgroundColor": "#f3f5f9",
+                        },
+                      ]
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "aspectRatio": 1,
+                  "bottom": 0,
+                  "height": 0,
+                  "justifyContent": "center",
+                  "position": "absolute",
+                  "right": 0,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateY": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                onLayout={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "aspectRatio": 1,
+                    "height": "50%",
+                    "justifyContent": "center",
+                    "maxHeight": 24,
+                    "minHeight": 8,
+                    "opacity": 0,
+                  }
+                }
+                testID="badgenetwork"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#f3f5f9",
+                      "borderColor": "#ffffff",
+                      "borderRadius": 16,
+                      "borderWidth": 2,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "shadowColor": "#0000001a",
+                      "shadowOffset": {
+                        "height": 2,
+                        "width": 0,
+                      },
+                      "shadowOpacity": 1,
+                      "shadowRadius": 4,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
+                    }
+                  >
+                    E
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Tether USD
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "justifyContent": "flex-end",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            USDT
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "position": "absolute",
+              "right": 0,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 16,
+                "fontWeight": "400",
+                "justifyContent": "flex-end",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+                "textTransform": "uppercase",
+              }
+            }
+          >
+            $27.02
+          </Text>
+        </View>
+      </View>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "bottom": 20,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "backgroundColor": "#ffffff",
+          "flexDirection": "row",
+          "paddingHorizontal": 16,
+          "paddingVertical": 4,
+          "top": 16,
+        }
+      }
+      testID="bottomsheetfooter"
+    >
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
+            "borderRadius": 24,
+            "borderWidth": 1,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Cancel
+        </Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessible={true}
+        activeOpacity={1}
+        onPress={[Function]}
+        onPressIn={[Function]}
+        onPressOut={[Function]}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#4459ff",
+            "borderRadius": 24,
+            "flex": 1,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "marginLeft": 16,
+            "marginTop": 0,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="bottomsheetfooter-button-subsequent"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#ffffff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 14,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Import
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
+`;

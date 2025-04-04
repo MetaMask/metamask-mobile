@@ -1,0 +1,89 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonBase should render correctly 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Icon
+    color="Default"
+    name="Bank"
+    size="16"
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  />
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#121314",
+      }
+    }
+    variant="sBodyMDMedium"
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`ButtonBase should render correctly when disabled 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  disabled={true}
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "opacity": 0.5,
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Icon
+    color="Default"
+    name="Bank"
+    size="16"
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  />
+  <Text
+    accessibilityRole="none"
+    style={
+      {
+        "color": "#121314",
+      }
+    }
+    variant="sBodyMDMedium"
+  >
+    Click me!
+  </Text>
+</TouchableOpacity>
+`;

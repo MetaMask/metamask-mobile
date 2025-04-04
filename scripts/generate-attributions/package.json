@@ -1,0 +1,23 @@
+{
+  "name": "metamask-mobile-generate-attributions",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "setup": "yarn && yarn allow-scripts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@lavamoat/allow-scripts": "^3.0.4",
+    "@lavamoat/preinstall-always-fail": "^2.0.0",
+    "@metamask/oss-attribution-generator": "^2.0.2"
+  },
+  "engines": {
+    "node": "^20.17.0",
+    "yarn": "^1.22.0"
+  },
+  "lavamoat": {
+    "allowScripts": {
+      "@lavamoat/preinstall-always-fail": false
+    }
+  }
+}

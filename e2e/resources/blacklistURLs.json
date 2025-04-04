@@ -1,0 +1,23 @@
+{
+  "blacklistURLs": [
+    ".*infura.io/.*",
+    ".*cdn.branch.io/.*",
+    ".*api2.branch.io/.*",
+    ".*api.etherscan.io/.*",
+    ".*static.metafi.codefi.network/.*",
+    ".*static.cx.metamask.io/.*",
+    ".*rpc.tenderly.co/.*",
+    ".*api-goerli.etherscan.io/.*",
+    ".*gateway.pinata.cloud/.*",
+    ".*stale.*",
+    ".*phishing-detection.metafi.codefi.network/.*",
+    ".*phishing-detection.cx.metamask.io/.*",
+    ".*eth.llamarpc.com/.*",
+    ".*token-api.metaswap.codefi.network/.*",
+    ".*gas.api.cx.metamask.io/networks/.*",
+    ".*clients3.google.com/generate_204.*",
+    ".*pulse.walletconnect.org/batch.*",
+    ".*accounts.api.cx.metamask.io/v2/accounts/.*",
+    ".*exp.host/--/api/v2/development-sessions/.*"
+  ]
+}

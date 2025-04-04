@@ -1,0 +1,96 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CustomNotificationsRow should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "flexDirection": "row",
+      "marginBottom": 24,
+    }
+  }
+>
+  <SvgMock
+    color="#121314"
+    height={24}
+    name="Sparkle"
+    style={
+      {
+        "height": 24,
+        "marginRight": 16,
+        "width": 24,
+      }
+    }
+    width={24}
+  />
+  <View
+    style={
+      {
+        "alignItems": "flex-start",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Description
+    </Text>
+  </View>
+  <RCTSwitch
+    accessibilityRole="switch"
+    onChange={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onTintColor="#4459ff"
+    style={
+      [
+        {
+          "height": 31,
+          "width": 51,
+        },
+        [
+          {
+            "alignSelf": "flex-start",
+          },
+          {
+            "backgroundColor": "#b7bbc866",
+            "borderRadius": 16,
+          },
+        ],
+      ]
+    }
+    testID="custom-notifications-row--switch"
+    thumbTintColor="#ffffff"
+    tintColor="#b7bbc866"
+    value={false}
+  />
+</View>
+`;

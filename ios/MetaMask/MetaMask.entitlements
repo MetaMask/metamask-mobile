@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>aps-environment</key>
+	<string>development</string>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:metamask.io</string>
+		<string>applinks:metamask.app.link</string>
+		<string>applinks:metamask-alternate.app.link</string>
+	</array>
+	<key>com.apple.developer.in-app-payments</key>
+	<array>
+		<string>merchant.io.metamask.banxa</string>
+		<string>merchant.io.metamask.wyre</string>
+		<string>merchant.io.metamask.wyre.test</string>
+		<string>merchant.io.metamask.banxa.test</string>
+	</array>
+</dict>
+</plist>

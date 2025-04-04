@@ -1,0 +1,1625 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`InteractiveTimespanChart render matches snapshot 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Graph with object[] title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Graph with object[] subtitle
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle, defaultSubtitle, titleAccessor, and subtitleAccessor are not defined 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    />
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart renders only the subtitle when title props are not defined 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Graph with object[] subtitle
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart renders only the title when subtitle props are not defined 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Graph with object[] title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    />
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Graph with number[] title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Graph with number[] subtitle
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
+<View
+  testID="InteractiveTimespanChart"
+>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "flexWrap": "wrap",
+        "gap": 12,
+        "justifyContent": "center",
+        "marginTop": 24,
+        "paddingBottom": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#f3f5f9",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 1
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 2
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 32,
+          "height": 36,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+          "paddingVertical": 7,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Label 3
+      </Text>
+    </TouchableOpacity>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "gap": 4,
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 24,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 32,
+        }
+      }
+    >
+      Graph with object[] title
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Graph with object[] subtitle
+    </Text>
+  </View>
+  <View
+    onMoveShouldSetResponder={[Function]}
+    onMoveShouldSetResponderCapture={[Function]}
+    onResponderEnd={[Function]}
+    onResponderGrant={[Function]}
+    onResponderMove={[Function]}
+    onResponderReject={[Function]}
+    onResponderRelease={[Function]}
+    onResponderStart={[Function]}
+    onResponderTerminate={[Function]}
+    onResponderTerminationRequest={[Function]}
+    onStartShouldSetResponder={[Function]}
+    onStartShouldSetResponderCapture={[Function]}
+    style={
+      {
+        "paddingVertical": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "height": 112,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      >
+        <RNSVGSvgView
+          bbHeight={100}
+          bbWidth={300}
+          focusable={false}
+          style={
+            [
+              {
+                "backgroundColor": "transparent",
+                "borderWidth": 0,
+              },
+              {
+                "height": 100,
+                "width": 300,
+              },
+              {
+                "flex": 0,
+                "height": 100,
+                "width": 300,
+              },
+            ]
+          }
+        >
+          <RNSVGGroup
+            fill={
+              {
+                "payload": 4278190080,
+                "type": 0,
+              }
+            }
+          >
+            <RNSVGPath
+              d="M0,0L0,100Z"
+              fill={
+                {
+                  "brushRef": "dataGradient",
+                  "type": 1,
+                }
+              }
+              propList={
+                [
+                  "fill",
+                ]
+              }
+            />
+            <RNSVGPath
+              d="M0,0Z"
+              fill={null}
+              opacity={1}
+              propList={
+                [
+                  "fill",
+                  "stroke",
+                  "strokeWidth",
+                ]
+              }
+              stroke={
+                {
+                  "payload": 4280057395,
+                  "type": 0,
+                }
+              }
+              strokeWidth={1.75}
+              testID="InteractiveChartPlotLine"
+            />
+            <RNSVGDefs>
+              <RNSVGLinearGradient
+                gradient={
+                  [
+                    0,
+                    857505331,
+                    1,
+                    872415231,
+                  ]
+                }
+                gradientTransform={null}
+                gradientUnits={0}
+                name="dataGradient"
+                x1={0}
+                x2={0}
+                y1={0}
+                y2="100%"
+              />
+            </RNSVGDefs>
+          </RNSVGGroup>
+        </RNSVGSvgView>
+      </View>
+    </View>
+  </View>
+</View>
+`;

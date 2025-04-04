@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClaimBanner render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#1c7e331a",
+      "borderColor": "#1c7e33",
+      "borderLeftWidth": 4,
+      "borderRadius": 4,
+      "flexDirection": "row",
+      "padding": 12,
+      "paddingLeft": 8,
+    }
+  }
+  testID="banneralert"
+  variant="Alert"
+>
+  <View
+    style={
+      {
+        "marginRight": 8,
+      }
+    }
+  >
+    <SvgMock
+      color="#1c7e33"
+      height={24}
+      name="Confirmation"
+      style={
+        {
+          "height": 24,
+          "width": 24,
+        }
+      }
+      width={24}
+    />
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      You can claim 0.016 ETH. Once claimed, you'll get ETH back in your wallet.
+    </Text>
+    <Text
+      accessibilityRole="link"
+      accessible={true}
+      disabled={false}
+      loading={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+      suppressHighlighting={true}
+      testID="claim-banner-claim-eth-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Claim
+         ETH
+      </Text>
+    </Text>
+  </View>
+</View>
+`;

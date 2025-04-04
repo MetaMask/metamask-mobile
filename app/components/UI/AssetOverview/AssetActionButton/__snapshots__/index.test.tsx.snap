@@ -1,0 +1,371 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetActionButtons should render correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  />
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    mock text
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type add correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="ios-add"
+      size={30}
+      style={
+        {
+          "alignContent": "center",
+          "color": "#ffffff",
+          "justifyContent": "center",
+          "textAlign": "center",
+        }
+      }
+    />
+  </View>
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    mock text
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type information correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="md-information"
+      size={30}
+      style={
+        {
+          "alignContent": "center",
+          "color": "#ffffff",
+          "justifyContent": "center",
+          "textAlign": "center",
+        }
+      }
+    />
+  </View>
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    mock text
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type receive correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      color="#ffffff"
+      name="keyboard-tab"
+      size={20}
+      style={
+        [
+          {
+            "alignContent": "center",
+            "color": "#ffffff",
+            "justifyContent": "center",
+            "textAlign": "center",
+          },
+          {
+            "bottom": 1,
+            "right": 1,
+            "transform": [
+              {
+                "rotate": "90deg",
+              },
+            ],
+          },
+        ]
+      }
+    />
+  </View>
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    receive...
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type send correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="arrow-top-right"
+      size={20}
+      style={
+        {
+          "alignContent": "center",
+          "color": "#ffffff",
+          "justifyContent": "center",
+          "textAlign": "center",
+        }
+      }
+    />
+  </View>
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    mock text
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`AssetActionButtons should render type swap correctly 1`] = `
+<TouchableOpacity
+  style={
+    [
+      {
+        "alignItems": "center",
+        "flexShrink": 1,
+        "justifyContent": "center",
+        "marginHorizontal": 0,
+        "minWidth": 60,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      {
+        "alignContent": "center",
+        "alignItems": "center",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 18,
+        "height": 36,
+        "justifyContent": "center",
+        "paddingLeft": 1,
+        "paddingTop": 4,
+        "width": 36,
+      }
+    }
+  >
+    <Icon
+      allowFontScaling={false}
+      name="repeat"
+      size={22}
+      style={
+        [
+          {
+            "alignContent": "center",
+            "color": "#ffffff",
+            "justifyContent": "center",
+            "textAlign": "center",
+          },
+          {
+            "bottom": 0,
+            "right": 0,
+          },
+        ]
+      }
+    />
+  </View>
+  <Text
+    centered={true}
+    numberOfLines={1}
+    style={
+      {
+        "color": "#4459ff",
+        "fontSize": 14,
+        "marginHorizontal": 3,
+        "marginTop": 8,
+      }
+    }
+  >
+    mock text
+  </Text>
+</TouchableOpacity>
+`;

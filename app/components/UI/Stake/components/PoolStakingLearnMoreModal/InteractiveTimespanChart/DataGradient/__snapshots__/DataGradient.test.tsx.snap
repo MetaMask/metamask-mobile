@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DataGradient render matches snapshot 1`] = `
+<RNSVGDefs>
+  <RNSVGLinearGradient
+    gradient={
+      [
+        0,
+        857505331,
+        1,
+        872415231,
+      ]
+    }
+    gradientTransform={null}
+    gradientUnits={0}
+    name="dataGradient"
+    x1={0}
+    x2={0}
+    y1={0}
+    y2="100%"
+  />
+</RNSVGDefs>
+`;

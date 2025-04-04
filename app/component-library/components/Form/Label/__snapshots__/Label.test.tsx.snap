@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Label should render default settings correctly 1`] = `
+<Text
+  testID="label"
+  variant="sBodyMD"
+>
+  Sample Label Text
+</Text>
+`;

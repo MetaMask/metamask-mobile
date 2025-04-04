@@ -1,0 +1,30 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AvatarIcon should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderRadius": 16,
+      "height": 32,
+      "justifyContent": "center",
+      "overflow": "hidden",
+      "width": 32,
+    }
+  }
+>
+  <SvgMock
+    color="#121314"
+    height={20}
+    name="AddSquare"
+    style={
+      {
+        "height": 20,
+        "width": 20,
+      }
+    }
+    width={20}
+  />
+</View>
+`;

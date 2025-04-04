@@ -1,0 +1,27 @@
+[
+  {
+    "value": "https://ipfs.io/ipfs/",
+    "key": 0,
+    "label": "https://ipfs.io/ipfs/"
+  },
+  {
+    "value": "https://gateway.ipfs.io/ipfs/",
+    "key": 1,
+    "label": "https://gateway.ipfs.io/ipfs/"
+  },
+  {
+    "value": "https://ipfs.infura.io/ipfs/",
+    "key": 2,
+    "label": "https://ipfs.infura.io/ipfs/"
+  },
+  {
+    "value": "https://gateway.pinata.cloud/ipfs/",
+    "key": 24,
+    "label": "https://gateway.pinata.cloud/ipfs/"
+  },
+  {
+    "value": "https://dweb.link/ipfs/",
+    "key": 30,
+    "label": "https://dweb.link/ipfs/"
+  }
+]

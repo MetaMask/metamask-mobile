@@ -1,0 +1,88 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PickerNetwork renders correctly 1`] = `
+<TouchableOpacity
+  disabled={false}
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#f3f5f9",
+      "borderRadius": 16,
+      "flexDirection": "row",
+      "height": 32,
+      "paddingHorizontal": 8,
+    }
+  }
+>
+  <View
+    style={null}
+  >
+    <View
+      accessibilityLabel="Ethereum Mainnet"
+      style={
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderRadius": 8,
+          "height": 16,
+          "justifyContent": "center",
+          "overflow": "hidden",
+          "width": 16,
+        }
+      }
+      testID="network-avatar-picker"
+    >
+      <Image
+        onError={[Function]}
+        resizeMode="contain"
+        source={
+          {
+            "uri": "https://assets.coingecko.com/coins/images/279/small/ethereum.png?1595348880",
+          }
+        }
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        testID="network-avatar-image"
+      />
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#121314",
+        "flexShrink": 1,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginHorizontal": 8,
+      }
+    }
+    testID="open-networks-text"
+  >
+    Ethereum Mainnet
+  </Text>
+  <SvgMock
+    color="#121314"
+    height={12}
+    name="ArrowDown"
+    style={
+      {
+        "height": 12,
+        "width": 12,
+      }
+    }
+    testID="pickernetwork-arrow"
+    width={12}
+  />
+</TouchableOpacity>
+`;

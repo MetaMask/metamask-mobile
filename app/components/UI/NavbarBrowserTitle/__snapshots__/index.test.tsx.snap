@@ -1,0 +1,108 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavbarBrowserTitle should render correctly 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "marginBottom": 0,
+      }
+    }
+  >
+    <Text
+      ellipsizeMode="head"
+      numberOfLines={1}
+      style={
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "textAlign": "center",
+          },
+          {},
+        ]
+      }
+    >
+      faucet.metamask.io
+    </Text>
+    <Text
+      allowFontScaling={false}
+      style={
+        [
+          {
+            "color": undefined,
+            "fontSize": 14,
+          },
+          {
+            "color": "#121314",
+            "marginLeft": 10,
+            "marginTop": 2,
+          },
+          {
+            "fontFamily": "FontAwesome",
+            "fontStyle": "normal",
+            "fontWeight": "normal",
+          },
+          {},
+        ]
+      }
+    >
+      
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "flexDirection": "row",
+        "marginBottom": 5,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "borderRadius": 100,
+            "height": 5,
+            "marginRight": 5,
+            "marginTop": 3,
+            "width": 5,
+          },
+          {
+            "backgroundColor": "#3cc29e",
+          },
+        ]
+      }
+    />
+    <Text
+      numberOfLines={1}
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "EuclidCircularB-Regular",
+          "fontSize": 11,
+          "fontWeight": "400",
+          "lineHeight": 11,
+        }
+      }
+      testID="navbar-title-networks"
+    >
+      Ethereum Main Network
+    </Text>
+  </View>
+</TouchableOpacity>
+`;

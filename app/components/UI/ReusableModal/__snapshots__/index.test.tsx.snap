@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ReusableModal should render correctly 1`] = `
+<RCTSafeAreaView>
+  <View
+    style={
+      {
+        "bottom": 0,
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      }
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#00000066",
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": undefined,
+          },
+        ]
+      }
+    />
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      style={
+        [
+          [
+            {
+              "bottom": 0,
+              "left": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+            },
+            {
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+            },
+          ],
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        disabled={false}
+        onPress={[Function]}
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      />
+    </View>
+  </View>
+</RCTSafeAreaView>
+`;

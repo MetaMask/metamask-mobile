@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClipboardText renders correctly 1`] = `
+<TouchableOpacity
+  onPress={[Function]}
+  style={{}}
+  testID="random-test-id"
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    random text
+  </Text>
+</TouchableOpacity>
+`;

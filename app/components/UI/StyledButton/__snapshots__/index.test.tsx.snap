@@ -1,0 +1,249 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`StyledButton should render correctly on Android the button with type cancel 1`] = `
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
+  <View
+    style={
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#686e7d",
+          "borderWidth": 1,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</TouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type confirm 1`] = `
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
+  <View
+    style={
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#4459ff",
+          "minHeight": 50,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</TouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
+  <View
+    style={
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "backgroundColor": "#ffffff",
+          "borderColor": "#4459ff",
+          "borderWidth": 1,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</TouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on Android the button with type orange 1`] = `
+<TouchableNativeFeedback
+  accessibilityRole="button"
+  accessible={true}
+>
+  <View
+    style={
+      [
+        {
+          "borderRadius": 100,
+          "justifyContent": "center",
+          "padding": 15,
+        },
+        {
+          "borderColor": "#9a6300",
+          "borderWidth": 1,
+        },
+        null,
+        undefined,
+      ]
+    }
+  />
+</TouchableNativeFeedback>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type cancel 1`] = `
+<Button
+  accessibilityRole="button"
+  containerStyle={
+    [
+      {
+        "borderRadius": 100,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#686e7d",
+        "borderWidth": 1,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  style={
+    [
+      {
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 14,
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      {
+        "color": "#686e7d",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type confirm 1`] = `
+<Button
+  accessibilityRole="button"
+  containerStyle={
+    [
+      {
+        "borderRadius": 100,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      {
+        "backgroundColor": "#4459ff",
+        "minHeight": 50,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  style={
+    [
+      {
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 14,
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      {
+        "color": "#ffffff",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
+<Button
+  accessibilityRole="button"
+  containerStyle={
+    [
+      {
+        "borderRadius": 100,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      {
+        "backgroundColor": "#ffffff",
+        "borderColor": "#4459ff",
+        "borderWidth": 1,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  style={
+    [
+      {
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 14,
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      {
+        "color": "#4459ff",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;
+
+exports[`StyledButton should render correctly on iOS the button with type orange 1`] = `
+<Button
+  accessibilityRole="button"
+  containerStyle={
+    [
+      {
+        "borderRadius": 100,
+        "justifyContent": "center",
+        "padding": 15,
+      },
+      {
+        "borderColor": "#9a6300",
+        "borderWidth": 1,
+      },
+      undefined,
+    ]
+  }
+  disabledContainerStyle={null}
+  style={
+    [
+      {
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 14,
+        "fontWeight": "600",
+        "textAlign": "center",
+      },
+      {
+        "color": "#9a6300",
+      },
+      undefined,
+    ]
+  }
+  styleDisabled={null}
+/>
+`;

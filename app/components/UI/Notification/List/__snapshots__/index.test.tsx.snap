@@ -1,0 +1,148 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationsList renders correctly 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "height": "100%",
+        "justifyContent": "center",
+        "position": "absolute",
+        "width": "100%",
+        "zIndex": 999,
+      }
+    }
+  >
+    <ActivityIndicator
+      color="#4459ff"
+      size="large"
+    />
+  </View>
+</View>
+`;
+
+exports[`NotificationsList renders empty state 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <RCTScrollView
+    ListEmptyComponent={
+      <Empty
+        testID="no-notifications-container"
+      />
+    }
+    contentContainerStyle={
+      {
+        "flexGrow": 1,
+      }
+    }
+    data={[]}
+    getItem={[Function]}
+    getItemCount={[Function]}
+    initialNumToRender={10}
+    keyExtractor={[Function]}
+    maxToRenderPerBatch={2}
+    onContentSizeChange={[Function]}
+    onEndReachedThreshold={0.5}
+    onLayout={[Function]}
+    onMomentumScrollBegin={[Function]}
+    onMomentumScrollEnd={[Function]}
+    onRefresh={[Function]}
+    onScroll={[Function]}
+    onScrollBeginDrag={[Function]}
+    onScrollEndDrag={[Function]}
+    refreshControl={
+      <RefreshControlMock
+        onRefresh={[Function]}
+        refreshing={false}
+      />
+    }
+    refreshing={false}
+    removeClippedSubviews={false}
+    renderItem={[Function]}
+    scrollEventThrottle={50}
+    stickyHeaderIndices={[]}
+    tabLabel=""
+    viewabilityConfigCallbackPairs={[]}
+  >
+    <RCTRefreshControl />
+    <View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flex": 1,
+            "justifyContent": "center",
+          }
+        }
+        testID="no-notifications-container"
+      >
+        <SvgMock
+          color="#121314"
+          height={32}
+          name="Notification"
+          style={
+            {
+              "height": 32,
+              "marginBottom": 8,
+              "paddingHorizontal": 32,
+              "textAlign": "center",
+              "width": 32,
+            }
+          }
+          width={32}
+        />
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "marginBottom": 8,
+              "paddingHorizontal": 32,
+              "textAlign": "center",
+            }
+          }
+        >
+          Nothing to see here
+        </Text>
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginBottom": 8,
+              "paddingHorizontal": 32,
+              "textAlign": "center",
+            }
+          }
+        >
+          This is where you can find notifications once there’s activity in your wallet. 
+        </Text>
+      </View>
+    </View>
+  </RCTScrollView>
+</View>
+`;

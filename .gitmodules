@@ -1,0 +1,3 @@
+[submodule "ios/branch-ios-sdk"]
+	path = ios/branch-ios-sdk
+	url = https://github.com/metamask/ios-branch-deep-linking-attribution

@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ApprovalTagUrl renders correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 99,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "marginBottom": 16,
+      "paddingLeft": 8,
+      "paddingRight": 16,
+      "paddingVertical": 8,
+    }
+  }
+  testID="APPROVAL_TAG_URL_ORIGIN_PILL"
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "borderRadius": 16,
+        "height": 24,
+        "marginRight": 8,
+        "overflow": "hidden",
+        "width": 24,
+      }
+    }
+  >
+    <Image
+      onError={[Function]}
+      resizeMode="contain"
+      source={
+        {
+          "uri": "",
+        }
+      }
+      style={
+        {
+          "flex": 1,
+          "height": undefined,
+          "width": undefined,
+        }
+      }
+      testID="favicon-avatar-image"
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "flexShrink": 1,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    https://metamask.github.io
+  </Text>
+</View>
+`;

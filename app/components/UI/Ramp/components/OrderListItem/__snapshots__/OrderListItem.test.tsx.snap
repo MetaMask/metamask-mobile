@@ -1,0 +1,1329 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OrderListItem should render correctly 1`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Purchased ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#1c7e33",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Completed
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 2`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Purchased ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ca3542",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Failed
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 3`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Sold ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Pending
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 4`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Sold ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Pending
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 5`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Sold ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ca3542",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Cancelled
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 6`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Sold ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Processing
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 7`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Oct 13 at 7:50 pm
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Purchased ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Pending
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        12.34568
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        $123345 
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`OrderListItem should render correctly 8`] = `
+<View
+  accessibilityRole="none"
+  accessible={true}
+  style={
+    {
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "marginBottom": 10,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      [missing "en.date.months.NaN" translation] NaN at 12:NaN am
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Image
+        resizeMode="stretch"
+        source={1}
+        style={
+          {
+            "height": 28,
+            "width": 28,
+          }
+        }
+      />
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Test Provider
+        :
+         
+        Purchased ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 12,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        Pending
+      </Text>
+    </View>
+    <View
+      accessible={false}
+      style={
+        {
+          "width": 16,
+        }
+      }
+      testID="listitem-gap"
+    />
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": -1,
+        }
+      }
+      testID="listitemcolumn"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        ...
+         
+        ETH
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+          }
+        }
+      >
+        ...
+      </Text>
+    </View>
+  </View>
+</View>
+`;

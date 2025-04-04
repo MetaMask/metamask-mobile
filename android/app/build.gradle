@@ -1,0 +1,302 @@
+apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
+apply plugin: "io.sentry.android.gradle"
+apply plugin: 'com.google.gms.google-services'
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    /* Folders */
+    //   The root of your project, i.e. where "package.json" lives. Default is '..'
+    // root = file("../")
+    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
+    // reactNativeDir = file("../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
+    //   The cli.js file which is the React Native CLI entrypoint. Default is ../node_modules/react-native/cli.js
+    // cliFile = file("../node_modules/react-native/cli.js")
+    /* Variants */
+    //   The list of variants to that are debuggable. For those we're going to
+    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "prodDebug"]
+    /* Bundling */
+    //   A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+    //
+    //   The command to run when bundling. By default is 'bundle'
+    // bundleCommand = "ram-bundle"
+    //
+    //   The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //   The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //   A list of extra flags to pass to the 'bundle' commands.
+    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
+    /* Hermes Commands */
+    //   The hermes compiler command to run. By default it is 'hermesc'
+    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //
+    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+    // hermesFlags = ["-O", "-output-source-map"]
+    //
+    // Added by install-expo-modules
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
+    cliFile = new File(["node", "--print", "require.resolve('@expo/cli')"].execute(null, rootDir).text.trim())
+    bundleCommand = "export:embed"
+}
+
+// Override default React Native to generate source maps for Hermes
+project.ext.react = [
+  bundleCommand: "ram-bundle",
+  bundleAssetName: "index.bundle",
+  entryFile: "index.js",
+  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
+  cliPath: "../../node_modules/react-native/cli.js",
+  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
+]
+
+// Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
+// TODO - Move to JS side to be shared between platform - Android sets these automatically
+// System.env.SENTRY_DIST
+// System.env.SENTRY_RELEASE
+
+// Configure sentry properties
+project.ext.sentryCli = [
+    logLevel: "debug",
+    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
+]
+
+// Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
+apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
+
+// Sentry configuration used by Sentry Android gradle plugin (io.sentry.android.gradle), which handles uploading symbols.
+sentry {
+    // Enables or disables the automatic configuration of Native Symbols
+    // for Sentry. This executes sentry-cli automatically so
+    // you don't need to do it manually.
+    // Default is disabled.
+    autoUploadProguardMapping = shouldSentryAutoUpload()
+    uploadNativeSymbols = shouldSentryAutoUpload()
+
+    // Enables or disables the automatic upload of the app's native source code to Sentry.
+    // This executes sentry-cli with the --include-sources param automatically so
+    // you don't need to do it manually.
+    // This option has an effect only when [uploadNativeSymbols] is enabled.
+    // Default is disabled.
+    includeNativeSources = true
+
+    // `@sentry/react-native` ships with compatible `sentry-android`
+    // This option would install the latest version that ships with the SDK or SAGP (Sentry Android Gradle Plugin)
+    // which might be incompatible with the React Native SDK
+    // Enable auto-installation of Sentry components (sentry-android SDK and okhttp, timber and fragment integrations).
+    // Default is enabled.
+    autoInstallation {
+      enabled = false
+    }
+}
+
+def getPassword(String currentUser, String keyChain) {
+	def stdout = new ByteArrayOutputStream()
+	def stderr = new ByteArrayOutputStream()
+	if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+		exec {
+			commandLine 'security', '-q', 'find-generic-password', '-a', currentUser, '-s', keyChain, '-w'
+			standardOutput = stdout
+			errorOutput = stderr
+			ignoreExitValue true
+		}
+	} else if (org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+		exec {
+			// In order for this to work you need to store it:
+			// secret-tool store --label='mm' server mm user mm key mm-upload-key
+			commandLine 'secret-tool', 'lookup', 'server', currentUser, 'user', currentUser, 'key', keyChain
+			standardOutput = stdout
+			errorOutput = stderr
+			ignoreExitValue true
+		}
+	} else {
+		throw new GradleException('Unsupported OS! Only MacOSx and Linux are supported')
+	}
+	//noinspection GroovyAssignabilityCheck
+	stdout.toString().trim()
+}
+
+/**
+ * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ */
+def enableProguardInReleaseBuilds = true
+
+/**
+ * The preferred build flavor of JavaScriptCore (JSC)
+ *
+ * For example, to use the international variant, you can use:
+ * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ *
+ * The international variant includes ICU i18n library and necessary data
+ * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+ * give correct results when using with locales other than en-US. Note that
+ * this variant is about 6MiB larger per architecture than default.
+ */
+def jscFlavor = 'org.webkit:android-jsc:+'
+
+/**
+ * Private function to get the list of Native Architectures you want to build.
+ * This reads the value from reactNativeArchitectures in your gradle.properties
+ * file and works together with the --active-arch-only flag of react-native run-android.
+ */
+def reactNativeArchitectures() {
+    def value = project.getProperties().get("reactNativeArchitectures")
+    return value ? value.split(",") : ["armeabi-v7a", "x86", "x86_64", "arm64-v8a"]
+}
+
+
+/**
+* Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
+*/
+def ndkPath() {
+    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+}
+
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+
+    compileSdkVersion rootProject.ext.compileSdkVersion
+
+    namespace"io.metamask"
+
+    defaultConfig {
+        applicationId "io.metamask"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionName "7.43.0"
+        versionCode 1656
+        testBuildType System.getProperty('testBuildType', 'debug')
+        missingDimensionStrategy 'react-native-camera', 'general'
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
+        manifestPlaceholders.MM_BRANCH_KEY_LIVE = "$System.env.MM_BRANCH_KEY_LIVE"
+    }
+
+	  packagingOptions {
+		  exclude 'META-INF/DEPENDENCIES'
+      pickFirst 'lib/x86/libc++_shared.so'
+      pickFirst 'lib/x86_64/libc++_shared.so'
+      pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libc++_shared.so'
+      pickFirst 'lib/arm64-v8a/libcrypto.so'
+      pickFirst 'lib/armeabi-v7a/libcrypto.so'
+      pickFirst 'lib/x86/libcrypto.so'
+      pickFirst 'lib/x86_64/libcrypto.so'
+	  }
+
+	  signingConfigs {
+      release {
+        storeFile file('../keystores/release.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      qa {
+        storeFile file('../keystores/internalRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+      debug {
+        storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+      }
+      flask {
+        storeFile file('../keystores/flaskRelease.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_FLASK_KEYSTORE_PRIVATE_KEY_PASSWORD")
+      }
+    }
+
+    buildTypes {
+        debug {
+            manifestPlaceholders.isDebug = true
+            signingConfig signingConfigs.debug
+        }
+        release {
+            manifestPlaceholders.isDebug = false
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules-app.pro", "${rootProject.projectDir}/../node_modules/detox/android/detox/proguard-rules.pro"
+        }
+    }
+
+	  flavorDimensions "version"
+   		  productFlavors {
+          qa {
+            dimension "version"
+            applicationIdSuffix ".qa"
+            applicationId "io.metamask"
+            signingConfig signingConfigs.qa
+          }
+          prod {
+            dimension "version"
+            applicationId "io.metamask"
+            signingConfig signingConfigs.release
+          }
+          flask {
+            dimension "version"
+            applicationIdSuffix ".flask"
+            applicationId "io.metamask"
+            // Use the appropriate signing config based on environment
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
+              signingConfig signingConfigs.qa
+            } else {
+              signingConfig signingConfigs.flask
+            }
+          }
+    	  }
+
+	  buildTypes.each {
+		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
+      // Used to point to staging environment API for ramp
+      it.buildConfigField 'String', 'IS_RAMP_UAT', "\"$System.env.RAMP_INTERNAL_BUILD\""
+      // Used to point to dev environment API for ramp
+      it.buildConfigField 'String', 'IS_RAMP_DEV', "\"$System.env.RAMP_DEV_BUILD\""
+    }
+}
+
+dependencies {
+    // The version of react-native is set by the React Native Gradle Plugin
+    implementation(files("../libs/ecies.aar"))
+    implementation(files("../libs/nativesdk.aar"))
+    implementation("com.facebook.react:react-android")
+    implementation 'org.apache.commons:commons-compress:1.22'
+    androidTestImplementation 'org.mockito:mockito-android:4.2.0'
+    androidTestImplementation 'androidx.test:core:1.5.0'
+    androidTestImplementation 'androidx.test:core-ktx:1.5.0'
+    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
+    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}") {
+        exclude group:'com.squareup.okhttp3', module:'okhttp'
+    }
+
+    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+    androidTestImplementation('com.wix:detox:+') {
+         exclude module: "protobuf-lite"
+     }
+    androidTestImplementation ('androidx.test.espresso:espresso-contrib:3.4.0')
+}
+
+apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)

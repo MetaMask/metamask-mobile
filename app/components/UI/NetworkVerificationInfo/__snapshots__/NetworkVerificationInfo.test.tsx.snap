@@ -1,0 +1,1025 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NetworkVerificationInfo renders correctly 1`] = `
+<View
+  testID="approve-network-modal"
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flexDirection": "row",
+          "padding": 16,
+        },
+        false,
+      ]
+    }
+    testID="header"
+  >
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "marginHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Add Test Chain
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <RCTScrollView
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View>
+      <TouchableOpacity
+        disabled={true}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 16,
+            "flexDirection": "row",
+            "height": 32,
+            "marginBottom": 16,
+            "paddingHorizontal": 8,
+          }
+        }
+      >
+        <View
+          style={null}
+        >
+          <View
+            accessibilityLabel="Test Chain"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 16,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+            testID="network-avatar-picker"
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            {
+              "color": "#121314",
+              "flexShrink": 1,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginHorizontal": 8,
+            }
+          }
+          testID="open-networks-text"
+        >
+          Test Chain
+        </Text>
+      </TouchableOpacity>
+      <View
+        style={
+          {
+            "backgroundColor": "#9a63001a",
+            "borderColor": "#9a6300",
+            "borderLeftWidth": 4,
+            "borderRadius": 4,
+            "flexDirection": "row",
+            "marginBottom": 8,
+            "padding": 12,
+            "paddingLeft": 8,
+          }
+        }
+        testID="error-message-warning"
+        variant="Alert"
+      >
+        <View
+          style={
+            {
+              "marginRight": 8,
+            }
+          }
+        >
+          <SvgMock
+            color="#9a6300"
+            height={24}
+            name="Danger"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+        </View>
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            It looks like this network's display name doesn't match its chain ID.
+          </Text>
+        </View>
+        <View
+          style={
+            {
+              "marginLeft": 12,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessible={true}
+            activeOpacity={1}
+            disabled={false}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "borderRadius": 8,
+                "height": 24,
+                "justifyContent": "center",
+                "opacity": 1,
+                "width": 24,
+              }
+            }
+            testID="banner-close-button-icon"
+          >
+            <SvgMock
+              color="#121314"
+              height={16}
+              name="Close"
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              width={16}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "textAlign": "center",
+          }
+        }
+      >
+        MetaMask doesn’t verify custom networks, so only approve networks you trust.
+         
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          Learn more about network security risks and scams.
+        </Text>
+      </Text>
+      <RCTScrollView
+        collapsable={false}
+        nestedScrollEnabled={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 10,
+              "borderWidth": 1,
+              "marginVertical": 16,
+              "padding": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Currency symbol
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginBottom": 8,
+              }
+            }
+          >
+            TEST
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Network RPC URL
+            </Text>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginBottom": 8,
+              }
+            }
+          >
+            http://test.com
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "height": 24,
+                "justifyContent": "center",
+              }
+            }
+            testID="accordionheader"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+              testID="accordionheader-title"
+            >
+              View details
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "marginLeft": 4,
+                  },
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="accordionheader-arrow-icon-animation"
+            >
+              <SvgMock
+                color="#4459ff"
+                height={16}
+                name="ArrowDown"
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="accordionheader-arrow-icon"
+                width={16}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </RCTScrollView>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "paddingHorizontal": 8,
+        "paddingVertical": 4,
+      }
+    }
+    testID="bottomsheetfooter"
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="approve-network-cancel-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 16,
+          "marginTop": 0,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="approve-network-approve-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Confirm
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;
+
+exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate is true 1`] = `
+<View
+  testID="approve-network-modal"
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#ffffff",
+          "flexDirection": "row",
+          "padding": 16,
+        },
+        false,
+      ]
+    }
+    testID="header"
+  >
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "flex": 1,
+          "marginHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Bold",
+            "fontSize": 18,
+            "fontWeight": "700",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Update Test Chain
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "width": undefined,
+        }
+      }
+    >
+      <View
+        onLayout={[Function]}
+      />
+    </View>
+  </View>
+  <RCTScrollView
+    collapsable={false}
+    onGestureHandlerEvent={[Function]}
+    onGestureHandlerStateChange={[Function]}
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <View>
+      <TouchableOpacity
+        disabled={true}
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 16,
+            "flexDirection": "row",
+            "height": 32,
+            "marginBottom": 16,
+            "paddingHorizontal": 8,
+          }
+        }
+      >
+        <View
+          style={null}
+        >
+          <View
+            accessibilityLabel="Test Chain"
+            style={
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderRadius": 8,
+                "height": 16,
+                "justifyContent": "center",
+                "overflow": "hidden",
+                "width": 16,
+              }
+            }
+            testID="network-avatar-picker"
+          >
+            <Image
+              onError={[Function]}
+              resizeMode="contain"
+              source={1}
+              style={
+                {
+                  "height": 16,
+                  "width": 16,
+                }
+              }
+              testID="network-avatar-image"
+            />
+          </View>
+        </View>
+        <Text
+          accessibilityRole="text"
+          numberOfLines={1}
+          style={
+            {
+              "color": "#121314",
+              "flexShrink": 1,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginHorizontal": 8,
+            }
+          }
+          testID="open-networks-text"
+        >
+          Test Chain
+        </Text>
+      </TouchableOpacity>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "textAlign": "center",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+            }
+          }
+        >
+          You're updating this network in MetaMask and giving metamask.github.io permission to use it.
+        </Text>
+      </Text>
+      <RCTScrollView
+        collapsable={false}
+        nestedScrollEnabled={true}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 10,
+              "borderWidth": 1,
+              "marginVertical": 16,
+              "padding": 16,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 14,
+                "fontWeight": "500",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              }
+            }
+          >
+            Currency symbol
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginBottom": 8,
+              }
+            }
+          >
+            AVAX
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "gap": 8,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Network RPC URL
+            </Text>
+            <TouchableOpacity
+              onPress={[Function]}
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "alignSelf": "flex-start",
+                    "backgroundColor": "#4459ff1a",
+                    "borderRadius": 4,
+                    "height": 20,
+                    "justifyContent": "center",
+                    "paddingHorizontal": 8,
+                  }
+                }
+                testID="tagcolored"
+              >
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                      "gap": 4,
+                    }
+                  }
+                  testID="networks.rpc-url-missmatch-review-and-compare"
+                >
+                  <SvgMock
+                    color="#4459ff"
+                    height={16}
+                    name="Info"
+                    style={
+                      {
+                        "height": 16,
+                        "width": 16,
+                      }
+                    }
+                    width={16}
+                  />
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    Review
+                  </Text>
+                  <SvgMock
+                    color="#4459ff"
+                    height={12}
+                    name="ArrowRight"
+                    style={
+                      {
+                        "height": 12,
+                        "width": 12,
+                      }
+                    }
+                    width={12}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "marginBottom": 8,
+              }
+            }
+          >
+            https://custom-rpc-url.io
+          </Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            onPress={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+                "height": 24,
+                "justifyContent": "center",
+              }
+            }
+            testID="accordionheader"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+              testID="accordionheader-title"
+            >
+              View details
+            </Text>
+            <View
+              style={
+                [
+                  {
+                    "marginLeft": 4,
+                  },
+                  {
+                    "transform": [
+                      {
+                        "rotate": "0deg",
+                      },
+                    ],
+                  },
+                ]
+              }
+              testID="accordionheader-arrow-icon-animation"
+            >
+              <SvgMock
+                color="#4459ff"
+                height={16}
+                name="ArrowDown"
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="accordionheader-arrow-icon"
+                width={16}
+              />
+            </View>
+          </TouchableOpacity>
+        </View>
+      </RCTScrollView>
+    </View>
+  </RCTScrollView>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "paddingHorizontal": 8,
+        "paddingVertical": 4,
+      }
+    }
+    testID="bottomsheetfooter"
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="approve-network-cancel-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "flex-start",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 16,
+          "marginTop": 0,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="approve-network-approve-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Confirm
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

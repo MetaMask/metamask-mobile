@@ -1,0 +1,897 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`OnboardingAssetSettings should render correctly 1`] = `
+<RCTScrollView
+  contentContainerStyle={
+    {
+      "paddingBottom": 75,
+    }
+  }
+  style={
+    {
+      "flex": 1,
+      "paddingBottom": 16,
+      "paddingHorizontal": 16,
+      "paddingVertical": 8,
+    }
+  }
+>
+  <View>
+    <View
+      style={
+        {
+          "marginTop": 32,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Autodetect tokens
+        </Text>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "marginLeft": 16,
+            }
+          }
+        >
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                [
+                  {
+                    "alignSelf": "flex-start",
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            testID="token-detection-toggle"
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={true}
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        We use third-party APIs to detect and display new tokens sent to your wallet. Turn off if you don’t want the app to pull data from those services.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Display NFT Media
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": 16,
+            }
+          }
+        >
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                [
+                  {
+                    "alignSelf": "flex-start",
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            testID="nft-display-media-mode-section"
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={false}
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Displaying NFT media and data exposes your IP address to OpenSea or other third parties. NFT autodetection relies on this feature, and won't be available when turned off. If NFT media is fully located on IPFS, it can still be displayed even when this feature is turned off.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 32,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Autodetect NFTs
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": 16,
+            }
+          }
+        >
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                [
+                  {
+                    "alignSelf": "flex-start",
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            testID="nft-opensea-autodetect-mode-section"
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={false}
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Let MetaMask add NFTs you own using third-party services (like OpenSea). Autodetecting NFTs exposes your IP and account address to these services. Enabling this feature could associate your IP address with your Ethereum address and display fake NFTs airdropped by scammers. You can add tokens manually to avoid this risk.
+      </Text>
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 32,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          IPFS Gateway
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": 16,
+            }
+          }
+        >
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                [
+                  {
+                    "alignSelf": "flex-start",
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            testID="IPFS_GATEWAY_SECTION"
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={true}
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.
+      </Text>
+      <View
+        style={
+          {
+            "marginTop": 16,
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#686e7d",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 14,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 22,
+              "marginTop": 8,
+            }
+          }
+        >
+          Choose your preferred IPFS gateway.
+        </Text>
+        <View
+          style={
+            {
+              "borderColor": "#b7bbc8",
+              "borderRadius": 5,
+              "borderWidth": 2,
+              "marginTop": 16,
+            }
+          }
+        >
+          <View>
+            <ActivityIndicator
+              size="small"
+            />
+          </View>
+        </View>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 32,
+        }
+      }
+      testID="incoming-transactions-section"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Show incoming transactions
+      </Text>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        This relies on the network you select which will expose your Ethereum address and your IP address.
+      </Text>
+      <View
+        style={
+          {
+            "marginLeft": -16,
+            "marginRight": -16,
+            "marginTop": 24,
+          }
+        }
+      >
+        <TouchableOpacity
+          avatarProps={
+            {
+              "imageSource": 1,
+              "name": "Ethereum Mainnet",
+              "variant": "Network",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
+            }
+          }
+          testID="celldisplay"
+          title="Ethereum Mainnet"
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="cellbase-avatar"
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 32,
+                    "width": 32,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cellbase-avatar-title"
+              >
+                Ethereum Mainnet
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="incoming-mainnet-toggle"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          avatarProps={
+            {
+              "imageSource": 1,
+              "name": "Linea",
+              "variant": "Network",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
+            }
+          }
+          testID="celldisplay"
+          title="Linea"
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="cellbase-avatar"
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 32,
+                    "width": 32,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cellbase-avatar-title"
+              >
+                Linea
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="incoming-linea-mainnet-toggle"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={true}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          avatarProps={
+            {
+              "imageSource": 1,
+              "name": "Solana Mainnet",
+              "variant": "Network",
+            }
+          }
+          style={
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 4,
+              "borderWidth": 0,
+              "padding": 16,
+            }
+          }
+          testID="celldisplay"
+          title="Solana Mainnet"
+        >
+          <View
+            style={
+              {
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "height": 32,
+                  "justifyContent": "center",
+                  "marginRight": 16,
+                  "overflow": "hidden",
+                  "width": 32,
+                }
+              }
+              testID="cellbase-avatar"
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 32,
+                    "width": 32,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "flex": 1,
+                }
+              }
+            >
+              <Text
+                accessibilityRole="text"
+                numberOfLines={1}
+                style={
+                  {
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
+                    "fontWeight": "400",
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
+                }
+                testID="cellbase-avatar-title"
+              >
+                Solana Mainnet
+              </Text>
+            </View>
+            <View
+              style={
+                {
+                  "marginLeft": 16,
+                }
+              }
+            >
+              <RCTSwitch
+                accessibilityRole="switch"
+                onChange={[Function]}
+                onResponderTerminationRequest={[Function]}
+                onStartShouldSetResponder={[Function]}
+                onTintColor="#4459ff"
+                style={
+                  [
+                    {
+                      "height": 31,
+                      "width": 51,
+                    },
+                    [
+                      {
+                        "alignSelf": "flex-start",
+                      },
+                      {
+                        "backgroundColor": "#b7bbc866",
+                        "borderRadius": 16,
+                      },
+                    ],
+                  ]
+                }
+                testID="solana-incoming-transactions-toggle"
+                thumbTintColor="#ffffff"
+                tintColor="#b7bbc866"
+                value={false}
+              />
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View
+      style={
+        {
+          "marginTop": 16,
+        }
+      }
+      testID="batch-balance-requests-section"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "flex": 1,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Batch account balance requests
+        </Text>
+        <View
+          style={
+            {
+              "marginLeft": 16,
+            }
+          }
+        >
+          <RCTSwitch
+            accessibilityRole="switch"
+            onChange={[Function]}
+            onResponderTerminationRequest={[Function]}
+            onStartShouldSetResponder={[Function]}
+            onTintColor="#4459ff"
+            style={
+              [
+                {
+                  "height": 31,
+                  "width": 51,
+                },
+                [
+                  {
+                    "alignSelf": "flex-start",
+                  },
+                  {
+                    "backgroundColor": "#b7bbc866",
+                    "borderRadius": 16,
+                  },
+                ],
+              ]
+            }
+            testID="security-settings-multi-account-balances-switch"
+            thumbTintColor="#ffffff"
+            tintColor="#b7bbc866"
+            value={true}
+          />
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+            "marginTop": 8,
+          }
+        }
+      >
+        Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
+      </Text>
+    </View>
+  </View>
+</RCTScrollView>
+`;

@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SheetHeader should render correctly 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "flexDirection": "row",
+      "height": 32,
+      "justifyContent": "space-between",
+      "margin": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+      }
+    }
+  />
+  <Text
+    variant="sHeadingMD"
+  >
+    Title
+  </Text>
+  <View
+    style={
+      {
+        "alignItems": "flex-end",
+        "flex": 1,
+      }
+    }
+  />
+</View>
+`;

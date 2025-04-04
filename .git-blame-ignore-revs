@@ -1,0 +1,6 @@
+# Add typescript eslint from metamask https://github.com/MetaMask/metamask-mobile/pull/3088
+57afe4ca921d85a51a923470239ca977fccbd1ae
+# Standardize prettier configuration https://github.com/MetaMask/metamask-mobile/pull/4182
+bdb7f37c90e4fc923881a07fca38d4e77c73a579
+# Fix mixed tabs and spaces https://github.com/MetaMask/metamask-mobile/pull/1379
+9f9a1121c6899e06d4aeef29017bb479df142adb

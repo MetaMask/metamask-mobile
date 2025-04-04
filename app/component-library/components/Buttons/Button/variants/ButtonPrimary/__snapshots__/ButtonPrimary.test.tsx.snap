@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonPrimary render matches latest snapshot 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  disabled={false}
+  onPress={[Function]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#4459ff",
+      "borderRadius": 20,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#ffffff"
+    height={16}
+    name="Add"
+    style={
+      {
+        "height": 16,
+        "marginRight": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#ffffff",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 14,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Sample label
+  </Text>
+  <SvgMock
+    color="#ffffff"
+    height={16}
+    name="AddSquare"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+</TouchableOpacity>
+`;

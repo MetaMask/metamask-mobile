@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AssetSearch should render correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "alignItems": "center",
+        "borderColor": "#b7bbc8",
+        "borderRadius": 8,
+        "borderWidth": 1,
+        "color": "#121314",
+        "flex": 1,
+        "flexDirection": "row",
+        "justifyContent": "center",
+        "margin": 16,
+        "marginBottom": 0,
+      },
+    ]
+  }
+  testID="add-searched-token-screen"
+>
+  <View
+    style={
+      {
+        "color": "#686e7d",
+        "paddingLeft": 20,
+      }
+    }
+  >
+    <SvgMock
+      color="#121314"
+      height={16}
+      name="Search"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </View>
+  <View
+    style={
+      {
+        "borderColor": "#2c3dc5",
+        "color": "#686e7d",
+        "paddingHorizontal": 12,
+        "paddingVertical": 12,
+        "width": "80%",
+      }
+    }
+  >
+    <TextInput
+      keyboardAppearance="light"
+      onBlur={[Function]}
+      onChangeText={[Function]}
+      onFocus={[Function]}
+      placeholder="Search Tokens"
+      placeholderTextColor="#9ca1af"
+      style={
+        [
+          {
+            "color": "#121314",
+            "fontFamily": "EuclidCircularB-Regular",
+            "fontWeight": "400",
+          },
+          {
+            "height": "85%",
+            "width": "85%",
+          },
+        ]
+      }
+      testID="input-search-asset"
+      value=""
+    />
+  </View>
+  <View
+    style={
+      {
+        "color": "#686e7d",
+        "paddingRight": 20,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "borderRadius": 8,
+          "height": 24,
+          "justifyContent": "center",
+          "opacity": 1,
+          "width": 24,
+        }
+      }
+    >
+      <SvgMock
+        color="#121314"
+        height={16}
+        name="Close"
+        style={
+          {
+            "height": 16,
+            "width": 16,
+          }
+        }
+        width={16}
+      />
+    </TouchableOpacity>
+  </View>
+</View>
+`;

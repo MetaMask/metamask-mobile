@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SheetActionView should render correctly 1`] = `
+<View
+  style={
+    {
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "transparent",
+        "borderColor": "#4459ff",
+        "borderRadius": 24,
+        "borderWidth": 1,
+        "flex": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "justifyContent": "center",
+        "marginRight": 8,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Cancel
+    </Text>
+  </TouchableOpacity>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 24,
+        "flex": 1,
+        "flexDirection": "row",
+        "height": 48,
+        "justifyContent": "center",
+        "marginLeft": 8,
+        "paddingHorizontal": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#ffffff",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Confirm
+    </Text>
+  </TouchableOpacity>
+</View>
+`;

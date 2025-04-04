@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ButtonToggle renders correctly in active state 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "#4459ff1a",
+      "borderColor": "#4459ff",
+      "borderRadius": 20,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#4459ff",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 14,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Mode 1
+  </Text>
+</TouchableOpacity>
+`;
+
+exports[`ButtonToggle renders correctly in inactive state 1`] = `
+<TouchableOpacity
+  accessibilityRole="button"
+  accessible={true}
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  style={
+    {
+      "alignItems": "center",
+      "alignSelf": "flex-start",
+      "backgroundColor": "transparent",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 20,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 40,
+      "justifyContent": "center",
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Medium",
+        "fontSize": 14,
+        "fontWeight": "500",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Mode 1
+  </Text>
+</TouchableOpacity>
+`;

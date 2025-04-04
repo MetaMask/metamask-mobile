@@ -1,0 +1,157 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ManageNetworks should render correctly 1`] = `
+<View
+  style={
+    {
+      "marginVertical": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 16,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Choose your network
+    </Text>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginTop": 10,
+        "textAlign": "left",
+      }
+    }
+  >
+    We use Infura as our remote procedure call (RPC) provider to offer the most reliable and private access to Ethereum data we can. You can choose your own RPC, but remember that any RPC will receive your IP address and Ethereum wallet to make transactions. Read our 
+    <Text
+      accessibilityRole="text"
+      onPress={[Function]}
+      style={
+        {
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Privacy policy
+    </Text>
+     to learn more about how Infura handles data.
+  </Text>
+  <TouchableOpacity
+    disabled={false}
+    onPress={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "#f3f5f9",
+        "borderRadius": 16,
+        "flexDirection": "row",
+        "height": 32,
+        "marginVertical": 16,
+        "paddingHorizontal": 8,
+      }
+    }
+    testID="accounts-connected-network-picker"
+  >
+    <View
+      style={null}
+    >
+      <View
+        accessibilityLabel="Ethereum Main Network"
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#f3f5f9",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "height": 16,
+            "justifyContent": "center",
+            "overflow": "hidden",
+            "width": 16,
+          }
+        }
+        testID="network-avatar-picker"
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 10,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": undefined,
+            }
+          }
+        >
+          E
+        </Text>
+      </View>
+    </View>
+    <Text
+      accessibilityRole="text"
+      numberOfLines={1}
+      style={
+        {
+          "color": "#121314",
+          "flexShrink": 1,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "marginHorizontal": 8,
+        }
+      }
+      testID="open-networks-text"
+    >
+      Ethereum Main Network
+    </Text>
+    <SvgMock
+      color="#121314"
+      height={12}
+      name="ArrowDown"
+      style={
+        {
+          "height": 12,
+          "width": 12,
+        }
+      }
+      testID="pickernetwork-arrow"
+      width={12}
+    />
+  </TouchableOpacity>
+</View>
+`;

@@ -1,0 +1,225 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`YouReceiveCard render matches snapshot 1`] = `
+<TouchableOpacity
+  disabled={true}
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 8,
+      "borderWidth": 0,
+      "gap": 16,
+      "padding": 16,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Estimated changes
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "alignItems": "baseline",
+        "flexDirection": "row",
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      You receive
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "gap": 2,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "flexDirection": "row",
+            "gap": 4,
+          }
+        }
+      >
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          onLayout={[Function]}
+          style={
+            {
+              "alignSelf": "flex-start",
+              "backgroundColor": "#1c7e331a",
+              "borderColor": "#1c7e33",
+              "borderRadius": 999,
+              "borderWidth": 0,
+              "color": "#1c7e33",
+              "padding": 16,
+              "paddingHorizontal": 8,
+              "paddingVertical": 2,
+            }
+          }
+          testID="tagbase"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#1c7e33",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              + 4.99982
+            </Text>
+          </View>
+        </View>
+        <View
+          accessibilityRole="none"
+          accessible={true}
+          onLayout={[Function]}
+          style={
+            {
+              "alignSelf": "flex-start",
+              "backgroundColor": "#f3f5f9",
+              "borderColor": "#b7bbc8",
+              "borderRadius": 999,
+              "borderWidth": 0,
+              "color": "#686e7d",
+              "padding": 16,
+              "paddingHorizontal": 8,
+              "paddingVertical": 2,
+            }
+          }
+          testID="tagbase"
+        >
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flexDirection": "row",
+              }
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 8,
+                  "height": 16,
+                  "justifyContent": "center",
+                  "overflow": "hidden",
+                  "width": 16,
+                }
+              }
+            >
+              <Image
+                onError={[Function]}
+                resizeMode="contain"
+                source={1}
+                style={
+                  {
+                    "height": 16,
+                    "width": 16,
+                  }
+                }
+                testID="network-avatar-image"
+              />
+            </View>
+            <View
+              accessible={false}
+              style={
+                {
+                  "width": 4,
+                }
+              }
+              testID="listitem-gap"
+            />
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              ETH
+            </Text>
+          </View>
+        </View>
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 12,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 20,
+            "paddingRight": 8,
+          }
+        }
+      >
+        $
+        12,881.64
+      </Text>
+    </View>
+  </View>
+</TouchableOpacity>
+`;

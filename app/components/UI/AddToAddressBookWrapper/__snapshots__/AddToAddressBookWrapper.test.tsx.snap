@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AddToAddressBookWrapper should match default snapshot 1`] = `
+<TouchableOpacity
+  activeOpacity={0.5}
+  onPress={[Function]}
+  testID="add-address-button"
+>
+  <Text>
+    DUMMY
+  </Text>
+</TouchableOpacity>
+`;

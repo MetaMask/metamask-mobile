@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Stake Modals With Stake Sdk Provider renders stake screen with stake sdk provider and resolved stake context 1`] = `
+<View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    0x0000000000000000000000000000000000000000
+  </Text>
+</View>
+`;

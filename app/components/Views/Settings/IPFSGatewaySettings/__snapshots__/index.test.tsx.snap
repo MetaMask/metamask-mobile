@@ -1,0 +1,129 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IPFSGatewaySettings render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "marginTop": 32,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      IPFS Gateway
+    </Text>
+    <View
+      style={
+        {
+          "marginLeft": 16,
+        }
+      }
+    >
+      <RCTSwitch
+        accessibilityRole="switch"
+        onChange={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onTintColor="#4459ff"
+        style={
+          [
+            {
+              "height": 31,
+              "width": 51,
+            },
+            [
+              {
+                "alignSelf": "flex-start",
+              },
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 16,
+              },
+            ],
+          ]
+        }
+        testID="IPFS_GATEWAY_SECTION"
+        thumbTintColor="#ffffff"
+        tintColor="#b7bbc866"
+        value={true}
+      />
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginTop": 8,
+      }
+    }
+  >
+    MetaMask uses third-party services to show images of your NFTs stored on IPFS, display information related to ENS addresses entered in your browser's address bar, and fetch icons for different tokens. Your IP address may be exposed to these services when you’re using them.
+  </Text>
+  <View
+    style={
+      {
+        "marginTop": 16,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+          "marginTop": 8,
+        }
+      }
+    >
+      Choose your preferred IPFS gateway.
+    </Text>
+    <View
+      style={
+        {
+          "borderColor": "#b7bbc8",
+          "borderRadius": 5,
+          "borderWidth": 2,
+          "marginTop": 16,
+        }
+      }
+    >
+      <View>
+        <ActivityIndicator
+          size="small"
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;

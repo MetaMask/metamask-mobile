@@ -1,0 +1,170 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ChangeInSimulationModal render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "alignItems": "center",
+      "padding": 16,
+    }
+  }
+>
+  <SvgMock
+    color="#ca3542"
+    height={32}
+    name="Warning"
+    style={
+      {
+        "height": 32,
+        "width": 32,
+      }
+    }
+    width={32}
+  />
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "height": 32,
+        "justifyContent": "space-between",
+        "margin": 16,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
+          "fontSize": 18,
+          "fontWeight": "700",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Results have changed
+    </Text>
+    <View
+      style={
+        {
+          "alignItems": "flex-end",
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    Estimated changes for this transaction have been updated. Review them closely before proceeding.
+  </Text>
+  <View
+    style={
+      {
+        "alignSelf": "stretch",
+        "flexDirection": "column",
+        "gap": 16,
+        "paddingTop": 24,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="reject-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Reject the transaction
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="proceed-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Proceed
+      </Text>
+    </TouchableOpacity>
+  </View>
+</View>
+`;

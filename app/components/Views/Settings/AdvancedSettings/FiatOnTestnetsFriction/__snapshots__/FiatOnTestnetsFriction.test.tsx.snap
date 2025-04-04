@@ -1,0 +1,405 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
+<View
+  onLayout={[Function]}
+  style={
+    [
+      {
+        "bottom": 0,
+        "justifyContent": "flex-end",
+        "left": 0,
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+      },
+      {
+        "paddingBottom": 0,
+      },
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {
+          "backgroundColor": "#00000066",
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "opacity": 0,
+        },
+      ]
+    }
+  >
+    <TouchableOpacity
+      onPress={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    />
+  </View>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      onGestureHandlerEvent={[Function]}
+      onGestureHandlerStateChange={[Function]}
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "backgroundColor": "#ffffff",
+            "borderColor": "#b7bbc866",
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
+            "borderWidth": 1,
+            "maxHeight": NaN,
+            "overflow": "hidden",
+            "paddingBottom": undefined,
+            "shadowColor": "#0000001a",
+            "shadowOffset": {
+              "height": 2,
+              "width": 0,
+            },
+            "shadowOpacity": 1,
+            "shadowRadius": 40,
+          },
+          {
+            "transform": [
+              {
+                "translateY": 1334,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "stretch",
+            "padding": 4,
+          }
+        }
+      >
+        <View
+          style={
+            {
+              "backgroundColor": "#b7bbc866",
+              "borderRadius": 2,
+              "height": 4,
+              "width": 40,
+            }
+          }
+        />
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "alignSelf": "center",
+            "padding": 16,
+          }
+        }
+      >
+        <SvgMock
+          color="#9a6300"
+          height={32}
+          name="Danger"
+          style={
+            {
+              "height": 32,
+              "width": 32,
+            }
+          }
+          width={32}
+        />
+        <Text
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 18,
+                "fontWeight": "700",
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+            ]
+          }
+        >
+          Be careful
+        </Text>
+        <Text
+          style={
+            [
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 30,
+                "fontWeight": "400",
+                "marginVertical": 2,
+              },
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              {
+                "marginTop": 16,
+              },
+            ]
+          }
+        >
+          <Text
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+              ]
+            }
+          >
+            If you've been asked to turn this feature on, you might be getting scammed. These tokens have no monetary value and are for testing purposes only. This feature helps developers make sure their apps work.
+             
+          </Text>
+          <Text
+            accessibilityRole="link"
+            accessible={true}
+            onPress={[Function]}
+            style={
+              [
+                {
+                  "color": "#121314",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 30,
+                  "fontWeight": "400",
+                  "marginVertical": 2,
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "color": "#121314",
+                },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                {
+                  "color": "#4459ff",
+                },
+                undefined,
+                undefined,
+                {
+                  "marginVertical": 0,
+                },
+                undefined,
+              ]
+            }
+          >
+            Learn more.
+          </Text>
+        </Text>
+        <View
+          style={
+            {
+              "flexDirection": "row",
+              "gap": 16,
+              "justifyContent": "space-evenly",
+              "marginTop": 32,
+            }
+          }
+        >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 24,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="cancel-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Cancel
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "stretch",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 24,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+            testID="continue-button"
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#ffffff",
+                  "fontFamily": "CentraNo1-Medium",
+                  "fontSize": 14,
+                  "fontWeight": "500",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                }
+              }
+            >
+              Continue
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
+`;

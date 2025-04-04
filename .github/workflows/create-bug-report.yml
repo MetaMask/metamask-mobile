@@ -1,0 +1,43 @@
+name: Create release bug report issue when release branch gets created
+
+on: create
+
+jobs:
+  create-bug-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract version from branch name if release branch
+        id: extract_version
+        run: |
+          if [[ "$GITHUB_REF" =~ ^refs/heads/release/[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            version="${GITHUB_REF#refs/heads/release/}"
+            echo "New release branch($version), continue next steps"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+          else
+            echo "Not a release branch, skip next steps"
+          fi
+
+      - name: Checkout repository
+        if: steps.extract_version.outputs.version
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        if: steps.extract_version.outputs.version
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        if: steps.extract_version.outputs.version
+        run: yarn --immutable
+        working-directory: '.github/scripts'
+
+      - name: Create bug report issue on planning repo
+        if: steps.extract_version.outputs.version
+        env:
+          BUG_REPORT_TOKEN: ${{ secrets.BUG_REPORT_TOKEN }}
+          RELEASES_GITHUB_PROJECT_BOARD_NUMBER: ${{ vars.RELEASES_GITHUB_PROJECT_BOARD_NUMBER }}
+          RELEASES_GITHUB_PROJECT_BOARD_VIEW_NUMBER: ${{ vars.RELEASES_GITHUB_PROJECT_BOARD_VIEW_NUMBER }}
+          RELEASE_VERSION: ${{ steps.extract_version.outputs.version }}
+        run: yarn create-bug-report-issue
+        working-directory: '.github/scripts'

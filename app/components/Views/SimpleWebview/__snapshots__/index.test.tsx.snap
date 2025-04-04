@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SimpleWebview should render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <WebView
+    source={
+      {
+        "uri": "https://etherscan.io",
+      }
+    }
+  />
+</View>
+`;

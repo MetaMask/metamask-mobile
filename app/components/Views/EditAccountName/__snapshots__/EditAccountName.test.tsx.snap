@@ -1,0 +1,259 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`EditAccountName should render correctly 1`] = `
+<RCTSafeAreaView
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+      "paddingHorizontal": 16,
+    }
+  }
+>
+  <View
+    collapsable={false}
+    style={
+      {
+        "flex": 1,
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <View
+      collapsable={false}
+      style={
+        {
+          "marginTop": 24,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Name
+      </Text>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#4459ff",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "opacity": 1,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={true}
+            editable={true}
+            onBlur={[Function]}
+            onChangeText={[Function]}
+            onFocus={[Function]}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#121314",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="account-name-input"
+            value="Test Account"
+          />
+        </View>
+      </View>
+    </View>
+    <View
+      collapsable={false}
+      style={
+        {
+          "marginTop": 24,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Address
+      </Text>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "backgroundColor": "#ffffff",
+            "borderColor": "#4459ff",
+            "borderRadius": 8,
+            "borderWidth": 1,
+            "flexDirection": "row",
+            "height": 40,
+            "opacity": 0.5,
+            "paddingHorizontal": 16,
+          }
+        }
+        testID="textfield"
+      >
+        <View
+          style={
+            {
+              "flex": 1,
+            }
+          }
+        >
+          <TextInput
+            autoFocus={true}
+            editable={false}
+            onBlur={[Function]}
+            onFocus={[Function]}
+            placeholder="0x49a016E6736F9Ad381605c...72A6"
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "transparent",
+                "borderWidth": 1,
+                "color": "#121314",
+                "fontFamily": "Euclid Circular B",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "height": 24,
+                "letterSpacing": 0,
+                "opacity": 1,
+                "paddingVertical": 0,
+              }
+            }
+            testID="input"
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    collapsable={false}
+    style={
+      {
+        "flexDirection": "row",
+        "marginHorizontal": 16,
+      }
+    }
+  >
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      onPress={[MockFunction]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
+          "borderRadius": 24,
+          "borderWidth": 1,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginRight": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Cancel
+      </Text>
+    </TouchableOpacity>
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={false}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
+      style={
+        {
+          "alignItems": "center",
+          "alignSelf": "stretch",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 24,
+          "flex": 1,
+          "flexDirection": "row",
+          "height": 48,
+          "justifyContent": "center",
+          "marginLeft": 8,
+          "paddingHorizontal": 16,
+        }
+      }
+      testID="edit-account-name-save-button"
+    >
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 14,
+            "fontWeight": "500",
+            "letterSpacing": 0,
+            "lineHeight": 22,
+          }
+        }
+      >
+        Save
+      </Text>
+    </TouchableOpacity>
+  </View>
+</RCTSafeAreaView>
+`;

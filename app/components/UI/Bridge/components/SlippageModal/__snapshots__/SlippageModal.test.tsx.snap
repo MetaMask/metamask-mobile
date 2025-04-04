@@ -1,0 +1,523 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SlippageModal renders all UI elements with the proper slippage options and apply button 1`] = `
+<RNCSafeAreaProvider
+  onInsetsChange={[Function]}
+  style={
+    [
+      {
+        "flex": 1,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    onLayout={[Function]}
+    style={
+      [
+        {
+          "bottom": 0,
+          "justifyContent": "flex-end",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        },
+        {
+          "paddingBottom": 0,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        [
+          {
+            "backgroundColor": "#00000066",
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          },
+          {
+            "opacity": 0,
+          },
+        ]
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+        style={
+          {
+            "flex": 1,
+          }
+        }
+      />
+    </View>
+    <View
+      onLayout={[Function]}
+      style={
+        [
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+          },
+          {
+            "paddingBottom": 0,
+          },
+        ]
+      }
+    >
+      <View
+        collapsable={false}
+        onGestureHandlerEvent={[Function]}
+        onGestureHandlerStateChange={[Function]}
+        onLayout={[Function]}
+        style={
+          [
+            {
+              "backgroundColor": "#ffffff",
+              "borderColor": "#b7bbc866",
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
+              "borderWidth": 1,
+              "maxHeight": 1334,
+              "overflow": "hidden",
+              "paddingBottom": 0,
+              "shadowColor": "#0000001a",
+              "shadowOffset": {
+                "height": 2,
+                "width": 0,
+              },
+              "shadowOpacity": 1,
+              "shadowRadius": 40,
+            },
+            {
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+            },
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "padding": 4,
+            }
+          }
+        >
+          <View
+            style={
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 2,
+                "height": 4,
+                "width": 40,
+              }
+            }
+          />
+        </View>
+        <View
+          style={
+            [
+              {
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "padding": 16,
+              },
+              false,
+            ]
+          }
+          testID="header"
+        >
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            />
+          </View>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "marginHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 18,
+                  "fontWeight": "700",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Slippage
+            </Text>
+          </View>
+          <View
+            style={
+              {
+                "width": undefined,
+              }
+            }
+          >
+            <View
+              onLayout={[Function]}
+            >
+              <TouchableOpacity
+                accessible={true}
+                activeOpacity={1}
+                disabled={false}
+                onPress={[Function]}
+                onPressIn={[Function]}
+                onPressOut={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "borderRadius": 8,
+                    "height": 24,
+                    "justifyContent": "center",
+                    "opacity": 1,
+                    "width": 24,
+                  }
+                }
+              >
+                <SvgMock
+                  color="#121314"
+                  height={16}
+                  name="Close"
+                  style={
+                    {
+                      "height": 16,
+                      "width": 16,
+                    }
+                  }
+                  width={16}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "padding": 24,
+              "paddingBottom": 21,
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "EuclidCircularB-Regular",
+                "fontSize": 14,
+                "fontWeight": "400",
+                "letterSpacing": 0,
+                "lineHeight": 20,
+              }
+            }
+          >
+            If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.
+          </Text>
+          <View
+            style={
+              {
+                "alignItems": "center",
+                "marginBottom": 12,
+                "paddingHorizontal": 24,
+                "paddingVertical": 16,
+              }
+            }
+          >
+            <View
+              onValueChange={[Function]}
+              selectedValue="0.5"
+              style={
+                {
+                  "alignItems": "center",
+                  "flexDirection": "row",
+                  "gap": 12,
+                  "justifyContent": "center",
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  buttonWidth="full"
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "stretch",
+                      "backgroundColor": "#4459ff1a",
+                      "borderColor": "#4459ff",
+                      "borderRadius": 16,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="slippage-option-0.5"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#4459ff",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    0.5%
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  buttonWidth="full"
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "stretch",
+                      "backgroundColor": "transparent",
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 16,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="slippage-option-1"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    1%
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  buttonWidth="full"
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "stretch",
+                      "backgroundColor": "transparent",
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 16,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="slippage-option-3"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    3%
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "flex": 1,
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessible={true}
+                  activeOpacity={1}
+                  buttonWidth="full"
+                  disabled={false}
+                  onPress={[Function]}
+                  style={
+                    {
+                      "alignItems": "center",
+                      "alignSelf": "stretch",
+                      "backgroundColor": "transparent",
+                      "borderColor": "#b7bbc8",
+                      "borderRadius": 16,
+                      "borderWidth": 1,
+                      "flexDirection": "row",
+                      "height": 32,
+                      "justifyContent": "center",
+                      "paddingHorizontal": 16,
+                    }
+                  }
+                  testID="slippage-option-10"
+                >
+                  <Text
+                    accessibilityRole="text"
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
+                        "fontWeight": "500",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    10%
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+          <View
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "flexDirection": "row",
+                "paddingHorizontal": 8,
+                "paddingVertical": 4,
+              }
+            }
+            testID="bottomsheetfooter"
+          >
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessible={true}
+              activeOpacity={1}
+              onPress={[Function]}
+              onPressIn={[Function]}
+              onPressOut={[Function]}
+              style={
+                {
+                  "alignItems": "center",
+                  "alignSelf": "flex-start",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
+                  "borderRadius": 24,
+                  "borderWidth": 1,
+                  "flex": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "justifyContent": "center",
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="bottomsheetfooter-button"
+            >
+              <Text
+                accessibilityRole="text"
+                style={
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 14,
+                    "fontWeight": "500",
+                    "letterSpacing": 0,
+                    "lineHeight": 22,
+                  }
+                }
+              >
+                Apply
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </View>
+  </View>
+</RNCSafeAreaProvider>
+`;

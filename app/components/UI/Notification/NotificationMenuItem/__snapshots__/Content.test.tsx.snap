@@ -1,0 +1,96 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NotificationContent render matches snapshot 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "row",
+        "gap": 8,
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#686e7d",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Welcome to the new Test!
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#9ca1af",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 12,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 20,
+        }
+      }
+    >
+      Yesterday
+    </Text>
+  </View>
+  <View
+    style={
+      {
+        "flex": 1,
+        "flexDirection": "row",
+        "gap": 8,
+        "justifyContent": "space-between",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      We are excited to announce the launch of our brand new website and app!
+    </Text>
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 14,
+          "fontWeight": "400",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Ethereum
+    </Text>
+  </View>
+</View>
+`;

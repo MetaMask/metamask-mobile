@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Tooltip should match snapshot 1`] = `
+<View>
+  <TouchableOpacity
+    accessible={true}
+    activeOpacity={1}
+    disabled={false}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "borderRadius": 8,
+        "height": 24,
+        "justifyContent": "center",
+        "opacity": 1,
+        "width": 24,
+      }
+    }
+    testID="info-row-tooltip-open-btn"
+  >
+    <SvgMock
+      color="#9ca1af"
+      height={16}
+      name="Info"
+      style={
+        {
+          "height": 16,
+          "width": 16,
+        }
+      }
+      width={16}
+    />
+  </TouchableOpacity>
+  <Modal
+    animationType="none"
+    deviceHeight={null}
+    deviceWidth={null}
+    hardwareAccelerated={false}
+    hideModalContentWhileAnimating={false}
+    onBackdropPress={[Function]}
+    onModalHide={[Function]}
+    onModalWillHide={[Function]}
+    onModalWillShow={[Function]}
+    onRequestClose={[Function]}
+    onSwipeComplete={[Function]}
+    panResponderThreshold={4}
+    scrollHorizontal={false}
+    scrollOffset={0}
+    scrollOffsetMax={0}
+    scrollTo={null}
+    statusBarTranslucent={false}
+    supportedOrientations={
+      [
+        "portrait",
+        "landscape",
+      ]
+    }
+    swipeDirection="down"
+    swipeThreshold={100}
+    transparent={true}
+    visible={false}
+  />
+</View>
+`;

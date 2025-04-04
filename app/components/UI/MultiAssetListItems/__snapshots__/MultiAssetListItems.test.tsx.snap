@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MultiAssetListItems render matches previous snapshot 1`] = `
+<View
+  style={
+    {
+      "padding": 0,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+  >
+    We couldn't find any tokens with that name.
+  </Text>
+</View>
+`;

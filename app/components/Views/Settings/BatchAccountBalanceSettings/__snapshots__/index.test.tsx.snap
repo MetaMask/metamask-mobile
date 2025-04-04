@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BatchAccountBalanceSettings should render correctly 1`] = `
+<View
+  style={
+    {
+      "marginTop": 16,
+    }
+  }
+  testID="batch-balance-requests-section"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flexDirection": "row",
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "flex": 1,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
+      }
+    >
+      Batch account balance requests
+    </Text>
+    <View
+      style={
+        {
+          "marginLeft": 16,
+        }
+      }
+    >
+      <RCTSwitch
+        accessibilityRole="switch"
+        onChange={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        onTintColor="#4459ff"
+        style={
+          [
+            {
+              "height": 31,
+              "width": 51,
+            },
+            [
+              {
+                "alignSelf": "flex-start",
+              },
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 16,
+              },
+            ],
+          ]
+        }
+        testID="security-settings-multi-account-balances-switch"
+        thumbTintColor="#ffffff"
+        tintColor="#b7bbc866"
+        value={false}
+      />
+    </View>
+  </View>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+        "marginTop": 8,
+      }
+    }
+  >
+    Get balance updates for all your accounts at once. Turning off this feature means others are less likely to associate one account with another.
+  </Text>
+</View>
+`;
