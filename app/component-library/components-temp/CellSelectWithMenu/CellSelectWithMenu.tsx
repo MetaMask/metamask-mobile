@@ -14,9 +14,7 @@ import { CellSelectWithMenuProps } from './CellSelectWithMenu.types';
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
 import ListItemMultiSelectButton from '../ListItemMultiSelectButton/ListItemMultiSelectButton';
 import Avatar from '../../../component-library/components/Avatars/Avatar';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
+import Text from '../../../component-library/components/Texts/Text';
 import {
   DEFAULT_CELLBASE_AVATAR_SECONDARYTEXT_TEXTVARIANT,
   DEFAULT_CELLBASE_AVATAR_SIZE,
