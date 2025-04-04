@@ -107,6 +107,8 @@ app/components/UI/Stake              @MetaMask/metamask-staking
 app/core/Engine/controllers/earn-controller @MetaMask/metamask-staking
 app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-staking
 app/selectors/earnController         @MetaMask/metamask-staking
+**/Earn/**                           @MetaMask/metamask-staking
+**/earn/**                           @MetaMask/metamask-staking
 
 # Assets Team
 app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
@@ -162,3 +164,9 @@ app/reducers/settings @MetaMask/wallet-ux
 
 # Transactions Team
 app/components/Views/transactions @MetaMask/transactions
+
+# Snapshots – no code owners assigned
+# This allows anyone with write access to approve changes to any *.snap files.
+# ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.
+# ⚠️ Important: This rule must remain at the bottom of the CODEOWNERS file to take precedence over more specific path-based rules.
+**/*.snap

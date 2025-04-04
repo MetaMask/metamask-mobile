@@ -36,10 +36,10 @@ export default async () => {
   const ethQuery = getGlobalEthQuery();
 
   await KeyringController.withKeyring(
-    { type: ExtendedKeyringTypes.hd },
-    async (primaryKeyring) => {
+    { type: ExtendedKeyringTypes.hd, index: 0 },
+    async ({ keyring }) => {
       for (let i = 0; i < MAX; i++) {
-        const [newAccount] = await primaryKeyring.addAccounts(1);
+        const [newAccount] = await keyring.addAccounts(1);
 
         let newAccountBalance = ZERO_BALANCE;
         try {
@@ -52,7 +52,7 @@ export default async () => {
 
         if (newAccountBalance === ZERO_BALANCE) {
           // remove extra zero balance account we just added and break the loop
-          primaryKeyring.removeAccount?.(newAccount);
+          keyring.removeAccount?.(newAccount);
           break;
         }
       }

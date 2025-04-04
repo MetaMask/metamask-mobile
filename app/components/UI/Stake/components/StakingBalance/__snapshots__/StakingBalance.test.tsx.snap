@@ -140,7 +140,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -177,9 +177,9 @@ exports[`StakingBalance render matches snapshot 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -212,8 +212,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#0376C91A",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -233,7 +233,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={24}
           name="Info"
           style={
@@ -256,8 +256,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -273,8 +273,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
     <View
       style={
         {
-          "backgroundColor": "#1C82341A",
-          "borderColor": "#1c8234",
+          "backgroundColor": "#1c7e331a",
+          "borderColor": "#1c7e33",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -294,7 +294,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
         }
       >
         <SvgMock
-          color="#1c8234"
+          color="#1c7e33"
           height={24}
           name="Confirmation"
           style={
@@ -317,8 +317,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -340,8 +340,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -355,8 +355,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -396,7 +396,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "flex": 1,
@@ -412,8 +412,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -436,7 +436,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "flex": 1,
@@ -452,8 +452,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -609,7 +609,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -646,9 +646,9 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 16,
           "fontWeight": "500",
           "justifyContent": "center",
@@ -681,8 +681,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#0376C91A",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -702,7 +702,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         }
       >
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={24}
           name="Info"
           style={
@@ -725,8 +725,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -742,8 +742,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
     <View
       style={
         {
-          "backgroundColor": "#1C82341A",
-          "borderColor": "#1c8234",
+          "backgroundColor": "#1c7e331a",
+          "borderColor": "#1c7e33",
           "borderLeftWidth": 4,
           "borderRadius": 4,
           "flexDirection": "row",
@@ -763,7 +763,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
         }
       >
         <SvgMock
-          color="#1c8234"
+          color="#1c7e33"
           height={24}
           name="Confirmation"
           style={
@@ -786,8 +786,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -809,8 +809,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             {
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -824,8 +824,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             accessibilityRole="text"
             style={
               {
-                "color": "#0376c9",
-                "fontFamily": "EuclidCircularB-Medium",
+                "color": "#4459ff",
+                "fontFamily": "CentraNo1-Medium",
                 "fontSize": 14,
                 "fontWeight": "500",
                 "letterSpacing": 0,
@@ -865,7 +865,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "flex": 1,
@@ -881,8 +881,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,
@@ -905,7 +905,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             "alignItems": "center",
             "alignSelf": "flex-start",
             "backgroundColor": "transparent",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "flex": 1,
@@ -921,8 +921,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
               "fontSize": 14,
               "fontWeight": "500",
               "letterSpacing": 0,

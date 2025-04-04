@@ -417,7 +417,7 @@
       "subtitle": "Available in select regions"
     },
     "fund": {
-      "title": "Fund your wallet", 
+      "title": "Fund your wallet",
       "subtitle": "Add or transfer tokens to get started"
     },
     "cashout": {
@@ -972,6 +972,7 @@
     "remove_network": "Remove",
     "cancel_remove_network": "Cancel",
     "info_title": "About MetaMask",
+    "info_title_beta": "About MetaMask Beta",
     "info_title_flask": "About MetaMask Flask",
     "experimental_title": "Experimental",
     "experimental_desc": "WalletConnect & more...",
@@ -2047,12 +2048,13 @@
     "error_empty_message":"You need to enter your secret recovery phrase.",
     "error_number_of_words_error_message": "Secret Recovery Phrases contain 12, or 24 words",
     "error_srp_is_case_sensitive":"Invalid input! Secret Recovery Phrase is case sensitive.",
-    "error_srp_word_error_1": "Word ", 
+    "error_srp_word_error_1": "Word ",
     "error_srp_word_error_2": " is incorrect or misspelled.",
     "error_multiple_srp_word_error_1": "Word ",
     "error_multiple_srp_word_error_2": " and ",
     "error_multiple_srp_word_error_3": " are incorrect or misspelled.",
     "error_invalid_srp": "Invalid Secret Recovery Phrase",
+    "error_duplicate_srp": "This Secret Recovery Phrase has already been imported.",
     "success_1": "Secret Recovery Phrase",
     "success_2": "imported"
 
@@ -3482,6 +3484,18 @@
     "show_display_nft_media_content_4": "You can turn off Display NFT media in",
     "show_display_nft_media_content_5": "Settings > Security and privacy."
   },
+  "solana_new_feature_content": {
+    "title": "Solana on MetaMask",
+    "create_solana_account": "Create Solana account",
+    "not_now": "Not now",
+    "got_it": "Got it",
+    "feature_1_title": "Send, receive, and swap tokens",
+    "feature_1_description": "Transfer and transact with tokens such as SOL, USDC, and more.",
+    "feature_2_title": "Import Solana accounts",
+    "feature_2_description": "Import a Secret Recovery Phrase to migrate your Solana account from an other wallet.",
+    "feature_3_title": "More features coming soon",
+    "feature_3_description": "Solana dapps, NFTs, hardware wallet support, and more coming soon."
+  },
   "ipfs_gateway_banner": {
     "ipfs_gateway_banner_title": "IPFS gateway",
     "ipfs_gateway_banner_content1": "This is an IPFS website. to see this site, you need to turn on",
@@ -3542,8 +3556,10 @@
     "enter_amount": "Enter amount",
     "review": "Review",
     "not_enough_eth": "Not enough ETH",
+    "not_enough_token": "Not enough {{ticker}}",
     "balance": "Balance",
     "stake_eth_and_earn": "Stake ETH and earn",
+    "how_it_works": "How it works",
     "stake_any_amount_of_eth": "Stake any amount of ETH.",
     "no_minimum_required": "No minimum required.",
     "earn_eth_rewards": "Earn ETH rewards.",
@@ -3604,7 +3620,9 @@
     "claiming_to": "Claiming to",
     "max_modal": {
       "title": "Max",
-      "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      "eth": {
+        "description": "Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions."
+      }
     },
     "use_max": "Use max",
     "estimated_unstaking_time": "1 to 11 days",
@@ -3814,8 +3832,18 @@
     "one_network": "1 network",
     "select_all_networks": "Select all",
     "deselect_all_networks": "Deselect all",
-    "slippage": "Slippage",
+    "see_all": "See all",
     "apply": "Apply",
-    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+    "slippage": "Slippage",
+    "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
+    "network_fee": "Network Fee",
+    "estimated_time": "Estimated Time",
+    "quote": "Quote",
+    "quote_details": "Quote Details",
+    "price_impact": "Price Impact",
+    "time": "Time",
+    "quote_info_content": "This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
+    "quote_info_title": "Why we recommend this quote",
+    "see_other_quotes": "See other quotes"
   }
 }

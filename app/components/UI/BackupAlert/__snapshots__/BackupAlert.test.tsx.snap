@@ -14,7 +14,7 @@ exports[`BackupAlert should render correctly 1`] = `
       [
         {
           "backgroundColor": "#ffffff",
-          "borderColor": "#bf5208",
+          "borderColor": "#9a6300",
           "borderRadius": 8,
           "borderWidth": 1,
           "left": 16,
@@ -31,7 +31,7 @@ exports[`BackupAlert should render correctly 1`] = `
   <View
     style={
       {
-        "backgroundColor": "#BF52081A",
+        "backgroundColor": "#9a63001a",
         "flex": 1,
         "padding": 14,
       }
@@ -53,7 +53,7 @@ exports[`BackupAlert should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#141618"
+          color="#121314"
           height={20}
           name="Notification"
           style={
@@ -76,8 +76,8 @@ exports[`BackupAlert should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 14,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -105,9 +105,9 @@ exports[`BackupAlert should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontSize": 14,
                   "fontWeight": "700",
                   "letterSpacing": 0,
@@ -132,9 +132,9 @@ exports[`BackupAlert should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,

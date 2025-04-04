@@ -4,7 +4,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 8,
       "flexDirection": "row",
       "gap": 8,
@@ -25,8 +25,8 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 18,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -40,8 +40,8 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 32,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -64,8 +64,8 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -79,7 +79,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         onPress={[MockFunction]}
       >
         <SvgMock
-          color="#6a737d"
+          color="#686e7d"
           height={16}
           name="Info"
           style={
@@ -112,7 +112,7 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -126,8 +126,8 @@ exports[`UpsellBanner UpsellBannerBody variant render matches screenshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -147,7 +147,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
   style={
     {
       "alignItems": "center",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 8,
       "gap": 8,
       "paddingHorizontal": 16,
@@ -159,8 +159,8 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -174,8 +174,8 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#1c8234",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#1c7e33",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 32,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -189,8 +189,8 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
-        "fontFamily": "EuclidCircularB-Regular",
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "letterSpacing": 0,
@@ -212,7 +212,7 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
         "alignItems": "center",
         "alignSelf": "flex-start",
         "backgroundColor": "transparent",
-        "borderColor": "#0376c9",
+        "borderColor": "#4459ff",
         "borderRadius": 20,
         "borderWidth": 1,
         "flexDirection": "row",
@@ -226,8 +226,8 @@ exports[`UpsellBanner UpsellBannerHeader variant render matches screenshot 1`] =
       accessibilityRole="text"
       style={
         {
-          "color": "#0376c9",
-          "fontFamily": "EuclidCircularB-Medium",
+          "color": "#4459ff",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,

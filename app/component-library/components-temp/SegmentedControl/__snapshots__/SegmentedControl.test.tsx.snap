@@ -36,8 +36,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376C91A",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -51,8 +51,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -83,7 +83,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -97,8 +97,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -128,8 +128,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376C91A",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -143,8 +143,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -175,7 +175,7 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -189,8 +189,8 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -236,8 +236,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#0376C91A",
-          "borderColor": "#0376c9",
+          "backgroundColor": "#4459ff1a",
+          "borderColor": "#4459ff",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -251,8 +251,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -283,7 +283,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -297,8 +297,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -329,7 +329,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -343,8 +343,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,
@@ -375,7 +375,7 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#848c96",
+          "borderColor": "#b7bbc8",
           "borderRadius": 20,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -389,8 +389,8 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
             "fontSize": 14,
             "fontWeight": "500",
             "letterSpacing": 0,

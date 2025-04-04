@@ -1,0 +1,635 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ActivityView should render correctly 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 16,
+                  "opacity": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                activeOpacity={0.2}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 14,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 22,
+                    }
+                  }
+                >
+                  Transactions
+                </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 12,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 20,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                    "marginBottom": 12,
+                    "marginLeft": 0,
+                    "marginRight": 16,
+                    "marginTop": 12,
+                  }
+                }
+                testID="navbar-account-button"
+              >
+                <TextInput
+                  style={
+                    {
+                      "height": 0,
+                      "paddingVertical": 0,
+                      "width": 0,
+                    }
+                  }
+                />
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "backgroundColor": "#ffffff",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "overflow": "hidden",
+                      "width": 32,
+                    }
+                  }
+                >
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={1}
+                    style={
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
+                    }
+                    testID="network-avatar-image"
+                  />
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      style={
+                        [
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flexDirection": "row",
+                            "paddingHorizontal": 16,
+                          },
+                          {
+                            "marginTop": 0,
+                          },
+                        ]
+                      }
+                    >
+                      <Text
+                        style={
+                          {
+                            "color": "#121314",
+                            "fontSize": 20,
+                            "marginTop": 20,
+                          }
+                        }
+                        variant="sHeadingSM"
+                      >
+                        Transactions
+                      </Text>
+                    </View>
+                    <View
+                      style={
+                        {
+                          "flex": 1,
+                        }
+                      }
+                    >
+                      <View
+                        style={
+                          {
+                            "flexDirection": "row",
+                            "justifyContent": "space-between",
+                            "paddingHorizontal": 8,
+                            "paddingVertical": 16,
+                            "width": "100%",
+                          }
+                        }
+                      >
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessible={true}
+                          activeOpacity={1}
+                          disabled={false}
+                          onPress={[Function]}
+                          style={
+                            {
+                              "alignItems": "center",
+                              "alignSelf": "flex-start",
+                              "backgroundColor": "#ffffff",
+                              "borderColor": "#b7bbc866",
+                              "borderRadius": 20,
+                              "borderStyle": "solid",
+                              "borderWidth": 1,
+                              "flexDirection": "row",
+                              "height": 40,
+                              "justifyContent": "center",
+                              "marginLeft": 5,
+                              "marginRight": 5,
+                              "maxWidth": "60%",
+                              "paddingHorizontal": 16,
+                            }
+                          }
+                          testID="token-network-filter"
+                        >
+                          <Text
+                            numberOfLines={1}
+                            style={
+                              {
+                                "color": "#121314",
+                              }
+                            }
+                          >
+                            Ethereum Main Network
+                          </Text>
+                          <SvgMock
+                            color="#121314"
+                            height={16}
+                            name="ArrowDown"
+                            style={
+                              {
+                                "height": 16,
+                                "marginLeft": 8,
+                                "width": 16,
+                              }
+                            }
+                            width={16}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          [
+                            {
+                              "flex": 1,
+                            },
+                            undefined,
+                          ]
+                        }
+                      >
+                        <View
+                          activeTab={0}
+                          containerWidth={750}
+                          goToPage={[Function]}
+                          scrollValue={0}
+                          tabs={
+                            [
+                              "Transactions",
+                            ]
+                          }
+                        />
+                        <RCTScrollView
+                          alwaysBounceVertical={false}
+                          automaticallyAdjustContentInsets={false}
+                          collapsable={false}
+                          contentOffset={
+                            {
+                              "x": 0,
+                            }
+                          }
+                          directionalLockEnabled={true}
+                          horizontal={true}
+                          keyboardDismissMode="on-drag"
+                          onMomentumScrollBegin={[Function]}
+                          onMomentumScrollEnd={[Function]}
+                          onScroll={[Function]}
+                          pagingEnabled={true}
+                          scrollEnabled={false}
+                          scrollEventThrottle={16}
+                          scrollsToTop={false}
+                          showsHorizontalScrollIndicator={false}
+                          style={{}}
+                        >
+                          <View>
+                            <View
+                              style={
+                                {
+                                  "width": 750,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "flex": 1,
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "flex": 1,
+                                    }
+                                  }
+                                >
+                                  <View
+                                    style={
+                                      {
+                                        "alignItems": "center",
+                                        "justifyContent": "center",
+                                        "paddingBottom": 24,
+                                      }
+                                    }
+                                  >
+                                    <ActivityIndicator
+                                      size="small"
+                                      style={
+                                        {
+                                          "alignSelf": "center",
+                                        }
+                                      }
+                                    />
+                                  </View>
+                                </View>
+                                <Modal
+                                  animationType="none"
+                                  deviceHeight={null}
+                                  deviceWidth={null}
+                                  hardwareAccelerated={false}
+                                  hideModalContentWhileAnimating={false}
+                                  onBackdropPress={[Function]}
+                                  onModalHide={[Function]}
+                                  onModalWillHide={[Function]}
+                                  onModalWillShow={[Function]}
+                                  onRequestClose={[Function]}
+                                  onSwipeComplete={[Function]}
+                                  panResponderThreshold={4}
+                                  scrollHorizontal={false}
+                                  scrollOffset={0}
+                                  scrollOffsetMax={0}
+                                  scrollTo={null}
+                                  statusBarTranslucent={false}
+                                  supportedOrientations={
+                                    [
+                                      "portrait",
+                                      "landscape",
+                                    ]
+                                  }
+                                  swipeDirection="down"
+                                  swipeThreshold={100}
+                                  transparent={true}
+                                  visible={false}
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </RCTScrollView>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;

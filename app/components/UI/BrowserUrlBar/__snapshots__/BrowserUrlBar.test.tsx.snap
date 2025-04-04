@@ -13,7 +13,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f2f4f6",
+        "backgroundColor": "#f3f5f9",
         "borderRadius": 999,
         "flex": 1,
         "flexDirection": "row",
@@ -40,12 +40,12 @@ exports[`BrowserUrlBar should render correctly 1`] = `
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by site or address"
-        placeholderTextColor="#9fa6ae"
+        placeholderTextColor="#9ca1af"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -89,7 +89,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
       testID="url-clear-icon"
     >
       <SvgMock
-        color="#6a737d"
+        color="#686e7d"
         height={20}
         name="CircleX"
         style={
@@ -132,7 +132,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
+            "color": "#4459ff",
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
             "fontWeight": "400",
@@ -171,7 +171,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
     testID="url-input"
   >
     <SvgMock
-      color="#6a737d"
+      color="#686e7d"
       height={16}
       name="Lock"
       style={
@@ -201,12 +201,12 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
         onFocus={[Function]}
         onSubmitEditing={[Function]}
         placeholder="Search by site or address"
-        placeholderTextColor="#9fa6ae"
+        placeholderTextColor="#9ca1af"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           {
-            "color": "#141618",
+            "color": "#121314",
             "flex": 1,
             "fontFamily": "EuclidCircularB-Regular",
             "fontSize": 14,
@@ -315,14 +315,14 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
                   "borderColor": "#ffffff",
                   "borderRadius": 16,
                   "borderWidth": 2,
                   "height": 32,
                   "justifyContent": "center",
                   "overflow": "hidden",
-                  "shadowColor": "#0000001A",
+                  "shadowColor": "#0000001a",
                   "shadowOffset": {
                     "height": 2,
                     "width": 0,
@@ -342,8 +342,8 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,

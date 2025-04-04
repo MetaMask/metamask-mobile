@@ -1,12 +1,22 @@
-import { renderScreen, DeepPartial } from '../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import BridgeView from '../Bridge';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { BridgeState } from '../../../core/redux/slices/bridge';
+import {
+  BridgeState,
+  setDestToken,
+  setSourceToken,
+} from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
 // TODO remove this mock once we have a real implementation
@@ -22,11 +32,39 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../core/redux/slices/bridge', () => {
+  const actualBridgeSlice = jest.requireActual(
+    '../../../core/redux/slices/bridge',
+  );
+  return {
+    __esModule: true,
+    ...actualBridgeSlice,
+    default: actualBridgeSlice.default,
+    setSourceToken: jest.fn(actualBridgeSlice.setSourceToken),
+    setDestToken: jest.fn(actualBridgeSlice.setDestToken),
+  };
+});
+
+// const mockSubmitBridgeTx = jest.fn();
+// jest.mock('../../../util/bridge/hooks/useSubmitBridgeTx', () => ({
+//   __esModule: true,
+//   default: () => ({
+//     submitBridgeTx: mockSubmitBridgeTx,
+//   }),
+// }));
+
 const mockInitialState: DeepPartial<RootState> = {
   engine: {
     backgroundState: {
       ...backgroundState,
     },
+  },
+  bridge: {
+    sourceAmount: undefined,
+    destAmount: undefined,
+    sourceToken: undefined,
+    destToken: undefined,
+    selectedSourceChainIds: undefined,
   },
 };
 
@@ -43,11 +81,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock useLatestBalance hook
-jest.mock('./useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({
-    address,
-    chainId,
-  }) => {
+jest.mock('./hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
     if (!address || !chainId) return undefined;
 
     // Need to do this due to this error: "The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.""
@@ -75,8 +110,14 @@ describe('BridgeView', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDst: true },
-                '0xa': { isActiveSrc: true, isActiveDst: true },
+                [formatChainIdToCaip(mockChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
+                [formatChainIdToCaip(optimismChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
               },
             },
           },
@@ -352,7 +393,7 @@ describe('BridgeView', () => {
       destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
-      destChainId: undefined,
+      selectedDestChainId: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
     } as BridgeState,
   };
@@ -365,7 +406,7 @@ describe('BridgeView', () => {
     const { getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: mockInitialState },
     );
@@ -376,7 +417,7 @@ describe('BridgeView', () => {
     const { findByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
@@ -387,8 +428,8 @@ describe('BridgeView', () => {
     fireEvent.press(tokenButton);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -397,7 +438,7 @@ describe('BridgeView', () => {
     const { getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
@@ -409,8 +450,8 @@ describe('BridgeView', () => {
     fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.BRIDGE_TOKEN_SELECTOR,
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {},
     });
   });
@@ -419,12 +460,12 @@ describe('BridgeView', () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: initialState },
     );
 
-    // Press number buttons to input 1.5
+    // Press number buttons to input
     fireEvent.press(getByText('9'));
     fireEvent.press(getByText('.'));
     fireEvent.press(getByText('5'));
@@ -449,7 +490,7 @@ describe('BridgeView', () => {
     const { getByText, getByTestId } = renderScreen(
       BridgeView,
       {
-        name: Routes.BRIDGE,
+        name: Routes.BRIDGE.ROOT,
       },
       { state: stateWithAmount },
     );
@@ -470,12 +511,69 @@ describe('BridgeView', () => {
     });
   });
 
+  it('should switch tokens when clicking arrow button', () => {
+    const initialStateWithTokens = {
+      ...initialState,
+      bridge: {
+        ...initialState.bridge,
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000000',
+          aggregators: [],
+          balance: '0.31281',
+          balanceFiat: '930.56676 cad',
+          chainId: '0x1',
+          decimals: 18,
+          image: '',
+          isETH: true,
+          isNative: true,
+          isStaked: false,
+          logo: '../images/eth-logo-new.png',
+          name: 'Ethereum',
+          symbol: 'ETH',
+          ticker: 'ETH',
+        },
+        destToken: {
+          address: token2Address,
+          aggregators: [],
+          balance: '7.75388',
+          balanceFiat: '11.07915 cad',
+          chainId: '0x1',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          isETH: false,
+          isNative: false,
+          isStaked: false,
+          symbol: 'USDC',
+        },
+      },
+    };
+
+    const { getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: initialStateWithTokens },
+    );
+
+    const arrowButton = getByTestId('arrow-button');
+    fireEvent.press(arrowButton);
+
+    expect(setSourceToken).toHaveBeenCalledWith(
+      initialStateWithTokens.bridge.destToken,
+    );
+    expect(setDestToken).toHaveBeenCalledWith(
+      initialStateWithTokens.bridge.sourceToken,
+    );
+  });
+
   describe('Bottom Content', () => {
     it('should show "Select amount" when no amount is entered', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: initialState },
       );
@@ -495,7 +593,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithZeroAmount },
       );
@@ -515,7 +613,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithHighAmount },
       );
@@ -535,7 +633,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithValidAmount },
       );
@@ -544,26 +642,38 @@ describe('BridgeView', () => {
       expect(getByText('Terms & Conditions')).toBeTruthy();
     });
 
-    // TODO: Add expectations once Continue button is implemented
-    it('should handle Continue button press', () => {
-      const stateWithValidAmount = {
-        ...initialState,
-        bridge: {
-          ...initialState.bridge,
-          sourceAmount: '1.0',
-        },
-      };
-
+    it('should handle Continue button press', async () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
-        { state: stateWithValidAmount },
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              sourceAmount: '1.0',
+              destToken: {
+                address: token2Address,
+                symbol: 'TOKEN2',
+                decimals: 18,
+                image: 'https://token2.com/logo.png',
+                name: 'Token Two',
+                chainId: optimismChainId,
+              },
+              selectedDestChainId: optimismChainId,
+              selectedSourceChainIds: [mockChainId, optimismChainId],
+            },
+          },
+        },
       );
 
       const continueButton = getByText('Continue');
       fireEvent.press(continueButton);
+
+      // TODO: Add expectations once quote response is implemented
+      // expect(mockSubmitBridgeTx).toHaveBeenCalled();
     });
 
     it('should handle Terms & Conditions press', () => {
@@ -578,7 +688,7 @@ describe('BridgeView', () => {
       const { getByText } = renderScreen(
         BridgeView,
         {
-          name: Routes.BRIDGE,
+          name: Routes.BRIDGE.ROOT,
         },
         { state: stateWithValidAmount },
       );

@@ -21,8 +21,8 @@ exports[`DefaultSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -36,8 +36,8 @@ exports[`DefaultSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
@@ -83,8 +83,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -98,8 +98,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -128,7 +128,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -177,8 +177,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -192,8 +192,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -222,7 +222,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={
@@ -271,8 +271,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Medium",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Medium",
                   "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
@@ -286,8 +286,8 @@ exports[`DefaultSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -316,7 +316,7 @@ exports[`DefaultSettings should render correctly 1`] = `
             testID="listitemcolumn"
           >
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="ArrowRight"
               style={

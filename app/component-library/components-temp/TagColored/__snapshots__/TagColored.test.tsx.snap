@@ -6,7 +6,7 @@ exports[`TagColored should render TagColored 1`] = `
     {
       "alignItems": "center",
       "alignSelf": "flex-start",
-      "backgroundColor": "#f2f4f6",
+      "backgroundColor": "#f3f5f9",
       "borderRadius": 4,
       "height": 20,
       "justifyContent": "center",
@@ -19,8 +19,8 @@ exports[`TagColored should render TagColored 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#686e7d",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 10,
         "fontWeight": "bold",
         "letterSpacing": 0.25,

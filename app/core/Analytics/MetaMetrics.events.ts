@@ -70,6 +70,10 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
+  // Phishing
+  PHISHING_PAGE_DISPLAYED = 'Phishing Page Displayed',
+  PROCEED_ANYWAY_CLICKED = 'Proceed Anyway Clicked',
+
   // Wallet
   WALLET_OPENED = 'Wallet Opened',
   TOKEN_ADDED = 'Token Added',
@@ -393,10 +397,6 @@ enum EVENT_NAME {
   // Smart transactions
   SMART_TRANSACTION_OPT_IN = 'Smart Transaction Opt In',
 
-  // Transactions
-  // Fired when the transaction reaches a final state (e.g., CONFIRMED, FAILED, DROPPED).
-  TRANSACTION_FINALIZED = 'Transaction Finalized',
-
   // Simulations
   INCOMPLETE_ASSET_DISPLAYED = 'Incomplete Asset Displayed',
 
@@ -492,6 +492,11 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
+  
+  // Phishing events
+  PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
+  PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
+  
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -893,8 +898,6 @@ const events = {
   INCOMPLETE_ASSET_DISPLAYED: generateOpt(
     EVENT_NAME.INCOMPLETE_ASSET_DISPLAYED,
   ),
-  // Transactions
-  TRANSACTION_FINALIZED: generateOpt(EVENT_NAME.TRANSACTION_FINALIZED),
   // Nft auto detection modal
   NFT_AUTO_DETECTION_MODAL_ENABLE: generateOpt(
     EVENT_NAME.NFT_AUTO_DETECTION_ENABLED_MODAL,
