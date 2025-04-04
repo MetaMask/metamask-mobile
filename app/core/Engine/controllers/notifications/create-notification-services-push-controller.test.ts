@@ -9,6 +9,7 @@ import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenge
 import { createNotificationServicesPushController } from './create-notification-services-push-controller';
 // eslint-disable-next-line import/no-namespace
 import * as PushUtilsModule from './push-utils';
+import { getNotificationServicesPushControllerMessenger } from '../../messengers/notifications/notification-services-push-controller-messenger';
 
 jest.mock('@metamask/notification-services-controller/push-services');
 
@@ -37,11 +38,7 @@ describe('Notification Services Controller', () => {
   const arrange = () => {
     const globalMessenger = new ExtendedControllerMessenger();
     const messenger: NotificationServicesPushControllerMessenger =
-      globalMessenger.getRestricted({
-        name: 'NotificationServicesPushController',
-        allowedActions: ['AuthenticationController:getBearerToken'],
-        allowedEvents: [],
-      });
+      getNotificationServicesPushControllerMessenger(globalMessenger);
 
     const mockConstructor = jest.spyOn(
       NotificationServicesPushController.prototype,
