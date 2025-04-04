@@ -7,15 +7,26 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 
 const mockedNavigate = jest.fn();
 
+// Mock React Navigation
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
       goBack: mockedNavigate,
+      navigate: mockedNavigate,
     }),
   };
 });
+
+// Mock React Native Linking
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  openURL: jest.fn(),
+  canOpenURL: jest.fn(),
+  getInitialURL: jest.fn(),
+}));
 
 const mockInitialState = {
   wizard: {
