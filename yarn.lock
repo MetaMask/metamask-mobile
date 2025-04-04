@@ -5864,10 +5864,10 @@
     bn.js "^5.2.1"
     human-standard-token-abi "^2.0.0"
 
-"@metamask/test-dapp@^9.0.0":
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.0.0.tgz#ff97c2f3439113588017345b688294f6e67d8a23"
-  integrity sha512-ZB62icsFJ6qhJOcUL+hrCURydV99D2F9fLk1wvCu9XAPVzP6PbEKC52CqSJZh/sErbcpBsYUiP3xgt0h7pR8Ng==
+"@metamask/test-dapp@^9.2.0":
+  version "9.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/test-dapp/-/test-dapp-9.2.0.tgz#ee3a5a6466530dc266b5bdb1bd226393148329eb"
+  integrity sha512-aMyctMgT8HdHCx7/9SqPfxW4PVKdEh2TtbjiE+fL6nfGv2U0ZnlZdT0OcaC3mEY/qzktip1UnBPmN9/Y5onThA==
 
 "@metamask/token-search-discovery-controller@^2.1.0":
   version "2.1.0"

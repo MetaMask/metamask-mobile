@@ -411,7 +411,7 @@
     "@metamask/mobile-provider": "^3.0.0",
     "@metamask/object-multiplex": "^1.1.0",
     "@metamask/providers": "^18.3.1",
-    "@metamask/test-dapp": "^9.0.0",
+    "@metamask/test-dapp": "^9.2.0",
     "@octokit/rest": "^21.0.0",
     "@open-rpc/mock-server": "^1.7.5",
     "@open-rpc/schema-utils-js": "^1.16.2",
