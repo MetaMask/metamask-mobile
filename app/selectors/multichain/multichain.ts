@@ -261,10 +261,7 @@ export const selectMultichainTokenList = createDeepEqualSelector(
   (state: RootState) => state,
   selectSelectedInternalAccount,
   (state, selectedAccount) => {
-    return selectMultichainTokenListForAccountId(
-      state,
-      selectedAccount?.id,
-    );
+    return selectMultichainTokenListForAccountId(state, selectedAccount?.id);
   },
 );
 
