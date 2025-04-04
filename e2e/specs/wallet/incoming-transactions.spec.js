@@ -1,4 +1,5 @@
 'use strict';
+import { TransactionType } from '@metamask/transaction-controller';
 import { SmokeCore } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
@@ -180,6 +181,7 @@ describe(SmokeCore('Incoming Transactions'), () => {
               txParams: {
                 from: RESPONSE_STANDARD_MOCK.from,
               },
+              type: TransactionType.incoming,
             },
           ])
           .build(),
