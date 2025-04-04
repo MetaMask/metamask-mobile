@@ -27,6 +27,7 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
+  getNonEvmNetworkImageSourceByChainId,
 } from './customNetworks';
 import { strings } from '../../../locales/i18n';
 import {
@@ -51,6 +52,7 @@ import {
 } from '../../selectors/multichainNetworkController';
 import { formatBlockExplorerAddressUrl } from '../../core/Multichain/networks';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { isCaipChainId } from '@metamask/utils';
 
 /**
  * List of the supported networks
@@ -468,6 +470,7 @@ export const getNetworkNameFromProviderConfig = (providerConfig) => {
  *
  * @param {object} params - Params that contains information about the network.
  * @param {string} params.networkType - Type of network from the provider.
+ * @param {string} params?.networkType - Type of network from the provider.
  * @param {string} params.chainId - ChainID of the network.
  * @returns {Object} - Image source of the network.
  */
@@ -495,6 +498,11 @@ export const getNetworkImageSource = ({ networkType, chainId }) => {
   if (customNetworkImg) {
     return customNetworkImg;
   }
+
+  if (isCaipChainId(chainId)) {
+    return getNonEvmNetworkImageSourceByChainId(chainId);
+  }
+
   return getTestNetImage(networkType);
 };
 

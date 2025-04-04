@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import useTokenBalancesController from '../../../../hooks/useTokenBalancesController/useTokenBalancesController';
@@ -47,6 +47,7 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
+  getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
@@ -61,7 +62,6 @@ interface TokenListItemProps {
   setShowScamWarningModal: (arg: boolean) => void;
   privacyMode: boolean;
   showPercentageChange?: boolean;
-  showNetworkBadge?: boolean;
 }
 
 export const TokenListItem = React.memo(
@@ -72,7 +72,6 @@ export const TokenListItem = React.memo(
     setShowScamWarningModal,
     privacyMode,
     showPercentageChange = true,
-    showNetworkBadge = true,
   }: TokenListItemProps) => {
     const { trackEvent, createEventBuilder } = useMetrics();
     const navigation = useNavigation();
@@ -239,6 +238,9 @@ export const TokenListItem = React.memo(
       if (network) {
         return network.rpcPrefs.imageSource;
       }
+      if (isCaipChainId(chainId)) {
+        return getNonEvmNetworkImageSourceByChainId(chainId);
+      }
       if (customNetworkImg) {
         return customNetworkImg;
       }
@@ -258,9 +260,9 @@ export const TokenListItem = React.memo(
 
       // token details only currently supported for evm
       // TODO: Remove this when shipping multichain token details feature
-      if (!isEvmNetworkSelected) {
-        return;
-      }
+      // if (!isEvmNetworkSelected) {
+      //   return;
+      // }
 
       // if the asset is staked, navigate to the native asset details
       if (asset.isStaked) {
@@ -314,21 +316,17 @@ export const TokenListItem = React.memo(
         secondaryBalance={secondaryBalance}
         privacyMode={privacyMode}
       >
-        {showNetworkBadge ? (
-          <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={networkBadgeSource(chainId as Hex)}
-              />
-            }
-          >
-            {renderNetworkAvatar()}
-          </BadgeWrapper>
-        ) : (
-          renderNetworkAvatar()
-        )}
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          badgeElement={
+            <Badge
+              variant={BadgeVariant.Network}
+              imageSource={networkBadgeSource(chainId as Hex)}
+            />
+          }
+        >
+          {renderNetworkAvatar()}
+        </BadgeWrapper>
         <View style={styles.balances}>
           {/*
            * The name of the token must callback to the symbol

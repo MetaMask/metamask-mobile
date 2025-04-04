@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
-import { Hex } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
@@ -30,6 +30,7 @@ import {
   PopularList,
   UnpopularNetworkList,
   CustomNetworkImgMapping,
+  getNonEvmNetworkImageSourceByChainId,
 } from '../../../../util/networks/customNetworks';
 import { RootState } from '../../../../reducers';
 
@@ -65,6 +66,11 @@ export const NetworkBadgeSource = (chainId: Hex) => {
   if (network) {
     return network.rpcPrefs.imageSource;
   }
+
+  if (isCaipChainId(chainId)) {
+    return getNonEvmNetworkImageSourceByChainId(chainId);
+  }
+
   if (customNetworkImg) {
     return customNetworkImg;
   }
@@ -78,6 +84,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   );
 
   const tokenChainId = asset.chainId;
+
+  console.log(asset.chainId);
 
   const renderNetworkAvatar = useCallback(() => {
     if (asset.isNative) {
