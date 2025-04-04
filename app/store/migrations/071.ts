@@ -7,8 +7,8 @@ const VERSION = 71;
 
 // Chains supported by Infura that are either built in or featured,
 // mapped to their corresponding failover URLs.
-// Copied from `FEATURED_RPCS` in shared/constants/network.ts:
-// <https://github.com/MetaMask/metamask-extension/blob/f28216fad810d138dab8577fe9bdb39f5b6d18d8/shared/constants/network.ts#L1051>
+// Copied from `PopularList` in app/util/networks/customNetworks.ts:
+// <https://github.com/MetaMask/metamask-mobile/blob/c29c22bf2ad62171c4cad3b4156500a1347aa7dc/app/util/networks/customNetworks.tsx#L12>
 export const INFURA_CHAINS_WITH_FAILOVERS: Map<
   Hex,
   { subdomain: string; getFailoverUrl: () => string | undefined }
