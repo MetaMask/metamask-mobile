@@ -1,7 +1,13 @@
 const onlyKeepHost = (url: string) => {
-  if (!url) return url;
-  const parsedUrl = new URL(url);
-  return parsedUrl.host;
+  if (!url) {
+    return url;
+  }
+
+  try {
+    return new URL(url).host;
+  } catch (error) {
+    return url;
+  }
 };
 
 export default onlyKeepHost;

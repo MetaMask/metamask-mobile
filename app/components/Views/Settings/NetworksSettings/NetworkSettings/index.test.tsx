@@ -1156,7 +1156,7 @@ describe('NetworkSettings', () => {
       // Assert that state was updated
       expect(wrapper.state('rpcUrl')).toBe('https://example.com');
       expect(wrapper.state('validatedRpcURL')).toBe(false);
-      expect(wrapper.state('rpcName')).toBe('Test Network');
+      expect(wrapper.state('rpcName')).toBe('Custom');
       expect(wrapper.state('warningRpcUrl')).toBeUndefined();
       expect(wrapper.state('warningChainId')).toBeUndefined();
       expect(wrapper.state('warningSymbol')).toBeUndefined();
@@ -1174,6 +1174,7 @@ describe('NetworkSettings', () => {
 
       await instance.onRpcUrlChangeWithName(
         'https://example.com',
+        [],
         null,
         'Custom',
       );

@@ -22,4 +22,8 @@ describe('stripProtocol', () => {
   it('returns a URL fragment without a path if it is just a slash', () => {
     expect(stripProtocol('http://foo.com/')).toBe('foo.com');
   });
+
+  it('returns an invalid URL unchanged', () => {
+    expect(stripProtocol('invalid URL')).toStrictEqual('invalid URL');
+  });
 });

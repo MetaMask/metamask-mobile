@@ -8,4 +8,8 @@ describe('onlyKeepHost', () => {
   it('preserves subdomains', () => {
     expect(onlyKeepHost('http://foo.bar.com/baz')).toStrictEqual('foo.bar.com');
   });
+
+  it('returns an invalid URL unchanged', () => {
+    expect(onlyKeepHost('invalid URL')).toStrictEqual('invalid URL');
+  });
 });
