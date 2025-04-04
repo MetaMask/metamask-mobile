@@ -5396,15 +5396,15 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/selected-network-controller@^21.0.0":
-  version "21.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-21.0.0.tgz#d1972a2af8a241497c490c32efb1dabd39e75c52"
-  integrity sha512-U+o+R8vtKKtFSWGxY/YSBU1AOq229OsER4l7HKWv1mcGQJoWUprenqiuQZtH30KZ0iRRjP+FCG2oLRHk/FWhUg==
+"@metamask/selected-network-controller@^22.0.0":
+  version "22.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/selected-network-controller/-/selected-network-controller-22.0.0.tgz#6b6490e2246cf07bad9400638acea28330d2bbf9"
+  integrity sha512-IxVHwzZO7CUsDptrlBKXepqZnZkNTuD9ckL9DTb41pCN53bTxxfNXukIvie3JROR6F4WEd2ijoSm2S/rWNNVRg==
   dependencies:
-    "@metamask/base-controller" "^7.1.1"
-    "@metamask/json-rpc-engine" "^10.0.2"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/json-rpc-engine" "^10.0.3"
     "@metamask/swappable-obj-proxy" "^2.3.0"
-    "@metamask/utils" "^11.0.1"
+    "@metamask/utils" "^11.2.0"
 
 "@metamask/signature-controller@^25.0.0":
   version "25.0.0"
