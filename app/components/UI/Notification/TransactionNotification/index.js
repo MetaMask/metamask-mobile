@@ -25,7 +25,7 @@ import { collectibleContractsSelector } from '../../../../reducers/collectibles'
 import { useTheme } from '../../../../util/theme';
 import {
   selectChainId,
-  selectTicker,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -446,7 +446,7 @@ TransactionNotification.propTypes = {
   primaryCurrency: PropTypes.string,
 };
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
   const chainId = selectChainId(state);
 
   const {
@@ -462,11 +462,14 @@ const mapStateToProps = (state) => {
 
   const currentTransactionMetadata = selectCurrentTransactionMetadata(state);
   // console.log('>>> currentTransactionMetadata', currentTransactionMetadata);
+  const tx = TransactionController.transactions.find(
+    ({ id }) => id === ownProps?.currentNotification.transaction.id,
+  );
   return {
     accounts: selectAccounts(state),
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     transactions: TransactionController.transactions,
-    ticker: selectTicker(state),
+    ticker: selectTickerByChainId(state, tx.chainId),
     chainId,
     tokens: selectTokensByAddress(state),
     collectibleContracts: collectibleContractsSelector(state),
