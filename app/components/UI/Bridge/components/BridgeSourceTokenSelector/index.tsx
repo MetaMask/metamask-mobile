@@ -47,7 +47,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       dispatch(setSourceToken(token));
 
       // Switch to the chain of the selected token
-      const networkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
+      const networkConfiguration = evmNetworkConfigurations[token.chainId];
       if (networkConfiguration) {
         await onSetRpcTarget(networkConfiguration);
       }
