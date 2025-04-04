@@ -125,14 +125,16 @@ const SnapDialogApproval = () => {
           isLoading={isLoading}
           onCancel={onCancel}
           useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
+          style={{
+            marginBottom: approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default ? 80 : 0,
+          }}
         />
         {approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default && (
-          <View style={styles.actionContainer}>
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Horizontal}
-              buttonPropsArray={buttons}
-            />
-          </View>
+          <BottomSheetFooter
+            style={styles.footer}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            buttonPropsArray={buttons}
+          />
         )}
       </View>
     </ApprovalModal>

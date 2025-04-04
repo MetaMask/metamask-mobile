@@ -4,11 +4,11 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -160,11 +160,11 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -281,11 +281,11 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -463,11 +463,11 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -643,11 +643,11 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -736,11 +736,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1232,11 +1232,11 @@ exports[`SnapUIRenderer renders footers 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1488,11 +1488,11 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1720,11 +1720,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -2772,11 +2772,11 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -2893,11 +2893,11 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
