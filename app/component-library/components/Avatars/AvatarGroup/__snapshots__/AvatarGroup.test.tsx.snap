@@ -278,7 +278,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "EuclidCircularB-Medium",
+        "fontFamily": "CentraNo1-Medium",
         "fontSize": 12,
         "fontWeight": "500",
         "letterSpacing": 0,

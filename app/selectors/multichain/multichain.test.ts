@@ -1,8 +1,5 @@
 import { RootState } from '../../reducers';
 import {
-  selectIsBitcoinSupportEnabled,
-  selectIsBitcoinTestnetSupportEnabled,
-  selectIsSolanaSupportEnabled,
   selectMultichainDefaultToken,
   selectMultichainIsMainnet,
   selectMultichainSelectedAccountCachedBalance,
@@ -134,11 +131,6 @@ function getEvmState(
         },
       },
     },
-    multichainSettings: {
-      bitcoinSupportEnabled: true,
-      bitcoinTestnetSupportEnabled: false,
-      solanaSupportEnabled: true,
-    },
     settings: {
       showFiatOnTestnets,
     },
@@ -255,22 +247,6 @@ describe('MultichainNonEvm Selectors', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
-  describe('Multichain Support Flags', () => {
-    it('returns bitcoin support enabled state', () => {
-      const mockState = getEvmState();
-      expect(selectIsBitcoinSupportEnabled(mockState)).toBe(true);
-    });
-
-    it('returns bitcoin testnet support enabled state', () => {
-      const mockState = getEvmState();
-      expect(selectIsBitcoinTestnetSupportEnabled(mockState)).toBe(false);
-    });
-    it('returns Solana support enabled state', () => {
-      const mockState = getEvmState();
-      expect(selectIsSolanaSupportEnabled(mockState)).toBe(true);
-    });
-  });
-
   describe('selectMultichainIsEvm', () => {
     it('returns true if selected account is EVM compatible', () => {
       const state = getEvmState();

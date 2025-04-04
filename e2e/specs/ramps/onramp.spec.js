@@ -67,8 +67,7 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCancelButton();
   });
 
-  // Disabling because on line 79 the test fails
-  it.skip('should change parameters and select a quote', async () => {
+  it('should change parameters and select a quote', async () => {
     const paymentMethod = device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
 
     await TabBarComponent.tapActions();
@@ -76,14 +75,14 @@ describe(SmokeRamps('Buy Crypto'), () => {
     await BuildQuoteView.tapCurrencySelector();
     await SelectCurrencyView.tapCurrencyOption('Euro');
     await BuildQuoteView.tapTokenDropdown('Ethereum');
-    await TokenSelectBottomSheet.tapTokenByName('LINK');
+    await TokenSelectBottomSheet.tapTokenByName('DAI');
     await BuildQuoteView.tapRegionSelector();
     await SelectRegionView.tapRegionOption('France');
     await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');
     await SelectPaymentMethodView.tapPaymentMethodOption(paymentMethod);
     await Assertions.checkIfTextIsDisplayed('€0');
     await Assertions.checkIfTextIsNotDisplayed('$0');
-    await Assertions.checkIfTextIsDisplayed('Chainlink');
+    await Assertions.checkIfTextIsDisplayed('Dai Stablecoin');
     await Assertions.checkIfTextIsNotDisplayed('Ethereum');
     await Assertions.checkIfTextIsNotDisplayed('Debit or Credit');
     await Assertions.checkIfTextIsDisplayed(paymentMethod);
