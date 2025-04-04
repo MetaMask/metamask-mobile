@@ -220,9 +220,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
       ).then(() => {
-        setTimeout(() => {
-          handleSwapNavigation();
-        }, 500);
+        handleSwapNavigation();
       });
     } else {
       handleSwapNavigation();
