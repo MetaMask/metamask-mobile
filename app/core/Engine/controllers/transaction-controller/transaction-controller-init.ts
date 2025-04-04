@@ -102,6 +102,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         pendingTransactions: {
           isResubmitEnabled: () => false,
         },
+        // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
       });
