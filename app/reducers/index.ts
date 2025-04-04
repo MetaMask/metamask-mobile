@@ -32,11 +32,6 @@ import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
 
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { MultichainSettingsState } from '../actions/multichain/state';
-import multichainReducer from './multichain';
-///: END:ONLY_INCLUDE_IF
-
 /**
  * Infer state from a reducer
  *
@@ -126,9 +121,6 @@ export interface RootState {
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: MultichainSettingsState;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -169,9 +161,6 @@ const rootReducer = combineReducers<RootState, any>({
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: multichainReducer,
-  ///: END:ONLY_INCLUDE_IF
 });
 
 export default rootReducer;
