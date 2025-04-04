@@ -70,14 +70,14 @@ describe('useTokensWithBalance', () => {
 
       expect(token1).toMatchObject({
         balance: '1',
-        balanceFiat: '$20000', // 1 TOKEN1 * 10 ETH/TOKEN1 * $2000/ETH
+        balanceFiat: '$20000',
         tokenFiatAmount: 20000,
       });
 
       expect(token2).toMatchObject({
         balance: '2',
-        balanceFiat: '$20000', // 2 TOKEN2 * 5 ETH/TOKEN2 * $2000/ETH
-        tokenFiatAmount: 20000,
+        balanceFiat: '$200000',
+        tokenFiatAmount: 200000,
       });
 
       // Optimism chain tokens
@@ -87,19 +87,19 @@ describe('useTokensWithBalance', () => {
         symbol: 'ETH',
         chainId: optimismChainId,
         balance: '20',
-        balanceFiat: '$40000', // 20 ETH * $2000/ETH
+        balanceFiat: '$40000',
         tokenFiatAmount: 40000,
       });
 
       const token3 = result.current.find((t) => t.address === token3Address);
       expect(token3).toMatchObject({
         address: token3Address,
-        symbol: 'TOKEN3',
-        name: 'Token Three',
+        symbol: 'FOO',
+        name: 'Foo Token',
         chainId: optimismChainId,
-        balance: '3',
-        balanceFiat: '$48000', // 3 TOKEN3 * 8 ETH/TOKEN3 * $2000/ETH
-        tokenFiatAmount: 48000,
+        balance: '5',
+        balanceFiat: '$80000',
+        tokenFiatAmount: 80000,
       });
     });
   });
