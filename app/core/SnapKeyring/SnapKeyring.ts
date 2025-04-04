@@ -1,4 +1,9 @@
-import { SnapKeyring, SnapKeyringCallbacks } from '@metamask/eth-snap-keyring';
+import {
+  SnapKeyring,
+  SnapKeyringCallbacks,
+  SnapKeyringInternalOptions,
+  getDefaultInternalOptions
+} from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
@@ -189,7 +194,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
     accountNameSuggestion: string = '',
-    displayAccountNameSuggestion: boolean = true,
+    {
+      displayAccountNameSuggestion,
+    }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
   ) {
     assertIsValidSnapId(snapId);
 

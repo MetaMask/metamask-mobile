@@ -87,31 +87,19 @@
 		<string>SimpleLineIcons.ttf</string>
 		<string>Zocial.ttf</string>
 		<string>Metamask.ttf</string>
-		<string>Roboto-Black.ttf</string>
-		<string>Roboto-BlackItalic.ttf</string>
-		<string>Roboto-Bold.ttf</string>
-		<string>Roboto-BoldItalic.ttf</string>
-		<string>Roboto-Italic.ttf</string>
-		<string>Roboto-Light.ttf</string>
-		<string>Roboto-LightItalic.ttf</string>
-		<string>Roboto-Medium.ttf</string>
-		<string>Roboto-MediumItalic.ttf</string>
-		<string>Roboto-Regular.ttf</string>
-		<string>Roboto-Thin.ttf</string>
-		<string>Roboto-ThinItalic.ttf</string>
 		<string>FontAwesome5_Brands.ttf</string>
 		<string>FontAwesome5_Regular.ttf</string>
 		<string>FontAwesome5_Solid.ttf</string>
-		<string>EuclidCircularB-Bold.otf</string>
-		<string>EuclidCircularB-BoldItalic.otf</string>
-		<string>EuclidCircularB-Light.otf</string>
-		<string>EuclidCircularB-LightItalic.otf</string>
-		<string>EuclidCircularB-Medium.otf</string>
-		<string>EuclidCircularB-MediumItalic.otf</string>
-		<string>EuclidCircularB-Regular.otf</string>
-		<string>EuclidCircularB-RegularItalic.otf</string>
-		<string>EuclidCircularB-Semibold.otf</string>
-		<string>EuclidCircularB-SemiboldItalic.otf</string>
+		<string>CentraNo1-Bold.otf</string>
+		<string>CentraNo1-BoldItalic.otf</string>
+		<string>CentraNo1-Book.otf</string>
+		<string>CentraNo1-BookItalic.otf</string>
+		<string>CentraNo1-Medium.otf</string>
+		<string>CentraNo1-MediumItalic.otf</string>
+		<string>MMPoly-Regular.otf</string>
+		<string>MMSans-Bold.otf</string>
+		<string>MMSans-Medium.otf</string>
+		<string>MMSans-Regular.otf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

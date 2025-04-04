@@ -94,6 +94,9 @@
 		<string>CentraNo1-Medium.otf</string>
 		<string>CentraNo1-MediumItalic.otf</string>
 		<string>MMSans-Regular.otf</string>
+		<string>MMPoly-Regular.otf</string>
+		<string>MMSans-Bold.otf</string>
+		<string>MMSans-Medium.otf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
