@@ -58,9 +58,7 @@ const getBridgeActionText = (
     : strings('bridge_transaction_details.bridge_step_action_bridge_pending', { destSymbol, destChainName });
 };
 
-const getBridgeActionStatus = (bridgeHistoryItem: BridgeHistoryItem) => {
-  return bridgeHistoryItem.status ? bridgeHistoryItem.status.status : null;
-};
+const getBridgeActionStatus = (bridgeHistoryItem: BridgeHistoryItem) => bridgeHistoryItem.status ? bridgeHistoryItem.status.status : null;
 
 /**
  * swap actions can have step.srcChainId === step.destChainId, and can occur on
@@ -138,12 +136,12 @@ export const getStepStatus = ({
   return StatusTypes.UNKNOWN;
 };
 
-type BridgeStepProps = {
+interface BridgeStepProps {
   step: Step;
   networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>;
   time?: string;
   stepStatus: StatusTypes | null;
-};
+}
 
 // You can have the following cases:
 // 1. Bridge: usually for cases like Optimism ETH to Arbitrum ETH

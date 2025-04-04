@@ -15,7 +15,7 @@ const HollowCircle = React.forwardRef<View, HollowCircleProps>(
   ({ color, style }, ref) => {
     const { colors } = useTheme();
     const borderColor = color === IconColor.Primary ? colors.primary.default : colors.icon.muted;
-    
+
     return (
       <Box
         ref={ref}

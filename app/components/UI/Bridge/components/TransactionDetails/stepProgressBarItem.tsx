@@ -32,12 +32,12 @@ const VerticalLine = ({ color }: { color: IconColor }) => {
   );
 };
 
-type StepsProgressBarItemProps = {
+interface StepsProgressBarItemProps {
   stepStatus: StatusTypes | null;
   isLastItem: boolean;
   isEdgeComplete: boolean;
   children: React.ReactNode;
-};
+}
 
 /**
  * Renders the steps in the Bridge Transaction Details page

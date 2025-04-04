@@ -6,8 +6,7 @@ import BridgeStepDescription, {
   getStepStatus,
 } from './bridgeStepDescription';
 import StepProgressBarItem from './stepProgressBarItem';
-import { StatusTypes, Step } from '@metamask/bridge-status-controller/dist/types.cjs';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller/dist/types.cjs';
+import { StatusTypes, Step , BridgeHistoryItem } from '@metamask/bridge-status-controller/dist/types.cjs';
 import { Box } from '../../../Box/Box';
 import { DateTime } from 'luxon';
 
@@ -26,11 +25,11 @@ const getTime = (
     : undefined;
 };
 
-type BridgeStepsProps = {
+interface BridgeStepsProps {
   bridgeHistoryItem?: BridgeHistoryItem;
   srcChainTxMeta?: TransactionMeta;
   networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>;
-};
+}
 
 export default function BridgeStepList({
   bridgeHistoryItem,
