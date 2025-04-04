@@ -21,6 +21,7 @@ import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
+import { SolScope } from '@metamask/keyring-api';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -387,6 +388,37 @@ describe('AssetOverview', () => {
         swapsIsLive
       />,
       { state: mockInitialState },
+    );
+
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render native balances when non evm network is selected', async () => {
+    const container = renderWithProvider(
+      <AssetOverview
+        asset={{
+          ...asset,
+          chainId: SolScope.Mainnet,
+          isNative: true,
+        }}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              MultichainNetworkController: {
+                selectedMultichainNetworkChainId: SolScope.Mainnet,
+              },
+            },
+          },
+        },
+      },
     );
 
     expect(container).toMatchSnapshot();
