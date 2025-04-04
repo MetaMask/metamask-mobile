@@ -298,44 +298,36 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     allTokenMarketData?.[currentChainId]?.[itemAddress as Hex]?.price;
 
   let balance;
-  if (asset.isETH || asset.isNative) {
-    if (isEvmSelected) {
-      balance = renderFromWei(
-        //@ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
-        accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
-      );
-    } else {
-      const oneHundredThousandths = 0.00001;
-      balance = formatWithThreshold(
-        parseFloat(asset.balance),
-        oneHundredThousandths,
-        I18n.locale,
-        { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-      );
-    }
+  const hundredThousandthsThreshold = 0.00001;
+
+  const isMultichainAsset = !isEvmSelected;
+  const isEthOrNative = asset.isETH || asset.isNative;
+
+  if (isMultichainAsset) {
+    balance = formatWithThreshold(
+      parseFloat(asset.balance),
+      hundredThousandthsThreshold,
+      I18n.locale,
+      { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+    );
+  } else if (isEthOrNative) {
+    balance = renderFromWei(
+      // @ts-expect-error - This should be fixed at the accountsController selector level, ongoing discussion
+      accountsByChainId[toHexadecimal(chainId)]?.[selectedAddress]?.balance,
+    );
   } else {
-    if (isEvmSelected) {
-      const multiChainTokenBalanceHex =
-        itemAddress &&
-        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-          chainId as Hex
-        ]?.[itemAddress as Hex];
+    const multiChainTokenBalanceHex =
+      itemAddress &&
+      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+        chainId as Hex
+      ]?.[itemAddress as Hex];
 
-      const tokenBalanceHex = multiChainTokenBalanceHex;
+    const tokenBalanceHex = multiChainTokenBalanceHex;
 
-      balance =
-        itemAddress && tokenBalanceHex
-          ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-          : 0;
-    } else {
-      const oneHundredThousandths = 0.00001;
-      balance = formatWithThreshold(
-        parseFloat(asset.balance),
-        oneHundredThousandths,
-        I18n.locale,
-        { minimumFractionDigits: 0, maximumFractionDigits: 5 },
-      );
-    }
+    balance =
+      itemAddress && tokenBalanceHex
+        ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
+        : 0;
   }
 
   const mainBalance = asset.balanceFiat || '';
