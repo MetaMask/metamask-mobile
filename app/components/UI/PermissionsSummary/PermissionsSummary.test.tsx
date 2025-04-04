@@ -1,4 +1,5 @@
 import React from 'react';
+import { act } from '@testing-library/react-native';
 import PermissionsSummary from './PermissionsSummary';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -59,5 +60,43 @@ describe('PermissionsSummary', () => {
       { state: mockInitialState },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should keep original hostname when url in store changes', async () => {
+    const maliciousOriginalURL = 'https://malicious.site'
+    const maliciousHostname = new URL(maliciousOriginalURL).hostname
+    const safeURL = 'https://portfolio.metamask.io/'
+    const safeHostname = new URL(safeURL).hostname
+    const { toJSON, rerender } = renderWithProvider(
+      <PermissionsSummary
+        currentPageInformation={{
+          currentEnsName: '',
+          icon: '',
+          url: maliciousOriginalURL,
+        }}
+      />,
+      { state: mockInitialState },
+    );
+    const originalHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
+    console.log('originalHostnameSyntax', originalHostnameSyntax)
+    expect(originalHostnameSyntax.includes(maliciousHostname)).toBe(true);
+    // now change the url for that same instance and change the URL
+    // use rerender
+    // use act to rerender
+    await act(async () => {
+      rerender(
+        <PermissionsSummary
+          currentPageInformation={{
+            currentEnsName: '',
+            icon: '',
+            url: safeURL,
+          }}
+        />,
+      );
+    });
+    const newHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
+    console.log('newHostnameSyntax', newHostnameSyntax)
+    expect(newHostnameSyntax.includes(safeHostname)).toBe(false);
+    expect(newHostnameSyntax.includes(maliciousHostname)).toBe(true);
   });
 });
