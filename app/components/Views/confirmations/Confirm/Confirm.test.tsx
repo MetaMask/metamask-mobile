@@ -1,4 +1,3 @@
-import { TransactionStatus, TransactionType } from '@metamask/transaction-controller';
 import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -13,11 +12,7 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
-import * as TransactionControllerSelectors from '../../../../selectors/transactionController';
-// eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
-// eslint-disable-next-line import/no-namespace
-import * as TransactionMetadataRequestHook from '../hooks/useTransactionMetadataRequest';
 import { Confirm } from './Confirm';
 
 jest.mock('@react-navigation/native', () => ({
@@ -92,14 +87,6 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
 }));
-
-jest.mock('../../../../selectors/transactionController', () => {
-  const originalModule = jest.requireActual('../../../../selectors/transactionController');
-  return {
-    ...originalModule,
-    selectTransactionMetadataById: jest.fn(originalModule.selectTransactionMetadataById),
-  };
-});
 
 describe('Confirm', () => {
   afterEach(() => {
@@ -206,74 +193,9 @@ describe('Confirm', () => {
   it('renders correct information for contract interaction', async () => {
     jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
       .mockReturnValue({ isRedesignedEnabled: true });
-      
-    const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
-
-    jest
-      .spyOn(TransactionControllerSelectors, 'selectTransactionMetadataById')
-      .mockImplementation(() => ({
-        id: mockTxId,
-        type: TransactionType.contractInteraction,
-        txParams: {
-          data: '0x123456',
-          from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-          to: '0x1234567890123456789012345678901234567890',
-          value: '0x0',
-        },
-        chainId: '0x1' as `0x${string}`,
-        networkClientId: 'mainnet',
-        status: TransactionStatus.unapproved,
-        time: Date.now(),
-        origin: 'https://metamask.github.io',
-      }));
-
-    jest.spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest').mockReturnValue({
-      id: mockTxId,
-      type: TransactionType.contractInteraction,
-      txParams: {
-        data: '0x123456',
-        from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-        to: '0x1234567890123456789012345678901234567890',
-        value: '0x0',
-      },
-      chainId: '0x1' as `0x${string}`,
-      networkClientId: 'mainnet',
-      status: TransactionStatus.unapproved,
-      time: Date.now(),
-      origin: 'https://metamask.github.io',
-    });
-
-    const mockState = {
-      ...generateContractInteractionState,
-      engine: {
-        ...generateContractInteractionState.engine,
-        backgroundState: {
-          ...generateContractInteractionState.engine.backgroundState,
-          TransactionController: {
-            transactions: [
-              {
-                id: mockTxId,
-                type: TransactionType.contractInteraction,
-                txParams: {
-                  data: '0x123456',
-                  from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-                  to: '0x1234567890123456789012345678901234567890',
-                  value: '0x0',
-                },
-                chainId: '0x1' as `0x${string}`,
-                networkClientId: 'mainnet',
-                status: TransactionStatus.unapproved,
-                time: Date.now(),
-                origin: 'https://metamask.github.io',
-              }
-            ]
-          }
-        }
-      }
-    };
 
     const { getByText } = renderWithProvider(<Confirm />, {
-      state: mockState
+      state: generateContractInteractionState,
     });
 
     expect(getByText('Transaction request')).toBeDefined()

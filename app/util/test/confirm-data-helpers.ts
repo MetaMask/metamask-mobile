@@ -9,11 +9,14 @@ import {
 import {
   TransactionControllerState,
   TransactionEnvelopeType,
+  TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { merge } from 'lodash';
 import { backgroundState } from './initial-root-state';
+import { ApprovalRequest } from '@metamask/approval-controller';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
@@ -877,69 +880,63 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
-const txId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
-export const generateContractInteractionState = merge(
+const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+
+const mockApprovalRequest = {
+  id: mockTxId,
+  origin: 'metamask.github.io',
+  type: 'transaction',
+  time: 1731850822653,
+  requestData: {
+    txId: mockTxId,
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    origin: 'metamask.github.io'
+  },
+  requestState: null,
+  expectsResult: true,
+} as unknown as ApprovalRequest<TransactionMeta>;
+
+const mockTransaction = {
+  id: mockTxId,
+  type: TransactionType.contractInteraction,
+  txParams: {
+    data: '0x123456',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    to: '0x1234567890123456789012345678901234567890',
+    value: '0x0',
+  },
+  chainId: '0x1' as `0x${string}`,
+  networkClientId: 'mainnet',
+  status: TransactionStatus.unapproved,
+  time: Date.now(),
+  origin: 'https://metamask.github.io',
+} as unknown as TransactionMeta;
+
+const contractInteractionBaseState = merge(
   {},
   stakingConfirmationBaseState,
   {
     engine: {
       backgroundState: {
-        ApprovalController: {
-          pendingApprovals: {
-            [txId]: {
-              id: txId,
-              origin: 'metamask.github.io',
-              type: 'transaction',
-              time: 1731850822653,
-              requestData: { 
-                txId,
-                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477', 
-                origin: 'metamask.github.io'
-              },
-              requestState: null,
-              expectsResult: true,
-            },
-          },
-          pendingApprovalCount: 1,
-          approvalFlows: [],
-        },
-        TransactionController: {
-          transactions: [
-            { 
-              type: 'contractInteraction', 
-              id: txId,
-              origin: 'metamask.github.io',
-              time: 1731850822653,
-              txParams: {
-                data: '0x123456',
-                from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
-                gas: '0x1a5bd',
-                maxFeePerGas: '0x84594b20',
-                maxPriorityFeePerGas: '0x4dcd6500',
-                to: '0x1234567890123456789012345678901234567890',
-                value: '0x0',
-                type: '0x2'
-              },
-              chainId: '0x1',
-              networkClientId: 'mainnet',
-              originalGasEstimate: '0x1a5bd',
-              status: 'unapproved',
-              defaultGasEstimates: {
-                gas: '0x1a5bd',
-                estimateType: 'medium',
-                maxFeePerGas: '0x74594b20',
-                maxPriorityFeePerGas: '0x1dcd6500'
-              },
-              gasFeeEstimates: {
-                high: { maxFeePerGas: '0xd0f5f04a', maxPriorityFeePerGas: '0x77359400' },
-                low: { maxFeePerGas: '0x274d76df', maxPriorityFeePerGas: '0x47be0d' },
-                medium: { maxFeePerGas: '0x559ab26a', maxPriorityFeePerGas: '0x1dcd6500' },
-                type: 'fee-market'
-              }
-            },
-          ],
-        } as unknown as TransactionControllerState,
+        TransactionController: { transactions: [mockTransaction] },
       },
     },
   }
 );
+
+export const generateContractInteractionState = {
+  ...contractInteractionBaseState,
+  engine: {
+    ...contractInteractionBaseState.engine,
+    backgroundState: {
+      ...contractInteractionBaseState.engine.backgroundState,
+      // Set a completely new ApprovalController to reject the approval in
+      // stakingConfirmationBaseState
+      ApprovalController: {
+        pendingApprovals: { [mockTxId]: mockApprovalRequest },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+    },
+  },
+};
