@@ -250,7 +250,7 @@ const expoBuildLinks = {
     }
 
     console.log(`
-     Setup complete! Consider getting started with EXPO on MetaMask? Here are the 3 easy steps to get up and running. 
+     Setup complete! Consider getting started with EXPO on MetaMask. Here are the 3 easy steps to get up and running. 
 
      Step 1: Install EXPO Executable
       📱 ${hyperlink('iOS IPA (physical devices) Note: it requires Apple Registration with MetaMask', 'https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=')}     
