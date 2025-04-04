@@ -30,6 +30,9 @@ const createStyles = (params: {
       marginRight: 24,
       marginLeft: 24,
     },
+    titleText: {
+      textAlign: 'center',
+    },
     bottomButtonsContainer: {
       marginTop: 8,
     },

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -120,13 +120,22 @@ const PermissionsSummary = ({
     const iconTitle = getHost(currentEnsName);
 
     return (
-      <WebsiteIcon
-        style={styles.domainLogoContainer}
-        viewStyle={styles.assetLogoContainer}
-        title={iconTitle}
-        url={currentEnsName || url}
-        icon={typeof icon === 'string' ? icon : icon?.uri}
-      />
+      (typeof icon === 'string' ? icon : icon?.uri) ? (
+        <WebsiteIcon
+          style={styles.domainLogoContainer}
+          viewStyle={styles.assetLogoContainer}
+          title={iconTitle}
+          url={currentEnsName || url}
+          icon={typeof icon === 'string' ? icon : icon?.uri}
+        />
+
+      ) : (
+        <Icon
+          size={IconSize.Xl}
+          name={IconName.Info}
+          color={colors.primary.default}
+        />
+      )
     );
   };
 
@@ -198,9 +207,9 @@ const PermissionsSummary = ({
 
   const onRevokeAllHandler = useCallback(async () => {
     const hostnameToRevoke = hostname || ''; // should we allow empty hostname?
-    await Engine.context.PermissionController.revokeAllPermissions(hostnameToRevoke);
+    Engine.context.PermissionController.revokeAllPermissions(hostnameToRevoke);
     navigate('PermissionsManager');
-  }, [navigate, hostname]);
+  }, [hostname, navigate]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -431,7 +440,7 @@ const PermissionsSummary = ({
               PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
             }
           >
-            <TextComponent variant={TextVariant.HeadingSM}>
+            <TextComponent variant={TextVariant.HeadingSM} style={styles.titleText}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch
