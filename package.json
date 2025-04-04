@@ -143,7 +143,8 @@
     "express": "4.21.2",
     "nanoid": "^3.3.8",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
-    "**/@walletconnect/utils/elliptic": "^6.6.1"
+    "**/@walletconnect/utils/elliptic": "^6.6.1",
+    "@react-native-firebase/app/firebase/@firebase/auth-compat/undici": "5.28.5"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",

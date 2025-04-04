@@ -1743,7 +1743,13 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1751,6 +1757,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -2275,12 +2282,6 @@ TypeError: Cannot read properties of undefined (reading 'dismissedBanners')
                             </Text>
                           </TouchableOpacity>
                         </View>
-                        <Modal
-                          animationType="slide"
-                          hardwareAccelerated={false}
-                          onRequestClose={[Function]}
-                          visible={false}
-                        />
                       </View>
                     </RNCSafeAreaView>
                   </View>
