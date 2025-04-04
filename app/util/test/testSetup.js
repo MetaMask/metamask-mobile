@@ -1,10 +1,17 @@
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
+import { configure } from '@testing-library/react-native';
 /* eslint-disable import/no-namespace */
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
+
+// Disables React-18 Concurrent Rerendering
+// our existing tests and components handle effects and loading states in a way that does not support concurrent roots
+// This would require a large refactor
+// More Info: https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
+configure({ concurrentRoot: false });
 
 Enzyme.configure({ adapter: new Adapter() });
 
