@@ -243,12 +243,12 @@ export const swapsTokensSelector = createSelector(
 );
 
 export const topAssets = createSelector(
-  swapsStateSelector,
+  selectSwapsControllerState,
   (swapsControllerState) => swapsControllerState.topAssets,
 );
 
 export const selectChainCache = createSelector(
-  swapsStateSelector,
+  selectSwapsControllerState,
   (swapsControllerState) => swapsControllerState.chainCache,
 );
 
