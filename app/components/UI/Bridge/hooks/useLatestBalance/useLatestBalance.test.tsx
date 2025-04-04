@@ -6,7 +6,7 @@ import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
 import { initialState, solanaNativeTokenAddress, solanaToken2Address, solanaAccountId } from '../../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
-import { cloneDeep, set } from 'lodash';
+import { cloneDeep } from 'lodash';
 
 // Mock dependencies
 jest.mock('../../../../../util/notifications/methods/common', () => ({
