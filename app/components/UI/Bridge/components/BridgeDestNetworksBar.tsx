@@ -2,15 +2,31 @@ import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Text from '../../../../component-library/components/Texts/Text';
 import Routes from '../../../../constants/navigation/Routes';
-import Button, { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { StyleSheet, ScrollView } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectEnabledDestChains, selectSelectedDestChainId, setSelectedDestChainId } from '../../../../core/redux/slices/bridge';
-import { ETH_CHAIN_ID, BASE_CHAIN_ID, BSC_CHAIN_ID, LINEA_CHAIN_ID, AVALANCHE_CHAIN_ID, OPTIMISM_CHAIN_ID, POLYGON_CHAIN_ID, ARBITRUM_CHAIN_ID, ZKSYNC_ERA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import {
+  selectEnabledDestChains,
+  selectSelectedDestChainId,
+  setSelectedDestChainId,
+} from '../../../../core/redux/slices/bridge';
+import {
+  ETH_CHAIN_ID,
+  BASE_CHAIN_ID,
+  BSC_CHAIN_ID,
+  LINEA_CHAIN_ID,
+  AVALANCHE_CHAIN_ID,
+  OPTIMISM_CHAIN_ID,
+  POLYGON_CHAIN_ID,
+  ARBITRUM_CHAIN_ID,
+  ZKSYNC_ERA_CHAIN_ID,
+} from '@metamask/swaps-controller/dist/constants';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -20,6 +36,7 @@ import { AvatarSize } from '../../../../component-library/components/Avatars/Ava
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
+import { CHAIN_ID_TO_SHORT_NAME_MAP } from '../constants/short-network-names';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -63,10 +80,6 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [ZKSYNC_ERA_CHAIN_ID]: 10,
 };
 
-const ShortChainNames: Record<Hex | CaipChainId, string> = {
-  [ETH_CHAIN_ID]: 'Ethereum',
-};
-
 export const BridgeDestNetworksBar = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
@@ -74,11 +87,15 @@ export const BridgeDestNetworksBar = () => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const { styles } = useStyles(createStyles, { selectedDestChainId });
 
-  const sortedDestChains = useMemo(() => [...enabledDestChains].sort((a, b) => {
-    const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
-    const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
-    return aPopularity - bPopularity;
-  }), [enabledDestChains]);
+  const sortedDestChains = useMemo(
+    () =>
+      [...enabledDestChains].sort((a, b) => {
+        const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
+        const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
+        return aPopularity - bPopularity;
+      }),
+    [enabledDestChains],
+  );
 
   const navigateToNetworkSelector = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -87,29 +104,47 @@ export const BridgeDestNetworksBar = () => {
   };
 
   const renderDestChains = useCallback(
-    () => (
+    () =>
       sortedDestChains.map((chain) => {
-      // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-      const networkImage = getNetworkImageSource({ chainId: chain.chainId});
+        // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        const networkImage = getNetworkImageSource({ chainId: chain.chainId });
 
-      const handleSelectNetwork = (chainId: Hex | CaipChainId) => dispatch(setSelectedDestChainId(chainId));
+        const handleSelectNetwork = (chainId: Hex | CaipChainId) =>
+          dispatch(setSelectedDestChainId(chainId));
 
-      return (
-        <Button
-          key={chain.chainId}
-          variant={ButtonVariants.Secondary}
-          label={
-            <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
-              {selectedDestChainId === chain.chainId ? <AvatarNetwork imageSource={networkImage} size={AvatarSize.Xs} /> : null}
-              <Text>{ShortChainNames[chain.chainId] ?? chain.name}</Text>
-            </Box>
-          }
-          style={selectedDestChainId === chain.chainId ? styles.selectedNetworkIcon : styles.networksButton}
-          onPress={() => handleSelectNetwork(chain.chainId)}
-        />
-      );
-    })
-  ), [dispatch, selectedDestChainId, styles, sortedDestChains]);
+        return (
+          <Button
+            key={chain.chainId}
+            variant={ButtonVariants.Secondary}
+            label={
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={4}
+              >
+                {selectedDestChainId === chain.chainId ? (
+                  <AvatarNetwork
+                    imageSource={networkImage}
+                    size={AvatarSize.Xs}
+                  />
+                ) : null}
+                <Text>
+                  {CHAIN_ID_TO_SHORT_NAME_MAP[chain.chainId] ??
+                    chain.name}
+                </Text>
+              </Box>
+            }
+            style={
+              selectedDestChainId === chain.chainId
+                ? styles.selectedNetworkIcon
+                : styles.networksButton
+            }
+            onPress={() => handleSelectNetwork(chain.chainId)}
+          />
+        );
+      }),
+    [dispatch, selectedDestChainId, styles, sortedDestChains],
+  );
 
   return (
     <ScrollView

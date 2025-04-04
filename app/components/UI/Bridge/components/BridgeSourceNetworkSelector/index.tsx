@@ -26,6 +26,7 @@ import { useNetworkInfo } from '../../../../../selectors/selectedNetworkControll
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { CHAIN_ID_TO_SHORT_NAME_MAP } from '../../constants/short-network-names';
 
 const createStyles = () => StyleSheet.create({
   listContent: {
@@ -163,7 +164,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
             />
               <NetworkRow
                 chainId={chain.chainId}
-                chainName={chain.name}
+                chainName={CHAIN_ID_TO_SHORT_NAME_MAP[chain.chainId] ?? chain.name}
               >
                 <Text
                   style={styles.fiatValue}

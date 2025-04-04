@@ -13,6 +13,7 @@ import { VerticalAlignment } from '../../../../../component-library/components/L
 import { Hex, CaipChainId } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
+import { CHAIN_ID_TO_SHORT_NAME_MAP } from '../../constants/short-network-names';
 
 const createStyles = () => StyleSheet.create({
     listContent: {
@@ -42,7 +43,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
         >
           <NetworkRow
             chainId={chain.chainId}
-            chainName={chain.name}
+            chainName={CHAIN_ID_TO_SHORT_NAME_MAP[chain.chainId] ?? chain.name}
           />
         </ListItem>
       </TouchableOpacity>
