@@ -1,8 +1,8 @@
 import React from 'react';
 import { View } from 'react-native';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
-import HollowCircle from './hollow-circle';
-import PulsingCircle from './pulsing-circle';
+import HollowCircle from './hollowCircle';
+import PulsingCircle from './pulsingCircle';
 import { StatusTypes } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../../../util/theme';
 import { Box } from '../../../Box/Box';

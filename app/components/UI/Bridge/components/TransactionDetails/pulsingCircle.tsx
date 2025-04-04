@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
-import HollowCircle from './hollow-circle';
+import HollowCircle from './hollowCircle';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
 
