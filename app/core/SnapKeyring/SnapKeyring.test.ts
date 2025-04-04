@@ -16,6 +16,7 @@ import { SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES } from '../RPCMethods/RPCMethod
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import Logger from '../../util/Logger';
 import { isSnapPreinstalled } from './utils/snaps';
+import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
 
 const mockAddRequest = jest.fn();
 const mockStartFlow = jest.fn();
@@ -144,6 +145,12 @@ const createSnapKeyringBuilder = () =>
 // Mock the isSnapPreinstalled function
 jest.mock('./utils/snaps', () => ({
   isSnapPreinstalled: jest.fn(),
+  getSnapName: jest.fn().mockReturnValue('Mock Snap Name'),
+}));
+
+// Mock the trackSnapAccountEvent function
+jest.mock('../Analytics/helpers/snaps/trackSnapAccountEvent', () => ({
+  trackSnapAccountEvent: jest.fn(),
 }));
 
 describe('Snap Keyring Methods', () => {
@@ -212,6 +219,12 @@ describe('Snap Keyring Methods', () => {
       expect(mockGetAccounts).toHaveBeenCalledTimes(1);
       expect(mockSetAccountName).not.toHaveBeenCalled();
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+
+      // Wait for any pending promises (including the account finalization which tracks the event)
+      await waitForAllPromises();
+
+      // Verify trackSnapAccountEvent was called for successful account creation
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
     it('handles account creation with user defined name', async () => {
@@ -250,6 +263,12 @@ describe('Snap Keyring Methods', () => {
       ]);
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenCalledWith([{ id: mockFlowId }]);
+
+      // Wait for any pending promises (including the account finalization which tracks the event)
+      await waitForAllPromises();
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
 
     it('throws an error when user denies account creation', async () => {
@@ -342,6 +361,7 @@ describe('Snap Keyring Methods', () => {
       expect(mockEndFlow).toHaveBeenCalledTimes(2);
       expect(mockEndFlow).toHaveBeenNthCalledWith(1, [{ id: mockFlowId }]);
       expect(mockEndFlow).toHaveBeenNthCalledWith(2, [{ id: mockFlowId }]);
+      expect(trackSnapAccountEvent).not.toHaveBeenCalled();
     });
     it('skips account name suggestion dialog for preinstalled snaps when displayAccountNameSuggestion is false', async () => {
       // Mock isSnapPreinstalled to return true for this test
@@ -465,6 +485,97 @@ describe('Snap Keyring Methods', () => {
         mockAccount.id,
         mockNameSuggestion,
       ]);
+    });
+  });
+  describe('removeAccount', () => {
+    beforeEach(() => {
+      mockAddRequest.mockReturnValue(true).mockReturnValue({ success: true });
+      (isSnapPreinstalled as jest.Mock).mockReset();
+    });
+    afterEach(() => {
+      jest.resetAllMocks();
+    });
+
+    it('calls removeAccountHelper and persistKeyringHelper when account is deleted', async () => {
+      const builder = createSnapKeyringBuilder();
+      const snapKeyring = builder();
+
+      // First add an account to the keyring so that it can be removed
+      // NOTE: This callback will not be triggered if there are no accounts in the keyring
+      await snapKeyring.handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+        },
+      });
+
+      // Reset mocks after account creation
+      mockRemoveAccountHelper.mockReset();
+      mockPersisKeyringHelper.mockReset();
+
+      // Now delete the account
+      await snapKeyring.handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountDeleted,
+        params: {
+          id: mockAccount.id,
+        },
+      });
+
+      expect(mockRemoveAccountHelper).toHaveBeenCalledTimes(1);
+      expect(mockRemoveAccountHelper).toHaveBeenCalledWith(
+        mockAccount.address.toLowerCase(),
+      );
+      expect(mockPersisKeyringHelper).toHaveBeenCalledTimes(2);
+
+      // Verify trackSnapAccountEvent was called
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
+    });
+
+    it('handles errors when removing an account', async () => {
+      const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+
+      // Set up mock to throw an error
+      const errorMessage = 'Failed to remove account';
+      mockRemoveAccountHelper.mockRejectedValue(new Error(errorMessage));
+
+      const builder = createSnapKeyringBuilder();
+      const snapKeyring = builder();
+
+      // First add an account to the keyring so that it can be removed
+      await snapKeyring.handleKeyringSnapMessage(mockSnapId, {
+        method: KeyringEvent.AccountCreated,
+        params: {
+          account: mockAccount,
+          displayConfirmation: false,
+        },
+      });
+
+      // Reset mocks after account creation
+      mockRemoveAccountHelper.mockReset();
+      mockPersisKeyringHelper.mockReset();
+      mockRemoveAccountHelper.mockRejectedValue(new Error(errorMessage));
+
+      // Expect the error to be thrown
+      await expect(
+        snapKeyring.handleKeyringSnapMessage(mockSnapId, {
+          method: KeyringEvent.AccountDeleted,
+          params: {
+            id: mockAccount.id,
+          },
+        }),
+      ).rejects.toThrow(errorMessage);
+
+      // Verify error was logged
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: errorMessage }),
+        expect.stringContaining(
+          `Error removing snap account: ${mockAccount.address.toLowerCase()}`,
+        ),
+      );
+
+      // Verify trackSnapAccountEvent was called for error case
+      expect(trackSnapAccountEvent).toHaveBeenCalled();
     });
   });
 });
