@@ -305,6 +305,12 @@ export const selectRpcUrlByChainId = createSelector(
   (defaultEndpoint) => defaultEndpoint?.url,
 );
 
+export const selectTickerByChainId = createSelector(
+  [selectNetworkConfigurations, (_state: RootState, chainId: Hex) => chainId],
+  (networkConfigurations, chainId) =>
+    networkConfigurations?.[chainId]?.nativeCurrency,
+);
+
 export const checkNetworkAndAccountSupports1559 = createSelector(
   selectNetworkControllerState,
   (_state: RootState, networkClientId: string) => networkClientId,
