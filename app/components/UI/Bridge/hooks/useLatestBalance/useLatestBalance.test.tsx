@@ -4,6 +4,9 @@ import { getProviderByChainId } from '../../../../../util/notifications/methods/
 import { BigNumber, constants } from 'ethers';
 import { waitFor } from '@testing-library/react-native';
 import { Hex } from '@metamask/utils';
+import { initialState, solanaNativeTokenAddress, solanaToken2Address, solanaAccountId } from '../../_mocks_/initialState';
+import { SolScope } from '@metamask/keyring-api';
+import { cloneDeep, set } from 'lodash';
 
 // Mock dependencies
 jest.mock('../../../../../util/notifications/methods/common', () => ({
@@ -25,62 +28,6 @@ describe('useLatestBalance', () => {
   const mockProvider = {
     getBalance: jest.fn().mockResolvedValue(BigNumber.from('1000000000000000000')),
     getNetwork: jest.fn().mockResolvedValue({ chainId: 1 }),
-  };
-
-  const initialState = {
-    engine: {
-      backgroundState: {
-        NetworkController: {
-          selectedNetworkClientId: '1',
-          networkConfigurations: {
-            '0x1': {
-              chainId: '0x1',
-              ticker: 'ETH',
-              nickname: 'Ethereum Mainnet',
-            },
-          },
-          providerConfig: {
-            chainId: '0x1',
-          },
-        },
-        MultichainNetworkController: {
-          isEvmSelected: true,
-          selectedMultichainNetworkChainId: undefined,
-          multichainNetworkConfigurationsByChainId: {},
-        },
-        AccountTrackerController: {
-          accounts: {
-            '0x1234567890123456789012345678901234567890': {
-              balance: '0x0',
-            },
-          },
-        },
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account1',
-            accounts: {
-              account1: {
-                id: 'account1',
-                address: '0x1234567890123456789012345678901234567890',
-                name: 'Account 1',
-                balance: '0x0',
-              },
-            },
-          },
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-          currencyRates: {
-            ETH: {
-              conversionRate: 2000,
-            },
-          },
-        },
-        PreferencesController: {
-          ipfsGateway: 'https://dweb.link/ipfs/',
-        },
-      },
-    },
   };
 
   beforeEach(() => {
@@ -131,21 +78,38 @@ describe('useLatestBalance', () => {
     });
   });
 
-  it('should not fetch balance when chainId is CAIP format', async () => {
+  it('should fetch Solana native token balance', async () => {
+    const state = cloneDeep(initialState);
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount = solanaAccountId;
+
     const { result } = renderHookWithProvider(
-      () =>
-        useLatestBalance(
-          {
-            address: constants.AddressZero,
-            decimals: 18,
-            chainId: 'eip155:1',
-          },
-        ),
-      { state: initialState },
+      () => useLatestBalance({ chainId: SolScope.Mainnet, address: solanaNativeTokenAddress, decimals: 9 }),
+      { state },
     );
 
-    expect(mockProvider.getBalance).not.toHaveBeenCalled();
-    expect(result.current).toBeUndefined();
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        displayBalance: '100.123',
+        atomicBalance: BigNumber.from('100123000000'),
+      });
+    });
+  });
+
+  it('should fetch Solana SPL token balance', async () => {
+    const state = cloneDeep(initialState);
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount = solanaAccountId;
+
+    const { result } = renderHookWithProvider(
+      () => useLatestBalance({ chainId: SolScope.Mainnet, address: solanaToken2Address, decimals: 6 }),
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(result.current).toEqual({
+        displayBalance: '20000.456',
+        atomicBalance: BigNumber.from('20000456000'),
+      });
+    });
   });
 
   it('should not fetch balance when token address is missing', async () => {
