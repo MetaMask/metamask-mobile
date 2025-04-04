@@ -16,7 +16,7 @@ import Engine from '../../../core/Engine';
 import { SnapUIRenderer } from '../SnapUIRenderer/SnapUIRenderer';
 import { Json } from '@metamask/snaps-sdk';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
-import SnapsModal from '../SnapsModal/SnapsModal';
+import ApprovalModal from '../../Approvals/ApprovalModal';
 
 export enum TemplateConfirmation {
   Ok = 'template_confirmation.ok',
@@ -109,13 +109,14 @@ const SnapDialogApproval = () => {
   const interfaceId = approvalRequest?.requestData?.id;
 
   return (
-    <SnapsModal
+    <ApprovalModal
       isVisible={
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.alert ||
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.confirmation ||
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.default
       }
       onCancel={onCancel}
+      avoidKeyboard
     >
       <View style={styles.root}>
         <SnapUIRenderer
@@ -134,7 +135,7 @@ const SnapDialogApproval = () => {
           </View>
         )}
       </View>
-    </SnapsModal>
+    </ApprovalModal>
   );
 };
 
