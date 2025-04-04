@@ -57,6 +57,10 @@ const createStyles = (params: { theme: Theme }) => {
     skeletonCircle: {
       borderRadius: 15,
     },
+    // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
+    skeletonItem: {
+      flex: 1,
+    }
   });
 };
 
@@ -71,9 +75,7 @@ const SkeletonItem = () => {
     >
       <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
-    {/* Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used */}
-    {/* eslint-disable-next-line react-native/no-inline-styles */}
-    <Box gap={4} style={{ flex: 1 }}>
+    <Box gap={4} style={styles.skeletonItem}>
       <Skeleton height={24} width={'96%'} />
       <Skeleton height={24} width={'37%'} />
     </Box>
