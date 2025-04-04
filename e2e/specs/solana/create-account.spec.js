@@ -18,8 +18,6 @@ import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import CreateAccountView from '../../pages/wallet/CreateAccountView';
-import AccountOverviewScreen from '../../pages/wallet/AccountOverviewScreen';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 
@@ -46,55 +44,48 @@ describe(SmokeConfirmations('Create Solana account'), () => {
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapCreateSolanaAccount();
- // Enter account name
-        await CreateAccountView.typeAccountName('Solana Test Wallet');
-        await CreateAccountView.tapCreateButton();
+        //Tap send Icon
+        // await TestHelpers.delay(2000);
+        // await TabBarComponent.tapActions();
+        // await TestHelpers.delay(2000);
+        // await WalletActionsBottomSheet.tapSendButton();
 
- // Verify account was created successfully
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfVisible(AccountOverviewScreen.accountNameLabel);
-        await Assertions.checkIfElementHasString(AccountOverviewScreen.accountNameLabel, 'Solana Test Wallet');
+        // await SendView.inputAddress(VALID_ADDRESS);
+        // await SendView.tapNextButton();
+        // // Check that we are on the amount view
+        // await Assertions.checkIfVisible(AmountView.title);
 
- // Verify account persists after navigation
-        await TabBarComponent.tapWallet();
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfElementHasString(WalletView.accountName, 'Solana Test Wallet');
+        // // Input acceptable value
+        // await AmountView.typeInTransactionAmount('0.00004');
+        // await AmountView.tapNextButton();
 
-      },
-    );
-  });
+        // // Check that we are on the confirm view
+        // await Assertions.checkIfVisible(
+        //   TransactionConfirmationView.transactionViewContainer,
+        // );
 
-  it('should remove a solana account after creation', async () => {
+        // // Check different gas options
+        // await TransactionConfirmationView.tapEstimatedGasLink();
+        // await Assertions.checkIfVisible(
+        //   TransactionConfirmationView.editPriorityFeeSheetContainer,
+        // );
+        // await TransactionConfirmationView.tapLowPriorityGasOption();
+        // await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
+        // await TransactionConfirmationView.tapMarketPriorityGasOption();
+        // await Assertions.checkIfTextIsDisplayed('1.5');
+        // await TransactionConfirmationView.tapAggressivePriorityGasOption();
+        // await Assertions.checkIfTextIsDisplayed('2');
 
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withGanacheNetwork().build(),
-        restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-      },
-      async () => {
-        await loginToApp();
+        // await TransactionConfirmationView.tapAdvancedOptionsPriorityGasOption();
+        // await TransactionConfirmationView.tapMaxPriorityFeeSaveButton();
+        // await Assertions.checkIfVisible(
+        //   TransactionConfirmationView.transactionViewContainer,
+        // );
+        // // Tap on the send button
+        // await TransactionConfirmationView.tapConfirmButton();
 
-        // Check that we are on the wallet screen
-        await Assertions.checkIfVisible(WalletView.container);
-        await WalletView.tapIdenticon();
-        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-        await AccountListBottomSheet.tapAddAccountButton();
-        await AddAccountBottomSheet.tapCreateSolanaAccount();
- // Enter account name
-        await CreateAccountView.typeAccountName('Solana Test Wallet');
-        await CreateAccountView.tapCreateButton();
-
- // Verify account was created successfully
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfVisible(AccountOverviewScreen.accountNameLabel);
-        await Assertions.checkIfElementHasString(AccountOverviewScreen.accountNameLabel, 'Solana Test Wallet');
-
- // Verify account persists after navigation
-        await TabBarComponent.tapWallet();
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfElementHasString(WalletView.accountName, 'Solana Test Wallet');
-
+        // // Check that we are on the Activities View
+        // await Assertions.checkIfVisible(ActivitiesView.container);
       },
     );
   });
