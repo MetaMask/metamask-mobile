@@ -101,14 +101,6 @@ describe('NotificationsView - header', () => {
       Routes.SETTINGS.NOTIFICATIONS,
     );
   });
-
-  // it('should render correctly', () => {
-  //   const { toJSON } = renderWithProvider(
-  //     <NotificationsView navigation={navigationMock} />,
-  //     { state: mockInitialState },
-  //   );
-  //   expect(toJSON()).toMatchSnapshot();
-  // });
 });
 
 describe('NotificationsView - content', () => {

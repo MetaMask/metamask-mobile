@@ -13,12 +13,14 @@ export const isNotificationsFeatureEnabled = () => {
     return true;
   }
 
+  const notificationsRemoteFlagEnabled = Boolean(
+    Engine?.context?.RemoteFeatureFlagController?.state?.remoteFeatureFlags
+      ?.assetsNotificationsEnabled,
+  );
+
   return (
     process.env.MM_NOTIFICATIONS_UI_ENABLED === 'true' &&
-    Boolean(
-      Engine?.context?.RemoteFeatureFlagController?.state?.remoteFeatureFlags
-        ?.assetsNotificationsEnabled,
-    )
+    notificationsRemoteFlagEnabled
   );
 };
 
