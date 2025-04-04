@@ -4,7 +4,10 @@ import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -30,6 +33,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 describe('BridgeSourceTokenSelector', () => {
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
+  const optimismChainId = '0xa' as Hex;
   const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
@@ -40,8 +44,14 @@ describe('BridgeSourceTokenSelector', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
+                [formatChainIdToCaip(optimismChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
               },
             },
           },
@@ -115,7 +125,7 @@ describe('BridgeSourceTokenSelector', () => {
               },
             },
           },
-          networkConfigurationsByChainId:  {
+          networkConfigurationsByChainId: {
             '0x1': {
               chainId: '0x1' as Hex,
               rpcEndpoints: [
@@ -283,7 +293,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Header should be visible
@@ -313,7 +323,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -346,7 +356,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-token-selector-close-button');
@@ -361,7 +371,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Initially all tokens should be visible
@@ -395,7 +405,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     const searchInput = getByTestId('bridge-token-search-input');

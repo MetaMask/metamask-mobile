@@ -26,6 +26,18 @@
       "sha1": "c129a146979b642a446574e109b7bcdd8516d5d7"
     },
     {
+      "path": "app/fonts/MMPoly-Regular.otf",
+      "sha1": "b6cd0bc868fe5f53469bf52246917210c807954d"
+    },
+    {
+      "path": "app/fonts/MMSans-Bold.otf",
+      "sha1": "048a70c36b9a3453853ecff2ded9b0e88b411dc0"
+    },
+    {
+      "path": "app/fonts/MMSans-Medium.otf",
+      "sha1": "4a304a2ce85a51be718c56ec71e7cad713ab7f84"
+    },
+    {
       "path": "app/fonts/MMSans-Regular.otf",
       "sha1": "db0290dd245c9a6496fe9b1a0b3b544f976af2d9"
     },

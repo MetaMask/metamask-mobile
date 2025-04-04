@@ -100,7 +100,7 @@ describe('GasImpactModal', () => {
     );
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
-      staking_transactions: false,
+      staking_confirmations: false,
     } as ConfirmationRedesignRemoteFlags);
 
     useNavigationMock.mockReturnValue({
@@ -149,7 +149,7 @@ describe('GasImpactModal', () => {
     it('redesigned stake deposit confirmation view', async () => {
       const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
       selectConfirmationRedesignFlagsMock.mockReturnValue({
-        staking_transactions: true,
+        staking_confirmations: true,
       } as ConfirmationRedesignRemoteFlags);
 
       usePoolStakedDepositMock.mockReturnValue({

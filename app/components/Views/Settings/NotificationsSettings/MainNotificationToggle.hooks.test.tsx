@@ -111,9 +111,16 @@ const arrangeUseAccounts = () => {
 
 describe('useAccountProps', () => {
   const arrangeMocks = () => {
-    const mockStore = jest
-      .fn()
-      .mockReturnValue({ settings: { useBlockieIcon: true } });
+    const mockStore = jest.fn().mockReturnValue({
+      engine: {
+        backgroundState: {
+          NotificationServicesController: {
+            subscriptionAccountsSeen: ['0x123', '0x456'],
+          },
+        },
+      },
+      settings: { useBlockieIcon: true },
+    });
 
     return {
       ...arrangeUseAccounts(),

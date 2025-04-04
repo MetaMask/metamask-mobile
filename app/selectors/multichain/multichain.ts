@@ -52,35 +52,6 @@ export const MULTICHAIN_NETWORK_TO_ASSET_TYPES: Record<
   [BtcScope.Mainnet]: [MultichainNativeAssets.Bitcoin],
   [BtcScope.Testnet]: [MultichainNativeAssets.BitcoinTestnet],
 };
-/**
- * Get the state of the `bitcoinSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinSupportEnabled` flag.
- */
-export function selectIsBitcoinSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinSupportEnabled;
-}
-
-/**
- * Get the state of the `bitcoinTestnetSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinTestnetSupportEnabled` flag.
- */
-export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinTestnetSupportEnabled;
-}
-
-/**
- * Get the state of the `solanaSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `solanaSupportEnabled` flag.
- */
-export function selectIsSolanaSupportEnabled(state: RootState) {
-  return state.multichainSettings.solanaSupportEnabled;
-}
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,

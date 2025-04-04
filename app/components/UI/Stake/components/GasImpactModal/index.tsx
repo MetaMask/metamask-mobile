@@ -37,7 +37,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const { navigate } = useNavigation();

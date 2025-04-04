@@ -64,7 +64,7 @@ function isRedesignedTransaction({
   }
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
-    return confirmationRedesignFlags?.staking_transactions;
+    return confirmationRedesignFlags?.staking_confirmations;
   }
 
   return false;

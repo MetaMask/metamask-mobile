@@ -60,7 +60,7 @@ const EarnInputView = () => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>

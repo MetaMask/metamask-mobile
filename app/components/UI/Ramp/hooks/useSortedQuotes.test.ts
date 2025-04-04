@@ -34,6 +34,19 @@ describe('useSortedQuotes', () => {
           ],
         },
       ],
+      customActions: [
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/paypal' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/paypal',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: [
+            '/payments/paypal',
+            '/payments/paypal-staging',
+          ],
+        },
+      ],
       error: null,
       isFetching: false,
     });
@@ -43,6 +56,42 @@ describe('useSortedQuotes', () => {
       { id: 'quote-4', provider: { id: 'provider-id-4' } },
       { id: 'quote-1', provider: { id: 'provider-id-1' } },
       { id: 'quote-3', provider: { id: 'provider-id-3' } },
+    ]);
+  });
+
+  it('returns the custom actions', () => {
+    (useQuotes as jest.Mock).mockReturnValue({
+      quotes: [],
+      sorted: [],
+      customActions: [
+        {
+          button: { light: {}, dark: {} },
+          buy: { providerId: '/providers/paypal' },
+          buyButton: { light: {}, dark: {} },
+          paymentMethodId: '/payments/paypal',
+          sellButton: { light: {}, dark: {} },
+          supportedPaymentMethodIds: [
+            '/payments/paypal',
+            '/payments/paypal-staging',
+          ],
+        },
+      ],
+      error: null,
+      isFetching: false,
+    });
+    const { result } = renderHookWithProvider(() => useSortedQuotes(100));
+    expect(result.current.customActions).toEqual([
+      {
+        button: { light: {}, dark: {} },
+        buy: { providerId: '/providers/paypal' },
+        buyButton: { light: {}, dark: {} },
+        paymentMethodId: '/payments/paypal',
+        sellButton: { light: {}, dark: {} },
+        supportedPaymentMethodIds: [
+          '/payments/paypal',
+          '/payments/paypal-staging',
+        ],
+      },
     ]);
   });
 
@@ -150,6 +199,25 @@ describe('useSortedQuotes', () => {
           ids: ['provider-id-1', 'provider-id-2'],
         },
       ],
+      error: null,
+      isFetching: false,
+    });
+    const { result } = renderHookWithProvider(() => useSortedQuotes(100));
+    expect(result.current.recommendedQuote).toEqual({
+      id: 'quote-1',
+      provider: { id: 'provider-id-1' },
+      error: null,
+    });
+  });
+
+  it('defaults the recommended quote to the first quote', () => {
+    (useSelector as jest.Mock).mockReturnValue([]);
+    (useQuotes as jest.Mock).mockReturnValue({
+      quotes: [
+        { id: 'quote-1', provider: { id: 'provider-id-1' }, error: null },
+        { id: 'quote-2', provider: { id: 'provider-id-2' }, error: null },
+      ],
+      sorted: [],
       error: null,
       isFetching: false,
     });

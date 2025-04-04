@@ -9,9 +9,6 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { initialState as initialMultichainSettingsState } from '../../reducers/multichain';
-///: END:ONLY_INCLUDE_IF
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
@@ -53,9 +50,6 @@ const initialRootState: RootState = {
   originThrottling,
   notifications: {},
   bridge: initialBridgeState,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: initialMultichainSettingsState,
-  ///: END:ONLY_INCLUDE_IF
   banners: {
     dismissedBanners: [],
   },

@@ -4,7 +4,10 @@ import { BridgeSourceNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
 
 const mockNavigate = jest.fn();
@@ -43,8 +46,14 @@ describe('BridgeSourceNetworkSelector', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
+                [formatChainIdToCaip(optimismChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
               },
             },
           },
@@ -315,7 +324,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Header should be visible
@@ -346,9 +355,8 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
-
 
     // Initially both networks should be selected
     const ethereum = getAllByTestId(`checkbox-${mockChainId}`);
@@ -377,7 +385,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Initially should show "Deselect all networks" since all networks are selected
@@ -422,7 +430,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Uncheck Ethereum network
@@ -446,7 +454,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-network-selector-close-button');
@@ -461,7 +469,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Deselect all networks
@@ -469,7 +477,9 @@ describe('BridgeSourceNetworkSelector', () => {
     fireEvent.press(selectAllButton);
 
     // Apply button should be disabled
-    const applyButton = getByTestId(BridgeSourceNetworkSelectorSelectorsIDs.APPLY_BUTTON);
+    const applyButton = getByTestId(
+      BridgeSourceNetworkSelectorSelectorsIDs.APPLY_BUTTON,
+    );
     expect(applyButton.props.disabled).toBe(true);
   });
 
@@ -479,7 +489,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: initialState }
+      { state: initialState },
     );
 
     // Get all network items

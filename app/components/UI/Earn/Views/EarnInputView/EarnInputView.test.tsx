@@ -286,7 +286,7 @@ describe('StakeInputView', () => {
     selectConfirmationRedesignFlagsMock.mockImplementation(
       () =>
         ({
-          staking_transactions: false,
+          staking_confirmations: false,
         } as ConfirmationRedesignRemoteFlags),
     );
     usePoolStakedDepositMock.mockReturnValue({
@@ -472,7 +472,7 @@ describe('StakeInputView', () => {
       it('redesigned stake deposit confirmation view', async () => {
         const attemptDepositTransactionMock = jest.fn().mockResolvedValue({});
         selectConfirmationRedesignFlagsMock.mockReturnValue({
-          staking_transactions: true,
+          staking_confirmations: true,
         } as ConfirmationRedesignRemoteFlags);
 
         usePoolStakedDepositMock.mockReturnValue({

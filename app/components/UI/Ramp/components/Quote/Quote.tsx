@@ -119,7 +119,7 @@ const Quote: React.FC<Props> = ({
   }));
 
   return (
-    <Animated.View style={animatedOpacity}>
+    <Animated.View style={animatedOpacity} testID="animated-view-opacity">
       <Box
         onPress={highlighted ? undefined : onPress}
         highlighted={highlighted}
@@ -183,6 +183,7 @@ const Quote: React.FC<Props> = ({
             <Animated.View
               onLayout={handleOnLayout}
               style={[styles.data, animatedStyle]}
+              testID="animated-view-height"
             >
               <View style={styles.buyButton}>
                 {isBuyQuote(quote, rampType) && quote.isNativeApplePay ? (

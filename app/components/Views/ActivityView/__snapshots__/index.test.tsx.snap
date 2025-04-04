@@ -422,6 +422,7 @@ exports[`ActivityView should render correctly 1`] = `
                       <Text
                         style={
                           {
+                            "color": "#121314",
                             "fontSize": 20,
                             "marginTop": 20,
                           }
@@ -477,6 +478,11 @@ exports[`ActivityView should render correctly 1`] = `
                         >
                           <Text
                             numberOfLines={1}
+                            style={
+                              {
+                                "color": "#121314",
+                              }
+                            }
                           >
                             Ethereum Main Network
                           </Text>

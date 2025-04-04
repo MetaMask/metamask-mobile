@@ -4,6 +4,7 @@ import Engine from '../../core/Engine';
 import {
   importNewSecretRecoveryPhrase,
   createNewSecretRecoveryPhrase,
+  addNewHdAccount,
 } from './';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
@@ -12,20 +13,34 @@ jest.mock('../../util/Logger');
 const mockSetSelectedAddress = jest.fn();
 const mockAddNewKeyring = jest.fn();
 const mockGetKeyringsByType = jest.fn();
-const mockWithKeyring = jest.fn();
 const mockGetAccounts = jest.fn();
+const mockAddAccounts = jest.fn();
+const mockSetAccountLabel = jest.fn();
+
+const hdKeyring = {
+  getAccounts: () => {
+    mockGetAccounts();
+    return ['0x123'];
+  },
+  addAccounts: (n: number) => {
+    mockAddAccounts(n);
+    return ['0x123'];
+  },
+};
+
 jest.mock('../../core/Engine', () => ({
   context: {
     KeyringController: {
       addNewKeyring: (keyringType: ExtendedKeyringTypes, args: unknown) =>
         mockAddNewKeyring(keyringType, args),
       getKeyringsByType: () => mockGetKeyringsByType(),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      withKeyring: (args: any) => mockWithKeyring(args),
-      getAccounts: () => mockGetAccounts(),
+      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
+        operation({ keyring: hdKeyring, metadata: { id: '1234' } }),
     },
   },
   setSelectedAddress: (address: string) => mockSetSelectedAddress(address),
+  setAccountLabel: (address: string, label: string) =>
+    mockSetAccountLabel(address, label),
 }));
 
 jest.mocked(Engine);
@@ -94,6 +109,56 @@ describe('MultiSRP Actions', () => {
 
       expect(mockGetAccounts).not.toHaveBeenCalled();
       expect(mockSetSelectedAddress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('addNewHdAccount', () => {
+    it('adds a new HD account and sets the selected address', async () => {
+      mockAddAccounts.mockReturnValue([testAddress]);
+
+      await addNewHdAccount();
+
+      expect(mockAddAccounts).toHaveBeenCalledWith(1);
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+    });
+
+    it('adds a new HD account with a specific keyring ID and sets the selected address', async () => {
+      const keyringId = 'test-keyring-id';
+      mockAddAccounts.mockReturnValue([testAddress]);
+
+      await addNewHdAccount(keyringId);
+
+      expect(mockAddAccounts).toHaveBeenCalledWith(1);
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+    });
+
+    it('adds a new HD account and sets the account label if a name is provided', async () => {
+      const accountName = 'Test Account';
+      mockAddAccounts.mockReturnValue([testAddress]);
+
+      await addNewHdAccount(undefined, accountName);
+
+      expect(mockAddAccounts).toHaveBeenCalledWith(1);
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockSetAccountLabel).toHaveBeenCalledWith(
+        testAddress,
+        accountName,
+      );
+    });
+
+    it('adds a new HD account with a specific keyring ID and sets the account label if a name is provided', async () => {
+      const keyringId = 'test-keyring-id';
+      const accountName = 'Test Account';
+      mockAddAccounts.mockReturnValue([testAddress]);
+
+      await addNewHdAccount(keyringId, accountName);
+
+      expect(mockAddAccounts).toHaveBeenCalledWith(1);
+      expect(mockSetSelectedAddress).toHaveBeenCalledWith(testAddress);
+      expect(mockSetAccountLabel).toHaveBeenCalledWith(
+        testAddress,
+        accountName,
+      );
     });
   });
 });
