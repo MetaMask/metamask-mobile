@@ -314,18 +314,28 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       );
     }
   } else {
-    const multiChainTokenBalanceHex =
-      itemAddress &&
-      multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
-        chainId as Hex
-      ]?.[itemAddress as Hex];
+    if (isEvmSelected) {
+      const multiChainTokenBalanceHex =
+        itemAddress &&
+        multiChainTokenBalance?.[selectedInternalAccountAddress as Hex]?.[
+          chainId as Hex
+        ]?.[itemAddress as Hex];
 
-    const tokenBalanceHex = multiChainTokenBalanceHex;
+      const tokenBalanceHex = multiChainTokenBalanceHex;
 
-    balance =
-      itemAddress && tokenBalanceHex
-        ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
-        : 0;
+      balance =
+        itemAddress && tokenBalanceHex
+          ? renderFromTokenMinimalUnit(tokenBalanceHex, asset.decimals)
+          : 0;
+    } else {
+      const oneHundredThousandths = 0.00001;
+      balance = formatWithThreshold(
+        parseFloat(asset.balance),
+        oneHundredThousandths,
+        I18n.locale,
+        { minimumFractionDigits: 0, maximumFractionDigits: 5 },
+      );
+    }
   }
 
   const mainBalance = asset.balanceFiat || '';
