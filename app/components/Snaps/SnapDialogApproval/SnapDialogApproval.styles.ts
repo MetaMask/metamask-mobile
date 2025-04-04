@@ -21,10 +21,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       maxHeight: '80%',
     },
-    actionContainer: {
-      flex: 0,
+    footer: {
+      position: 'absolute',
+      bottom: 20,
+      width: '100%',
       paddingVertical: 16,
-      justifyContent: 'center',
+      height: 80,
     },
   });
 };
