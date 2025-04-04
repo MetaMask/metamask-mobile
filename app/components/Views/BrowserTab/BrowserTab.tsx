@@ -925,7 +925,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   // We've removed the initializeBackgroundBridge function and
   // instead directly create the bridge instances in onLoadStart and onLoadEnd to avoid ESLint errors
-  // 
+  //
   // Security note: The bridge created during page load has permissionsEnabled=false to prevent any
   // malicious permission requests before page verification is complete.
   // We only enable permissions explicitly when the page has fully loaded.

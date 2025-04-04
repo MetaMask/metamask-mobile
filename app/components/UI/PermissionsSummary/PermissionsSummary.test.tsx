@@ -74,10 +74,10 @@ describe('PermissionsSummary', () => {
   });
 
   it('should keep original hostname when url in store changes', async () => {
-    const maliciousOriginalURL = 'https://malicious.site'
-    const maliciousHostname = new URL(maliciousOriginalURL).hostname
-    const safeURL = 'https://portfolio.metamask.io/'
-    const safeHostname = new URL(safeURL).hostname
+    const maliciousOriginalURL = 'https://malicious.site';
+    const maliciousHostname = new URL(maliciousOriginalURL).hostname;
+    const safeURL = 'https://portfolio.metamask.io/';
+    const safeHostname = new URL(safeURL).hostname;
     const { toJSON, rerender } = renderWithProvider(
       <PermissionsSummary
         currentPageInformation={{
@@ -88,7 +88,7 @@ describe('PermissionsSummary', () => {
       />,
       { state: mockInitialState },
     );
-    const originalHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
+    const originalHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0];
     expect(originalHostnameSyntax.includes(maliciousHostname)).toBe(true);
     // now change the url for that same instance and change the URL
     // use act to rerender
@@ -103,7 +103,7 @@ describe('PermissionsSummary', () => {
         />,
       );
     });
-    const newHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0]
+    const newHostnameSyntax = toJSON().children[0].children[0].children[1].children[0].children[0];
     expect(newHostnameSyntax.includes(safeHostname)).toBe(false);
     expect(newHostnameSyntax.includes(maliciousHostname)).toBe(true);
   });
