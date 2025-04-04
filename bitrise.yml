@@ -200,6 +200,8 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -227,6 +229,8 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
