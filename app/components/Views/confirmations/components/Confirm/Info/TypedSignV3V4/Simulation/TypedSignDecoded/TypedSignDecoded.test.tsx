@@ -186,25 +186,25 @@ describe('DecodedSimulation', () => {
   });
 
   it('renders for ERC712 token', async () => {
-    const { getByText } = renderWithProvider(<TypedSignDecoded />, {
+    const { findByText } = renderWithProvider(<TypedSignDecoded />, {
       state: mockState(stateChangesNftListing),
     });
 
-    expect(await getByText('Estimated changes')).toBeDefined();
-    expect(await getByText('Listing price')).toBeDefined();
-    expect(await getByText('You list')).toBeDefined();
-    expect(await getByText('#22222')).toBeDefined();
+    expect(await findByText('Estimated changes')).toBeDefined();
+    expect(await findByText('Listing price')).toBeDefined();
+    expect(await findByText('You list')).toBeDefined();
+    expect(await findByText('#22222')).toBeDefined();
   });
 
   it('renders for ERC1155 token', async () => {
-    const { getByText } = renderWithProvider(<TypedSignDecoded />, {
+    const { findByText } = renderWithProvider(<TypedSignDecoded />, {
       state: mockState(stateChangesListingERC1155),
     });
 
-    expect(await getByText('Estimated changes')).toBeDefined();
-    expect(await getByText('You receive')).toBeDefined();
-    expect(await getByText('You list')).toBeDefined();
-    expect(await getByText('#77789')).toBeDefined();
+    expect(await findByText('Estimated changes')).toBeDefined();
+    expect(await findByText('You receive')).toBeDefined();
+    expect(await findByText('You list')).toBeDefined();
+    expect(await findByText('#77789')).toBeDefined();
   });
 
   it('renders label only once if there are multiple state changes of same changeType', async () => {
