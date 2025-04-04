@@ -95,10 +95,8 @@ import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
-import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
-import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
-import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
-import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
+import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
+import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 
 import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
 import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
@@ -287,7 +285,6 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -827,7 +824,6 @@ export class Engine {
     });
 
     const selectedNetworkController = new SelectedNetworkController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
@@ -886,23 +882,6 @@ export class Engine {
         isAccountSyncingEnabled: false,
       },
     });
-
-    const notificationServicesControllerMessenger =
-      getNotificationServicesControllerMessenger(this.controllerMessenger);
-    const notificationServicesController = createNotificationServicesController(
-      {
-        messenger: notificationServicesControllerMessenger,
-        initialState: initialState.NotificationServicesController,
-      },
-    );
-
-    const notificationServicesPushControllerMessenger =
-      getNotificationServicesPushControllerMessenger(this.controllerMessenger);
-    const notificationServicesPushController =
-      createNotificationServicesPushController({
-        messenger: notificationServicesPushControllerMessenger,
-        initialState: initialState.NotificationServicesPushController,
-      });
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -1034,6 +1013,9 @@ export class Engine {
         CronjobController: cronjobControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         SnapsRegistry: snapsRegistryInit,
+        NotificationServicesController: notificationServicesControllerInit,
+        NotificationServicesPushController:
+          notificationServicesPushControllerInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
@@ -1065,6 +1047,10 @@ export class Engine {
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
     const snapsRegistry = controllersByName.SnapsRegistry;
+    const notificationServicesController =
+      controllersByName.NotificationServicesController;
+    const notificationServicesPushController =
+      controllersByName.NotificationServicesPushController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1096,6 +1082,11 @@ export class Engine {
       multichainRatesControllerMessenger,
       multichainRatesController,
     );
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    // Notification Setup
+    notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({

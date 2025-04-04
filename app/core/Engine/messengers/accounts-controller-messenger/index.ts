@@ -31,6 +31,7 @@ export function getAccountsControllerMessenger(
       'MultichainNetworkController:networkDidChange',
     ],
     allowedActions: [
+      'KeyringController:getState',
       'KeyringController:getAccounts',
       'KeyringController:getKeyringsByType',
       'KeyringController:getKeyringForAccount',

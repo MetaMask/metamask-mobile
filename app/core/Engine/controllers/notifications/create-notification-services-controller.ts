@@ -14,8 +14,8 @@ export const createNotificationServicesController = (props: {
     env: {
       featureAnnouncements: {
         platform: 'mobile',
-        accessToken: process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN as string,
-        spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID as string,
+        accessToken: process.env.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN ?? '',
+        spaceId: process.env.FEATURES_ANNOUNCEMENTS_SPACE_ID ?? '',
       },
     },
   });
