@@ -230,27 +230,20 @@ class WalletConnect2Session {
   isHandlingRequest = () => this._isHandlingRequest;
 
   emitEvent = async (eventName: string, data: unknown) => {
-    //console.log('🔵 emitEvent', eventName, data);
     await this.web3Wallet.emitSessionEvent({
       topic: this.session.topic,
       event: { name: eventName, data },
       chainId: `eip155:${data}`,
     });
-    //console.log('🔵 emitEvent res', res);
   };
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
-    //console.log('🔴 handleChainChange chainIdDecimal', chainIdDecimal);
 
     if (this.isHandlingChainChange) return;
     this.isHandlingChainChange = true;
 
     try {
-      // const origin = normalizeOrigin(this.session.peer.metadata.url);
-      // const origin = this.session.peer.metadata.url;
-      // const accounts = await getPermittedAccounts(origin);
-
       // Update session namespaces
       const currentNamespaces = this.session.namespaces;
       const newChainId = `eip155:${chainIdDecimal}`;
@@ -306,7 +299,6 @@ class WalletConnect2Session {
     ) {
       const chainIdHex = initialRequest.params.request.params[0].chainId;
       const chainIdDecimal = parseInt(chainIdHex, 16);
-      //console.log('👉👉👉 approveRequest chainIdDecimal', chainIdDecimal);
       await this.handleChainChange(chainIdDecimal);
     }
 
@@ -380,7 +372,6 @@ class WalletConnect2Session {
     chainId: number;
     accounts?: string[];
   }) => {
-    //console.log('🔴 updateSession accounts', JSON.stringify(accounts, null, 2));
     try {
       if (!accounts) {
         DevLogger.log(
@@ -391,7 +382,6 @@ class WalletConnect2Session {
 
       // const origin = normalizeOrigin(this.session.peer.metadata.url);
       const origin = this.session.peer.metadata.url;
-      //console.log('🔴 updateSession origin', origin);
       DevLogger.log(
         `WC2::updateSession origin=${origin} - chainId=${chainId} - accounts=${accounts}`,
       );
@@ -430,11 +420,6 @@ class WalletConnect2Session {
         namespaces,
       });
 
-      // console.log("🔴🔴🔴 updateSession acknowledged", acknowledged);
-
-      // await acknowledged();
-
-      //console.log('🔴🔴🔴 updateSession emitEvent');
       await this.emitEvent('chainChanged', chainId);
     } catch (err) {
       console.warn(
