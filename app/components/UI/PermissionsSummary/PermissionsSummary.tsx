@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -80,32 +80,9 @@ const PermissionsSummary = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
-  // Ref to store the original hostname at mount time
-  const originalHostnameRef = useRef<string>('');
-
-  // Capture the origin hostname when the component mounts
-  useEffect(() => {
-    if (currentPageInformation?.url) {
-      originalHostnameRef.current = new URL(currentPageInformation.url).hostname;
-    }
-  }, [currentPageInformation?.url]);
-
-  // Use the captured hostname or fall back to the current one if ref is empty
-  const hostname = useMemo(
-    () => {
-      // Always use the captured hostname for security
-      if (originalHostnameRef.current) {
-        return originalHostnameRef.current;
-      }
-      // Fall back only if we don't have the original hostname
-      if (currentPageInformation?.url) {
-        return new URL(currentPageInformation.url).hostname;
-      }
-      return '';
-    },
-    [currentPageInformation?.url],
-  );
-  
+  // get original page information, but do not allow changing it
+  const [originalPageInformation] = useState(currentPageInformation);
+  const hostname = new URL(originalPageInformation.url).hostname;
   const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -138,9 +115,9 @@ const PermissionsSummary = ({
   };
 
   const renderTopIcon = () => {
-    const { currentEnsName, icon } = currentPageInformation;
-    const url = currentPageInformation.url;
-    const iconTitle = getHost(currentEnsName || url);
+    const { currentEnsName, icon, url } = originalPageInformation;
+    // Use the captured URL for security
+    const iconTitle = getHost(currentEnsName);
 
     return (
       <WebsiteIcon
@@ -187,10 +164,7 @@ const PermissionsSummary = ({
                   params: {
                     hostInfo: {
                       metadata: {
-                        // Use the captured hostname for security
-                        origin: originalHostnameRef.current || 
-                          (currentPageInformation?.url && 
-                          new URL(currentPageInformation?.url).hostname),
+                        origin: hostname
                       },
                     },
                     connectionDateTime: new Date().getTime(),
@@ -223,21 +197,18 @@ const PermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    // Always use the original captured hostname for security
-    const hostnameToRevoke = originalHostnameRef.current || hostname;
+    const hostnameToRevoke = hostname || ''; // should we allow empty hostname?
     await Engine.context.PermissionController.revokeAllPermissions(hostnameToRevoke);
     navigate('PermissionsManager');
-  }, [hostname, navigate]);
+  }, [navigate, hostname]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
-    // Always use the original captured hostname for security
-    const hostnameForModal = originalHostnameRef.current || hostname;
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
         hostInfo: {
           metadata: {
-            origin: hostnameForModal,
+            origin: hostname || '', // should we allow empty hostname?
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
