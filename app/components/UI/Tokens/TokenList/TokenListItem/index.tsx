@@ -257,7 +257,7 @@ export const TokenListItem = React.memo(
       );
 
       // token details only currently supported for evm
-      // TODO: Remove this when shipping feature
+      // TODO: Remove this when shipping multichain token details feature
       if (!isEvmNetworkSelected) {
         return;
       }
