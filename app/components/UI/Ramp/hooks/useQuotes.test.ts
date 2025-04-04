@@ -15,6 +15,14 @@ const mockuseRampSDKInitialValues: DeepPartial<RampSDK> = {
   selectedAddress: 'test-address',
   isBuy: true,
 };
+const mockCustomAction = {
+  button: { light: {}, dark: {} },
+  buy: { providerId: '/providers/paypal' },
+  buyButton: { light: {}, dark: {} },
+  paymentMethodId: '/payments/paypal',
+  sellButton: { light: {}, dark: {} },
+  supportedPaymentMethodIds: ['/payments/paypal', '/payments/paypal-staging'],
+};
 
 let mockUseRampSDKValues: DeepPartial<RampSDK> = {
   ...mockuseRampSDKInitialValues,
@@ -37,7 +45,7 @@ describe('useQuotes', () => {
   it('calls useSDKMethod with the correct parameters for buy', () => {
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
-        data: { quotes: [], sorted: [] },
+        data: { quotes: [], sorted: [], customActions: [] },
         error: null,
         isFetching: false,
       },
@@ -48,7 +56,7 @@ describe('useQuotes', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getQuotes',
       'test-region-id',
-      'test-payment-method-id',
+      ['test-payment-method-id'],
       'test-crypto-id',
       'test-fiat-currency-id-1',
       100,
@@ -60,7 +68,7 @@ describe('useQuotes', () => {
     mockUseRampSDKValues.isBuy = false;
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
-        data: { quotes: [], sorted: [] },
+        data: { quotes: [], sorted: [], customActions: [] },
         error: null,
         isFetching: false,
       },
@@ -71,7 +79,7 @@ describe('useQuotes', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getSellQuotes',
       'test-region-id',
-      'test-payment-method-id',
+      ['test-payment-method-id'],
       'test-crypto-id',
       'test-fiat-currency-id-1',
       100,
@@ -119,11 +127,15 @@ describe('useQuotes', () => {
     });
   });
 
-  it('returns quotes if fetching is successful', () => {
+  it('returns quotes and custom actions if fetching is successful', () => {
     const mockQuery = jest.fn();
     (useSDKMethod as jest.Mock).mockReturnValue([
       {
-        data: { quotes: [{ id: 'quote-1' }, { id: 'quote-2' }] },
+        data: {
+          quotes: [{ id: 'quote-1' }, { id: 'quote-2' }],
+          sorted: [],
+          customActions: [mockCustomAction],
+        },
         error: null,
         isFetching: false,
       },
@@ -132,6 +144,8 @@ describe('useQuotes', () => {
     const { result } = renderHookWithProvider(() => useQuotes(100));
     expect(result.current).toEqual({
       quotes: [{ id: 'quote-1' }, { id: 'quote-2' }],
+      sorted: [],
+      customActions: [mockCustomAction],
       isFetching: false,
       error: null,
       query: mockQuery,
