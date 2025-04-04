@@ -27,10 +27,10 @@ import { ThemeContext, mockTheme } from '../../../../util/theme';
 import Engine from '../../../../core/Engine';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectProviderConfig,
   selectTicker,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -48,6 +48,7 @@ import {
 } from '../../../../selectors/transactionController';
 import { swapsControllerTokens } from '../../../../reducers/swaps';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
+import { getActionKey } from '../../../../util/transactions';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -92,10 +93,6 @@ class TransactionDetails extends PureComponent {
     /* navigation object required to push new views
     */
     navigation: PropTypes.object,
-    /**
-     * Chain Id
-     */
-    chainId: PropTypes.string,
     /**
      * Object representing the configuration of the current selected network
      */
@@ -158,7 +155,6 @@ class TransactionDetails extends PureComponent {
       transactionDetails,
       selectedAddress,
       ticker,
-      chainId,
       conversionRate,
       currentCurrency,
       contractExchangeRates,
@@ -168,6 +164,7 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    const { chainId } = transactionObject;
     // console.log('>>> transactionObject', transactionObject);
     // console.log('>>> transactionDetails', transactionDetails);
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
@@ -211,12 +208,12 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      transactionObject: { chainId: txChainId },
+      transactionObject: { chainId },
       networkConfigurations,
     } = this.props;
     let blockExplorer =
-      networkConfigurations?.[txChainId]?.blockExplorerUrls[
-        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      networkConfigurations?.[chainId]?.blockExplorerUrls[
+        networkConfigurations[chainId]?.defaultBlockExplorerUrlIndex
       ] || NO_RPC_BLOCK_EXPLORER;
     this.setState({ rpcBlockExplorer: blockExplorer });
     this.updateTransactionDetails();
@@ -303,8 +300,7 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      chainId,
-      transactionObject: { status, time, txParams },
+      transactionObject: { status, time, txParams, chainId },
       shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
@@ -315,116 +311,134 @@ class TransactionDetails extends PureComponent {
       !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
-    return updatedTransactionDetails ? (
-      <DetailsModal.Body>
-        <DetailsModal.Section borderBottom>
-          <DetailsModal.Column>
-            <DetailsModal.SectionTitle>
-              {strings('transactions.status')}
-            </DetailsModal.SectionTitle>
-            <StatusText status={status} />
-            {!!renderTxActions && (
-              <View style={styles.transactionActionsContainer}>
-                {this.renderSpeedUpButton()}
-                {this.renderCancelButton()}
-              </View>
-            )}
-          </DetailsModal.Column>
-          <DetailsModal.Column end>
-            <DetailsModal.SectionTitle>
-              {strings('transactions.date')}
-            </DetailsModal.SectionTitle>
-            <Text small primary>
-              {toDateFormat(time)}
-            </Text>
-          </DetailsModal.Column>
-        </DetailsModal.Section>
-        <DetailsModal.Section borderBottom={!!txParams?.nonce}>
-          <DetailsModal.Column>
-            <DetailsModal.SectionTitle>
-              {strings('transactions.from')}
-            </DetailsModal.SectionTitle>
-            <Text small primary>
-              <EthereumAddress
-                type="short"
-                address={updatedTransactionDetails.renderFrom}
-              />
-            </Text>
-          </DetailsModal.Column>
-          <DetailsModal.Column end>
-            <DetailsModal.SectionTitle>
-              {strings('transactions.to')}
-            </DetailsModal.SectionTitle>
-            <Text small primary>
-              <EthereumAddress
-                type="short"
-                address={updatedTransactionDetails.renderTo}
-              />
-            </Text>
-          </DetailsModal.Column>
-        </DetailsModal.Section>
-        <DetailsModal.Section>
-          <DetailsModal.Column>
-            <DetailsModal.SectionTitle upper>
-              {strings('transactions.nonce')}
-            </DetailsModal.SectionTitle>
-            {!!txParams?.nonce && (
-              <Text small primary>{`#${parseInt(
-                txParams.nonce.replace(regex.transactionNonce, ''),
-                16,
-              )}`}</Text>
-            )}
-          </DetailsModal.Column>
-        </DetailsModal.Section>
-        <View
-          style={[
-            styles.summaryWrapper,
-            !txParams?.nonce && styles.touchableViewOnEtherscan,
-          ]}
-        >
-          <TransactionSummary
-            amount={updatedTransactionDetails.summaryAmount}
-            fee={updatedTransactionDetails.summaryFee}
-            totalAmount={updatedTransactionDetails.summaryTotalAmount}
-            secondaryTotalAmount={
-              isMainNet(chainId)
-                ? updatedTransactionDetails.summarySecondaryTotalAmount
-                : undefined
-            }
-            gasEstimationReady
-            transactionType={updatedTransactionDetails.transactionType}
-            chainId={chainId}
-          />
-        </View>
-
-        {updatedTransactionDetails.hash &&
-          status !== 'cancelled' &&
-          rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
-            <TouchableOpacity
-              onPress={this.viewOnEtherscan}
-              style={styles.touchableViewOnEtherscan}
-            >
-              <Text reset style={styles.viewOnEtherscan}>
-                {(rpcBlockExplorer &&
-                  `${strings('transactions.view_on')} ${getBlockExplorerName(
-                    rpcBlockExplorer,
-                  )}`) ||
-                  strings('transactions.view_on_etherscan')}
+    return (
+      <>
+        {/* <Text>
+          getActionKey(tx, selectedAddress, ticker, chainId): {async () => await getActionKey(this.props.transactionObject, this.props.selectedAddress, this.props.ticker, this.props.transactionObject.chainId)}
+        </Text> */}
+        {/* <Text>
+          this.props.transactionObject.isTransfer: {this.props?.transactionObject?.isTransfer}
+        </Text> */}
+        <Text>
+          this.props.ticker: {this.props.ticker && JSON.stringify(this.props.ticker)}
+        </Text>
+        {/* <Text>
+          updatedTransactionDetails: {updatedTransactionDetails && JSON.stringify(updatedTransactionDetails)}
+        </Text>
+        <Text>
+          chainId: {chainId && JSON.stringify(chainId)}
+        </Text> */}
+        {updatedTransactionDetails ? (
+          <DetailsModal.Body>
+          <DetailsModal.Section borderBottom>
+            <DetailsModal.Column>
+              <DetailsModal.SectionTitle>
+                {strings('transactions.status')}
+              </DetailsModal.SectionTitle>
+              <StatusText status={status} />
+              {!!renderTxActions && (
+                <View style={styles.transactionActionsContainer}>
+                  {this.renderSpeedUpButton()}
+                  {this.renderCancelButton()}
+                </View>
+              )}
+            </DetailsModal.Column>
+            <DetailsModal.Column end>
+              <DetailsModal.SectionTitle>
+                {strings('transactions.date')}
+              </DetailsModal.SectionTitle>
+              <Text small primary>
+                {toDateFormat(time)}
               </Text>
-            </TouchableOpacity>
-          )}
-      </DetailsModal.Body>
-    ) : null;
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+          <DetailsModal.Section borderBottom={!!txParams?.nonce}>
+            <DetailsModal.Column>
+              <DetailsModal.SectionTitle>
+                {strings('transactions.from')}
+              </DetailsModal.SectionTitle>
+              <Text small primary>
+                <EthereumAddress
+                  type="short"
+                  address={updatedTransactionDetails.renderFrom}
+                />
+              </Text>
+            </DetailsModal.Column>
+            <DetailsModal.Column end>
+              <DetailsModal.SectionTitle>
+                {strings('transactions.to')}
+              </DetailsModal.SectionTitle>
+              <Text small primary>
+                <EthereumAddress
+                  type="short"
+                  address={updatedTransactionDetails.renderTo}
+                />
+              </Text>
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+          <DetailsModal.Section>
+            <DetailsModal.Column>
+              <DetailsModal.SectionTitle upper>
+                {strings('transactions.nonce')}
+              </DetailsModal.SectionTitle>
+              {!!txParams?.nonce && (
+                <Text small primary>{`#${parseInt(
+                  txParams.nonce.replace(regex.transactionNonce, ''),
+                  16,
+                )}`}</Text>
+              )}
+            </DetailsModal.Column>
+          </DetailsModal.Section>
+          <View
+            style={[
+              styles.summaryWrapper,
+              !txParams?.nonce && styles.touchableViewOnEtherscan,
+            ]}
+          >
+            <TransactionSummary
+              amount={updatedTransactionDetails.summaryAmount}
+              fee={updatedTransactionDetails.summaryFee}
+              totalAmount={updatedTransactionDetails.summaryTotalAmount}
+              secondaryTotalAmount={
+                isMainNet(chainId)
+                  ? updatedTransactionDetails.summarySecondaryTotalAmount
+                  : undefined
+              }
+              gasEstimationReady
+              transactionType={updatedTransactionDetails.transactionType}
+              chainId={chainId}
+            />
+          </View>
+
+          {updatedTransactionDetails.hash &&
+            status !== 'cancelled' &&
+            rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
+              <TouchableOpacity
+                onPress={this.viewOnEtherscan}
+                style={styles.touchableViewOnEtherscan}
+              >
+                <Text reset style={styles.viewOnEtherscan}>
+                  {(rpcBlockExplorer &&
+                    `${strings('transactions.view_on')} ${getBlockExplorerName(
+                      rpcBlockExplorer,
+                    )}`) ||
+                    strings('transactions.view_on_etherscan')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </DetailsModal.Body>
+        ) : null}
+      </>
+    );
   };
 }
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = (state, ownProps) => ({
   providerConfig: selectProviderConfig(state),
-  chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectTicker(state),
+  ticker: selectTickerByChainId(state, ownProps.transactionObject.chainId),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
