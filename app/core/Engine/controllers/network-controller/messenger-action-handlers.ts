@@ -21,7 +21,7 @@ import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util
  *
  * @param args - The arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
- * @param args.endpointUrL - The URL of the endpoint.
+ * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
@@ -80,7 +80,7 @@ export function onRpcEndpointUnavailable({
  *
  * @param args - The arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
- * @param args.endpointUrL - The URL of the endpoint.
+ * @param args.endpointUrl - The URL of the endpoint.
  * @param args.infuraProjectId - Our Infura project ID.
  * @param args.trackEvent - The function that will create the Segment event.
  */
