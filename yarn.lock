@@ -4457,7 +4457,7 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
+"@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
   integrity sha512-4nbA6RL9y0SdHdn4MmMTREX6ISJL7OGHn0GXXszv0tp1fdjsn+SBs28uu1a9ceg1J7R/lO6JH7jAAz8zRtt8Nw==
@@ -4559,7 +4559,7 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0":
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0":
   version "11.7.0"
   resolved "https://registry.yarnpkg.com/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
   integrity sha512-Q2TPmTJT6L/ixBk5TEb+mJ1NRyFAGe+VjFuulNQMVu6AanEBeGSoxsuBnAzWQlIgbt3/EHGP7o31ep1H5gr5Gw==
@@ -5215,13 +5215,13 @@
     eslint-plugin-n "^16.6.2"
     json-rpc-random-id "^1.0.1"
 
-"@metamask/preferences-controller@^15.0.1":
-  version "15.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-15.0.1.tgz#4306099e4659591636304d81ed0954afb160ab81"
-  integrity sha512-y2rGKMr9fY2LCwEjvX7QKxOqxy5Tz6vA+QK8YEXuczeHd3n2jrh9DNBeM+BZzzOO2cXJgmbn0Jeotl09kDD94g==
+"@metamask/preferences-controller@^17.0.0":
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/preferences-controller/-/preferences-controller-17.0.0.tgz#2d6a3b7772f3a126e1795ca614303e8a92eb2a54"
+  integrity sha512-1DH/KAJYH9T+JJe7VUqaPjhfNDfZdAMMqjXf+rx4iAq0oFWA1d0iC9SVpYlIktrya7IjqYhjpSSrN0MheN3t4A==
   dependencies:
-    "@metamask/base-controller" "^7.0.2"
-    "@metamask/controller-utils" "^11.4.4"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.6.0"
 
 "@metamask/profile-sync-controller@^11.0.0":
   version "11.0.0"
