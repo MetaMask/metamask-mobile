@@ -481,6 +481,11 @@ exports[`ActivityView should render correctly 1`] = `
                         >
                           <Text
                             numberOfLines={1}
+                            style={
+                              {
+                                "color": "#121314",
+                              }
+                            }
                           >
                             Ethereum Main Network
                           </Text>

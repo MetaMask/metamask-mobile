@@ -81,8 +81,12 @@ const createStyles = (params) => {
     title: {
       marginTop: 20,
       fontSize: 20,
+      color: colors.text.default,
       ...typography.sHeadingMD,
       fontFamily: getFontFamily(TextVariant.HeadingMD),
+    },
+    titleText: {
+      color: colors.text.default,
     },
   });
 };
@@ -183,7 +187,7 @@ const ActivityView = () => {
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <Text numberOfLines={1}>
+              <Text numberOfLines={1} style={styles.titleText}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
                   ? `${strings('app_settings.popular')} ${strings(
                       'app_settings.networks',
