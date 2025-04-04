@@ -347,6 +347,7 @@ const prepareDependenciesTask = {
         jetifyTask,
         runLavamoatAllowScriptsTask,
         patchPackageTask,
+        expoBuildLinks,
       ],
       {
         exitOnError: true,
@@ -369,7 +370,7 @@ const concurrentTasks = {
     }),
 };
 
-const tasks = new Listr([expoBuildLinks, prepareDependenciesTask, concurrentTasks], {
+const tasks = new Listr([prepareDependenciesTask, concurrentTasks], {
   concurrent: false,
   exitOnError: true,
   rendererOptions,
