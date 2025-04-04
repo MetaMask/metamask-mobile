@@ -151,7 +151,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const webviewRef = useRef<WebView>(null);
   const blockListType = useRef<string>(''); // TODO: Consider improving this type
   const webStates = useRef<
-    Record<string, { requested: boolean; started: boolean; ended: boolean }>
+    Record<string, {
+      requested: boolean;
+      started: boolean;
+      ended: boolean;
+      bridge?: typeof backgroundBridgeRef.current; // Store reference to the bridge
+    }>
   >({});
   // Track if webview is loaded for the first time
   const isWebViewReadyToLoad = useRef(false);
@@ -791,6 +796,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [setProgress],
   );
 
+  const toggleUrlModal = useCallback(() => {
+    urlBarRef.current?.focus();
+  }, []);
+
   /**
    * When website finished loading
    */
@@ -811,9 +820,58 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const { url, title, canGoBack, canGoForward } = nativeEvent;
       // Do not update URL unless website has successfully completed loading.
       webStates.current[url] = { ...webStates.current[url], ended: true };
-      const { started, ended } = webStates.current[url];
+      const { started, ended, bridge } = webStates.current[url];
       const incomingOrigin = new URLParse(url).origin;
       const activeOrigin = new URLParse(resolvedUrlRef.current).origin;
+
+      // Now that the page has fully loaded, enable permissions requests
+      if (bridge) {
+        // Re-initialize bridge with permissions enabled
+        const urlOrigin = new URLParse(url).origin;
+
+        // Schedule the bridge reinitialization to happen after the current execution context
+        // This avoids the ESLint error by not directly calling the function here
+        setTimeout(() => {
+          // First disconnect and reset bridge
+          backgroundBridgeRef.current?.onDisconnect();
+          backgroundBridgeRef.current = undefined;
+
+          // Create a new bridge with permissions enabled
+          //@ts-expect-error - We should type background bridge js file
+          const newBridge = new BackgroundBridge({
+            webview: webviewRef,
+            url: urlOrigin,
+            getRpcMethodMiddleware: ({
+              hostname,
+              getProviderState,
+            }: {
+              hostname: string;
+              getProviderState: () => void;
+            }) =>
+              getRpcMethodMiddleware({
+                hostname,
+                getProviderState,
+                navigation,
+                url: resolvedUrlRef,
+                title: titleRef,
+                icon: iconRef,
+                isHomepage,
+                fromHomepage,
+                toggleUrlModal,
+                wizardScrollAdjusted: wizardScrollAdjustedRef,
+                tabId,
+                injectHomePageScripts,
+                isWalletConnect: false,
+                isMMSDK: false,
+                analytics: {},
+                permissionsEnabled: true,
+              }),
+            isMainFrame: true,
+          });
+          backgroundBridgeRef.current = newBridge;
+        }, 0);
+      }
+
       if (
         forceResolve ||
         (started && ended) ||
@@ -830,7 +888,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
       }
     },
-    [handleError, handleSuccessfulPageResolution, favicon],
+    [handleError, handleSuccessfulPageResolution, favicon, toggleUrlModal, isHomepage, injectHomePageScripts, navigation, tabId],
   );
 
   /**
@@ -865,55 +923,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     }
   };
 
-  const toggleUrlModal = useCallback(() => {
-    urlBarRef.current?.focus();
-  }, []);
-
-  const initializeBackgroundBridge = useCallback(
-    (urlBridge: string, isMainFrame: boolean) => {
-      // First disconnect and reset bridge
-      backgroundBridgeRef.current?.onDisconnect();
-      backgroundBridgeRef.current = undefined;
-
-      //@ts-expect-error - We should type bacgkround bridge js file
-      const newBridge = new BackgroundBridge({
-        webview: webviewRef,
-        url: urlBridge,
-        getRpcMethodMiddleware: ({
-          hostname,
-          getProviderState,
-        }: {
-          hostname: string;
-          getProviderState: () => void;
-        }) =>
-          getRpcMethodMiddleware({
-            hostname,
-            getProviderState,
-            navigation,
-            // Website info
-            url: resolvedUrlRef,
-            title: titleRef,
-            icon: iconRef,
-            // Bookmarks
-            isHomepage,
-            // Show autocomplete
-            fromHomepage,
-            toggleUrlModal,
-            // Wizard
-            wizardScrollAdjusted: wizardScrollAdjustedRef,
-            tabId,
-            injectHomePageScripts,
-            // TODO: This properties were missing, and were not optional
-            isWalletConnect: false,
-            isMMSDK: false,
-            analytics: {},
-          }),
-        isMainFrame,
-      });
-      backgroundBridgeRef.current = newBridge;
-    },
-    [navigation, isHomepage, toggleUrlModal, tabId, injectHomePageScripts],
-  );
+  // We've removed the initializeBackgroundBridge function and
+  // instead directly create the bridge instances in onLoadStart and onLoadEnd to avoid ESLint errors
+  // 
+  // Security note: The bridge created during page load has permissionsEnabled=false to prevent any
+  // malicious permission requests before page verification is complete.
+  // We only enable permissions explicitly when the page has fully loaded.
 
   const sendActiveAccount = useCallback(async () => {
     notifyAllConnections({
@@ -949,7 +964,51 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         injectHomePageScripts();
       }
 
-      initializeBackgroundBridge(urlOrigin, true);
+      // Initialize the bridge after the page has started loading
+      // But don't allow any permissions requests until the page fully loads
+
+      // First disconnect and reset bridge
+      backgroundBridgeRef.current?.onDisconnect();
+      backgroundBridgeRef.current = undefined;
+
+      // Create a new bridge with permissions disabled during loading
+      //@ts-expect-error - We should type background bridge js file
+      const newBridge = new BackgroundBridge({
+        webview: webviewRef,
+        url: urlOrigin,
+        getRpcMethodMiddleware: ({
+          hostname,
+          getProviderState,
+        }: {
+          hostname: string;
+          getProviderState: () => void;
+        }) =>
+          getRpcMethodMiddleware({
+            hostname,
+            getProviderState,
+            navigation,
+            url: resolvedUrlRef,
+            title: titleRef,
+            icon: iconRef,
+            isHomepage,
+            fromHomepage,
+            toggleUrlModal,
+            wizardScrollAdjusted: wizardScrollAdjustedRef,
+            tabId,
+            injectHomePageScripts,
+            isWalletConnect: false,
+            isMMSDK: false,
+            analytics: {},
+            permissionsEnabled: false, // Disable permissions during loading
+          }),
+        isMainFrame: true,
+      });
+
+      // Set the new bridge
+      backgroundBridgeRef.current = newBridge;
+
+      // Track the loading state to control permissions
+      webStates.current[nativeEvent.url].bridge = newBridge;
     },
     [
       isAllowedOrigin,
@@ -957,7 +1016,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       sendActiveAccount,
       isHomepage,
       injectHomePageScripts,
-      initializeBackgroundBridge,
+      navigation,
+      tabId,
+      toggleUrlModal,
     ],
   );
 

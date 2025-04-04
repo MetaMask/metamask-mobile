@@ -110,6 +110,8 @@ export interface RPCMethodsMiddleParameters {
   isMMSDK: boolean;
   injectHomePageScripts: (bookmarks?: []) => void;
   analytics: { [key: string]: string | boolean };
+  // Flag to control permissions - can be used to prevent permissions until page fully loads
+  permissionsEnabled?: boolean;
 }
 
 // Also used by WalletConnect.js.
@@ -321,13 +323,14 @@ export const getRpcMethodMiddleware = ({
   injectHomePageScripts,
   // For analytics
   analytics,
+  permissionsEnabled,
 }: RPCMethodsMiddleParameters) => {
   // Make sure to always have the correct origin
   hostname = hostname.replace(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN, '');
   const origin = isWalletConnect ? hostname : channelId ?? hostname;
 
   DevLogger.log(
-    `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId}`,
+    `getRpcMethodMiddleware hostname=${hostname} channelId=${channelId} permissionsEnabled=${permissionsEnabled}`,
   );
   // all user facing RPC calls not implemented by the provider
   // TODO: Replace "any" with type
@@ -480,6 +483,15 @@ export const getRpcMethodMiddleware = ({
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         new Promise<any>((resolve, reject) => {
+          // If permissions aren't enabled yet (page not fully loaded), block the request
+          if (!permissionsEnabled) {
+            return reject(
+              rpcErrors.invalidRequest({
+                message: 'Permission requests are not allowed until the page is fully loaded',
+              })
+            );
+          }
+
           requestPermissionsHandler
             .implementation(
               req,
@@ -545,6 +557,13 @@ export const getRpcMethodMiddleware = ({
         const { params } = req;
 
         const permittedAccounts = await getPermittedAccounts(origin);
+
+        // If permissions aren't enabled yet (page not fully loaded), block the request
+        if (!permissionsEnabled) {
+          throw rpcErrors.invalidRequest({
+            message: 'Permission requests are not allowed until the page is fully loaded',
+          });
+        }
 
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
