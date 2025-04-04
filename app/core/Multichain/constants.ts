@@ -9,8 +9,6 @@ import BTC from '../../images/bitcoin-logo.png';
 import SOL from '../../images/solana-logo.png';
 import { MultichainBlockExplorerFormatUrls } from './networks';
 
-export const EVM_IDENTIFIER = 'eip155';
-
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
   [BtcScope.Mainnet]: BTC,
