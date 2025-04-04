@@ -841,6 +841,22 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_notifications_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_notifications_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     before_run:
       - code_setup
