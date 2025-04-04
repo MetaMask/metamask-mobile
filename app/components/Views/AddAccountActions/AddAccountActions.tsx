@@ -1,6 +1,9 @@
 // Third party dependencies.
 import React, { Fragment, useCallback, useState } from 'react';
 import { SafeAreaView, View } from 'react-native';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { useSelector } from 'react-redux';
+///: END:ONLY_INCLUDE_IF
 import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
@@ -10,7 +13,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import Logger from '../../../util/Logger';
-import Engine from '../../../core/Engine';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
@@ -24,6 +26,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
+
+import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
   TextColor,
   TextVariant,
@@ -32,26 +36,37 @@ import Text, {
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
-import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
-import { useSelector } from 'react-redux';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import { selectHDKeyrings } from '../../../selectors/keyringController';
+///: END:ONLY_INCLUDE_IF
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import {
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
-import {
-  selectIsBitcoinSupportEnabled,
-  selectIsBitcoinTestnetSupportEnabled,
-  selectIsSolanaSupportEnabled,
-} from '../../../selectors/multichain';
+import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
-const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
+const AddAccountActions = (props: AddAccountActionsProps) => {
+  // The props is destructured here because of prettier
+  // causing the fence to be at the ending curly brace.
+  const {
+    onBack,
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    onAddHdAccount,
+    ///: END:ONLY_INCLUDE_IF
+  } = props;
+
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const hdKeyrings = useSelector(selectHDKeyrings);
+  ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
     navigate('ImportPrivateKeyView');
@@ -78,12 +93,20 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   ///: END:ONLY_INCLUDE_IF
 
   const createNewAccount = useCallback(async () => {
-    const { KeyringController } = Engine.context;
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    const hasMultipleHdKeyrings = hdKeyrings.length > 1;
+
+    if (hasMultipleHdKeyrings) {
+      onAddHdAccount?.();
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
     try {
       setIsLoading(true);
 
-      const addedAccountAddress = await KeyringController.addNewAccount();
-      Engine.setSelectedAddress(addedAccountAddress);
+      await addNewHdAccount();
+
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -98,17 +121,17 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
       setIsLoading(false);
     }
-  }, [onBack, setIsLoading, trackEvent, createEventBuilder]);
+  }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    hdKeyrings.length,
+    onAddHdAccount,
+    ///: END:ONLY_INCLUDE_IF
+    trackEvent,
+    createEventBuilder,
+    onBack,
+  ]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isBitcoinSupportEnabled = useSelector(selectIsBitcoinSupportEnabled);
-
-  const isBitcoinTestnetSupportEnabled = useSelector(
-    selectIsBitcoinTestnetSupportEnabled,
-  );
-
-  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
-
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBtcMainnetAccountAlreadyCreated = useSelector(
     selectHasCreatedBtcMainnetAccount,
   );
@@ -133,7 +156,8 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   };
-
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
     try {
       setIsLoading(true);
@@ -182,49 +206,43 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
           }
-          {isSolanaSupportEnabled && (
-            <AccountAction
-              actionTitle={strings('account_actions.add_solana_account')}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createSolanaAccount(SolScope.Mainnet);
-              }}
-              disabled={isLoading}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON
-              }
-            />
-          )}
-          {isBitcoinSupportEnabled && (
-            <AccountAction
-              actionTitle={strings(
-                'account_actions.add_bitcoin_account_mainnet',
-              )}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createBitcoinAccount(BtcScope.Mainnet);
-              }}
-              disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
-              }
-            />
-          )}
-          {isBitcoinTestnetSupportEnabled && (
-            <AccountAction
-              actionTitle={strings(
-                'account_actions.add_bitcoin_account_testnet',
-              )}
-              iconName={IconName.Add}
-              onPress={async () => {
-                await createBitcoinAccount(BtcScope.Testnet);
-              }}
-              disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
-              testID={
-                AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
-              }
-            />
-          )}
+          <AccountAction
+            actionTitle={strings('account_actions.add_solana_account')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createSolanaAccount(SolScope.Mainnet);
+            }}
+            disabled={isLoading}
+            testID={AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON}
+          />
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+          }
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(BtcScope.Mainnet);
+            }}
+            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
+            }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(BtcScope.Testnet);
+            }}
+            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
+            }
+          />
           {
             ///: END:ONLY_INCLUDE_IF
           }

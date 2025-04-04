@@ -23,7 +23,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -48,7 +48,7 @@ exports[`FooterLegalLinks navigates to risk disclosure web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -85,7 +85,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -110,7 +110,7 @@ exports[`FooterLegalLinks navigates to terms of use web page 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -147,7 +147,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
@@ -172,7 +172,7 @@ exports[`FooterLegalLinks render matches snapshot 1`] = `
       style={
         {
           "color": "#4459ff",
-          "fontFamily": "EuclidCircularB-Medium",
+          "fontFamily": "CentraNo1-Medium",
           "fontSize": 14,
           "fontWeight": "500",
           "letterSpacing": 0,
