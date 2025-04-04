@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectLastSelectedEvmAccount, selectLastSelectedSolanaAccount } from '../../../../../selectors/accountsController';
+import {
+  selectLastSelectedEvmAccount,
+  selectLastSelectedSolanaAccount,
+} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -116,7 +119,9 @@ export const useTokensWithBalance: ({
   );
 
   const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
-  const lastSelectedSolanaAccount = useSelector(selectLastSelectedSolanaAccount);
+  const lastSelectedSolanaAccount = useSelector(
+    selectLastSelectedSolanaAccount,
+  );
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -125,7 +130,10 @@ export const useTokensWithBalance: ({
   // All EVM tokens across chains and their balances
   // Includes native and non-native tokens
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChainsForAddress(state, lastSelectedEvmAccount?.address),
+    selectAccountTokensAcrossChainsForAddress(
+      state,
+      lastSelectedEvmAccount?.address,
+    ),
   );
   const evmTokenBalances = useSelector(selectTokensBalances);
 
@@ -144,11 +152,13 @@ export const useTokensWithBalance: ({
 
     const allEvmAccountTokens = (
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
-    ).filter((token) => chainIds.includes(token.chainId as Hex));
+    )
+      .filter((token) => chainIds.includes(token.chainId as Hex))
+      .filter((token) => !token.isStaked);
 
-    const allNonEvmAccountTokens = (
-      Object.values(nonEvmTokens).flat()
-    ).filter((token) => chainIds.includes(token.chainId));
+    const allNonEvmAccountTokens = Object.values(nonEvmTokens)
+      .flat()
+      .filter((token) => chainIds.includes(token.chainId));
 
     const balances = calculateBalances({
       assets: allEvmAccountTokens,
@@ -174,12 +184,15 @@ export const useTokensWithBalance: ({
         const nonEvmBalance = renderNumber(token.balance ?? '0');
 
         const evmBalanceFiat = balances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = renderFiat(Number(token.balanceFiat ?? 0), currentCurrency);
+        const nonEvmBalanceFiat = renderFiat(
+          Number(token.balanceFiat ?? 0),
+          currentCurrency,
+        );
 
         const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
 
-        return ({
+        return {
           address: token.address,
           name: token.name,
           decimals: token.decimals,
@@ -189,7 +202,8 @@ export const useTokensWithBalance: ({
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
-      });});
+        };
+      });
     return sortAssets(properTokens, tokenSortConfig);
   }, [
     evmAccountTokensAcrossChains,
