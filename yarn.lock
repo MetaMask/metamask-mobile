@@ -4478,22 +4478,6 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-10.0.0.tgz#560a387764e33f1483ac09ed8ef9b2f6c6321523"
-  integrity sha512-jIPYMQZou4aD5XUNgwqQHOo5fDEF7Xqcs9zf7RvXqMS1IqZeeR9S1PoVCV15ARfC0Ar+SXq8wmSbI7buWciLng==
-  dependencies:
-    "@ethersproject/address" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/constants" "^5.7.0"
-    "@ethersproject/contracts" "^5.7.0"
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
-    "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/polling-controller" "^13.0.0"
-    "@metamask/utils" "^11.2.0"
-
 "@metamask/bridge-controller@^11.0.0":
   version "11.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-11.0.0.tgz#511243c27e7c71881f8a2821aefbd89c1bd4bd7c"
@@ -4513,14 +4497,33 @@
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/bridge-status-controller@^10.0.0":
-  version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-10.0.0.tgz#c4d2dc27a1b3e628a7dae3f1aea4dee8cff13272"
-  integrity sha512-axHfKePXtImvCpi0VPiKYEsts/I5fi0v8ziehFvoDcll7H2TpWdZmuiTKR4ndPoIb3QVbTnjaRu5egWDIvr8kw==
+"@metamask/bridge-controller@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-12.0.0.tgz#d25e4c89899b84b0214a4758c17aa4ed7f29f17b"
+  integrity sha512-d/kYmPYo1Mn816NXL0DHWzNMFS1AibRX/dW/SLZkQk2PMnQrdB23slWt04C0PFsEkBDljhc11jN71fpQc+q8fA==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/keyring-api" "^17.4.0"
+    "@metamask/metamask-eth-abis" "^3.1.1"
+    "@metamask/multichain-network-controller" "^0.3.0"
+    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/snaps-utils" "^8.10.0"
+    "@metamask/utils" "^11.2.0"
+
+"@metamask/bridge-status-controller@^11.0.0":
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-11.0.0.tgz#6f821f7a5880950277689d25890ba3017634ee5c"
+  integrity sha512-5p1dQTYsDp+il/BFduECVVWr00sy/UgMTaz/tl6DDbK6uriGdHzJ9447DTFqkJdC987jq/5ct4UAh+y3TolEZg==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/bridge-controller" "^10.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/bridge-controller" "^12.0.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
