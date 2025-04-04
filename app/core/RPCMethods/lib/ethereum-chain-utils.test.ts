@@ -6,6 +6,10 @@ import { switchToNetwork } from './ethereum-chain-utils';
 
 jest.mock('../../Analytics/MetaMetrics');
 jest.mock('../../Analytics/MetricsEventBuilder');
+jest.mock('../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../core/Permissions'),
+  getPermittedAccounts: jest.fn().mockReturnValue([]),
+}));
 
 describe('switchToNetwork', () => {
   it('tracks the network switch event', async () => {
@@ -44,11 +48,6 @@ describe('switchToNetwork', () => {
       setActiveNetwork: jest.fn(),
     };
 
-    const mockPermissionController = {
-      getCaveat: jest.fn(),
-      hasPermission: jest.fn().mockReturnValue(true),
-    };
-
     const mockSelectedNetworkController = {};
 
     const requestUserApproval = jest.fn();
@@ -63,7 +62,6 @@ describe('switchToNetwork', () => {
       chainId,
       controllers: {
         MultichainNetworkController: mockMultichainNetworkController,
-        PermissionController: mockPermissionController,
         SelectedNetworkController: mockSelectedNetworkController,
       },
       requestUserApproval,
