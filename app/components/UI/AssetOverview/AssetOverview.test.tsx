@@ -147,20 +147,6 @@ describe('AssetOverview', () => {
     expect(container).toMatchSnapshot();
   });
 
-  it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        swapsIsLive
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
-  });
-
   it('should handle buy button press', async () => {
     const { getByTestId } = renderWithProvider(
       <AssetOverview

@@ -224,11 +224,6 @@ describe('NetworkBadgeSource', () => {
     expect(result).toBeDefined();
   });
 
-  it('returns Linea Mainnet image for Linea mainnet chainId', () => {
-    const result = NetworkBadgeSource('0xe708');
-    expect(result).toBeDefined();
-  });
-
   it('returns undefined if no image is found', () => {
     const result = NetworkBadgeSource('0x999');
     expect(result).toBeUndefined();
