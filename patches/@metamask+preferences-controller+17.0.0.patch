@@ -1,8 +1,19 @@
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-index a36c32e..2cf3d16 100644
+index a36c32e..1ef2013 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.cjs
-@@ -17,7 +17,7 @@ const metadata = {
+@@ -10,6 +10,10 @@ exports.PreferencesController = exports.getDefaultPreferencesState = void 0;
+ const base_controller_1 = require("@metamask/base-controller");
+ const controller_utils_1 = require("@metamask/controller-utils");
+ const constants_1 = require("./constants.cjs");
++
++// Patch includes changes from https://github.com/MetaMask/core/pull/4774 until merged
++// Patch includes changes from https://github.com/MetaMask/core/pull/4875 until merged
++
+ const metadata = {
+     featureFlags: { persist: true, anonymous: true },
+     identities: { persist: true, anonymous: false },
+@@ -17,7 +21,7 @@ const metadata = {
      isIpfsGatewayEnabled: { persist: true, anonymous: true },
      isMultiAccountBalancesEnabled: { persist: true, anonymous: true },
      lostIdentities: { persist: true, anonymous: false },
@@ -11,7 +22,7 @@ index a36c32e..2cf3d16 100644
      securityAlertsEnabled: { persist: true, anonymous: true },
      selectedAddress: { persist: true, anonymous: false },
      showTestNetworks: { persist: true, anonymous: true },
-@@ -26,10 +26,11 @@ const metadata = {
+@@ -26,10 +30,11 @@ const metadata = {
      useTokenDetection: { persist: true, anonymous: true },
      smartTransactionsOptInStatus: { persist: true, anonymous: false },
      useTransactionSimulations: { persist: true, anonymous: true },
@@ -24,7 +35,7 @@ index a36c32e..2cf3d16 100644
  };
  const name = 'PreferencesController';
  /**
-@@ -45,7 +46,7 @@ function getDefaultPreferencesState() {
+@@ -45,7 +50,7 @@ function getDefaultPreferencesState() {
          isIpfsGatewayEnabled: true,
          isMultiAccountBalancesEnabled: true,
          lostIdentities: {},
@@ -33,7 +44,7 @@ index a36c32e..2cf3d16 100644
          securityAlertsEnabled: false,
          selectedAddress: '',
          showIncomingTransactions: {
-@@ -73,16 +74,17 @@ function getDefaultPreferencesState() {
+@@ -73,16 +78,17 @@ function getDefaultPreferencesState() {
          showTestNetworks: false,
          useNftDetection: false,
          useTokenDetection: true,
@@ -53,7 +64,7 @@ index a36c32e..2cf3d16 100644
      };
  }
  exports.getDefaultPreferencesState = getDefaultPreferencesState;
-@@ -221,22 +223,22 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -221,22 +227,22 @@ class PreferencesController extends base_controller_1.BaseController {
       * @param useNftDetection - Boolean indicating user preference on NFT detection.
       */
      setUseNftDetection(useNftDetection) {
@@ -83,7 +94,7 @@ index a36c32e..2cf3d16 100644
                  state.useNftDetection = false;
              }
          });
-@@ -300,13 +302,13 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -300,13 +306,13 @@ class PreferencesController extends base_controller_1.BaseController {
      /**
       * Toggle multi rpc migration modal.
       *
@@ -102,7 +113,7 @@ index a36c32e..2cf3d16 100644
              }
          });
      }
-@@ -360,6 +362,16 @@ class PreferencesController extends base_controller_1.BaseController {
+@@ -360,6 +366,16 @@ class PreferencesController extends base_controller_1.BaseController {
              state.privacyMode = privacyMode;
          });
      }
@@ -120,7 +131,7 @@ index a36c32e..2cf3d16 100644
  exports.PreferencesController = PreferencesController;
  _PreferencesController_instances = new WeakSet(), _PreferencesController_syncIdentities = function _PreferencesController_syncIdentities(addresses) {
 diff --git a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
-index b587817..ad05486 100644
+index 1a6fce1..8811ce5 100644
 --- a/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 +++ b/node_modules/@metamask/preferences-controller/dist/PreferencesController.d.cts
 @@ -70,7 +70,7 @@ export type PreferencesState = {
@@ -192,3 +203,4 @@ index b587817..ad05486 100644
  }
  export default PreferencesController;
  //# sourceMappingURL=PreferencesController.d.cts.map
+\ No newline at end of file
