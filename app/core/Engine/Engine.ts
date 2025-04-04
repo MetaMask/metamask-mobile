@@ -1005,6 +1005,7 @@ export class Engine {
         ],
         allowedEvents: [],
       }),
+      state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
       fetchFn: handleFetch,
     });
