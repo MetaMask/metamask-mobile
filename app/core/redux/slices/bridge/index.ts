@@ -15,6 +15,7 @@ import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 import { TokenI } from '../../../../components/UI/Tokens/types';
 
@@ -123,8 +124,9 @@ export const selectEnabledSourceChains = createSelector(
   (networks, bridgeFeatureFlags) =>
     networks.filter(
       ({ chainId }) =>
-        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]
-          ?.isActiveSrc,
+        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ]?.isActiveSrc,
     ),
 );
 
@@ -134,8 +136,9 @@ export const selectEnabledDestChains = createSelector(
   (networks, bridgeFeatureFlags) =>
     networks.filter(
       ({ chainId }) =>
-        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[chainId]
-          ?.isActiveDest,
+        bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ]?.isActiveDest,
     ),
 );
 
