@@ -8,7 +8,15 @@ export interface UIComponentParams<T extends JSXElement> {
   useFooter?: boolean;
   onCancel?: () => void;
   t: (key: string) => string;
+
+  // React Native specific props
   theme: Theme;
+  // If the component must inherit any of the following props from the parent, the parent must pass the props to its children.
+  textSize?: string;
+  textColor?: string;
+  textVariant?: string;
+  textFontWeight?: string;
+  textAlignment?: string;
 }
 
 export interface UIComponent {

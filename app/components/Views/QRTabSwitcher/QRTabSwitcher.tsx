@@ -122,6 +122,7 @@ const QRTabSwitcher = () => {
 
       <View style={styles.overlay}>
         <HeaderBase
+          style={styles.header}
           endAccessory={
             <ButtonIcon
               iconName={IconName.Close}
