@@ -281,15 +281,15 @@ describe('StakeInputView', () => {
     mockIsStablecoinLendingFeatureEnabled.mockReturnValue(false);
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
-      ({
-        address: MOCK_ADDRESS_2,
-      } as InternalAccount),
+        ({
+          address: MOCK_ADDRESS_2,
+        } as InternalAccount),
     );
     selectConfirmationRedesignFlagsMock.mockImplementation(
       () =>
-      ({
-        staking_confirmations: false,
-      } as ConfirmationRedesignRemoteFlags),
+        ({
+          staking_confirmations: false,
+        } as ConfirmationRedesignRemoteFlags),
     );
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
