@@ -52,6 +52,7 @@ describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
           // Grant permission and switch to new chain
           await TestDApp.switchChainFromTestDapp();
           await ConnectBottomSheet.tapConnectButton();
+          await TestHelpers.delay(1000);
           await NetworkEducationModal.tapGotItButton();
 
           // Verify network switch was successful

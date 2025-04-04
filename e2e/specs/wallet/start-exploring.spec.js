@@ -66,7 +66,9 @@ describe(SmokeCore('Start Exploring'), () => {
 
   it('Should dismiss Automatic Security checks screen', async () => {
     await TestHelpers.delay(3500);
-    await Assertions.checkIfVisible(EnableAutomaticSecurityChecksView.container);
+    await Assertions.checkIfVisible(
+      EnableAutomaticSecurityChecksView.container,
+    );
     await EnableAutomaticSecurityChecksView.tapNoThanks();
   });
 
@@ -81,6 +83,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepThreeContainer);
     // await WalletView.editAccountName(ACCOUNT);
     await OnboardingWizardModal.tapGotItButton();
+    await TestHelpers.delay(1000);
     // Ensure step 4 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
@@ -88,6 +91,7 @@ describe(SmokeCore('Start Exploring'), () => {
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     // Tap on Back
     await OnboardingWizardModal.tapBackButton();
+    await TestHelpers.delay(1000);
     // Ensure step 4 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
@@ -100,6 +104,7 @@ describe(SmokeCore('Start Exploring'), () => {
     // Ensure step 5 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFiveContainer);
     await OnboardingWizardModal.tapBackButton();
+    await TestHelpers.delay(1000);
     // Ensure step 4 is shown correctly
     await Assertions.checkIfVisible(OnboardingWizardModal.stepFourContainer);
     await OnboardingWizardModal.tapGotItButton();
