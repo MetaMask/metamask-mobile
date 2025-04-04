@@ -976,6 +976,7 @@ export class Engine {
         name: 'BridgeStatusController',
         allowedActions: [
           'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
