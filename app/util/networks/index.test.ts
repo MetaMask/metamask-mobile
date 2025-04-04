@@ -14,6 +14,8 @@ import NetworkList, {
   isLineaMainnetChainId,
   getTestNetImageByChainId,
   TESTNET_CHAIN_IDS,
+  WHILELIST_NETWORK_NAME,
+  isValidNetworkName,
 } from '.';
 import {
   convertNetworkId,
@@ -769,6 +771,37 @@ describe('network-utils', () => {
     }) => {
       const testnetImage = getTestNetImageByChainId(chainId);
       expect(testnetImage).toEqual(expectedImage);
+    })
+  });
+
+  describe('isValidNetworkName', () => {
+    it('returns true if the network nickname is the same with network name ', () => {
+      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(true);
+    })
+
+    it.each([{
+      chainId: ChainId.mainnet,
+      name: 'Ethereum Mainnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId.mainnet],
+    }, 
+    {
+      chainId: ChainId['linea-mainnet'],
+      name: 'Linea Mainnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['linea-mainnet']],
+    },
+    {
+      chainId: ChainId['megaeth-testnet'],
+      name: 'MegaETH Testnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
+    },
+    ])('returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name', ({
+      chainId, name, nickname
+    }) =>{
+      expect(isValidNetworkName(chainId, name, nickname)).toBe(true);
+    })
+
+    it('returns false if the chainId is not Mainnet, Linea Mainnet, MegaETH Testnet and the network nickname is different with network name', () => {
+      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(true);
     })
   });
 });
