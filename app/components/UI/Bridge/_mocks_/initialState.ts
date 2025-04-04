@@ -213,6 +213,10 @@ export const initialState = {
               id: 'account1',
               address: mockEvmAddress,
               name: 'Account 1',
+              type: 'eip155:eoa' as const,
+              metadata: {
+                lastSelected: 0,
+              },
             },
           },
         },
