@@ -205,11 +205,11 @@ describe('UnstakeInputView', () => {
 
     beforeEach(() => {
       originalMock = jest.requireMock(
-        '../../../../../selectors/featureFlagController',
+        '../../../../../selectors/featureFlagController/confirmations',
       ).selectConfirmationRedesignFlags as jest.Mock;
 
       jest.requireMock(
-        '../../../../../selectors/featureFlagController',
+        '../../../../../selectors/featureFlagController/confirmations',
       ).selectConfirmationRedesignFlags = jest.fn(() => ({
         staking_confirmations: true,
       }));
@@ -223,7 +223,7 @@ describe('UnstakeInputView', () => {
 
     afterEach(() => {
       jest.requireMock(
-        '../../../../../selectors/featureFlagController',
+        '../../../../../selectors/featureFlagController/confirmations',
       ).selectConfirmationRedesignFlags = originalMock;
     });
 
