@@ -24,7 +24,7 @@ describe('AccountNetworkInfoExpanded', () => {
   it('should match snapshot when isPortfolioViewEnabled is true', () => {
     mockIsPortfolioViewEnabled.mockReturnValue(true);
     const { toJSON, getByText } = renderWithProvider(
-      <AccountNetworkInfoExpanded isSignatureRequest />,
+      <AccountNetworkInfoExpanded />,
       {
         state: personalSignatureConfirmationState,
       },

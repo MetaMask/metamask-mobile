@@ -14,7 +14,7 @@ const PersonalSign = () => {
 
   return (
     <>
-      <AccountNetworkInfo isSignatureRequest />
+      <AccountNetworkInfo />
       <InfoRowOrigin isSignatureRequest />
       <Message />
     </>

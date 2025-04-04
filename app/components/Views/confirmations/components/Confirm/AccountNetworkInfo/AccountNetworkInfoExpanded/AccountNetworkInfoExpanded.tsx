@@ -12,14 +12,13 @@ import { renderShortAddress } from '../../../../../../../util/address';
 import { useMultichainBalances } from '../../../../../../hooks/useMultichainBalances';
 import { useTransactionMetadataRequest } from '../../../../hooks/useTransactionMetadataRequest';
 
-const AccountNetworkInfoExpanded = (
-  { isSignatureRequest }: { isSignatureRequest: boolean }
-) => {
+const AccountNetworkInfoExpanded = () => {
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
+
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;
-  if (isSignatureRequest) {
+  if (signatureRequest) {
     chainId = signatureRequest?.chainId as Hex;
     fromAddress = signatureRequest?.messageParams?.from as string;
   } else {

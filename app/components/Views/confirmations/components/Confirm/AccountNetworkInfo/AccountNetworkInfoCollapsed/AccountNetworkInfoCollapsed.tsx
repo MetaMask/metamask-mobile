@@ -27,16 +27,17 @@ import styleSheet from './AccountNetworkInfoCollapsed.styles';
 import { Hex } from '@metamask/utils';
 import { useTransactionMetadataRequest } from '../../../../hooks/useTransactionMetadataRequest';
 
-const AccountNetworkInfoCollapsed = ({ isSignatureRequest }: { isSignatureRequest: boolean }) => {
+const AccountNetworkInfoCollapsed = () => {
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
 
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
+
   let chainId: Hex | undefined;
   let fromAddress: string | undefined;
-  if (isSignatureRequest) {
+  if (signatureRequest) {
     chainId = signatureRequest?.chainId;
     fromAddress = signatureRequest?.messageParams?.from as string;
   } else {

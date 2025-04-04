@@ -7,7 +7,7 @@ import ExpandableSection from '../../UI/ExpandableSection';
 import AccountNetworkInfoCollapsed from './AccountNetworkInfoCollapsed';
 import AccountNetworkInfoExpanded from './AccountNetworkInfoExpanded';
 
-const AccountNetworkInfo = ({ isSignatureRequest }: { isSignatureRequest: boolean }) => {
+const AccountNetworkInfo = () => {
   const { approvalRequest } = useApprovalRequest();
 
   if (!approvalRequest) {
@@ -16,8 +16,8 @@ const AccountNetworkInfo = ({ isSignatureRequest }: { isSignatureRequest: boolea
 
   return (
     <ExpandableSection
-      collapsedContent={<AccountNetworkInfoCollapsed isSignatureRequest={isSignatureRequest} />}
-      expandedContent={<AccountNetworkInfoExpanded isSignatureRequest={isSignatureRequest} />}
+      collapsedContent={<AccountNetworkInfoCollapsed />}
+      expandedContent={<AccountNetworkInfoExpanded />}
       expandedContentTitle={strings('confirm.details')}
       testID={ConfirmationPageSectionsSelectorIDs.ACCOUNT_NETWORK_SECTION}
     />

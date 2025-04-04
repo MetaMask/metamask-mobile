@@ -20,7 +20,7 @@ const ContractInteraction = () => {
 
   return (
     <View>
-      <AccountNetworkInfo isSignatureRequest={false} />
+      <AccountNetworkInfo />
       <View style={styles.simulationsDetailsContainer}>
         <SimulationDetails
           transaction={transactionMetadata as TransactionMeta}

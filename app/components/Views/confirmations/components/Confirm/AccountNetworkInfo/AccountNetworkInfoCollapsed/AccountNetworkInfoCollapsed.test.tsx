@@ -17,7 +17,7 @@ jest.mock('../../../../../../../core/Engine', () => ({
 
 describe('AccountNetworkInfoCollapsed', () => {
   it('renders correctly', async () => {
-    const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed isSignatureRequest />, {
+    const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText('0x935E...5477')).toBeDefined();
@@ -29,7 +29,7 @@ describe('AccountNetworkInfoCollapsed', () => {
     jest
       .spyOn(AddressUtils, 'getLabelTextByAddress')
       .mockReturnValue(MOCK_ACCOUNT_LABEL);
-    const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed isSignatureRequest />, {
+    const { getByText } = renderWithProvider(<AccountNetworkInfoCollapsed />, {
       state: personalSignatureConfirmationState,
     });
     expect(getByText(MOCK_ACCOUNT_LABEL)).toBeDefined();

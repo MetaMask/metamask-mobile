@@ -38,7 +38,7 @@ export const selectConfirmationRedesignFlags = createSelector(
     const isContractInteractionEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_CONTRACT_INTERACTION,
       confirmationRedesignFlags.contract_interaction,
-    );
+    )
 
     const isSignaturesEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_SIGNATURES,
