@@ -61,60 +61,41 @@ exports[`PermissionsSummary should render correctly 1`] = `
             }
           >
             <View
-              placeholderStyle={
-                {
-                  "backgroundColor": "#f3f5f9",
-                }
-              }
-              useNativeDriver={true}
-            >
-              <Image
-                onError={[Function]}
-                onLoadEnd={[Function]}
-                source={
+              style={
+                [
                   {
-                    "uri": undefined,
-                  }
-                }
-                style={
+                    "alignContent": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 27,
+                    "height": 54,
+                    "justifyContent": "center",
+                    "width": 54,
+                  },
                   {
                     "borderRadius": 16,
                     "height": 32,
                     "width": 32,
-                  }
-                }
-              />
-              <View
-                collapsable={false}
+                  },
+                ]
+              }
+            >
+              <Text
                 style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 24,
+                      "fontWeight": "400",
+                      "textAlign": "center",
+                      "textTransform": "uppercase",
+                    },
+                    undefined,
+                  ]
                 }
               >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 16,
-                        "height": 32,
-                        "width": 32,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      {
-                        "backgroundColor": "#f3f5f9",
-                      },
-                    ]
-                  }
-                />
-              </View>
+                a
+              </Text>
             </View>
           </View>
         </View>
@@ -150,6 +131,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
               "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
+              "textAlign": "center",
             }
           }
         >
@@ -861,60 +843,41 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             }
           >
             <View
-              placeholderStyle={
-                {
-                  "backgroundColor": "#f3f5f9",
-                }
-              }
-              useNativeDriver={true}
-            >
-              <Image
-                onError={[Function]}
-                onLoadEnd={[Function]}
-                source={
+              style={
+                [
                   {
-                    "uri": undefined,
-                  }
-                }
-                style={
+                    "alignContent": "center",
+                    "backgroundColor": "#ffffff",
+                    "borderRadius": 27,
+                    "height": 54,
+                    "justifyContent": "center",
+                    "width": 54,
+                  },
                   {
                     "borderRadius": 16,
                     "height": 32,
                     "width": 32,
-                  }
-                }
-              />
-              <View
-                collapsable={false}
+                  },
+                ]
+              }
+            >
+              <Text
                 style={
-                  {
-                    "bottom": 0,
-                    "left": 0,
-                    "opacity": 1,
-                    "position": "absolute",
-                    "right": 0,
-                    "top": 0,
-                  }
+                  [
+                    {
+                      "color": "#121314",
+                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontSize": 24,
+                      "fontWeight": "400",
+                      "textAlign": "center",
+                      "textTransform": "uppercase",
+                    },
+                    undefined,
+                  ]
                 }
               >
-                <View
-                  style={
-                    [
-                      {
-                        "borderRadius": 16,
-                        "height": 32,
-                        "width": 32,
-                      },
-                      {
-                        "backgroundColor": "#eee",
-                      },
-                      {
-                        "backgroundColor": "#f3f5f9",
-                      },
-                    ]
-                  }
-                />
-              </View>
+                a
+              </Text>
             </View>
           </View>
         </View>
@@ -950,6 +913,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
+              "textAlign": "center",
             }
           }
         >

@@ -115,27 +115,17 @@ const PermissionsSummary = ({
   };
 
   const renderTopIcon = () => {
-    const { currentEnsName, icon, url } = originalPageInformation;
-    // Use the captured URL for security
-    const iconTitle = getHost(currentEnsName);
+    const { currentEnsName, icon, url } = currentPageInformation;
+    const iconTitle = getHost(currentEnsName || url);
 
     return (
-      (typeof icon === 'string' ? icon : icon?.uri) ? (
-        <WebsiteIcon
-          style={styles.domainLogoContainer}
-          viewStyle={styles.assetLogoContainer}
-          title={iconTitle}
-          url={currentEnsName || url}
-          icon={typeof icon === 'string' ? icon : icon?.uri}
-        />
-
-      ) : (
-        <Icon
-          size={IconSize.Xl}
-          name={IconName.Info}
-          color={colors.primary.default}
-        />
-      )
+      <WebsiteIcon
+        style={styles.domainLogoContainer}
+        viewStyle={styles.assetLogoContainer}
+        title={iconTitle}
+        url={currentEnsName || url}
+        icon={typeof icon === 'string' ? icon : icon?.uri}
+      />
     );
   };
 
