@@ -284,7 +284,7 @@ export const selectAccountTokensAcrossChainsForAddress =
  * @param {RootState} state - The root state.
  * @returns {TokensByChain} The tokens for the selected account across all chains.
  */
-export const selectAccountTokensAcrossChains = createDeepEqualSelector(
+export const selectAccountTokensAcrossChains = createSelector(
   (state: RootState) => state,
   selectSelectedInternalAccount,
   (state, selectedAccount) => {
