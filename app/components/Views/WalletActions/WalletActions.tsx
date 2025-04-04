@@ -45,7 +45,7 @@ import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import { isEvmAccountType, SolScope } from '@metamask/keyring-api';
 import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -304,6 +304,8 @@ const WalletActions = () => {
     [styles.icon],
   );
 
+  console.log('chainId', chainId);
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -332,7 +334,7 @@ const WalletActions = () => {
           <WalletAction
             actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
-            onPress={goToSwaps}
+            onPress={chainId === SolScope.Mainnet ? goToBridge : goToSwaps}
             actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
