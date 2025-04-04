@@ -11,7 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 
-describe(SmokeRamps('On-Ramp Limits'), () => {
+describe(SmokeRamps('Off-Ramp Limits'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
