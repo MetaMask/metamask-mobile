@@ -47,7 +47,7 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultFiatCurrency',
       'test-region-id',
-      ['test-payment-method-id'],
+      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
@@ -72,7 +72,7 @@ describe('useFiatCurrencies', () => {
     expect(useSDKMethod).toHaveBeenCalledWith(
       'getDefaultSellFiatCurrency',
       'test-region-id',
-      ['test-payment-method-id'],
+      [],
     );
 
     expect(useSDKMethod).toHaveBeenCalledWith(
