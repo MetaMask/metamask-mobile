@@ -48,7 +48,7 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 24,
         "fontWeight": "600",
         "marginBottom": 16,
@@ -62,7 +62,7 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "marginBottom": 20,
@@ -75,7 +75,7 @@ exports[`PhishingModal should render correctly 1`] = `
     style={
       {
         "color": "#121314",
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 14,
         "fontWeight": "400",
         "marginBottom": 20,
@@ -145,7 +145,7 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "marginLeft": 12,
@@ -204,7 +204,7 @@ exports[`PhishingModal should render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 14,
           "fontWeight": "400",
           "marginLeft": 12,
@@ -217,55 +217,34 @@ exports[`PhishingModal should render correctly 1`] = `
   <TouchableOpacity
     accessibilityRole="button"
     accessible={true}
-    activeOpacity={0.2}
+    activeOpacity={1}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
     style={
-      [
-        [
-          {
-            "borderRadius": 100,
-            "justifyContent": "center",
-            "padding": 15,
-          },
-          {
-            "backgroundColor": "#4459ff",
-            "minHeight": 50,
-          },
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 30,
-            "marginTop": 32,
-            "padding": 16,
-          },
-        ],
-        null,
-      ]
+      {
+        "alignItems": "center",
+        "alignSelf": "stretch",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 20,
+        "flexDirection": "row",
+        "height": 48,
+        "justifyContent": "center",
+        "marginTop": 32,
+        "paddingHorizontal": 16,
+      }
     }
   >
     <Text
+      accessibilityRole="text"
       style={
-        [
-          {
-            "color": "#007aff",
-            "fontSize": 17,
-            "fontWeight": "500",
-            "textAlign": "center",
-          },
-          null,
-          [
-            {
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
-              "fontWeight": "600",
-              "textAlign": "center",
-            },
-            {
-              "color": "#ffffff",
-            },
-            undefined,
-          ],
-          null,
-        ]
+        {
+          "color": "#ffffff",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        }
       }
     >
       Back to safety
