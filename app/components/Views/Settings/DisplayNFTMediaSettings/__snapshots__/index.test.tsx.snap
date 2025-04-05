@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DisplayNFTMediaSettings should render correctly 1`] = `
+exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
 <View
   style={
     {
