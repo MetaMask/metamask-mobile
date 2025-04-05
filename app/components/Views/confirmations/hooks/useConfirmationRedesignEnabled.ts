@@ -9,10 +9,7 @@ import {
   type ConfirmationRedesignRemoteFlags,
   selectConfirmationRedesignFlags,
 } from '../../../../selectors/featureFlagController';
-import {
-  isExternalHardwareAccount,
-  isHardwareAccount,
-} from '../../../../util/address';
+import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -31,17 +28,14 @@ const REDESIGNED_TRANSACTION_TYPES = [
 function isRedesignedSignature({
   approvalRequestType,
   confirmationRedesignFlags,
-  fromAddress,
 }: {
   approvalRequestType: ApprovalType;
   confirmationRedesignFlags: ConfirmationRedesignRemoteFlags;
-  fromAddress: string;
 }) {
   return (
     confirmationRedesignFlags?.signatures &&
     approvalRequestType &&
-    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType) &&
-    !isExternalHardwareAccount(fromAddress)
+    REDESIGNED_SIGNATURE_TYPES.includes(approvalRequestType as ApprovalType)
   );
 }
 
@@ -70,7 +64,7 @@ function isRedesignedTransaction({
   }
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
-    return confirmationRedesignFlags?.staking_transactions;
+    return confirmationRedesignFlags?.staking_confirmations;
   }
 
   return false;
@@ -91,7 +85,6 @@ export const useConfirmationRedesignEnabled = () => {
       isRedesignedSignature({
         approvalRequestType,
         confirmationRedesignFlags,
-        fromAddress,
       }) ||
       isRedesignedTransaction({
         approvalRequestType,

@@ -23,7 +23,7 @@ exports[`AccountConnect renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -70,14 +70,14 @@ exports[`AccountConnect renders correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`AccountConnect renders correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#BBC0C566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -197,8 +197,8 @@ exports[`AccountConnect renders correctly 1`] = `
                       style={
                         [
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 24,
                             "fontWeight": "400",
                             "textAlign": "center",
@@ -239,8 +239,8 @@ exports[`AccountConnect renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 16,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -271,7 +271,7 @@ exports[`AccountConnect renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#0000001A",
+                      "backgroundColor": "#0000001a",
                       "borderRadius": 16,
                       "height": 32,
                       "justifyContent": "center",
@@ -281,7 +281,7 @@ exports[`AccountConnect renders correctly 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#6a737d"
+                    color="#686e7d"
                     height={20}
                     name="Wallet"
                     style={
@@ -305,12 +305,12 @@ exports[`AccountConnect renders correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -338,12 +338,12 @@ exports[`AccountConnect renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                         testID="permission-summary-account-text"
@@ -352,12 +352,12 @@ exports[`AccountConnect renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 12,
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -391,12 +391,12 @@ exports[`AccountConnect renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -426,7 +426,7 @@ exports[`AccountConnect renders correctly 1`] = `
                     {
                       "alignItems": "center",
                       "alignSelf": "flex-start",
-                      "backgroundColor": "#0000001A",
+                      "backgroundColor": "#0000001a",
                       "borderRadius": 16,
                       "height": 32,
                       "justifyContent": "center",
@@ -436,7 +436,7 @@ exports[`AccountConnect renders correctly 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#6a737d"
+                    color="#686e7d"
                     height={20}
                     name="Data"
                     style={
@@ -460,12 +460,12 @@ exports[`AccountConnect renders correctly 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -493,12 +493,12 @@ exports[`AccountConnect renders correctly 1`] = `
                         numberOfLines={1}
                         style={
                           {
-                            "color": "#141618",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "color": "#121314",
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -506,12 +506,12 @@ exports[`AccountConnect renders correctly 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#141618",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 12,
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -707,12 +707,12 @@ exports[`AccountConnect renders correctly 1`] = `
                       accessibilityRole="text"
                       style={
                         {
-                          "color": "#0376c9",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
+                          "color": "#4459ff",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -755,7 +755,7 @@ exports[`AccountConnect renders correctly 1`] = `
                       },
                       {
                         "backgroundColor": "#ffffff",
-                        "borderColor": "#6a737d",
+                        "borderColor": "#686e7d",
                         "borderWidth": 1,
                       },
                       [
@@ -784,13 +784,13 @@ exports[`AccountConnect renders correctly 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
                         },
                         {
-                          "color": "#6a737d",
+                          "color": "#686e7d",
                         },
                         undefined,
                       ],
@@ -815,7 +815,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         "padding": 15,
                       },
                       {
-                        "backgroundColor": "#0376c9",
+                        "backgroundColor": "#4459ff",
                         "minHeight": 50,
                       },
                       [
@@ -848,7 +848,7 @@ exports[`AccountConnect renders correctly 1`] = `
                       },
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
@@ -896,8 +896,363 @@ exports[`AccountConnect renders correctly 1`] = `
         }
         swipeThreshold={100}
         transparent={true}
-        visible={false}
-      />
+        visible={true}
+      >
+        <View
+          accessibilityState={
+            {
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onClick={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "backgroundColor": "#ca3542",
+              "bottom": 0,
+              "height": 1334,
+              "left": 0,
+              "opacity": 0,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "width": 750,
+            }
+          }
+        />
+        <View
+          collapsable={false}
+          deviceHeight={null}
+          deviceWidth={null}
+          hideModalContentWhileAnimating={false}
+          onBackdropPress={[Function]}
+          onModalHide={[Function]}
+          onModalWillHide={[Function]}
+          onModalWillShow={[Function]}
+          panResponderThreshold={4}
+          pointerEvents="box-none"
+          scrollHorizontal={false}
+          scrollOffset={0}
+          scrollOffsetMax={0}
+          scrollTo={null}
+          statusBarTranslucent={false}
+          style={
+            {
+              "flex": 1,
+              "justifyContent": "center",
+              "margin": 37.5,
+              "transform": [
+                {
+                  "translateY": 1334,
+                },
+              ],
+            }
+          }
+          supportedOrientations={
+            [
+              "portrait",
+              "landscape",
+            ]
+          }
+          swipeThreshold={100}
+        >
+          <View
+            style={
+              {
+                "justifyContent": "center",
+                "paddingHorizontal": 20,
+              }
+            }
+          >
+            <Image
+              resizeMethod="auto"
+              source={1}
+              style={
+                {
+                  "alignSelf": "center",
+                  "height": 48,
+                  "marginBottom": -15,
+                  "width": 48,
+                  "zIndex": 99999,
+                }
+              }
+            />
+            <View
+              style={
+                {
+                  "backgroundColor": "#ffffff",
+                  "borderRadius": 4,
+                  "height": 495,
+                }
+              }
+            >
+              <View
+                style={
+                  {
+                    "alignItems": "center",
+                    "backgroundColor": "#ffffff",
+                    "flexDirection": "row",
+                    "justifyContent": "center",
+                    "paddingVertical": 20,
+                  }
+                }
+              >
+                <Text
+                  allowFontScaling={false}
+                  style={
+                    [
+                      {
+                        "color": undefined,
+                        "fontSize": 15,
+                      },
+                      {
+                        "color": "#ca3542",
+                        "marginRight": 10,
+                      },
+                      {
+                        "fontFamily": "FontAwesome",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
+                  }
+                >
+                  
+                </Text>
+                <Text
+                  style={
+                    {
+                      "color": "#ca3542",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontWeight": "600",
+                      "textAlign": "center",
+                    }
+                  }
+                >
+                  Ethereum Phishing Detection
+                </Text>
+              </View>
+              <RCTScrollView
+                contentContainerStyle={
+                  {
+                    "paddingBottom": 20,
+                  }
+                }
+                style={
+                  {
+                    "backgroundColor": "#f3f5f9",
+                    "paddingHorizontal": 20,
+                    "paddingTop": 20,
+                  }
+                }
+              >
+                <View>
+                  <Text
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                        "marginBottom": 15,
+                      }
+                    }
+                  >
+                    <Text
+                      style={
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontWeight": "600",
+                        }
+                      }
+                    />
+                     is currently on the MetaMask domain warning list. This means that based on information available to us, MetaMask believes this domain could currently compromise your security and, as an added safety feature, MetaMask has restricted access to the site. To override this, please read the rest of this warning for instructions on how to continue at your own risk.
+                  </Text>
+                  <Text
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                        "marginBottom": 15,
+                      }
+                    }
+                  >
+                    There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
+                    <Text
+                      onPress={[Function]}
+                      style={
+                        {
+                          "textDecorationColor": "#121314",
+                          "textDecorationLine": "underline",
+                        }
+                      }
+                    >
+                      Ethereum Phishing Detector
+                    </Text>
+                    . 
+                    Domains on these warning lists may include outright malicious websites and legitimate websites that have been compromised by a malicious actor.
+                  </Text>
+                  <Text
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                        "marginBottom": 15,
+                      }
+                    }
+                  >
+                    To read more about this site 
+                    <Text
+                      onPress={[Function]}
+                      style={
+                        {
+                          "textDecorationColor": "#121314",
+                          "textDecorationLine": "underline",
+                        }
+                      }
+                    >
+                      please review the domain on Etherscam.
+                    </Text>
+                  </Text>
+                  <Text
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                        "marginBottom": 15,
+                      }
+                    }
+                  >
+                    Note that this warning list is compiled on a voluntary basis. This list may be inaccurate or incomplete. Just because a domain does not appear on this list is not an implicit guarantee of that domain's safety. As always, your transactions are your own responsibility. If you wish to interact with any domain on our warning list, you can do so by 
+                    <Text
+                      onPress={[Function]}
+                      style={
+                        {
+                          "textDecorationColor": "#121314",
+                          "textDecorationLine": "underline",
+                        }
+                      }
+                    >
+                      continuing at your own risk.
+                    </Text>
+                  </Text>
+                  <Text
+                    style={
+                      {
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 11,
+                        "fontWeight": "400",
+                        "marginBottom": 15,
+                      }
+                    }
+                  >
+                    There are many reasons sites can appear on our warning list, and our warning list compiles from other widely used industry lists. Such reasons can include known fraud or security risks, such as domains that test positive on the 
+                    <Text
+                      onPress={[Function]}
+                      style={
+                        {
+                          "textDecorationColor": "#121314",
+                          "textDecorationLine": "underline",
+                        }
+                      }
+                    >
+                      please file an issue.
+                    </Text>
+                  </Text>
+                </View>
+              </RCTScrollView>
+            </View>
+            <View
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "marginTop": 10,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                activeOpacity={0.2}
+                onPress={[Function]}
+                style={
+                  [
+                    [
+                      {
+                        "borderRadius": 100,
+                        "justifyContent": "center",
+                        "padding": 15,
+                      },
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderColor": "#686e7d",
+                        "borderWidth": 1,
+                      },
+                      {
+                        "borderWidth": 0,
+                        "padding": 10,
+                      },
+                    ],
+                    null,
+                  ]
+                }
+              >
+                <Text
+                  style={
+                    [
+                      {
+                        "color": "#007aff",
+                        "fontSize": 17,
+                        "fontWeight": "500",
+                        "textAlign": "center",
+                      },
+                      null,
+                      [
+                        {
+                          "fontFamily": "CentraNo1-Bold",
+                          "fontSize": 14,
+                          "fontWeight": "600",
+                          "textAlign": "center",
+                        },
+                        {
+                          "color": "#686e7d",
+                        },
+                        {
+                          "color": "#ca3542",
+                          "fontSize": 12,
+                        },
+                      ],
+                      null,
+                    ]
+                  }
+                >
+                  Back to safety
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   </View>
 </View>

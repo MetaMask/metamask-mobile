@@ -38,7 +38,7 @@ const InfoRow = ({
     >
       {Boolean(label) && (
         <View style={styles.labelContainer}>
-          <Text variant={TextVariant.BodyMDMedium} color={variant}>{label}</Text>
+          <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
           {labelChildren}
           {!labelChildren && tooltip && (
             <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />

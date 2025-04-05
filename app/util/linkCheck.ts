@@ -1,6 +1,6 @@
 import Url from 'url-parse';
 import isUrl from 'is-url';
-import { isOriginSafe } from './phishingDetection';
+import { getPhishingTestResult } from './phishingDetection';
 
 const ALLOWED_PROTOCOLS = ['http:', 'https:'];
 const DENYLISTED_DOMAINS = ['metamask.app.link'];
@@ -12,7 +12,8 @@ const isAllowedUrl = ({ hostname, origin }: Url<string>): boolean => {
   if (DENYLISTED_DOMAINS.includes(hostname)) {
     return false;
   }
-  return isOriginSafe(origin);
+  const phishingResult = getPhishingTestResult(origin);
+  return phishingResult?.result === false;
 };
 
 export const isLinkSafe = (link: string): boolean => {
