@@ -5,6 +5,7 @@ import {
 } from '@sentry/react-native';
 import StorageWrapper from '../../store/storage-wrapper';
 import { METRICS_OPT_IN, AGREED, DEBUG } from '../../constants/storage';
+import { CSVLogger } from './CSVLogger';
 
 interface ExtraInfo {
   message?: string;
@@ -114,6 +115,20 @@ export default class Logger {
     AsyncLogger.log(...args).catch(() => {
       // ignore error but avoid dangling promises
     });
+
+    // Add CSV logging for dev builds
+    if (__DEV__) {
+      const timestamp = new Date().toISOString();
+      const message = args[0];
+      const data = args.length > 1 ? JSON.stringify(args.slice(1)) : undefined;
+      console.log('TEST', __DEV__)
+      CSVLogger.write({
+        timestamp,
+        level: 'INFO',
+        message: typeof message === 'string' ? message : JSON.stringify(message),
+        data,
+      });
+    }
   }
 
   /**
