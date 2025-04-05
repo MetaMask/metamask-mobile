@@ -140,6 +140,20 @@ enum EVENT_NAME {
 
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
+  ACCOUNT_ADDED = 'Account Added',
+  ACCOUNT_REMOVED = 'Account Removed',
+  ACCOUNT_REMOVE_FAILED = 'Account Remove Failed',
+
+  // Snap Accounts
+  ADD_SNAP_ACCOUNT_STARTED = 'Add Snap Account Started',
+  ADD_SNAP_ACCOUNT_CONFIRMED = 'Add Snap Account Confirmed',
+  ADD_SNAP_ACCOUNT_CANCELED = 'Add Snap Account Canceled',
+  ADD_SNAP_ACCOUNT_SUCCESS = 'Add Snap Account Success',
+  REMOVE_SNAP_ACCOUNT_STARTED = 'Remove Snap Account Started',
+  REMOVE_SNAP_ACCOUNT_CONFIRMED = 'Remove Snap Account Confirmed',
+  REMOVE_SNAP_ACCOUNT_CANCELED = 'Remove Snap Account Canceled',
+  REMOVE_SNAP_ACCOUNT_SUCCESS = 'Remove Snap Account Success',
+  SNAP_ACCOUNT_REDIRECT = 'Snap Account Redirect',
 
   // Browser
   BROWSER_OPENED = 'Browser Opened',
@@ -379,10 +393,7 @@ enum EVENT_NAME {
   // common hardware wallet
   HARDWARE_WALLET_FORGOTTEN = 'Hardware wallet forgotten',
 
-  // Remove an account
-  ACCOUNT_REMOVED = 'Account removed',
-
-  //Notifications
+  // Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
   WALLET_NOTIFICATIONS = 'Wallet Notifications',
   ANNOUCEMENTS_NOTIFICATIONS = 'Annoucements Notifications',
@@ -455,6 +466,8 @@ enum ACTIONS {
   SELECTS_ALL_NOTIFICATIONS = 'Selects All Notifications',
   SELECTS_WALLET_NOTIFICATIONS = 'Selects Wallet Notifications',
   SELECTS_ANNOUCEMENTS_NOTIFICATIONS = 'Selects Annoucements Notifications',
+  // Snap Accounts
+  SNAP_ACCOUNTS = 'Snap Accounts',
 }
 
 const events = {
@@ -488,11 +501,11 @@ const events = {
     EVENT_NAME.CONNECT_REQUEST_OTPFAILURE,
   ),
   CONNECT_REQUEST_CANCELLED: generateOpt(EVENT_NAME.CONNECT_REQUEST_CANCELLED),
-  
+
   // Phishing events
   PHISHING_PAGE_DISPLAYED: generateOpt(EVENT_NAME.PHISHING_PAGE_DISPLAYED),
   PROCEED_ANYWAY_CLICKED: generateOpt(EVENT_NAME.PROCEED_ANYWAY_CLICKED),
-  
+
   WALLET_OPENED: generateOpt(EVENT_NAME.WALLET_OPENED),
   TOKEN_ADDED: generateOpt(EVENT_NAME.TOKEN_ADDED),
   COLLECTIBLE_ADDED: generateOpt(EVENT_NAME.COLLECTIBLE_ADDED),
@@ -856,12 +869,6 @@ const events = {
   ),
   HARDWARE_WALLET_FORGOTTEN: generateOpt(EVENT_NAME.HARDWARE_WALLET_FORGOTTEN),
 
-  // Remove an account
-  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
-
-  // Smart transactions
-  SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),
-
   // Notifications
   ALL_NOTIFICATIONS: generateOpt(
     EVENT_NAME.ALL_NOTIFICATIONS,
@@ -1008,6 +1015,49 @@ const events = {
     EVENT_NAME.EARN_TOKEN_LIST_ITEM_CLICKED,
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_LIST_ITEM_PRESSED),
+
+  // Account events
+  ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
+  ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+  ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+
+  // Add Snap account events
+  ADD_SNAP_ACCOUNT_STARTED: generateOpt(
+    EVENT_NAME.ADD_SNAP_ACCOUNT_STARTED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  ADD_SNAP_ACCOUNT_CONFIRMED: generateOpt(
+    EVENT_NAME.ADD_SNAP_ACCOUNT_CONFIRMED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  ADD_SNAP_ACCOUNT_CANCELED: generateOpt(
+    EVENT_NAME.ADD_SNAP_ACCOUNT_CANCELED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  ADD_SNAP_ACCOUNT_SUCCESS: generateOpt(
+    EVENT_NAME.ADD_SNAP_ACCOUNT_SUCCESS,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  REMOVE_SNAP_ACCOUNT_STARTED: generateOpt(
+    EVENT_NAME.REMOVE_SNAP_ACCOUNT_STARTED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  REMOVE_SNAP_ACCOUNT_CONFIRMED: generateOpt(
+    EVENT_NAME.REMOVE_SNAP_ACCOUNT_CONFIRMED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  REMOVE_SNAP_ACCOUNT_CANCELED: generateOpt(
+    EVENT_NAME.REMOVE_SNAP_ACCOUNT_CANCELED,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  REMOVE_SNAP_ACCOUNT_SUCCESS: generateOpt(
+    EVENT_NAME.REMOVE_SNAP_ACCOUNT_SUCCESS,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
+  SNAP_ACCOUNT_REDIRECT: generateOpt(
+    EVENT_NAME.SNAP_ACCOUNT_REDIRECT,
+    ACTIONS.SNAP_ACCOUNTS,
+  ),
 };
 
 /**
@@ -1061,7 +1111,7 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
-  // Send Flow
+  // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
   SEND_FLOW_ADJUSTS_TRANSACTION_FEE = `Adjusts transaction fee`,
@@ -1391,4 +1441,9 @@ const legacyMetaMetricsEvents = {
 
 const MetaMetricsEvents = { ...events, ...legacyMetaMetricsEvents };
 
-export { MetaMetricsEvents, ONBOARDING_WIZARD_STEP_DESCRIPTION, EVENT_NAME };
+export {
+  MetaMetricsEvents,
+  ONBOARDING_WIZARD_STEP_DESCRIPTION,
+  EVENT_NAME,
+  ACTIONS,
+};
