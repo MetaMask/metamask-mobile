@@ -26,7 +26,7 @@ exports[`SelectOptionSheet render matches the snapshot 1`] = `
             "alignSelf": "flex-start",
             "color": "#121314",
             "flex": 1,
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "paddingBottom": 10,

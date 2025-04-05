@@ -40,10 +40,10 @@ exports[`InfoAddress should match snapshot 1`] = `
         "color": "#121314",
         "flexShrink": 1,
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 14,
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >
