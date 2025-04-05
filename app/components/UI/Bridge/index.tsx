@@ -43,6 +43,7 @@ import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 
 const createStyles = (params: { theme: Theme }) => {
@@ -184,7 +185,7 @@ const BridgeView = () => {
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
     const quoteResponse = undefined;
     if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
+      submitBridgeTx({ quoteResponse: quoteResponse as unknown as QuoteResponse & QuoteMetadata });
     }
   };
 
