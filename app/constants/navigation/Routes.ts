@@ -123,6 +123,8 @@ const Routes = {
   BROWSER: {
     HOME: 'BrowserTabHome',
     VIEW: 'BrowserView',
+    ASSET_LOADER: 'AssetLoader',
+    ASSET_VIEW: 'AssetView',
   },
   WEBVIEW: {
     MAIN: 'Webview',
