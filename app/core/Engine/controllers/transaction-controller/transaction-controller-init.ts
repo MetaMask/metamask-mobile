@@ -35,7 +35,6 @@ import type { TransactionEventHandlerRequest } from './types';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
-  // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
@@ -102,6 +101,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         pendingTransactions: {
           isResubmitEnabled: () => false,
         },
+        // @ts-expect-error - TransactionMeta mismatch type with TypedTransaction from '@ethereumjs/tx'
         sign: (...args) => keyringController.signTransaction(...args),
         state: persistedState.TransactionController,
       });
@@ -169,7 +169,6 @@ function isIncomingTransactionsEnabled(
 
 function getControllers(
   request: ControllerInitRequest<
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >,
