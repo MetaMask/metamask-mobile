@@ -30,7 +30,30 @@ import {
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
-const SRPQuiz = () => {
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+export interface SRPQuizProps {
+  route: {
+    params: {
+      keyringId?: string;
+    };
+  };
+}
+///: END:ONLY_INCLUDE_IF
+
+const SRPQuiz = (
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  props: SRPQuizProps,
+  ///: END:ONLY_INCLUDE_IF
+) => {
+  // It has be destructured like this because of prettier
+  // shifting the fence to the ending curly brace.
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  const {
+    route: {
+      params: { keyringId },
+    },
+  } = props;
+  ///: END:ONLY_INCLUDE_IF
   const modalRef = useRef<ReusableModalRef>(null);
   const [stage, setStage] = useState<QuizStage>(QuizStage.introduction);
   const { styles, theme } = useStyles(stylesheet, {});
@@ -83,8 +106,18 @@ const SRPQuiz = () => {
     navigation.navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
       credentialName: 'seed_phrase',
       shouldUpdateNav: true,
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      keyringId,
+      ///: END:ONLY_INCLUDE_IF
     });
-  }, [navigation, trackEvent, createEventBuilder]);
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    keyringId,
+    ///: END:ONLY_INCLUDE_IF
+  ]);
 
   const introduction = useCallback(() => {
     trackEvent(
