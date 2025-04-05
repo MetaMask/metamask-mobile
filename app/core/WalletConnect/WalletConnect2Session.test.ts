@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import WalletConnect2Session from './WalletConnect2Session';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Ignoring the import error for testing purposes
-import { Client } from '@walletconnect/se-sdk';
 import { NavigationContainerRef } from '@react-navigation/native';
+import { IWalletKit } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { store } from '../../store';
 import Engine from '../Engine';
+import { selectEvmChainId } from '../../selectors/networkController';
+import { Platform, Linking } from 'react-native';
+import Routes from '../../../app/constants/navigation/Routes';
+import Device from '../../util/device';
+import { Minimizer } from '../NativeModules';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 jest.mock('../AppConstants', () => ({
   WALLET_CONNECT: {
@@ -19,19 +23,32 @@ jest.mock('../AppConstants', () => ({
     },
   },
   BUNDLE_IDS: {
-    ANDROID: 'com.test.app', // Make sure this is correctly mocked
+    ANDROID: 'com.test.app',
   },
 }));
 
-jest.mock('@walletconnect/se-sdk', () => ({
-  Client: jest.fn().mockImplementation(() => ({
+jest.mock('@reown/walletkit', () => {
+  const mockClient = {
     approveRequest: jest.fn(),
     rejectRequest: jest.fn(),
     updateSession: jest.fn(),
     getPendingSessionRequests: jest.fn(),
+    respondSessionRequest: jest.fn().mockResolvedValue(undefined),
     on: jest.fn(),
-  })),
-}));
+    emitSessionEvent: jest.fn(),
+  };
+
+  return {
+    __esModule: true,
+    default: {
+      init: jest.fn().mockResolvedValue(mockClient),
+    },
+    WalletKit: {
+      init: jest.fn().mockResolvedValue(mockClient),
+    },
+    Client: jest.fn().mockImplementation(() => mockClient),
+  };
+});
 
 jest.mock('../BackgroundBridge/BackgroundBridge', () =>
   jest.fn().mockImplementation(() => ({
@@ -46,26 +63,56 @@ jest.mock('../Engine');
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
-jest.mock('../Permissions');
+jest.mock('../Permissions', () => ({
+  getPermittedAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+  getPermittedChains: jest.fn().mockResolvedValue(['eip155:1']),
+}));
 jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
+    subscribe: jest.fn(),
   },
 }));
-jest.mock('../RPCMethods/RPCMethodMiddleware');
+jest.mock('../RPCMethods/RPCMethodMiddleware', () => ({
+  __esModule: true,
+  default: () => () => ({ acknowledged: () => Promise.resolve() }),
+}));
 jest.mock('./wc-utils', () => ({
   hideWCLoadingState: jest.fn(),
   showWCLoadingState: jest.fn(),
+  checkWCPermissions: jest.fn().mockResolvedValue(true),
+  getScopedPermissions: jest.fn().mockResolvedValue({
+    eip155: {
+      chains: ['eip155:1'],
+      methods: ['eth_sendTransaction'],
+      events: ['chainChanged', 'accountsChanged'],
+      accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
+    }
+  }),
+  normalizeOrigin: jest.fn().mockImplementation((url) => url),
+}));
+jest.mock('../../selectors/networkController', () => ({
+  selectEvmChainId: jest.fn(),
+}));
+
+jest.mock('../../util/device', () => ({
+  isIos: jest.fn(),
+}));
+
+jest.mock('../NativeModules', () => ({
+  Minimizer: {
+    goBack: jest.fn(),
+  },
 }));
 
 describe('WalletConnect2Session', () => {
   let session: WalletConnect2Session;
-  let mockClient: Client;
+  let mockClient: IWalletKit;
   let mockSession: SessionTypes.Struct;
   let mockNavigation: NavigationContainerRef;
 
   beforeEach(() => {
-    mockClient = new Client();
+    mockClient = new (jest.requireMock('@reown/walletkit').Client)();
     mockSession = {
       topic: 'test-topic',
       pairingTopic: 'test-pairing',
@@ -73,16 +120,16 @@ describe('WalletConnect2Session', () => {
         metadata: { url: 'https://example.com', name: 'Test App', icons: [] },
       },
     } as unknown as SessionTypes.Struct;
-    mockNavigation = {} as NavigationContainerRef;
+    mockNavigation = {
+      navigate: jest.fn(),
+    } as unknown as NavigationContainerRef;
 
-    // Mock store state
     (store.getState as jest.Mock).mockReturnValue({
       inpageProvider: {
         networkId: '1',
       },
     });
 
-    // Mock Engine.context
     Object.defineProperty(Engine, 'context', {
       value: {
         AccountsController: {
@@ -98,8 +145,7 @@ describe('WalletConnect2Session', () => {
           getNetworkClientById: jest.fn().mockReturnValue({ chainId: '0x2' }),
         },
         PermissionController: {
-          // eslint-disable-next-line no-empty-function
-          createPermissionMiddleware: jest.fn().mockReturnValue(() => {}),
+          createPermissionMiddleware: jest.fn().mockReturnValue(() => ({ result: true })),
         },
       },
       writable: true,
@@ -113,9 +159,14 @@ describe('WalletConnect2Session', () => {
       navigation: mockNavigation,
     });
 
-    // Manually set the topicByRequestId to ensure it's populated correctly for tests
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (session as any).topicByRequestId = { '1': mockSession.topic };
+
+    // Mock Platform
+    jest.spyOn(Platform, 'Version', 'get').mockReturnValue('17.0');
+    jest.spyOn(Platform, 'select').mockImplementation(jest.fn());
+
+    // Mock Linking
+    jest.spyOn(Linking, 'openURL').mockReturnValue(Promise.resolve());
   });
 
   it('should initialize correctly in constructor', () => {
@@ -131,9 +182,10 @@ describe('WalletConnect2Session', () => {
   });
 
   it('should handle request correctly and reject invalid chainId', async () => {
-    const mockRejectRequest = jest
-      .spyOn(mockClient, 'rejectRequest')
-      .mockResolvedValue(undefined);
+    const mockRespondSessionRequest = jest
+      .spyOn(mockClient, 'respondSessionRequest')
+      .mockImplementation(async () => { /* empty implementation */ });
+
     const requestEvent = {
       id: '1',
       topic: 'test-topic',
@@ -144,21 +196,25 @@ describe('WalletConnect2Session', () => {
           params: [],
         },
       },
-      verifyContext: {},
+      verifyContext: {
+        verified: {
+          origin: 'https://example.com'
+        }
+      },
     };
 
-    (store.getState as jest.Mock).mockReturnValue({
-      inpageProvider: {
-        networkId: '1',
-      },
-    });
+    const { checkWCPermissions } = jest.requireMock('./wc-utils');
+    checkWCPermissions.mockResolvedValueOnce(false);
 
     await session.handleRequest(requestEvent as any);
 
-    expect(mockRejectRequest).toHaveBeenCalledWith({
-      id: '1',
+    expect(mockRespondSessionRequest).toHaveBeenCalledWith({
       topic: mockSession.topic,
-      error: { code: 1, message: 'Invalid chainId' },
+      response: {
+        id: '1',
+        jsonrpc: '2.0',
+        error: { code: 4902, message: 'Invalid chainId' },
+      },
     });
   });
 
@@ -174,53 +230,318 @@ describe('WalletConnect2Session', () => {
   });
 
   it('should approve a request correctly', async () => {
-    const mockApproveRequest = jest
-      .spyOn(mockClient, 'approveRequest')
+    const mockRespondSessionRequest = jest
+      .spyOn(mockClient, 'respondSessionRequest')
       .mockResolvedValue(undefined);
     const request = { id: '1', result: '0x123' };
 
     await session.approveRequest(request);
 
-    expect(mockApproveRequest).toHaveBeenCalledWith({
-      id: parseInt(request.id),
+    expect(mockRespondSessionRequest).toHaveBeenCalledWith({
       topic: mockSession.topic,
-      result: request.result,
+      response: {
+        id: 1,
+        jsonrpc: '2.0',
+        result: request.result,
+      },
     });
   });
 
   it('should reject a request correctly', async () => {
-    const mockRejectRequest = jest
-      .spyOn(mockClient, 'rejectRequest')
+    const mockRespondSessionRequest = jest
+      .spyOn(mockClient, 'respondSessionRequest')
       .mockResolvedValue(undefined);
     const request = { id: '1', error: new Error('User rejected') };
 
     await session.rejectRequest(request);
 
-    expect(mockRejectRequest).toHaveBeenCalledWith({
-      id: parseInt(request.id),
+    expect(mockRespondSessionRequest).toHaveBeenCalledWith({
       topic: mockSession.topic,
-      error: { code: 5000, message: 'User rejected' },
+      response: {
+        id: 1,
+        jsonrpc: '2.0',
+        error: { code: 5000, message: 'User rejected' },
+      },
     });
   });
 
   it('should handle session update correctly', async () => {
     const mockUpdateSession = jest
       .spyOn(mockClient, 'updateSession')
-      .mockResolvedValue(undefined);
-    const approvedAccounts = ['0x123'];
+      .mockResolvedValue({ acknowledged: () => Promise.resolve() });
+    const accounts = ['0x123'];
+    const chainId = 1;
 
-    // Mock the getApprovedAccountsFromPermissions method
-    jest
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .spyOn(session as any, 'getApprovedAccountsFromPermissions')
-      .mockResolvedValue(approvedAccounts);
+    (store.getState as jest.Mock).mockReturnValue({
+      inpageProvider: {
+        networkId: '1',
+      },
+    });
 
-    await session.updateSession({ chainId: 1, accounts: approvedAccounts });
+    await session.updateSession({ chainId, accounts });
 
     expect(mockUpdateSession).toHaveBeenCalledWith({
       topic: mockSession.topic,
-      chainId: 1,
-      accounts: approvedAccounts,
+      namespaces: {
+        eip155: {
+          chains: ['eip155:1'],
+          methods: ['eth_sendTransaction'],
+          events: ['chainChanged', 'accountsChanged'],
+          accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678']
+        }
+      }
+    });
+  });
+
+  it('should handle chain changes through store subscription', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    // Mock initial chain ID
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+
+    // Change the chain ID
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).toHaveBeenCalledWith(2);
+
+    subscriberCallback();
+    expect(handleChainChangeSpy).toHaveBeenCalledTimes(1);
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('should not trigger handleChainChange when isHandlingChainChange is true', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    (session as any).isHandlingChainChange = true;
+
+    const handleChainChangeSpy = jest.spyOn(session as any, 'handleChainChange');
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(handleChainChangeSpy).not.toHaveBeenCalled();
+
+    handleChainChangeSpy.mockRestore();
+  });
+
+  it('should log warning if handleChainChange throws an error', async () => {
+    // eslint-disable-next-line no-empty-function
+    let subscriberCallback: () => void = () => {};
+    (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
+      subscriberCallback = callback;
+    });
+
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x1');
+
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: mockSession,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    const error = new Error('Chain change failed');
+    jest.spyOn(session as any, 'handleChainChange').mockRejectedValueOnce(error);
+
+    (selectEvmChainId as unknown as jest.Mock).mockReturnValue('0x2');
+
+    subscriberCallback();
+
+    await new Promise(process.nextTick);
+
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      'WC2::store.subscribe Error handling chain change:',
+      error
+    );
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  describe('redirect', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should do nothing if deeplink is false', () => {
+      session.setDeeplink(false);
+      session.redirect('test');
+      jest.runAllTimers();
+      
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(Minimizer.goBack).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('should call Minimizer.goBack for non-iOS devices', () => {
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      
+      session.redirect('test');
+      jest.runAllTimers();
+
+      expect(Minimizer.goBack).toHaveBeenCalled();
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    describe('iOS specific behavior', () => {
+      beforeEach(() => {
+        (Device.isIos as jest.Mock).mockReturnValue(true);
+        //(Platform.Version as any) = '17.0';
+      });
+
+      it('should open peerLink if available', async () => {
+        const mockPeerLink = 'https://example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                native: mockPeerLink,
+              },
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockPeerLink);
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
+
+      it('should use universal link if native link is not available', async () => {
+        const mockUniversalLink = 'https://universal.example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                universal: mockUniversalLink,
+              },
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockUniversalLink);
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
+
+      it('should show return modal if no peerLink is available', () => {
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {},
+            },
+          },
+        } as any;
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          }
+        );
+        expect(Linking.openURL).not.toHaveBeenCalled();
+      });
+
+      it('should show return modal if opening peerLink fails', async () => {
+        const mockPeerLink = 'https://example.com';
+        session.session = {
+          ...mockSession,
+          peer: {
+            metadata: {
+              ...mockSession.peer.metadata,
+              redirect: {
+                native: mockPeerLink,
+              },
+            },
+          },
+        } as any;
+
+        (Linking.openURL as jest.Mock).mockReturnValue(Promise.reject(new Error('Failed to open URL')));
+
+        session.redirect('test');
+        jest.runAllTimers();
+
+        // Force jest to process all pending promises
+        await Promise.resolve();
+
+        expect(Linking.openURL).toHaveBeenCalledWith(mockPeerLink);
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.MODAL.ROOT_MODAL_FLOW,
+          {
+            screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
+          }
+        );
+        expect(DevLogger.log).toHaveBeenLastCalledWith(
+          `WC2::redirect error while opening ${mockPeerLink} with error Error: Failed to open URL`
+        );
+      });
+
+      it('should not handle iOS specific logic for iOS versions below 17', () => {
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
+        
+        session.redirect('test');
+        jest.runAllTimers();
+
+        expect(Minimizer.goBack).toHaveBeenCalled();
+        expect(Linking.openURL).not.toHaveBeenCalled();
+        expect(mockNavigation.navigate).not.toHaveBeenCalled();
+      });
     });
   });
 });
