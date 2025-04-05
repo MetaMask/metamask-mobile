@@ -153,7 +153,6 @@ exports[`Login should render correctly 1`] = `
               <TextInput
                 autoCapitalize="none"
                 autoFocus={false}
-                baseColor="#b7bbc8"
                 editable={true}
                 keyboardAppearance="light"
                 onBlur={[Function]}
@@ -180,7 +179,6 @@ exports[`Login should render correctly 1`] = `
                   }
                 }
                 testID="login-password-input"
-                tintColor="#4459ff"
                 value=""
               />
             </View>
