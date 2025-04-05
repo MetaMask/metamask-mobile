@@ -150,7 +150,13 @@ exports[`Approve renders transaction approval 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`Approve renders transaction approval 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -931,33 +938,6 @@ exports[`Approve renders transaction approval 1`] = `
                             </View>
                           </View>
                         </RCTScrollView>
-                        <Modal
-                          animationType="none"
-                          deviceHeight={null}
-                          deviceWidth={null}
-                          hardwareAccelerated={false}
-                          hideModalContentWhileAnimating={false}
-                          onBackdropPress={[Function]}
-                          onModalHide={[Function]}
-                          onModalWillHide={[Function]}
-                          onModalWillShow={[Function]}
-                          onRequestClose={[Function]}
-                          panResponderThreshold={4}
-                          scrollHorizontal={false}
-                          scrollOffset={0}
-                          scrollOffsetMax={0}
-                          scrollTo={null}
-                          statusBarTranslucent={false}
-                          supportedOrientations={
-                            [
-                              "portrait",
-                              "landscape",
-                            ]
-                          }
-                          swipeThreshold={100}
-                          transparent={true}
-                          visible={false}
-                        />
                       </View>
                     </Modal>
                   </View>

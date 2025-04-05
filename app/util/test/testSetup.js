@@ -259,8 +259,6 @@ jest.mock(
   () => 'TextInput',
 );
 
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 jest.mock('react-native/Libraries/Interaction/InteractionManager', () => ({
   runAfterInteractions: jest.fn(),
   createInteractionHandle: jest.fn(),
@@ -341,7 +339,7 @@ jest.mock('../../store/storage-wrapper', () => ({
 }));
 
 // eslint-disable-next-line import/no-commonjs
-require('react-native-reanimated/lib/module/reanimated2/jestUtils').setUpTests();
+require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
 
