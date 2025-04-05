@@ -55,7 +55,12 @@ const initialState = {
 describe('AssetSearch', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(
-      <AssetSearch onSearch={jest.fn} onFocus={jest.fn} onBlur={jest.fn} />,
+      <AssetSearch
+        onSearch={jest.fn}
+        onFocus={jest.fn}
+        onBlur={jest.fn}
+        allNetworksEnabled
+      />,
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();

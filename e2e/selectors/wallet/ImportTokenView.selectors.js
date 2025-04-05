@@ -15,6 +15,7 @@ export const ImportTokenViewSelectorsIDs = {
   NEXT_BUTTON: 'token-import-next-button',
   SEARCH_BAR: 'input-search-asset',
   ASSET_SEARCH_CONTAINER: 'add-searched-token-screen',
+  SELECT_NETWORK_BUTTON: 'select-network-button',
 };
 
 export const ImportTokenViewSelectorsText = {

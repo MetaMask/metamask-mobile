@@ -236,6 +236,11 @@ const createStyles = (colors: Colors) =>
     portfolioButtonContainer: {
       alignItems: 'center',
     },
+    networkImageContainer: {
+      position: 'absolute',
+      right: 0,
+      padding: 16,
+    },
   });
 
 export default createStyles;
