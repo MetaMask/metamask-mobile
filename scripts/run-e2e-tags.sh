@@ -40,8 +40,14 @@ find "$TEMP_TEST_DIR" -type f -name "*.spec.js" | sed 's/^/  - /'
 
 # Run all matching tests in a single command
 echo -e "\nRunning matching tests..."
-IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:debug:run "$TEMP_TEST_DIR"
-
+# Determine platform-specific test command
+if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == "ios_e2e_test" ]]; then
+    IGNORE_BOXLOGS_DEVELOPMENT="true" \
+    yarn test:e2e:ios:run:qa-release "$TEMP_TEST_DIR"
+else
+    IGNORE_BOXLOGS_DEVELOPMENT="true" \
+    yarn test:e2e:android:run:qa-release "$TEMP_TEST_DIR"
+fi
 # Cleanup
 echo -e "\nCleaning up temporary directory..."
 rm -rf "$TEMP_TEST_DIR"
