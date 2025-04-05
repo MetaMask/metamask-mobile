@@ -33,9 +33,14 @@ import {
 } from '../../../../../selectors/featureFlagController';
 import { flushPromises } from '../../../../../util/test/utils';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import usePooledStakes from '../../hooks/usePooledStakes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import useMetrics from '../../../../hooks/useMetrics/useMetrics';
 import { EVENT_PROVIDERS } from '../../constants/events';
+import {
+  MOCK_EXCHANGE_RATE,
+  MOCK_POOLED_STAKES_DATA,
+} from '../../__mocks__/earnControllerMockData';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
@@ -187,6 +192,11 @@ jest.mock('../../hooks/usePoolStakedDeposit', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePooledStakes', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
@@ -199,6 +209,8 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('StakeInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
+  const usePooledStakesMock = jest.mocked(usePooledStakes);
+
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
@@ -232,6 +244,19 @@ describe('StakeInputView', () => {
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
+    usePooledStakesMock.mockReturnValue({
+      pooledStakesData: MOCK_POOLED_STAKES_DATA,
+      exchangeRate: MOCK_EXCHANGE_RATE,
+      isLoadingPooledStakesData: false,
+      error: '',
+      refreshPooledStakes: jest.fn(),
+      refreshPooledStakesOnTxConfirmation: jest.fn(),
+      hasStakedPositions: false,
+      hasRewards: true,
+      hasRewardsOnly: false,
+      hasNeverStaked: false,
+      hasEthToUnstake: true,
+    });
     useMetricsMock.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
@@ -247,7 +272,7 @@ describe('StakeInputView', () => {
       {
         state: mockInitialState,
       },
-      baseProps.route.params
+      baseProps.route.params,
     );
   }
 

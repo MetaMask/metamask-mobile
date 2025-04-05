@@ -30,6 +30,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import usePooledStakes from '../../hooks/usePooledStakes';
 
 const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,6 +40,7 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
   const isStakingDepositRedesignedEnabled =
     confirmationRedesignFlags?.staking_confirmations;
   const { attemptDepositTransaction } = usePoolStakedDeposit();
+  const { refreshPooledStakesOnTxConfirmation } = usePooledStakes();
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const { navigate } = useNavigation();
 
@@ -94,10 +96,15 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     const amountWeiString = amountWei.toString();
 
     if (isStakingDepositRedesignedEnabled) {
-      await attemptDepositTransaction(
+      const txRes = await attemptDepositTransaction(
         amountWeiString,
         activeAccount?.address as string,
       );
+
+      const transactionId = txRes?.transactionMeta?.id;
+
+      refreshPooledStakesOnTxConfirmation(transactionId);
+
       navigate('StakeScreens', {
         screen: Routes.STANDALONE_CONFIRMATIONS.STAKE_DEPOSIT,
       });
@@ -115,16 +122,17 @@ const GasImpactModal = ({ route }: GasImpactModalProps) => {
     }
     metricsEvent(MetaMetricsEvents.STAKE_GAS_COST_IMPACT_PROCEEDED_CLICKED);
   }, [
-    activeAccount?.address,
-    amountFiat,
     amountWei,
+    isStakingDepositRedesignedEnabled,
+    metricsEvent,
+    attemptDepositTransaction,
+    activeAccount?.address,
+    refreshPooledStakesOnTxConfirmation,
+    navigate,
+    amountFiat,
     annualRewardsETH,
     annualRewardsFiat,
     annualRewardRate,
-    attemptDepositTransaction,
-    isStakingDepositRedesignedEnabled,
-    metricsEvent,
-    navigate,
   ]);
 
   const footerButtons: ButtonProps[] = [
