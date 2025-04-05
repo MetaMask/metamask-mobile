@@ -9,13 +9,14 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import StyledButton from '../../UI/StyledButton';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import URL from 'url-parse';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import { ETHEREUM_DETECTION_TITLE } from '../../../../wdio/screen-objects/testIDs/BrowserScreen/ExternalWebsites.testIds';
+import Button from '../../../component-library/components/Buttons/Button/Button';
+import { ButtonVariants, ButtonWidthTypes } from '../../../component-library/components/Buttons/Button/Button.types';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -87,6 +88,10 @@ const createStyles = (colors) =>
     warningContainer: {
       alignItems: 'left',
     },
+    buttonWrapper: {
+      marginTop: 32,
+      height: 48,
+    },
   });
 
 export default class PhishingModal extends PureComponent {
@@ -121,8 +126,6 @@ export default class PhishingModal extends PureComponent {
       }
     });
   };
-
-
 
   render() {
     const colors = this.context.colors || mockTheme.colors;
@@ -161,14 +164,13 @@ export default class PhishingModal extends PureComponent {
           <Icon name="twitter" size={16} style={styles.buttonIcon} />
           <Text style={styles.buttonText}>{strings('phishing.share_on_twitter')}</Text>
         </TouchableOpacity>
-        <StyledButton
-          type={'confirm'}
+        <Button
+          variant={ButtonVariants.Primary}
+          label={strings('phishing.back_to_safety')}
           onPress={this.props.goBackToSafety}
-          containerStyle={styles.backToSafetyButton}
-          styleText={styles.backToSafetyText}
-        >
-          {strings('phishing.back_to_safety')}
-        </StyledButton>
+          style={styles.buttonWrapper}
+          width={ButtonWidthTypes.Full}
+        />
       </View>
     );
   }
