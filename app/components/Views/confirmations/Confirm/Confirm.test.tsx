@@ -2,8 +2,10 @@ import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
+  generateContractInteractionState,
   personalSignatureConfirmationState,
   securityAlertResponse,
+  stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
@@ -89,6 +91,7 @@ jest.mock('react-native-gzip', () => ({
 describe('Confirm', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders modal confirmation', async () => {
@@ -171,6 +174,33 @@ describe('Confirm', () => {
     expect(getByText('Unstaking to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+  });
+
+  it('renders correct information for staking claim', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingClaimConfirmationState,
+    });
+    expect(getByText('Estimated changes')).toBeDefined();
+    expect(getByText('Claiming to')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Pooled Staking')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+  });
+
+  it('renders correct information for contract interaction', async () => {
+    jest.spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: true });
+
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: generateContractInteractionState,
+    });
+
+    expect(getByText('Transaction request')).toBeDefined()
+    expect(getByText('Review request details before you confirm.')).toBeDefined();
+    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
   });
 

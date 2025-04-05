@@ -9,7 +9,7 @@ import InfoRowOrigin from './InfoRowOrigin';
 
 describe('InfoRowOrigin', () => {
   it('should contained required text', async () => {
-    const { getByText } = renderWithProvider(<InfoRowOrigin />, {
+    const { getByText } = renderWithProvider(<InfoRowOrigin isSignatureRequest />, {
       state: typedSignV1ConfirmationState,
     });
     expect(getByText('Request from')).toBeDefined();
@@ -17,7 +17,7 @@ describe('InfoRowOrigin', () => {
   });
 
   it('should display signing in with information for SIWE sign request', async () => {
-    const { getByText } = renderWithProvider(<InfoRowOrigin />, {
+    const { getByText } = renderWithProvider(<InfoRowOrigin isSignatureRequest />, {
       state: siweSignatureConfirmationState,
     });
     expect(getByText('Signing in with')).toBeDefined();
