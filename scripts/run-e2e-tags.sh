@@ -45,7 +45,7 @@ echo -e "\nRunning matching tests..."
 # Debug output
 echo "Current workflow ID: $BITRISE_TRIGGERED_WORKFLOW_ID"
 
-if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == "ios_e2e_test" ]]; then
+if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
     echo "Detected iOS workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:ios:run:qa-release "$TEMP_TEST_DIR"
