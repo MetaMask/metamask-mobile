@@ -82,7 +82,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isOriginSafe } from '../../../util/phishingDetection';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -279,7 +279,10 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback((origin: string) => isOriginSafe(origin), []);
+  const isAllowedOrigin = useCallback((origin: string) => {
+    const phishingResult = getPhishingTestResult(origin);
+    return phishingResult?.result === false;
+  }, []);
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
