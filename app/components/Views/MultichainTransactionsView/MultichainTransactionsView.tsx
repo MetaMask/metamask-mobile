@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
@@ -30,31 +30,30 @@ const MultichainTransactionsView = () => {
     selectSelectedInternalAccountFormattedAddress,
   );
   const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  useEffect(() => {
-    setLoading(true);
+  const transactions = useMemo(() => {
+    if (
+      solanaAccountTransactions &&
+      'transactions' in solanaAccountTransactions
+    ) {
+      return solanaAccountTransactions.transactions;
+    }
+    return [];
+  }, [solanaAccountTransactions]);
 
-    // use the selector selectSolanaAccountTransactions
+  useEffect(() => {
+    // if it has already been set to false, don't re-run the effect
+    if (loading === false) return;
     // simple timeout to simulate loading
     const timer = setTimeout(() => {
-      // check if solanaAccountTransactions is an object with transactions property
-      if (
-        solanaAccountTransactions &&
-        'transactions' in solanaAccountTransactions
-      ) {
-        setTransactions(solanaAccountTransactions.transactions);
-      } else {
-        setTransactions([]);
-      }
       setLoading(false);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [solanaAccountTransactions]);
+  }, [loading, solanaAccountTransactions]);
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
