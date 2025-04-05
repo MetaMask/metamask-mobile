@@ -68,11 +68,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  isMainnetByChainId,
-  isTestNet,
-  getDecimalChainId,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -84,7 +80,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
-  addHexPrefix,
   hexToBN,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
@@ -203,6 +198,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 
@@ -251,6 +247,7 @@ export class Engine {
 
   accountsController: AccountsController;
   transactionController: TransactionController;
+  gasFeeController: GasFeeController;
   smartTransactionsController: SmartTransactionsController;
 
   keyringController: KeyringController;
@@ -366,36 +363,6 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'GasFeeController',
-        allowedActions: [
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:getEIP1559Compatibility`,
-          `${networkController.name}:getState`,
-        ],
-        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
-      }),
-      getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getProviderAndBlockTracker().provider,
-      getCurrentNetworkEIP1559Compatibility: async () =>
-        (await networkController.getEIP1559Compatibility()) ?? false,
-      getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = getGlobalChainId(networkController);
-        return (
-          isMainnetByChainId(chainId) ||
-          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
-          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
-        );
-      },
-      clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
-    });
-
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
@@ -989,7 +956,6 @@ export class Engine {
 
     const existingControllersByName = {
       ApprovalController: approvalController,
-      GasFeeController: gasFeeController,
       KeyringController: this.keyringController,
       NetworkController: networkController,
       PreferencesController: preferencesController,
@@ -1004,6 +970,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -1032,10 +999,12 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const transactionController = controllersByName.TransactionController;
+    const gasFeeController = controllersByName.GasFeeController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
     this.transactionController = transactionController;
+    this.gasFeeController = gasFeeController;
 
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
@@ -1311,10 +1280,11 @@ export class Engine {
         }),
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
-        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        fetchGasFeeEstimates: () =>
+          this.gasFeeController.fetchGasFeeEstimates(),
         fetchEstimatedMultiLayerL1Fee,
       }),
-      GasFeeController: gasFeeController,
+      GasFeeController: this.gasFeeController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
