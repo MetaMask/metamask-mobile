@@ -9,7 +9,12 @@ import { useStyles } from '../../../../../../component-library/hooks';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
-import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest, isPermitDaiRevoke } from '../../../utils/signature';
+import {
+  isPermitDaiRevoke,
+  isRecognizedPermit,
+  isSIWESignatureRequest,
+  parseSignTypedDataFromSignatureRequest,
+} from '../../../utils/signature';
 import { useStandaloneConfirmation } from '../../../hooks/useStandaloneConfirmation';
 import styleSheet from './Title.styles';
 
@@ -33,9 +38,10 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
-        const { allowed, tokenId, value } = parsedMessage?.message ?? {};
-        const { verifyingContract } = parsedMessage?.domain ?? {};
+        const parsedData =
+          parseSignTypedDataFromSignatureRequest(signatureRequest);
+        const { allowed, tokenId, value } = parsedData.message ?? {};
+        const { verifyingContract } = parsedData.domain ?? {};
 
         const isERC721Permit = tokenId !== undefined;
         if (isERC721Permit) {

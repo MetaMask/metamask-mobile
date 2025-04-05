@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
 import { View } from 'react-native';
 
@@ -7,7 +7,7 @@ import { useSignatureRequest } from '../../../../hooks/useSignatureRequest';
 import Text from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { useTypedSignSimulationEnabled } from '../../../../hooks/useTypedSignSimulationEnabled';
-import { parseSanitizeTypedDataMessage } from '../../../../utils/signature';
+import { parseAndSanitizeSignTypedData } from '../../../../utils/signature';
 import InfoRow from '../../../UI/InfoRow';
 import { useTokenDecimalsInTypedSignRequest } from '../../../../hooks/useTokenDecimalsInTypedSignRequest';
 import DataTree from '../../DataTree';
@@ -50,10 +50,7 @@ const Message = () => {
     domain: { verifyingContract } = { verifyingContract: '' },
     sanitizedMessage,
     primaryType,
-  } = useMemo(
-    () => parseSanitizeTypedDataMessage(typedSignData),
-    [typedSignData],
-  );
+  } = parseAndSanitizeSignTypedData(typedSignData);
 
   const tokenDecimals = useTokenDecimalsInTypedSignRequest(
     signatureRequest,
