@@ -1,5 +1,7 @@
 import { NetworkType, toHex } from '@metamask/controller-utils';
 
+export const INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
+
 export const MAINNET = 'mainnet';
 export const HOMESTEAD = 'homestead';
 export const GOERLI = 'goerli';

@@ -5,9 +5,8 @@ import { ListItemMultiSelectButtonProps } from '../ListItemMultiSelectButton/Lis
 /**
  * Cell Account Select  component props.
  */
-export interface CellSelectWithMenuProps
-  extends CellBaseProps,
-    Omit<ListItemMultiSelectButtonProps, 'children'> {}
+export type CellSelectWithMenuProps = CellBaseProps &
+  Omit<ListItemMultiSelectButtonProps, 'children'>;
 
 /**
  * Style sheet input parameters.
