@@ -181,25 +181,27 @@ stages:
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
-      - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
-      # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      - run_tag_smoke_confirmations_ios: {}
-      - run_tag_smoke_confirmations_android: {}
-      - run_tag_smoke_ramps_android: {}
-      # - run_tag_smoke_ramps_ios: {}
-      - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_swaps_ios: {}
-      - run_tag_smoke_swaps_android: {}
-      # - run_tag_smoke_stake_ios: {}
-      # - run_tag_smoke_stake_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+      - run_tag_smoke_earn_ios: {}
+      - run_tag_smoke_earn_android: {}
+      # - run_tag_smoke_accounts_ios: {}
+      # - run_tag_smoke_accounts_android: {}
+      # # - run_tag_smoke_identity_ios: {}
+      # # - run_tag_smoke_identity_android: {}
+      # # - run_tag_smoke_assets_ios: {}
+      # - run_tag_smoke_assets_android: {}
+      # - run_tag_smoke_confirmations_ios: {}
+      # - run_tag_smoke_confirmations_android: {}
+      # - run_tag_smoke_ramps_android: {}
+      # # - run_tag_smoke_ramps_ios: {}
+      # - run_tag_smoke_confirmations_redesigned_ios: {}
+      # - run_tag_smoke_swaps_ios: {}
+      # - run_tag_smoke_swaps_android: {}
+      # # - run_tag_smoke_stake_ios: {}
+      # # - run_tag_smoke_stake_android: {}
+      # - run_tag_smoke_core_ios: {}
+      # - run_tag_smoke_core_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -841,6 +843,21 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_earn_ios:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeEarn.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_earn_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeEarn.*'
+    after_run:
+      - android_e2e_test
+
   android_e2e_build:
     before_run:
       - code_setup
@@ -980,7 +997,7 @@ workflows:
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                   IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
                 else
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                  ./scripts/run_e2e_tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1223,7 +1240,7 @@ workflows:
                   echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
                 fi
                 if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
+                  TEST_SUITE_TAG="Regression"
                 else
                   TEST_SUITE="Smoke"
                 fi
@@ -1237,7 +1254,7 @@ workflows:
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
                 else
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
+                ./scripts/run_e2e_tests.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
@@ -2229,3 +2246,5 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
+  - push_branch: ci/optimize-bitrise-e2e-runs
+    pipeline: pr_smoke_e2e_pipeline

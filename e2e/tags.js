@@ -9,7 +9,7 @@ const tags = {
   smokeAssets: 'smokeAssets:',
   smokeIdentity: 'smokeIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
-  smokeRamps: 'SmokeRamps:',
+  SmokeEarn: 'Earn:',
   smokeStake: 'SmokeStake:',
 };
 
@@ -24,7 +24,7 @@ const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
-const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
+const SmokeEarn = (testName) => `${tags.Earn} ${testName}`;
 
 const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
@@ -39,5 +39,5 @@ export {
   SmokeAssets,
   SmokeIdentity,
   SmokeMultiChainPermissions,
-  SmokeRamps,
+  SmokeEarn,
 };

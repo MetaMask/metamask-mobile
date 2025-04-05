@@ -16,7 +16,7 @@ import { CustomNetworks, PopularNetworksList } from '../../resources/networks.e2
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
-import { SmokeStake } from '../../tags';
+import { SmokeEarn } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
 import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
@@ -35,7 +35,7 @@ import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeStake('Stake from Actions'), () => {
+describe(SmokeEarn('Stake from Actions'), () => {
   const FIRST_ROW = 0;
   const AMOUNT_TO_SEND = '.005';
   let mockServer;

@@ -12,7 +12,7 @@ import { CustomNetworks } from '../../resources/networks.e2e';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../fixtures/fixture-server';
 import { getFixturesServerPort } from '../../fixtures/utils';
-import { SmokeRamps } from '../../tags';
+import { SmokeEarn } from '../../tags';
 import Assertions from '../../utils/Assertions';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
@@ -34,7 +34,7 @@ const PaymentMethods = {
   ACH_BANK_TRANSFER: 'ACH Bank Transfer',
 };
 
-describe(SmokeRamps('Off-Ramp'), () => {
+describe(SmokeEarn('Off-Ramp'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
