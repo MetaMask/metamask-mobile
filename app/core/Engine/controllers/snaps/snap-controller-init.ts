@@ -20,6 +20,8 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
+import { IMetaMetricsEvent, MetaMetrics } from '../../../Analytics';
+import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 
 /**
  * Initialize the Snap controller.
@@ -117,6 +119,12 @@ export const snapControllerInit: ControllerInitFunction<
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
     },
+    trackEvent: (params) =>
+      MetaMetrics.getInstance().trackEvent(
+        MetricsEventBuilder.createEventBuilder(
+          params as IMetaMetricsEvent,
+        ).build(),
+      ),
   });
 
   return {
