@@ -26,13 +26,23 @@ jest.mock('../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn(),
 }));
 
+// Mock the feature flag selector
+jest.mock('../selectors/featureFlagController', () => ({
+  selectProductSafetyDappScanningEnabled: jest.fn(),
+}));
+
 describe('Phishing Detection', () => {
   const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
   const mockGetState = store.getState as jest.MockedFunction<typeof store.getState>;
   const mockSelectBasicFunctionalityEnabled = selectBasicFunctionalityEnabled as jest.MockedFunction<typeof selectBasicFunctionalityEnabled>;
+  
+  // Import and mock the feature flag selector
+  const mockSelectProductSafetyDappScanningEnabled = jest.requireMock('../selectors/featureFlagController').selectProductSafetyDappScanningEnabled;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to false for the new feature flag
+    mockSelectProductSafetyDappScanningEnabled.mockReturnValue(false);
   });
 
   describe('isPhishingDetectionEnabled', () => {
@@ -69,6 +79,15 @@ describe('Phishing Detection', () => {
 
       expect(mockPhishingController.maybeUpdateState).toHaveBeenCalledTimes(1);
       expect(mockPhishingController.test).toHaveBeenCalledWith('example.com');
+    });
+
+    it('returns null if product safety dapp scanning is enabled', () => {
+      mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
+      mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
+
+      expect(getPhishingTestResult('example.com')).toBeNull();
+      
+      expect(mockPhishingController.test).not.toHaveBeenCalled();
     });
   });
 });

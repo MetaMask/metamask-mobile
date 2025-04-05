@@ -35,7 +35,7 @@ export const getPhishingTestResult = (origin: string): PhishingDetectorResult | 
     return null;
   }
 
-  if (!isProductSafetyDappScanningEnabled()) {
+  if (isProductSafetyDappScanningEnabled()) {
     handleDappScanning();
     return null;
   }
