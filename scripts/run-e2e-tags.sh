@@ -41,10 +41,16 @@ find "$TEMP_TEST_DIR" -type f -name "*.spec.js" | sed 's/^/  - /'
 # Run all matching tests in a single command
 echo -e "\nRunning matching tests..."
 # Determine platform-specific test command
+
+# Debug output
+echo "Current workflow ID: $BITRISE_TRIGGERED_WORKFLOW_ID"
+
 if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == "ios_e2e_test" ]]; then
+    echo "Detected iOS workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:ios:run:qa-release "$TEMP_TEST_DIR"
 else
+    echo "Detected Android workflow"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:android:run:qa-release "$TEMP_TEST_DIR"
 fi
