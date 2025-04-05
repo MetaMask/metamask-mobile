@@ -11,8 +11,10 @@ import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import {
   selectConfirmationRedesignFlags,
-  type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController';
+} from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  ConfirmationRedesignRemoteFlags
+} from '../../../../../selectors/featureFlagController/confirmations/types';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
