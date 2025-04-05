@@ -90,6 +90,7 @@ import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
+import SampleFeature from '../../../SampleFeature/components/views/SampleFeature';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -758,6 +759,15 @@ const SetPasswordFlow = () => (
   </Stack.Navigator>
 );
 
+const SampleFeatureFlow = () => (
+    <Stack.Navigator>
+        <Stack.Screen
+            name={Routes.SAMPLE_FEATURE}
+            component={SampleFeature}
+        />
+    </Stack.Navigator>
+);
+
 const MainNavigator = () => (
   <Stack.Navigator
     screenOptions={{
@@ -860,6 +870,10 @@ const MainNavigator = () => (
       name={Routes.NOTIFICATIONS.OPT_IN_STACK}
       component={NotificationsOptInStack}
       options={NotificationsOptInStack.navigationOptions}
+    />
+    <Stack.Screen
+      name={Routes.SAMPLE_FEATURE}
+      component={SampleFeatureFlow}
     />
   </Stack.Navigator>
 );
