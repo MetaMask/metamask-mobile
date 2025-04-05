@@ -176,9 +176,9 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('should handle onPrimaryActionButtonPress correctly', () => {
+    it('should handle onPrimaryActionButtonPress correctly', async () => {
       // Render the container component with necessary props
-      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
+      const { getByTestId, UNSAFE_getByType, findByTestId } = renderWithProvider(
         <AccountConnect
           route={{
             params: {
@@ -212,7 +212,7 @@ describe('AccountConnect', () => {
       multiSelector.props.onPrimaryActionButtonPress();
 
       // Verify that the screen changed back to PermissionsSummary
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(await findByTestId('permission-summary-container')).toBeOnTheScreen();
     });
   });
 

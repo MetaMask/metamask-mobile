@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SnapUITooltip } from './SnapUITooltip';
 import { Text, TouchableOpacity } from 'react-native';
 import ApprovalModal from '../../Approvals/ApprovalModal';
@@ -59,7 +59,9 @@ describe('SnapUITooltip', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const modal = UNSAFE_getByType(ApprovalModal);
-    expect(modal.props.isVisible).toBe(false);
+    await waitFor(() => {
+      expect(modal.props.isVisible).toBe(false);
+    });
   });
 
   it('should render complex content in modal', () => {

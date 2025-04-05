@@ -45,6 +45,9 @@ const SolanaNewFeatureContent = () => {
   const handleClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     setIsVisible(false);
+    // Discuss - this ref, is on a component that takes this `handleClose` callback.
+    // So invoking this ref causes an infinite recursive loop (in tests)
+    // Is this ref call intentional?
     sheetRef.current?.onCloseBottomSheet();
   };
 
@@ -82,7 +85,8 @@ const SolanaNewFeatureContent = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      onClose={handleClose}
+      // Places that use the `sheetRef` don't pass an onClose since this causes an infinite loop
+      // onClose={handleClose}
       shouldNavigateBack={false}
     >
       <View style={styles.wrapper}>

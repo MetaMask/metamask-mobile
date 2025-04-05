@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
+import {
+  render,
+  fireEvent,
+  act,
+  userEvent,
+} from '@testing-library/react-native';
 import PaymentRequest from './index';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
@@ -152,9 +157,7 @@ describe('PaymentRequest', () => {
   it('switches to amount input mode when an asset is selected', async () => {
     const { getByText } = renderComponent({ navigation: mockNavigation });
 
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     expect(getByText('Enter amount')).toBeTruthy();
     expect(mockNavigation.setParams).toHaveBeenCalledWith({
@@ -167,20 +170,16 @@ describe('PaymentRequest', () => {
     const { getByText, getByPlaceholderText } = renderComponent();
 
     // First, select an asset
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     const amountInput = getByPlaceholderText('0.00');
-    await act(async () => {
-      fireEvent.changeText(amountInput, '1.5');
-    });
+    await userEvent.type(amountInput, '1.5');
 
     expect(amountInput.props.value).toBe('1.5');
   });
 
   it('displays an error when an invalid amount is entered', async () => {
-    const { getByText, getByPlaceholderText, debug, queryByText } =
+    const { getByText, getByPlaceholderText, queryByText } =
       renderComponent();
 
     (React.useState as jest.Mock).mockImplementation(() => [
@@ -190,9 +189,7 @@ describe('PaymentRequest', () => {
 
     mockSetShowError(true);
 
-    await act(async () => {
-      fireEvent.press(getByText('ETH'));
-    });
+    await userEvent.press(getByText('ETH'));
 
     const amountInput = getByPlaceholderText('0.00');
     const nextButton = getByText('Next');
@@ -201,8 +198,6 @@ describe('PaymentRequest', () => {
       fireEvent.changeText(amountInput, '0');
       fireEvent.press(nextButton);
     });
-
-    debug();
 
     expect(mockSetShowError).toHaveBeenCalledWith(true);
     expect(queryByText('Invalid request, please try again')).toBeTruthy();
