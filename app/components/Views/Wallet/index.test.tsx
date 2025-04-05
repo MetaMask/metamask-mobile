@@ -12,6 +12,10 @@ import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
 jest.mock('../../../util/address', () => {
   const actual = jest.requireActual('../../../util/address');
   return {
