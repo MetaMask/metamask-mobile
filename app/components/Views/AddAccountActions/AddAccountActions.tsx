@@ -33,6 +33,8 @@ import Text, {
 import { CaipChainId } from '@metamask/utils';
 import { KeyringClient } from '@metamask/keyring-snap-client';
 import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
+// eslint-disable-next-line import/no-duplicates
+import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import {
@@ -40,8 +42,9 @@ import {
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { useSelector } from 'react-redux';
+// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
+import { BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
