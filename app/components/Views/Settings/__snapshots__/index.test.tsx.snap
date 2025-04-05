@@ -1004,7 +1004,7 @@ exports[`Settings should render correctly 1`] = `
                 }
               }
             >
-              About MetaMask Flask
+              About MetaMask Beta
             </Text>
           </View>
           <View

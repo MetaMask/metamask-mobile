@@ -274,6 +274,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
 
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED = 'Earn Empty State CTA Clicked',
+
   // Stake
   STAKE_BUTTON_CLICKED = 'Stake Button Clicked',
   REVIEW_STAKE_BUTTON_CLICKED = 'Review Stake Button Clicked',
@@ -912,6 +915,11 @@ const events = {
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),
   CONNECTION_RESTORED: generateOpt(EVENT_NAME.CONNECTION_RESTORED),
+
+  // Earn
+  EARN_EMPTY_STATE_CTA_CLICKED: generateOpt(
+    EVENT_NAME.EARN_EMPTY_STATE_CTA_CLICKED,
+  ),
 
   // Stake
   REVIEW_STAKE_BUTTON_CLICKED: generateOpt(

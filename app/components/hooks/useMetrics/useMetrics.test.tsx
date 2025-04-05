@@ -8,6 +8,7 @@ import MetaMetrics from '../../../core/Analytics/MetaMetrics';
 import useMetrics from './useMetrics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { IUseMetricsHook } from './useMetrics.types';
 
 jest.mock('../../../core/Analytics/MetaMetrics');
 
@@ -84,7 +85,7 @@ describe('useMetrics', () => {
         "getMetaMetricsId": [MockFunction],
         "isDataRecorded": [MockFunction],
         "isEnabled": [MockFunction],
-        "trackEvent": [Function],
+        "trackEvent": [MockFunction],
       }
     `);
   });
@@ -152,5 +153,18 @@ describe('useMetrics', () => {
 
     expect(mockMetrics.isEnabled).toHaveBeenCalled();
     expect(isEnabledValue).toBeTruthy();
+  });
+
+  it('keeps the same reference to the functions after every call', async () => {
+    const {
+      result: { current: firstResult },
+    } = renderHook(() => useMetrics());
+    const {
+      result: { current: secondResult },
+    } = renderHook(() => useMetrics());
+
+    (Object.keys(firstResult) as (keyof IUseMetricsHook)[]).forEach((key) => {
+      expect(firstResult[key]).toBe(secondResult[key]);
+    });
   });
 });

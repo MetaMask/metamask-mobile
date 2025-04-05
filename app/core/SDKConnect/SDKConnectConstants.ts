@@ -23,6 +23,7 @@ export const RPC_METHODS = {
   WALLET_SWITCHETHEREUMCHAIN: 'wallet_switchEthereumChain',
   WALLET_REQUESTPERMISSIONS: 'wallet_requestPermissions',
   WALLET_GETPERMISSIONS: 'wallet_getPermissions',
+  WALLET_REVOKEPERMISSIONS: 'wallet_revokePermissions',
   ETH_ACCOUNTS: 'eth_accounts',
   ETH_CHAINID: 'eth_chainId',
 };
@@ -41,6 +42,7 @@ export const METHODS_TO_REDIRECT: { [method: string]: boolean } = {
   [RPC_METHODS.WALLET_SWITCHETHEREUMCHAIN]: true,
   [RPC_METHODS.WALLET_REQUESTPERMISSIONS]: true,
   [RPC_METHODS.WALLET_GETPERMISSIONS]: true,
+  [RPC_METHODS.WALLET_REVOKEPERMISSIONS]: true,
   [RPC_METHODS.METAMASK_CONNECTSIGN]: true,
   [RPC_METHODS.METAMASK_BATCH]: true,
 };

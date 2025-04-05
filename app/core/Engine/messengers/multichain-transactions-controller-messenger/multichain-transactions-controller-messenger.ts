@@ -23,6 +23,7 @@ export function getMultichainTransactionsControllerMessenger(
     allowedActions: [
       'AccountsController:listMultichainAccounts',
       'SnapController:handleRequest',
+      'KeyringController:getState',
     ],
   });
 }

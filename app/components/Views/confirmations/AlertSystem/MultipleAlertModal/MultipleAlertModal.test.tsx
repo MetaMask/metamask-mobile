@@ -48,6 +48,12 @@ describe('MultipleAlertModal', () => {
     setAlertKey: jest.fn(),
     hideAlertModal: jest.fn(),
     alertModalVisible: true,
+    isAlertConfirmed: jest.fn().mockReturnValue(false),
+    setAlertConfirmed: jest.fn(),
+    unconfirmedDangerAlerts: [],
+    unconfirmedFieldDangerAlerts: [],
+    hasUnconfirmedDangerAlerts: false,
+    hasUnconfirmedFieldDangerAlerts: false,
   };
 
   beforeEach(() => {

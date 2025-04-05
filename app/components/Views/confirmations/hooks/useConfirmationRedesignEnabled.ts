@@ -25,6 +25,7 @@ const REDESIGNED_SIGNATURE_TYPES = [
 const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
+  TransactionType.stakingClaim,
 ];
 
 function isRedesignedSignature({
@@ -69,7 +70,7 @@ function isRedesignedTransaction({
   }
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
-    return confirmationRedesignFlags?.staking_transactions;
+    return confirmationRedesignFlags?.staking_confirmations;
   }
 
   return false;

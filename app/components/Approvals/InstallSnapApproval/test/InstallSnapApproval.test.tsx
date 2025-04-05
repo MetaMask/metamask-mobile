@@ -133,6 +133,9 @@ describe('InstallSnapApprovalFlow', () => {
     settings: {},
     engine: {
       backgroundState: {
+        PermissionController: {
+          subjects: {},
+        },
         SubjectMetadataController: {
           subjectMetadata: {},
         },

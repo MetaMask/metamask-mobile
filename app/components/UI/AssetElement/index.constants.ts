@@ -1,2 +1,2 @@
-export const FIAT_BALANCE_TEST_ID = 'fiat-balance-test-id';
-export const MAIN_BALANCE_TEST_ID = 'main-balance-test-id';
+export const BALANCE_TEST_ID = 'balance-test-id';
+export const SECONDARY_BALANCE_TEST_ID = 'secondary-balance-test-id';

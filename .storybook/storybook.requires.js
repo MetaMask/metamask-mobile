@@ -37,6 +37,20 @@ global.STORIES = [
     importPathMatcher:
       "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/KeyValueRow(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
   },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components-temp/Buttons/ButtonToggle",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/Buttons\\/ButtonToggle(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
+  {
+    titlePrefix: "",
+    directory: "./app/component-library/components-temp/SegmentedControl",
+    files: "**/*.stories.?(ts|tsx|js|jsx)",
+    importPathMatcher:
+      "^\\.[\\\\/](?:app\\/component-library\\/components-temp\\/SegmentedControl(?:\\/(?!\\.)(?:(?:(?!(?:^|\\/)\\.).)*?)\\/|\\/|$)(?!\\.)(?=.)[^/]*?\\.stories\\.(?:ts|tsx|js|jsx)?)$",
+  },
 ];
 
 import "@storybook/addon-ondevice-controls/register";
@@ -114,7 +128,6 @@ const getStories = () => {
     "./app/component-library/components/Select/SelectButton/SelectButton.stories.tsx": require("../app/component-library/components/Select/SelectButton/SelectButton.stories.tsx"),
     "./app/component-library/components/Select/SelectOption/SelectOption.stories.tsx": require("../app/component-library/components/Select/SelectOption/SelectOption.stories.tsx"),
     "./app/component-library/components/Select/SelectValue/SelectValue.stories.tsx": require("../app/component-library/components/Select/SelectValue/SelectValue.stories.tsx"),
-    "./app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx": require("../app/component-library/components/Sheet/SheetBottom/SheetBottom.stories.tsx"),
     "./app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx": require("../app/component-library/components/Sheet/SheetHeader/SheetHeader.stories.tsx"),
     "./app/component-library/components/Skeleton/Skeleton.stories.tsx": require("../app/component-library/components/Skeleton/Skeleton.stories.tsx"),
     "./app/component-library/components/Tags/Tag/Tag.stories.tsx": require("../app/component-library/components/Tags/Tag/Tag.stories.tsx"),
@@ -126,12 +139,8 @@ const getStories = () => {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
     "./app/component-library/components-temp/TagColored/TagColored.stories.tsx": require("../app/component-library/components-temp/TagColored/TagColored.stories.tsx"),
     "./app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx": require("../app/component-library/components-temp/KeyValueRow/KeyValueRow.stories.tsx"),
-    "./app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories.tsx": require("../app/components/Views/confirmations/components/UI/InfoRow/InfoRow.stories.tsx"),
-    "./app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx": require("../app/components/Views/confirmations/components/UI/ExpandableSection/ExpandableSection.stories.tsx"),
-    "./app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/Tooltip/Tooltip.stories.tsx"),
-    "./app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories.tsx": require("../app/components/Views/confirmations/components/UI/TextWithTooltip/TextWithTooltip.stories.tsx"),
-    "./app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx": require("../app/component-library/components/Texts/SensitiveText/SensitiveText.stories.tsx"),
-    "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
+    "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
+    "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),
   };
 };
 

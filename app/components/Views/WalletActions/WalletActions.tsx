@@ -17,7 +17,7 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import useGoToBridge from '../../../components/UI/Bridge/utils/useGoToBridge';
+import useGoToBridge from '../../UI/Bridge/hooks/useGoToBridge';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';

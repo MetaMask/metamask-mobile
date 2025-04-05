@@ -8,7 +8,9 @@ import Avatar, {
 } from '../../../../component-library/components/Avatars/Avatar';
 import Badge from '../../../../component-library/components/Badges/Badge/Badge';
 import { BadgeVariant } from '../../../../component-library/components/Badges/Badge/Badge.types';
-import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
 import Icon, {
   IconColor,
   IconName,
@@ -99,6 +101,7 @@ const TabThumbnail = ({
           <View testID="footer-container" style={styles.footerContainer}>
             <View style={styles.badgeWrapperContainer}>
               <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
                 badgeElement={
                   <Badge
                     size={AvatarSize.Xs}

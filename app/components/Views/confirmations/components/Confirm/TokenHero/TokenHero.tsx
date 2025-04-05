@@ -4,7 +4,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import Badge, {
   BadgeVariant,
 } from '../../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -24,6 +26,7 @@ const NetworkAndTokenImage = ({
 }) => (
   <View style={styles.networkAndTokenContainer}>
     <BadgeWrapper
+      badgePosition={BadgePosition.BottomRight}
       badgeElement={
         <Badge imageSource={images.ETHEREUM} variant={BadgeVariant.Network} />
       }
@@ -44,20 +47,20 @@ const AssetAmount = ({
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   setIsModalVisible: ((isModalVisible: boolean) => void) | null;
 }) => (
-    <View style={styles.assetAmountContainer}>
-      {setIsModalVisible ? (
-        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-          <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
-            {tokenAmountDisplayValue} {tokenSymbol}
-          </Text>
-        </TouchableOpacity>
-      ) : (
+  <View style={styles.assetAmountContainer}>
+    {setIsModalVisible ? (
+      <TouchableOpacity onPress={() => setIsModalVisible(true)}>
         <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
           {tokenAmountDisplayValue} {tokenSymbol}
         </Text>
-      )}
-    </View>
-  );
+      </TouchableOpacity>
+    ) : (
+      <Text style={styles.assetAmountText} variant={TextVariant.HeadingLG}>
+        {tokenAmountDisplayValue} {tokenSymbol}
+      </Text>
+    )}
+  </View>
+);
 
 const AssetFiatConversion = ({
   fiatDisplayValue,
@@ -73,10 +76,12 @@ const AssetFiatConversion = ({
 
 const TokenHero = ({ amountWei }: { amountWei?: string }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } = useTokenValues({ amountWei });
+  const { tokenAmountValue, tokenAmountDisplayValue, fiatDisplayValue } =
+    useTokenValues({ amountWei });
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const displayTokenAmountIsRounded = tokenAmountValue !== tokenAmountDisplayValue;
+  const displayTokenAmountIsRounded =
+    tokenAmountValue !== tokenAmountDisplayValue;
 
   const tokenSymbol = 'ETH';
 
@@ -87,7 +92,9 @@ const TokenHero = ({ amountWei }: { amountWei?: string }) => {
         tokenAmountDisplayValue={tokenAmountDisplayValue}
         tokenSymbol={tokenSymbol}
         styles={styles}
-        setIsModalVisible={displayTokenAmountIsRounded ? setIsModalVisible : null}
+        setIsModalVisible={
+          displayTokenAmountIsRounded ? setIsModalVisible : null
+        }
       />
       <AssetFiatConversion
         fiatDisplayValue={fiatDisplayValue}

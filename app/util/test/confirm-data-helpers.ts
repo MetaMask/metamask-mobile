@@ -20,7 +20,7 @@ export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
       signatures: true,
-      staking_transactions: true,
+      staking_confirmations: true,
     },
   },
 };
@@ -701,6 +701,32 @@ export const stakingWithdrawalConfirmationState = merge(
         TransactionController: {
           transactions: [
             { type: TransactionType.stakingUnstake },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
+    },
+  },
+);
+
+export const stakingClaimConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingClaim },
           ],
         } as unknown as TransactionControllerState,
         AccountsController: {

@@ -206,12 +206,27 @@ const createStyles = (colors: Colors) =>
       width: 50,
       height: 40,
     },
+    controlIconButtonDisabled: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      borderRadius: 50,
+      width: 50,
+      height: 40,
+      opacity: 0.5,
+    },
     balanceContainer: {
       flexDirection: 'row',
       alignItems: 'center',
     },
     privacyIcon: {
       marginLeft: 8,
+    },
+    loaderWrapper: {
+      paddingLeft: 40,
     },
     portfolioButtonContainer: {
       alignItems: 'center',
