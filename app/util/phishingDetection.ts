@@ -1,9 +1,8 @@
-import { PhishingController as PhishingControllerClass, PhishingDetectorResult } from '@metamask/phishing-controller';
+import { PhishingDetectorResult } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlagController';
-import Logger from './Logger';
 
 /**
  * Checks if phishing protection is enabled based on the basic functionality toggle
@@ -39,6 +38,7 @@ export const getPhishingTestResult = (origin: string): PhishingDetectorResult | 
     handleDappScanning();
     return null;
   }
+  
 
   const PhishingController = Engine.context.PhishingController;
   PhishingController.maybeUpdateState();
