@@ -8,7 +8,6 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import { NotificationsToggleTypes } from '../NotificationsSettings.constants';
 import {
   AvatarSize,
   AvatarVariant,
@@ -17,25 +16,22 @@ import Avatar, {
   AvatarAccountType,
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useAccountNotificationsToggle } from '../../../../../util/notifications/hooks/useSwitchNotifications';
 
-export const NOTIFICATION_OPTIONS_TOGGLE_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle`;
-export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle--loading`;
-export const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID = (testID: string) =>
-  `${testID}:notification_options_toggle--switch`;
+const NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID =
+  'notification_options_toggle_switch';
+export const NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID = (
+  testID = NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
+) => `${testID}:notification_options_toggle--container`;
+export const NOTIFICATION_OPTIONS_TOGGLE_LOADING_TEST_ID = (
+  testID = NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID,
+) => `${testID}:notification_options_toggle--loading`;
 
 interface NotificationOptionsToggleProps {
   address: string;
   title: string;
   icon?: AvatarAccountType | IconName;
-  type?: string;
   testId?: string;
   disabledSwitch?: boolean;
   isLoading?: boolean;
@@ -78,7 +74,6 @@ const NotificationOptionToggle = ({
   address,
   title,
   icon,
-  type,
   isEnabled,
   disabledSwitch,
   isLoading,
@@ -113,33 +108,22 @@ const NotificationOptionToggle = ({
   return (
     <View
       style={styles.container}
-      testID={NOTIFICATION_OPTIONS_TOGGLE_TEST_ID(testID)}
+      testID={NOTIFICATION_OPTIONS_TOGGLE_CONTAINER_TEST_ID(testID)}
     >
-      {type === NotificationsToggleTypes.ACTIONS && icon ? (
-        <Icon
-          name={icon as IconName}
-          style={styles.icon}
-          color={IconColor.Default}
-          size={icon === 'Received' ? IconSize.Md : IconSize.Lg}
-        />
-      ) : (
-        <Avatar
-          variant={AvatarVariant.Account}
-          type={icon as AvatarAccountType}
-          accountAddress={address}
-          size={AvatarSize.Md}
-          style={styles.accountAvatar}
-        />
-      )}
+      <Avatar
+        variant={AvatarVariant.Account}
+        type={icon as AvatarAccountType}
+        accountAddress={address}
+        size={AvatarSize.Md}
+        style={styles.accountAvatar}
+      />
       <View style={styles.titleContainer}>
         <Text variant={TextVariant.BodyLGMedium} style={styles.title}>
           {title}
         </Text>
         {Boolean(address) && (
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {type === NotificationsToggleTypes.ACTIONS
-              ? address.toLowerCase()
-              : formatAddress(address, 'short').toLowerCase()}
+            {formatAddress(address, 'short').toLowerCase()}
           </Text>
         )}
       </View>
@@ -160,7 +144,7 @@ const NotificationOptionToggle = ({
             thumbColor={theme.brandColors.white}
             disabled={disabledSwitch}
             ios_backgroundColor={colors.border.muted}
-            testID={NOTIFICATION_OPTIONS_TOGGLE_SWITCH_TEST_ID(testID)}
+            testID={testID}
           />
         )}
       </View>

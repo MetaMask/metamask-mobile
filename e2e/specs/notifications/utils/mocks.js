@@ -1,51 +1,127 @@
+// @ts-check
 import {
-  NotificationServicesController,
-  NotificationServicesPushController,
-} from '@metamask/notification-services-controller';
+  getMockFeatureAnnouncementResponse,
+  getMockBatchCreateTriggersResponse,
+  getMockBatchDeleteTriggersResponse,
+  getMockListNotificationsResponse,
+  getMockMarkNotificationsAsReadResponse,
+  createMockNotificationEthSent,
+  createMockNotificationEthReceived,
+  createMockNotificationERC20Sent,
+  createMockNotificationERC20Received,
+  createMockNotificationERC721Sent,
+  createMockNotificationERC721Received,
+  createMockNotificationERC1155Sent,
+  createMockNotificationERC1155Received,
+  createMockNotificationMetaMaskSwapsCompleted,
+  createMockNotificationRocketPoolStakeCompleted,
+  createMockNotificationRocketPoolUnStakeCompleted,
+  createMockNotificationLidoStakeCompleted,
+  createMockNotificationLidoWithdrawalRequested,
+  createMockNotificationLidoReadyToBeWithdrawn,
+  createMockNotificationLidoWithdrawalCompleted,
+} from '@metamask/notification-services-controller/notification-services/mocks';
+import {
+  getMockRetrievePushNotificationLinksResponse,
+  getMockUpdatePushNotificationLinksResponse,
+  getMockCreateFCMRegistrationTokenResponse,
+  getMockDeleteFCMRegistrationTokenResponse,
+} from '@metamask/notification-services-controller/push-services/mocks';
 import { UserStorageMockttpController } from '../../identity/utils/user-storage/userStorageMockttpController';
 import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { encryptedStorageWithTriggers } from './mock-user-storage-data';
+import { NOTIFICATION_STORAGE_HASHED_KEY } from './constants';
 
-const NotificationMocks = NotificationServicesController.Mocks;
-const PushMocks = NotificationServicesPushController.Mocks;
+export const mockListNotificationsResponse = getMockListNotificationsResponse();
+mockListNotificationsResponse.response = [
+  createMockNotificationEthSent(),
+  createMockNotificationEthReceived(),
+  createMockNotificationERC20Sent(),
+  createMockNotificationERC20Received(),
+  createMockNotificationERC721Sent(),
+  createMockNotificationERC721Received(),
+  createMockNotificationERC1155Sent(),
+  createMockNotificationERC1155Received(),
+  createMockNotificationMetaMaskSwapsCompleted(),
+  createMockNotificationRocketPoolStakeCompleted(),
+  createMockNotificationRocketPoolUnStakeCompleted(),
+  createMockNotificationLidoStakeCompleted(),
+  createMockNotificationLidoWithdrawalRequested(),
+  createMockNotificationLidoReadyToBeWithdrawn(),
+  createMockNotificationLidoWithdrawalCompleted(),
+];
+
+const mockFeatureAnnouncementResponse = getMockFeatureAnnouncementResponse();
+mockFeatureAnnouncementResponse.url =
+  mockFeatureAnnouncementResponse.url.replace(/:space_id.*/, '');
+
+export function getMockWalletNotificationItemId() {
+  return (
+    mockListNotificationsResponse.response.find(
+      (n) => n.data.kind === 'erc1155_sent',
+    )?.id ?? 'DOES NOT EXIST'
+  );
+}
+
+export function getMockFeatureAnnouncementItemId() {
+  return (
+    mockFeatureAnnouncementResponse.response.items?.at(0)?.fields?.id ??
+    'DOES NOT EXIST'
+  );
+}
 
 /**
  * E2E mock setup for notification APIs (Notifications, Push Notifications)
  *
- * @param server - server obj used to mock our endpoints
- * @param userStorageMockttpController - optional controller to mock user storage endpoints
+ * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server) {
-  // Storage
+  // User Storage
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
 
-  userStorageMockttpControllerInstance.setupPath(
+  const initialEncryptedTriggers = await encryptedStorageWithTriggers();
+  await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.notifications,
     server,
+    {
+      getResponse: [
+        {
+          HashedKey: NOTIFICATION_STORAGE_HASHED_KEY,
+          Data: initialEncryptedTriggers,
+        },
+      ],
+    },
   );
 
   // Notifications
-  mockAPICall(server, NotificationMocks.getMockFeatureAnnouncementResponse());
-  mockAPICall(server, NotificationMocks.getMockBatchCreateTriggersResponse());
-  mockAPICall(server, NotificationMocks.getMockBatchDeleteTriggersResponse());
-  mockAPICall(server, NotificationMocks.getMockListNotificationsResponse());
-  mockAPICall(
-    server,
-    NotificationMocks.getMockMarkNotificationsAsReadResponse(),
-  );
+  mockAPICall(server, mockFeatureAnnouncementResponse);
+  mockAPICall(server, getMockBatchCreateTriggersResponse());
+  mockAPICall(server, getMockBatchDeleteTriggersResponse());
+  mockAPICall(server, mockListNotificationsResponse);
+  mockAPICall(server, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
-  mockAPICall(server, PushMocks.getMockRetrievePushNotificationLinksResponse());
-  mockAPICall(server, PushMocks.getMockUpdatePushNotificationLinksResponse());
-  mockAPICall(server, PushMocks.getMockCreateFCMRegistrationTokenResponse());
-  mockAPICall(server, PushMocks.getMockDeleteFCMRegistrationTokenResponse());
+  mockAPICall(server, getMockRetrievePushNotificationLinksResponse());
+  mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
+  mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
+  mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
 
   return {
     userStorageMockttpControllerInstance,
   };
 }
 
+/**
+ *
+ * @param {import('mockttp').Mockttp} server
+ * @param {{
+ *   requestMethod: 'GET' | 'POST' | 'PUT' | 'DELETE';
+ *   url: string | RegExp;
+ *   response: unknown;
+ * }} response
+ */
 function mockAPICall(server, response) {
   let requestRuleBuilder;
 

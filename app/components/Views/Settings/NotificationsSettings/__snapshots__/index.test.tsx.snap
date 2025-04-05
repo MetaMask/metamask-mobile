@@ -62,7 +62,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
             ],
           ]
         }
-        testID="main-notification-toggle--switch"
+        testID="notification-settings-notifications-toggle"
         thumbTintColor="#ffffff"
         tintColor="#b7bbc866"
         value={false}

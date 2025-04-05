@@ -12,6 +12,7 @@ interface NotificationRootProps
   handleOnPress: () => void;
   onDismiss?: () => void;
   isRead?: boolean;
+  testID?: string;
 }
 
 function NotificationRoot({
@@ -19,6 +20,7 @@ function NotificationRoot({
   handleOnPress,
   styles,
   isRead,
+  testID,
 }: NotificationRootProps) {
   return (
     <TouchableOpacity
@@ -27,6 +29,7 @@ function NotificationRoot({
         styles.menuItemContainer,
         !isRead ? styles.unreadItemContainer : styles.readItemContainer,
       ]}
+      testID={testID}
     >
       {children}
     </TouchableOpacity>

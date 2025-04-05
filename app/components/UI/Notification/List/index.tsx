@@ -25,6 +25,7 @@ import { useMetrics } from '../../../hooks/useMetrics';
 import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
+import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
 
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
@@ -125,6 +126,7 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
       styles={styles}
       simultaneousHandlers={undefined}
       isRead={props.notification.isRead}
+      testID={NotificationMenuViewSelectorsIDs.ITEM(props.notification.id)}
     >
       <NotificationMenuItem.Icon
         isRead={props.notification.isRead}

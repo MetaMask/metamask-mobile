@@ -37,6 +37,12 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
   }
 
+  get notificationBellIcon() {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON,
+    );
+  }
+
   get navbarNetworkText() {
     return Matchers.getElementByID(WalletViewSelectorsIDs.NAVBAR_NETWORK_TEXT);
   }
@@ -185,6 +191,10 @@ class WalletView {
 
   async tapIdenticon() {
     await Gestures.waitAndTap(this.accountIcon);
+  }
+
+  async tapBellIcon() {
+    await Gestures.waitAndTap(this.notificationBellIcon);
   }
 
   async tapNetworksButtonOnNavBar() {

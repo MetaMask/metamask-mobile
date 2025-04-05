@@ -11,10 +11,9 @@ import { useStyles } from '../../../../component-library/hooks';
 import AppConstants from '../../../../core/AppConstants';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
 import styleSheet from './NotificationsSettings.styles';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 export const MAIN_NOTIFICATION_TOGGLE_TEST_ID = 'main-notification-toggle';
-export const MAIN_NOTIFICATION_TOGGLE_SWITCH_TEST_ID =
-  'main-notification-toggle--switch';
 export const MAIN_NOTIFICATION_TOGGLE_LEARN_MORE_TEST_ID =
   'main-notification-toggle--learn-more-button';
 
@@ -47,7 +46,7 @@ export const MainNotificationToggle = () => {
           thumbColor={theme.brandColors.white}
           style={styles.switch}
           ios_backgroundColor={theme.colors.border.muted}
-          testID={MAIN_NOTIFICATION_TOGGLE_SWITCH_TEST_ID}
+          testID={NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE}
         />
       </View>
       <View style={styles.setting}>

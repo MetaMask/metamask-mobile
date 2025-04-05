@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`NotificationsView should render correctly 1`] = `
+exports[`NotificationsView - content should render correctly 1`] = `
 <View
   style={
     {
