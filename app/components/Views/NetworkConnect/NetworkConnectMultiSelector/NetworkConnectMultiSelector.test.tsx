@@ -10,6 +10,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
+import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -133,9 +134,19 @@ describe('NetworkConnectMultiSelector', () => {
 
   it('handles update permissions when networks are selected', async () => {
     (
-      Engine.context.PermissionController.hasCaveat as jest.Mock
-    ).mockReturnValue(true);
+      Engine.context.PermissionController.getCaveat as jest.Mock
+    ).mockReturnValue({
+      type: Caip25CaveatType,
+      value: {
+        requiredScopes: {},
+        optionalScopes: { 'eip155:1': { accounts: [] } },
+        isMultichainOrigin: false,
+        sessionProperties: {},
+      },
+    });
 
+    // TODO: [ffmcgee] delegate this test suite to Arthur, the mockNetwork config looks bad
+    // we could just mock the `addPermittedChains` util function to return what we want, but yeah....
     const { getByText, getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
     );

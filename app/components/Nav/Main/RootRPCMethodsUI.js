@@ -516,6 +516,7 @@ const RootRPCMethodsUI = (props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  Logger.log('RootRPcMethodsUI')
   return (
     <React.Fragment>
       <ConfirmRoot />

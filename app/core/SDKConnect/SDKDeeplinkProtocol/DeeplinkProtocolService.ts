@@ -24,6 +24,11 @@ import DevLogger from '../utils/DevLogger';
 import { wait, waitForKeychainUnlocked } from '../utils/wait.util';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
+import { getDefaultCaip25CaveatValue } from '../../Permissions';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -281,7 +286,16 @@ export default class DeeplinkProtocolService {
 
     return permissionsController.requestPermissions(
       { origin: channelId },
-      { eth_accounts: {} },
+      {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: getDefaultCaip25CaveatValue(),
+            },
+          ],
+        },
+      },
     );
   }
 
@@ -573,6 +587,7 @@ export default class DeeplinkProtocolService {
       accountsController.getSelectedAccount().address,
     );
 
+    // TODO: [ffmcgee] address this, should be caip25 permission value extracted accounts now
     let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
       ?.value as string[];
 

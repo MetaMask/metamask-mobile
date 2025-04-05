@@ -18,7 +18,10 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -30,6 +33,10 @@ import parseWalletConnectUri, {
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -129,6 +136,8 @@ export class WC2Manager {
             `WC2::init getPermittedAccounts for ${sessionKey} origin=${session.peer.metadata.url}`,
             JSON.stringify(permissionController.state, null, 2),
           );
+
+          // TODO: [ffmcgee] address this, should be caip25 permission value extracted accounts now
           const accountPermission = permissionController.getPermission(
             session.peer.metadata.url,
             'eth_accounts',
@@ -425,9 +434,15 @@ export class WC2Manager {
       await permissionsController.requestPermissions(
         { origin: url },
         {
-          eth_accounts: {},
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
         },
-        // { id: undefined }, // Don't set id here, it will be set after session is created, identify via origin.
       );
       // Permissions approved.
     } catch (err) {

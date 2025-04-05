@@ -1,20 +1,20 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import validUrl from 'valid-url';
-import { isSafeChainId } from '@metamask/controller-utils';
+import { ApprovalType, isSafeChainId } from '@metamask/controller-utils';
 import { jsonRpcRequest } from '../../../util/jsonRpcRequest';
 import {
   getDecimalChainId,
-  isPrefixedFormattedHexString,
   isChainPermissionsFeatureEnabled,
+  isPrefixedFormattedHexString,
 } from '../../../util/networks';
 import {
-  CaveatFactories,
-  PermissionKeys,
-} from '../../../core/Permissions/specifications';
-import { CaveatTypes } from '../../../core/Permissions/constants';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
+} from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { getPermittedAccounts } from '../../Permissions';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -199,6 +199,22 @@ export function findExistingNetwork(chainId, networkConfigurations) {
   return;
 }
 
+/**
+ * Switches the active network for the origin if already permitted
+ * otherwise requests approval to update permission first.
+ *
+ * @param response - The JSON RPC request's response object.
+ * @param end - The JSON RPC request's end callback.
+ * @param {object} params.network - Network configuration of the chain being switched to.
+ * @param {string} params.chainId - The network client being switched to.
+ * @param {object} params.controllers - A collection of controller instances from the `Engine`.
+ * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
+ * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
+ * @param {string} params.origin - The origin sending this request.
+ * @param {boolean} params.isAddNetworkFlow - Variable to check if its add flow.
+ * @param {object} params.hooks - Method hooks passed to the method implementation.
+ * @returns a null response on success or an error if user rejects an approval when autoApprove is false or on unexpected errors.
+ */
 export async function switchToNetwork({
   network,
   chainId,
@@ -207,27 +223,69 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
+  autoApprove = false,
+  hooks,
 }) {
   const {
-    MultichainNetworkController,
-    PermissionController,
-    SelectedNetworkController,
-  } = controllers;
-  const getCaveat = ({ target, caveatType }) => {
-    try {
-      return PermissionController.getCaveat(origin, target, caveatType);
-    } catch (e) {
-      if (e instanceof PermissionDoesNotExistError) {
-        // suppress expected error in case that the origin
-        // does not have the target permission yet
-      } else {
-        throw e;
-      }
-    }
+    getCaveat,
+    requestPermittedChainsPermissionIncrementalForOrigin,
+    hasApprovalRequestsForOrigin,
+    toNetworkConfiguration,
+    fromNetworkConfiguration,
+  } = hooks;
+  const { MultichainNetworkController, SelectedNetworkController } =
+    controllers;
 
-    return undefined;
-  };
   const [networkConfigurationId, networkConfiguration] = network;
+
+  // for some reason this extra step is necessary for accessing the env variable in test environment
+  const chainPermissionsFeatureEnabled =
+    { ...process.env }?.NODE_ENV === 'test'
+      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
+      : isChainPermissionsFeatureEnabled;
+
+  const caip25Caveat = getCaveat({
+    target: Caip25EndowmentPermissionName,
+    caveatType: Caip25CaveatType,
+  });
+
+  let ethChainIds;
+
+  if (caip25Caveat) {
+    ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
+
+    if (!ethChainIds.includes(chainId)) {
+      await requestPermittedChainsPermissionIncrementalForOrigin({
+        chainId,
+        autoApprove,
+      });
+    } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
+      await requestUserApproval({
+        origin,
+        type: ApprovalType.SwitchEthereumChain,
+        requestData: {
+          toNetworkConfiguration,
+          fromNetworkConfiguration,
+        },
+      });
+    }
+  } else {
+    await requestPermittedChainsPermissionIncrementalForOrigin({
+      chainId,
+      autoApprove,
+    });
+  }
+
+  const shouldGrantPermissions =
+    chainPermissionsFeatureEnabled &&
+    (!ethChainIds || !ethChainIds.includes(chainId));
+
+  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
+
+  const shouldShowRequestModal =
+    (!isAddNetworkFlow && shouldGrantPermissions) ||
+    !chainPermissionsFeatureEnabled;
+
   const requestData = {
     rpcUrl:
       networkConfiguration.rpcEndpoints[
@@ -243,28 +301,6 @@ export async function switchToNetwork({
     chainColor: networkConfiguration.color,
   };
 
-  // for some reason this extra step is necessary for accessing the env variable in test environment
-  const chainPermissionsFeatureEnabled =
-    { ...process.env }?.NODE_ENV === 'test'
-      ? { ...process.env }?.MM_CHAIN_PERMISSIONS === 'true'
-      : isChainPermissionsFeatureEnabled;
-
-  const { value: permissionedChainIds } =
-    getCaveat({
-      target: PermissionKeys.permittedChains,
-      caveatType: CaveatTypes.restrictNetworkSwitching,
-    }) ?? {};
-
-  const shouldGrantPermissions =
-    chainPermissionsFeatureEnabled &&
-    (!permissionedChainIds || !permissionedChainIds.includes(chainId));
-
-  const requestModalType = isAddNetworkFlow ? 'new' : 'switch';
-
-  const shouldShowRequestModal =
-    (!isAddNetworkFlow && shouldGrantPermissions) ||
-    !chainPermissionsFeatureEnabled;
-
   if (shouldShowRequestModal) {
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
@@ -272,23 +308,7 @@ export async function switchToNetwork({
     });
   }
 
-  if (shouldGrantPermissions) {
-    await PermissionController.grantPermissionsIncremental({
-      subject: { origin },
-      approvedPermissions: {
-        [PermissionKeys.permittedChains]: {
-          caveats: [
-            CaveatFactories[CaveatTypes.restrictNetworkSwitching]([chainId]),
-          ],
-        },
-      },
-    });
-  }
-
-  const originHasAccountsPermission = PermissionController.hasPermission(
-    origin,
-    'eth_accounts',
-  );
+  const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
 
   if (process.env.MM_PER_DAPP_SELECTED_NETWORK && originHasAccountsPermission) {
     SelectedNetworkController.setNetworkClientIdForDomain(

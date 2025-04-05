@@ -765,6 +765,7 @@ class FixtureBuilder {
     const basePermissions = {
       eth_accounts: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
+        // TODO: This isn't right
         parentCapability: 'eth_accounts',
         invoker: DAPP_URL,
         caveats: [
@@ -828,6 +829,7 @@ class FixtureBuilder {
    */
   withChainPermission(chainIds = ['0x1']) {
     const chainPermission = {
+      // TODO: Fix this
       'endowment:permitted-chains': {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
         parentCapability: 'endowment:permitted-chains',

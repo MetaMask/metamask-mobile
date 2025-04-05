@@ -5,14 +5,24 @@ import Engine from '../../Engine';
 import { Connection } from '../Connection';
 import checkPermissions from './checkPermissions';
 import { PermissionController } from '@metamask/permission-controller';
-import { getPermittedAccounts } from '../../../core/Permissions';
+import {
+  getPermittedAccounts,
+  getDefaultCaip25CaveatValue,
+} from '../../../core/Permissions';
 import { KeyringController } from '@metamask/keyring-controller';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 jest.mock('../Connection', () => ({
   RPC_METHODS: jest.requireActual('../Connection').RPC_METHODS,
 }));
+jest.mock('../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../core/Permissions'),
+  getPermittedAccounts: jest.fn(),
+}));
 jest.mock('../../Engine');
-jest.mock('../../../core/Permissions');
 jest.mock('@metamask/preferences-controller');
 jest.mock('@metamask/approval-controller');
 jest.mock('../utils/DevLogger');
@@ -49,6 +59,7 @@ describe('checkPermissions', () => {
   const mockGetPermittedAccounts = getPermittedAccounts as jest.MockedFunction<
     typeof getPermittedAccounts
   >;
+
   const mockIsApproved = jest.fn();
   const mockRevalidate = jest.fn();
   const mockAdd = jest.fn();
@@ -87,6 +98,7 @@ describe('checkPermissions', () => {
       hasPermissions: jest.fn(),
       getPermissions: jest.fn(),
       getPermission: jest.fn(),
+      getCaveat: jest.fn(),
       requestPermissions,
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,17 +133,28 @@ describe('checkPermissions', () => {
     expect(result).toBe(false);
   });
 
-  it('should request permissions if no eth_accounts permission exists', async () => {
+  it(`should request permissions if no ${Caip25EndowmentPermissionName} permission exists`, async () => {
     mockGetPermittedAccounts.mockResolvedValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
     requestPermissions.mockResolvedValue({});
-    mockGetPermittedAccounts.mockResolvedValueOnce([]).mockResolvedValueOnce(['0x123']);
+    mockGetPermittedAccounts
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(requestPermissions).toHaveBeenCalledWith(
       { origin: connection.channelId },
-      { eth_accounts: {} },
-      { preserveExistingPermissions: false }
+      {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: getDefaultCaip25CaveatValue(),
+            },
+          ],
+        },
+      },
+      { preserveExistingPermissions: false },
     );
     expect(result).toBe(true);
   });
