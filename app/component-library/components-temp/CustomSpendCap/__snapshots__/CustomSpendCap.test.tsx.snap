@@ -33,10 +33,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Bold",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "700",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "marginRight": 4,
           }
         }
@@ -100,10 +100,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           "backgroundColor": "transparent",
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
       suppressHighlighting={true}
@@ -114,10 +114,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -166,11 +166,11 @@ exports[`CustomSpendCap should match snapshot 1`] = `
               {
                 "color": "#121314",
                 "flexGrow": 1,
-                "fontFamily": "Euclid Circular B",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginRight": 16,
                 "paddingBottom": 0,
                 "paddingTop": 0,
@@ -191,10 +191,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
         testID="custom-spend-cap-max-test-id"
@@ -216,10 +216,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -236,10 +236,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
             "backgroundColor": "transparent",
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
         suppressHighlighting={true}
@@ -250,10 +250,10 @@ exports[`CustomSpendCap should match snapshot 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

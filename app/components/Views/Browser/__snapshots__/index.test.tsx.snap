@@ -350,7 +350,7 @@ exports[`Browser should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 24,
                                   "fontWeight": "600",
                                   "lineHeight": 34,
@@ -410,10 +410,10 @@ exports[`Browser should render correctly 1`] = `
                                   {
                                     "color": "#121314",
                                     "fontFamily": "CentraNo1-Book",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -466,7 +466,7 @@ exports[`Browser should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "lineHeight": 20,
@@ -494,7 +494,7 @@ exports[`Browser should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 14,
                                 "fontWeight": "400",
                                 "lineHeight": 20,
@@ -585,7 +585,7 @@ exports[`Browser should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ca3542",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "lineHeight": 20,
@@ -627,7 +627,7 @@ TypeError: Cannot read properties of undefined (reading 'map')
                                 style={
                                   {
                                     "color": "#ffffff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                     "textAlign": "center",
                                   }
@@ -654,7 +654,7 @@ TypeError: Cannot read properties of undefined (reading 'map')
                                 style={
                                   {
                                     "color": "#4459ff",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                     "textAlign": "center",
                                   }

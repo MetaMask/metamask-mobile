@@ -340,7 +340,7 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#9ca1af",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 20,
                                       "fontWeight": "400",
                                       "textAlign": "center",
@@ -432,7 +432,7 @@ exports[`TransactionsView renders correctly and matches snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#9ca1af",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 20,
                                         "fontWeight": "400",
                                         "textAlign": "center",
