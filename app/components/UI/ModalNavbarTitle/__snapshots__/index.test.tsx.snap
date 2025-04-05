@@ -12,7 +12,7 @@ exports[`ModalNavbarTitle should render correctly 1`] = `
   <Text
     style={
       {
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 18,
         "fontWeight": "400",
       }
