@@ -218,10 +218,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             badgeElement={
               <Badge
                 variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(
-                  asset.chainId as Hex,
-                  asset.ticker ?? asset.symbol,
-                )}
+                imageSource={NetworkBadgeSource(asset.chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
               />
             }
