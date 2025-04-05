@@ -1,12 +1,22 @@
-import { renderScreen, DeepPartial } from '../../../util/test/renderWithProvider';
+import {
+  renderScreen,
+  DeepPartial,
+} from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
 import BridgeView from '../Bridge';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { BridgeState, setDestToken, setSourceToken } from '../../../core/redux/slices/bridge';
+import {
+  BridgeState,
+  setDestToken,
+  setSourceToken,
+} from '../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
 // TODO remove this mock once we have a real implementation
@@ -23,7 +33,9 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../core/redux/slices/bridge', () => {
-  const actualBridgeSlice = jest.requireActual('../../../core/redux/slices/bridge');
+  const actualBridgeSlice = jest.requireActual(
+    '../../../core/redux/slices/bridge',
+  );
   return {
     __esModule: true,
     ...actualBridgeSlice,
@@ -69,11 +81,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock useLatestBalance hook
-jest.mock('./useLatestBalance', () => ({
-  useLatestBalance: jest.fn().mockImplementation(({
-    address,
-    chainId,
-  }) => {
+jest.mock('./hooks/useLatestBalance', () => ({
+  useLatestBalance: jest.fn().mockImplementation(({ address, chainId }) => {
     if (!address || !chainId) return undefined;
 
     // Need to do this due to this error: "The module factory of `jest.mock()` is not allowed to reference any out-of-scope variables.""
@@ -101,8 +110,14 @@ describe('BridgeView', () => {
           bridgeFeatureFlags: {
             [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
               chains: {
-                '0x1': { isActiveSrc: true, isActiveDest: true },
-                '0xa': { isActiveSrc: true, isActiveDest: true },
+                [formatChainIdToCaip(mockChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
+                [formatChainIdToCaip(optimismChainId)]: {
+                  isActiveSrc: true,
+                  isActiveDest: true,
+                },
               },
             },
           },
@@ -524,7 +539,8 @@ describe('BridgeView', () => {
           balanceFiat: '11.07915 cad',
           chainId: '0x1',
           decimals: 6,
-          image: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
           isETH: false,
           isNative: false,
           isStaked: false,
@@ -544,8 +560,12 @@ describe('BridgeView', () => {
     const arrowButton = getByTestId('arrow-button');
     fireEvent.press(arrowButton);
 
-    expect(setSourceToken).toHaveBeenCalledWith(initialStateWithTokens.bridge.destToken);
-    expect(setDestToken).toHaveBeenCalledWith(initialStateWithTokens.bridge.sourceToken);
+    expect(setSourceToken).toHaveBeenCalledWith(
+      initialStateWithTokens.bridge.destToken,
+    );
+    expect(setDestToken).toHaveBeenCalledWith(
+      initialStateWithTokens.bridge.sourceToken,
+    );
   });
 
   describe('Bottom Content', () => {
@@ -628,24 +648,25 @@ describe('BridgeView', () => {
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: {
-          ...initialState,
-          bridge: {
-            ...initialState.bridge,
-            sourceAmount: '1.0',
-            destToken: {
-              address: token2Address,
-              symbol: 'TOKEN2',
-              decimals: 18,
-              image: 'https://token2.com/logo.png',
-              name: 'Token Two',
-              chainId: optimismChainId,
+        {
+          state: {
+            ...initialState,
+            bridge: {
+              ...initialState.bridge,
+              sourceAmount: '1.0',
+              destToken: {
+                address: token2Address,
+                symbol: 'TOKEN2',
+                decimals: 18,
+                image: 'https://token2.com/logo.png',
+                name: 'Token Two',
+                chainId: optimismChainId,
+              },
+              selectedDestChainId: optimismChainId,
+              selectedSourceChainIds: [mockChainId, optimismChainId],
             },
-            selectedDestChainId: optimismChainId,
-            selectedSourceChainIds: [mockChainId, optimismChainId],
           },
         },
-      },
       );
 
       const continueButton = getByText('Continue');

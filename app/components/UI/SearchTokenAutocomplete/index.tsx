@@ -34,6 +34,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import Logger from '../../../util/Logger';
+import { Hex } from '@metamask/utils';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +86,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   const [searchQuery, setSearchQuery] = useState('');
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [selectedAsset, setSelectedAsset] = useState<any[]>([]);
+  const [selectedAssets, setSelectedAssets] = useState<any[]>([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const { colors } = useTheme();
@@ -102,18 +104,25 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     [setIsSearchFocused],
   );
 
-  const getAnalyticsParams = useCallback(() => {
-    try {
-      return selectedAsset.map((asset) => ({
-        token_address: asset.address,
-        token_symbol: asset.symbol,
-        chain_id: getDecimalChainId(chainId),
-        source: 'Add token dropdown',
-      }));
-    } catch (error) {
-      return {};
-    }
-  }, [selectedAsset, chainId]);
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: Hex; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
 
   const handleSearch = useCallback(
     // TODO: Replace "any" with type
@@ -129,7 +138,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
     (asset) => {
       const assetAddressLower = asset.address.toLowerCase();
 
-      const newSelectedAsset = selectedAsset.reduce(
+      const newSelectedAsset = selectedAssets.reduce(
         (filteredAssets, currentAsset) => {
           const currentAssetAddressLower = currentAsset.address.toLowerCase();
           if (currentAssetAddressLower === assetAddressLower) {
@@ -141,13 +150,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         [],
       );
 
-      if (newSelectedAsset.length === selectedAsset.length) {
+      if (newSelectedAsset.length === selectedAssets.length) {
         newSelectedAsset.push(asset);
       }
 
-      setSelectedAsset(newSelectedAsset);
+      setSelectedAssets(newSelectedAsset);
     },
-    [selectedAsset, setSelectedAsset],
+    [selectedAssets, setSelectedAssets],
   );
 
   const addToken = useCallback(
@@ -163,13 +172,20 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         name,
       });
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-          .addProperties(getAnalyticsParams())
-          .build(),
-      );
+      const analyticsParams = getTokenAddedAnalyticsParams({
+        address,
+        symbol,
+      });
+
+      if (analyticsParams) {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+            .addProperties(analyticsParams)
+            .build(),
+        );
+      }
     },
-    [getAnalyticsParams, trackEvent, createEventBuilder],
+    [getTokenAddedAnalyticsParams, trackEvent, createEventBuilder],
   );
 
   /**
@@ -185,13 +201,13 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
   }, [navigation]);
 
   const addTokenList = useCallback(async () => {
-    for (const asset of selectedAsset) {
+    for (const asset of selectedAssets) {
       await addToken({ ...asset });
     }
 
     setSearchResults([]);
     setSearchQuery('');
-    setSelectedAsset([]);
+    setSelectedAssets([]);
 
     InteractionManager.runAfterInteractions(() => {
       goToWalletPage();
@@ -200,20 +216,20 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
         duration: 5000,
         title: strings('wallet.token_toast.token_imported_title'),
         description:
-          selectedAsset.length > 1
+          selectedAssets.length > 1
             ? strings('wallet.token_toast.tokens_import_success_multiple', {
-                tokensNumber: selectedAsset.length,
+                tokensNumber: selectedAssets.length,
               })
             : strings('wallet.token_toast.token_imported_desc_1'),
       });
     });
-  }, [addToken, selectedAsset, goToWalletPage]);
+  }, [addToken, selectedAssets, goToWalletPage]);
 
   const networkName = useSelector(selectNetworkName);
 
   const goToConfirmAddToken = () => {
     navigation.push('ConfirmAddAsset', {
-      selectedAsset,
+      selectedAssets,
       networkName,
       chainId,
       ticker,
@@ -297,7 +313,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           <MultiAssetListItems
             searchResults={searchResults}
             handleSelectAsset={handleSelectAsset}
-            selectedAsset={selectedAsset}
+            selectedAsset={selectedAssets}
             searchQuery={searchQuery}
             chainId={chainId}
             networkName={networkName}
@@ -311,7 +327,7 @@ const SearchTokenAutocomplete = ({ navigation }: Props) => {
           width={ButtonWidthTypes.Full}
           label={strings('transaction.next')}
           onPress={goToConfirmAddToken}
-          isDisabled={selectedAsset.length < 1}
+          isDisabled={selectedAssets.length < 1}
           testID={ImportTokenViewSelectorsIDs.NEXT_BUTTON}
         />
       </View>

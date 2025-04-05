@@ -52,7 +52,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
     onStartShouldSetResponder={[Function]}
     style={
       {
-        "backgroundColor": "#d73847",
+        "backgroundColor": "#ca3542",
         "bottom": 0,
         "height": 1334,
         "left": 0,
@@ -150,7 +150,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                   "fontSize": 15,
                 },
                 {
-                  "color": "#d73847",
+                  "color": "#ca3542",
                   "marginRight": 10,
                 },
                 {
@@ -167,8 +167,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
           <Text
             style={
               {
-                "color": "#d73847",
-                "fontFamily": "EuclidCircularB-Bold",
+                "color": "#ca3542",
+                "fontFamily": "CentraNo1-Bold",
                 "fontWeight": "600",
                 "textAlign": "center",
               }
@@ -185,7 +185,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
           }
           style={
             {
-              "backgroundColor": "#f2f4f6",
+              "backgroundColor": "#f3f5f9",
               "paddingHorizontal": 20,
               "paddingTop": 20,
             }
@@ -195,8 +195,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
             <Text
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 11,
                   "fontWeight": "400",
                   "marginBottom": 15,
@@ -206,7 +206,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
               <Text
                 style={
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontWeight": "600",
                   }
                 }
@@ -218,8 +218,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
             <Text
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 11,
                   "fontWeight": "400",
                   "marginBottom": 15,
@@ -231,7 +231,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 onPress={[Function]}
                 style={
                   {
-                    "textDecorationColor": "#141618",
+                    "textDecorationColor": "#121314",
                     "textDecorationLine": "underline",
                   }
                 }
@@ -244,8 +244,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
             <Text
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 11,
                   "fontWeight": "400",
                   "marginBottom": 15,
@@ -257,7 +257,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 onPress={[Function]}
                 style={
                   {
-                    "textDecorationColor": "#141618",
+                    "textDecorationColor": "#121314",
                     "textDecorationLine": "underline",
                   }
                 }
@@ -268,8 +268,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
             <Text
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 11,
                   "fontWeight": "400",
                   "marginBottom": 15,
@@ -281,7 +281,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 onPress={[Function]}
                 style={
                   {
-                    "textDecorationColor": "#141618",
+                    "textDecorationColor": "#121314",
                     "textDecorationLine": "underline",
                   }
                 }
@@ -292,8 +292,8 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
             <Text
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 11,
                   "fontWeight": "400",
                   "marginBottom": 15,
@@ -305,7 +305,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 onPress={[Function]}
                 style={
                   {
-                    "textDecorationColor": "#141618",
+                    "textDecorationColor": "#121314",
                     "textDecorationLine": "underline",
                   }
                 }
@@ -339,7 +339,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 },
                 {
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#6a737d",
+                  "borderColor": "#686e7d",
                   "borderWidth": 1,
                 },
                 {
@@ -363,16 +363,16 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
                   },
                   {
-                    "color": "#6a737d",
+                    "color": "#686e7d",
                   },
                   {
-                    "color": "#d73847",
+                    "color": "#ca3542",
                     "fontSize": 12,
                   },
                 ],

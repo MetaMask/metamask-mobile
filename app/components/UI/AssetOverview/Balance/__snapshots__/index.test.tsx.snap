@@ -12,8 +12,8 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -127,7 +127,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -164,10 +164,10 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -191,9 +191,9 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -207,12 +207,12 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "paddingHorizontal": 0,
             "textTransform": "uppercase",
           }
@@ -238,8 +238,8 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#141618",
-        "fontFamily": "EuclidCircularB-Bold",
+        "color": "#121314",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 18,
         "fontWeight": "700",
         "letterSpacing": 0,
@@ -353,7 +353,7 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "overflow": "hidden",
-                "shadowColor": "#0000001A",
+                "shadowColor": "#0000001a",
                 "shadowOffset": {
                   "height": 2,
                   "width": 0,
@@ -390,10 +390,10 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
       style={
         {
           "alignSelf": "center",
-          "color": "#141618",
+          "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -417,9 +417,9 @@ exports[`Balance should render correctly without a secondary balance 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 16,
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 18,
             "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
