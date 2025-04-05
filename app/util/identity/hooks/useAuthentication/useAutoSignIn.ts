@@ -9,7 +9,7 @@ import {
   selectIsSignedIn,
 } from '../../../../selectors/identity';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
-import { selectCurrentOnboardingStep } from '../../../../selectors/wizard';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 
 /**
@@ -32,7 +32,7 @@ export function useAutoSignIn(): {
     useSelector(selectBasicFunctionalityEnabled),
   );
 
-  const completedOnboarding = useSelector(selectCurrentOnboardingStep) === 0;
+  const completedOnboarding = useSelector(selectCompletedOnboarding);
   const isSignedIn = useSelector(selectIsSignedIn);
 
   const areBasePrerequisitesMet = useMemo(

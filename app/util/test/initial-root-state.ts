@@ -9,6 +9,7 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
+import { initialOnboardingState } from '../../reducers/onboarding';
 
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
@@ -28,7 +29,7 @@ const initialRootState: RootState = {
   transaction: undefined,
   user: userInitialState,
   wizard: undefined,
-  onboarding: undefined,
+  onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,
   fiatOrders: initialFiatOrdersState,
