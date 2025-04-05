@@ -3,7 +3,10 @@ import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
-import { TokenInputArea, TokenInputAreaType } from './components/TokenInputArea';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+} from './components/TokenInputArea';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -224,6 +227,15 @@ const BridgeView = () => {
     if (hasInsufficientBalance) {
       return <Text color={TextColor.Error}>Insufficient balance</Text>;
     }
+
+    // TODO: Implement quote request
+    /* Steps:
+    1. Construct Quote params
+    2. Update quoteParams in the BridgeController
+    3. Get selectedQuote from BridgeController state
+    4. If selectedQuote is not null, show the quote details card and populate the destination amount input with the quote amount
+    5. If selectedQuote is null, show the loading state on the destination amount input
+    */
 
     return (
       <>
