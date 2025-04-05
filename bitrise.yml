@@ -995,9 +995,9 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
                 else
-                  ./scripts/run_e2e_tags.sh
+                ./scripts/run_e2e_tags.sh
                 fi
       - custom-test-results-export@1:
           title: Export test results
@@ -1254,7 +1254,7 @@ workflows:
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
                 IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
                 else
-                ./scripts/run_e2e_tests.sh
+                ./scripts/run_e2e_tags.sh
                 fi
       - custom-test-results-export@1:
           is_always_run: true
