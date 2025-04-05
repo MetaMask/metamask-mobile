@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
 import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
-import { RowAlertKey } from '../../components/UI/InfoRow/AlertRow/constants';
+import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
@@ -79,7 +79,7 @@ export default function useBlockaidAlerts(): Alert[] {
 
     return [
       {
-        key: RowAlertKey.Blockaid,
+        key: AlertKeys.Blockaid,
         content: (
           <BlockaidAlertContent
             alertDetails={features}
