@@ -1,4 +1,4 @@
-import { PhishingController, PhishingDetectorResult } from '@metamask/phishing-controller';
+import { PhishingController, PhishingDetectorResult, PhishingDetectorResultType } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
@@ -35,7 +35,6 @@ describe('Phishing Detection', () => {
   const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
   const mockGetState = store.getState as jest.MockedFunction<typeof store.getState>;
   const mockSelectBasicFunctionalityEnabled = selectBasicFunctionalityEnabled as jest.MockedFunction<typeof selectBasicFunctionalityEnabled>;
-  
   // Import and mock the feature flag selector
   const mockSelectProductSafetyDappScanningEnabled = jest.requireMock('../selectors/featureFlagController').selectProductSafetyDappScanningEnabled;
 
@@ -61,10 +60,14 @@ describe('Phishing Detection', () => {
   });
 
   describe('getPhishingTestResult', () => {
-    it('returns null if phishing protection is disabled', () => {
+    it('returns a negative result object if phishing protection is disabled', () => {
       mockSelectBasicFunctionalityEnabled.mockReturnValue(false);
 
-      expect(getPhishingTestResult('example.com')).toBeNull();
+      expect(getPhishingTestResult('example.com')).toEqual({
+        result: false,
+        name: 'Phishing protection is disabled',
+        type: PhishingDetectorResultType.All
+      });
 
       expect(mockPhishingController.test).not.toHaveBeenCalled();
       expect(mockPhishingController.maybeUpdateState).not.toHaveBeenCalled();
@@ -81,12 +84,15 @@ describe('Phishing Detection', () => {
       expect(mockPhishingController.test).toHaveBeenCalledWith('example.com');
     });
 
-    it('returns null if product safety dapp scanning is enabled', () => {
+    it('returns a negative result object if product safety dapp scanning is enabled', () => {
       mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
 
-      expect(getPhishingTestResult('example.com')).toBeNull();
-      
+      expect(getPhishingTestResult('example.com')).toEqual({
+        result: false,
+        name: 'Product safety dapp scanning is enabled',
+        type: PhishingDetectorResultType.All
+      });
       expect(mockPhishingController.test).not.toHaveBeenCalled();
     });
   });

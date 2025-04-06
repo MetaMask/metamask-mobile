@@ -1,4 +1,4 @@
-import { PhishingDetectorResult } from '@metamask/phishing-controller';
+import { PhishingDetectorResult, PhishingDetectorResultType } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
@@ -16,13 +16,6 @@ export const isPhishingDetectionEnabled = (): boolean => selectBasicFunctionalit
  */
 export const isProductSafetyDappScanningEnabled = (): boolean => selectProductSafetyDappScanningEnabled(store.getState());
 
-/**
- * Handles dapp scanning
- */
-const handleDappScanning = (): void => {
-  // TODO: Implement dapp scanning
-};
-
 
 /**
  * Gets detailed phishing test results for an origin
@@ -31,12 +24,11 @@ const handleDappScanning = (): void => {
  */
 export const getPhishingTestResult = (origin: string): PhishingDetectorResult | null => {
   if (!isPhishingDetectionEnabled()) {
-    return null;
+    return { result: false, name: 'Phishing protection is disabled', type: PhishingDetectorResultType.All };
   }
 
   if (isProductSafetyDappScanningEnabled()) {
-    handleDappScanning();
-    return null;
+    return { result: false, name: 'Product safety dapp scanning is enabled', type: PhishingDetectorResultType.All };
   }
   
 
