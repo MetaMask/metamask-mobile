@@ -33,6 +33,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import Routes from '../../../constants/navigation/Routes';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -106,20 +107,14 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       setConfirmedWords(tempConfirmedWords);
       setSeedPhraseReady(findNextAvailableIndex() === -1);
 
-      const confirmedWordFinal = tempConfirmedWords
-        .map((word) => word.word)
-        .filter((word) => word !== undefined);
-      if (confirmedWordFinal.length === route.params?.words.length) {
-        setShowStatusBottomSheet(true);
-      }
+      // const confirmedWordFinal = tempConfirmedWords
+      //   .map((word) => word.word)
+      //   .filter((word) => word !== undefined);
+      // if (confirmedWordFinal.length === route.params?.words.length) {
+      //   setShowStatusBottomSheet(true);
+      // }
     },
-    [
-      confirmedWords,
-      currentIndex,
-      findNextAvailableIndex,
-      wordsDict,
-      route.params?.words.length,
-    ],
+    [confirmedWords, currentIndex, findNextAvailableIndex, wordsDict],
   );
 
   const clearConfirmedWordAt = (i) => {
@@ -150,9 +145,20 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
       seedphraseBackedUp();
       InteractionManager.runAfterInteractions(async () => {
         const words = route.params?.words;
-        navigation.navigate('ManualBackupStep3', {
+        navigation.navigate('OptinMetrics', {
           steps: route.params?.steps,
           words,
+          params: {
+            showRecoveryHint: true,
+          },
+          onContinue: () => {
+            navigation.navigate('OnboardingSuccess', {
+              params: {
+                showRecoveryHint: true,
+                hello: 'world',
+              },
+            });
+          },
         });
         trackOnboarding(
           MetricsEventBuilder.createEventBuilder(
@@ -168,34 +174,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     }
   };
 
-  const goBack = () => {
-    navigation.goBack();
-  };
-
-  const renderSuccess = () => {
-    const styles = createStyles(colors);
-
-    return (
-      <View style={styles.successRow}>
-        <MaterialIcon
-          name="check-circle"
-          size={15}
-          color={colors.success.default}
-        />
-        <Text style={styles.successText}>
-          {strings('manual_backup_step_2.success')}
-        </Text>
-      </View>
-    );
-  };
-
   const renderWordBox = (word, i) => {
     const styles = createStyles(colors);
 
     return (
       <View key={`word_${i}`} style={styles.wordBoxWrapper}>
         <TouchableOpacity
-          // eslint-disable-next-line react/jsx-no-bind
           onPress={() => {
             clearConfirmedWordAt(i);
           }}
@@ -252,12 +236,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   return (
     <SafeAreaView style={styles.mainWrapper}>
-      {/* <View style={styles.onBoardingWrapper}>
-        <OnboardingProgress
-          currentStep={currentStep}
-          steps={route.params?.steps}
-        />
-      </View> */}
       <View style={styles.container}>
         <Text style={styles.step}>Step 3 of 3</Text>
         <ActionView
@@ -302,11 +280,23 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
               </View>
             </View>
             {renderWords()}
+            <Button
+              variant={ButtonVariants.Primary}
+              label={strings('manual_backup_step_2.continue')}
+              widthType={ButtonWidthTypes.Full}
+              style={styles.continueButton}
+              onPress={() => {
+                setShowStatusBottomSheet(true);
+              }}
+            />
           </View>
         </ActionView>
       </View>
       {showStatusBottomSheet && (
-        <BottomSheet onClose={() => setShowStatusBottomSheet(false)}>
+        <BottomSheet
+          onClose={() => setShowStatusBottomSheet(false)}
+          shouldNavigateBack={false}
+        >
           <View style={styles.statusContainer}>
             <Icon
               name={validateWords() ? IconName.SuccessSolid : IconName.CircleX}
@@ -336,7 +326,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
               style={styles.statusButton}
               onPress={() => {
                 setShowStatusBottomSheet(false);
-                validateWords() ? goNext() : goBack();
+                validateWords() && goNext();
               }}
             />
           </View>

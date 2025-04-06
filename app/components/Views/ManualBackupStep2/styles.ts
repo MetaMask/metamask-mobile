@@ -112,6 +112,13 @@ const createStyles = (colors: any) =>
       lineHeight: 14,
       textAlign: 'center',
     },
+    wordPlaceholder: {
+      color: colors.text.default,
+      fontSize: 32,
+      lineHeight: 32,
+      textAlign: 'left',
+      letterSpacing: -4,
+    },
     selectableWord: {
       paddingHorizontal: 8,
       paddingVertical: 6,
@@ -161,9 +168,7 @@ const createStyles = (colors: any) =>
       borderColor: importedColors.primaryDefault,
     },
     confirmedWord: {
-      borderWidth: 1,
-      borderColor: importedColors.primaryDefault,
-      borderStyle: 'solid',
+      backgroundColor: colors.background.default,
     },
     wordBoxIndex: {
       color: colors.text.default,
@@ -215,6 +220,10 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
     },
     statusButton: {
+      width: '100%',
+    },
+    continueButton: {
+      marginTop: 24,
       width: '100%',
     },
   });

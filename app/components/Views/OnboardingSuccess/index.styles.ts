@@ -28,6 +28,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'left',
   },
+  hintWrapper: {
+    flexDirection: 'column',
+    rowGap: 16,
+    paddingTop: 24,
+    padding: 24,
+  },
+  hintTitle: {
+    paddingTop: 20,
+    fontSize: 32,
+    fontWeight: '700',
+    textAlign: 'left',
+    lineHeight: 40,
+  },
+  hintDescriptionWrapper: {
+    flexDirection: 'column',
+    rowGap: 20,
+  },
+  hintInput: {
+    borderWidth: 1,
+    borderColor: colors.primaryDefault,
+    borderRadius: 8,
+    padding: 16,
+  },
   walletReadyImage: {
     marginHorizontal: 'auto',
     marginVertical: 20,
@@ -54,11 +77,15 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 10,
   },
+  footerWrapper: {
+    marginVertical: 24,
+    flexDirection: 'column',
+    rowGap: 16,
+  },
   footer: {
     backgroundColor: colors.backgroundMuted,
     paddingHorizontal: 16,
     paddingVertical: 16,
-    marginVertical: 24,
     borderRadius: 8,
   },
   iconWrapper: {

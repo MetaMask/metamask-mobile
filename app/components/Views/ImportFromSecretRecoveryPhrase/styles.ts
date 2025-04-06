@@ -266,7 +266,7 @@ const createStyles = (colors: any) =>
     learnMoreContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       gap: 8,
     },
     learnMoreCheckbox: {

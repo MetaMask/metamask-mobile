@@ -744,8 +744,8 @@ class ChoosePassword extends PureComponent {
                       <Icon
                         name={
                           this.state.showPasswordIndex.includes(0)
-                            ? IconName.EyeSlashSolid
-                            : IconName.EyeSolid
+                            ? IconName.EyeSolid
+                            : IconName.EyeSlashSolid
                         }
                         size={IconSize.Md}
                         color={colors.icon.muted}
@@ -822,8 +822,8 @@ class ChoosePassword extends PureComponent {
                           passwordsMatch
                             ? IconName.CheckBold
                             : this.state.showPasswordIndex.includes(1)
-                            ? IconName.EyeSlashSolid
-                            : IconName.EyeSolid
+                            ? IconName.EyeSolid
+                            : IconName.EyeSlashSolid
                         }
                         size={IconSize.Md}
                         color={

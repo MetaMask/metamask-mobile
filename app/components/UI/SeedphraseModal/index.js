@@ -90,7 +90,7 @@ const SeedphraseModal = ({
   ];
 
   return showWhatIsSeedphraseModal ? (
-    <BottomSheet onClose={hideWhatIsSeedphrase}>
+    <BottomSheet onClose={hideWhatIsSeedphrase} shouldNavigateBack={false}>
       <ActionContent
         actionContainerStyle={styles.modalNoBorder}
         displayCancelButton={false}
@@ -99,6 +99,7 @@ const SeedphraseModal = ({
           'account_backup_step_1.what_is_seedphrase_confirm',
         )}
         confirmButtonMode={'blue'}
+        onConfirmPress={hideWhatIsSeedphrase}
       >
         <View style={styles.modalContainer}>
           <View style={styles.titleContainer}>
