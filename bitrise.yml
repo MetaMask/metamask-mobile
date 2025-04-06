@@ -597,7 +597,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_TAG: 'Regression'
     after_run:
       - android_e2e_test
   build_flask_e2e_android:
@@ -978,18 +978,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                TEST_SUITE="Regression"
-                else
-                TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
+       
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
@@ -1234,18 +1223,7 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                if [ -n "$TEST_SUITE_FOLDER" ]; then
-                  echo "TEST_SUITE_FOLDER value is: $TEST_SUITE_FOLDER"
-                fi
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE_TAG="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
-                if [ -n "$TEST_SUITE_TAG" ]; then
-                echo "TEST_SUITE_TAG value is: $TEST_SUITE_TAG"
-                TEST_SUITE=$TEST_SUITE_TAG
-                fi
+
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
