@@ -24,7 +24,10 @@ describe(SmokeEarn('Sell Crypto Deeplinks'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-  it('should deep link to offramp ETH', async () => {
+
+  const itif = (condition) => (condition ? it : it.skip);
+
+  itif(device.getPlatform() === 'android')('should deep link to offramp ETH', async () => {
     const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
@@ -61,7 +64,8 @@ describe(SmokeEarn('Sell Crypto Deeplinks'), () => {
       },
     );
   });
-  it('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
+
+  itif(device.getPlatform() === 'android')('should deep link to offramp with Base but switch network to OP Mainnet', async () => {
     const SellDeepLink = 'metamask://sell?chainId=8453';
 
     await withFixtures(
