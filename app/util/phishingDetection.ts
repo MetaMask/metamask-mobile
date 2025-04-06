@@ -1,4 +1,4 @@
-import { PhishingDetectorResult } from '@metamask/phishing-controller';
+import { PhishingDetectorResult, PhishingDetectorResultType } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
@@ -20,15 +20,15 @@ export const isProductSafetyDappScanningEnabled = (): boolean => selectProductSa
 /**
  * Gets detailed phishing test results for an origin
  * @param {string} origin - URL origin or hostname to check
- * @returns {PhishingDetectorResult | null} Phishing test result object or null if protection is disabled
+ * @returns {PhishingDetectorResult} Phishing test result object or null if protection is disabled
  */
-export const getPhishingTestResult = (origin: string): PhishingDetectorResult | null => {
+export const getPhishingTestResult = (origin: string): PhishingDetectorResult => {
   if (!isPhishingDetectionEnabled()) {
-    return null;
+    return { result: false, name: 'Phishing protection is disabled', type: PhishingDetectorResultType.All };
   }
 
   if (isProductSafetyDappScanningEnabled()) {
-    return null;
+    return { result: false, name: 'Product safety dapp scanning is enabled', type: PhishingDetectorResultType.All };
   }
   
 
