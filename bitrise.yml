@@ -577,7 +577,7 @@ workflows:
       - ios_e2e_build
   ios_run_regression_tests:
     envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_TAG: 'Regression'
     after_run:
       - ios_e2e_test
   android_build_regression_tests:
@@ -586,7 +586,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE: 'Regression'
+      - TEST_SUITE_TAG: 'Regression'
       - MM_MULTICHAIN_V1_ENABLED: false
       - MM_CHAIN_PERMISSIONS: false
     after_run:
