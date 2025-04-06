@@ -180,11 +180,11 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      # - run_ios_api_specs: {}
-      - run_tag_smoke_earn_ios: {}
-      - run_tag_smoke_earn_android: {}
-      # - run_tag_smoke_accounts_ios: {}
-      # - run_tag_smoke_accounts_android: {}
+      - run_ios_api_specs: {}
+      - run_tade_swimlane_ios_smoke: {}
+      - run_tade_swimlane_android_smoke: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
       # # - run_tag_smoke_identity_ios: {}
       # # - run_tag_smoke_identity_android: {}
       # # - run_tag_smoke_assets_ios: {}
@@ -217,8 +217,8 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_smoke_accounts_ios: {}
-      - run_tag_smoke_accounts_android: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_identity_ios: {}
@@ -690,19 +690,17 @@ workflows:
       - wdio_ios_e2e_test
 
   ### Separating workflows so they run concurrently during smoke runs
-  run_tag_smoke_accounts_ios:
+  run_network_expansion_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_accounts_android:
+  run_network_expansion_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/accounts/*'
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - android_e2e_test
@@ -843,12 +841,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_earn_ios:
+  run_tade_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeEarn.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_earn_android:
+  run_tade_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
