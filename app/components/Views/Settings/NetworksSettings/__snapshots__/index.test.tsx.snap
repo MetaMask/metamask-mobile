@@ -423,7 +423,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               "borderColor": "#b7bbc8",
                               "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 14,
                               "fontWeight": "400",
                               "paddingLeft": 10,
@@ -439,7 +439,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -486,7 +486,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -558,7 +558,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -632,7 +632,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -687,7 +687,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -727,7 +727,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
@@ -791,7 +791,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
@@ -926,7 +926,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               null,
                               [
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 14,
                                   "fontWeight": "600",
                                   "textAlign": "center",
