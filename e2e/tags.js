@@ -24,7 +24,7 @@ const SmokeSwaps = (testName) => `${tags.SmokeSwaps} ${testName}`;
 const SmokeStake = (testName) => `${tags.smokeStake} ${testName}`;
 const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
-const SmokeEarn = (testName) => `${tags.Earn} ${testName}`;
+const SmokeEarn = (testName) => `${tags.SmokeEarn} ${testName}`;
 
 const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
