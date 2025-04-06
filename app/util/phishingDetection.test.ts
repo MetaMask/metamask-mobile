@@ -60,14 +60,10 @@ describe('Phishing Detection', () => {
   });
 
   describe('getPhishingTestResult', () => {
-    it('returns a negative result object if phishing protection is disabled', () => {
+    it('returns null if phishing protection is disabled', () => {
       mockSelectBasicFunctionalityEnabled.mockReturnValue(false);
 
-      expect(getPhishingTestResult('example.com')).toEqual({
-        result: false,
-        name: 'Phishing protection is disabled',
-        type: PhishingDetectorResultType.All
-      });
+      expect(getPhishingTestResult('example.com')).toBeNull();
 
       expect(mockPhishingController.test).not.toHaveBeenCalled();
       expect(mockPhishingController.maybeUpdateState).not.toHaveBeenCalled();
@@ -84,15 +80,11 @@ describe('Phishing Detection', () => {
       expect(mockPhishingController.test).toHaveBeenCalledWith('example.com');
     });
 
-    it('returns a negative result object if product safety dapp scanning is enabled', () => {
+    it('returns null if product safety dapp scanning is enabled', () => {
       mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
 
-      expect(getPhishingTestResult('example.com')).toEqual({
-        result: false,
-        name: 'Product safety dapp scanning is enabled',
-        type: PhishingDetectorResultType.All
-      });
+      expect(getPhishingTestResult('example.com')).toBeNull();
       expect(mockPhishingController.test).not.toHaveBeenCalled();
     });
   });
