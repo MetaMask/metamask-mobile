@@ -259,6 +259,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Enable Corepack
+          run: corepack enable
       - name: SonarCloud Quality Gate Status
         id: sonar-status
         env:

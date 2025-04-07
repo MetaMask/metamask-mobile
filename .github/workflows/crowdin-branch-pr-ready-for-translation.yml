@@ -30,6 +30,8 @@ jobs:
       
       - name: Checkout
         uses: actions/checkout@v3
+        - name: Enable Corepack
+            run: corepack enable
         with:
           ref: main
       
@@ -43,6 +45,8 @@ jobs:
       
       - name: Checkout Branch and push to crowdin
         uses: actions/checkout@v3
+        - name: Enable Corepack
+            run: corepack enable
         with:
           ref: ${{ steps.extract_current_branch.outputs.branch }}
       - name: Crowdin sources push
