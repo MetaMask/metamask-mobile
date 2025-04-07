@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { Image, View, Linking } from 'react-native';
+import { Image, View, Linking, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { useMetrics } from '../../../../components/hooks/useMetrics';
@@ -55,41 +55,46 @@ const OptIn = () => {
         >
           {strings('notifications.activation_card.title')}
         </Text>
-        <View style={styles.card}>
-          <Image
-            source={EnableNotificationsCardPlaceholder}
-            style={styles.image}
-          />
-        </View>
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.textSpace}
-        >
-          {strings('notifications.activation_card.description_1')}
-        </Text>
-
-        <Text
-          variant={TextVariant.BodyMD}
-          color={TextColor.Alternative}
-          style={styles.textSpace}
-        >
-          {strings('notifications.activation_card.description_2')}{' '}
+        <ScrollView>
+          <View style={styles.card}>
+            <Image
+              source={EnableNotificationsCardPlaceholder}
+              style={styles.image}
+            />
+          </View>
           <Text
             variant={TextVariant.BodyMD}
-            color={TextColor.Info}
-            onPress={goToLearnMore}
+            color={TextColor.Alternative}
+            style={styles.textSpace}
           >
-            {strings('notifications.activation_card.learn_more')}
+            {strings('notifications.activation_card.description_1')}
           </Text>
-        </Text>
 
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('notifications.activation_card.manage_preferences_1')}
-          <Text variant={TextVariant.BodyMDBold} color={TextColor.Alternative}>
-            {strings('notifications.activation_card.manage_preferences_2')}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.textSpace}
+          >
+            {strings('notifications.activation_card.description_2')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Info}
+              onPress={goToLearnMore}
+            >
+              {strings('notifications.activation_card.learn_more')}
+            </Text>
           </Text>
-        </Text>
+
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('notifications.activation_card.manage_preferences_1')}
+            <Text
+              variant={TextVariant.BodyMDBold}
+              color={TextColor.Alternative}
+            >
+              {strings('notifications.activation_card.manage_preferences_2')}
+            </Text>
+          </Text>
+        </ScrollView>
 
         <View style={styles.btnContainer}>
           <Button
