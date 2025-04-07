@@ -3,8 +3,10 @@ import { Animated, StyleSheet } from 'react-native';
 import HollowCircle from './hollowCircle';
 import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
+import { useTheme } from '../../../../../util/theme';
+import { ThemeColors } from '@metamask/design-tokens';
 
-const createStyles = () =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       position: 'relative',
@@ -17,8 +19,7 @@ const createStyles = () =>
       left: -2,
       right: -2,
       bottom: -2,
-      // eslint-disable-next-line react-native/no-color-literals
-      backgroundColor: 'rgba(3, 118, 201, 0.2)',
+      backgroundColor: colors.primary.muted,
       borderRadius: 8,
     },
     hollowCircleContainer: {
@@ -43,7 +44,8 @@ export default function PulsingCircle({
 }: {
   color: IconColor;
 }) {
-  const styles = createStyles();
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
