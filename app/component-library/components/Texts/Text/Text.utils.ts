@@ -1,22 +1,15 @@
-export type FontWeight =
-  | '100'
-  | '200'
-  | '300'
-  | '400'
-  | '500'
-  | '600'
-  | '700'
-  | '800'
-  | '900'
-  | 'normal'
-  | 'bold';
-type FontStyle = 'normal' | 'italic';
+import { typography } from '@metamask/design-tokens';
+import { FontWeight, FontStyle, TextVariant } from './Text.types';
 
-export const getFontStyleVariant = (
-  fontWeight: FontWeight = '400',
-  fontStyle: FontStyle = 'normal',
+export const getFontFamily = (
+  variant: TextVariant,
+  fontWeight?: FontWeight,
+  fontStyle?: FontStyle,
 ): string => {
-  const weightMap: { [key in FontWeight]: string } = {
+  const resolvedWeight = fontWeight ?? typography[variant].fontWeight;
+  const resolvedStyle = fontStyle ?? 'normal';
+
+  const weightToFontSuffix: Record<FontWeight, 'Book' | 'Medium' | 'Bold'> = {
     '100': 'Book',
     '200': 'Book',
     '300': 'Book',
@@ -30,9 +23,8 @@ export const getFontStyleVariant = (
     bold: 'Bold',
   };
 
-  const styleSuffix = fontStyle === 'italic' ? 'Italic' : '';
+  const fontSuffix = weightToFontSuffix[resolvedWeight as FontWeight];
+  const italicSuffix = resolvedStyle === 'italic' ? 'Italic' : '';
 
-  const fontSuffix = weightMap[fontWeight];
-
-  return `CentraNo1-${fontSuffix}${styleSuffix}`;
+  return `CentraNo1-${fontSuffix}${italicSuffix}`;
 };
