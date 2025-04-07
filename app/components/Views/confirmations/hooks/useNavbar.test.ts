@@ -49,6 +49,7 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
     expect(mockSetOptions).toHaveBeenCalledWith(
       getNavbar({
@@ -74,6 +75,7 @@ describe('useNavbar', () => {
       title: 'Updated Title',
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 
@@ -89,6 +91,7 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: newOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 });
