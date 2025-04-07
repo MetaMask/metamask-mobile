@@ -329,7 +329,7 @@ describe('WC2Manager', () => {
       expect(showLoadingSpy).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle WalletConnect v1 URIs', async () => {
+    it('creates new session for WalletConnect v1 URIs', async () => {
       const mockWcUri = 'wc:00e46b69-d0cc-4b3e-b6a2-cee442f97188@1';
       const WalletConnectSpy = jest.spyOn(WalletConnect, 'newSession');
 
