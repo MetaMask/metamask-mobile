@@ -537,7 +537,7 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager session proposal handling', () => {
-    it('should handle session proposal rejection', async () => {
+    it('returns rejectSession event to wallet on proposal rejection', async () => {
       const mockPermissionController = Engine.context.PermissionController;
       (mockPermissionController.requestPermissions as jest.Mock).mockRejectedValueOnce(new Error('User rejected'));
 
