@@ -4,7 +4,6 @@ import {
   getPhishingTestResult,
   isProductSafetyDappScanningEnabled,
 } from './phishingDetection';
-import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 
 // Mock the environment variables
 const originalEnv = process.env;
