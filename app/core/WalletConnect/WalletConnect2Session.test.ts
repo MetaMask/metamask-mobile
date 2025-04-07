@@ -328,7 +328,7 @@ describe('WalletConnect2Session', () => {
     handleChainChangeSpy.mockRestore();
   });
 
-  it('should not trigger handleChainChange when isHandlingChainChange is true', async () => {
+  it('does not trigger handleChainChange when handler is already running', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
