@@ -45,9 +45,6 @@ import createUnsupportedMethodMiddleware from '../RPCMethods/createUnsupportedMe
 import createEthAccountsMethodMiddleware from '../RPCMethods/createEthAccountsMethodMiddleware';
 import createTracingMiddleware from '../createTracingMiddleware';
 import { createEip1193MethodMiddleware } from '../RPCMethods/createEip1193MethodMiddleware';
-import { Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
-import { rejectOriginApprovals } from '../Engine/utils';
-import { ERC1155, ERC20, ERC721 } from '@metamask/controller-utils';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -472,11 +469,6 @@ export class BackgroundBridge extends EventEmitter {
             PermissionController,
             origin,
           ),
-          requestPermittedChainsPermissionIncrementalForOrigin: (options) =>
-            Engine.requestPermittedChainsPermissionIncremental({
-              ...options,
-              origin,
-            }),
           requestPermissionsForOrigin: (requestedPermissions) =>
             PermissionController.requestPermissions(
               { origin },
@@ -495,60 +487,7 @@ export class BackgroundBridge extends EventEmitter {
               // for the origin do not exist
             }
           },
-          getCaveat: ({ target, caveatType }) => {
-            try {
-              return PermissionController.getCaveat(origin, target, caveatType);
-            } catch (e) {
-              if (e instanceof PermissionDoesNotExistError) {
-                // suppress expected error in case that the origin
-                // does not have the target permission yet
-              } else {
-                throw e;
-              }
-            }
-
-            return undefined;
-          },
-
           // network configuration-related
-          setActiveNetwork: async (networkClientId) => {
-            await NetworkController.setActiveNetwork(networkClientId);
-            // if the origin has the CAIP-25 permission
-            // we set per dapp network selection state
-            if (
-              PermissionController.hasPermission(
-                origin,
-                Caip25EndowmentPermissionName,
-              )
-            ) {
-              SelectedNetworkController.setNetworkClientIdForDomain(
-                origin,
-                networkClientId,
-              );
-            }
-          },
-          getCurrentChainIdForDomain: (domain) => {
-            const networkClientId =
-              SelectedNetworkController.getNetworkClientIdForDomain(domain);
-            const { chainId } =
-              NetworkController.getNetworkConfigurationByNetworkClientId(
-                networkClientId,
-              );
-            return chainId;
-          },
-          addNetwork: NetworkController.addNetwork.bind(NetworkController),
-          updateNetwork:
-            NetworkController.updateNetwork.bind(NetworkController),
-          getNetworkConfigurationByChainId:
-            NetworkController.getNetworkConfigurationByChainId.bind(
-              NetworkController,
-            ),
-          requestUserApproval:
-            ApprovalController.addAndShowApprovalRequest.bind(
-              ApprovalController,
-            ),
-          hasApprovalRequestsForOrigin: () =>
-            ApprovalController.has({ origin }),
           updateCaveat: PermissionController.updateCaveat.bind(
             PermissionController,
             origin,
@@ -565,48 +504,6 @@ export class BackgroundBridge extends EventEmitter {
                 () => true,
               );
             });
-          },
-          rejectApprovalRequestsForOrigin: (origin) => {
-            const deleteInterface = (id) =>
-              this.controllerMessenger.call(
-                'SnapInterfaceController:deleteInterface',
-                id,
-              );
-
-            rejectOriginApprovals({
-              approvalController: this.approvalController,
-              deleteInterface,
-              origin,
-            });
-          },
-          handleWatchAssetRequest: ({
-            asset,
-            type,
-            origin,
-            networkClientId,
-          }) => {
-            switch (type) {
-              case ERC20:
-                return TokensController.watchAsset({
-                  asset,
-                  type,
-                  networkClientId,
-                });
-              case ERC721:
-              case ERC1155:
-                return NftController.watchNft(asset, type, origin);
-              default:
-                throw new Error(`Asset type ${type} not supported`);
-            }
-          },
-          setTokenNetworkFilter: (chainId) => {
-            const { tokenNetworkFilter } =
-              PreferencesController.getPreferences();
-            if (chainId && Object.keys(tokenNetworkFilter).length === 1) {
-              PreferencesController.setPreference('tokenNetworkFilter', {
-                [chainId]: true,
-              });
-            }
           },
         }),
       );
