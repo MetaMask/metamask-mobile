@@ -33,7 +33,7 @@ export function getNavbar({
     },
     headerStyle: {
       backgroundColor: theme.colors.background.alternative,
-      // @ts-ignore - null is the only way to remove the shadow but it's not typed
+      // @ts-expect-error - null is the only way to remove the shadow but it's not typed
       shadowOffset: null,
     },
   });

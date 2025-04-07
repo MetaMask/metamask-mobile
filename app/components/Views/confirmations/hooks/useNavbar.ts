@@ -7,7 +7,8 @@ import { getNavbar } from '../components/Confirm/Navbar/Navbar';
 import { useConfirmActions } from './useConfirmActions';
 
 const useNavbar = (title: string, addBackButton = true) => {
-  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { onReject } = useConfirmActions();
   const theme = useTheme();
 
@@ -20,7 +21,7 @@ const useNavbar = (title: string, addBackButton = true) => {
         theme,
       }),
     );
-  }, [navigation, onReject, title, addBackButton]);
+  }, [navigation, onReject, theme, title, addBackButton]);
 };
 
 export default useNavbar;
