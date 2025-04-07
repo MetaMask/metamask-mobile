@@ -122,8 +122,6 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
-      // TODO: Verify if this can be called before CAIP-25 permissions have been granted
-      // Previous behavior was to incremental grant if no permittedChains permission existed
       addPermittedChains(hostname, selectedChainIds as Hex[]);
       onUserAction(USER_INTENT.Confirm);
     }

@@ -10,7 +10,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
-import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
+import { addPermittedChains } from '../../../../core/Permissions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -34,6 +34,13 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../../core/Permissions'),
+  addPermittedChains: jest.fn(),
+}));
+
+const mockAddPermittedChains = addPermittedChains as jest.Mock;
 
 // Add mock for react-redux
 jest.mock('react-redux', () => ({
@@ -133,20 +140,11 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('handles update permissions when networks are selected', async () => {
-    (
-      Engine.context.PermissionController.getCaveat as jest.Mock
-    ).mockReturnValue({
-      type: Caip25CaveatType,
-      value: {
-        requiredScopes: {},
-        optionalScopes: { 'eip155:1': { accounts: [] } },
-        isMultichainOrigin: false,
-        sessionProperties: {},
-      },
-    });
+    mockAddPermittedChains.mockReturnValue(['0x1']);
+    const mockNetworkConfigurationId = Object.keys(
+      mockNetworkConfigurations,
+    )[0];
 
-    // TODO: [ffmcgee] delegate this test suite to Arthur, the mockNetwork config looks bad
-    // we could just mock the `addPermittedChains` util function to return what we want, but yeah....
     const { getByText, getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
     );
@@ -161,7 +159,9 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalled();
+    expect(addPermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
+      mockNetworkConfigurationId,
+    ]);
     expect(defaultProps.onUserAction).toHaveBeenCalled();
   });
 
