@@ -139,3 +139,6 @@ expo-env.d.ts
 
 # CICD
 github-tools/
+
+# Yarn
+.yarn/*

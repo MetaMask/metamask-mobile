@@ -17,7 +17,8 @@ jobs:
         id: extract_current_branch
       - name: Checkout
         uses: actions/checkout@v3
-
+      - name: Enable Corepack
+          run: corepack enable
       - name: Crowdin push
         uses: crowdin/github-action@c953b17499daa6be3e5afbf7a63616fb02d8b18d
         with:

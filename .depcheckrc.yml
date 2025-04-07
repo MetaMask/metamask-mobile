@@ -40,7 +40,6 @@ ignores:
   - 'eslint-plugin-react-native'
   - 'execa'
   - 'fbjs-scripts'
-  - 'improved-yarn-audit'
   - 'jetifier'
   - 'metro-react-native-babel-preset'
   - 'octonode'
@@ -85,10 +84,9 @@ ignores:
   - 'app'
   - 'i18n-js'
   - 'images'
-  
+
   ## Expo
   - '@config-plugins/detox'
   - 'cross-spawn'
   - 'expo-build-properties'
   - 'expo-dev-client'
-  
