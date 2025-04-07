@@ -347,7 +347,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('should handle invalid URIs', async () => {
+    it('logs a warning to console on invalid URIs', async () => {
       const mockWcUri = 'invalid:uri';
       const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
