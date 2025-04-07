@@ -602,19 +602,16 @@ export const WHILELIST_NETWORK_NAME  = {
  * This function allows for specific network names for certain chain IDs.
  * For example, it allows 'Mainnet' for Ethereum Mainnet, 'Linea Mainnet' for Linea Mainnet,
  * and 'Mega Testnet' for MegaEth Testnet.
- * 
+ *
  * @param {string} chainId - The chain ID to check.
  * @param {string} networkName - The network name to validate.
  * @param {string} nickname - The nickname of the network.
  * @returns A boolean indicating whether the network name is valid for the given chain ID.
  */
-export const isValidNetworkName = (chainId, networkName, nickname) => {
-  if (networkName === nickname ||
-    (chainId === ChainId.mainnet && nickname === WHILELIST_NETWORK_NAME[ChainId.mainnet])||
-    (chainId === ChainId['linea-mainnet'] && nickname === WHILELIST_NETWORK_NAME[ChainId['linea-mainnet']])||
-    (chainId === ChainId['megaeth-testnet'] && nickname === WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']])
-  ) {
-    return true;
-  }
-  return false;
-}
+export const isValidNetworkName = (
+  chainId,
+  networkName,
+  nickname,
+) =>
+  networkName === nickname ||
+  WHILELIST_NETWORK_NAME[chainId] === nickname;
