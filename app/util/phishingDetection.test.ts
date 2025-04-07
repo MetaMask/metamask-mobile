@@ -6,6 +6,16 @@ import {
 } from './phishingDetection';
 import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 
+// Mock the environment variables
+const originalEnv = process.env;
+beforeEach(() => {
+  jest.resetModules();
+  process.env = { ...originalEnv };
+});
+afterAll(() => {
+  process.env = originalEnv;
+});
+
 jest.mock('../core/Engine', () => ({
   context: {
     PhishingController: {
@@ -46,7 +56,6 @@ describe('Phishing Detection', () => {
     it('should return the value from selector', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       expect(isProductSafetyDappScanningEnabled()).toBe(true);
-      
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(false);
       expect(isProductSafetyDappScanningEnabled()).toBe(false);
     });
@@ -75,16 +84,18 @@ describe('Phishing Detection', () => {
       expect(result).toEqual(mockResult);
     });
 
-    it('returns a negative result object if product safety dapp scanning is enabled', () => {
+    it('calls PhishingController.test when product safety dapp scanning is enabled but ENABLE_DAPP_SCANNING is false', () => {
+      // Ensure the environment variable is not set
+      delete process.env.ENABLE_DAPP_SCANNING;
+
       mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
+      const mockResult = { result: false, name: 'Test', type: PhishingDetectorResultType.All };
+      mockPhishingController.test.mockReturnValueOnce(mockResult);
 
-      expect(getPhishingTestResult('example.com')).toEqual({
-        result: false,
-        name: 'Product safety dapp scanning is enabled',
-        type: PhishingDetectorResultType.All
-      });
-      expect(mockPhishingController.test).not.toHaveBeenCalled();
+      const result = getPhishingTestResult('example.com');
+      expect(mockPhishingController.test).toHaveBeenCalledWith('example.com');
+      expect(result).toEqual(mockResult);
     });
   });
 });

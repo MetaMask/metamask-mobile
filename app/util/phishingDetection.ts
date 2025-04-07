@@ -8,6 +8,8 @@ import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlag
  */
 export const isProductSafetyDappScanningEnabled = (): boolean => selectProductSafetyDappScanningEnabled(store.getState());
 
+// temp disable dapp scanning until we bump the phishing controller
+const enableDappScanning = process.env.ENABLE_DAPP_SCANNING || false;
 
 /**
  * Gets detailed phishing test results for an origin
@@ -15,7 +17,7 @@ export const isProductSafetyDappScanningEnabled = (): boolean => selectProductSa
  * @returns {PhishingDetectorResult} Phishing test result object or null if protection is disabled
  */
 export const getPhishingTestResult = (origin: string): PhishingDetectorResult => {
-  if (isProductSafetyDappScanningEnabled()) {
+  if (isProductSafetyDappScanningEnabled() && enableDappScanning) {
     return { result: false, name: 'Product safety dapp scanning is enabled', type: PhishingDetectorResultType.All };
   }
  const { PhishingController } = Engine.context as {
