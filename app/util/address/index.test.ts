@@ -26,7 +26,6 @@ import {
   mockSnapAddress2,
 } from '../test/keyringControllerTestUtils';
 import {
-  createMockInternalAccount,
   internalAccount1,
   MOCK_SOLANA_ACCOUNT,
 } from '../test/accountsControllerTestUtils';
