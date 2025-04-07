@@ -46,10 +46,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -61,10 +61,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -86,10 +86,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -101,10 +101,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -126,10 +126,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -141,10 +141,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -166,10 +166,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -181,10 +181,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -206,10 +206,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -221,10 +221,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -246,10 +246,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -261,10 +261,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >
@@ -286,10 +286,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#686e7d",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -301,10 +301,10 @@ exports[`MarketDetailsList should render correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 12,
+            "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 20,
+            "lineHeight": 22,
           }
         }
       >

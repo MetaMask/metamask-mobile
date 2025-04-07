@@ -128,7 +128,7 @@ exports[`AccountOverview should render correctly 1`] = `
                   {
                     "0": {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 24,
                       "fontWeight": "400",
                       "textAlign": "center",
@@ -145,10 +145,10 @@ exports[`AccountOverview should render correctly 1`] = `
                     },
                     "color": "#121314",
                     "fontFamily": "CentraNo1-Book",
-                    "fontSize": 14,
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="account-label"
@@ -174,7 +174,7 @@ exports[`AccountOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 12,
                 "fontWeight": "400",
                 "letterSpacing": 0.8,
