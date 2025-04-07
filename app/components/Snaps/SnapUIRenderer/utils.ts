@@ -33,6 +33,9 @@ export interface MapToTemplateParams {
   textAlignment?: string;
 }
 
+// For some components we wish to ignore the JSX children as they are implemented using props in the client.
+const IGNORE_CHILDREN_COMPONENTS = ['Field'];
+
 /**
  * Get a truncated version of component children to use in a hash.
  *
@@ -40,7 +43,10 @@ export interface MapToTemplateParams {
  * @returns A truncated version of component children to use in a hash.
  */
 function getChildrenForHash(component: JSXElement) {
-  if (!hasChildren(component)) {
+  if (
+    !hasChildren(component) ||
+    IGNORE_CHILDREN_COMPONENTS.includes(component.type)
+  ) {
     return null;
   }
 
