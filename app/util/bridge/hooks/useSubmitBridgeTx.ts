@@ -10,6 +10,7 @@ import { getQuoteRequest } from '../../../selectors/bridgeController';
 // import { serializeQuoteMetadata } from '..';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 import { QuoteMetadataSerialized } from '@metamask/bridge-status-controller';
+import { serializeQuoteMetadata } from '..';
 
 export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();
@@ -32,32 +33,24 @@ export default function useSubmitBridgeTx() {
     const txResult = await handleBridgeTx({ quoteResponse, approvalTxId: approvalTxMeta?.id });
 
     // Start polling for tx history
-    // TESTING: Add mocked quote metadata
-    const quoteMetadata = {} as QuoteMetadataSerialized;
-    if (quoteMetadata) {
-      try {
-        Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
-          bridgeTxMeta: txResult,
-          statusRequest: {
-          bridgeId: quoteResponse.quote.bridgeId,
-          bridge: quoteResponse.quote.bridges[0],
-          srcChainId: quoteResponse.quote.srcChainId,
-          destChainId: quoteResponse.quote.destChainId,
-          quote: quoteResponse.quote,
-          refuel: Boolean(quoteResponse.quote.refuel),
-          srcTxHash: txResult.hash, // This might be undefined for STX
-        },
-        // quoteResponse: serializeQuoteMetadata(quoteResponse),
-        quoteResponse: {
-          ...quoteResponse,
-          ...quoteMetadata,
-        },
-        slippagePercentage: slippage ?? 0,
-          startTime: txResult.time,
-        });
-      } catch (error) {
-        throw new Error('error starting bridge tx status polling: ' + error);
-      }
+    try {
+      Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
+        bridgeTxMeta: txResult,
+        statusRequest: {
+        bridgeId: quoteResponse.quote.bridgeId,
+        bridge: quoteResponse.quote.bridges[0],
+        srcChainId: quoteResponse.quote.srcChainId,
+        destChainId: quoteResponse.quote.destChainId,
+        quote: quoteResponse.quote,
+        refuel: Boolean(quoteResponse.quote.refuel),
+        srcTxHash: txResult.hash, // This might be undefined for STX
+      },
+      quoteResponse: serializeQuoteMetadata(quoteResponse),
+      slippagePercentage: slippage ?? 0,
+        startTime: txResult.time,
+      });
+    } catch (error) {
+      throw new Error('error starting bridge tx status polling: ' + error);
     }
 
     // Add tokens if not the native gas token

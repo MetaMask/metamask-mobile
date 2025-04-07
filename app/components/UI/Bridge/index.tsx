@@ -45,6 +45,7 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
+import { DummyQuoteMetadata } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -180,12 +181,15 @@ const BridgeView = () => {
     dispatch(setSourceAmount(value || undefined));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // TODO: Implement bridge transaction with source and destination amounts
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = undefined;
-    if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as unknown as QuoteResponse & QuoteMetadata });
+    const quoteResponse = {};
+    // TESTING: Paste quote metadata from extension here to test the bridge flow
+    const quoteMetadata = {};
+    if (quoteResponse && quoteMetadata) {
+      await submitBridgeTx({ quoteResponse: {...quoteResponse, ...quoteMetadata} as QuoteResponse & QuoteMetadata });
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
