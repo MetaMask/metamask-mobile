@@ -124,7 +124,7 @@ exports[`StyledButton should render correctly on iOS the button with type cancel
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -160,7 +160,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -197,7 +197,7 @@ exports[`StyledButton should render correctly on iOS the button with type normal
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",
@@ -233,7 +233,7 @@ exports[`StyledButton should render correctly on iOS the button with type orange
   style={
     [
       {
-        "fontFamily": "EuclidCircularB-Bold",
+        "fontFamily": "CentraNo1-Bold",
         "fontSize": 14,
         "fontWeight": "600",
         "textAlign": "center",

@@ -4,11 +4,11 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -53,21 +53,31 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -125,12 +135,12 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -150,11 +160,11 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -229,6 +239,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -241,8 +253,8 @@ exports[`SnapUIRenderer prefills interactive inputs with existing state 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -271,11 +283,11 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -350,6 +362,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -363,8 +377,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -410,6 +424,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input2"
@@ -423,8 +439,8 @@ exports[`SnapUIRenderer re-renders when the interface changes 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -453,11 +469,11 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -532,6 +548,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -544,8 +562,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -591,6 +609,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input2"
@@ -603,8 +623,8 @@ exports[`SnapUIRenderer re-syncs state when the interface changes 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -633,11 +653,11 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -682,21 +702,31 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -716,11 +746,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -818,11 +848,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Medium",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
                       "fontWeight": "500",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -849,11 +879,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#9ca1af",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -864,11 +894,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -965,11 +995,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 16,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -981,11 +1011,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1012,11 +1042,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Medium",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Medium",
+                      "fontSize": 16,
                       "fontWeight": "500",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1028,11 +1058,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   style={
                     {
                       "color": "#686e7d",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1094,11 +1124,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1126,7 +1156,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -1157,11 +1186,11 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1173,16 +1202,27 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1202,11 +1242,11 @@ exports[`SnapUIRenderer renders footers 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1251,21 +1291,31 @@ exports[`SnapUIRenderer renders footers 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -1323,11 +1373,11 @@ exports[`SnapUIRenderer renders footers 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -1355,7 +1405,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -1386,11 +1435,11 @@ exports[`SnapUIRenderer renders footers 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1402,16 +1451,27 @@ exports[`SnapUIRenderer renders footers 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1438,11 +1498,11 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1515,11 +1575,11 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1596,6 +1656,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                 >
                   <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     autoFocus={false}
                     editable={true}
                     id="input"
@@ -1608,8 +1670,8 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Euclid Circular B",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,
                         "letterSpacing": 0,
@@ -1629,48 +1691,28 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
-                    accessible={true}
+                  <TouchableOpacity
                     disabled={false}
                     id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
-                    padding={0}
-                    style={
-                      {
-                        "backgroundColor": "transparent",
-                        "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                    suppressHighlighting={true}
                   >
                     <Text
                       accessibilityRole="text"
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
-                          "fontWeight": "500",
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
+                          "fontWeight": undefined,
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
+                          "textAlign": undefined,
                         }
                       }
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -1690,11 +1732,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -1767,11 +1809,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1802,6 +1844,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                   }
                 >
                   <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
                     autoFocus={false}
                     editable={true}
                     id="input"
@@ -1814,8 +1858,8 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "Euclid Circular B",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,
                         "letterSpacing": 0,
@@ -1849,11 +1893,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -1914,11 +1958,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -1947,11 +1991,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
                 testID="label"
@@ -2034,11 +2078,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Medium",
-                            "fontSize": 14,
+                            "fontFamily": "CentraNo1-Medium",
+                            "fontSize": 16,
                             "fontWeight": "500",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -2050,11 +2094,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -2081,11 +2125,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       style={
                         {
                           "color": "#121314",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -2097,11 +2141,11 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                       style={
                         {
                           "color": "#686e7d",
-                          "fontFamily": "EuclidCircularB-Regular",
-                          "fontSize": 14,
+                          "fontFamily": "CentraNo1-Book",
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -2188,530 +2232,544 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 }
               />
               <View
-                collapsable={false}
-                deviceHeight={null}
-                deviceWidth={null}
-                hideModalContentWhileAnimating={false}
-                onBackdropPress={[Function]}
-                onModalHide={[Function]}
-                onModalWillHide={[Function]}
-                onModalWillShow={[Function]}
-                onMoveShouldSetResponder={[Function]}
-                onMoveShouldSetResponderCapture={[Function]}
-                onResponderEnd={[Function]}
-                onResponderGrant={[Function]}
-                onResponderMove={[Function]}
-                onResponderReject={[Function]}
-                onResponderRelease={[Function]}
-                onResponderStart={[Function]}
-                onResponderTerminate={[Function]}
-                onResponderTerminationRequest={[Function]}
-                onStartShouldSetResponder={[Function]}
-                onStartShouldSetResponderCapture={[Function]}
-                onSwipeComplete={[Function]}
-                panResponderThreshold={4}
+                onLayout={[Function]}
                 pointerEvents="box-none"
-                scrollHorizontal={false}
-                scrollOffset={0}
-                scrollOffsetMax={0}
-                scrollTo={null}
-                statusBarTranslucent={false}
                 style={
-                  {
-                    "flex": 1,
-                    "justifyContent": "flex-end",
-                    "left": 0,
-                    "margin": 0,
-                    "top": 0,
-                    "transform": [
+                  [
+                    [
                       {
-                        "translateY": 1334,
+                        "margin": 37.5,
+                        "transform": [
+                          {
+                            "translateY": 0,
+                          },
+                        ],
+                      },
+                      {
+                        "flex": 1,
+                        "justifyContent": "center",
+                      },
+                      {
+                        "justifyContent": "flex-end",
+                        "margin": 0,
+                      },
+                      {
+                        "margin": 0,
                       },
                     ],
-                  }
-                }
-                supportedOrientations={
-                  [
-                    "portrait",
-                    "landscape",
+                    {
+                      "paddingBottom": 0,
+                    },
                   ]
                 }
-                swipeDirection="down"
-                swipeThreshold={100}
               >
                 <View
+                  collapsable={false}
+                  deviceHeight={null}
+                  deviceWidth={null}
+                  hideModalContentWhileAnimating={false}
+                  onBackdropPress={[Function]}
+                  onModalHide={[Function]}
+                  onModalWillHide={[Function]}
+                  onModalWillShow={[Function]}
+                  onMoveShouldSetResponder={[Function]}
+                  onMoveShouldSetResponderCapture={[Function]}
+                  onResponderEnd={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderReject={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderStart={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  onStartShouldSetResponderCapture={[Function]}
+                  onSwipeComplete={[Function]}
+                  panResponderThreshold={4}
+                  pointerEvents="box-none"
+                  scrollHorizontal={false}
+                  scrollOffset={0}
+                  scrollOffsetMax={0}
+                  scrollTo={null}
+                  statusBarTranslucent={false}
                   style={
                     {
-                      "backgroundColor": "#ffffff",
-                      "borderTopLeftRadius": 24,
-                      "borderTopRightRadius": 24,
-                      "maxHeight": "80%",
-                      "minHeight": 300,
-                      "overflow": "hidden",
-                      "paddingBottom": 20,
+                      "flex": 1,
+                      "justifyContent": "flex-end",
+                      "left": 0,
+                      "margin": 0,
+                      "top": 0,
+                      "transform": [
+                        {
+                          "translateY": 1334,
+                        },
+                      ],
                     }
                   }
+                  supportedOrientations={
+                    [
+                      "portrait",
+                      "landscape",
+                    ]
+                  }
+                  swipeDirection="down"
+                  swipeThreshold={100}
                 >
                   <View
                     style={
-                      [
-                        {
-                          "backgroundColor": "#ffffff",
-                          "flexDirection": "row",
-                          "padding": 16,
-                        },
-                        false,
-                      ]
+                      {
+                        "backgroundColor": "#ffffff",
+                        "borderTopLeftRadius": 24,
+                        "borderTopRightRadius": 24,
+                        "maxHeight": "80%",
+                        "minHeight": 300,
+                        "overflow": "hidden",
+                        "paddingBottom": 20,
+                      }
                     }
-                    testID="header"
                   >
                     <View
                       style={
-                        {
-                          "width": undefined,
-                        }
+                        [
+                          {
+                            "backgroundColor": "#ffffff",
+                            "flexDirection": "row",
+                            "padding": 16,
+                          },
+                          false,
+                        ]
                       }
+                      testID="header"
                     >
                       <View
-                        onLayout={[Function]}
-                      >
-                        <TouchableOpacity
-                          accessible={true}
-                          activeOpacity={1}
-                          disabled={false}
-                          onPress={[Function]}
-                          onPressIn={[Function]}
-                          onPressOut={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "borderRadius": 8,
-                              "height": 24,
-                              "justifyContent": "center",
-                              "opacity": 1,
-                              "width": 24,
-                            }
-                          }
-                        >
-                          <SvgMock
-                            color="#121314"
-                            height={16}
-                            name="ArrowLeft"
-                            style={
-                              {
-                                "height": 16,
-                                "width": 16,
-                              }
-                            }
-                            width={16}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    <View
-                      style={
-                        {
-                          "alignItems": "center",
-                          "flex": 1,
-                          "marginHorizontal": 16,
-                        }
-                      }
-                    >
-                      <Text
-                        accessibilityRole="text"
                         style={
                           {
-                            "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
-                            "fontSize": 16,
-                            "fontWeight": "700",
-                            "letterSpacing": 0,
-                            "lineHeight": 24,
-                            "textAlign": "center",
+                            "width": undefined,
                           }
                         }
-                        testID="header-title"
                       >
-                        Select an option
-                      </Text>
-                    </View>
-                    <View
-                      style={
-                        {
-                          "width": undefined,
-                        }
-                      }
-                    >
+                        <View
+                          onLayout={[Function]}
+                        >
+                          <TouchableOpacity
+                            accessible={true}
+                            activeOpacity={1}
+                            disabled={false}
+                            onPress={[Function]}
+                            onPressIn={[Function]}
+                            onPressOut={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "borderRadius": 8,
+                                "height": 24,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "width": 24,
+                              }
+                            }
+                          >
+                            <SvgMock
+                              color="#121314"
+                              height={16}
+                              name="ArrowLeft"
+                              style={
+                                {
+                                  "height": 16,
+                                  "width": 16,
+                                }
+                              }
+                              width={16}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
                       <View
-                        onLayout={[Function]}
-                      />
-                    </View>
-                  </View>
-                  <RCTScrollView>
-                    <View>
-                      <View
-                        flexDirection="column"
-                        gap={8}
                         style={
-                          [
-                            {
-                              "flexDirection": "column",
-                              "gap": 8,
-                            },
-                            {
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                            },
-                          ]
+                          {
+                            "alignItems": "center",
+                            "flex": 1,
+                            "marginHorizontal": 16,
+                          }
                         }
                       >
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
+                        <Text
+                          accessibilityRole="text"
                           style={
                             {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "flexDirection": "row",
-                              "height": "auto",
-                              "justifyContent": "center",
-                              "maxHeight": 58,
-                              "minHeight": 48,
-                              "paddingBottom": 8,
-                              "paddingHorizontal": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                              "paddingTop": 8,
+                              "color": "#121314",
+                              "fontFamily": "CentraNo1-Bold",
+                              "fontSize": 16,
+                              "fontWeight": "700",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "textAlign": "center",
                             }
                           }
+                          testID="header-title"
                         >
-                          <View
-                            alignItems="center"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                },
-                                {
-                                  "flex": 1,
-                                },
-                              ]
-                            }
-                            testID="snaps-ui-card"
-                          >
-                            <View
-                              alignItems="center"
-                              flexDirection="row"
-                              gap={16}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "gap": 16,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <View
-                                flexDirection="column"
-                                style={
-                                  [
-                                    {
-                                      "flexDirection": "column",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  ellipsizeMode="tail"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  CardTitle1
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  ellipsizeMode="tail"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  CardDescription1
-                                </Text>
-                              </View>
-                            </View>
-                            <View
-                              flexDirection="column"
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "column",
-                                    "textAlign": "right",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                              textAlign="right"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="tail"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                CardValue1
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="tail"
-                                style={
-                                  {
-                                    "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                CardExtra1
-                              </Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessible={true}
-                          activeOpacity={1}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "alignSelf": "stretch",
-                              "backgroundColor": "transparent",
-                              "borderRadius": 8,
-                              "flexDirection": "row",
-                              "height": "auto",
-                              "justifyContent": "center",
-                              "maxHeight": 58,
-                              "minHeight": 48,
-                              "paddingBottom": 8,
-                              "paddingHorizontal": 16,
-                              "paddingLeft": 16,
-                              "paddingRight": 16,
-                              "paddingTop": 8,
-                            }
+                          Select an option
+                        </Text>
+                      </View>
+                      <View
+                        style={
+                          {
+                            "width": undefined,
                           }
-                        >
-                          <View
-                            alignItems="center"
-                            flexDirection="row"
-                            justifyContent="space-between"
-                            style={
-                              [
-                                {
-                                  "alignItems": "center",
-                                  "flexDirection": "row",
-                                  "justifyContent": "space-between",
-                                },
-                                {
-                                  "flex": 1,
-                                },
-                              ]
-                            }
-                            testID="snaps-ui-card"
-                          >
-                            <View
-                              alignItems="center"
-                              flexDirection="row"
-                              gap={16}
-                              style={
-                                [
-                                  {
-                                    "alignItems": "center",
-                                    "flexDirection": "row",
-                                    "gap": 16,
-                                  },
-                                  undefined,
-                                ]
-                              }
-                            >
-                              <View
-                                flexDirection="column"
-                                style={
-                                  [
-                                    {
-                                      "flexDirection": "column",
-                                    },
-                                    undefined,
-                                  ]
-                                }
-                              >
-                                <Text
-                                  accessibilityRole="text"
-                                  ellipsizeMode="tail"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 14,
-                                      "fontWeight": "500",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  CardTitle2
-                                </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  ellipsizeMode="tail"
-                                  style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
-                                      "fontWeight": "400",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
-                                  }
-                                >
-                                  CardDescription2
-                                </Text>
-                              </View>
-                            </View>
-                            <View
-                              flexDirection="column"
-                              style={
-                                [
-                                  {
-                                    "flexDirection": "column",
-                                    "textAlign": "right",
-                                  },
-                                  undefined,
-                                ]
-                              }
-                              textAlign="right"
-                            >
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="tail"
-                                style={
-                                  {
-                                    "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Medium",
-                                    "fontSize": 14,
-                                    "fontWeight": "500",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                CardValue2
-                              </Text>
-                              <Text
-                                accessibilityRole="text"
-                                ellipsizeMode="tail"
-                                style={
-                                  {
-                                    "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
-                                    "fontWeight": "400",
-                                    "letterSpacing": 0,
-                                    "lineHeight": 22,
-                                  }
-                                }
-                              >
-                                CardExtra2
-                              </Text>
-                            </View>
-                          </View>
-                        </TouchableOpacity>
+                        }
+                      >
+                        <View
+                          onLayout={[Function]}
+                        />
                       </View>
                     </View>
-                  </RCTScrollView>
+                    <RCTScrollView>
+                      <View>
+                        <View
+                          flexDirection="column"
+                          gap={8}
+                          style={
+                            [
+                              {
+                                "flexDirection": "column",
+                                "gap": 8,
+                              },
+                              {
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                            ]
+                          }
+                        >
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "flexDirection": "row",
+                                "height": "auto",
+                                "justifyContent": "center",
+                                "maxHeight": 58,
+                                "minHeight": 48,
+                                "paddingBottom": 8,
+                                "paddingHorizontal": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 8,
+                              }
+                            }
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              justifyContent="space-between"
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                  },
+                                  {
+                                    "flex": 1,
+                                  },
+                                ]
+                              }
+                              testID="snaps-ui-card"
+                            >
+                              <View
+                                alignItems="center"
+                                flexDirection="row"
+                                gap={16}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  flexDirection="column"
+                                  style={
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    ellipsizeMode="tail"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    CardTitle1
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    ellipsizeMode="tail"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    CardDescription1
+                                  </Text>
+                                </View>
+                              </View>
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "textAlign": "right",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                textAlign="right"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  CardValue1
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  CardExtra1
+                                </Text>
+                              </View>
+                            </View>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessible={true}
+                            activeOpacity={1}
+                            onPress={[Function]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "transparent",
+                                "borderRadius": 8,
+                                "flexDirection": "row",
+                                "height": "auto",
+                                "justifyContent": "center",
+                                "maxHeight": 58,
+                                "minHeight": 48,
+                                "paddingBottom": 8,
+                                "paddingHorizontal": 16,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 8,
+                              }
+                            }
+                          >
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              justifyContent="space-between"
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "flexDirection": "row",
+                                    "justifyContent": "space-between",
+                                  },
+                                  {
+                                    "flex": 1,
+                                  },
+                                ]
+                              }
+                              testID="snaps-ui-card"
+                            >
+                              <View
+                                alignItems="center"
+                                flexDirection="row"
+                                gap={16}
+                                style={
+                                  [
+                                    {
+                                      "alignItems": "center",
+                                      "flexDirection": "row",
+                                      "gap": 16,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                <View
+                                  flexDirection="column"
+                                  style={
+                                    [
+                                      {
+                                        "flexDirection": "column",
+                                      },
+                                      undefined,
+                                    ]
+                                  }
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    ellipsizeMode="tail"
+                                    style={
+                                      {
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": "500",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    CardTitle2
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    ellipsizeMode="tail"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 16,
+                                        "fontWeight": "400",
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      }
+                                    }
+                                  >
+                                    CardDescription2
+                                  </Text>
+                                </View>
+                              </View>
+                              <View
+                                flexDirection="column"
+                                style={
+                                  [
+                                    {
+                                      "flexDirection": "column",
+                                      "textAlign": "right",
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                                textAlign="right"
+                              >
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": "500",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  CardValue2
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  ellipsizeMode="tail"
+                                  style={
+                                    {
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
+                                  }
+                                >
+                                  CardExtra2
+                                </Text>
+                              </View>
+                            </View>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </RCTScrollView>
+                  </View>
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
-              accessible={true}
+            <TouchableOpacity
               disabled={false}
               id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "backgroundColor": "transparent",
-                  "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-              suppressHighlighting={true}
             >
               <Text
                 accessibilityRole="text"
                 style={
                   {
                     "color": "#4459ff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
-                    "fontWeight": "500",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
+                    "fontWeight": undefined,
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
+                    "textAlign": undefined,
                   }
                 }
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -2728,11 +2786,11 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -2807,6 +2865,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                 }
               >
                 <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
                   autoFocus={false}
                   editable={true}
                   id="input"
@@ -2819,8 +2879,8 @@ exports[`SnapUIRenderer supports interactive inputs 1`] = `
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
-                      "fontFamily": "Euclid Circular B",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "height": 24,
                       "letterSpacing": 0,
@@ -2849,11 +2909,11 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
 <View
   style={
     [
-      {},
       {
         "flexGrow": 1,
         "minHeight": 667,
       },
+      undefined,
     ]
   }
 >
@@ -2898,21 +2958,31 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -2970,11 +3040,11 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -3002,7 +3072,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -3033,11 +3102,11 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -3049,16 +3118,27 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             style={
               {
                 "color": "#ffffff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>

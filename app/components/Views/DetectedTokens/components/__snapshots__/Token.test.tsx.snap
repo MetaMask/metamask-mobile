@@ -112,7 +112,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -133,7 +133,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -155,7 +155,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -201,7 +201,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -216,7 +216,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -383,7 +383,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -404,7 +404,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -426,7 +426,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -472,7 +472,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -487,7 +487,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -654,7 +654,7 @@ exports[`Token Component renders correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -675,7 +675,7 @@ exports[`Token Component renders correctly 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -697,7 +697,7 @@ exports[`Token Component renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -743,7 +743,7 @@ exports[`Token Component renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -758,7 +758,7 @@ exports[`Token Component renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -925,7 +925,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "marginBottom": 4,
@@ -946,7 +946,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -968,7 +968,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }
@@ -1014,7 +1014,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
           }
@@ -1029,7 +1029,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
             }

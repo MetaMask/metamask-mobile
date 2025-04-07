@@ -107,11 +107,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -390,11 +390,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
-                                        "fontSize": 12,
+                                        "fontFamily": "CentraNo1-Book",
+                                        "fontSize": 14,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 20,
+                                        "lineHeight": 22,
                                       }
                                     }
                                   >
@@ -414,11 +414,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Bold",
-                                          "fontSize": 14,
+                                          "fontFamily": "CentraNo1-Bold",
+                                          "fontSize": 16,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     />
@@ -431,11 +431,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 12,
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 14,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 20,
+                                      "lineHeight": 22,
                                       "marginLeft": "auto",
                                     }
                                   }
@@ -447,11 +447,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
-                                      "fontSize": 14,
+                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontSize": 16,
                                       "fontWeight": "700",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                 >
@@ -489,11 +489,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -623,11 +623,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -647,11 +647,11 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#686e7d",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 12,
                                           "fontWeight": "400",
                                           "letterSpacing": 0,
-                                          "lineHeight": 22,
+                                          "lineHeight": 24,
                                         }
                                       }
                                     >
@@ -743,7 +743,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               "borderRadius": 12,
                               "borderWidth": 1,
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 10,
                               "fontWeight": "400",
                               "paddingHorizontal": 8,
@@ -758,7 +758,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 44,
                               "fontWeight": "400",
                               "paddingBottom": 4,
@@ -833,7 +833,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -841,7 +841,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontWeight": "600",
                                     },
                                     undefined,
@@ -1164,7 +1164,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                               {
                                 "alignSelf": "center",
                                 "color": "#4459ff",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 12,
                                 "fontWeight": "600",
                                 "textAlign": "center",
@@ -1234,7 +1234,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
@@ -1296,7 +1296,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
@@ -1383,7 +1383,7 @@ exports[`TransactionReview should match snapshot 1`] = `
             {
               "alignSelf": "center",
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 14,
               "fontWeight": "600",
             }
@@ -1416,7 +1416,7 @@ exports[`TransactionReview should match snapshot 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "marginBottom": 28,
@@ -1442,12 +1442,12 @@ exports[`TransactionReview should match snapshot 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
               },
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontWeight": "600",
               },
             ]
@@ -1486,7 +1486,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                     {
                       "backgroundColor": "#ffffff",
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "paddingTop": 0,

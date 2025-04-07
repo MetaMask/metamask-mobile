@@ -198,7 +198,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         [
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 24,
                             "fontWeight": "400",
                             "textAlign": "center",
@@ -240,7 +240,7 @@ exports[`AccountConnect renders correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 16,
                     "fontWeight": "700",
                     "letterSpacing": 0,
@@ -306,11 +306,11 @@ exports[`AccountConnect renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -339,11 +339,11 @@ exports[`AccountConnect renders correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                         testID="permission-summary-account-text"
@@ -353,11 +353,11 @@ exports[`AccountConnect renders correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 12,
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -392,11 +392,11 @@ exports[`AccountConnect renders correctly 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -461,11 +461,11 @@ exports[`AccountConnect renders correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 16,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 22,
+                        "lineHeight": 24,
                       }
                     }
                   >
@@ -494,11 +494,11 @@ exports[`AccountConnect renders correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Regular",
-                            "fontSize": 14,
+                            "fontFamily": "CentraNo1-Book",
+                            "fontSize": 16,
                             "fontWeight": "400",
                             "letterSpacing": 0,
-                            "lineHeight": 22,
+                            "lineHeight": 24,
                           }
                         }
                       >
@@ -507,11 +507,11 @@ exports[`AccountConnect renders correctly 1`] = `
                           style={
                             {
                               "color": "#121314",
-                              "fontFamily": "EuclidCircularB-Regular",
-                              "fontSize": 12,
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 14,
                               "fontWeight": "400",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                             }
                           }
                         >
@@ -708,11 +708,11 @@ exports[`AccountConnect renders correctly 1`] = `
                       style={
                         {
                           "color": "#4459ff",
-                          "fontFamily": "EuclidCircularB-Medium",
-                          "fontSize": 14,
+                          "fontFamily": "CentraNo1-Medium",
+                          "fontSize": 16,
                           "fontWeight": "500",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
@@ -784,7 +784,7 @@ exports[`AccountConnect renders correctly 1`] = `
                       null,
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
@@ -848,7 +848,7 @@ exports[`AccountConnect renders correctly 1`] = `
                       },
                       [
                         {
-                          "fontFamily": "EuclidCircularB-Bold",
+                          "fontFamily": "CentraNo1-Bold",
                           "fontSize": 14,
                           "fontWeight": "600",
                           "textAlign": "center",
