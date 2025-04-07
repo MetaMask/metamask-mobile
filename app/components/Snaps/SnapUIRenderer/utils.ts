@@ -39,6 +39,27 @@ export interface MapToTemplateParams {
 }
 
 /**
+ * Registry of element types that are used within Field element.
+ */
+export const FIELD_ELEMENT_TYPES = [
+  'FileInput',
+  'Input',
+  'Dropdown',
+  'RadioGroup',
+  'Checkbox',
+  'Selector',
+];
+
+/**
+ * Search for the element that is considered to be primary child element of a Field.
+ *
+ * @param children - Children elements specified within Field element.
+ * @returns Number, representing index of a primary field in the array of children elements.
+ */
+export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
+  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
+
+/**
  * Get a truncated version of component children to use in a hash.
  *
  * @param component - The component.
@@ -53,9 +74,9 @@ function getChildrenForHash(component: JSXElement) {
 
   // Field has special handling to determine the primary child to use for the key
   if (component.type === 'Field') {
-    const children = getJsxChildren(component) as JSXElement[];
-    const primaryChildIndex = getPrimaryChildElementIndex(children);
-    const primaryChild = children[primaryChildIndex] as InputElement;
+    const fieldChildren = getJsxChildren(component) as JSXElement[];
+    const primaryChildIndex = getPrimaryChildElementIndex(fieldChildren);
+    const primaryChild = fieldChildren[primaryChildIndex] as InputElement;
     return { type: primaryChild?.type, name: primaryChild?.props?.name };
   }
 
@@ -210,27 +231,6 @@ export const mergeValue = <Type extends State>(
   }
   return { ...state, [name]: value };
 };
-
-/**
- * Registry of element types that are used within Field element.
- */
-export const FIELD_ELEMENT_TYPES = [
-  'FileInput',
-  'Input',
-  'Dropdown',
-  'RadioGroup',
-  'Checkbox',
-  'Selector',
-];
-
-/**
- * Search for the element that is considered to be primary child element of a Field.
- *
- * @param children - Children elements specified within Field element.
- * @returns Number, representing index of a primary field in the array of children elements.
- */
-export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
-  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
 
 /**
  * Map Snap custom size for border radius to mobile compatible size.
