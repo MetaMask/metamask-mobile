@@ -5,7 +5,7 @@ import Logger from '../../util/Logger';
 import { getUniqueList } from '../../util/general';
 import TransactionTypes from '../TransactionTypes';
 import { PermissionKeys } from './specifications';
-import { EVM_IDENTIFIER } from '../Multichain/constants';
+import { KnownCaipNamespace } from '@metamask/utils';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -237,7 +237,7 @@ export const getPermittedChains = async (hostname: string): Promise<string[]> =>
   if (Array.isArray(caveat?.value)) {
     const chains = caveat.value
       .filter((item: unknown): item is string => typeof item === 'string' && !isNaN(parseInt(item)))
-      .map((chainId: string) => `${EVM_IDENTIFIER}:${parseInt(chainId)}`);
+      .map((chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`);
 
     return chains;
   }
