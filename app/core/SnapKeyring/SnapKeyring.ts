@@ -2,7 +2,7 @@ import {
   SnapKeyring,
   SnapKeyringCallbacks,
   SnapKeyringInternalOptions,
-  getDefaultInternalOptions
+  getDefaultInternalOptions,
 } from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
