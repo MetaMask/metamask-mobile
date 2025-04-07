@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { getNavbar } from './Navbar';
 import { Theme } from '../../../../../../util/theme/models';
+
 describe('getStakingDepositNavbar', () => {
   it('renders the header title correctly', () => {
     const title = 'Test Title';
