@@ -257,7 +257,7 @@ describe('ProtectYourWallet', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         {
-          screen: Routes.MODAL.SELECT_SRP,
+          screen: Routes.SHEET.SELECT_SRP,
         },
       );
     });

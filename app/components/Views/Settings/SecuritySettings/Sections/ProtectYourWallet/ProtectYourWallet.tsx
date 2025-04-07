@@ -57,7 +57,7 @@ const ProtectYourWallet = ({
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const openSRPList = () => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SELECT_SRP,
+      screen: Routes.SHEET.SELECT_SRP,
     });
   };
   ///: END:ONLY_INCLUDE_IF
