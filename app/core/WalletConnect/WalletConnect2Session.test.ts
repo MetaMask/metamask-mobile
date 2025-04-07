@@ -293,7 +293,7 @@ describe('WalletConnect2Session', () => {
     });
   });
 
-  it('should handle chain changes through store subscription', async () => {
+  it('subscribes to chain changes', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
