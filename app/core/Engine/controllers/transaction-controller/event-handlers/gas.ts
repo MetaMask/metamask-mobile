@@ -22,7 +22,7 @@ export function handleTxParamsGasFeeUpdatesForRedesignedTransactions(
   transactionsToUpdate: Partial<TransactionMeta>[],
   updateTransactionGasFees: TransactionController['updateTransactionGasFees'],
 ) {
-  transactionsToUpdate.map((tx) => {
+  transactionsToUpdate.forEach((tx) => {
     const txMeta = tx as Required<
       Pick<
         TransactionMeta,
