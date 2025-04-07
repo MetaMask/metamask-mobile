@@ -360,7 +360,7 @@ describe('WalletConnect2Session', () => {
     handleChainChangeSpy.mockRestore();
   });
 
-  it('should log warning if handleChainChange throws an error', async () => {
+  it('logs warning on handleChainChange error', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
     (store.subscribe as jest.Mock).mockImplementation((callback: () => void) => {
