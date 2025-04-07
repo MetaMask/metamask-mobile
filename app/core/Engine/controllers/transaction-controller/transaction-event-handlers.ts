@@ -69,14 +69,52 @@ export async function handleTransactionFinalized(
     );
   }
 
+  const metaMetricsInstance = MetaMetrics.getInstance();
+  const isMetricsOptedIn = metaMetricsInstance.isEnabled();
+  const remoteFeatureFlags = getState()?.engine?.backgroundState?.RemoteFeatureFlagController?.remoteFeatureFlags || {};
+  const isTxHashFeatureFlagEnabled = remoteFeatureFlags['transactions-tx-hash-in-analytics'] === true;
+
+  let enhancedProperties = {};
+  if (isMetricsOptedIn && isTxHashFeatureFlagEnabled) {
+    // Add enhanced properties for analytics when feature flag is enabled
+    // These properties help with transaction tracking and analysis
+    // while respecting user privacy (only added for opted-in users)
+
+    let metaMetricsId;
+    try {
+      metaMetricsId = await metaMetricsInstance.getMetaMetricsId();
+    } catch (error) {
+      console.error('Error getting MetaMetrics ID:', error);
+      // Continue with the rest of the properties even if this fails
+    }
+
+    enhancedProperties = {
+      ...(transactionMeta.hash ? { transaction_hash: transactionMeta.hash } : {}),
+      ...(metaMetricsId ? { user_id: metaMetricsId } : {}),
+      ...(transactionMeta.chainId ? { chain_id: transactionMeta.chainId } : {}),
+      ...(transactionMeta.type ? { transaction_type: transactionMeta.type } : {}),
+      ...(transactionMeta.origin ? { dapp_url: transactionMeta.origin } : {})
+    };
+  }
+
   const mergedEventProperties = merge(
     {
-      properties: stxMetricsProperties,
+      properties: {
+        ...stxMetricsProperties,
+        ...enhancedProperties
+      },
     },
     defaultTransactionMetricProperties,
   );
 
   const event = generateEvent(mergedEventProperties);
 
-  MetaMetrics.getInstance().trackEvent(event);
+  console.log('Transaction Finalized Event Properties:', JSON.stringify(event.properties, null, 2));
+  console.log('Is feature flag enabled:', isTxHashFeatureFlagEnabled);
+  console.log('Is metrics opted in:', isMetricsOptedIn);
+  console.log('Transaction hash:', transactionMeta.hash);
+  console.log('Enhanced Event Properties:', JSON.stringify(enhancedProperties, null, 2));
+  console.log('Final Event Properties:', JSON.stringify(event.properties, null, 2));
+
+  metaMetricsInstance.trackEvent(event);
 }

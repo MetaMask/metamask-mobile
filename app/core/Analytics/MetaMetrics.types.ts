@@ -158,3 +158,8 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
+
+export interface TransactionEventProperties extends JsonMap {
+  transaction_hash?: string;
+  // Add any other transaction-specific properties here
+}
