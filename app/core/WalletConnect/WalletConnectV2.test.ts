@@ -530,7 +530,7 @@ describe('WC2Manager', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false for invalid WalletConnect origins', () => {
+    it('returns false for invalid WalletConnect origins', () => {
       const result = manager.isWalletConnect('https://invalid.com');
       expect(result).toBe(false);
     });
