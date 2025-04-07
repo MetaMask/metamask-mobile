@@ -25,18 +25,18 @@ const InfoRowOrigin = (
   let isSIWEMessage: boolean | undefined;
   let url: string | undefined;
   if (isSignatureRequest) {
-    chainId = signatureRequest?.chainId as Hex;
-    isSIWEMessage = getSIWEDetails(signatureRequest).isSIWEMessage;
-    fromAddress = signatureRequest?.messageParams?.from as string;
-    url = approvalRequest?.requestData?.meta?.url as string;
-  } else {
-    chainId = transactionMetadata?.chainId as Hex;
-    fromAddress = transactionMetadata?.txParams?.from as string;
-    url = transactionMetadata?.origin as string;
-  }
+    if (!signatureRequest || !approvalRequest) return null;
 
-  if (isSignatureRequest && !approvalRequest) {
-    return null;
+    chainId = signatureRequest?.chainId;
+    isSIWEMessage = getSIWEDetails(signatureRequest).isSIWEMessage;
+    fromAddress = signatureRequest?.messageParams?.from;
+    url = approvalRequest?.requestData?.meta?.url;
+  } else {
+    if (!transactionMetadata) return null;
+
+    chainId = transactionMetadata?.chainId;
+    fromAddress = transactionMetadata?.txParams?.from;
+    url = transactionMetadata?.origin;
   }
 
   return (
