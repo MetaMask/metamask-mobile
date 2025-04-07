@@ -1,14 +1,28 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
-import { Linking, View } from 'react-native';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import { TextColor } from '../../../component-library/components/Texts/Text';
+import { TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+
+const styles = StyleSheet.create({
+  linkContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  spacer: {
+    width: 4,
+  },
+  icon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+});
 
 export interface SnapUILinkProps {
   children: LinkChildren;
@@ -27,38 +41,22 @@ const onPress = (href: string) => {
 };
 
 // TODO: This component should show a modal for links when not using preinstalled Snaps
-export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
-  const label = (
-    <>
-      {children}
-      <View
-        /* eslint-disable-next-line react-native/no-inline-styles */
-        style={{
-          width: 4,
-        }}
-      />
-      <Icon
-        name={IconName.Export}
-        color={IconColor.Primary}
-        size={IconSize.Sm}
-        /* eslint-disable-next-line react-native/no-inline-styles */
-        style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          alignSelf: 'center',
-        }}
-      />
-    </>
-  );
-
-  return (
-    <ButtonLink
-      testID="snaps-ui-link"
-      // @ts-expect-error This prop is not part of the type but it works.
-      color={TextColor.Info}
-      onPress={() => onPress(href)}
-      label={label}
+export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
+  <TouchableOpacity
+    testID="snaps-ui-link"
+    style={styles.linkContainer}
+    onPress={() => onPress(href)}
+    accessibilityRole="link"
+    accessibilityHint={`Opens ${href} in your browser`}
+  >
+    {children}
+    <Icon
+      name={IconName.Export}
+      color={IconColor.Primary}
+      size={IconSize.Sm}
+      style={styles.icon}
     />
-  );
-};
+  </TouchableOpacity>
+);
+
 ///: END:ONLY_INCLUDE_IF
