@@ -23,10 +23,6 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
-import {
-  handleTxParamsGasFeeUpdatesForRedesignedTransactions,
-  createUnapprovedTransactionsGasFeeSelector,
-} from './event-handlers/gas';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -109,12 +105,6 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
-  const handleTxParamsGasFeeUpdatesForRedesignedTransactionsMock = jest.mocked(
-    handleTxParamsGasFeeUpdatesForRedesignedTransactions,
-  );
-  const createUnapprovedTransactionsGasFeeSelectorMock = jest.mocked(
-    createUnapprovedTransactionsGasFeeSelector,
-  );
 
   /**
    * Extract a constructor option passed to the controller.
@@ -144,7 +134,6 @@ describe('Transaction Controller Init', () => {
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
     selectSwapsChainFeatureFlagsMock.mockReturnValue({});
     getGlobalChainIdMock.mockReturnValue('0x1');
-    createUnapprovedTransactionsGasFeeSelectorMock.mockReturnValue(() => []);
   });
 
   it('returns controller instance', () => {
@@ -381,12 +370,6 @@ describe('Transaction Controller Init', () => {
         handler: handleTransactionAddedEventForMetricsMock,
         payload: mockTransactionMeta,
         expectedArgs: [mockTransactionMeta, handlerContext],
-      },
-      {
-        event: 'TransactionController:stateChange',
-        handler: handleTxParamsGasFeeUpdatesForRedesignedTransactionsMock,
-        payload: [],
-        expectedArgs: [[], expect.any(Function)],
       },
     ];
 

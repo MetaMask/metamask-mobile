@@ -14,5 +14,4 @@ export interface TransactionEventHandlerRequest {
   getState: () => RootState;
   initMessenger: TransactionControllerInitMessenger;
   smartTransactionsController: SmartTransactionsController;
-  updateTransactionGasFees: TransactionController['updateTransactionGasFees'];
 }

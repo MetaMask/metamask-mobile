@@ -26,10 +26,6 @@ import type {
 } from '../../types';
 import type { TransactionEventHandlerRequest } from './types';
 import {
-  handleTxParamsGasFeeUpdatesForRedesignedTransactions,
-  createUnapprovedTransactionsGasFeeSelector,
-} from './event-handlers/gas';
-import {
   handleTransactionApprovedEventForMetrics,
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
@@ -114,10 +110,6 @@ export const TransactionControllerInit: ControllerInitFunction<
       initMessenger,
       getState,
       smartTransactionsController,
-      updateTransactionGasFees:
-        transactionController.updateTransactionGasFees.bind(
-          transactionController,
-        ),
     });
 
     return { controller: transactionController };
@@ -198,18 +190,6 @@ function addTransactionControllerListeners(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
   const { initMessenger } = transactionEventHandlerRequest;
-
-  // Temporary fix for gas fee updates for redesigned transactions, will be removed after redesign is fully launched
-  // Read more: https://github.com/MetaMask/MetaMask-planning/issues/4595
-  initMessenger.subscribe(
-    'TransactionController:stateChange',
-    (transactionsToUpdate) =>
-      handleTxParamsGasFeeUpdatesForRedesignedTransactions(
-        transactionsToUpdate,
-        transactionEventHandlerRequest.updateTransactionGasFees,
-      ),
-    createUnapprovedTransactionsGasFeeSelector(),
-  );
 
   initMessenger.subscribe(
     'TransactionController:transactionApproved',
