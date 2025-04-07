@@ -532,7 +532,7 @@ describe('WalletConnect2Session', () => {
         );
       });
 
-      it('should not handle iOS specific logic for iOS versions below 17', () => {
+      it('skips iOS specific logic for iOS versions below 17', () => {
         jest.spyOn(Platform, 'Version', 'get').mockReturnValue('16.0');
         
         session.redirect('test');
