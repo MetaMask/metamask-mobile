@@ -116,6 +116,7 @@ const SnapDialogApproval = () => {
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.default
       }
       onCancel={onCancel}
+      avoidKeyboard
     >
       <View style={styles.root}>
         <SnapUIRenderer
@@ -124,14 +125,18 @@ const SnapDialogApproval = () => {
           isLoading={isLoading}
           onCancel={onCancel}
           useFooter={approvalRequest?.type === DIALOG_APPROVAL_TYPES.default}
+          // eslint-disable-next-line react-native/no-inline-styles
+          style={{
+            marginBottom:
+              approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default ? 80 : 0,
+          }}
         />
         {approvalRequest?.type !== DIALOG_APPROVAL_TYPES.default && (
-          <View style={styles.actionContainer}>
-            <BottomSheetFooter
-              buttonsAlignment={ButtonsAlignment.Horizontal}
-              buttonPropsArray={buttons}
-            />
-          </View>
+          <BottomSheetFooter
+            style={styles.footer}
+            buttonsAlignment={ButtonsAlignment.Horizontal}
+            buttonPropsArray={buttons}
+          />
         )}
       </View>
     </ApprovalModal>
