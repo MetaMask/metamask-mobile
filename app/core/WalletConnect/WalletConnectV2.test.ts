@@ -283,7 +283,7 @@ describe('WC2Manager', () => {
       expect(pairedSessions.length).toBeGreaterThan(0);
     });
 
-    it('should not connect if URI is invalid', async () => {
+    it('does not connect if URI is invalid', async () => {
       const mockWcUri = 'invalid-uri';
 
       await manager.connect({
