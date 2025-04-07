@@ -83,7 +83,6 @@ describe('Phishing Detection', () => {
       // Ensure the environment variable is not set
       delete process.env.ENABLE_DAPP_SCANNING;
 
-      mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       const mockResult = { result: false, name: 'Test', type: PhishingDetectorResultType.All };
       mockPhishingController.test.mockReturnValueOnce(mockResult);
