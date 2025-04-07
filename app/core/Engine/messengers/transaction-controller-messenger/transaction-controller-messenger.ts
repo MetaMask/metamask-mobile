@@ -9,6 +9,7 @@ import {
 } from '@metamask/network-controller';
 import {
   TransactionControllerMessenger,
+  TransactionControllerStateChangeEvent,
   TransactionControllerTransactionApprovedEvent,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionDroppedEvent,
@@ -39,7 +40,8 @@ type MessengerEvents =
   | TransactionControllerUnapprovedTransactionAddedEvent
   | NetworkControllerStateChangeEvent
   | SmartTransactionsControllerSmartTransactionEvent
-  | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
+  | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent
+  | TransactionControllerStateChangeEvent;
 
 export type TransactionControllerInitMessenger = ReturnType<
   typeof getTransactionControllerInitMessenger
@@ -76,6 +78,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:unapprovedTransactionAdded',
       'SmartTransactionsController:smartTransaction',
       'SmartTransactionsController:smartTransactionConfirmationDone',
+      'TransactionController:stateChange',
     ],
     allowedActions: [
       'ApprovalController:addRequest',

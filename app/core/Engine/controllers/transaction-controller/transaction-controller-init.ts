@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import {
   TransactionController,
   type TransactionControllerMessenger,
@@ -18,13 +19,6 @@ import {
   submitSmartTransactionHook,
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
-import {
-  handleTransactionAdded,
-  handleTransactionApproved,
-  handleTransactionFinalized,
-  handleTransactionRejected,
-  handleTransactionSubmitted,
-} from './transaction-event-handlers';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
@@ -32,6 +26,17 @@ import type {
   ControllerInitRequest,
 } from '../../types';
 import type { TransactionEventHandlerRequest } from './types';
+import {
+  handleTxParamsGasFeeUpdatesForRedesignedTransactions,
+  createUnapprovedTransactionsGasFeeSelector,
+} from './event-handlers/gas';
+import {
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+  handleTransactionAddedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+} from './event-handlers/metrics';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -110,6 +115,10 @@ export const TransactionControllerInit: ControllerInitFunction<
       initMessenger,
       getState,
       smartTransactionsController,
+      updateTransactionGasFees:
+        transactionController.updateTransactionGasFees.bind(
+          transactionController,
+        ),
     });
 
     return { controller: transactionController };
@@ -191,10 +200,22 @@ function addTransactionControllerListeners(
 ) {
   const { initMessenger } = transactionEventHandlerRequest;
 
+  // Temporary fix for gas fee updates for redesigned transactions, will be removed after redesign is fully launched
+  // Read more: https://github.com/MetaMask/metamask-mobile/XXX
+  initMessenger.subscribe(
+    'TransactionController:stateChange',
+    (transactionsToUpdate) =>
+      handleTxParamsGasFeeUpdatesForRedesignedTransactions(
+        transactionsToUpdate,
+        transactionEventHandlerRequest.updateTransactionGasFees,
+      ),
+    createUnapprovedTransactionsGasFeeSelector(),
+  );
+
   initMessenger.subscribe(
     'TransactionController:transactionApproved',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionApproved(
+      handleTransactionApprovedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -204,7 +225,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionConfirmed',
     (transactionMeta: TransactionMeta) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -214,7 +235,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionDropped',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -224,7 +245,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionFailed',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -234,7 +255,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionRejected',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionRejected(
+      handleTransactionRejectedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -244,7 +265,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionSubmitted',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionSubmitted(
+      handleTransactionSubmittedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -254,7 +275,10 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:unapprovedTransactionAdded',
     (transactionMeta: TransactionMeta) => {
-      handleTransactionAdded(transactionMeta, transactionEventHandlerRequest);
+      handleTransactionAddedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 }
