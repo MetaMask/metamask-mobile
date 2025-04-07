@@ -1,17 +1,19 @@
 'use strict';
 import { loginToApp } from '../../viewHelper';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { withFixtures } from '../../fixtures/fixture-helper';
+
 import TestHelpers from '../../helpers';
+import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { SmokeRamps } from '../../tags';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../utils/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 
-describe(SmokeRamps('On-Ramp Limits'), () => {
+describe(SmokeRamps('Off-ramp token amounts'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
   });
@@ -19,8 +21,7 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
   });
-
-  it('should check order min and maxlimits', async () => {
+  it('should change token amounts directly and by percentage', async () => {
     const franceRegion = {
       currencies: ['/currencies/fiat/eur'],
       emoji: '🇫🇷',
@@ -44,16 +45,18 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
         await loginToApp();
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapSellButton();
-        await BuyGetStartedView.tapGetStartedButton();
-        await BuildQuoteView.enterAmount('0.001');
-        await Assertions.checkIfVisible(BuildQuoteView.minLimitErrorMessage);
-        await BuildQuoteView.tapKeypadDeleteButton(4);
-        await BuildQuoteView.enterAmount('50');
-        await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
-        await BuildQuoteView.tapKeypadDeleteButton(2);
-        await BuildQuoteView.enterAmount('999');
-        await Assertions.checkIfVisible(BuildQuoteView.insufficientBalanceErrorMessage);
-        await BuildQuoteView.tapCancelButton();
+        await SellGetStartedView.tapGetStartedButton();
+        await BuildQuoteView.enterAmount('5');
+        await Assertions.checkIfTextIsDisplayed('5 ETH');
+        await BuildQuoteView.tapKeypadDeleteButton(1);
+        await BuildQuoteView.tapQuickAmount25();
+        await Assertions.checkIfTextIsDisplayed('64 ETH');
+        await BuildQuoteView.tapQuickAmount50();
+        await Assertions.checkIfTextIsDisplayed('128 ETH');
+        await BuildQuoteView.tapQuickAmount75();
+        await Assertions.checkIfTextIsDisplayed('192 ETH');
+        await BuildQuoteView.tapQuickAmountMax();
+        await Assertions.checkIfTextIsNotDisplayed('192 ETH');
       },
     );
   });
