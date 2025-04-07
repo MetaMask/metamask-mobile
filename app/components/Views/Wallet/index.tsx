@@ -78,6 +78,8 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -111,6 +113,9 @@ import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
+///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
@@ -142,6 +147,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -708,6 +714,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );

@@ -38,10 +38,10 @@ export default async () => {
     const ethQuery = getGlobalEthQuery();
 
     await KeyringController.withKeyring(
-      { type: ExtendedKeyringTypes.hd },
-      async (primaryKeyring) => {
+      { type: ExtendedKeyringTypes.hd, index: 0 },
+      async ({ keyring }) => {
         for (let i = 0; i < MAX; i++) {
-          const [newAccount] = await primaryKeyring.addAccounts(1);
+          const [newAccount] = await keyring.addAccounts(1);
 
           let newAccountBalance = ZERO_BALANCE;
           try {
@@ -54,15 +54,15 @@ export default async () => {
 
           if (newAccountBalance === ZERO_BALANCE) {
             // remove extra zero balance account we just added and break the loop
-            primaryKeyring.removeAccount?.(newAccount);
+            keyring.removeAccount?.(newAccount);
             break;
           }
         }
       },
     );
+  } finally {
     // We don't want to catch errors here, we let them bubble up to the caller
     // as we want to set `isAccountSyncingReadyToBeDispatched` to true either way
-  } finally {
     await setIsAccountSyncingReadyToBeDispatched(true);
   }
 };

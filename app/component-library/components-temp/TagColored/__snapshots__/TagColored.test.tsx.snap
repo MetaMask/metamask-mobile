@@ -20,11 +20,11 @@ exports[`TagColored should render TagColored 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "EuclidCircularB-Bold",
-        "fontSize": 10,
+        "fontFamily": "CentraNo1-Bold",
+        "fontSize": 12,
         "fontWeight": "bold",
         "letterSpacing": 0.25,
-        "lineHeight": 16,
+        "lineHeight": 20,
         "textTransform": "uppercase",
       }
     }

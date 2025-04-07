@@ -216,7 +216,7 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           {
             "0": {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "600",
               "marginRight": 2,
@@ -224,11 +224,11 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             },
             "1": undefined,
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -242,17 +242,17 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             "0": {
               "color": "#121314",
               "flexGrow": 1,
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "600",
             },
             "1": undefined,
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -269,17 +269,17 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           "0": {
             "alignSelf": "flex-start",
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "100",
           },
           "1": undefined,
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

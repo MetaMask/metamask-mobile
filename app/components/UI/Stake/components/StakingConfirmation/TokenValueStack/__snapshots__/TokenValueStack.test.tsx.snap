@@ -176,7 +176,7 @@ exports[`TokenValueStack render matches snapshot 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -193,11 +193,11 @@ exports[`TokenValueStack render matches snapshot 1`] = `
       style={
         {
           "color": "#686e7d",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

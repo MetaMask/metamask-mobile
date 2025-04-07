@@ -75,7 +75,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -83,7 +83,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontFamily": "CentraNo1-Bold",
                         "fontWeight": "600",
                       },
                       undefined,
@@ -122,7 +122,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -216,7 +216,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       [
                         {
                           "color": "#121314",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
@@ -298,7 +298,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -306,7 +306,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontFamily": "CentraNo1-Bold",
                         "fontWeight": "600",
                       },
                       undefined,
@@ -353,7 +353,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     [
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -444,7 +444,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 15,
             "fontWeight": "600",
             "marginLeft": 8,
