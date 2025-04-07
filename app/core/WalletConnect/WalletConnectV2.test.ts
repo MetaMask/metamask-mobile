@@ -780,7 +780,7 @@ describe('WC2Manager', () => {
       });
     });
 
-    it('should handle errors when removing pending session requests', async () => {
+    it('logs error to console when removing pending session requests fails', async () => {
       const mockPendingRequests = [
         { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
       ];
