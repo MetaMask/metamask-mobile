@@ -12,7 +12,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import {
   selectConfirmationRedesignFlags,
   type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController';
+} from '../../../../../selectors/confirmTransaction';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,

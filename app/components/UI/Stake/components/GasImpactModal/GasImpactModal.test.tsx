@@ -12,7 +12,7 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import {
   selectConfirmationRedesignFlags,
   type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/featureFlagController';
+} from '../../../../../selectors/confirmTransaction';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import GasImpactModal from './index';
