@@ -692,7 +692,7 @@ describe('WC2Manager', () => {
       consoleSpy.mockRestore();
     });
 
-    it('should remove all pending session proposals', async () => {
+    it('removes all pending session proposals', async () => {
       const mockPendingProposals = {
         '1': { 
           id: 1,
