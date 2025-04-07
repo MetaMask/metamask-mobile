@@ -23,12 +23,13 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 describe(SmokeIdentity('Account syncing'), () => {
   const NEW_ACCOUNT_NAME = 'My third account';
   let decryptedAccountNames = '';
+  let mockServer;
 
   beforeAll(async () => {
     jest.setTimeout(200000);
     await TestHelpers.reverseServerPort();
 
-    const mockServer = await startMockServer();
+    mockServer = await startMockServer();
 
     const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -61,10 +62,10 @@ describe(SmokeIdentity('Account syncing'), () => {
   });
 
   afterAll(async () => {
-    await stopMockServer();
+    await stopMockServer(mockServer);
   });
 
-  it('syncs newly added accounts with custom names', async () => {
+  it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
     await importWalletWithRecoveryPhrase(
       IDENTITY_TEAM_SEED_PHRASE,
       IDENTITY_TEAM_PASSWORD,
@@ -82,9 +83,7 @@ describe(SmokeIdentity('Account syncing'), () => {
 
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapCreateAccount();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
     await TestHelpers.delay(2000);
-    await WalletView.tapCurrentMainWalletAccountActions();
 
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
     await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
@@ -93,9 +92,7 @@ describe(SmokeIdentity('Account syncing'), () => {
       WalletView.accountName,
       NEW_ACCOUNT_NAME,
     );
-  });
 
-  it('retrieves same accounts after importing the same SRP', async () => {
     await TestHelpers.launchApp({
       newInstance: true,
       delete: true,

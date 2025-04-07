@@ -19,8 +19,9 @@ import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(SmokeIdentity('Account syncing'), () => {
+  let mockServer;
   beforeAll(async () => {
-    const mockServer = await startMockServer({
+    mockServer = await startMockServer({
       mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
     });
 
@@ -48,7 +49,7 @@ describe(SmokeIdentity('Account syncing'), () => {
   });
 
   afterAll(async () => {
-    await stopMockServer();
+    await stopMockServer(mockServer);
   });
 
   it('retrieves all previously synced accounts', async () => {
