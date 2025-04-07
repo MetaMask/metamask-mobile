@@ -120,7 +120,10 @@ export const snapControllerInit: ControllerInitFunction<
     clientCryptography: {
       pbkdf2Sha512: pbkdf2,
     },
-    trackEvent: (params) =>
+    trackEvent: (params: {
+      event: string;
+      properties?: Record<string, unknown>;
+    }) =>
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder({
           name: params.event,
