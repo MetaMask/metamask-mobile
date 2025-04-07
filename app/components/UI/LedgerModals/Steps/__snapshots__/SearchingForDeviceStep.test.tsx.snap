@@ -39,7 +39,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           "fontSize": 22,
           "fontWeight": "700",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -68,10 +68,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -83,10 +83,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -99,10 +99,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -115,10 +115,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -131,10 +131,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -147,10 +147,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -163,10 +163,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -186,10 +186,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android < 12 1`] = `
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "marginLeft": 20,
           "marginRight": 20,
           "marginTop": 40,
@@ -241,7 +241,7 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           "fontSize": 22,
           "fontWeight": "700",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -270,10 +270,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -285,10 +285,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -301,10 +301,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -317,10 +317,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -333,10 +333,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -349,10 +349,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -365,10 +365,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingLeft": 7,
         }
       }
@@ -388,10 +388,10 @@ exports[`SearchingForDeviceStep matches snapshot for Android 12+ 1`] = `
           "flex": 1,
           "flexWrap": "wrap",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "marginLeft": 20,
           "marginRight": 20,
           "marginTop": 40,
