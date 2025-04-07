@@ -38,7 +38,6 @@ jest.mock('../selectors/featureFlagController', () => ({
 
 describe('Phishing Detection', () => {
   const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
-  const mockSelectBasicFunctionalityEnabled = selectBasicFunctionalityEnabled as jest.MockedFunction<typeof selectBasicFunctionalityEnabled>;
   // Import and mock the feature flag selector
   const mockSelectProductSafetyDappScanningEnabled = jest.requireMock('../selectors/featureFlagController').selectProductSafetyDappScanningEnabled;
 
