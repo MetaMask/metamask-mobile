@@ -6,9 +6,10 @@ import BridgeStepDescription, {
   getStepStatus,
 } from './bridgeStepDescription';
 import StepProgressBarItem from './stepProgressBarItem';
-import { StatusTypes, Step , BridgeHistoryItem } from '@metamask/bridge-status-controller/dist/types.cjs';
 import { Box } from '../../../Box/Box';
 import { DateTime } from 'luxon';
+import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
+import { Step } from '@metamask/bridge-controller';
 
 const getTime = (
   index: number,
