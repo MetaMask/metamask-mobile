@@ -1,4 +1,32 @@
-import { getFetchParams, shouldShowMaxBalanceLink } from './index';
+import {
+  getFetchParams,
+  shouldShowMaxBalanceLink,
+  isSwapsAllowed,
+} from './index';
+import { swapsUtils } from '@metamask/swaps-controller';
+import { SolScope } from '@metamask/keyring-api';
+import AppConstants from '../../../../core/AppConstants';
+
+// Mock AppConstants
+jest.mock('../../../../core/AppConstants', () => ({
+  SWAPS: {
+    ACTIVE: true,
+    ONLY_MAINNET: true,
+  },
+}));
+
+const {
+  ETH_CHAIN_ID,
+  BSC_CHAIN_ID,
+  SWAPS_TESTNET_CHAIN_ID,
+  POLYGON_CHAIN_ID,
+  AVALANCHE_CHAIN_ID,
+  ARBITRUM_CHAIN_ID,
+  OPTIMISM_CHAIN_ID,
+  ZKSYNC_ERA_CHAIN_ID,
+  LINEA_CHAIN_ID,
+  BASE_CHAIN_ID,
+} = swapsUtils;
 
 describe('getFetchParams', () => {
   const mockSourceToken = {
@@ -155,5 +183,44 @@ describe('shouldShowMaxBalanceLink', () => {
       hasBalance: false,
     });
     expect(result).toBe(false);
+  });
+});
+
+describe('isSwapsAllowed', () => {
+  beforeEach(() => {
+    // Reset process.env
+    process.env.MM_BRIDGE_UI_ENABLED = 'false';
+  });
+
+  it('should return false when swaps are not active', () => {
+    // Mock AppConstants.SWAPS.ACTIVE to false
+    AppConstants.SWAPS.ACTIVE = false;
+    expect(isSwapsAllowed(ETH_CHAIN_ID)).toBe(false);
+    // Reset to true for other tests
+    AppConstants.SWAPS.ACTIVE = true;
+  });
+
+  test.each([
+    [ETH_CHAIN_ID],
+    [BSC_CHAIN_ID],
+    [POLYGON_CHAIN_ID],
+    [AVALANCHE_CHAIN_ID],
+    [ARBITRUM_CHAIN_ID],
+    [OPTIMISM_CHAIN_ID],
+    [ZKSYNC_ERA_CHAIN_ID],
+    [LINEA_CHAIN_ID],
+    [BASE_CHAIN_ID],
+  ])('should return true for chain ID %s', (chainId) => {
+    expect(isSwapsAllowed(chainId)).toBe(true);
+  });
+
+  it('should return false for Solana mainnet when bridge UI is disabled', () => {
+    process.env.MM_BRIDGE_UI_ENABLED = 'false';
+    expect(isSwapsAllowed(SolScope.Mainnet)).toBe(false);
+  });
+
+  it('should return false for unsupported chain IDs', () => {
+    const unsupportedChainId = '0x9999';
+    expect(isSwapsAllowed(unsupportedChainId)).toBe(false);
   });
 });
