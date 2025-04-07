@@ -848,7 +848,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
             }
           >
             <Text>
-              You will loose your assets if you try to send them from or to another network. 
+              You will lose your assets if you try to send them from or to another network. 
             </Text>
           </Text>
         </View>
