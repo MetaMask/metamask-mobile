@@ -698,10 +698,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                       {
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 14,
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -780,7 +780,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                         "borderWidth": 1,
                                         "color": "#121314",
                                         "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 14,
+                                        "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
                                         "letterSpacing": 0,
@@ -1061,7 +1061,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1076,10 +1076,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#686e7d",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1103,10 +1103,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1118,10 +1118,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1321,7 +1321,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1336,10 +1336,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#686e7d",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1363,10 +1363,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1378,10 +1378,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1613,7 +1613,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1628,10 +1628,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#686e7d",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1655,10 +1655,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1670,10 +1670,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1873,7 +1873,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -1888,10 +1888,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#686e7d",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1915,10 +1915,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -1930,10 +1930,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -2175,7 +2175,7 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Medium",
-                                                "fontSize": 16,
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -2190,10 +2190,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#686e7d",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -2217,10 +2217,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
@@ -2232,10 +2232,10 @@ exports[`BridgeSourceTokenSelector renders with initial state and displays token
                                               {
                                                 "color": "#121314",
                                                 "fontFamily": "CentraNo1-Book",
-                                                "fontSize": 14,
+                                                "fontSize": 16,
                                                 "fontWeight": "400",
                                                 "letterSpacing": 0,
-                                                "lineHeight": 22,
+                                                "lineHeight": 24,
                                               }
                                             }
                                           >
