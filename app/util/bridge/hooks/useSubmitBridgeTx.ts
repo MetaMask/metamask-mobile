@@ -4,7 +4,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import { zeroAddress } from 'ethereumjs-util';
 import useAddToken from './useAddToken';
-import Engine from '../../../core/Engine/Engine';
+import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { getQuoteRequest } from '../../../selectors/bridgeController';
 // import { serializeQuoteMetadata } from '..';
