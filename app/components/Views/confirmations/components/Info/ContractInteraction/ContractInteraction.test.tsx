@@ -76,7 +76,7 @@ describe('ContractInteraction', () => {
     });
   });
 
-  it('renders correctly', () => {
+  it('renders "estimate changes" and "network fee" sections', () => {
     const mockOnReject = jest.fn();
     mockUseConfirmActions.mockImplementation(() => ({
       onConfirm: jest.fn(),
@@ -90,7 +90,7 @@ describe('ContractInteraction', () => {
     expect(getByText('Network Fee')).toBeDefined();
   });
 
-  it('tracks metrics events', () => {
+  it('tracks mockTrackPageViewedEvent metrics event', () => {
     renderWithProvider(<ContractInteraction />, {
       state: generateContractInteractionState,
     });

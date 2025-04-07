@@ -39,7 +39,7 @@ const AccountNetworkInfoCollapsed = () => {
   let fromAddress: string | undefined;
   if (signatureRequest) {
     chainId = signatureRequest?.chainId;
-    fromAddress = signatureRequest?.messageParams?.from as string;
+    fromAddress = signatureRequest?.messageParams?.from;
   } else {
     chainId = transactionMetadata?.chainId;
     fromAddress = transactionMetadata?.txParams?.from as string;
