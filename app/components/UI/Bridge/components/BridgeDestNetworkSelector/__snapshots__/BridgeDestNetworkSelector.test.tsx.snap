@@ -493,7 +493,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                         {
                                           "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -657,8 +657,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -755,8 +755,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -853,8 +853,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             style={
                                               {
                                                 "color": "#121314",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,

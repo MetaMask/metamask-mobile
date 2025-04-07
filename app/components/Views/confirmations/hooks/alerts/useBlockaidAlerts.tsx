@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { Reason, SecurityAlertResponse } from '../../components/BlockaidBanner/BlockaidBanner.types';
+// TODO: Remove legacy import
+import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
@@ -8,7 +9,8 @@ import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useSecurityAlertResponse } from '../useSecurityAlertResponse';
 import { useSignatureRequest } from '../useSignatureRequest';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
-import { REASON_TITLE_I18N_KEY_MAP } from '../../components/BlockaidBanner/BlockaidBanner.constants';
+// TODO: Remove legacy import
+import { REASON_TITLE_I18N_KEY_MAP } from '../../legacy/components/BlockaidBanner/BlockaidBanner.constants';
 import BlockaidAlertContent from '../../components/Confirm/BlockaidAlertContent/BlockaidAlertContent';
 
 const IGNORED_RESULT_TYPES = [

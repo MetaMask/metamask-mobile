@@ -21,7 +21,7 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
           "fontWeight": "600",
           "marginVertical": 10,
@@ -97,7 +97,7 @@ exports[`NetworkInfo render correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "marginBottom": 15,
@@ -298,7 +298,7 @@ exports[`NetworkInfo render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -340,7 +340,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
           "fontWeight": "600",
           "marginVertical": 10,
@@ -389,7 +389,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -419,7 +419,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
         style={
           {
             "color": "#b7bbc866",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 10,
             "fontWeight": "400",
             "paddingVertical": 5,
@@ -434,7 +434,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "marginBottom": 15,
@@ -635,7 +635,7 @@ exports[`NetworkInfo render correctly with EVM network without ticker 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -677,7 +677,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
           "fontWeight": "600",
           "marginVertical": 10,
@@ -753,7 +753,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 14,
           "fontWeight": "600",
           "marginBottom": 15,
@@ -893,7 +893,7 @@ exports[`NetworkInfo render correctly with non-EVM selected 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",

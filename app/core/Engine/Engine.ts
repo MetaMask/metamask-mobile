@@ -95,10 +95,8 @@ import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
 import { calculateScryptKey } from './controllers/identity/calculate-scrypt-key';
-import { getNotificationServicesControllerMessenger } from './messengers/notifications/notification-services-controller-messenger';
-import { createNotificationServicesController } from './controllers/notifications/create-notification-services-controller';
-import { getNotificationServicesPushControllerMessenger } from './messengers/notifications/notification-services-push-controller-messenger';
-import { createNotificationServicesPushController } from './controllers/notifications/create-notification-services-push-controller';
+import { notificationServicesControllerInit } from './controllers/notifications/notification-services-controller-init';
+import { notificationServicesPushControllerInit } from './controllers/notifications/notification-services-push-controller-init';
 
 import { getAuthenticationControllerMessenger } from './messengers/identity/authentication-controller-messenger';
 import { createAuthenticationController } from './controllers/identity/create-authentication-controller';
@@ -130,7 +128,6 @@ import {
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 import { getAllowedSmartTransactionsChainIds } from '../../../app/constants/smartTransactions';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
-import { selectShouldUseSmartTransaction } from '../../selectors/smartTransactionsController';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
@@ -176,15 +173,12 @@ import {
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
-import { getSmartTransactionMetricsProperties } from '../../util/smart-transactions';
 import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
-import { JsonMap } from '../Analytics/MetaMetrics.types';
 import {
   BaseControllerMessenger,
   EngineState,
   EngineContext,
-  TransactionEventPayload,
   StatefulControllers,
 } from './types';
 import {
@@ -291,7 +285,6 @@ export class Engine {
     });
 
     const preferencesController = new PreferencesController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'PreferencesController',
         allowedActions: [],
@@ -322,11 +315,10 @@ export class Engine {
         allowedEvents: [],
         allowedActions: [],
       }) as unknown as NetworkControllerMessenger,
-      // Metrics event tracking is handled in this repository instead
-      // TODO: Use events for controller metric events
-      trackMetaMetricsEvent: () => {
-        // noop
-      },
+      getRpcServiceOptions: () => ({
+        fetch,
+        btoa,
+      }),
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -574,7 +566,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               mnemonic: (keyring as unknown as HdKeyring).mnemonic,
             }),
@@ -603,7 +595,7 @@ export class Engine {
             {
               id: source,
             },
-            async (keyring) => ({
+            async ({ keyring }) => ({
               type: keyring.type,
               seed: (keyring as unknown as HdKeyring).seed,
             }),
@@ -832,7 +824,6 @@ export class Engine {
     });
 
     const selectedNetworkController = new SelectedNetworkController({
-      // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger: this.controllerMessenger.getRestricted({
         name: 'SelectedNetworkController',
         allowedActions: [
@@ -891,23 +882,6 @@ export class Engine {
         isAccountSyncingEnabled: false,
       },
     });
-
-    const notificationServicesControllerMessenger =
-      getNotificationServicesControllerMessenger(this.controllerMessenger);
-    const notificationServicesController = createNotificationServicesController(
-      {
-        messenger: notificationServicesControllerMessenger,
-        initialState: initialState.NotificationServicesController,
-      },
-    );
-
-    const notificationServicesPushControllerMessenger =
-      getNotificationServicesPushControllerMessenger(this.controllerMessenger);
-    const notificationServicesPushController =
-      createNotificationServicesPushController({
-        messenger: notificationServicesPushControllerMessenger,
-        initialState: initialState.NotificationServicesPushController,
-      });
     ///: END:ONLY_INCLUDE_IF
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -1039,6 +1013,9 @@ export class Engine {
         CronjobController: cronjobControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         SnapsRegistry: snapsRegistryInit,
+        NotificationServicesController: notificationServicesControllerInit,
+        NotificationServicesPushController:
+          notificationServicesPushControllerInit,
         ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         MultichainAssetsController: multichainAssetsControllerInit,
@@ -1070,6 +1047,10 @@ export class Engine {
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
     const snapsRegistry = controllersByName.SnapsRegistry;
+    const notificationServicesController =
+      controllersByName.NotificationServicesController;
+    const notificationServicesPushController =
+      controllersByName.NotificationServicesPushController;
     ///: END:ONLY_INCLUDE_IF
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1101,6 +1082,11 @@ export class Engine {
       multichainRatesControllerMessenger,
       multichainRatesController,
     );
+    ///: END:ONLY_INCLUDE_IF
+
+    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+    // Notification Setup
+    notificationServicesController.init();
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
@@ -1334,7 +1320,6 @@ export class Engine {
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
       SignatureController: new SignatureController({
-        // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
           name: 'SignatureController',
           allowedActions: [
@@ -1489,95 +1474,8 @@ export class Engine {
     this.configureControllersOnNetworkChange();
     this.startPolling();
     this.handleVaultBackup();
-    this._addTransactionControllerListeners();
 
     Engine.instance = this;
-  }
-
-  // Logs the "Transaction Finalized" event after a transaction was either confirmed, dropped or failed.
-  _handleTransactionFinalizedEvent = async (
-    transactionEventPayload: TransactionEventPayload,
-    properties: JsonMap,
-  ) => {
-    const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-      store.getState(),
-    );
-    if (
-      !shouldUseSmartTransaction ||
-      !transactionEventPayload.transactionMeta
-    ) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.TRANSACTION_FINALIZED,
-        )
-          .addProperties(properties)
-          .build(),
-      );
-      return;
-    }
-    const { transactionMeta } = transactionEventPayload;
-    const { SmartTransactionsController } = this.context;
-    const waitForSmartTransaction = true;
-    const smartTransactionMetricsProperties =
-      await getSmartTransactionMetricsProperties(
-        SmartTransactionsController,
-        transactionMeta,
-        waitForSmartTransaction,
-        this.controllerMessenger,
-      );
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.TRANSACTION_FINALIZED,
-      )
-        .addProperties(smartTransactionMetricsProperties)
-        .addProperties(properties)
-        .build(),
-    );
-  };
-
-  _handleTransactionDropped = async (
-    transactionEventPayload: TransactionEventPayload,
-  ) => {
-    const properties = { status: 'dropped' };
-    await this._handleTransactionFinalizedEvent(
-      transactionEventPayload,
-      properties,
-    );
-  };
-
-  _handleTransactionConfirmed = async (transactionMeta: TransactionMeta) => {
-    const properties = { status: 'confirmed' };
-    await this._handleTransactionFinalizedEvent(
-      { transactionMeta },
-      properties,
-    );
-  };
-
-  _handleTransactionFailed = async (
-    transactionEventPayload: TransactionEventPayload,
-  ) => {
-    const properties = { status: 'failed' };
-    await this._handleTransactionFinalizedEvent(
-      transactionEventPayload,
-      properties,
-    );
-  };
-
-  _addTransactionControllerListeners() {
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionDropped',
-      this._handleTransactionDropped,
-    );
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionConfirmed',
-      this._handleTransactionConfirmed,
-    );
-
-    this.controllerMessenger.subscribe(
-      'TransactionController:transactionFailed',
-      this._handleTransactionFailed,
-    );
   }
 
   handleVaultBackup() {
@@ -1601,14 +1499,23 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController } = this.context;
+    const { NetworkController, TransactionController, PreferencesController } =
+      this.context;
 
-    const chainId = getGlobalChainId(NetworkController);
+    const chainIds = Object.keys(
+      NetworkController.state.networkConfigurationsByChainId,
+    );
+    const filteredChainIds = chainIds.filter(
+      (id) =>
+        PreferencesController.state.showIncomingTransactions[
+          id as keyof typeof PreferencesController.state.showIncomingTransactions
+        ],
+    ) as Hex[];
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling([chainId]);
+    TransactionController.startIncomingTransactionPolling(filteredChainIds);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();
@@ -1797,11 +1704,14 @@ export class Engine {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   getSnapKeyring = async () => {
+    // TODO: Replace `getKeyringsByType` with `withKeyring`
     let [snapKeyring] = this.keyringController.getKeyringsByType(
       KeyringTypes.snap,
     );
     if (!snapKeyring) {
-      snapKeyring = await this.keyringController.addNewKeyring(
+      await this.keyringController.addNewKeyring(KeyringTypes.snap);
+      // TODO: Replace `getKeyringsByType` with `withKeyring`
+      [snapKeyring] = this.keyringController.getKeyringsByType(
         KeyringTypes.snap,
       );
     }

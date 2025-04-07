@@ -4,6 +4,12 @@ import { Severity, Alert } from '../../types/alerts';
 import { useAlerts, AlertsContextProvider, AlertsContextParams } from './Alerts.context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
+
 jest.mock('../../hooks/useConfirmationAlerts', () => ({
   __esModule: true,
   default: jest.fn(),
@@ -11,12 +17,6 @@ jest.mock('../../hooks/useConfirmationAlerts', () => ({
 
 jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
   useAlertsConfirmed: jest.fn(),
-}));
-
-jest.mock('../../hooks/useConfirmationAlertMetric', () => ({
-  useConfirmationAlertMetric: jest.fn(() => ({
-    trackAlertRendered: jest.fn(),
-  })),
 }));
 
 describe('AlertsContext', () => {

@@ -84,7 +84,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 24,
                       "fontWeight": "400",
                       "textAlign": "center",
@@ -126,7 +126,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -192,11 +192,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -225,11 +225,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                   testID="permission-summary-account-text"
@@ -239,11 +239,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -476,11 +476,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -509,11 +509,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -522,11 +522,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -631,11 +631,11 @@ exports[`PermissionsSummary should render correctly 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -697,7 +697,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -758,7 +758,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -865,7 +865,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   [
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 24,
                       "fontWeight": "400",
                       "textAlign": "center",
@@ -907,7 +907,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -973,11 +973,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -1006,11 +1006,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
                       "fontWeight": "400",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1019,11 +1019,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1034,11 +1034,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                     style={
                       {
                         "color": "#121314",
-                        "fontFamily": "EuclidCircularB-Medium",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Medium",
+                        "fontSize": 14,
                         "fontWeight": "500",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1135,11 +1135,11 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -1201,7 +1201,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -1262,7 +1262,7 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",

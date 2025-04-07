@@ -58,7 +58,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     selectConfirmationRedesignFlags,
   );
   const isStakingDepositRedesignedEnabled =
-    confirmationRedesignFlags?.staking_transactions;
+    confirmationRedesignFlags?.staking_confirmations;
   const navigation = useNavigation();
 
   useFocusEffect(
@@ -176,7 +176,7 @@ const ClaimBanner = ({ claimableAmount, style }: StakeBannerProps) => {
     [claimableAmount],
   );
 
-  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction
+  const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction;
 
   return (
     <Banner

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { Reason, SecurityAlertResponse } from '../../components/BlockaidBanner/BlockaidBanner.types';
+import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { RowAlertKey } from '../../components/UI/InfoRow/AlertRow/constants';
 import { Severity } from '../../types/alerts';
 import { useMetrics } from '../../../../hooks/useMetrics';

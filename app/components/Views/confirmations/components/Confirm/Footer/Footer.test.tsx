@@ -39,6 +39,18 @@ jest.mock('../../../../../hooks/useAlertsConfirmed', () => ({
   useAlertsConfirmed: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
+}));
+
+import { useConfirmationAlertMetrics } from '../../../hooks/useConfirmationAlertMetrics';
+
+const mockTrackAlertMetrics = jest.fn();
+
+(useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
+  trackAlertMetrics: mockTrackAlertMetrics,
+});
+
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const mockAlerts = [
@@ -53,8 +65,8 @@ const mockAlerts = [
 
 describe('Footer', () => {
   beforeEach(() => {
-    (useAlerts as jest.Mock).mockReturnValue({fieldAlerts: [], hasDangerAlerts: false,});
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({hasUnconfirmedDangerAlerts: false,});
+    (useAlerts as jest.Mock).mockReturnValue({ fieldAlerts: [], hasDangerAlerts: false, });
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({ hasUnconfirmedDangerAlerts: false, });
     jest.clearAllMocks();
   });
 
@@ -230,6 +242,13 @@ describe('Footer', () => {
       });
 
       expect(getByText(expectedText)).toBeDefined();
+    });
+
+    it('calls trackAlertMetrics when alerts change', () => {
+      renderWithProvider(<Footer />, {
+        state: personalSignatureConfirmationState,
+      });
+      expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
     });
   });
 });

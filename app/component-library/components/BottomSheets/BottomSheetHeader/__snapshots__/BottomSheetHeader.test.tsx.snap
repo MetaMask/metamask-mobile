@@ -39,7 +39,7 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       style={
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Bold",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 16,
           "fontWeight": "700",
           "letterSpacing": 0,

@@ -77,11 +77,11 @@ exports[`BackupAlert should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginBottom": 14,
             }
           }
@@ -107,11 +107,11 @@ exports[`BackupAlert should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Bold",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Bold",
+                  "fontSize": 16,
                   "fontWeight": "700",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "marginLeft": 14,
                   "textAlign": "right",
                 }
@@ -134,11 +134,11 @@ exports[`BackupAlert should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "flex": 1,
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                   "marginLeft": 14,
                   "textAlign": "right",
                 }

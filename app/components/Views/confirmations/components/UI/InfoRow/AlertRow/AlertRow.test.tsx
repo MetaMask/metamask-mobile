@@ -1,17 +1,18 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useAlerts } from '../../../../AlertSystem/context';
-import { useConfirmationAlertMetric } from '../../../../hooks/useConfirmationAlertMetric';
 import AlertRow, { AlertRowProps } from './AlertRow';
 import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { useConfirmationAlertMetrics } from '../../../../hooks/useConfirmationAlertMetrics';
+
 
 jest.mock('../../../../AlertSystem/context', () => ({
   useAlerts: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/useConfirmationAlertMetric', () => ({
-  useConfirmationAlertMetric: jest.fn(),
+jest.mock('../../../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
 }));
 
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
@@ -51,14 +52,13 @@ describe('AlertRow', () => {
     showAlertModal: mockShowAlertModal,
     setAlertKey: mockSetAlertKey,
   };
-  const useConfirmationAlertMetricBase = {
-    trackInlineAlertClicked: mockTrackInlineAlertClicked,
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     (useAlerts as jest.Mock).mockReturnValue(useAlertsBase);
-    (useConfirmationAlertMetric as jest.Mock).mockReturnValue(useConfirmationAlertMetricBase);
+    (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
+      trackInlineAlertClicked: mockTrackInlineAlertClicked,
+    });
   });
 
   const LABEL_MOCK = 'Alert Label';

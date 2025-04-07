@@ -9,7 +9,7 @@ import { Alert, Severity } from '../../types/alerts';
 import { getSeverityStyle } from '../utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useAlerts } from '../context';
-import { useConfirmationAlertMetric } from '../../hooks/useConfirmationAlertMetric';
+import { useConfirmationAlertMetrics } from '../../hooks/useConfirmationAlertMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useTheme } from '../../../../../util/theme';
 import styleSheet from './AlertModal.styles';
@@ -137,7 +137,7 @@ const AlertModal: React.FC<AlertModalProps> = ({ headerAccessory, onAcknowledgeC
   const { colors } = useTheme();
   const styles = (useStyles(styleSheet, {})).styles as Record<string, ViewStyle>;
   const { hideAlertModal, alertModalVisible, fieldAlerts, alertKey, isAlertConfirmed, setAlertConfirmed } = useAlerts();
-  const { trackAlertRendered } = useConfirmationAlertMetric();
+  const { trackAlertRendered } = useConfirmationAlertMetrics();
 
   useEffect(() => {
     if (alertModalVisible) {
