@@ -594,7 +594,7 @@ describe('WC2Manager', () => {
       });
     });
 
-    it('should handle session proposal with invalid wallet status', async () => {
+    it('logs "invalid wallet status" error to console on session proposal with invalid wallet status', async () => {
       const mockSessionProposal = {
         id: 1,
         params: {
