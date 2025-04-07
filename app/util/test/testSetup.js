@@ -9,7 +9,7 @@ import Enzyme from 'enzyme';
 
 // Disables React-18 Concurrent Rerendering
 // our existing tests and components handle effects and loading states in a way that does not support concurrent roots
-// This would require a large refactor
+// TODO requires a large refactor
 // More Info: https://react.dev/blog/2022/03/08/react-18-upgrade-guide#updates-to-client-rendering-apis
 configure({ concurrentRoot: false });
 
