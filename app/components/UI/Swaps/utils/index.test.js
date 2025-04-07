@@ -5,13 +5,15 @@ import {
 } from './index';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { SolScope } from '@metamask/keyring-api';
-import AppConstants from '../../../../core/AppConstants';
 
 // Mock AppConstants
+const mockSwapsConstantsGetter = jest.fn(() => ({
+  ACTIVE: true,
+  ONLY_MAINNET: true,
+}));
 jest.mock('../../../../core/AppConstants', () => ({
-  SWAPS: {
-    ACTIVE: true,
-    ONLY_MAINNET: true,
+  get SWAPS() {
+    return mockSwapsConstantsGetter();
   },
 }));
 
@@ -188,16 +190,20 @@ describe('shouldShowMaxBalanceLink', () => {
 
 describe('isSwapsAllowed', () => {
   beforeEach(() => {
-    // Reset process.env
-    process.env.MM_BRIDGE_UI_ENABLED = 'false';
+    mockSwapsConstantsGetter.mockReturnValue({
+      ACTIVE: true,
+      ONLY_MAINNET: true,
+    });
   });
 
   it('should return false when swaps are not active', () => {
     // Mock AppConstants.SWAPS.ACTIVE to false
-    AppConstants.SWAPS.ACTIVE = false;
+    mockSwapsConstantsGetter.mockReturnValue({
+      ...mockSwapsConstantsGetter(),
+      ACTIVE: false,
+    });
+
     expect(isSwapsAllowed(ETH_CHAIN_ID)).toBe(false);
-    // Reset to true for other tests
-    AppConstants.SWAPS.ACTIVE = true;
   });
 
   test.each([
@@ -222,5 +228,25 @@ describe('isSwapsAllowed', () => {
   it('should return false for unsupported chain IDs', () => {
     const unsupportedChainId = '0x9999';
     expect(isSwapsAllowed(unsupportedChainId)).toBe(false);
+  });
+
+  describe('testnet chain IDs', () => {
+    it('should return true for testnet chain IDs in development when ONLY_MAINNET is true', () => {
+      global.__DEV__ = true;
+      mockSwapsConstantsGetter.mockReturnValue({
+        ...mockSwapsConstantsGetter(),
+        ONLY_MAINNET: true,
+      });
+      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
+    });
+
+    it('should return true for testnet chain IDs when ONLY_MAINNET is false', () => {
+      global.__DEV__ = false;
+      mockSwapsConstantsGetter.mockReturnValue({
+        ...mockSwapsConstantsGetter(),
+        ONLY_MAINNET: false,
+      });
+      expect(isSwapsAllowed(SWAPS_TESTNET_CHAIN_ID)).toBe(true);
+    });
   });
 });
