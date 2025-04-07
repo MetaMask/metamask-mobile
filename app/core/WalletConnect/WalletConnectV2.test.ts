@@ -525,7 +525,7 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager isWalletConnect', () => {
-    it('should return true for valid WalletConnect origins', () => {
+    it('returns true for valid WalletConnect origins', () => {
       const result = manager.isWalletConnect('https://example.com');
       expect(result).toBe(true);
     });
