@@ -779,7 +779,7 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 16,
                                   "fontWeight": "400",
                                 }
@@ -1272,7 +1272,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
                                     "marginBottom": 10,
@@ -1285,7 +1285,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 12,
                                     "fontWeight": "400",
                                     "marginBottom": 10,
@@ -1298,7 +1298,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 12,
                                     "fontWeight": "400",
                                     "marginBottom": 10,
@@ -1389,7 +1389,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 16,
                                     "fontWeight": "600",
                                     "marginBottom": 10,
@@ -1402,7 +1402,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 12,
                                     "fontWeight": "400",
                                     "marginBottom": 10,
@@ -1415,7 +1415,7 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                                 style={
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 12,
                                     "fontWeight": "400",
                                     "marginBottom": 10,

@@ -4576,10 +4576,10 @@
     eth-ens-namehash "^2.0.8"
     fast-deep-equal "^3.1.3"
 
-"@metamask/design-tokens@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.1.0.tgz#0ee1cfc147aac08b73e2c12ec6d9063302dd643c"
-  integrity sha512-wMt9kYA0JTColhEKA8bq9GoUvJ83/7Q0UVMyi1oyxM0UfBudhSXxULR9FdBo/KVxXpOa0fKJC6ZyzuJkGgxKtg==
+"@metamask/design-tokens@^7.0.0":
+  version "7.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
+  integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
 "@metamask/earn-controller@^0.10.0":
   version "0.10.0"
@@ -5564,10 +5564,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.16.0":
-  version "1.16.0"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.16.0.tgz#5b4945748b97951a8129cc6247d665a02143559a"
-  integrity sha512-mwzxgMXOtmJPpa4Jw9SpkwaCVThUaYtpDtvB1NqcFBR1h4cZjSyePFgphITGJSmMULEiRrjn6vZyMcadVX32qw==
+"@metamask/solana-wallet-snap@^1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
+  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"

@@ -112,7 +112,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
                             "justifyContent": "center",
@@ -137,7 +137,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "justifyContent": "center",
@@ -313,7 +313,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone 5S padding 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -462,7 +462,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
                             "justifyContent": "center",
@@ -487,7 +487,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "justifyContent": "center",
@@ -663,7 +663,7 @@ exports[`OnboardingCarousel Image Padding should use iPhone X padding 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -812,7 +812,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
                             "justifyContent": "center",
@@ -837,7 +837,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "justifyContent": "center",
@@ -1013,7 +1013,7 @@ exports[`OnboardingCarousel should render correctly 1`] = `
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
@@ -1162,7 +1162,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         style={
                           {
                             "color": "#121314",
-                            "fontFamily": "EuclidCircularB-Bold",
+                            "fontFamily": "CentraNo1-Bold",
                             "fontSize": 24,
                             "fontWeight": "600",
                             "justifyContent": "center",
@@ -1187,7 +1187,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                         style={
                           {
                             "color": "#686e7d",
-                            "fontFamily": "EuclidCircularB-Regular",
+                            "fontFamily": "CentraNo1-Book",
                             "fontSize": 14,
                             "fontWeight": "400",
                             "justifyContent": "center",
@@ -1363,7 +1363,7 @@ exports[`OnboardingCarousel should render the App Start Time text when isTest is
                 null,
                 [
                   {
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 14,
                     "fontWeight": "600",
                     "textAlign": "center",
