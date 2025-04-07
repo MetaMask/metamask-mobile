@@ -1,4 +1,3 @@
-import { isEqual } from 'lodash';
 import {
   TransactionController,
   type TransactionControllerMessenger,

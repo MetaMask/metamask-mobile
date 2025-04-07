@@ -6,10 +6,8 @@ import {
   LegacyGasFeeEstimates,
   TransactionStatus,
   TransactionEnvelopeType,
-} from '@metamask/transaction-controller';
-import type {
-  TransactionControllerState,
-  TransactionMeta,
+  type TransactionControllerState,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import {

@@ -1,11 +1,4 @@
 import { isEqual } from 'lodash';
-import type {
-  TransactionController,
-  TransactionControllerState,
-  TransactionMeta,
-  TransactionParams,
-  TransactionType,
-} from '@metamask/transaction-controller';
 import {
   FeeMarketGasFeeEstimates,
   GasFeeEstimateLevel,
@@ -14,6 +7,11 @@ import {
   LegacyGasFeeEstimates,
   TransactionStatus,
   TransactionEnvelopeType,
+  type TransactionController,
+  type TransactionControllerState,
+  type TransactionMeta,
+  type TransactionParams,
+  type TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { REDESIGNED_TRANSACTION_TYPES } from '../../../../../components/Views/confirmations/hooks/useConfirmationRedesignEnabled';
