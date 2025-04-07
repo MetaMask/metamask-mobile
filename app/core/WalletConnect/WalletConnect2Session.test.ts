@@ -544,4 +544,85 @@ describe('WalletConnect2Session', () => {
       });
     });
   });
+
+  describe('needsRedirect', () => {
+    beforeEach(() => {
+      // Reset the requestsToRedirect object
+      (session as any).requestsToRedirect = {};
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.runAllTimers();
+      jest.clearAllTimers();
+    })
+
+    it('calls redirect when requestId exists in requestsToRedirect', () => {
+      const requestId = '123';
+      
+      // Set up the requestsToRedirect object with the test ID
+      (session as any).requestsToRedirect = { 
+        [requestId]: true 
+      };
+      
+      // Spy on the redirect method
+      const redirectSpy = jest.spyOn(session, 'redirect');
+      
+      // Call the method under test
+      session.needsRedirect(requestId);
+      
+      // Verify redirect was called with the expected parameter
+      expect(redirectSpy).toHaveBeenCalledWith(`needsRedirect_${requestId}`);
+      
+      // Verify the ID was removed from requestsToRedirect
+      expect((session as any).requestsToRedirect[requestId]).toBeUndefined();
+    });
+
+    it('does not call redirect when requestId does not exist', () => {
+      const requestId = '123';
+      
+      // Set up empty requestsToRedirect object
+      (session as any).requestsToRedirect = {};
+      
+      // Spy on the redirect method
+      const redirectSpy = jest.spyOn(session, 'redirect');
+      
+      // Call the method under test
+      session.needsRedirect(requestId);
+      
+      // Verify redirect was not called
+      expect(redirectSpy).not.toHaveBeenCalled();
+    });
+
+    it('handles multiple requests correctly', () => {
+      // Set up multiple request IDs
+      (session as any).requestsToRedirect = { 
+        '123': true,
+        '456': true,
+        '789': true
+      };
+      
+      const redirectSpy = jest.spyOn(session, 'redirect');
+      
+      // Process first request
+      session.needsRedirect('123');
+      expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_123');
+      expect((session as any).requestsToRedirect['123']).toBeUndefined();
+      
+      // Other requests should still be there
+      expect((session as any).requestsToRedirect['456']).toBe(true);
+      expect((session as any).requestsToRedirect['789']).toBe(true);
+      
+      // Reset the spy
+      redirectSpy.mockClear();
+      
+      // Process second request
+      session.needsRedirect('456');
+      expect(redirectSpy).toHaveBeenCalledWith('needsRedirect_456');
+      expect((session as any).requestsToRedirect['456']).toBeUndefined();
+      
+      // And the third request should still be there
+      expect((session as any).requestsToRedirect['789']).toBe(true);
+    });
+  });
 });
