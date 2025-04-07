@@ -33,10 +33,10 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -63,10 +63,10 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -93,10 +93,10 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -123,10 +123,10 @@ exports[`ChartTimespanButtonGroup render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >

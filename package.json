@@ -163,7 +163,7 @@
     "@metamask/bridge-status-controller": "^10.0.0",
     "@metamask/composable-controller": "^11.0.0",
     "@metamask/controller-utils": "^11.7.0",
-    "@metamask/design-tokens": "^5.1.0",
+    "@metamask/design-tokens": "^7.0.0",
     "@metamask/earn-controller": "^0.10.0",
     "@metamask/eth-hd-keyring": "^12.1.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",

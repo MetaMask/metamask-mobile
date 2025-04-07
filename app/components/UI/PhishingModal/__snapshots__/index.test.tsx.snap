@@ -69,7 +69,7 @@ exports[`PhishingModal should render correctly 1`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
             "textAlign": "center",
           }
@@ -97,7 +97,7 @@ exports[`PhishingModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 11,
               "fontWeight": "400",
               "marginBottom": 15,
@@ -107,7 +107,7 @@ exports[`PhishingModal should render correctly 1`] = `
           <Text
             style={
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontWeight": "600",
               }
             }
@@ -118,7 +118,7 @@ exports[`PhishingModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 11,
               "fontWeight": "400",
               "marginBottom": 15,
@@ -143,7 +143,7 @@ exports[`PhishingModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 11,
               "fontWeight": "400",
               "marginBottom": 15,
@@ -166,7 +166,7 @@ exports[`PhishingModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 11,
               "fontWeight": "400",
               "marginBottom": 15,
@@ -189,7 +189,7 @@ exports[`PhishingModal should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 11,
               "fontWeight": "400",
               "marginBottom": 15,
@@ -257,7 +257,7 @@ exports[`PhishingModal should render correctly 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
