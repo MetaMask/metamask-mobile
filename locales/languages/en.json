@@ -2229,7 +2229,15 @@
     "continue_on_your_own": "continuing at your own risk.",
     "file_an_issue_intro": "If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
     "file_an_issue": "please file an issue.",
-    "back_to_safety": "Back to safety"
+    "back_to_safety": "Back to safety",
+    "site_might_be_harmful": "This website might be harmful",
+    "metamask_flagged_site": "MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.",
+    "you_may_proceed_anyway": "You may also",
+    "proceed_anyway": "proceed anyway",
+    "but_please_do_so_at_your_own_risk": "but please do so at your own risk.",
+    "report_detection_problem": "Report a detection problem",
+    "share_on_twitter": "If you found this helpful, share on X!",
+    "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
   "notifications": {
     "timeout": "Timeout",
