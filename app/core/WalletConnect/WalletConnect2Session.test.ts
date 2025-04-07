@@ -475,7 +475,7 @@ describe('WalletConnect2Session', () => {
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
       });
 
-      it('should show return modal if no peerLink is available', () => {
+      it('shows "return to dapp" modal if no peerLink is available', () => {
         session.session = {
           ...mockSession,
           peer: {
