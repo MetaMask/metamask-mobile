@@ -799,7 +799,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('should handle empty pending proposals and requests', async () => {
+    it('does not process empty pending proposals and requests', async () => {
       jest.spyOn(mockWeb3Wallet, 'getPendingSessionProposals')
         .mockReturnValue({});
       jest.spyOn(mockWeb3Wallet, 'getPendingSessionRequests')
