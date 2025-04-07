@@ -1,0 +1,3121 @@
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/API/api.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/API/api.d.ts
+index 3396854..b4c9b9c 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/API/api.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/API/api.d.ts
+@@ -40,6 +40,13 @@ export declare const BuyWidgetInformationBrowserEnum: {
+     readonly ExternalOsBrowser: "EXTERNAL_OS_BROWSER";
+ };
+ export type BuyWidgetInformationBrowserEnum = (typeof BuyWidgetInformationBrowserEnum)[keyof typeof BuyWidgetInformationBrowserEnum];
++export interface Cache {
++    parameters: RegionCacheParameters;
++    payments: Array<Payment>;
++    fiatCurrencies: Array<FiatCurrency>;
++    cryptoCurrencies: Array<CryptoCurrency>;
++    limits?: Limits;
++}
+ export interface Country {
+     id: string;
+     name: string;
+@@ -495,6 +502,11 @@ export interface ProviderFeatures {
+     sell?: ProviderSellFeature;
+     sellQuotes?: ProviderSellQuoteFeature;
+ }
++export interface ProviderQuote {
++    fiatCurrency: string;
++    cryptoCurrency: string;
++    paymentMethod: Array<string>;
++}
+ export interface ProviderQuoteFeature {
+     enabled: boolean;
+     supportedByBackend: boolean;
+@@ -661,6 +673,8 @@ export interface QuoteOrQuery {
+     method: string;
+     headers: object;
+     provider: string;
++    providerInfo: Provider;
++    providerQuote: ProviderQuote;
+     quote: Quote;
+     nativeApplePay: ApplePayOption;
+     metadata: QuoteMetadata;
+@@ -836,7 +850,7 @@ export interface State {
+     support: CountrySupport;
+     recommended: boolean;
+     detected: boolean;
+-    stateId?: string;
++    stateId: string;
+ }
+ export interface SupportReport {
+     enabled: boolean;
+@@ -900,6 +914,18 @@ export declare class AnalyticsApi extends BaseAPI {
+     analyticsControllerGetSupportedCryptoCurrencies(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<CryptoCurrency[], any>>;
+     analyticsControllerGetSupportedRegionsByProvider(options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+ }
++export declare const CurrenciesApiAxiosParamCreator: (configuration?: Configuration) => {
++    currenciesControllerGetCryptoRate: (chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
++};
++export declare const CurrenciesApiFp: (configuration?: Configuration) => {
++    currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<FiatAmount>>;
++};
++export declare const CurrenciesApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
++    currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: any): AxiosPromise<FiatAmount>;
++};
++export declare class CurrenciesApi extends BaseAPI {
++    currenciesControllerGetCryptoRate(chainId: string, cryptoCode: string, fiat: string, value?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<FiatAmount, any>>;
++}
+ export declare const DefaultApiAxiosParamCreator: (configuration?: Configuration) => {
+     dependencyControllerGetAllDependencies: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     eligibilityControllerGetCardEligibility: (options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -947,7 +973,7 @@ export declare class HealthApi extends BaseAPI {
+ export declare const OrderManagementApiAxiosParamCreator: (configuration?: Configuration) => {
+     ordersControllerGetAllProviders: (environment?: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     ordersControllerGetAllQuotes: (regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+-    ordersControllerGetAllSellQuotes: (regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
++    ordersControllerGetAllSellQuotes: (regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     ordersControllerGetBuyUrl: (providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     ordersControllerGetOrder: (providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     ordersControllerGetOrderIdFromCallback: (providerCode: string, url: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+@@ -964,7 +990,7 @@ export declare const OrderManagementApiAxiosParamCreator: (configuration?: Confi
+ export declare const OrderManagementApiFp: (configuration?: Configuration) => {
+     ordersControllerGetAllProviders(environment?: string, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<object>>;
+     ordersControllerGetAllQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BatchQuoteOrQuery>>;
+-    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BatchQuoteOrQuery>>;
++    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BatchQuoteOrQuery>>;
+     ordersControllerGetBuyUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<BuyWidgetInformation>>;
+     ordersControllerGetOrder(providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Order>>;
+     ordersControllerGetOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<OrderId>>;
+@@ -981,7 +1007,7 @@ export declare const OrderManagementApiFp: (configuration?: Configuration) => {
+ export declare const OrderManagementApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+     ordersControllerGetAllProviders(environment?: string, context?: string, options?: any): AxiosPromise<object>;
+     ordersControllerGetAllQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: any): AxiosPromise<BatchQuoteOrQuery>;
+-    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: any): AxiosPromise<BatchQuoteOrQuery>;
++    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: any): AxiosPromise<BatchQuoteOrQuery>;
+     ordersControllerGetBuyUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: any): AxiosPromise<BuyWidgetInformation>;
+     ordersControllerGetOrder(providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: any): AxiosPromise<Order>;
+     ordersControllerGetOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: any): AxiosPromise<OrderId>;
+@@ -998,7 +1024,7 @@ export declare const OrderManagementApiFactory: (configuration?: Configuration,
+ export declare class OrderManagementApi extends BaseAPI {
+     ordersControllerGetAllProviders(environment?: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<object, any>>;
+     ordersControllerGetAllQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any>>;
+-    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any>>;
++    ordersControllerGetAllSellQuotes(regionId: string, cryptoCurrencyId: string, fiatCurrencyId: string, walletAddress: string, redirectUrl: string, providers: Array<string>, providerCode: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BatchQuoteOrQuery, any>>;
+     ordersControllerGetBuyUrl(providerCode: string, regionId: string, paymentMethodId: string, cryptoCurrencyId: string, fiatCurrencyId: string, amount: number, walletAddress: string, orderId: string, redirectUrl: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<BuyWidgetInformation, any>>;
+     ordersControllerGetOrder(providerCode: string, orderCode: string, wallet: string, fromRedirection?: boolean, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Order, any>>;
+     ordersControllerGetOrderIdFromCallback(providerCode: string, url: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<OrderId, any>>;
+@@ -1018,6 +1044,7 @@ export declare const RegionsApiAxiosParamCreator: (configuration?: Configuration
+     regionsControllerGetNetworkDetails: (context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     regionsControllerGetNetworks: (context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+     regionsControllerGetRegion: (regionCode: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
++    regionsControllerGetRegionLight: (action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+ };
+ export declare const RegionsApiFp: (configuration?: Configuration) => {
+     regionsControllerFakeCallback(fakeRedirectCallback?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<string>>;
+@@ -1025,6 +1052,7 @@ export declare const RegionsApiFp: (configuration?: Configuration) => {
+     regionsControllerGetNetworkDetails(context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<NetworkDetails>>;
+     regionsControllerGetNetworks(context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SupportedNetworks>>;
+     regionsControllerGetRegion(regionCode: string, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RegionCache>>;
++    regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Cache>>;
+ };
+ export declare const RegionsApiFactory: (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) => {
+     regionsControllerFakeCallback(fakeRedirectCallback?: string, options?: any): AxiosPromise<string>;
+@@ -1032,6 +1060,7 @@ export declare const RegionsApiFactory: (configuration?: Configuration, basePath
+     regionsControllerGetNetworkDetails(context?: string, options?: any): AxiosPromise<NetworkDetails>;
+     regionsControllerGetNetworks(context?: string, options?: any): AxiosPromise<SupportedNetworks>;
+     regionsControllerGetRegion(regionCode: string, context?: string, options?: any): AxiosPromise<RegionCache>;
++    regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: any): AxiosPromise<Cache>;
+ };
+ export declare class RegionsApi extends BaseAPI {
+     regionsControllerFakeCallback(fakeRedirectCallback?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<string, any>>;
+@@ -1039,6 +1068,7 @@ export declare class RegionsApi extends BaseAPI {
+     regionsControllerGetNetworkDetails(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<NetworkDetails, any>>;
+     regionsControllerGetNetworks(context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<SupportedNetworks, any>>;
+     regionsControllerGetRegion(regionCode: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<RegionCache, any>>;
++    regionsControllerGetRegionLight(action: string, regionCode: string, payment: Array<string>, fiat: string, crypto: string, context?: string, options?: AxiosRequestConfig): Promise<import("axios").AxiosResponse<Cache, any>>;
+ }
+ export declare const ReportsApiAxiosParamCreator: (configuration?: Configuration) => {
+     reportsControllerGetCountries: (providers: Array<string>, options?: AxiosRequestConfig) => Promise<RequestArgs>;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/API/api.js b/node_modules/@consensys/on-ramp-sdk/dist/API/api.js
+index 395712e..2e91c41 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/API/api.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/API/api.js
+@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.ReportsApi = exports.ReportsApiFactory = exports.ReportsApiFp = exports.ReportsApiAxiosParamCreator = exports.RegionsApi = exports.RegionsApiFactory = exports.RegionsApiFp = exports.RegionsApiAxiosParamCreator = exports.OrderManagementApi = exports.OrderManagementApiFactory = exports.OrderManagementApiFp = exports.OrderManagementApiAxiosParamCreator = exports.HealthApi = exports.HealthApiFactory = exports.HealthApiFp = exports.HealthApiAxiosParamCreator = exports.DefaultApi = exports.DefaultApiFactory = exports.DefaultApiFp = exports.DefaultApiAxiosParamCreator = exports.AnalyticsApi = exports.AnalyticsApiFactory = exports.AnalyticsApiFp = exports.AnalyticsApiAxiosParamCreator = exports.SellOrderOrderTypeEnum = exports.SellOrderStatusEnum = exports.QuoteSortMetadataSortByEnum = exports.ProviderBuyFeatureRedirectionEnum = exports.ProviderBuyFeatureBrowserEnum = exports.ProviderBuyFeatureOrderCustomIdEnum = exports.ProviderEnvironmentTypeEnum = exports.PaymentType = exports.PaymentIconType = exports.OrderOrderTypeEnum = exports.OrderStatusEnum = exports.BuyWidgetInformationBrowserEnum = exports.Browser = void 0;
++exports.ReportsApi = exports.ReportsApiFactory = exports.ReportsApiFp = exports.ReportsApiAxiosParamCreator = exports.RegionsApi = exports.RegionsApiFactory = exports.RegionsApiFp = exports.RegionsApiAxiosParamCreator = exports.OrderManagementApi = exports.OrderManagementApiFactory = exports.OrderManagementApiFp = exports.OrderManagementApiAxiosParamCreator = exports.HealthApi = exports.HealthApiFactory = exports.HealthApiFp = exports.HealthApiAxiosParamCreator = exports.DefaultApi = exports.DefaultApiFactory = exports.DefaultApiFp = exports.DefaultApiAxiosParamCreator = exports.CurrenciesApi = exports.CurrenciesApiFactory = exports.CurrenciesApiFp = exports.CurrenciesApiAxiosParamCreator = exports.AnalyticsApi = exports.AnalyticsApiFactory = exports.AnalyticsApiFp = exports.AnalyticsApiAxiosParamCreator = exports.SellOrderOrderTypeEnum = exports.SellOrderStatusEnum = exports.QuoteSortMetadataSortByEnum = exports.ProviderBuyFeatureRedirectionEnum = exports.ProviderBuyFeatureBrowserEnum = exports.ProviderBuyFeatureOrderCustomIdEnum = exports.ProviderEnvironmentTypeEnum = exports.PaymentType = exports.PaymentIconType = exports.OrderOrderTypeEnum = exports.OrderStatusEnum = exports.BuyWidgetInformationBrowserEnum = exports.Browser = void 0;
+ const axios_1 = __importDefault(require("axios"));
+ const common_1 = require("./common");
+ const base_1 = require("./base");
+@@ -458,6 +458,72 @@ class AnalyticsApi extends base_1.BaseAPI {
+     }
+ }
+ exports.AnalyticsApi = AnalyticsApi;
++const CurrenciesApiAxiosParamCreator = function (configuration) {
++    return {
++        currenciesControllerGetCryptoRate: async (chainId, cryptoCode, fiat, value, context, options = {}) => {
++            (0, common_1.assertParamExists)('currenciesControllerGetCryptoRate', 'chainId', chainId);
++            (0, common_1.assertParamExists)('currenciesControllerGetCryptoRate', 'cryptoCode', cryptoCode);
++            (0, common_1.assertParamExists)('currenciesControllerGetCryptoRate', 'fiat', fiat);
++            const localVarPath = `/currencies/crypto/{chainId}/{cryptoCode}/amount`
++                .replace(`{${'chainId'}}`, encodeURIComponent(String(chainId)))
++                .replace(`{${'cryptoCode'}}`, encodeURIComponent(String(cryptoCode)));
++            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
++            let baseOptions;
++            if (configuration) {
++                baseOptions = configuration.baseOptions;
++            }
++            const localVarRequestOptions = Object.assign(Object.assign({ method: 'GET' }, baseOptions), options);
++            const localVarHeaderParameter = {};
++            const localVarQueryParameter = {};
++            if (fiat !== undefined) {
++                localVarQueryParameter['fiat'] = fiat;
++            }
++            if (value !== undefined) {
++                localVarQueryParameter['value'] = value;
++            }
++            if (context !== undefined && context !== null) {
++                localVarHeaderParameter['context'] = String(context);
++            }
++            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
++            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
++            localVarRequestOptions.headers = Object.assign(Object.assign(Object.assign({}, localVarHeaderParameter), headersFromBaseOptions), options.headers);
++            return {
++                url: (0, common_1.toPathString)(localVarUrlObj),
++                options: localVarRequestOptions,
++            };
++        },
++    };
++};
++exports.CurrenciesApiAxiosParamCreator = CurrenciesApiAxiosParamCreator;
++const CurrenciesApiFp = function (configuration) {
++    const localVarAxiosParamCreator = (0, exports.CurrenciesApiAxiosParamCreator)(configuration);
++    return {
++        async currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options) {
++            const localVarAxiosArgs = await localVarAxiosParamCreator.currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options);
++            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
++        },
++    };
++};
++exports.CurrenciesApiFp = CurrenciesApiFp;
++const CurrenciesApiFactory = function (configuration, basePath, axios) {
++    const localVarFp = (0, exports.CurrenciesApiFp)(configuration);
++    return {
++        currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options) {
++            return localVarFp
++                .currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options)
++                .then((request) => request(axios, basePath));
++        },
++    };
++};
++exports.CurrenciesApiFactory = CurrenciesApiFactory;
++class CurrenciesApi extends base_1.BaseAPI {
++    currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options) {
++        return (0, exports.CurrenciesApiFp)(this.configuration)
++            .currenciesControllerGetCryptoRate(chainId, cryptoCode, fiat, value, context, options)
++            .then((request) => request(this.axios, this.basePath));
++    }
++}
++exports.CurrenciesApi = CurrenciesApi;
+ const DefaultApiAxiosParamCreator = function (configuration) {
+     return {
+         dependencyControllerGetAllDependencies: async (options = {}) => {
+@@ -799,11 +865,10 @@ const OrderManagementApiAxiosParamCreator = function (configuration) {
+                 options: localVarRequestOptions,
+             };
+         },
+-        ordersControllerGetAllSellQuotes: async (regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options = {}) => {
++        ordersControllerGetAllSellQuotes: async (regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options = {}) => {
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'regionId', regionId);
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'cryptoCurrencyId', cryptoCurrencyId);
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'fiatCurrencyId', fiatCurrencyId);
+-            (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'amount', amount);
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'walletAddress', walletAddress);
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'redirectUrl', redirectUrl);
+             (0, common_1.assertParamExists)('ordersControllerGetAllSellQuotes', 'providers', providers);
+@@ -826,9 +891,6 @@ const OrderManagementApiAxiosParamCreator = function (configuration) {
+             if (fiatCurrencyId !== undefined) {
+                 localVarQueryParameter['fiatCurrencyId'] = fiatCurrencyId;
+             }
+-            if (amount !== undefined) {
+-                localVarQueryParameter['amount'] = amount;
+-            }
+             if (walletAddress !== undefined) {
+                 localVarQueryParameter['walletAddress'] = walletAddress;
+             }
+@@ -1267,8 +1329,8 @@ const OrderManagementApiFp = function (configuration) {
+             const localVarAxiosArgs = await localVarAxiosParamCreator.ordersControllerGetAllQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options);
+             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+         },
+-        async ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options) {
+-            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options);
++        async ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options) {
++            const localVarAxiosArgs = await localVarAxiosParamCreator.ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options);
+             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+         },
+         async ordersControllerGetBuyUrl(providerCode, regionId, paymentMethodId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, orderId, redirectUrl, options) {
+@@ -1335,9 +1397,9 @@ const OrderManagementApiFactory = function (configuration, basePath, axios) {
+                 .ordersControllerGetAllQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options)
+                 .then((request) => request(axios, basePath));
+         },
+-        ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options) {
++        ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options) {
+             return localVarFp
+-                .ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options)
++                .ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options)
+                 .then((request) => request(axios, basePath));
+         },
+         ordersControllerGetBuyUrl(providerCode, regionId, paymentMethodId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, orderId, redirectUrl, options) {
+@@ -1414,9 +1476,9 @@ class OrderManagementApi extends base_1.BaseAPI {
+             .ordersControllerGetAllQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options)
+             .then((request) => request(this.axios, this.basePath));
+     }
+-    ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options) {
++    ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options) {
+         return (0, exports.OrderManagementApiFp)(this.configuration)
+-            .ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, redirectUrl, providers, providerCode, options)
++            .ordersControllerGetAllSellQuotes(regionId, cryptoCurrencyId, fiatCurrencyId, walletAddress, redirectUrl, providers, providerCode, options)
+             .then((request) => request(this.axios, this.basePath));
+     }
+     ordersControllerGetBuyUrl(providerCode, regionId, paymentMethodId, cryptoCurrencyId, fiatCurrencyId, amount, walletAddress, orderId, redirectUrl, options) {
+@@ -1590,6 +1652,44 @@ const RegionsApiAxiosParamCreator = function (configuration) {
+                 options: localVarRequestOptions,
+             };
+         },
++        regionsControllerGetRegionLight: async (action, regionCode, payment, fiat, crypto, context, options = {}) => {
++            (0, common_1.assertParamExists)('regionsControllerGetRegionLight', 'action', action);
++            (0, common_1.assertParamExists)('regionsControllerGetRegionLight', 'regionCode', regionCode);
++            (0, common_1.assertParamExists)('regionsControllerGetRegionLight', 'payment', payment);
++            (0, common_1.assertParamExists)('regionsControllerGetRegionLight', 'fiat', fiat);
++            (0, common_1.assertParamExists)('regionsControllerGetRegionLight', 'crypto', crypto);
++            const localVarPath = `/regions/{regionCode}/light`.replace(`{${'regionCode'}}`, encodeURIComponent(String(regionCode)));
++            const localVarUrlObj = new URL(localVarPath, common_1.DUMMY_BASE_URL);
++            let baseOptions;
++            if (configuration) {
++                baseOptions = configuration.baseOptions;
++            }
++            const localVarRequestOptions = Object.assign(Object.assign({ method: 'GET' }, baseOptions), options);
++            const localVarHeaderParameter = {};
++            const localVarQueryParameter = {};
++            if (action !== undefined) {
++                localVarQueryParameter['action'] = action;
++            }
++            if (payment) {
++                localVarQueryParameter['payment'] = payment;
++            }
++            if (fiat !== undefined) {
++                localVarQueryParameter['fiat'] = fiat;
++            }
++            if (crypto !== undefined) {
++                localVarQueryParameter['crypto'] = crypto;
++            }
++            if (context !== undefined && context !== null) {
++                localVarHeaderParameter['context'] = String(context);
++            }
++            (0, common_1.setSearchParams)(localVarUrlObj, localVarQueryParameter);
++            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
++            localVarRequestOptions.headers = Object.assign(Object.assign(Object.assign({}, localVarHeaderParameter), headersFromBaseOptions), options.headers);
++            return {
++                url: (0, common_1.toPathString)(localVarUrlObj),
++                options: localVarRequestOptions,
++            };
++        },
+     };
+ };
+ exports.RegionsApiAxiosParamCreator = RegionsApiAxiosParamCreator;
+@@ -1616,6 +1716,10 @@ const RegionsApiFp = function (configuration) {
+             const localVarAxiosArgs = await localVarAxiosParamCreator.regionsControllerGetRegion(regionCode, context, options);
+             return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
+         },
++        async regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options) {
++            const localVarAxiosArgs = await localVarAxiosParamCreator.regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options);
++            return (0, common_1.createRequestFunction)(localVarAxiosArgs, axios_1.default, base_1.BASE_PATH, configuration);
++        },
+     };
+ };
+ exports.RegionsApiFp = RegionsApiFp;
+@@ -1647,6 +1751,11 @@ const RegionsApiFactory = function (configuration, basePath, axios) {
+                 .regionsControllerGetRegion(regionCode, context, options)
+                 .then((request) => request(axios, basePath));
+         },
++        regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options) {
++            return localVarFp
++                .regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options)
++                .then((request) => request(axios, basePath));
++        },
+     };
+ };
+ exports.RegionsApiFactory = RegionsApiFactory;
+@@ -1676,6 +1785,11 @@ class RegionsApi extends base_1.BaseAPI {
+             .regionsControllerGetRegion(regionCode, context, options)
+             .then((request) => request(this.axios, this.basePath));
+     }
++    regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options) {
++        return (0, exports.RegionsApiFp)(this.configuration)
++            .regionsControllerGetRegionLight(action, regionCode, payment, fiat, crypto, context, options)
++            .then((request) => request(this.axios, this.basePath));
++    }
+ }
+ exports.RegionsApi = RegionsApi;
+ const ReportsApiAxiosParamCreator = function (configuration) {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
+index 5cd0665..1c06d75 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/OnRampSdk.js
+@@ -107,7 +107,7 @@ class OnRampSdk {
+             context: context,
+             environment: environment,
+             locale: this.locale,
+-            activationKeys: activationKeys,
++            activationKeys: activationKeys
+         };
+     }
+     getActivationKeys() {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/SdkIntrospection.test.js b/node_modules/@consensys/on-ramp-sdk/dist/SdkIntrospection.test.js
+index 25e6ffe..6c51fad 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/SdkIntrospection.test.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/SdkIntrospection.test.js
+@@ -232,31 +232,6 @@ describe('RegionsService', () => {
+         expect(signature.parameters[2].required).toBe(true);
+         expect(signature.parameters[3].required).toBe(true);
+     });
+-    it('getProviders', () => {
+-        const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getProviders);
+-        expect(signature.parameters.length).toBe(5);
+-        expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(true);
+-        expect(signature.parameters[3].required).toBe(true);
+-        expect(signature.parameters[4].required).toBe(true);
+-    });
+-    it('getSellProviders', () => {
+-        const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getSellProviders);
+-        expect(signature.parameters.length).toBe(6);
+-        expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(true);
+-        expect(signature.parameters[3].required).toBe(true);
+-        expect(signature.parameters[4].required).toBe(true);
+-        expect(signature.parameters[5].required).toBe(false);
+-    });
+-    it('getProvider', () => {
+-        const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getProvider);
+-        expect(signature.parameters.length).toBe(2);
+-        expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-    });
+     it('getQuotes', () => {
+         const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.getQuotes);
+         expect(signature.parameters.length).toBe(7);
+@@ -301,16 +276,6 @@ describe('RegionsService', () => {
+         expect(signature.parameters[5].required).toBe(true);
+         expect(signature.parameters[6].required).toBe(true);
+     });
+-    it('buyCrypto', () => {
+-        const signature = new SdkIntrospection_1.default().getSignature(OnRampSdk_1.RegionsService, OnRampSdk_1.RegionsService.prototype.buyCrypto);
+-        expect(signature.parameters.length).toBe(6);
+-        expect(signature.parameters[0].required).toBe(true);
+-        expect(signature.parameters[1].required).toBe(true);
+-        expect(signature.parameters[2].required).toBe(true);
+-        expect(signature.parameters[3].required).toBe(true);
+-        expect(signature.parameters[4].required).toBe(true);
+-        expect(signature.parameters[5].required).toBe(true);
+-    });
+ });
+ describe('OrdersService', () => {
+     it('getOrderIdFromCallback', () => {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
+index 9a23b74..1802a66 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.d.ts
+@@ -108,6 +108,9 @@ declare const _default: {
+         buildProviders: {
+             parameters: any[];
+         };
++        getCacheId: {
++            parameters: any[];
++        };
+         getCountryCache: {
+             parameters: any[];
+         };
+@@ -122,11 +125,6 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        filterPaymentsByCrypto: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+         getPaymentMethodsForCrypto: {
+             parameters: {
+                 required: boolean;
+@@ -206,17 +204,9 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        getRegionProvidersWithoutAmount: {
+-            parameters: any[];
+-        };
+         getProvidersWithoutAmountSync: {
+             parameters: any[];
+         };
+-        getProviderLimits: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+         getLimits: {
+             parameters: {
+                 required: boolean;
+@@ -227,46 +217,27 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        getProviders: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+-        getProvidersWithoutAmount: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+-        getSellProviders: {
++        getQuotes: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        getRegionProviders: {
+-            parameters: any[];
+-        };
+-        getRegionBuyProviders: {
+-            parameters: any[];
+-        };
+-        getSellRegionProviders: {
+-            parameters: any[];
+-        };
+-        getProvider: {
++        getQuotesWithoutCache: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        getQuotes: {
++        makeQuoteCall: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        makeQuoteCall: {
++        getAllQuotesFromApi: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        getAllQuotesFromApi: {
++        getAllQuotesFromApiWithoutCache: {
+             parameters: {
+                 required: boolean;
+             }[];
+@@ -292,14 +263,6 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        getQuote: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+-        getSellQuote: {
+-            parameters: any[];
+-        };
+         getQuickAmounts: {
+             parameters: any[];
+         };
+@@ -346,11 +309,6 @@ declare const _default: {
+         getSellWidgetInformation: {
+             parameters: any[];
+         };
+-        buyCrypto: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+         getFiatAmountFromCryptoAmount: {
+             parameters: any[];
+         };
+@@ -359,11 +317,6 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        getAllProviders: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+         getAllFiatCurrencies: {
+             parameters: {
+                 required: boolean;
+@@ -374,47 +327,13 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-    };
+-    ReportsService: {
+-        getProvider: {
+-            parameters: any[];
+-        };
+-        getProviders: {
+-            parameters: any[];
+-        };
+-        getCountry: {
+-            parameters: any[];
+-        };
+-        getCountries: {
+-            parameters: any[];
+-        };
+-        getPayment: {
+-            parameters: any[];
+-        };
+-        getPayments: {
+-            parameters: any[];
+-        };
+-        getCryptoCurrency: {
+-            parameters: any[];
+-        };
+-        getCryptoCurrencies: {
+-            parameters: any[];
+-        };
+-        getFiatCurrency: {
+-            parameters: any[];
+-        };
+-        getFiatCurrencies: {
+-            parameters: any[];
+-        };
+-        getSystem: {
+-            parameters: any[];
+-        };
+-        getQuote: {
++        getLight: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+     };
++    ReportsService: {};
+     Object: {};
+ };
+ export default _default;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
+index a643d28..fc3961d 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/ServicesSignatures.js
+@@ -151,6 +151,9 @@ exports.default = {
+         "buildProviders": {
+             "parameters": []
+         },
++        "getCacheId": {
++            "parameters": []
++        },
+         "getCountryCache": {
+             "parameters": []
+         },
+@@ -170,25 +173,6 @@ exports.default = {
+                 }
+             ]
+         },
+-        "filterPaymentsByCrypto": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": false
+-                }
+-            ]
+-        },
+         "getPaymentMethodsForCrypto": {
+             "parameters": [
+                 {
+@@ -380,31 +364,9 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getRegionProvidersWithoutAmount": {
+-            "parameters": []
+-        },
+         "getProvidersWithoutAmountSync": {
+             "parameters": []
+         },
+-        "getProviderLimits": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                }
+-            ]
+-        },
+         "getLimits": {
+             "parameters": [
+                 {
+@@ -440,7 +402,7 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getProviders": {
++        "getQuotes": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -451,16 +413,6 @@ exports.default = {
+                 {
+                     "required": true
+                 },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                }
+-            ]
+-        },
+-        "getProvidersWithoutAmount": {
+-            "parameters": [
+                 {
+                     "required": true
+                 },
+@@ -468,14 +420,14 @@ exports.default = {
+                     "required": true
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 }
+             ]
+         },
+-        "getSellProviders": {
++        "getQuotesWithoutCache": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -494,29 +446,16 @@ exports.default = {
+                 },
+                 {
+                     "required": false
+-                }
+-            ]
+-        },
+-        "getRegionProviders": {
+-            "parameters": []
+-        },
+-        "getRegionBuyProviders": {
+-            "parameters": []
+-        },
+-        "getSellRegionProviders": {
+-            "parameters": []
+-        },
+-        "getProvider": {
+-            "parameters": [
++                },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 }
+             ]
+         },
+-        "getQuotes": {
++        "makeQuoteCall": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -536,12 +475,15 @@ exports.default = {
+                 {
+                     "required": false
+                 },
++                {
++                    "required": false
++                },
+                 {
+                     "required": false
+                 }
+             ]
+         },
+-        "makeQuoteCall": {
++        "getAllQuotesFromApi": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -569,7 +511,7 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getAllQuotesFromApi": {
++        "getAllQuotesFromApiWithoutCache": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -592,9 +534,6 @@ exports.default = {
+                 {
+                     "required": false
+                 },
+-                {
+-                    "required": false
+-                },
+                 {
+                     "required": false
+                 }
+@@ -675,37 +614,6 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getQuote": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": false
+-                }
+-            ]
+-        },
+-        "getSellQuote": {
+-            "parameters": []
+-        },
+         "getQuickAmounts": {
+             "parameters": []
+         },
+@@ -792,28 +700,6 @@ exports.default = {
+         "getSellWidgetInformation": {
+             "parameters": []
+         },
+-        "buyCrypto": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                }
+-            ]
+-        },
+         "getFiatAmountFromCryptoAmount": {
+             "parameters": []
+         },
+@@ -824,16 +710,6 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getAllProviders": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": false
+-                }
+-            ]
+-        },
+         "getAllFiatCurrencies": {
+             "parameters": [
+                 {
+@@ -853,43 +729,8 @@ exports.default = {
+                     "required": false
+                 }
+             ]
+-        }
+-    },
+-    "ReportsService": {
+-        "getProvider": {
+-            "parameters": []
+-        },
+-        "getProviders": {
+-            "parameters": []
+-        },
+-        "getCountry": {
+-            "parameters": []
+-        },
+-        "getCountries": {
+-            "parameters": []
+-        },
+-        "getPayment": {
+-            "parameters": []
+-        },
+-        "getPayments": {
+-            "parameters": []
+-        },
+-        "getCryptoCurrency": {
+-            "parameters": []
+         },
+-        "getCryptoCurrencies": {
+-            "parameters": []
+-        },
+-        "getFiatCurrency": {
+-            "parameters": []
+-        },
+-        "getFiatCurrencies": {
+-            "parameters": []
+-        },
+-        "getSystem": {
+-            "parameters": []
+-        },
+-        "getQuote": {
++        "getLight": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -898,22 +739,23 @@ exports.default = {
+                     "required": true
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 },
+                 {
+-                    "required": true
++                    "required": false
+                 }
+             ]
+         }
+     },
++    "ReportsService": {},
+     "Object": {}
+ };
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.d.ts
+index 1a45f4e..1d62432 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.d.ts
+@@ -1,4 +1,4 @@
+-import { QuoteOrQuery, RegionProvider } from '../../API';
++import { QuoteOrQuery, RegionProvider, Provider } from '../../API';
+ import { Limits, QuoteResponse, QuoteError, SellQuoteResponse } from '../../IOnRampSdk';
+ import { OnRampSdk } from '../../OnRampSdk';
+ import { Logger } from '../../Logger';
+@@ -13,7 +13,7 @@ export declare class GenericProviderSDK implements IProvider {
+     getLimit(provider: RegionProvider, fiat: string, crypto: string, paymentMethods: string[]): Promise<Limits>;
+     getSellLimit(provider: RegionProvider, fiat: string, crypto: string, paymentMethods: string[]): Promise<Limits>;
+     private addApplePayToQuote;
+-    formatQuote(quoteOrQuery: QuoteOrQuery | QuoteError, provider: RegionProvider, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, action: ProviderAction, receiver?: string): Promise<QuoteResponse | SellQuoteResponse | QuoteError>;
++    formatQuote(quoteOrQuery: QuoteOrQuery | QuoteError, provider: Provider, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, action: ProviderAction, receiver?: string): Promise<QuoteResponse | SellQuoteResponse | QuoteError>;
+     getQuote(provider: RegionProvider, quoteUri: string, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number, receiver?: string, abortController?: AbortController): Promise<QuoteResponse | QuoteError>;
+     private getRemoteQuote;
+     getSellQuote(provider: RegionProvider, quoteUri: string, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number, receiver?: string, abortController?: AbortController): Promise<SellQuoteResponse | QuoteError>;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.js b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.js
+index 27e2ee5..a389797 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.js
+@@ -156,7 +156,6 @@ class GenericProviderSDK {
+             };
+         };
+         quote.purchaseWithApplePay = async (paymentDetails) => {
+-            var _a;
+             const { billingContact: { postalAddress, name }, paymentData, paymentMethod, shippingContact, transactionIdentifier, } = paymentDetails;
+             const formattedBillingContact = {
+                 addressLines: postalAddress.street.split('\n'),
+@@ -175,7 +174,6 @@ class GenericProviderSDK {
+                 : {})), (paymentOptions.requestPayerPhone
+                 ? { phoneNumber: shippingContact.phoneNumber }
+                 : {}));
+-            const partnerId = provider.data['accountId'];
+             const payload = {
+                 paymentObject: {
+                     billingContact: formattedBillingContact,
+@@ -195,12 +193,12 @@ class GenericProviderSDK {
+                     amount: `${quote.amountIn}`,
+                     walletAddress: quote.receiver,
+                     orderCustomId: null,
+-                    partnerAccountId: partnerId,
++                    partnerAccountId: null,
+                     redirectUrl: this.onRampSdk.sdkParameters.environment.orders,
+                 },
+             };
+             const ordersService = await this.onRampSdk.orders();
+-            const applePayResult = await ordersService.submitApplePayOrder(quote.receiver, (_a = provider === null || provider === void 0 ? void 0 : provider.provider) === null || _a === void 0 ? void 0 : _a.id, payload);
++            const applePayResult = await ordersService.submitApplePayOrder(quote.receiver, provider === null || provider === void 0 ? void 0 : provider.id, payload);
+             return applePayResult;
+         };
+     }
+@@ -209,7 +207,7 @@ class GenericProviderSDK {
+         const metadata = quoteOrQuery['metadata'];
+         const nativeApplePay = quoteOrQuery['nativeApplePay'];
+         const quoteFormatted = {
+-            provider: provider.provider,
++            provider: provider,
+             crypto: quote.crypto,
+             cryptoId: crypto,
+             fiat: quote.fiat,
+@@ -230,7 +228,7 @@ class GenericProviderSDK {
+             quoteFormatted.buy = receiver
+                 ? async () => {
+                     const regions = await this.onRampSdk.regions();
+-                    const buyAction = await regions.getBuyUrl(provider.provider, regionId, paymentMethod, crypto, fiat, amount, receiver);
++                    const buyAction = await regions.getBuyUrl(provider, regionId, paymentMethod, crypto, fiat, amount, receiver);
+                     return buyAction;
+                 }
+                 : () => {
+@@ -245,7 +243,7 @@ class GenericProviderSDK {
+             quoteFormatted.sell = receiver
+                 ? async () => {
+                     const regions = await this.onRampSdk.regions();
+-                    const sellAction = await regions.getSellUrl(provider.provider, regionId, paymentMethod, crypto, fiat, amount, receiver);
++                    const sellAction = await regions.getSellUrl(provider, regionId, paymentMethod, crypto, fiat, amount, receiver);
+                     return sellAction;
+                 }
+                 : () => {
+@@ -269,7 +267,7 @@ class GenericProviderSDK {
+                 canRetry: false,
+             };
+         }
+-        const quoteFormatted = (await this.formatQuote(quoteOrQuery, provider, regionId, paymentMethod, crypto, fiat, amount, RegionsService_1.ProviderAction.buy, receiver));
++        const quoteFormatted = (await this.formatQuote(quoteOrQuery, provider.provider, regionId, paymentMethod, crypto, fiat, amount, RegionsService_1.ProviderAction.buy, receiver));
+         return quoteFormatted;
+     }
+     async getRemoteQuote(provider, regionId, paymentMethod, crypto, fiat, amount, receiver, abortController, type) {
+@@ -368,7 +366,8 @@ class GenericProviderSDK {
+         };
+     }
+     translateFiat(provider, currencyId) {
+-        return provider.supportedFiatCurrencies.filter((f) => f.id === currencyId)[0].translation;
++        const split = currencyId.split('/');
++        return split[split.length - 1];
+     }
+     translateCrypto(provider, currencyId) {
+         return provider.supportedCryptoCurrencies.filter((c) => c.id === currencyId)[0].translation;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.test.js b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.test.js
+index dbcab46..913590c 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.test.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/providers/Generic/GenericProviderSDK.test.js
+@@ -86,7 +86,42 @@ const createMockProvider = () => ({
+     quoteTransformation: undefined,
+     sellQuoteTransformation: undefined,
+ });
+-const createMockQuoteOrQuery = (overrides = {}) => (Object.assign({ url: '', method: '', headers: {}, provider: 'mockProviderWithTransform', nativeApplePay: { supported: false, merchantId: '' }, metadata: {
++const createMockQuoteOrQuery = (overrides = {}) => (Object.assign({ url: '', method: '', headers: {}, provider: 'mockProviderWithTransform', providerInfo: {
++        id: 'mockProviderWithTransform',
++        name: 'Mock Provider',
++        logos: {
++            light: 'light-logo-url',
++            dark: 'dark-logo-url',
++            height: 100,
++            width: 100,
++        },
++        description: '',
++        hqAddress: '',
++        links: [],
++        environmentType: 'STAGING',
++        features: {
++            buy: {
++                enabled: true,
++                browser: API_1.ProviderBuyFeatureBrowserEnum.InAppOsBrowser,
++                redirection: API_1.ProviderBuyFeatureRedirectionEnum.HttpRedirection,
++                userAgent: '',
++                padCustomOrderId: false,
++                orderCustomIdRequired: false,
++                orderCustomId: '',
++                orderCustomIdPrefixes: [],
++                orderCustomIdExpiration: 0,
++                supportedByBackend: true,
++                orderCustomIdSeparator: '',
++            },
++            recurringBuy: {
++                enabled: false,
++            },
++            quotes: {
++                enabled: true,
++                supportedByBackend: true,
++            },
++        },
++    }, providerQuote: null, nativeApplePay: { supported: false, merchantId: '' }, metadata: {
+         tags: {
+             isBestRate: true,
+             isMostReliable: false,
+@@ -227,7 +262,7 @@ describe('GenericProviderSDK', () => {
+         it('should format buy quote correctly', async () => {
+             const mockProvider = createMockProvider();
+             const quoteOrQuery = createMockQuoteOrQuery();
+-            const result = await sdk.formatQuote(quoteOrQuery, mockProvider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
++            const result = await sdk.formatQuote(quoteOrQuery, mockProvider.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
+             expect(result).toMatchObject({
+                 provider: mockProvider.provider,
+                 crypto: quoteOrQuery.quote.crypto,
+@@ -247,7 +282,7 @@ describe('GenericProviderSDK', () => {
+         });
+         it('should format sell quote correctly', async () => {
+             const quoteOrQuery = createMockQuoteOrQuery();
+-            const result = await sdk.formatQuote(quoteOrQuery, mockProvider, 'region1', 'bank-transfer', 'BTC', 'USD', 0.5, RegionsService_1.ProviderAction.sell, 'account123');
++            const result = await sdk.formatQuote(quoteOrQuery, mockProvider.provider, 'region1', 'bank-transfer', 'BTC', 'USD', 0.5, RegionsService_1.ProviderAction.sell, 'account123');
+             expect(result).toMatchObject({
+                 provider: mockProvider.provider,
+                 crypto: quoteOrQuery.quote.crypto,
+@@ -267,7 +302,7 @@ describe('GenericProviderSDK', () => {
+         });
+         it('should handle missing metadata and tags', async () => {
+             const quoteOrQuery = createMockQuoteOrQuery();
+-            const result = await sdk.formatQuote(quoteOrQuery, mockProvider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
++            const result = await sdk.formatQuote(quoteOrQuery, mockProvider.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
+             expect(result).toMatchObject({
+                 provider: mockProvider.provider,
+                 crypto: quoteOrQuery.quote.crypto,
+@@ -290,7 +325,7 @@ describe('GenericProviderSDK', () => {
+                     amountOut: (amount) => amount / 2,
+                 } });
+             const quoteOrQuery = createMockQuoteOrQuery();
+-            const result = await sdk.formatQuote(quoteOrQuery, mockProviderWithTransform, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
++            const result = await sdk.formatQuote(quoteOrQuery, mockProviderWithTransform.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123');
+             if ('error' in result) {
+                 fail('Expected QuoteResponse but got QuoteError');
+             }
+@@ -303,7 +338,7 @@ describe('GenericProviderSDK', () => {
+             const quoteOrQuery = createMockQuoteOrQuery({
+                 nativeApplePay: { supported: true, merchantId: 'merchant123' },
+             });
+-            const result = (await sdk.formatQuote(quoteOrQuery, mockProvider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
++            const result = (await sdk.formatQuote(quoteOrQuery, mockProvider.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
+             if ('error' in result) {
+                 fail('Expected QuoteResponse but got QuoteError');
+             }
+@@ -313,7 +348,7 @@ describe('GenericProviderSDK', () => {
+             const quoteOrQuery = createMockQuoteOrQuery({
+                 quote: Object.assign(Object.assign({}, createMockQuoteOrQuery().quote), { isCustomAction: true }),
+             });
+-            const result = (await sdk.formatQuote(quoteOrQuery, mockProvider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
++            const result = (await sdk.formatQuote(quoteOrQuery, mockProvider.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
+             if ('error' in result) {
+                 fail('Expected QuoteResponse but got QuoteError');
+             }
+@@ -327,7 +362,7 @@ describe('GenericProviderSDK', () => {
+                 provider: mockProvider.provider,
+                 canRetry: false,
+             };
+-            const result = (await sdk.formatQuote(quoteError, mockProvider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
++            const result = (await sdk.formatQuote(quoteError, mockProvider.provider, 'region1', 'credit-card', 'BTC', 'USD', 100, RegionsService_1.ProviderAction.buy, 'wallet123'));
+             expect(result).toEqual(quoteError);
+         });
+     });
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/providers/IProvider.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/providers/IProvider.d.ts
+index c0914ad..9e1b163 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/providers/IProvider.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/providers/IProvider.d.ts
+@@ -1,11 +1,11 @@
+ import { ProviderAction } from 'src/regions/RegionsService';
+-import { QuoteOrQuery, RegionProvider } from '../API';
++import { Provider, QuoteOrQuery, RegionProvider } from '../API';
+ import { QuoteError, QuoteResponse, Limits, SellQuoteResponse } from '../IOnRampSdk';
+ export interface IProvider {
+     getId(): string;
+     getLimit(provider: RegionProvider, fiat: string, crypto: string, paymentMethods: string[]): Promise<Limits>;
+     getSellLimit(provider: RegionProvider, fiat: string, crypto: string, paymentMethods: string[]): Promise<Limits>;
+-    formatQuote(quote: QuoteOrQuery | QuoteError, provider: RegionProvider, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, action: ProviderAction, receiver?: string): Promise<QuoteResponse | SellQuoteResponse | QuoteError>;
++    formatQuote(quote: QuoteOrQuery | QuoteError, provider: Provider, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, action: ProviderAction, receiver?: string): Promise<QuoteResponse | SellQuoteResponse | QuoteError>;
+     getQuote(provider: RegionProvider, quoteUri: string, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, receiver?: string, abortController?: AbortController): Promise<QuoteResponse | QuoteError>;
+     getSellQuote(provider: RegionProvider, quoteUri: string, regionId: string, paymentMethod: string, crypto: string, fiat: string, amount: number | string, receiver?: string, abortController?: AbortController): Promise<SellQuoteResponse | QuoteError>;
+ }
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.d.ts
+index c15daeb..e91f749 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.d.ts
+@@ -1,15 +1,16 @@
+ import { Logger } from '../Logger';
+-import { RegionCacheParameters, RegionCryptoCurrency, RegionFiatCurrency, RegionPayment, RegionProvider } from '../API';
++import { Payment, RegionCacheParameters, CryptoCurrency, FiatCurrency, Limits } from '../API';
++import { ProviderAction } from './RegionsService';
+ export declare class CountryCache {
+     countryId: string;
+-    cachedPayments: RegionPayment[];
+-    cachedCryptoCurrencies: Map<string, RegionCryptoCurrency>;
+-    cachedFiatCurrencies: Map<string, RegionFiatCurrency>;
+-    cachedProviders: Map<string, RegionProvider>;
++    cachedPayments: Payment[];
++    cachedCryptoCurrencies: Map<string, CryptoCurrency>;
++    cachedFiatCurrencies: Map<string, FiatCurrency>;
+     cachedParameters: RegionCacheParameters;
+     expirationDate: Date;
++    limits: Limits;
+     private constructor();
+-    static Create(logger: Logger, axios: any, baseUrl: string, countryId: string, abortController?: AbortController): Promise<CountryCache>;
++    static Create(logger: Logger, axios: any, baseUrl: string, action: ProviderAction, countryId: string, paymentIds: string[], fiatId: string, cryptoId: string, abortController?: AbortController): Promise<CountryCache>;
+     private static getCacheExpirationDate;
+     private static setAbsoluteUrls;
+     private static setAbsolutePaymentUrls;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.js b/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.js
+index 27b8ea2..52cba18 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/regions/CountryCache.js
+@@ -6,31 +6,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.CountryCache = void 0;
+ const Utils_1 = __importDefault(require("../Utils"));
+ class CountryCache {
+-    constructor(countryId, cachedPayments, cachedCryptoCurrencies, cachedFiatCurrencies, cachedProviders, cachedParameters, expirationDate) {
++    constructor(countryId, cachedPayments, cachedCryptoCurrencies, cachedFiatCurrencies, cachedParameters, expirationDate, limits) {
+         this.countryId = countryId;
+         this.cachedPayments = cachedPayments;
+         this.cachedCryptoCurrencies = cachedCryptoCurrencies;
+         this.cachedFiatCurrencies = cachedFiatCurrencies;
+-        this.cachedProviders = cachedProviders;
+         this.cachedParameters = cachedParameters;
+         this.expirationDate = expirationDate;
++        this.limits = limits;
+     }
+-    static async Create(logger, axios, baseUrl, countryId, abortController) {
++    static async Create(logger, axios, baseUrl, action, countryId, paymentIds, fiatId, cryptoId, abortController) {
+         logger.log(`Querying URL ${countryId}`);
+-        const axiosResponse = await axios.get(countryId, {
++        const axiosResponse = await axios.get(countryId + '/light', {
++            params: {
++                payment: paymentIds ? paymentIds.join(',') : [],
++                fiat: fiatId,
++                crypto: cryptoId,
++                action: action,
++                multiplePayments: true,
++            },
+             signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
+         });
+         const expirationDate = CountryCache.getCacheExpirationDate(axiosResponse);
+-        const regionInfo = axiosResponse.data;
+-        const payments = regionInfo.payments.map((p) => CountryCache.setAbsolutePaymentUrls(baseUrl, p));
+-        const crypto = new Map(regionInfo.cryptoCurrencies.map((c) => [c.cryptoCurrency.id, c]));
+-        const fiat = new Map(regionInfo.fiatCurrencies.map((f) => [f.fiatCurrency.id, f]));
+-        const providers = new Map(regionInfo.providers.map((p) => [
+-            p.provider.id,
+-            CountryCache.setAbsoluteUrls(baseUrl, p),
+-        ]));
+-        const parameters = regionInfo.parameters;
+-        return new CountryCache(countryId, payments, crypto, fiat, providers, parameters, expirationDate);
++        const cacheInfo = axiosResponse.data;
++        const payments = cacheInfo.payments.map((p) => CountryCache.setAbsolutePaymentUrls(baseUrl, p));
++        const crypto = new Map(cacheInfo.cryptoCurrencies.map((c) => [c.id, c]));
++        const fiat = new Map(cacheInfo.fiatCurrencies.map((f) => [f.id, f]));
++        const parameters = cacheInfo.parameters;
++        return new CountryCache(countryId, payments, crypto, fiat, parameters, expirationDate, cacheInfo.limits);
+     }
+     static getCacheExpirationDate(axiosReponse) {
+         try {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.d.ts
+index f1b3f83..767d196 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.d.ts
+@@ -1,10 +1,9 @@
+ import { Logger } from '../Logger';
+ import { OnRampSdk } from '../OnRampSdk';
+ import OnRampSdkParameters from '../OnRampSdkParameters';
+-import { Country, CryptoCurrency, FiatCurrency, Payment, Provider, RegionCacheParameters, RegionFiatCurrency, RegionProvider, NetworkDetails, BatchQuoteOrQuery } from '../API';
+-import { QuoteError, QuoteResponse, Limits, AllQuotesResponse, AllSellQuotesResponse } from '../IOnRampSdk';
++import { Country, CryptoCurrency, FiatCurrency, Payment, Provider, RegionCacheParameters, NetworkDetails, BatchQuoteOrQuery } from '../API';
++import { Limits, AllQuotesResponse, AllSellQuotesResponse } from '../IOnRampSdk';
+ import BuyAction from './BuyAction';
+-import QuoteParameters from './QuoteParameters';
+ export declare enum ProviderAction {
+     unknown = "",
+     buy = "buy",
+@@ -26,19 +25,19 @@ export default class RegionsService {
+     private downloadCachedCountries;
+     private init;
+     private buildProviders;
++    private getCacheId;
+     private getCountryCache;
+     getCountries(): Promise<Country[]>;
+     getSellCountries(): Promise<Country[]>;
+     getPaymentMethods(regionId: string, abortController?: AbortController): Promise<Payment[]>;
+-    private filterPaymentsByCrypto;
+     getPaymentMethodsForCrypto(regionId: string, crypto: string, fiat: string, abortController?: AbortController): Promise<Payment[]>;
+     getSellPaymentMethodsForCrypto(regionId: string, crypto: string, fiat: string, abortController?: AbortController): Promise<Payment[]>;
+     getSellPaymentMethods(regionId: string, abortController?: AbortController): Promise<Payment[]>;
+     getPaymentMethod(regionId: string, id: string): Promise<Payment>;
+     getDefaultFiatCurrency(regionId: string, paymentMethods: string[]): Promise<FiatCurrency>;
+-    getDefaultFiatCurrencySync(countries: Country[], fiats: RegionFiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
++    getDefaultFiatCurrencySync(countries: Country[], fiats: FiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
+     getDefaultSellFiatCurrency(regionId: string, paymentMethods: string[]): Promise<FiatCurrency>;
+-    getDefaultSellFiatCurrencySync(countries: Country[], fiats: RegionFiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
++    getDefaultSellFiatCurrencySync(countries: Country[], fiats: FiatCurrency[], regionId: string, paymentMethods: string[]): FiatCurrency;
+     getCryptoCurrencies(regionId: string, paymentMethodIds: string[], fiatCurrencyId?: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
+     getNetworkDetails(): Promise<NetworkDetails[]>;
+     getSellCryptoCurrencies(regionId: string, paymentMethodIds: string[], fiatCurrencyId?: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
+@@ -48,28 +47,19 @@ export default class RegionsService {
+     getFiatCurrencies(regionId: string, paymentMethodIds: string[], abortController?: AbortController): Promise<FiatCurrency[]>;
+     getSellFiatCurrencies(regionId: string, paymentMethodIds: string[], abortController?: AbortController): Promise<FiatCurrency[]>;
+     getFiatCurrency(regionId: string, fiatId: string): Promise<FiatCurrency>;
+-    private getRegionProvidersWithoutAmount;
+     private getProvidersWithoutAmountSync;
+-    getProviderLimits(regionId: string, paymentMethods: string[], crypto: string, fiat: string, providerId: string): Promise<Limits>;
+     getLimits(regionId: string, paymentMethods: string[], crypto: string, fiat: string, abortController?: AbortController): Promise<Limits>;
+     getSellLimits(regionId: string, paymentMethods: string[], crypto: string, fiat: string): Promise<Limits>;
+-    getProviders(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number): Promise<Provider[]>;
+-    getProvidersWithoutAmount(regionId: string, paymentMethods: string[], crypto: string, fiat: string): Promise<Provider[]>;
+-    getSellProviders(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number, abortController?: AbortController): Promise<Provider[]>;
+-    private getRegionProviders;
+-    private getRegionBuyProviders;
+-    private getSellRegionProviders;
+-    getProvider(regionId: string, id: string): Promise<RegionProvider>;
+     getQuotes(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, abortController?: AbortController): Promise<AllQuotesResponse>;
++    getQuotesWithoutCache(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, action?: ProviderAction, abortController?: AbortController): Promise<AllQuotesResponse>;
+     makeQuoteCall(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, action?: ProviderAction, abortController?: AbortController): Promise<AllQuotesResponse | AllSellQuotesResponse>;
+-    getAllQuotesFromApi(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, providers?: RegionProvider[], receiver?: string, action?: ProviderAction, abortController?: AbortController): Promise<BatchQuoteOrQuery>;
++    getAllQuotesFromApi(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, action?: ProviderAction, abortController?: AbortController): Promise<BatchQuoteOrQuery>;
++    getAllQuotesFromApiWithoutCache(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, action?: ProviderAction, abortController?: AbortController): Promise<BatchQuoteOrQuery>;
+     private getExchangeRateFromAPI;
+     private getRankingDataFromApi;
+     getSellCustomActions(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, abortController?: AbortController): Promise<Payment[]>;
+     getCustomActions(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, abortController?: AbortController): Promise<Payment[]>;
+     getSellQuotes(regionId: string, paymentMethods: string[], crypto: string, fiat: string, amount: number | string, receiver?: string, abortController?: AbortController): Promise<AllSellQuotesResponse>;
+-    getQuote(providerId: string, regionId: string, paymentMethods: string[], cryptoId: string, fiatId: string, amount: number | string, receiver: string, abortController?: AbortController): Promise<QuoteResponse | QuoteError>;
+-    private getSellQuote;
+     private getQuickAmounts;
+     private standardizeQuote;
+     private standardizeSellQuote;
+@@ -84,10 +74,9 @@ export default class RegionsService {
+     getSellUrl(provider: Provider, regionId: string, paymentId: string, crypto: string, fiat: string, amount: number, receiver: string): Promise<BuyAction>;
+     private getBuyWidgetInformation;
+     private getSellWidgetInformation;
+-    buyCrypto(regionId: string, fiatCurrencyId: string, cryptoCurrencyId: string, cryptoAmount: number, walletAddress: string, referral: string): Promise<QuoteParameters[]>;
+     private getFiatAmountFromCryptoAmount;
+     getRedirectionUrl(provider: string): string;
+-    getAllProviders(regionId: string, abortController?: AbortController): Promise<Provider[]>;
+     getAllFiatCurrencies(regionId: string, abortController?: AbortController): Promise<FiatCurrency[]>;
+     getAllCryptoCurrencies(regionId: string, abortController?: AbortController): Promise<CryptoCurrency[]>;
++    getLight(action: ProviderAction, regionId: string, paymentMethodIds?: string[], fiatCurrencyId?: string, cryptoCurrencyId?: string, multiplePayments?: boolean, abortController?: AbortController): Promise<any>;
+ }
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.js b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.js
+index 0be8458..9dbc9a3 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.js
+@@ -22,7 +22,6 @@ const Utils_1 = __importDefault(require("../Utils"));
+ const CountryCache_1 = require("./CountryCache");
+ const BuyAction_1 = __importDefault(require("./BuyAction"));
+ const uuid_1 = require("uuid");
+-const QuoteParameters_1 = __importDefault(require("./QuoteParameters"));
+ const SdkParam_1 = __importDefault(require("../SdkParam"));
+ var ProviderAction;
+ (function (ProviderAction) {
+@@ -73,17 +72,21 @@ class RegionsService {
+         const providers = new ProviderList_1.default(sdk, this.logger);
+         return providers;
+     }
+-    async getCountryCache(regionId, abortController) {
+-        let result = this.countryCache.get(regionId);
++    getCacheId(action, regionId, paymentIds, fiatId, cryptoId) {
++        return `${action}-${regionId}-${paymentIds === null || paymentIds === void 0 ? void 0 : paymentIds.join(',')}-${fiatId}-${cryptoId}`;
++    }
++    async getCountryCache(action, regionId, paymentIds, fiatId, cryptoId, abortController) {
++        const cacheId = this.getCacheId(action, regionId, paymentIds, fiatId, cryptoId);
++        let result = this.countryCache.get(cacheId);
+         if (!result) {
+-            result = await Utils_1.default.try(async () => await CountryCache_1.CountryCache.Create(this.logger, this.axios, this.sdkParameters.environment.regions, regionId, abortController));
+-            this.countryCache.set(regionId, result);
++            result = await Utils_1.default.try(async () => await CountryCache_1.CountryCache.Create(this.logger, this.axios, this.sdkParameters.environment.regions, action, regionId, paymentIds, fiatId, cryptoId, abortController));
++            this.countryCache.set(cacheId, result);
+         }
+         else if (result.expirationDate <= new Date()) {
+             try {
+-                result = await Utils_1.default.try(async () => await CountryCache_1.CountryCache.Create(this.logger, this.axios, this.sdkParameters.environment.regions, regionId, abortController));
++                result = await Utils_1.default.try(async () => await CountryCache_1.CountryCache.Create(this.logger, this.axios, this.sdkParameters.environment.regions, action, regionId, paymentIds, fiatId, cryptoId, abortController));
+                 if (result) {
+-                    this.countryCache.set(regionId, result);
++                    this.countryCache.set(cacheId, result);
+                 }
+             }
+             catch (_a) {
+@@ -113,84 +116,58 @@ class RegionsService {
+     }
+     async getPaymentMethods(regionId, abortController) {
+         Utils_1.default.checkParameters({ regionId });
+-        const payments = (await this.getCountryCache(regionId, abortController))
+-            .cachedPayments;
+-        return payments.filter((p) => { var _a; return (_a = p.buy) === null || _a === void 0 ? void 0 : _a.enabled; });
+-    }
+-    async filterPaymentsByCrypto(regionId, crypto, fiat, action, abortController) {
+-        Utils_1.default.checkParameters({ regionId, crypto, fiat, action });
+-        let paymentsToFilter = [];
+-        const countryCache = await this.getCountryCache(regionId, abortController);
+-        const cryptoCurrency = countryCache.cachedCryptoCurrencies.get(crypto);
+-        if (!cryptoCurrency) {
+-            throw Error('Crypto not found');
+-        }
+-        if (action === ProviderAction.sell) {
+-            paymentsToFilter = countryCache.cachedPayments.filter((p) => { var _a; return (_a = p.sell) === null || _a === void 0 ? void 0 : _a.enabled; });
+-        }
+-        else {
+-            paymentsToFilter = countryCache.cachedPayments.filter((p) => { var _a; return (_a = p.buy) === null || _a === void 0 ? void 0 : _a.enabled; });
+-        }
+-        const paymentsFilteredByExcluded = paymentsToFilter.filter((p) => !cryptoCurrency.excludedFiatAndPaymentMethods.some((excluded) => excluded.excludedFiat === fiat &&
+-            excluded.excludedPaymentMethod === p.id));
+-        return paymentsFilteredByExcluded;
++        const payments = (await this.getCountryCache(ProviderAction.buy, regionId, null, null, null, abortController)).cachedPayments;
++        return payments;
+     }
+     async getPaymentMethodsForCrypto(regionId, crypto, fiat, abortController) {
+         Utils_1.default.checkParameters({ regionId, crypto, fiat });
+-        return this.filterPaymentsByCrypto(regionId, crypto, fiat, ProviderAction.buy, abortController);
++        const cache = await this.getCountryCache(ProviderAction.buy, regionId, null, fiat, crypto, abortController);
++        return cache.cachedPayments;
+     }
+     async getSellPaymentMethodsForCrypto(regionId, crypto, fiat, abortController) {
+         Utils_1.default.checkParameters({ regionId, crypto, fiat });
+-        return this.filterPaymentsByCrypto(regionId, crypto, fiat, ProviderAction.sell, abortController);
++        const cache = await this.getCountryCache(ProviderAction.sell, regionId, null, fiat, crypto, abortController);
++        return cache.cachedPayments;
+     }
+     async getSellPaymentMethods(regionId, abortController) {
+         Utils_1.default.checkParameters({ regionId });
+-        return (await this.getCountryCache(regionId, abortController)).cachedPayments.filter((p) => { var _a; return (_a = p.sell) === null || _a === void 0 ? void 0 : _a.enabled; });
++        return (await this.getCountryCache(ProviderAction.sell, regionId, null, null, null, abortController)).cachedPayments;
+     }
+     async getPaymentMethod(regionId, id) {
+-        Utils_1.default.checkParameters({ regionId, id });
++        Utils_1.default.checkParameters({ regionId, id, crypto });
+         const normalizedId = id.startsWith('/payments/') ? id : `/payments/${id}`;
+-        return (await this.getCountryCache(regionId)).cachedPayments.find((p) => p.id === normalizedId);
++        return (await this.getCountryCache(null, regionId, [normalizedId], null, null, null)).cachedPayments.find((p) => p.id === normalizedId);
+     }
+     async getDefaultFiatCurrency(regionId, paymentMethods) {
+         Utils_1.default.checkParameters({ regionId });
+         const countries = [...this.cachedCountries.values()];
+         const fiats = [
+-            ...(await this.getCountryCache(regionId)).cachedFiatCurrencies.values(),
++            ...(await this.getCountryCache(ProviderAction.buy, regionId, paymentMethods, null, null, null)).cachedFiatCurrencies.values(),
+         ];
+         return this.getDefaultFiatCurrencySync(countries, fiats, regionId, paymentMethods);
+     }
+     getDefaultFiatCurrencySync(countries, fiats, regionId, paymentMethods) {
+-        var _a;
+         const country = countries.find((c) => c.id === regionId ||
+             (c.states && c.states.find((s) => s.id === regionId)));
+-        const isFiatSupported = (fiat) => {
+-            if (paymentMethods.length === 0)
+-                return true;
+-            return paymentMethods.some((method) => !fiat.excludedPaymentMethods.includes(method));
+-        };
+         for (const c of country.currencies) {
+-            const defaultFiat = fiats.find((f) => f.fiatCurrency.id === c && isFiatSupported(f));
++            const defaultFiat = fiats.find((f) => f.id === c);
+             if (defaultFiat)
+-                return defaultFiat.fiatCurrency;
++                return defaultFiat;
+         }
+-        const fallbackFiat = fiats.find((f) => (f.fiatCurrency.id === `/currencies/fiat/usd` ||
+-            f.fiatCurrency.id === `/currencies/fiat/eur`) &&
+-            isFiatSupported(f));
++        const fallbackFiat = fiats.find((f) => f.id === `/currencies/fiat/usd` || f.id === `/currencies/fiat/eur`);
+         if (fallbackFiat)
+-            return fallbackFiat.fiatCurrency;
+-        return (_a = fiats.find((f) => isFiatSupported(f))) === null || _a === void 0 ? void 0 : _a.fiatCurrency;
++            return fallbackFiat;
++        return (fiats === null || fiats === void 0 ? void 0 : fiats.length) ? fiats[0] : null;
+     }
+     async getDefaultSellFiatCurrency(regionId, paymentMethods) {
+         Utils_1.default.checkParameters({ regionId });
+         const countries = [...this.cachedCountries.values()];
+         const fiats = [
+-            ...(await this.getCountryCache(regionId)).cachedFiatCurrencies.values(),
++            ...(await this.getCountryCache(ProviderAction.sell, regionId, paymentMethods, null, null, null)).cachedFiatCurrencies.values(),
+         ];
+         return this.getDefaultSellFiatCurrencySync(countries, fiats, regionId, paymentMethods);
+     }
+     getDefaultSellFiatCurrencySync(countries, fiats, regionId, paymentMethods) {
+-        var _a;
+         const country = countries.find((c) => c.id === regionId ||
+             (c.states && c.states.find((s) => s.id === regionId)));
+         const isFiatSupported = (fiat) => {
+@@ -199,21 +176,18 @@ class RegionsService {
+             return paymentMethods.some((method) => { var _a; return !((_a = fiat === null || fiat === void 0 ? void 0 : fiat.sell) === null || _a === void 0 ? void 0 : _a.excludedPaymentMethods.includes(method)); });
+         };
+         for (const c of country.currencies) {
+-            const defaultFiat = fiats.find((f) => f.sell.enabled && f.fiatCurrency.id === c && isFiatSupported(f));
++            const defaultFiat = fiats.find((f) => f.id === c);
+             if (defaultFiat)
+-                return defaultFiat.fiatCurrency;
++                return defaultFiat;
+         }
+-        const fallbackFiat = fiats.find((f) => f.sell.enabled &&
+-            (f.fiatCurrency.id === `/currencies/fiat/usd` ||
+-                f.fiatCurrency.id === `/currencies/fiat/eur`) &&
+-            isFiatSupported(f));
++        const fallbackFiat = fiats.find((f) => f.id === `/currencies/fiat/usd` || f.id === `/currencies/fiat/eur`);
+         if (fallbackFiat)
+-            return fallbackFiat.fiatCurrency;
+-        return (_a = fiats.find((f) => f.sell.enabled && isFiatSupported(f))) === null || _a === void 0 ? void 0 : _a.fiatCurrency;
++            return fallbackFiat;
++        return (fiats === null || fiats === void 0 ? void 0 : fiats.length) ? fiats[0] : null;
+     }
+     async getCryptoCurrencies(regionId, paymentMethodIds, fiatCurrencyId, abortController) {
+         Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const countryCache = await this.getCountryCache(regionId, abortController);
++        const countryCache = await this.getCountryCache(ProviderAction.buy, regionId, paymentMethodIds, fiatCurrencyId, null, abortController);
+         return this.getCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId);
+     }
+     async getNetworkDetails() {
+@@ -222,7 +196,7 @@ class RegionsService {
+     }
+     async getSellCryptoCurrencies(regionId, paymentMethodIds, fiatCurrencyId, abortController) {
+         Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const countryCache = await this.getCountryCache(regionId, abortController);
++        const countryCache = await this.getCountryCache(ProviderAction.sell, regionId, paymentMethodIds, fiatCurrencyId, null, abortController);
+         return this.getSellCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId);
+     }
+     getCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId) {
+@@ -239,14 +213,7 @@ class RegionsService {
+                 return true;
+             return paymentMethodIds.some((methodId) => !regionCryptoCurrency.excludedPaymentMethods.includes(methodId));
+         };
+-        const cryptoCurrencies = Array.from(countryCache.cachedCryptoCurrencies.values()).filter((regionCryptoCurrency) => isCryptoSupportedForPaymentMethods(regionCryptoCurrency) &&
+-            (!fiatCurrencyId ||
+-                !regionCryptoCurrency.excludedFiat.includes(fiatCurrencyId)) &&
+-            (!fiatCurrencyId ||
+-                paymentMethodIds.length === 0 ||
+-                !paymentMethodIds.some((methodId) => regionCryptoCurrency.excludedFiatAndPaymentMethods.some((e) => e.excludedFiat === fiatCurrencyId &&
+-                    e.excludedPaymentMethod === methodId))));
+-        return cryptoCurrencies.map((regionCryptoCurrency) => regionCryptoCurrency.cryptoCurrency);
++        return Array.from(countryCache.cachedCryptoCurrencies.values());
+     }
+     getSellCryptoCurrenciesSync(countryCache, paymentMethodIds, fiatCurrencyId) {
+         if (paymentMethodIds.length > 0 &&
+@@ -262,62 +229,23 @@ class RegionsService {
+                 return true;
+             return paymentMethodIds.some((methodId) => !regionCryptoCurrency.sell.excludedPaymentMethods.includes(methodId));
+         };
+-        const cryptoCurrencies = Array.from(countryCache.cachedCryptoCurrencies.values())
+-            .filter((regionCryptoCurrency) => {
+-            var _a;
+-            return ((_a = regionCryptoCurrency.sell) === null || _a === void 0 ? void 0 : _a.enabled) &&
+-                isCryptoSupportedForPaymentMethods(regionCryptoCurrency) &&
+-                (!fiatCurrencyId ||
+-                    !regionCryptoCurrency.sell.excludedFiat.includes(fiatCurrencyId)) &&
+-                (!fiatCurrencyId ||
+-                    paymentMethodIds.length === 0 ||
+-                    !paymentMethodIds.some((methodId) => regionCryptoCurrency.sell.excludedFiatAndPaymentMethods.some((e) => e.excludedFiat === fiatCurrencyId &&
+-                        e.excludedPaymentMethod === methodId)));
+-        })
+-            .map((regionCryptoCurrency) => regionCryptoCurrency.cryptoCurrency);
+-        return cryptoCurrencies;
++        return Array.from(countryCache.cachedCryptoCurrencies.values());
+     }
+     async getCryptoCurrency(regionId, cryptoId) {
+         Utils_1.default.checkParameters({ regionId, cryptoId: cryptoId });
+-        return (await this.getCountryCache(regionId)).cachedCryptoCurrencies.get(cryptoId).cryptoCurrency;
++        return (await this.getCountryCache(null, regionId, [], null, cryptoId, null)).cachedCryptoCurrencies.get(cryptoId);
+     }
+     async getFiatCurrencies(regionId, paymentMethodIds, abortController) {
+         Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const isFiatSupported = (regionFiatCurrency) => {
+-            if (paymentMethodIds.length === 0)
+-                return true;
+-            return paymentMethodIds.some((method) => !regionFiatCurrency.excludedPaymentMethods.includes(method));
+-        };
+-        const fiatCurrencies = Array.from((await this.getCountryCache(regionId, abortController)).cachedFiatCurrencies.values())
+-            .filter((regionFiatCurrency) => isFiatSupported(regionFiatCurrency))
+-            .map((regionFiatCurrency) => regionFiatCurrency.fiatCurrency);
+-        return fiatCurrencies;
++        return Array.from((await this.getCountryCache(ProviderAction.buy, regionId, paymentMethodIds, null, null, abortController)).cachedFiatCurrencies.values());
+     }
+     async getSellFiatCurrencies(regionId, paymentMethodIds, abortController) {
+         Utils_1.default.checkParameters({ regionId, paymentMethodIds });
+-        const isFiatSupported = (regionFiatCurrency) => {
+-            if (paymentMethodIds.length === 0)
+-                return true;
+-            return paymentMethodIds.some((method) => { var _a; return !((_a = regionFiatCurrency.sell) === null || _a === void 0 ? void 0 : _a.excludedPaymentMethods.includes(method)); });
+-        };
+-        const fiatCurrencies = Array.from((await this.getCountryCache(regionId, abortController)).cachedFiatCurrencies.values())
+-            .filter((regionFiatCurrency) => {
+-            var _a;
+-            return ((_a = regionFiatCurrency.sell) === null || _a === void 0 ? void 0 : _a.enabled) &&
+-                isFiatSupported(regionFiatCurrency);
+-        })
+-            .map((regionFiatCurrency) => regionFiatCurrency.fiatCurrency);
+-        return fiatCurrencies;
++        return Array.from((await this.getCountryCache(ProviderAction.sell, regionId, paymentMethodIds, null, null, abortController)).cachedFiatCurrencies.values());
+     }
+     async getFiatCurrency(regionId, fiatId) {
+         Utils_1.default.checkParameters({ regionId, cryptoId: fiatId });
+-        return (await this.getCountryCache(regionId)).cachedFiatCurrencies.get(fiatId).fiatCurrency;
+-    }
+-    async getRegionProvidersWithoutAmount(regionId, paymentMethodIds, crypto, fiat, abortController) {
+-        const providersInCountry = [
+-            ...(await this.getCountryCache(regionId, abortController)).cachedProviders.values(),
+-        ];
+-        return this.getProvidersWithoutAmountSync(providersInCountry, paymentMethodIds, crypto, fiat);
++        return (await this.getCountryCache(null, regionId, [], null, fiatId, null)).cachedFiatCurrencies.get(fiatId);
+     }
+     getProvidersWithoutAmountSync(providersInCountry, paymentMethods, crypto, fiat) {
+         const isProviderSupportingPaymentMethods = (provider) => {
+@@ -346,169 +274,46 @@ class RegionsService {
+         const providersWithFiat = providersWithCrypto.filter((p) => p.supportedFiatCurrencies.filter((f) => f.id === fiat && isFiatSupported(f)).length);
+         return providersWithFiat;
+     }
+-    async getProviderLimits(regionId, paymentMethods, crypto, fiat, providerId) {
+-        if ((await this.getCountryCache(regionId)).cachedParameters.disableLimits) {
+-            const limit = this.disabledLimit;
+-            limit.quickAmounts = this.getQuickAmounts(fiat, limit.minAmount, limit.maxAmount);
+-            return limit;
+-        }
+-        const provider = await this.getProvider(regionId, providerId);
+-        const providerSDK = this.providers.get(provider.provider.id);
+-        const limits = await providerSDK.getLimit(provider, fiat, crypto, paymentMethods);
+-        const result = Object.assign(Object.assign({}, limits), { quickAmounts: this.getQuickAmounts(fiat, limits.minAmount, limits.maxAmount) });
+-        return result;
+-    }
+     async getLimits(regionId, paymentMethods, crypto, fiat, abortController) {
+         Utils_1.default.checkParameters({ regionId, paymentMethods, crypto, fiat });
+-        if ((await this.getCountryCache(regionId, abortController)).cachedParameters
+-            .disableLimits) {
++        const cache = await this.getCountryCache(ProviderAction.buy, regionId, paymentMethods, fiat, crypto, abortController);
++        if (!cache.limits) {
+             const limit = this.disabledLimit;
+             limit.quickAmounts = this.getQuickAmounts(fiat, limit.minAmount, limit.maxAmount);
+             return limit;
+         }
+-        let min = Infinity;
+-        let max = -Infinity;
+-        let feeDynamicRate = 0;
+-        let feeFixedRate = 0;
+-        const providers = await this.getRegionProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat, abortController);
+-        for (const provider of providers) {
+-            const providerSDK = this.providers.get(provider.provider.id);
+-            const cleanLimit = await providerSDK.getLimit(provider, fiat, crypto, paymentMethods);
+-            if (cleanLimit) {
+-                if (Number.isFinite(cleanLimit.minAmount)) {
+-                    min = Math.min(min, Math.ceil(cleanLimit.minAmount));
+-                }
+-                if (Number.isFinite(cleanLimit.maxAmount)) {
+-                    max = Math.max(max, Math.floor(cleanLimit.maxAmount));
+-                }
+-                feeDynamicRate = Math.max(feeDynamicRate, cleanLimit.feeDynamicRate);
+-                feeFixedRate = Math.max(feeFixedRate, cleanLimit.feeFixedRate);
+-            }
++        else {
++            return {
++                minAmount: cache.limits.minAmount,
++                maxAmount: cache.limits.maxAmount,
++                feeDynamicRate: cache.limits.feeDynamicRate,
++                feeFixedRate: cache.limits.feeFixedRate,
++                quickAmounts: this.getQuickAmounts(fiat, cache.limits.minAmount, cache.limits.maxAmount),
++            };
+         }
+-        const final = {
+-            minAmount: min == Infinity ? -Infinity : min,
+-            maxAmount: max == -Infinity ? Infinity : max,
+-            feeDynamicRate,
+-            feeFixedRate,
+-            quickAmounts: this.getQuickAmounts(fiat, min, max),
+-        };
+-        return final;
+     }
+     async getSellLimits(regionId, paymentMethods, crypto, fiat) {
+         Utils_1.default.checkParameters({ regionId, paymentMethods, crypto, fiat });
+-        if ((await this.getCountryCache(regionId)).cachedParameters.disableLimits) {
++        const cache = await this.getCountryCache(ProviderAction.sell, regionId, paymentMethods, fiat, crypto, new AbortController());
++        if (!cache.limits) {
+             const limit = this.disabledLimit;
+             limit.quickAmounts = null;
+             return limit;
+         }
+-        let min = Infinity;
+-        let max = -Infinity;
+-        const providers = await this.getRegionProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat);
+-        for (const provider of providers) {
+-            const providerSDK = this.providers.get(provider.provider.id);
+-            const cleanLimit = await providerSDK.getSellLimit(provider, fiat, crypto, paymentMethods);
+-            min = Math.min(min, cleanLimit ? cleanLimit.minAmount : Infinity);
+-            max = Math.max(max, cleanLimit ? cleanLimit.maxAmount : -Infinity);
+-        }
+-        const final = {
+-            minAmount: min == Infinity ? -Infinity : min,
+-            maxAmount: max == -Infinity ? Infinity : max,
+-            feeDynamicRate: 0,
+-            feeFixedRate: 0,
+-            quickAmounts: null,
+-        };
+-        return final;
+-    }
+-    async getProviders(regionId, paymentMethods, crypto, fiat, amount) {
+-        return (await this.getRegionProviders(ProviderAction.buy, regionId, paymentMethods, crypto, fiat, amount)).map((p) => p.provider);
+-    }
+-    async getProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat) {
+-        return (await this.getRegionProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat)).map((p) => p.provider);
+-    }
+-    async getSellProviders(regionId, paymentMethods, crypto, fiat, amount, abortController) {
+-        return (await this.getRegionProviders(ProviderAction.sell, regionId, paymentMethods, crypto, fiat, amount, abortController)).map((p) => p.provider);
+-    }
+-    async getRegionProviders(providerAction, regionId, paymentMethods, crypto, fiat, amount, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethods, crypto, fiat });
+-        if (providerAction === ProviderAction.buy) {
+-            return this.getRegionBuyProviders(regionId, paymentMethods, crypto, fiat, amount, abortController);
+-        }
+-        else if (providerAction === ProviderAction.sell) {
+-            return this.getSellRegionProviders(regionId, paymentMethods, crypto, fiat, amount, abortController);
+-        }
+         else {
+-            throw new Error(`Invalid provider action: ${providerAction}. Must be 'buy' or 'sell'.`);
+-        }
+-    }
+-    async getRegionBuyProviders(regionId, paymentMethods, crypto, fiat, amount, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethods, crypto, fiat });
+-        const providersWithFiat = await this.getRegionProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat, abortController);
+-        if ((await this.getCountryCache(regionId)).cachedParameters.disableLimits) {
+-            return providersWithFiat;
+-        }
+-        const providersWithAmount = [];
+-        for (const provider of providersWithFiat) {
+-            const providerSDK = this.providers.get(provider.provider.id);
+-            const cleanLimit = await (async () => {
+-                var _a;
+-                try {
+-                    return await providerSDK.getLimit(provider, fiat, crypto, paymentMethods);
+-                }
+-                catch (err) {
+-                    this.logger.log(`Unable to retrieve limits for provider ${(_a = provider === null || provider === void 0 ? void 0 : provider.provider) === null || _a === void 0 ? void 0 : _a.name}: ${err}`);
+-                    return null;
+-                }
+-            })();
+-            if (parseInt(amount.toString(), 10) >=
+-                (cleanLimit ? Math.floor(cleanLimit.minAmount) : -Infinity) &&
+-                parseInt(amount.toString(), 10) <=
+-                    (cleanLimit ? Math.ceil(cleanLimit.maxAmount) : Infinity)) {
+-                providersWithAmount.push(provider);
+-            }
+-        }
+-        return providersWithAmount;
+-    }
+-    async getSellRegionProviders(regionId, paymentMethods, crypto, fiat, amount, abortController) {
+-        Utils_1.default.checkParameters({ regionId, paymentMethods, crypto, fiat });
+-        const providersWithFiat = (await this.getRegionProvidersWithoutAmount(regionId, paymentMethods, crypto, fiat, abortController)).filter((p) => {
+-            var _a, _b, _c;
+-            return ((_a = p.provider.features.sell) === null || _a === void 0 ? void 0 : _a.enabled) &&
+-                ((_c = (_b = p.supportedCryptoCurrencies.find((c) => c.id === crypto)) === null || _b === void 0 ? void 0 : _b.sell) === null || _c === void 0 ? void 0 : _c.enabled);
+-        });
+-        if ((await this.getCountryCache(regionId)).cachedParameters.disableLimits) {
+-            return providersWithFiat;
+-        }
+-        const providersWithAmount = [];
+-        for (const provider of providersWithFiat) {
+-            const providerSDK = this.providers.get(provider.provider.id);
+-            const cleanLimit = await (async () => {
+-                var _a;
+-                try {
+-                    return await providerSDK.getSellLimit(provider, fiat, crypto, paymentMethods);
+-                }
+-                catch (err) {
+-                    this.logger.log(`Unable to retrieve limits for provider ${(_a = provider === null || provider === void 0 ? void 0 : provider.provider) === null || _a === void 0 ? void 0 : _a.name}: ${err}`);
+-                    return null;
+-                }
+-            })();
+-            const parsedAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+-            if (parsedAmount >=
+-                (cleanLimit ? Math.floor(cleanLimit.minAmount) : -Infinity) &&
+-                parsedAmount <=
+-                    (cleanLimit ? Math.ceil(cleanLimit.maxAmount) : Infinity)) {
+-                providersWithAmount.push(provider);
+-            }
++            return {
++                minAmount: cache.limits.minAmount,
++                maxAmount: cache.limits.maxAmount,
++                feeDynamicRate: 0,
++                feeFixedRate: 0,
++                quickAmounts: null,
++            };
+         }
+-        return providersWithAmount;
+-    }
+-    async getProvider(regionId, id) {
+-        Utils_1.default.checkParameters({ regionId, id });
+-        return (await this.getCountryCache(regionId)).cachedProviders.get(id);
+     }
+     async getQuotes(regionId, paymentMethods, crypto, fiat, amount, receiver, abortController) {
+         return this.makeQuoteCall(regionId, paymentMethods, crypto, fiat, amount, receiver, ProviderAction.buy, abortController);
+     }
+-    async makeQuoteCall(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController) {
++    async getQuotesWithoutCache(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController) {
+         var _a;
+         Utils_1.default.checkParameters({
+             regionId,
+@@ -516,19 +321,18 @@ class RegionsService {
+             crypto,
+             fiat,
+         });
+-        const providers = await this.getRegionProviders(action, regionId, paymentMethods, crypto, fiat, amount);
+         let quotes;
+         let sorted;
+         let customActions;
+         try {
+-            const { success, error, sorted: sortMetadata, customActions: customActionsData, } = await this.getAllQuotesFromApi(regionId, paymentMethods, crypto, fiat, amount, providers, receiver, action, abortController);
++            const { success, error, sorted: sortMetadata, customActions: customActionsData, } = await this.getAllQuotesFromApiWithoutCache(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController);
+             quotes = [...success, ...error];
+             sorted = sortMetadata;
+             customActions = customActionsData;
+             if (action === ProviderAction.buy) {
+                 customActions = customActionsData.map((paymentCustomAction) => {
+                     var _a;
+-                    paymentCustomAction.buy.provider = (_a = providers.find((provider) => provider.provider.id === paymentCustomAction.buy.providerId)) === null || _a === void 0 ? void 0 : _a.provider;
++                    paymentCustomAction.buy.provider = (_a = success.find((q) => q.provider === paymentCustomAction.buy.providerId)) === null || _a === void 0 ? void 0 : _a.providerInfo;
+                     return paymentCustomAction;
+                 });
+             }
+@@ -557,14 +361,55 @@ class RegionsService {
+         });
+         return { quotes: quotesWithMarketPrice, sorted, customActions };
+     }
+-    async getAllQuotesFromApi(regionId, paymentMethods, crypto, fiat, amount, providers, receiver, action, abortController) {
++    async makeQuoteCall(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController) {
++        var _a;
++        Utils_1.default.checkParameters({
++            regionId,
++            paymentMethods,
++            crypto,
++            fiat,
++        });
++        let quotes;
++        let sorted;
++        let customActions;
++        try {
++            const { success, error, sorted: sortMetadata, customActions: customActionsData, } = await this.getAllQuotesFromApi(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController);
++            quotes = [...success, ...error];
++            sorted = sortMetadata;
++            customActions = customActionsData;
++        }
++        catch (err) {
++            if ((_a = abortController === null || abortController === void 0 ? void 0 : abortController.signal) === null || _a === void 0 ? void 0 : _a.aborted) {
++                throw err;
++            }
++        }
++        let marketPrice;
++        try {
++            marketPrice = await this.getExchangeRateFromAPI(fiat, crypto);
++        }
++        catch (err) {
++            this.logger.log(`Failed to get marketPrice from api: ${err.message}`);
++        }
++        const quotesWithMarketPrice = quotes.map((quoteObj) => {
++            if (quoteObj === null || quoteObj === void 0 ? void 0 : quoteObj.error) {
++                return quoteObj;
++            }
++            const quoteResponse = quoteObj;
++            if (marketPrice) {
++                quoteResponse.amountOutInFiat = marketPrice * quoteResponse.amountOut;
++            }
++            return quoteResponse;
++        });
++        return { quotes: quotesWithMarketPrice, sorted, customActions };
++    }
++    async getAllQuotesFromApi(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController) {
+         Utils_1.default.checkParameters({
+             regionId,
+             paymentMethods,
+             crypto,
+             fiat,
+         });
+-        const countryCache = await this.getCountryCache(regionId);
++        const countryCache = await this.getCountryCache(action, regionId, paymentMethods, fiat, crypto, abortController);
+         const regionFiatCurrency = countryCache.cachedFiatCurrencies.get(fiat);
+         const url = new URL(`${Utils_1.default.trimUrl(this.sdkParameters.environment.orders)}`);
+         url.pathname =
+@@ -580,10 +425,52 @@ class RegionsService {
+                 url.searchParams.set(`paymentMethodId[${index}]`, p);
+             });
+         }
+-        if (providers) {
+-            providers === null || providers === void 0 ? void 0 : providers.forEach((p, index) => {
+-                var _a;
+-                url.searchParams.set(`providers[${index}]`, (_a = p === null || p === void 0 ? void 0 : p.provider) === null || _a === void 0 ? void 0 : _a.id);
++        if (receiver) {
++            url.searchParams.set('walletAddress', receiver);
++        }
++        const response = (await this.axios.get(url.toString(), {
++            signal: abortController.signal,
++        }));
++        const quotesData = response === null || response === void 0 ? void 0 : response.data;
++        const successQuotes = await Promise.all(quotesData.success.map((quote) => {
++            const providerOfQuote = this.providers.get(quote.provider);
++            return providerOfQuote.formatQuote(quote, quote.providerInfo, regionId, quote.quote.paymentMethod, crypto, fiat, amount.toString(), action, receiver);
++        }));
++        const errorQuotes = quotesData.error.map((quote) => {
++            return {
++                error: true,
++                message: 'An unexpected error occured',
++                technicalDetails: Utils_1.default.stringify(quote.err),
++            };
++        });
++        return {
++            success: successQuotes,
++            error: errorQuotes,
++            sorted: quotesData.sorted,
++            customActions: quotesData.customActions,
++        };
++    }
++    async getAllQuotesFromApiWithoutCache(regionId, paymentMethods, crypto, fiat, amount, receiver, action, abortController) {
++        Utils_1.default.checkParameters({
++            regionId,
++            paymentMethods,
++            crypto,
++            fiat,
++        });
++        const url = new URL(`${Utils_1.default.trimUrl(this.sdkParameters.environment.orders)}`);
++        url.pathname =
++            action === ProviderAction.buy
++                ? 'providers/all/quote'
++                : 'providers/all/sell-quote';
++        url.searchParams.set('regionId', regionId);
++        url.searchParams.set('cryptoCurrencyId', crypto);
++        url.searchParams.set('fiatCurrencyId', fiat);
++        if (amount) {
++            url.searchParams.set('amount', amount.toString());
++        }
++        if (paymentMethods) {
++            paymentMethods === null || paymentMethods === void 0 ? void 0 : paymentMethods.forEach((p, index) => {
++                url.searchParams.set(`paymentMethodId[${index}]`, p);
+             });
+         }
+         if (receiver) {
+@@ -593,40 +480,16 @@ class RegionsService {
+             signal: abortController.signal,
+         }));
+         const quotesData = response === null || response === void 0 ? void 0 : response.data;
+-        const successQuotes = await Promise.all(quotesData.success
+-            .filter((quote) => {
+-            const isPaymentMethodExcludedForFiat = regionFiatCurrency.excludedPaymentMethods.includes(quote.quote.paymentMethod);
+-            const cryptoCurrency = countryCache.cachedCryptoCurrencies.get(crypto);
+-            const isFiatExcludedForCrypto = cryptoCurrency.excludedFiat.includes(fiat);
+-            const isFiatPaymentMethodExcludedForCrypto = cryptoCurrency.excludedFiatAndPaymentMethods.some((exclusion) => exclusion.excludedFiat === fiat &&
+-                exclusion.excludedPaymentMethod === quote.quote.paymentMethod);
+-            return (!isPaymentMethodExcludedForFiat &&
+-                !isFiatExcludedForCrypto &&
+-                !isFiatPaymentMethodExcludedForCrypto);
+-        })
+-            .map((quote) => {
++        const successQuotes = await Promise.all(quotesData.success.map((quote) => {
+             const providerOfQuote = this.providers.get(quote.provider);
+-            const provider = providers.find((r) => r.provider.id === providerOfQuote.getId());
+-            return providerOfQuote.formatQuote(quote, provider, regionId, quote.quote.paymentMethod, crypto, fiat, amount.toString(), action, receiver);
++            return providerOfQuote.formatQuote(quote, quote.providerInfo, regionId, quote.quote.paymentMethod, crypto, fiat, amount.toString(), action, receiver);
+         }));
+-        const errorQuotes = quotesData.error
+-            .filter((quote) => {
+-            const isPaymentMethodExcludedForFiat = regionFiatCurrency.excludedPaymentMethods.includes(quote.paymentMethod);
+-            const cryptoCurrency = countryCache.cachedCryptoCurrencies.get(crypto);
+-            const isFiatExcludedForCrypto = cryptoCurrency.excludedFiat.includes(fiat);
+-            const isFiatPaymentMethodExcludedForCrypto = cryptoCurrency.excludedFiatAndPaymentMethods.some((exclusion) => exclusion.excludedFiat === fiat &&
+-                exclusion.excludedPaymentMethod === quote.paymentMethod);
+-            return (!isPaymentMethodExcludedForFiat &&
+-                !isFiatExcludedForCrypto &&
+-                !isFiatPaymentMethodExcludedForCrypto);
+-        })
+-            .map((quote) => {
+-            var _a;
++        const errorQuotes = quotesData.error.map((quote) => {
+             return {
+                 error: true,
+                 message: 'An unexpected error occured',
+                 technicalDetails: Utils_1.default.stringify(quote.err),
+-                provider: (_a = providers.find((r) => r.provider.id === quote.provider)) === null || _a === void 0 ? void 0 : _a.provider,
++                provider: quote.providerInfo,
+             };
+         });
+         return {
+@@ -667,24 +530,16 @@ class RegionsService {
+             crypto,
+             fiat,
+         });
+-        const providers = await this.getSellRegionProviders(regionId, paymentMethods, crypto, fiat, amount, abortController);
+         const amountAsNumber = typeof amount === 'string' ? parseFloat(amount) : amount;
+         const limits = await this.getSellLimits(regionId, paymentMethods, crypto, fiat);
+-        const sellProvidersWithCustomAction = providers.reduce((acc, provider) => {
+-            var _a;
+-            const supportedCustomSellActions = (_a = provider === null || provider === void 0 ? void 0 : provider.supportedPaymentMethods) === null || _a === void 0 ? void 0 : _a.filter((paymentMethod) => {
+-                Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentMethod);
+-                return ((paymentMethod === null || paymentMethod === void 0 ? void 0 : paymentMethod.customAction) &&
+-                    (paymentMethod === null || paymentMethod === void 0 ? void 0 : paymentMethod.sellEnabled) &&
+-                    amountAsNumber >= limits.minAmount &&
+-                    amountAsNumber <= limits.maxAmount);
+-            });
+-            if (supportedCustomSellActions) {
+-                acc = [...acc, ...supportedCustomSellActions];
+-            }
+-            return acc;
+-        }, []);
+-        return sellProvidersWithCustomAction;
++        if (amountAsNumber < limits.minAmount &&
++            amountAsNumber > limits.maxAmount) {
++            return [];
++        }
++        const cache = await this.getCountryCache(ProviderAction.sell, regionId, paymentMethods, fiat, crypto, abortController);
++        const cachePaymentMethods = Array.from(cache.cachedPayments.values());
++        const customActions = cachePaymentMethods.filter((p) => p.customAction && p.sellEnabled);
++        return customActions;
+     }
+     async getCustomActions(regionId, paymentMethods, crypto, fiat, amount, abortController) {
+         Utils_1.default.checkParameters({
+@@ -693,77 +548,20 @@ class RegionsService {
+             crypto,
+             fiat,
+         });
+-        const providers = await this.getRegionProviders(ProviderAction.buy, regionId, paymentMethods, crypto, fiat, amount, abortController);
+         const amountAsNumber = typeof amount === 'string' ? parseFloat(amount) : amount;
+         const limits = await this.getLimits(regionId, paymentMethods, crypto, fiat);
+-        const providersWithCustomAction = providers.reduce((acc, provider) => {
+-            var _a;
+-            const supportedCustomActions = (_a = provider === null || provider === void 0 ? void 0 : provider.supportedPaymentMethods) === null || _a === void 0 ? void 0 : _a.filter((paymentMethod) => {
+-                Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentMethod);
+-                return ((paymentMethod === null || paymentMethod === void 0 ? void 0 : paymentMethod.customAction) &&
+-                    amountAsNumber >= limits.minAmount &&
+-                    amountAsNumber <= limits.maxAmount);
+-            });
+-            if (supportedCustomActions) {
+-                acc = [...acc, ...supportedCustomActions];
+-            }
+-            return acc;
+-        }, []);
+-        return providersWithCustomAction;
++        if (amountAsNumber < limits.minAmount &&
++            amountAsNumber > limits.maxAmount) {
++            return [];
++        }
++        const cache = await this.getCountryCache(ProviderAction.buy, regionId, paymentMethods, fiat, crypto, abortController);
++        const cachePaymentMethods = Array.from(cache.cachedPayments.values());
++        const customActions = cachePaymentMethods.filter((p) => p.customAction);
++        return customActions;
+     }
+     async getSellQuotes(regionId, paymentMethods, crypto, fiat, amount, receiver, abortController) {
+         return this.makeQuoteCall(regionId, paymentMethods, crypto, fiat, amount, receiver, ProviderAction.sell, abortController);
+     }
+-    async getQuote(providerId, regionId, paymentMethods, cryptoId, fiatId, amount, receiver, abortController) {
+-        Utils_1.default.checkParameters({
+-            regionId,
+-            providerId,
+-            paymentMethods,
+-            cryptoId,
+-            fiatId,
+-        });
+-        const provider = await this.getProvider(regionId, providerId);
+-        const quoteUri = provider.quote;
+-        const countryCache = await this.getCountryCache(regionId);
+-        const crypto = countryCache.cachedCryptoCurrencies.get(cryptoId).cryptoCurrency;
+-        const fiat = countryCache.cachedFiatCurrencies.get(fiatId).fiatCurrency;
+-        const providerBehavior = this.providers.get(providerId);
+-        const quoteResponse = await Utils_1.default.try(async () => {
+-            return await providerBehavior.getQuote(provider, quoteUri, regionId, paymentMethods[0], cryptoId, fiatId, amount, receiver, abortController);
+-        }, (result) => !(result === null || result === void 0 ? void 0 : result.error) || !result.canRetry);
+-        quoteResponse.provider = provider.provider;
+-        if (!quoteResponse.error) {
+-            return this.standardizeQuote(quoteResponse, fiat, crypto);
+-        }
+-        else {
+-            return quoteResponse;
+-        }
+-    }
+-    async getSellQuote(providerId, regionId, paymentMethod, cryptoId, fiatId, amount, receiver, abortController) {
+-        Utils_1.default.checkParameters({
+-            regionId,
+-            providerId,
+-            paymentMethod,
+-            cryptoId,
+-            fiatId,
+-        });
+-        const provider = await this.getProvider(regionId, providerId);
+-        const sellQuoteUri = provider.sellQuote;
+-        const countryCache = await this.getCountryCache(regionId);
+-        const crypto = countryCache.cachedCryptoCurrencies.get(cryptoId).cryptoCurrency;
+-        const fiat = countryCache.cachedFiatCurrencies.get(fiatId).fiatCurrency;
+-        const providerBehavior = this.providers.get(providerId);
+-        const sellQuoteResponse = await Utils_1.default.try(async () => {
+-            return await providerBehavior.getSellQuote(provider, sellQuoteUri, regionId, paymentMethod, cryptoId, fiatId, amount, receiver, abortController);
+-        }, (result) => !(result === null || result === void 0 ? void 0 : result.error) || !result.canRetry);
+-        sellQuoteResponse.provider = provider.provider;
+-        if (!sellQuoteResponse.error) {
+-            return this.standardizeSellQuote(sellQuoteResponse, fiat, crypto);
+-        }
+-        else {
+-            return sellQuoteResponse;
+-        }
+-    }
+     getQuickAmounts(fiat, min, max) {
+         const allowedFiat = [
+             '/currencies/fiat/eur',
+@@ -825,7 +623,7 @@ class RegionsService {
+     }
+     async getParameters(regionId) {
+         Utils_1.default.checkParameters({ regionId });
+-        return (await this.getCountryCache(regionId)).cachedParameters;
++        return (await this.getCountryCache(null, regionId, [], null, null, new AbortController())).cachedParameters;
+     }
+     async getCustomOrderIdSeparator(provider, regionId) {
+         if (provider.features.buy.orderCustomIdSeparator) {
+@@ -985,42 +783,6 @@ class RegionsService {
+             throw new Error(`Unsupported redirection type: ${provider.features.buy.redirection}`);
+         }
+     }
+-    async buyCrypto(regionId, fiatCurrencyId, cryptoCurrencyId, cryptoAmount, walletAddress, referral) {
+-        const regionCache = await this.getCountryCache(regionId);
+-        const countries = await this.getCountries();
+-        const fiats = [...regionCache.cachedFiatCurrencies.values()];
+-        const availablePaymentsAndFiat = (() => {
+-            if (fiatCurrencyId) {
+-                return regionCache.cachedPayments
+-                    .filter((pa) => this.getCryptoCurrenciesSync(regionCache, [pa.id], fiatCurrencyId).find((c) => c.id === cryptoCurrencyId))
+-                    .map((pa) => {
+-                    return { paymentId: pa.id, fiatCurrencyId: fiatCurrencyId };
+-                });
+-            }
+-            else {
+-                return regionCache.cachedPayments
+-                    .map((pa) => {
+-                    const defaultFiat = this.getDefaultFiatCurrencySync(countries, fiats, regionId, [pa.id]);
+-                    if (!defaultFiat) {
+-                        return null;
+-                    }
+-                    if (!this.getCryptoCurrenciesSync(regionCache, [pa.id], defaultFiat.id).find((c) => c.id === cryptoCurrencyId)) {
+-                        return null;
+-                    }
+-                    return { paymentId: pa.id, fiatCurrencyId: defaultFiat.id };
+-                })
+-                    .filter((f) => !!f);
+-            }
+-        })();
+-        const quoteParameters = [];
+-        for (const paymentAndFiat of availablePaymentsAndFiat) {
+-            const amount = await this.getFiatAmountFromCryptoAmount(paymentAndFiat.paymentId, cryptoCurrencyId, cryptoAmount);
+-            if (amount) {
+-                quoteParameters.push(new QuoteParameters_1.default(regionId, paymentAndFiat.paymentId, paymentAndFiat.fiatCurrencyId, cryptoCurrencyId, amount, referral));
+-            }
+-        }
+-        return quoteParameters;
+-    }
+     async getFiatAmountFromCryptoAmount(fiatCurrencyId, cryptoCurrencyId, cryptoAmount) {
+         var _a;
+         const url = `${cryptoCurrencyId}/amount?value=${encodeURIComponent(cryptoAmount)}&fiat=${fiatCurrencyId}`;
+@@ -1029,24 +791,30 @@ class RegionsService {
+     getRedirectionUrl(provider) {
+         return `${Utils_1.default.trimUrl(this.sdkParameters.environment.orders)}${provider}/redirect`;
+     }
+-    async getAllProviders(regionId, abortController) {
+-        const providers = [
+-            ...(await this.getCountryCache(regionId, abortController)).cachedProviders.values(),
+-        ];
+-        return providers.map((p) => p.provider);
+-    }
+     async getAllFiatCurrencies(regionId, abortController) {
+-        const allFiat = [
+-            ...(await this.getCountryCache(regionId, abortController)).cachedFiatCurrencies.values(),
+-        ].map((c) => c.fiatCurrency);
++        const allFiat = Array.from((await this.getCountryCache(null, regionId, [], null, null, abortController)).cachedFiatCurrencies.values());
+         return allFiat;
+     }
+     async getAllCryptoCurrencies(regionId, abortController) {
+-        const allCrypto = [
+-            ...(await this.getCountryCache(regionId, abortController)).cachedCryptoCurrencies.values(),
+-        ].map((c) => c.cryptoCurrency);
++        const allCrypto = Array.from((await this.getCountryCache(null, regionId, [], null, null, abortController)).cachedCryptoCurrencies.values());
+         return allCrypto;
+     }
++    async getLight(action, regionId, paymentMethodIds, fiatCurrencyId, cryptoCurrencyId, multiplePayments, abortController) {
++        const result = await Utils_1.default.try(async () => {
++            const axiosResponse = await this.axios.get(regionId + '/light', {
++                params: {
++                    payment: paymentMethodIds === null || paymentMethodIds === void 0 ? void 0 : paymentMethodIds.join(','),
++                    fiat: fiatCurrencyId,
++                    crypto: cryptoCurrencyId,
++                    action: action,
++                    multiplePayments: multiplePayments,
++                },
++                signal: abortController === null || abortController === void 0 ? void 0 : abortController.signal,
++            });
++            return axiosResponse.data;
++        });
++        return result;
++    }
+ }
+ RegionsService.instanceCount = 0;
+ __decorate([
+@@ -1062,16 +830,6 @@ __decorate([
+     __metadata("design:paramtypes", [String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getPaymentMethods", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __param(4, (0, SdkParam_1.default)({ required: false })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String, String, String, AbortController]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "filterPaymentsByCrypto", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1184,16 +942,6 @@ __decorate([
+     __metadata("design:paramtypes", [String, String]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getFiatCurrency", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __param(4, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, String]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getProviderLimits", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1219,19 +967,12 @@ __decorate([
+     __param(2, (0, SdkParam_1.default)({ required: true })),
+     __param(3, (0, SdkParam_1.default)({ required: true })),
+     __param(4, (0, SdkParam_1.default)({ required: true })),
++    __param(5, (0, SdkParam_1.default)({ required: false })),
++    __param(6, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, Number]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getProviders", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String]),
++    __metadata("design:paramtypes", [String, Array, String, String, Object, String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getProvidersWithoutAmount", null);
++], RegionsService.prototype, "getQuotes", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1239,17 +980,12 @@ __decorate([
+     __param(3, (0, SdkParam_1.default)({ required: true })),
+     __param(4, (0, SdkParam_1.default)({ required: true })),
+     __param(5, (0, SdkParam_1.default)({ required: false })),
++    __param(6, (0, SdkParam_1.default)({ required: false })),
++    __param(7, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, Number, AbortController]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getSellProviders", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String]),
++    __metadata("design:paramtypes", [String, Array, String, String, Object, String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getProvider", null);
++], RegionsService.prototype, "getQuotesWithoutCache", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1258,10 +994,11 @@ __decorate([
+     __param(4, (0, SdkParam_1.default)({ required: true })),
+     __param(5, (0, SdkParam_1.default)({ required: false })),
+     __param(6, (0, SdkParam_1.default)({ required: false })),
++    __param(7, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, Object, String, AbortController]),
++    __metadata("design:paramtypes", [String, Array, String, String, Object, String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getQuotes", null);
++], RegionsService.prototype, "makeQuoteCall", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1274,7 +1011,7 @@ __decorate([
+     __metadata("design:type", Function),
+     __metadata("design:paramtypes", [String, Array, String, String, Object, String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "makeQuoteCall", null);
++], RegionsService.prototype, "getAllQuotesFromApi", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1284,11 +1021,10 @@ __decorate([
+     __param(5, (0, SdkParam_1.default)({ required: false })),
+     __param(6, (0, SdkParam_1.default)({ required: false })),
+     __param(7, (0, SdkParam_1.default)({ required: false })),
+-    __param(8, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, Object, Array, String, String, AbortController]),
++    __metadata("design:paramtypes", [String, Array, String, String, Object, String, String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getAllQuotesFromApi", null);
++], RegionsService.prototype, "getAllQuotesFromApiWithoutCache", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1323,19 +1059,6 @@ __decorate([
+     __metadata("design:paramtypes", [String, Array, String, String, Object, String, AbortController]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getSellQuotes", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __param(4, (0, SdkParam_1.default)({ required: true })),
+-    __param(5, (0, SdkParam_1.default)({ required: true })),
+-    __param(6, (0, SdkParam_1.default)({ required: true })),
+-    __param(7, (0, SdkParam_1.default)({ required: false })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String, Array, String, String, Object, String, AbortController]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getQuote", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
+@@ -1360,17 +1083,6 @@ __decorate([
+     __metadata("design:paramtypes", [Object, String, String, String, String, Number, String]),
+     __metadata("design:returntype", Promise)
+ ], RegionsService.prototype, "getSellUrl", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __param(4, (0, SdkParam_1.default)({ required: true })),
+-    __param(5, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String, String, Number, String, String]),
+-    __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "buyCrypto", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+@@ -1383,19 +1095,24 @@ __decorate([
+     __metadata("design:type", Function),
+     __metadata("design:paramtypes", [String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getAllProviders", null);
++], RegionsService.prototype, "getAllFiatCurrencies", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+     __metadata("design:paramtypes", [String, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getAllFiatCurrencies", null);
++], RegionsService.prototype, "getAllCryptoCurrencies", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: false })),
++    __param(1, (0, SdkParam_1.default)({ required: true })),
++    __param(2, (0, SdkParam_1.default)({ required: false })),
++    __param(3, (0, SdkParam_1.default)({ required: false })),
++    __param(4, (0, SdkParam_1.default)({ required: false })),
++    __param(5, (0, SdkParam_1.default)({ required: false })),
++    __param(6, (0, SdkParam_1.default)({ required: false })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, AbortController]),
++    __metadata("design:paramtypes", [String, String, Array, String, String, Boolean, AbortController]),
+     __metadata("design:returntype", Promise)
+-], RegionsService.prototype, "getAllCryptoCurrencies", null);
++], RegionsService.prototype, "getLight", null);
+ exports.default = RegionsService;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.test.js b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.test.js
+index 120f59c..e857249 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.test.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/regions/RegionsService.test.js
+@@ -317,26 +317,6 @@ describe('RegionsService', () => {
+                 expect(cryptos[0].id).toBe('crypto1');
+             });
+         });
+-        describe('getAllProviders', () => {
+-            it('should return all providers for a region', async () => {
+-                const mockCache = {
+-                    cachedProviders: new Map([
+-                        [
+-                            'provider1',
+-                            { provider: { id: 'provider1', name: 'Provider 1' } },
+-                        ],
+-                        [
+-                            'provider2',
+-                            { provider: { id: 'provider2', name: 'Provider 2' } },
+-                        ],
+-                    ]),
+-                };
+-                jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const providers = await service.getAllProviders('region1');
+-                expect(providers).toHaveLength(2);
+-                expect(providers[0].id).toBe('provider1');
+-            });
+-        });
+         describe('getAllFiatCurrencies', () => {
+             it('should return all fiat currencies for a region', async () => {
+                 const mockCache = {
+@@ -414,7 +394,7 @@ describe('RegionsService', () => {
+                 const createSpy = jest
+                     .spyOn(CountryCache_1.CountryCache, 'Create')
+                     .mockResolvedValue(mockCache);
+-                await service['getCountryCache']('region1');
++                await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
+                 expect(createSpy).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.anything(), 'region1', undefined);
+             });
+             it('should reuse existing cache when not expired', async () => {
+@@ -425,8 +405,8 @@ describe('RegionsService', () => {
+                 const createSpy = jest
+                     .spyOn(CountryCache_1.CountryCache, 'Create')
+                     .mockResolvedValue(mockCache);
+-                await service['getCountryCache']('region1');
+-                await service['getCountryCache']('region1');
++                await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
++                await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
+                 expect(createSpy).toHaveBeenCalledTimes(1);
+             });
+             it('should refresh expired cache', async () => {
+@@ -442,8 +422,8 @@ describe('RegionsService', () => {
+                     .spyOn(CountryCache_1.CountryCache, 'Create')
+                     .mockResolvedValueOnce(expiredCache)
+                     .mockResolvedValueOnce(newCache);
+-                await service['getCountryCache']('region1');
+-                await service['getCountryCache']('region1');
++                await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
++                await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
+                 expect(createSpy).toHaveBeenCalledTimes(2);
+             });
+             it('should keep using expired cache if refresh fails', async () => {
+@@ -455,53 +435,13 @@ describe('RegionsService', () => {
+                     .spyOn(CountryCache_1.CountryCache, 'Create')
+                     .mockResolvedValue(expiredCache);
+                 createSpy.mockClear();
+-                const cache1 = await service['getCountryCache']('region1');
++                const cache1 = await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
+                 createSpy.mockRejectedValueOnce(new Error('Network error'));
+-                const cache2 = await service['getCountryCache']('region1');
++                const cache2 = await service['getCountryCache'](null, 'region1', [], null, null, new AbortController());
+                 expect(cache1).toBe(cache2);
+                 expect(createSpy).toHaveBeenCalledTimes(3);
+             });
+         });
+-        describe('getProviderLimits', () => {
+-            it('should return disabled limits when configured', async () => {
+-                const mockCache = {
+-                    cachedParameters: {
+-                        disableLimits: true,
+-                    },
+-                };
+-                jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const limits = await service.getProviderLimits('region1', ['payment1'], 'crypto1', 'fiat1', 'provider1');
+-                expect(limits.minAmount).toBe(-Infinity);
+-                expect(limits.maxAmount).toBe(Infinity);
+-                expect(limits.quickAmounts).toEqual(expect.any(Array));
+-            });
+-            it('should get limits from provider SDK', async () => {
+-                const mockCache = {
+-                    cachedParameters: {
+-                        disableLimits: false,
+-                    },
+-                    cachedProviders: new Map([
+-                        ['provider1', { provider: { id: 'provider1' } }],
+-                    ]),
+-                };
+-                jest.spyOn(CountryCache_1.CountryCache, 'Create').mockResolvedValue(mockCache);
+-                const mockProviderSdk = {
+-                    getLimit: jest.fn().mockResolvedValue({
+-                        minAmount: 100,
+-                        maxAmount: 1000,
+-                        feeDynamicRate: 0.01,
+-                        feeFixedRate: 1,
+-                    }),
+-                };
+-                service['providers'] = {
+-                    get: jest.fn().mockReturnValue(mockProviderSdk),
+-                };
+-                const limits = await service.getProviderLimits('region1', ['payment1'], 'crypto1', 'fiat1', 'provider1');
+-                expect(limits.minAmount).toBe(100);
+-                expect(limits.maxAmount).toBe(1000);
+-                expect(mockProviderSdk.getLimit).toHaveBeenCalled();
+-            });
+-        });
+         describe('getLimits', () => {
+             it('should return disabled limits when configured', async () => {
+                 const mockCache = {
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.d.ts
+index a9ef737..f24e60b 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.d.ts
++++ b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.d.ts
+@@ -1,7 +1,5 @@
+ import OnRampSdkParameters from '../OnRampSdkParameters';
+ import { Logger } from '../Logger';
+-import { CountryReport, CountryReportDetails, CryptoCurrencyReport, CryptoCurrencyReportDetails, FiatCurrencyReport, FiatCurrencyReportDetails, PaymentReport, PaymentReportDetails, ProviderReport, ProviderReportDetails, SystemReport } from '../API';
+-import QuoteReport from './QuoteReport';
+ import { RegionsService } from 'src/OnRampSdk';
+ export default class ReportsService {
+     private readonly axios;
+@@ -9,16 +7,4 @@ export default class ReportsService {
+     private readonly sdkParameters;
+     private readonly buildRegionsService;
+     constructor(axios: any, logger: Logger, sdkParameters: OnRampSdkParameters, buildRegionsService: () => Promise<RegionsService>);
+-    getProvider(id: string, providers?: string[]): Promise<ProviderReportDetails>;
+-    getProviders(providers?: string[]): Promise<ProviderReport[]>;
+-    getCountry(id: string, providers?: string[]): Promise<CountryReportDetails>;
+-    getCountries(providers?: string[]): Promise<CountryReport[]>;
+-    getPayment(id: string, providers?: string[]): Promise<PaymentReportDetails>;
+-    getPayments(providers?: string[]): Promise<PaymentReport[]>;
+-    getCryptoCurrency(id: string, providers?: string[]): Promise<CryptoCurrencyReportDetails>;
+-    getCryptoCurrencies(providers?: string[]): Promise<CryptoCurrencyReport[]>;
+-    getFiatCurrency(id: string, providers?: string[]): Promise<FiatCurrencyReportDetails>;
+-    getFiatCurrencies(providers?: string[]): Promise<FiatCurrencyReport[]>;
+-    getSystem(): Promise<SystemReport>;
+-    getQuote(regionId: string, paymentMethodIds: string[], fiatId: string, cryptoId: string, amount: number, providerId: string, receiver: string): Promise<QuoteReport>;
+ }
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.js b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.js
+index b80c881..d1266c3 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.js
+@@ -1,22 +1,5 @@
+ "use strict";
+-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+-    return c > 3 && r && Object.defineProperty(target, key, r), r;
+-};
+-var __metadata = (this && this.__metadata) || function (k, v) {
+-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+-};
+-var __param = (this && this.__param) || function (paramIndex, decorator) {
+-    return function (target, key) { decorator(target, key, paramIndex); }
+-};
+-var __importDefault = (this && this.__importDefault) || function (mod) {
+-    return (mod && mod.__esModule) ? mod : { "default": mod };
+-};
+ Object.defineProperty(exports, "__esModule", { value: true });
+-const Utils_1 = __importDefault(require("../Utils"));
+-const SdkParam_1 = __importDefault(require("../SdkParam"));
+ class ReportsService {
+     constructor(axios, logger, sdkParameters, buildRegionsService) {
+         this.axios = axios;
+@@ -24,193 +7,5 @@ class ReportsService {
+         this.sdkParameters = sdkParameters;
+         this.buildRegionsService = buildRegionsService;
+     }
+-    async getProvider(id, providers) {
+-        var _a, _b, _c, _d;
+-        const providerReport = (await this.axios.get(`/reports${id}${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        const payments = [
+-            (_b = (_a = providerReport.supportedPayments) === null || _a === void 0 ? void 0 : _a.map((p) => p)) !== null && _b !== void 0 ? _b : [],
+-            (_d = (_c = providerReport.declaredPayments) === null || _c === void 0 ? void 0 : _c.map((p) => p.payment)) !== null && _d !== void 0 ? _d : [],
+-        ].flat();
+-        for (const paymentReport of payments.filter((p) => p.payment)) {
+-            Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-        }
+-        return providerReport;
+-    }
+-    async getProviders(providers) {
+-        const response = (await this.axios.get(`/reports/providers${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        for (const providerReport of response.providers) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        }
+-        return response.providers;
+-    }
+-    async getCountry(id, providers) {
+-        var _a, _b;
+-        const countryReport = (await this.axios.get(`/reports${id}${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        for (const providerReport of (_a = countryReport.supportedProviders) !== null && _a !== void 0 ? _a : []) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        }
+-        for (const paymentReport of (_b = countryReport.supportedPayments) !== null && _b !== void 0 ? _b : []) {
+-            if (paymentReport.payment) {
+-                Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-            }
+-        }
+-        return countryReport;
+-    }
+-    async getCountries(providers) {
+-        const response = (await this.axios.get(`/reports/regions/countries${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        return response.countries;
+-    }
+-    async getPayment(id, providers) {
+-        var _a;
+-        const paymentReport = (await this.axios.get(`/reports${id}${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        if (paymentReport.payment) {
+-            Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-        }
+-        for (const providerReport of (_a = paymentReport.supportedProviders) !== null && _a !== void 0 ? _a : []) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        }
+-        return paymentReport;
+-    }
+-    async getPayments(providers) {
+-        const response = (await this.axios.get(`/reports/payments${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        for (const paymentReport of response.payments.filter((p) => p.payment)) {
+-            Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-        }
+-        return response.payments;
+-    }
+-    async getCryptoCurrency(id, providers) {
+-        var _a, _b;
+-        const cryptoReport = (await this.axios.get(`/reports${id}${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        for (const providerReport of (_a = cryptoReport.supportedProviders) !== null && _a !== void 0 ? _a : []) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        }
+-        for (const paymentReport of (_b = cryptoReport.supportedPayments) !== null && _b !== void 0 ? _b : []) {
+-            if (paymentReport.payment) {
+-                Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-            }
+-        }
+-        return cryptoReport;
+-    }
+-    async getCryptoCurrencies(providers) {
+-        const response = (await this.axios.get(`/reports/currencies/crypto${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        return response.cryptoCurrencies;
+-    }
+-    async getFiatCurrency(id, providers) {
+-        var _a, _b;
+-        const fiatReport = (await this.axios.get(`/reports${id}${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        for (const providerReport of (_a = fiatReport.supportedProviders) !== null && _a !== void 0 ? _a : []) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport.provider);
+-        }
+-        for (const paymentReport of (_b = fiatReport.supportedPayments) !== null && _b !== void 0 ? _b : []) {
+-            if (paymentReport.payment) {
+-                Utils_1.default.setPaymentAbsoluteUrls(this.sdkParameters.environment.regions, paymentReport.payment);
+-            }
+-        }
+-        return fiatReport;
+-    }
+-    async getFiatCurrencies(providers) {
+-        const response = (await this.axios.get(`/reports/currencies/fiat${providers ? '?providers=' + providers.join(',') : ''}`)).data;
+-        return response.fiatCurrencies;
+-    }
+-    async getSystem() {
+-        const response = (await this.axios.get(`/reports/system`))
+-            .data;
+-        for (const providerReport of response.ambiguousCryptoCurrencies
+-            .map((c) => { var _a; return (_a = c.providers.map((p) => p.provider)) !== null && _a !== void 0 ? _a : []; })
+-            .flat()) {
+-            Utils_1.default.setProviderAbsoluteUrls(this.sdkParameters.environment.regions, providerReport);
+-        }
+-        return response;
+-    }
+-    async getQuote(regionId, paymentMethodIds, fiatId, cryptoId, amount, providerId, receiver) {
+-        var _a;
+-        const regions = await this.buildRegionsService();
+-        const countries = await regions.getCountries();
+-        const country = countries.find((c) => c.id === regionId);
+-        const state = countries
+-            .map((c) => { var _a; return (_a = c.states) !== null && _a !== void 0 ? _a : []; })
+-            .flat()
+-            .find((s) => s.id === regionId);
+-        const error = (message) => {
+-            return {
+-                errorMessage: message,
+-            };
+-        };
+-        if (!country && !state) {
+-            return error('This region could not be identified.');
+-        }
+-        if (state) {
+-            if (!state.support.buy) {
+-                return error('This state is not supported.');
+-            }
+-        }
+-        else {
+-            if (!country.support.buy) {
+-                return error('This country is not supported.');
+-            }
+-        }
+-        const supportedPaymentMethods = await Promise.all(paymentMethodIds.map((id) => regions.getPaymentMethod(regionId, id)));
+-        if (!supportedPaymentMethods.some((payment) => payment)) {
+-            return error('None of the payment methods are supported in this region. Please use other payment methods.');
+-        }
+-        const fiatCurrency = await regions.getFiatCurrency(regionId, fiatId);
+-        if (!fiatCurrency) {
+-            return error('This fiat currency is not supported in this region. Please use another fiat currency.');
+-        }
+-        const cryptoCurrency = await regions.getCryptoCurrency(regionId, cryptoId);
+-        if (!cryptoCurrency) {
+-            return error('This crypto currency is not supported in this region. Please use another crypto currency.');
+-        }
+-        const provider = (_a = (await regions.getProvider(regionId, providerId))) === null || _a === void 0 ? void 0 : _a.provider;
+-        if (!provider) {
+-            return error('This provider is not supported in this region. Please use another provider.');
+-        }
+-        const supportedFiat = await regions.getFiatCurrencies(regionId, paymentMethodIds);
+-        if (!supportedFiat.find((f) => f.id === fiatCurrency.id)) {
+-            return error('This fiat currency is available in this region, but not with these payment methods. Please use other payment methods.');
+-        }
+-        const supportedCrypto = await regions.getCryptoCurrencies(regionId, paymentMethodIds);
+-        if (!supportedCrypto.find((c) => c.id === cryptoCurrency.id)) {
+-            return error('This crypto currency is available in this region, but not with these payment methods. Please use other payment methods.');
+-        }
+-        const supportedCryptoForFiat = await regions.getCryptoCurrencies(regionId, paymentMethodIds, fiatId);
+-        if (!supportedCryptoForFiat.find((c) => c.id === cryptoCurrency.id)) {
+-            return error('This crypto currency available in this region for these payment methods, but not with this fiat currency. Please use another fiat currency.');
+-        }
+-        const supportedProvidersWithoutAmount = await regions.getProvidersWithoutAmount(regionId, paymentMethodIds, cryptoId, fiatId);
+-        if (!supportedProvidersWithoutAmount.find((p) => p.id === providerId)) {
+-            return error('This provider is available in this region for these payment methods and fiat currency, but not with this crypto currency. Please use another crypto currency.');
+-        }
+-        const supportedProviders = await regions.getProviders(regionId, paymentMethodIds, cryptoId, fiatId, amount);
+-        if (!supportedProviders.find((p) => p.id === providerId)) {
+-            const limits = await regions.getProviderLimits(regionId, paymentMethodIds, cryptoId, fiatId, providerId);
+-            if (amount < limits.minAmount || amount > limits.maxAmount) {
+-                return error(`The provider is available in this region for these payment methods, fiat currency and crypto currencies, but not with this amount. Please use an amount between ${limits.minAmount} and ${limits.maxAmount}.`);
+-            }
+-            else {
+-                return error(`The provider is supposed to be available, but is not. It may be a bug, and it might be linked to the amount.`);
+-            }
+-        }
+-        const quote = await regions.getQuote(providerId, regionId, paymentMethodIds, cryptoId, fiatId, amount, receiver);
+-        if (!quote) {
+-            return error(`A quote should have been available, but could not be retrieved. This may be a bug.`);
+-        }
+-        return {
+-            quote: quote,
+-        };
+-    }
+ }
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __param(2, (0, SdkParam_1.default)({ required: true })),
+-    __param(3, (0, SdkParam_1.default)({ required: true })),
+-    __param(4, (0, SdkParam_1.default)({ required: true })),
+-    __param(5, (0, SdkParam_1.default)({ required: true })),
+-    __param(6, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, Array, String, String, Number, String, String]),
+-    __metadata("design:returntype", Promise)
+-], ReportsService.prototype, "getQuote", null);
+ exports.default = ReportsService;
+diff --git a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.test.js b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.test.js
+index 0f40ed7..5e45ad2 100644
+--- a/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.test.js
++++ b/node_modules/@consensys/on-ramp-sdk/dist/reports/ReportsService.test.js
+@@ -1,9 +1,5 @@
+ "use strict";
+-var __importDefault = (this && this.__importDefault) || function (mod) {
+-    return (mod && mod.__esModule) ? mod : { "default": mod };
+-};
+ Object.defineProperty(exports, "__esModule", { value: true });
+-const ReportsService_1 = __importDefault(require("./ReportsService"));
+ describe('ReportsService', () => {
+     let service;
+     let mockAxios;
+@@ -11,358 +7,4 @@ describe('ReportsService', () => {
+     let mockSdkParameters;
+     let mockRegionsService;
+     let mockBuildRegionsService;
+-    beforeEach(() => {
+-        mockAxios = {
+-            get: jest.fn(),
+-        };
+-        mockLogger = {};
+-        mockSdkParameters = {
+-            environment: {
+-                regions: 'https://test.com',
+-            },
+-        };
+-        mockRegionsService = {
+-            getCountries: jest.fn(),
+-            getPaymentMethod: jest.fn(),
+-            getFiatCurrency: jest.fn(),
+-            getCryptoCurrency: jest.fn(),
+-            getProvider: jest.fn(),
+-            getFiatCurrencies: jest.fn(),
+-            getCryptoCurrencies: jest.fn(),
+-            getProvidersWithoutAmount: jest.fn(),
+-            getProviders: jest.fn(),
+-            getProviderLimits: jest.fn(),
+-            getQuote: jest.fn(),
+-        };
+-        mockBuildRegionsService = jest.fn().mockResolvedValue(mockRegionsService);
+-        service = new ReportsService_1.default(mockAxios, mockLogger, mockSdkParameters, mockBuildRegionsService);
+-    });
+-    describe('getProvider', () => {
+-        it('should get provider details without providers parameter', async () => {
+-            const mockResponse = {
+-                data: {
+-                    provider: {
+-                        id: 'test-provider',
+-                        logos: {},
+-                    },
+-                    supportedPayments: [{ payment: { id: 'card', logos: {} } }],
+-                    declaredPayments: [{ payment: { id: 'bank', logos: {} } }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getProvider('test-id');
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportstest-id');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-        it('should get provider details with providers parameter', async () => {
+-            const providers = ['provider1', 'provider2'];
+-            mockAxios.get.mockResolvedValue({ data: { provider: {} } });
+-            await service.getProvider('test-id', providers);
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportstest-id?providers=provider1,provider2');
+-        });
+-    });
+-    describe('getProviders', () => {
+-        it('should get all providers without providers parameter', async () => {
+-            const mockResponse = {
+-                data: {
+-                    providers: [
+-                        { provider: { id: 'provider1', logos: {} } },
+-                        { provider: { id: 'provider2', logos: {} } },
+-                    ],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getProviders();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/providers');
+-            expect(result).toEqual(mockResponse.data.providers);
+-        });
+-        it('should get providers with providers parameter', async () => {
+-            const providers = ['provider1', 'provider2'];
+-            mockAxios.get.mockResolvedValue({ data: { providers: [] } });
+-            await service.getProviders(providers);
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/providers?providers=provider1,provider2');
+-        });
+-    });
+-    describe('getQuote', () => {
+-        const validParams = {
+-            regionId: 'US',
+-            paymentId: 'card',
+-            fiatId: 'USD',
+-            cryptoId: 'BTC',
+-            amount: 100,
+-            providerId: 'provider1',
+-            receiver: '0x123',
+-        };
+-        beforeEach(() => {
+-            mockRegionsService.getCountries.mockResolvedValue([
+-                { id: 'US', support: { buy: true } },
+-            ]);
+-            mockRegionsService.getPaymentMethod.mockResolvedValue({ id: 'card' });
+-            mockRegionsService.getFiatCurrency.mockResolvedValue({ id: 'USD' });
+-            mockRegionsService.getCryptoCurrency.mockResolvedValue({ id: 'BTC' });
+-            mockRegionsService.getProvider.mockResolvedValue({
+-                provider: { id: 'provider1' },
+-            });
+-            mockRegionsService.getFiatCurrencies.mockResolvedValue([{ id: 'USD' }]);
+-            mockRegionsService.getCryptoCurrencies.mockResolvedValue([{ id: 'BTC' }]);
+-            mockRegionsService.getProvidersWithoutAmount.mockResolvedValue([
+-                { id: 'provider1' },
+-            ]);
+-            mockRegionsService.getProviders.mockResolvedValue([{ id: 'provider1' }]);
+-            mockRegionsService.getQuote.mockResolvedValue({ id: 'quote1' });
+-        });
+-        it('should return quote when all parameters are valid', async () => {
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result).toEqual({ quote: { id: 'quote1' } });
+-        });
+-        it('should return error when region is not found', async () => {
+-            mockRegionsService.getCountries.mockResolvedValue([]);
+-            const result = await service.getQuote('INVALID', [validParams.paymentId], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result).toEqual({
+-                errorMessage: 'This region could not be identified.',
+-            });
+-        });
+-        it('should return error when country does not support buy', async () => {
+-            mockRegionsService.getCountries.mockResolvedValue([
+-                { id: 'US', support: { buy: false } },
+-            ]);
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result).toEqual({
+-                errorMessage: 'This country is not supported.',
+-            });
+-        });
+-    });
+-    describe('getCountry', () => {
+-        it('should get country details without providers parameter', async () => {
+-            const mockResponse = {
+-                data: {
+-                    supportedProviders: [{ provider: { id: 'provider1', logos: {} } }],
+-                    supportedPayments: [{ payment: { id: 'card', logos: {} } }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getCountry('US');
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportsUS');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-        it('should get country details with providers parameter', async () => {
+-            const providers = ['provider1', 'provider2'];
+-            mockAxios.get.mockResolvedValue({ data: {} });
+-            await service.getCountry('US', providers);
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportsUS?providers=provider1,provider2');
+-        });
+-    });
+-    describe('getCountries', () => {
+-        it('should get all countries without providers parameter', async () => {
+-            const mockResponse = {
+-                data: {
+-                    countries: [{ id: 'US' }, { id: 'UK' }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getCountries();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/regions/countries');
+-            expect(result).toEqual(mockResponse.data.countries);
+-        });
+-    });
+-    describe('getPayment', () => {
+-        it('should get payment details', async () => {
+-            const mockResponse = {
+-                data: {
+-                    payment: { id: 'card', logos: {} },
+-                    supportedProviders: [{ provider: { id: 'provider1', logos: {} } }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getPayment('card');
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportscard');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-    });
+-    describe('getPayments', () => {
+-        it('should get all payments', async () => {
+-            const mockResponse = {
+-                data: {
+-                    payments: [
+-                        { payment: { id: 'card', logos: {} } },
+-                        { payment: { id: 'bank', logos: {} } },
+-                    ],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getPayments();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/payments');
+-            expect(result).toEqual(mockResponse.data.payments);
+-        });
+-    });
+-    describe('getCryptoCurrency', () => {
+-        it('should get crypto currency details', async () => {
+-            const mockResponse = {
+-                data: {
+-                    supportedProviders: [{ provider: { id: 'provider1', logos: {} } }],
+-                    supportedPayments: [{ payment: { id: 'card', logos: {} } }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getCryptoCurrency('BTC');
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportsBTC');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-    });
+-    describe('getCryptoCurrencies', () => {
+-        it('should get all crypto currencies', async () => {
+-            const mockResponse = {
+-                data: {
+-                    cryptoCurrencies: [{ id: 'BTC' }, { id: 'ETH' }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getCryptoCurrencies();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/currencies/crypto');
+-            expect(result).toEqual(mockResponse.data.cryptoCurrencies);
+-        });
+-    });
+-    describe('getFiatCurrency', () => {
+-        it('should get fiat currency details', async () => {
+-            const mockResponse = {
+-                data: {
+-                    supportedProviders: [{ provider: { id: 'provider1', logos: {} } }],
+-                    supportedPayments: [{ payment: { id: 'card', logos: {} } }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getFiatCurrency('USD');
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reportsUSD');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-    });
+-    describe('getFiatCurrencies', () => {
+-        it('should get all fiat currencies', async () => {
+-            const mockResponse = {
+-                data: {
+-                    fiatCurrencies: [{ id: 'USD' }, { id: 'EUR' }],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getFiatCurrencies();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/currencies/fiat');
+-            expect(result).toEqual(mockResponse.data.fiatCurrencies);
+-        });
+-    });
+-    describe('getSystem', () => {
+-        it('should get system report', async () => {
+-            const mockResponse = {
+-                data: {
+-                    ambiguousCryptoCurrencies: [
+-                        {
+-                            providers: [{ provider: { id: 'provider1', logos: {} } }],
+-                        },
+-                    ],
+-                },
+-            };
+-            mockAxios.get.mockResolvedValue(mockResponse);
+-            const result = await service.getSystem();
+-            expect(mockAxios.get).toHaveBeenCalledWith('/reports/system');
+-            expect(result).toEqual(mockResponse.data);
+-        });
+-    });
+-    describe('getQuote additional tests', () => {
+-        const validParams = {
+-            regionId: 'US',
+-            paymentId: 'card',
+-            fiatId: 'USD',
+-            cryptoId: 'BTC',
+-            amount: 100,
+-            providerId: 'valid-provider',
+-            receiver: '0x123',
+-        };
+-        beforeEach(() => {
+-            mockRegionsService.getCountries.mockResolvedValue([
+-                { id: 'US', support: { buy: true } },
+-            ]);
+-        });
+-        it('should return error when payment method is not supported', async () => {
+-            mockRegionsService.getPaymentMethod.mockResolvedValue(undefined);
+-            const result = await service.getQuote(validParams.regionId, ['invalid-payment'], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toBe('None of the payment methods are supported in this region. Please use other payment methods.');
+-        });
+-        it('should return error when fiat currency is not supported', async () => {
+-            mockRegionsService.getPaymentMethod.mockResolvedValue({
+-                id: 'valid-payment',
+-                name: 'Valid Payment',
+-            });
+-            mockRegionsService.getFiatCurrency.mockResolvedValue(null);
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], 'INVALID', validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toContain('fiat currency is not supported');
+-        });
+-        it('should return error when crypto currency is not supported', async () => {
+-            mockRegionsService.getPaymentMethod.mockResolvedValue({
+-                id: 'valid-payment',
+-                name: 'Valid Payment',
+-            });
+-            mockRegionsService.getFiatCurrency.mockResolvedValue({
+-                id: 'valid-fiat',
+-                name: 'Valid Fiat',
+-            });
+-            mockRegionsService.getCryptoCurrency.mockResolvedValue(null);
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], validParams.fiatId, 'INVALID', validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toContain('crypto currency is not supported');
+-        });
+-        it('should return error when provider is not supported', async () => {
+-            mockRegionsService.getPaymentMethod.mockResolvedValue({
+-                id: 'valid-payment',
+-                name: 'Valid Payment',
+-            });
+-            mockRegionsService.getFiatCurrency.mockResolvedValue({
+-                id: 'valid-fiat',
+-                name: 'Valid Fiat',
+-            });
+-            mockRegionsService.getCryptoCurrency.mockResolvedValue({
+-                id: 'valid-crypto',
+-                name: 'Valid Crypto',
+-            });
+-            mockRegionsService.getProvider.mockResolvedValue(null);
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toContain('provider is not supported');
+-        });
+-        it.skip('should return error when amount is outside limits', async () => {
+-            mockRegionsService.getPaymentMethod.mockResolvedValue({
+-                id: 'valid-payment',
+-                name: 'Valid Payment',
+-            });
+-            mockRegionsService.getFiatCurrency.mockResolvedValue({
+-                id: 'valid-fiat',
+-                name: 'Valid Fiat',
+-            });
+-            mockRegionsService.getCryptoCurrency.mockResolvedValue({
+-                id: 'valid-crypto',
+-                name: 'Valid Crypto',
+-            });
+-            mockRegionsService.getProvider.mockResolvedValue({
+-                id: 'valid-provider',
+-                provider: 'valid-provider',
+-                name: 'Valid Provider',
+-            });
+-            mockRegionsService.getProviders.mockResolvedValue([
+-                'Provider1',
+-                'Provider2',
+-            ]);
+-            mockRegionsService.getProviderLimits.mockResolvedValue({
+-                minAmount: 50,
+-                maxAmount: 1000,
+-            });
+-            const result = await service.getQuote(validParams.regionId, [validParams.paymentId], validParams.fiatId, validParams.cryptoId, 10, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toContain('amount between');
+-        });
+-        it('should handle state support', async () => {
+-            mockRegionsService.getCountries.mockResolvedValue([
+-                {
+-                    id: 'US',
+-                    states: [{ id: 'US-NY', support: { buy: false } }],
+-                },
+-            ]);
+-            const result = await service.getQuote('US-NY', [validParams.paymentId], validParams.fiatId, validParams.cryptoId, validParams.amount, validParams.providerId, validParams.receiver);
+-            expect(result.errorMessage).toBe('This state is not supported.');
+-        });
+-    });
+ });
