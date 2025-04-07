@@ -90,7 +90,7 @@ const selectProviderNetworkImageSource = createSelector(
 
 const selectChainIdToUse = createSelector(
   [
-    selectNetworkConfigurations,
+    selectEvmNetworkConfigurationsByChainId,
     makeSelectDomainNetworkClientId(),
     selectNetworkClientId,
   ],
@@ -100,8 +100,9 @@ const selectChainIdToUse = createSelector(
 
     let chainIdToUse;
 
+    console.log('>>> networkConfigurations', networkConfigurations);
     for (const networkConfig of Object.values(
-      networkConfigurations as Record<Hex, NetworkConfiguration>,
+      networkConfigurations as unknown as Record<Hex, NetworkConfiguration>,
     )) {
       const matchingRpcEndpoint = networkConfig.rpcEndpoints.find(
         (endpoint) => endpoint.networkClientId === relevantNetworkClientId,
