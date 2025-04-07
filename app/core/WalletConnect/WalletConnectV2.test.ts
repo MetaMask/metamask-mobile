@@ -745,7 +745,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('should remove all pending session requests', async () => {
+    it('removes all pending session requests', async () => {
       const mockPendingRequests = [
         { id: 1, topic: 'topic1', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } },
         { id: 2, topic: 'topic2', params: { request: { method: 'eth_sendTransaction', params: [] }, chainId: '0x1' }, verifyContext: { verified: { verifyUrl: 'https://example.com', validation: 'VALID' as const, origin: 'https://example.com' } } }
