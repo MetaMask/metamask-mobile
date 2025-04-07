@@ -524,6 +524,1056 @@ exports[`LoadingQuotes component renders correctly 1`] = `
 ]
 `;
 
+exports[`Quotes custom action renders correctly after animation with the recommended custom action 1`] = `
+<View
+  style={
+    {
+      "flex": 1,
+    }
+  }
+>
+  <RNCSafeAreaProvider
+    onInsetsChange={[Function]}
+    style={
+      [
+        {
+          "flex": 1,
+        },
+        undefined,
+      ]
+    }
+  >
+    <View
+      collapsable={false}
+      pointerEvents="box-none"
+      style={
+        {
+          "zIndex": 1,
+        }
+      }
+    >
+      <View
+        accessibilityElementsHidden={false}
+        importantForAccessibility="auto"
+        onLayout={[Function]}
+        pointerEvents="box-none"
+        style={null}
+      >
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "bottom": 0,
+              "left": 0,
+              "opacity": 1,
+              "position": "absolute",
+              "right": 0,
+              "top": 0,
+              "zIndex": 0,
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            style={
+              {
+                "backgroundColor": "#ffffff",
+                "borderBottomColor": "rgb(216, 216, 216)",
+                "elevation": 0,
+                "flex": 1,
+                "shadowColor": "transparent",
+                "shadowOffset": {
+                  "height": 0.5,
+                  "width": 0,
+                },
+                "shadowOpacity": 0.85,
+                "shadowRadius": 0,
+              }
+            }
+          />
+        </View>
+        <View
+          collapsable={false}
+          pointerEvents="box-none"
+          style={
+            {
+              "height": 64,
+              "maxHeight": undefined,
+              "minHeight": undefined,
+              "opacity": undefined,
+              "transform": undefined,
+            }
+          }
+        >
+          <View
+            pointerEvents="none"
+            style={
+              {
+                "height": 20,
+              }
+            }
+          />
+          <View
+            pointerEvents="box-none"
+            style={
+              {
+                "alignItems": "center",
+                "flex": 1,
+                "flexDirection": "row",
+                "justifyContent": "center",
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-start",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "left": 0,
+                  "opacity": 1,
+                  "position": "absolute",
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Back
+                </Text>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "marginHorizontal": 72,
+                  "opacity": 1,
+                }
+              }
+            >
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={[Function]}
+                style={
+                  {
+                    "alignItems": "center",
+                    "justifyContent": "center",
+                  }
+                }
+              >
+                <Text
+                  accessibilityRole="text"
+                  numberOfLines={1}
+                  style={
+                    {
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
+                      "fontWeight": "700",
+                      "letterSpacing": 0,
+                      "lineHeight": 24,
+                    }
+                  }
+                >
+                  Select a Quote
+                </Text>
+                <View
+                  style={
+                    {
+                      "alignItems": "center",
+                      "flexDirection": "row",
+                    }
+                  }
+                >
+                  <Text
+                    accessibilityRole="text"
+                    numberOfLines={1}
+                    style={
+                      {
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
+                        "fontWeight": "400",
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
+                    }
+                  >
+                    Ethereum Main Network
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View
+              collapsable={false}
+              pointerEvents="box-none"
+              style={
+                {
+                  "alignItems": "flex-end",
+                  "bottom": 0,
+                  "justifyContent": "center",
+                  "opacity": 1,
+                  "position": "absolute",
+                  "right": 0,
+                  "top": 0,
+                }
+              }
+            >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessible={true}
+                onPress={[Function]}
+                style={
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
+                }
+              >
+                <Text
+                  style={
+                    {
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 23.57142857142857,
+                      "fontWeight": "400",
+                    }
+                  }
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+    </View>
+    <RNSScreenContainer
+      onLayout={[Function]}
+      style={
+        {
+          "flex": 1,
+        }
+      }
+    >
+      <RNSScreen
+        activityState={2}
+        collapsable={false}
+        gestureResponseDistance={
+          {
+            "bottom": -1,
+            "end": -1,
+            "start": -1,
+            "top": -1,
+          }
+        }
+        pointerEvents="box-none"
+        style={
+          {
+            "bottom": 0,
+            "left": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+      >
+        <View
+          collapsable={false}
+          style={
+            {
+              "opacity": 1,
+            }
+          }
+        />
+        <View
+          accessibilityElementsHidden={false}
+          closing={false}
+          gestureVelocityImpact={0.3}
+          importantForAccessibility="auto"
+          onClose={[Function]}
+          onGestureBegin={[Function]}
+          onGestureCanceled={[Function]}
+          onGestureEnd={[Function]}
+          onOpen={[Function]}
+          onTransition={[Function]}
+          pointerEvents="box-none"
+          style={
+            [
+              {
+                "overflow": undefined,
+              },
+              {
+                "bottom": 0,
+                "left": 0,
+                "position": "absolute",
+                "right": 0,
+                "top": 0,
+              },
+            ]
+          }
+          transitionSpec={
+            {
+              "close": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+              "open": {
+                "animation": "spring",
+                "config": {
+                  "damping": 500,
+                  "mass": 3,
+                  "overshootClamping": true,
+                  "restDisplacementThreshold": 10,
+                  "restSpeedThreshold": 10,
+                  "stiffness": 1000,
+                },
+              },
+            }
+          }
+        >
+          <View
+            collapsable={false}
+            needsOffscreenAlphaCompositing={false}
+            pointerEvents="box-none"
+            style={
+              {
+                "flex": 1,
+              }
+            }
+          >
+            <View
+              collapsable={false}
+              onGestureHandlerEvent={[Function]}
+              onGestureHandlerStateChange={[Function]}
+              style={
+                {
+                  "flex": 1,
+                  "transform": [
+                    {
+                      "translateX": 0,
+                    },
+                    {
+                      "translateX": 0,
+                    },
+                  ],
+                }
+              }
+            >
+              <View
+                collapsable={false}
+                pointerEvents="none"
+                style={
+                  {
+                    "backgroundColor": "rgb(242, 242, 242)",
+                    "bottom": 0,
+                    "left": 0,
+                    "position": "absolute",
+                    "shadowColor": "#000",
+                    "shadowOffset": {
+                      "height": 1,
+                      "width": -1,
+                    },
+                    "shadowOpacity": 0.3,
+                    "shadowRadius": 5,
+                    "top": 0,
+                    "width": 3,
+                  }
+                }
+              />
+              <View
+                style={
+                  [
+                    {
+                      "flex": 1,
+                      "overflow": "hidden",
+                    },
+                    [
+                      {
+                        "backgroundColor": "rgb(242, 242, 242)",
+                      },
+                      undefined,
+                    ],
+                  ]
+                }
+              >
+                <View
+                  style={
+                    {
+                      "flex": 1,
+                      "flexDirection": "column-reverse",
+                    }
+                  }
+                >
+                  <View
+                    style={
+                      {
+                        "flex": 1,
+                      }
+                    }
+                  >
+                    <View
+                      onLayout={[Function]}
+                      style={
+                        [
+                          {
+                            "bottom": 0,
+                            "justifyContent": "flex-end",
+                            "left": 0,
+                            "position": "absolute",
+                            "right": 0,
+                            "top": 0,
+                          },
+                          {
+                            "paddingBottom": 0,
+                          },
+                        ]
+                      }
+                    >
+                      <View
+                        style={
+                          [
+                            {
+                              "backgroundColor": "#00000066",
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                              "top": 0,
+                            },
+                            {
+                              "opacity": 0,
+                            },
+                          ]
+                        }
+                      >
+                        <TouchableOpacity
+                          onPress={[Function]}
+                          style={
+                            {
+                              "flex": 1,
+                            }
+                          }
+                        />
+                      </View>
+                      <View
+                        onLayout={[Function]}
+                        style={
+                          [
+                            {
+                              "bottom": 0,
+                              "left": 0,
+                              "position": "absolute",
+                              "right": 0,
+                            },
+                            {
+                              "paddingBottom": 0,
+                            },
+                          ]
+                        }
+                      >
+                        <View
+                          collapsable={false}
+                          onGestureHandlerEvent={[Function]}
+                          onGestureHandlerStateChange={[Function]}
+                          onLayout={[Function]}
+                          style={
+                            [
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#b7bbc866",
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
+                                "borderWidth": 1,
+                                "maxHeight": 1334,
+                                "overflow": "hidden",
+                                "paddingBottom": 0,
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": {
+                                  "height": 2,
+                                  "width": 0,
+                                },
+                                "shadowOpacity": 1,
+                                "shadowRadius": 40,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "translateY": 1334,
+                                  },
+                                ],
+                              },
+                            ]
+                          }
+                        >
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "padding": 4,
+                              }
+                            }
+                          >
+                            <View
+                              style={
+                                {
+                                  "backgroundColor": "#b7bbc866",
+                                  "borderRadius": 2,
+                                  "height": 4,
+                                  "width": 40,
+                                }
+                              }
+                            />
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "backgroundColor": "#ffffff",
+                                  "flexDirection": "row",
+                                  "padding": 16,
+                                },
+                                false,
+                              ]
+                            }
+                            testID="header"
+                          >
+                            <View
+                              style={
+                                {
+                                  "width": undefined,
+                                }
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                              />
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "flex": 1,
+                                  "marginHorizontal": 16,
+                                }
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 16,
+                                    "fontWeight": "700",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                    "textAlign": "center",
+                                  }
+                                }
+                                testID="header-title"
+                              >
+                                Recommended quote
+                              </Text>
+                            </View>
+                            <View
+                              style={
+                                {
+                                  "width": undefined,
+                                }
+                              }
+                            >
+                              <View
+                                onLayout={[Function]}
+                              >
+                                <TouchableOpacity
+                                  accessible={true}
+                                  activeOpacity={1}
+                                  disabled={false}
+                                  onPress={[Function]}
+                                  onPressIn={[Function]}
+                                  onPressOut={[Function]}
+                                  style={
+                                    {
+                                      "alignItems": "center",
+                                      "borderRadius": 8,
+                                      "height": 24,
+                                      "justifyContent": "center",
+                                      "opacity": 1,
+                                      "width": 24,
+                                    }
+                                  }
+                                >
+                                  <SvgMock
+                                    color="#121314"
+                                    height={16}
+                                    name="Close"
+                                    style={
+                                      {
+                                        "height": 16,
+                                        "width": 16,
+                                      }
+                                    }
+                                    width={16}
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "center",
+                                "backgroundColor": "#f3f5f9",
+                                "borderRadius": 20,
+                                "flexDirection": "row",
+                                "marginBottom": 8,
+                                "paddingHorizontal": 15,
+                                "paddingVertical": 4,
+                              }
+                            }
+                          >
+                            <Text
+                              style={
+                                [
+                                  {
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 30,
+                                    "fontWeight": "400",
+                                    "marginVertical": 2,
+                                  },
+                                  {
+                                    "textAlign": "center",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  {
+                                    "color": "#121314",
+                                  },
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                  undefined,
+                                ]
+                              }
+                            >
+                              New quotes in
+                               
+                              <Text
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 30,
+                                      "fontWeight": "400",
+                                      "marginVertical": 2,
+                                    },
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontWeight": "600",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    {
+                                      "color": "#121314",
+                                    },
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    undefined,
+                                    [
+                                      {
+                                        "fontVariant": [
+                                          "tabular-nums",
+                                        ],
+                                      },
+                                      false,
+                                    ],
+                                  ]
+                                }
+                              >
+                                0:07
+                              </Text>
+                            </Text>
+                          </View>
+                          <View
+                            style={
+                              [
+                                {
+                                  "padding": 15,
+                                },
+                                undefined,
+                                {
+                                  "paddingTop": 0,
+                                },
+                              ]
+                            }
+                          >
+                            <RCTScrollView
+                              collapsable={false}
+                              onGestureHandlerEvent={[Function]}
+                              onGestureHandlerStateChange={[Function]}
+                              testID="quotes"
+                            >
+                              <View>
+                                <View
+                                  style={
+                                    {
+                                      "opacity": 0,
+                                    }
+                                  }
+                                  testID="animated-view-opacity"
+                                >
+                                  <TouchableOpacity
+                                    accessibilityLabel="Paypal (Staging)"
+                                    accessibilityRole="button"
+                                    accessible={true}
+                                    activeOpacity={0.8}
+                                    disabled={false}
+                                    onPress={[Function]}
+                                  >
+                                    <View
+                                      style={
+                                        [
+                                          {
+                                            "borderColor": "#b7bbc8",
+                                            "borderRadius": 8,
+                                            "borderWidth": 1.5,
+                                            "padding": 16,
+                                          },
+                                          undefined,
+                                          false,
+                                          {
+                                            "padding": 0,
+                                          },
+                                          undefined,
+                                        ]
+                                      }
+                                    >
+                                      <View
+                                        accessibilityRole="none"
+                                        accessible={true}
+                                        style={
+                                          {
+                                            "padding": 16,
+                                          }
+                                        }
+                                      >
+                                        <View
+                                          style={
+                                            {
+                                              "marginBottom": 8,
+                                            }
+                                          }
+                                        >
+                                          <TouchableOpacity
+                                            accessibilityHint="Shows provider details"
+                                            accessibilityLabel="Paypal (Staging) logo"
+                                            disabled={true}
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "alignItems": "center",
+                                                  "flexDirection": "row",
+                                                }
+                                              }
+                                            >
+                                              <Image
+                                                onError={[Function]}
+                                                source={
+                                                  {
+                                                    "uri": "https://on-ramp.dev-api.cx.metamask.io/assets/providers/paypal_light.png",
+                                                  }
+                                                }
+                                                style={
+                                                  {
+                                                    "height": 24,
+                                                    "width": 65,
+                                                  }
+                                                }
+                                              />
+                                              <Text
+                                                allowFontScaling={false}
+                                                style={
+                                                  [
+                                                    {
+                                                      "color": undefined,
+                                                      "fontSize": 12,
+                                                    },
+                                                    {
+                                                      "color": "#686e7d",
+                                                      "marginLeft": 8,
+                                                    },
+                                                    {
+                                                      "fontFamily": "Feather",
+                                                      "fontStyle": "normal",
+                                                      "fontWeight": "normal",
+                                                    },
+                                                    {},
+                                                  ]
+                                                }
+                                              >
+                                                
+                                              </Text>
+                                            </View>
+                                          </TouchableOpacity>
+                                        </View>
+                                        <View
+                                          style={
+                                            {
+                                              "alignItems": "center",
+                                              "flexDirection": "row",
+                                            }
+                                          }
+                                        />
+                                        <View
+                                          style={
+                                            {
+                                              "marginTop": 0,
+                                            }
+                                          }
+                                        >
+                                          <View
+                                            onLayout={[Function]}
+                                            style={
+                                              [
+                                                {
+                                                  "marginTop": 4,
+                                                  "overflow": "hidden",
+                                                },
+                                                {},
+                                              ]
+                                            }
+                                            testID="animated-view-height"
+                                          >
+                                            <View
+                                              style={
+                                                {
+                                                  "marginTop": 10,
+                                                }
+                                              }
+                                            >
+                                              <TouchableOpacity
+                                                accessibilityRole="button"
+                                                accessible={true}
+                                                activeOpacity={0.2}
+                                                disabled={false}
+                                                onPress={[Function]}
+                                                style={
+                                                  [
+                                                    [
+                                                      {
+                                                        "borderRadius": 100,
+                                                        "justifyContent": "center",
+                                                        "padding": 15,
+                                                      },
+                                                      {
+                                                        "backgroundColor": "#4459ff",
+                                                      },
+                                                      undefined,
+                                                    ],
+                                                    null,
+                                                  ]
+                                                }
+                                              >
+                                                <Text
+                                                  style={
+                                                    [
+                                                      {
+                                                        "color": "#007aff",
+                                                        "fontSize": 17,
+                                                        "fontWeight": "500",
+                                                        "textAlign": "center",
+                                                      },
+                                                      null,
+                                                      [
+                                                        {
+                                                          "fontFamily": "CentraNo1-Bold",
+                                                          "fontSize": 14,
+                                                          "fontWeight": "600",
+                                                          "textAlign": "center",
+                                                        },
+                                                        {
+                                                          "color": "#ffffff",
+                                                        },
+                                                        undefined,
+                                                      ],
+                                                      null,
+                                                    ]
+                                                  }
+                                                >
+                                                  Continue with Paypal (Staging)
+                                                </Text>
+                                              </TouchableOpacity>
+                                            </View>
+                                          </View>
+                                        </View>
+                                      </View>
+                                    </View>
+                                  </TouchableOpacity>
+                                </View>
+                              </View>
+                            </RCTScrollView>
+                          </View>
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flexDirection": "column",
+                                "paddingHorizontal": 8,
+                                "paddingVertical": 4,
+                              }
+                            }
+                            testID="bottomsheetfooter"
+                          >
+                            <TouchableOpacity
+                              accessibilityRole="button"
+                              accessible={true}
+                              activeOpacity={1}
+                              onPress={[Function]}
+                              onPressIn={[Function]}
+                              onPressOut={[Function]}
+                              style={
+                                {
+                                  "alignItems": "center",
+                                  "alignSelf": "stretch",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 20,
+                                  "flexDirection": "row",
+                                  "height": 40,
+                                  "justifyContent": "center",
+                                  "paddingHorizontal": 16,
+                                }
+                              }
+                              testID="bottomsheetfooter-button"
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  {
+                                    "color": "#4459ff",
+                                    "fontFamily": "CentraNo1-Medium",
+                                    "fontSize": 16,
+                                    "fontWeight": "500",
+                                    "letterSpacing": 0,
+                                    "lineHeight": 24,
+                                  }
+                                }
+                              >
+                                Explore more options
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                          <Modal
+                            animationType="none"
+                            deviceHeight={null}
+                            deviceWidth={null}
+                            hardwareAccelerated={false}
+                            hideModalContentWhileAnimating={false}
+                            onBackdropPress={[Function]}
+                            onModalHide={[Function]}
+                            onModalWillHide={[Function]}
+                            onModalWillShow={[Function]}
+                            onRequestClose={[Function]}
+                            panResponderThreshold={4}
+                            scrollHorizontal={false}
+                            scrollOffset={0}
+                            scrollOffsetMax={0}
+                            scrollTo={null}
+                            statusBarTranslucent={false}
+                            supportedOrientations={
+                              [
+                                "portrait",
+                                "landscape",
+                              ]
+                            }
+                            swipeDirection="down"
+                            swipeThreshold={100}
+                            transparent={true}
+                            visible={false}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </RNSScreen>
+    </RNSScreenContainer>
+  </RNCSafeAreaProvider>
+</View>
+`;
+
 exports[`Quotes renders animation on first fetching 1`] = `
 <View
   style={
@@ -655,7 +1705,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -692,10 +1742,10 @@ exports[`Quotes renders animation on first fetching 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -716,10 +1766,10 @@ exports[`Quotes renders animation on first fetching 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -758,7 +1808,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1080,11 +2130,11 @@ exports[`Quotes renders animation on first fetching 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 18,
                                     "fontWeight": "600",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                     "marginVertical": 3,
                                     "textAlign": "center",
                                   }
@@ -1747,7 +2797,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1784,10 +2834,10 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1808,10 +2858,10 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1850,7 +2900,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -2273,7 +3323,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 30,
                                           "fontWeight": "400",
                                           "marginVertical": 2,
@@ -2316,7 +3366,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                         [
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 30,
                                             "fontWeight": "400",
                                             "marginVertical": 2,
@@ -2324,7 +3374,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                           undefined,
                                           undefined,
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontWeight": "600",
                                           },
                                           undefined,
@@ -2382,7 +3432,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                       [
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 30,
                                           "fontWeight": "400",
                                           "marginVertical": 2,
@@ -2512,6 +3562,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               "opacity": 0,
                                             }
                                           }
+                                          testID="animated-view-opacity"
                                         >
                                           <TouchableOpacity
                                             accessibilityLabel="Banxa (Staging)"
@@ -2585,10 +3636,10 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "color": "#1c7e33",
                                                             "fontFamily": "CentraNo1-Bold",
-                                                            "fontSize": 10,
+                                                            "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
-                                                            "lineHeight": 16,
+                                                            "lineHeight": 20,
                                                             "textTransform": "uppercase",
                                                           }
                                                         }
@@ -2674,7 +3725,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -2709,7 +3760,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -2741,6 +3792,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {},
                                                       ]
                                                     }
+                                                    testID="animated-view-height"
                                                   >
                                                     <View
                                                       style={
@@ -2784,7 +3836,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontFamily": "CentraNo1-Bold",
                                                                   "fontSize": 14,
                                                                   "fontWeight": "600",
                                                                   "textAlign": "center",
@@ -2827,6 +3879,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               "opacity": 0,
                                             }
                                           }
+                                          testID="animated-view-opacity"
                                         >
                                           <TouchableOpacity
                                             accessibilityLabel="MoonPay (Staging)"
@@ -2900,10 +3953,10 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "color": "#4459ff",
                                                             "fontFamily": "CentraNo1-Bold",
-                                                            "fontSize": 10,
+                                                            "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
-                                                            "lineHeight": 16,
+                                                            "lineHeight": 20,
                                                             "textTransform": "uppercase",
                                                           }
                                                         }
@@ -2932,10 +3985,10 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                           {
                                                             "color": "#1c7e33",
                                                             "fontFamily": "CentraNo1-Bold",
-                                                            "fontSize": 10,
+                                                            "fontSize": 12,
                                                             "fontWeight": "bold",
                                                             "letterSpacing": 0.25,
-                                                            "lineHeight": 16,
+                                                            "lineHeight": 20,
                                                             "textTransform": "uppercase",
                                                           }
                                                         }
@@ -3020,7 +4073,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -3055,7 +4108,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -3087,6 +4140,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {},
                                                       ]
                                                     }
+                                                    testID="animated-view-height"
                                                   >
                                                     <View
                                                       style={
@@ -3130,7 +4184,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontFamily": "CentraNo1-Bold",
                                                                   "fontSize": 14,
                                                                   "fontWeight": "600",
                                                                   "textAlign": "center",
@@ -3173,6 +4227,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                               "opacity": 0,
                                             }
                                           }
+                                          testID="animated-view-opacity"
                                         >
                                           <TouchableOpacity
                                             accessibilityLabel="Transak (Staging)"
@@ -3291,7 +4346,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -3326,7 +4381,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "color": "#121314",
                                                           "fontFamily": "CentraNo1-Medium",
-                                                          "fontSize": 16,
+                                                          "fontSize": 18,
                                                           "fontWeight": "500",
                                                           "letterSpacing": 0,
                                                           "lineHeight": 24,
@@ -3358,6 +4413,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {},
                                                       ]
                                                     }
+                                                    testID="animated-view-height"
                                                   >
                                                     <View
                                                       style={
@@ -3401,7 +4457,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                               null,
                                                               [
                                                                 {
-                                                                  "fontFamily": "EuclidCircularB-Bold",
+                                                                  "fontFamily": "CentraNo1-Bold",
                                                                   "fontSize": 14,
                                                                   "fontWeight": "600",
                                                                   "textAlign": "center",
@@ -3578,7 +4634,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -3615,10 +4671,10 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -3639,10 +4695,10 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -3681,7 +4737,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4094,7 +5150,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -4137,7 +5193,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -4145,7 +5201,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                     undefined,
                                     undefined,
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontWeight": "600",
                                     },
                                     undefined,
@@ -4223,6 +5279,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                         "opacity": 0,
                                       }
                                     }
+                                    testID="animated-view-opacity"
                                   >
                                     <TouchableOpacity
                                       accessibilityLabel="MoonPay (Staging)"
@@ -4296,10 +5353,10 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     {
                                                       "color": "#4459ff",
                                                       "fontFamily": "CentraNo1-Bold",
-                                                      "fontSize": 10,
+                                                      "fontSize": 12,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
-                                                      "lineHeight": 16,
+                                                      "lineHeight": 20,
                                                       "textTransform": "uppercase",
                                                     }
                                                   }
@@ -4328,10 +5385,10 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                     {
                                                       "color": "#1c7e33",
                                                       "fontFamily": "CentraNo1-Bold",
-                                                      "fontSize": 10,
+                                                      "fontSize": 12,
                                                       "fontWeight": "bold",
                                                       "letterSpacing": 0.25,
-                                                      "lineHeight": 16,
+                                                      "lineHeight": 20,
                                                       "textTransform": "uppercase",
                                                     }
                                                   }
@@ -4417,7 +5474,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 18,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -4452,7 +5509,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "color": "#121314",
                                                     "fontFamily": "CentraNo1-Medium",
-                                                    "fontSize": 16,
+                                                    "fontSize": 18,
                                                     "fontWeight": "500",
                                                     "letterSpacing": 0,
                                                     "lineHeight": 24,
@@ -4484,6 +5541,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {},
                                                 ]
                                               }
+                                              testID="animated-view-height"
                                             >
                                               <View
                                                 style={
@@ -4527,7 +5585,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                         null,
                                                         [
                                                           {
-                                                            "fontFamily": "EuclidCircularB-Bold",
+                                                            "fontFamily": "CentraNo1-Bold",
                                                             "fontSize": 14,
                                                             "fontWeight": "600",
                                                             "textAlign": "center",
@@ -4593,10 +5651,10 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   {
                                     "color": "#4459ff",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >
@@ -4778,7 +5836,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -4815,10 +5873,10 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -4839,10 +5897,10 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -4881,7 +5939,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5248,11 +6306,11 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -5273,7 +6331,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -5354,7 +6412,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -5520,7 +6578,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5557,10 +6615,10 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -5581,10 +6639,10 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -5623,7 +6681,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -5990,11 +7048,11 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -6015,7 +7073,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -6096,7 +7154,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -6262,7 +7320,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -6299,10 +7357,10 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -6323,10 +7381,10 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -6365,7 +7423,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -6732,11 +7790,11 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -6757,7 +7815,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -6838,7 +7896,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -7004,7 +8062,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -7041,10 +8099,10 @@ exports[`Quotes renders quotes expired screen 1`] = `
                     {
                       "color": "#121314",
                       "fontFamily": "CentraNo1-Bold",
-                      "fontSize": 14,
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -7065,10 +8123,10 @@ exports[`Quotes renders quotes expired screen 1`] = `
                       {
                         "color": "#686e7d",
                         "fontFamily": "CentraNo1-Book",
-                        "fontSize": 12,
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -7107,7 +8165,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -7474,11 +8532,11 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -7499,7 +8557,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -7580,7 +8638,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -7635,7 +8693,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -7678,7 +8736,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -7686,7 +8744,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -7748,7 +8806,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -7791,7 +8849,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -7799,7 +8857,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -7861,7 +8919,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -7904,7 +8962,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -7912,7 +8970,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -7974,7 +9032,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -8017,7 +9075,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -8025,7 +9083,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -8087,7 +9145,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -8130,7 +9188,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -8138,7 +9196,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=false, pollingC
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -8203,7 +9261,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -8264,7 +9322,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -8325,7 +9383,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,
@@ -8386,7 +9444,7 @@ exports[`Timer component renders correctly with isFetchingQuotes=true, pollingCy
       [
         {
           "color": "#121314",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 30,
           "fontWeight": "400",
           "marginVertical": 2,

@@ -521,10 +521,10 @@ exports[`AccountSelector should render correctly 1`] = `
                                   {
                                     "color": "#4459ff",
                                     "fontFamily": "CentraNo1-Medium",
-                                    "fontSize": 14,
+                                    "fontSize": 16,
                                     "fontWeight": "500",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                   }
                                 }
                               >

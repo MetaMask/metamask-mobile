@@ -147,10 +147,10 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -171,10 +171,10 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
         {
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Bold",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "700",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -186,10 +186,10 @@ exports[`EarnTokenListItem render matches snapshot 1`] = `
         {
           "color": "#686e7d",
           "fontFamily": "CentraNo1-Bold",
-          "fontSize": 12,
+          "fontSize": 14,
           "fontWeight": "700",
           "letterSpacing": 0,
-          "lineHeight": 20,
+          "lineHeight": 22,
         }
       }
     >
