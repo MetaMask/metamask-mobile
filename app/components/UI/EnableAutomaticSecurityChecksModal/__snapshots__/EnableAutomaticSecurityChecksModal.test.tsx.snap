@@ -431,10 +431,10 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                                 {
                                   "color": "#121314",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                   "textAlign": "center",
                                 }
                               }
@@ -479,10 +479,10 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                                 {
                                   "color": "#ffffff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -516,10 +516,10 @@ exports[`EnableAutomaticSecurityChecksModal should render correctly 1`] = `
                                 {
                                   "color": "#4459ff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >

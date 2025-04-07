@@ -79,7 +79,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 16,
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -94,10 +94,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -133,10 +133,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -166,7 +166,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#121314",
                   "flex": 1,
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -221,10 +221,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -239,10 +239,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Book",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -272,7 +272,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#121314",
                   "flex": 1,
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -325,10 +325,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -358,7 +358,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#121314",
                   "flex": 1,
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -411,10 +411,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -444,7 +444,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#121314",
                   "flex": 1,
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -498,10 +498,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -531,7 +531,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
                   "color": "#121314",
                   "flex": 1,
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 16,
+                  "fontSize": 18,
                   "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
@@ -585,10 +585,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -609,7 +609,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 16,
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -624,10 +624,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "color": "#686e7d",
                 "fontFamily": "CentraNo1-Book",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "marginTop": 8,
               }
             }
@@ -663,10 +663,10 @@ exports[`AdvancedSettings should render correctly 1`] = `
                 {
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >

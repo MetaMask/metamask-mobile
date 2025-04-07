@@ -554,7 +554,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 "alignSelf": "center",
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -568,10 +568,10 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -584,10 +584,10 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 {
                                   "color": "#9ca1af",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -635,10 +635,10 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                 {
                                   "color": "#4459ff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -695,7 +695,7 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -1281,7 +1281,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 "alignSelf": "center",
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -1295,10 +1295,10 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -1311,10 +1311,10 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 {
                                   "color": "#9ca1af",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1362,10 +1362,10 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                 {
                                   "color": "#4459ff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -1422,7 +1422,7 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",
@@ -2008,7 +2008,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 "alignSelf": "center",
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -2022,10 +2022,10 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Book",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "400",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                                 "textAlign": "center",
                                 "width": 185,
                               }
@@ -2038,10 +2038,10 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 {
                                   "color": "#9ca1af",
                                   "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "400",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2089,10 +2089,10 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                 {
                                   "color": "#4459ff",
                                   "fontFamily": "CentraNo1-Medium",
-                                  "fontSize": 14,
+                                  "fontSize": 16,
                                   "fontWeight": "500",
                                   "letterSpacing": 0,
-                                  "lineHeight": 22,
+                                  "lineHeight": 24,
                                 }
                               }
                             >
@@ -2149,7 +2149,7 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                                   null,
                                   [
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 14,
                                       "fontWeight": "600",
                                       "textAlign": "center",

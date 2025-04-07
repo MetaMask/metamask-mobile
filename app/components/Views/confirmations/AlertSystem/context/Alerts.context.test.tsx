@@ -1,8 +1,18 @@
 import React from 'react';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { Severity, Alert } from '../../types/alerts';
-import { useAlerts, AlertsContextProvider, AlertsContextParams } from './Alerts.context';
+import {
+  useAlerts,
+  AlertsContextProvider,
+  AlertsContextParams,
+} from './Alerts.context';
 import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
 
 jest.mock('../../hooks/useConfirmationAlerts', () => ({
   __esModule: true,
@@ -52,9 +62,14 @@ describe('AlertsContext', () => {
     (useAlertsConfirmed as jest.Mock).mockReturnValue(mockUseAlertsConfirmed);
   });
 
-  const renderHookWithProvider = (hook: () => AlertsContextParams) => renderHook(hook, {
-    wrapper: ({ children }) => <AlertsContextProvider alerts={alertsMock}>{children}</AlertsContextProvider>,
-  });
+  const renderHookWithProvider = (hook: () => AlertsContextParams) =>
+    renderHook(hook, {
+      wrapper: ({ children }) => (
+        <AlertsContextProvider alerts={alertsMock}>
+          {children}
+        </AlertsContextProvider>
+      ),
+    });
 
   describe('useAlerts', () => {
     it('provides the correct context values', () => {
@@ -94,7 +109,9 @@ describe('AlertsContext', () => {
 
     it('context value is correct when there are no alerts', () => {
       const { result } = renderHook(() => useAlerts(), {
-        wrapper: ({ children }) => <AlertsContextProvider alerts={[]}>{children}</AlertsContextProvider>,
+        wrapper: ({ children }) => (
+          <AlertsContextProvider alerts={[]}>{children}</AlertsContextProvider>
+        ),
       });
 
       expect(result.current.alerts).toEqual([]);

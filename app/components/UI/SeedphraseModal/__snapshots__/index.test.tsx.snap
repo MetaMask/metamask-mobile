@@ -217,7 +217,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                     {
                       "color": "#121314",
                       "flex": 1,
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -272,7 +272,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,
@@ -287,7 +287,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,
@@ -302,7 +302,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
@@ -18,6 +18,7 @@ import { useAlerts } from '../../../AlertSystem/context';
 import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
 import { useLedgerContext } from '../../../context/LedgerContext';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useConfirmationAlertMetrics } from '../../../hooks/useConfirmationAlertMetrics';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
@@ -26,7 +27,8 @@ import { ResultType } from '../../../constants/signatures';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
-  const { fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
+  const { alerts, fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } =
+    useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
@@ -34,6 +36,7 @@ export const Footer = () => {
   const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
+  const { trackAlertMetrics } = useConfirmationAlertMetrics();
 
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
@@ -67,6 +70,10 @@ export const Footer = () => {
     }
     await onConfirm();
   }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+
+  useEffect(() => {
+    trackAlertMetrics();
+  }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,

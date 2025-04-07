@@ -628,7 +628,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                             "borderRadius": 12,
                                                             "borderWidth": 1,
                                                             "color": "#121314",
-                                                            "fontFamily": "EuclidCircularB-Regular",
+                                                            "fontFamily": "CentraNo1-Book",
                                                             "fontSize": 10,
                                                             "fontWeight": "400",
                                                             "paddingHorizontal": 8,
@@ -643,7 +643,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                         style={
                                                           {
                                                             "color": "#121314",
-                                                            "fontFamily": "EuclidCircularB-Regular",
+                                                            "fontFamily": "CentraNo1-Book",
                                                             "fontSize": 44,
                                                             "fontWeight": "400",
                                                             "paddingBottom": 4,
@@ -718,7 +718,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                                 [
                                                                   {
                                                                     "color": "#121314",
-                                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                                    "fontFamily": "CentraNo1-Book",
                                                                     "fontSize": 30,
                                                                     "fontWeight": "400",
                                                                     "marginVertical": 2,
@@ -726,7 +726,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                                   undefined,
                                                                   undefined,
                                                                   {
-                                                                    "fontFamily": "EuclidCircularB-Bold",
+                                                                    "fontFamily": "CentraNo1-Bold",
                                                                     "fontWeight": "600",
                                                                   },
                                                                   undefined,
@@ -961,7 +961,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                         style={
                                                           {
                                                             "color": "#121314",
-                                                            "fontFamily": "EuclidCircularB-Regular",
+                                                            "fontFamily": "CentraNo1-Book",
                                                             "fontSize": 12,
                                                             "fontWeight": "400",
                                                             "lineHeight": 16,
@@ -991,7 +991,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                             {
                                                               "alignSelf": "center",
                                                               "color": "#4459ff",
-                                                              "fontFamily": "EuclidCircularB-Bold",
+                                                              "fontFamily": "CentraNo1-Bold",
                                                               "fontSize": 12,
                                                               "fontWeight": "600",
                                                               "textAlign": "center",
@@ -1062,7 +1062,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                     null,
                                                     [
                                                       {
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
                                                         "fontWeight": "600",
                                                         "textAlign": "center",
@@ -1128,7 +1128,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                     },
                                                     [
                                                       {
-                                                        "fontFamily": "EuclidCircularB-Bold",
+                                                        "fontFamily": "CentraNo1-Bold",
                                                         "fontSize": 14,
                                                         "fontWeight": "600",
                                                         "textAlign": "center",
@@ -1223,7 +1223,7 @@ exports[`Approval render matches snapshot 1`] = `
                                           {
                                             "alignSelf": "center",
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                           }
@@ -1256,7 +1256,7 @@ exports[`Approval render matches snapshot 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 14,
                                           "fontWeight": "400",
                                           "marginBottom": 28,
@@ -1282,12 +1282,12 @@ exports[`Approval render matches snapshot 1`] = `
                                           [
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 14,
                                               "fontWeight": "400",
                                             },
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontWeight": "600",
                                             },
                                           ]
@@ -1353,7 +1353,7 @@ exports[`Approval render matches snapshot 1`] = `
                                                   {
                                                     "backgroundColor": "#ffffff",
                                                     "color": "#121314",
-                                                    "fontFamily": "EuclidCircularB-Regular",
+                                                    "fontFamily": "CentraNo1-Book",
                                                     "fontSize": 14,
                                                     "fontWeight": "400",
                                                     "paddingTop": 0,

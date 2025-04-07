@@ -350,7 +350,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -381,7 +381,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 10,
                                     "fontWeight": "400",
                                     "marginBottom": 8,
@@ -398,7 +398,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -406,7 +406,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontWeight": "600",
                                 },
                                 {
@@ -460,7 +460,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -491,7 +491,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 10,
                                     "fontWeight": "400",
                                     "marginBottom": 8,
@@ -508,7 +508,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -575,7 +575,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -606,7 +606,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 10,
                                     "fontWeight": "400",
                                     "marginBottom": 8,
@@ -789,7 +789,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -855,7 +855,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -886,7 +886,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 10,
                                     "fontWeight": "400",
                                     "marginBottom": 8,
@@ -1069,7 +1069,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -1145,7 +1145,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                               [
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -1178,7 +1178,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#686e7d",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 10,
                                     "fontWeight": "400",
                                     "marginBottom": 8,
@@ -1237,7 +1237,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1280,7 +1280,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1352,7 +1352,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   [
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 30,
                                       "fontWeight": "400",
                                       "marginVertical": 2,
@@ -1423,7 +1423,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1431,7 +1431,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontWeight": "600",
                                   },
                                   undefined,
@@ -1469,7 +1469,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,
@@ -1477,7 +1477,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   undefined,
                                   undefined,
                                   {
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontWeight": "600",
                                   },
                                   undefined,
@@ -1535,7 +1535,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                 [
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 30,
                                     "fontWeight": "400",
                                     "marginVertical": 2,

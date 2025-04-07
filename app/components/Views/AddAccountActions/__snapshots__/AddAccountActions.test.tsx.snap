@@ -393,10 +393,10 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "color": "#686e7d",
                               "fontFamily": "CentraNo1-Medium",
-                              "fontSize": 12,
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -436,7 +436,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -479,7 +479,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -522,7 +522,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -565,7 +565,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -581,10 +581,10 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "color": "#686e7d",
                               "fontFamily": "CentraNo1-Medium",
-                              "fontSize": 12,
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -624,7 +624,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -667,7 +667,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
@@ -683,10 +683,10 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "color": "#686e7d",
                               "fontFamily": "CentraNo1-Medium",
-                              "fontSize": 12,
+                              "fontSize": 14,
                               "fontWeight": "500",
                               "letterSpacing": 0,
-                              "lineHeight": 20,
+                              "lineHeight": 22,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -726,7 +726,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               {
                                 "color": "#121314",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 16,
+                                "fontSize": 18,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,

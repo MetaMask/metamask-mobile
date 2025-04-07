@@ -180,7 +180,7 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "color": "#121314",
           "flex": 1,
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -258,10 +258,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="unstaking-banner"
@@ -319,10 +319,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -342,10 +342,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
               "backgroundColor": "transparent",
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           suppressHighlighting={true}
@@ -357,10 +357,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
               {
                 "color": "#4459ff",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -414,10 +414,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -454,10 +454,10 @@ exports[`StakingBalance render matches snapshot 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -649,7 +649,7 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           "color": "#121314",
           "flex": 1,
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -727,10 +727,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="unstaking-banner"
@@ -788,10 +788,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             {
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -811,10 +811,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               "backgroundColor": "transparent",
               "color": "#121314",
               "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           suppressHighlighting={true}
@@ -826,10 +826,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               {
                 "color": "#4459ff",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 14,
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -883,10 +883,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -923,10 +923,10 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
