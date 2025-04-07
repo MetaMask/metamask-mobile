@@ -296,7 +296,7 @@ describe('WC2Manager', () => {
       expect(sessions.length).toBe(1);
     });
 
-    it('should handle deeplink sessions correctly', async () => {
+    it('includes and stores deepink session', async () => {
       const mockWcUri = 'wc:7f6e504bfad60b485450578e05678441fa7a8ea2b3d7d678ef6c72a2efe0f6ad@2?relay-protocol=irn&symKey=587d5484ce2a2a6ee3ba1962fdd7e8588e06200c46823bd18fbd67def96ad303';
 
       const storageSpy = jest.spyOn(StorageWrapper, 'setItem');
