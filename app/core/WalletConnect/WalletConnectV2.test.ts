@@ -270,7 +270,7 @@ describe('WC2Manager', () => {
   });
 
   describe('WC2Manager connect', () => {
-    it('should handle v2 URIs correctly', async () => {
+    it('includes v2 URIs in paired sessions', async () => {
       const mockWcUri = 'wc://testv2uri';
 
       await manager.connect({
