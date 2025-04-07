@@ -20,94 +20,98 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-describe(SmokeIdentity('Account syncing'), () => {
-  const NEW_ACCOUNT_NAME = 'My third account';
-  let decryptedAccountNames = '';
-  let mockServer;
+describe(
+  SmokeIdentity(
+    'Account syncing - syncs & retrieves accounts after adding a custom name account',
+  ),
+  () => {
+    const NEW_ACCOUNT_NAME = 'My third account';
+    let decryptedAccountNames = '';
+    let mockServer;
 
-  beforeAll(async () => {
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
+    beforeAll(async () => {
+      jest.setTimeout(200000);
+      await TestHelpers.reverseServerPort();
 
-    mockServer = await startMockServer();
+      mockServer = await startMockServer();
 
-    const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
-    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-      mockServer,
-    );
+      const { userStorageMockttpControllerInstance } =
+        await mockIdentityServices(mockServer);
 
-    userStorageMockttpControllerInstance.setupPath(
-      USER_STORAGE_FEATURE_NAMES.accounts,
-      mockServer,
-      {
-        getResponse: accountsSyncMockResponse,
-      },
-    );
-
-    decryptedAccountNames = await Promise.all(
-      accountsSyncMockResponse.map(async (response) => {
-        const decryptedAccountName = await SDK.Encryption.decryptString(
-          response.Data,
-          IDENTITY_TEAM_STORAGE_KEY,
-        );
-        return JSON.parse(decryptedAccountName).n;
-      }),
-    );
-
-    await TestHelpers.launchApp({
-      newInstance: true,
-      delete: true,
-    });
-  });
-
-  afterAll(async () => {
-    await stopMockServer(mockServer);
-  });
-
-  it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
-    await importWalletWithRecoveryPhrase(
-      IDENTITY_TEAM_SEED_PHRASE,
-      IDENTITY_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
-    for (const accountName of decryptedAccountNames) {
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(accountName),
+      userStorageMockttpControllerInstance.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: accountsSyncMockResponse,
+        },
       );
-    }
 
-    await AccountListBottomSheet.tapAddAccountButton();
-    await AddAccountBottomSheet.tapCreateAccount();
-    await TestHelpers.delay(2000);
+      decryptedAccountNames = await Promise.all(
+        accountsSyncMockResponse.map(async (response) => {
+          const decryptedAccountName = await SDK.Encryption.decryptString(
+            response.Data,
+            IDENTITY_TEAM_STORAGE_KEY,
+          );
+          return JSON.parse(decryptedAccountName).n;
+        }),
+      );
 
-    await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
-    await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
-
-    await Assertions.checkIfElementToHaveText(
-      WalletView.accountName,
-      NEW_ACCOUNT_NAME,
-    );
-
-    await TestHelpers.launchApp({
-      newInstance: true,
-      delete: true,
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+      });
     });
 
-    await importWalletWithRecoveryPhrase(
-      IDENTITY_TEAM_SEED_PHRASE,
-      IDENTITY_TEAM_PASSWORD,
-    );
+    afterAll(async () => {
+      await stopMockServer(mockServer);
+    });
 
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
 
-    await Assertions.checkIfVisible(
-      AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
-    );
-  });
-});
+      await WalletView.tapIdenticon();
+
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
+      for (const accountName of decryptedAccountNames) {
+        await Assertions.checkIfVisible(
+          AccountListBottomSheet.getAccountElementByAccountName(accountName),
+        );
+      }
+
+      await AccountListBottomSheet.tapAddAccountButton();
+      await AddAccountBottomSheet.tapCreateAccount();
+      await TestHelpers.delay(2000);
+
+      await AccountListBottomSheet.tapEditAccountActionsAtIndex(2);
+      await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
+
+      await Assertions.checkIfElementToHaveText(
+        WalletView.accountName,
+        NEW_ACCOUNT_NAME,
+      );
+
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+      });
+
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
+
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+
+      await Assertions.checkIfVisible(
+        AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
+      );
+    });
+  },
+);
