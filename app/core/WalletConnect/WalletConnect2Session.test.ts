@@ -406,7 +406,7 @@ describe('WalletConnect2Session', () => {
       jest.useRealTimers();
     });
 
-    it('should do nothing if deeplink is false', () => {
+    it('does not follow the deeplink process when deeplink is false', () => {
       session.setDeeplink(false);
       session.redirect('test');
       jest.runAllTimers();
