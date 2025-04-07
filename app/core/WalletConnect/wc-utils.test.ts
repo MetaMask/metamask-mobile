@@ -179,6 +179,11 @@ describe('WalletConnect Utils', () => {
 			const uri = 'wc:topic@1';
 			expect(isValidWCURI(uri)).toBe(false);
 		});
+
+		it('returns false for invalid version URI', () => {
+			const uri = 'wc:topic@5';
+			expect(isValidWCURI(uri)).toBe(false);
+		});
 	});
 
 	describe('waitForNetworkModalOnboarding', () => {
@@ -243,6 +248,17 @@ describe('WalletConnect Utils', () => {
 
 		it('throws error for non-existent network', async () => {
 			(findExistingNetwork as jest.Mock).mockReturnValue(null);
+			await expect(
+				checkWCPermissions({
+					origin: 'test',
+					caip2ChainId: 'eip155:2',
+				}),
+			).rejects.toThrow('Invalid parameters');
+		});
+
+		it('throws error for not allowed chain', async () => {
+			const mockPermittedChains = jest.requireMock('../Permissions').getPermittedChains;
+			mockPermittedChains.mockResolvedValueOnce([]);
 			await expect(
 				checkWCPermissions({
 					origin: 'test',
