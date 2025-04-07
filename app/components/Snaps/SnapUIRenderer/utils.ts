@@ -1,5 +1,10 @@
-import { JSXElement, GenericSnapElement, Text } from '@metamask/snaps-sdk/jsx';
-import { hasChildren } from '@metamask/snaps-utils';
+import {
+  JSXElement,
+  GenericSnapElement,
+  Text,
+  InputElement,
+} from '@metamask/snaps-sdk/jsx';
+import { getJsxChildren, hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
 import {
@@ -33,9 +38,6 @@ export interface MapToTemplateParams {
   textAlignment?: string;
 }
 
-// For some components we wish to ignore the JSX children as they are implemented using props in the client.
-const IGNORE_CHILDREN_COMPONENTS = ['Field'];
-
 /**
  * Get a truncated version of component children to use in a hash.
  *
@@ -43,14 +45,19 @@ const IGNORE_CHILDREN_COMPONENTS = ['Field'];
  * @returns A truncated version of component children to use in a hash.
  */
 function getChildrenForHash(component: JSXElement) {
-  if (
-    !hasChildren(component) ||
-    IGNORE_CHILDREN_COMPONENTS.includes(component.type)
-  ) {
+  if (!hasChildren(component)) {
     return null;
   }
 
   const { children } = component.props;
+
+  // Field has special handling to determine the primary child to use for the key
+  if (component.type === 'Field') {
+    const children = getJsxChildren(component) as JSXElement[];
+    const primaryChildIndex = getPrimaryChildElementIndex(children);
+    const primaryChild = children[primaryChildIndex] as InputElement;
+    return { type: primaryChild?.type, name: primaryChild?.props?.name };
+  }
 
   if (typeof children === 'string') {
     // For the hash we reduce long strings
