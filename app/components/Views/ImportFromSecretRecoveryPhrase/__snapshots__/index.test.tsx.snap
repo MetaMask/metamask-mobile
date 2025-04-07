@@ -382,7 +382,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 25,
                                   "fontWeight": "600",
                                   "justifyContent": "center",
@@ -414,7 +414,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                       "marginBottom": 12,
@@ -444,7 +444,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "marginBottom": 12,
@@ -679,7 +679,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                           },
                                           {
                                             "color": "#121314",
-                                            "fontFamily": "EuclidCircularB-Regular",
+                                            "fontFamily": "CentraNo1-Book",
                                             "fontSize": 16,
                                             "fontWeight": "400",
                                             "paddingTop": 2,
@@ -772,7 +772,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "marginBottom": 12,
@@ -802,7 +802,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       style={
                                         {
                                           "color": "#121314",
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 16,
                                           "fontWeight": "400",
                                           "marginBottom": 12,
@@ -1037,7 +1037,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "paddingTop": 2,
@@ -1070,7 +1070,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 21.428571428571427,
                                     "fontWeight": "400",
                                     "height": 20,
@@ -1090,7 +1090,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 16,
                                     "fontWeight": "400",
                                     "marginBottom": 12,
@@ -1322,7 +1322,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                             },
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "EuclidCircularB-Regular",
+                                              "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
                                               "paddingTop": 2,
@@ -1365,7 +1365,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 21.428571428571427,
                                     "fontWeight": "400",
                                     "height": 20,
@@ -1421,7 +1421,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                                       },
                                       [
                                         {
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 14,
                                           "fontWeight": "600",
                                           "textAlign": "center",
@@ -1459,7 +1459,7 @@ exports[`ImportFromSecretRecoveryPhrase should render correctly 1`] = `
                             style={
                               {
                                 "color": "#686e7d",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 10,
                                 "fontWeight": "400",
                                 "textAlign": "center",

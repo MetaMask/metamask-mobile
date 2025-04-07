@@ -55,10 +55,10 @@ exports[`TokenListFooter renders correctly 1`] = `
           {
             "color": "#ffffff",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -94,10 +94,10 @@ exports[`TokenListFooter renders correctly 1`] = `
           {
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
             "textAlign": "center",
           }
         }
@@ -111,7 +111,7 @@ exports[`TokenListFooter renders correctly 1`] = `
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginBottom": 8,
             }
           }
@@ -124,11 +124,11 @@ exports[`TokenListFooter renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
