@@ -147,7 +147,7 @@ describe('Permission Management Functions', () => {
       );
     });
 
-    it('handles duplicates by ensuring uniqueness', () => {
+    it('de-duplicates accounts', () => {
       const hostname = 'example.com';
       const accAddress = '0xdef';
       Engine.context.PermissionController.getCaveat.mockReturnValue({
