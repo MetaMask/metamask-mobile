@@ -19,6 +19,14 @@ jest.mock('../store', () => ({
   },
 }));
 
+jest.mock('../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
+  },
+}));
+
 describe('linkCheck', () => {
   beforeEach(() => {
     jest.clearAllMocks();
