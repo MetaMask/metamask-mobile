@@ -359,7 +359,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 22,
                                   "fontWeight": "600",
                                 }
@@ -372,7 +372,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "paddingVertical": 10,
@@ -387,7 +387,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#4459ff",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "paddingVertical": 10,
@@ -400,7 +400,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 14,
                                   "fontWeight": "400",
                                   "paddingVertical": 10,
@@ -451,7 +451,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                   }
                                 }
@@ -459,7 +459,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontWeight": "600",
                                     }
                                   }
@@ -511,7 +511,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                   }
                                 }
@@ -519,7 +519,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontWeight": "600",
                                     }
                                   }
@@ -571,7 +571,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   {
                                     "color": "#121314",
                                     "flex": 1,
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontWeight": "400",
                                   }
                                 }
@@ -579,7 +579,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontWeight": "600",
                                     }
                                   }
@@ -636,7 +636,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "paddingVertical": 10,
@@ -651,7 +651,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 style={
                                   {
                                     "color": "#9ca1af",
-                                    "fontFamily": "EuclidCircularB-Regular",
+                                    "fontFamily": "CentraNo1-Book",
                                     "fontSize": 14,
                                     "fontWeight": "400",
                                     "marginTop": 10,
@@ -672,10 +672,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                       "backgroundColor": "transparent",
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                     }
                                   }
                                   suppressHighlighting={true}
@@ -686,10 +686,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                       {
                                         "color": "#4459ff",
                                         "fontFamily": "CentraNo1-Medium",
-                                        "fontSize": 14,
+                                        "fontSize": 16,
                                         "fontWeight": "500",
                                         "letterSpacing": 0,
-                                        "lineHeight": 22,
+                                        "lineHeight": 24,
                                       }
                                     }
                                   >
@@ -748,10 +748,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               {
                                 "color": "#4459ff",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >
@@ -794,10 +794,10 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                               {
                                 "color": "#ffffff",
                                 "fontFamily": "CentraNo1-Medium",
-                                "fontSize": 14,
+                                "fontSize": 16,
                                 "fontWeight": "500",
                                 "letterSpacing": 0,
-                                "lineHeight": 22,
+                                "lineHeight": 24,
                               }
                             }
                           >

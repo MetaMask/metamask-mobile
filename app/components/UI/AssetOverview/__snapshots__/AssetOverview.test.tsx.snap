@@ -1119,7 +1119,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -2303,7 +2303,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
@@ -3484,7 +3484,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,

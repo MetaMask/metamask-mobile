@@ -1,6 +1,10 @@
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { TextStyle } from 'react-native';
 import type { EdgeInsets } from 'react-native-safe-area-context';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../../component-library/components/Texts/Text';
 
 const getSharedStyles = (
   colors: ThemeColors,
@@ -16,6 +20,7 @@ const getSharedStyles = (
     },
     iconText: {
       ...typography.sHeadingSMRegular,
+      fontFamily: getFontFamily(TextVariant.HeadingSMRegular),
       textAlign: 'center',
     } as TextStyle,
     dappName: {
@@ -35,6 +40,7 @@ const getSharedStyles = (
     },
     disconnectFont: {
       ...typography.sHeadingSMRegular,
+      fontFamily: getFontFamily(TextVariant.HeadingSMRegular),
       color: colors.error.default,
     } as TextStyle,
   } as const);

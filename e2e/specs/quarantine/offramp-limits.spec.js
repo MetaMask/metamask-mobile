@@ -52,7 +52,9 @@ describe(SmokeRamps('On-Ramp Limits'), () => {
         await Assertions.checkIfVisible(BuildQuoteView.maxLimitErrorMessage);
         await BuildQuoteView.tapKeypadDeleteButton(2);
         await BuildQuoteView.enterAmount('999');
-        await Assertions.checkIfVisible(BuildQuoteView.insufficientBalanceErrorMessage);
+        await Assertions.checkIfVisible(
+          BuildQuoteView.insufficientBalanceErrorMessage,
+        );
         await BuildQuoteView.tapCancelButton();
       },
     );
