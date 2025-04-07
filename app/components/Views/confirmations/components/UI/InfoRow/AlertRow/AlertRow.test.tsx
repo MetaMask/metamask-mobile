@@ -4,35 +4,48 @@ import { useAlerts } from '../../../../AlertSystem/context';
 import AlertRow, { AlertRowProps } from './AlertRow';
 import { Severity } from '../../../../types/alerts';
 import { IconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { useConfirmationAlertMetrics } from '../../../../hooks/useConfirmationAlertMetrics';
+
 
 jest.mock('../../../../AlertSystem/context', () => ({
   useAlerts: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
+}));
+
 const ALERT_KEY_DANGER = 'DANGER_ALERT';
 const ALERT_KEY_WARNING = 'WARNING_ALERT';
 const ALERT_KEY_INFO = 'INFO_ALERT';
+const ALERT_FIELD_DANGER = 'field_danger';
+const ALERT_FIELD_WARNING = 'field_warning';
+const ALERT_FIELD_INFO = 'field_info';
 const mockAlerts = [
   {
     key: ALERT_KEY_DANGER,
+    field: ALERT_FIELD_DANGER,
     severity: Severity.Danger,
     message: 'This is a danger alert',
   },
   {
     key: ALERT_KEY_WARNING,
+    field: ALERT_FIELD_WARNING,
     severity: Severity.Warning,
     message: 'This is a warning alert',
   },
   {
     key: ALERT_KEY_INFO,
+    field: ALERT_FIELD_INFO,
     severity: Severity.Info,
-    message: 'This is a info alert',
+    message: 'This is an info alert',
   },
 ];
 
 describe('AlertRow', () => {
   const mockShowAlertModal = jest.fn();
   const mockSetAlertKey = jest.fn();
+  const mockTrackInlineAlertClicked = jest.fn();
   const useAlertsBase = {
     alerts: mockAlerts,
     fieldAlerts: mockAlerts,
@@ -43,12 +56,15 @@ describe('AlertRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useAlerts as jest.Mock).mockReturnValue(useAlertsBase);
+    (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
+      trackInlineAlertClicked: mockTrackInlineAlertClicked,
+    });
   });
 
   const LABEL_MOCK = 'Alert Label';
   const CHILDREN_MOCK = 'Test Children';
   const baseProps: AlertRowProps = {
-    alertKey: ALERT_KEY_DANGER,
+    alertField: ALERT_FIELD_DANGER,
     label: LABEL_MOCK,
     children: CHILDREN_MOCK,
   };
@@ -63,8 +79,8 @@ describe('AlertRow', () => {
   });
 
   it('renders correctly with warning alert', () => {
-    const props = { ...baseProps, alertKey: ALERT_KEY_WARNING };
-    const { getByText, getByTestId} = render(<AlertRow {...props} />);
+    const props = { ...baseProps, alertField: ALERT_FIELD_WARNING };
+    const { getByText, getByTestId } = render(<AlertRow {...props} />);
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
     const icon = getByTestId('inline-alert-icon');
@@ -72,7 +88,7 @@ describe('AlertRow', () => {
   });
 
   it('renders correctly with default alert', () => {
-    const props = { ...baseProps, alertKey: ALERT_KEY_INFO };
+    const props = { ...baseProps, alertField: ALERT_FIELD_INFO };
     const { getByText, getByTestId } = render(<AlertRow {...props} />);
     expect(getByText(LABEL_MOCK)).toBeDefined();
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
@@ -81,7 +97,7 @@ describe('AlertRow', () => {
   });
 
   it('does not render when isShownWithAlertsOnly is true and no alert is present', () => {
-    const props = { ...baseProps, alertKey: 'alert4', isShownWithAlertsOnly: true };
+    const props = { ...baseProps, alertField: 'alert4', isShownWithAlertsOnly: true };
     const { queryByText } = render(<AlertRow {...props} />);
     expect(queryByText(LABEL_MOCK)).toBeNull();
     expect(queryByText(CHILDREN_MOCK)).toBeNull();
@@ -94,11 +110,13 @@ describe('AlertRow', () => {
     expect(getByText(CHILDREN_MOCK)).toBeDefined();
   });
 
-  it('calls showAlertModal and setAlertKey when inline alert is clicked', () => {
-    const { getByText } = render(<AlertRow {...baseProps} />);
-    const inlineAlert = getByText('Alert');
+  it('calls showAlertModal, setAlertKey and trackInlineAlertClicked when inline alert is clicked', () => {
+    const { getByTestId } = render(<AlertRow {...baseProps} />);
+    const inlineAlert = getByTestId('inline-alert');
     fireEvent.press(inlineAlert);
     expect(mockSetAlertKey).toHaveBeenCalledWith(ALERT_KEY_DANGER);
     expect(mockShowAlertModal).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalled();
+    expect(mockTrackInlineAlertClicked).toHaveBeenCalledWith(ALERT_FIELD_DANGER);
   });
 });
