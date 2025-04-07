@@ -128,4 +128,7 @@ export const createStyles = (theme: Theme) =>
     tabBar: {
       borderColor: theme.colors.border.muted,
     },
+    stretch: {
+      flex: 1,
+    },
   });
