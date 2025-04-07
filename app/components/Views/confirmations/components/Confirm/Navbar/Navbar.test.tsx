@@ -1,13 +1,17 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { getNavbar } from './Navbar';
-
+import { Theme } from '../../../../../../util/theme/models';
 describe('getStakingDepositNavbar', () => {
   it('renders the header title correctly', () => {
     const title = 'Test Title';
     const { getByText } = render(
       <>
-        {getNavbar({ title, onReject: jest.fn() }).headerTitle()}
+        {getNavbar({
+          onReject: jest.fn(),
+          theme: {} as Theme,
+          title,
+        }).headerTitle()}
       </>,
     );
 
@@ -19,8 +23,9 @@ describe('getStakingDepositNavbar', () => {
     const { getByTestId } = render(
       <>
         {getNavbar({
-          title: 'Test Title',
           onReject: onRejectMock,
+          theme: {} as Theme,
+          title: 'Test Title',
         }).headerLeft()}
       </>,
     );
