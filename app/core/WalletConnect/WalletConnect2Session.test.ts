@@ -498,7 +498,7 @@ describe('WalletConnect2Session', () => {
         expect(Linking.openURL).not.toHaveBeenCalled();
       });
 
-      it('should show return modal if opening peerLink fails', async () => {
+      it('shows "return to dapp" modal if opening peerLink fails', async () => {
         const mockPeerLink = 'https://example.com';
         session.session = {
           ...mockSession,
