@@ -10,7 +10,13 @@ describe('getStakingDepositNavbar', () => {
       <>
         {getNavbar({
           onReject: jest.fn(),
-          theme: {} as Theme,
+          theme: {
+            colors: {
+              background: {
+                alternative: 'red',
+              },
+            },
+          } as Theme,
           title,
         }).headerTitle()}
       </>,
@@ -25,7 +31,13 @@ describe('getStakingDepositNavbar', () => {
       <>
         {getNavbar({
           onReject: onRejectMock,
-          theme: {} as Theme,
+          theme: {
+            colors: {
+              background: {
+                alternative: 'red',
+              },
+            },
+          } as Theme,
           title: 'Test Title',
         }).headerLeft()}
       </>,
