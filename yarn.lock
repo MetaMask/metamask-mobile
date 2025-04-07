@@ -25393,15 +25393,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"improved-yarn-audit@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "improved-yarn-audit@npm:3.0.0"
-  bin:
-    improved-yarn-audit: bin/improved-yarn-audit
-  checksum: 5ca18647f138f435203b88b0f57334e088cc64567d51f9eff069026fcb4aebd0486e96d59f44ed91ed9f2df9f8b6cce683adba5e9e734bc37f11b9c11b8b64f2
-  languageName: node
-  linkType: hard
-
 "imurmurhash@npm:^0.1.4":
   version: 0.1.4
   resolution: "imurmurhash@npm:0.1.4"
@@ -29016,7 +29007,6 @@ __metadata:
     human-standard-token-abi: ^2.0.0
     humanize-duration: ^3.27.2
     husky: 1.3.1
-    improved-yarn-audit: ^3.0.0
     is-url: ^1.2.4
     jest: ^29.7.0
     jest-junit: ^15.0.0

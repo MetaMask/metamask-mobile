@@ -9,7 +9,7 @@ RUN apt-get update \
   && sed -i '/en_US.UTF-8/s/^# //' /etc/locale.gen \
   && locale-gen
 
-ENV YARN_VERSION 1.22.22
+ENV YARN_VERSION 3.8.7
 # replace base image yarn 1.19
 # checksums and sigs for 1.22 not available as of now...
 # https://github.com/nodejs/docker-node/blob/07bd7414c9eeb7a134951122e1105e8c849f770e/Dockerfile-debian.template
