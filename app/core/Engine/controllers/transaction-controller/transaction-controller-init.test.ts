@@ -336,6 +336,7 @@ describe('Transaction Controller Init', () => {
       getState: expect.any(Function),
       initMessenger: expect.any(Object),
       smartTransactionsController: expect.any(Object),
+      updateTransactionGasFees: expect.any(Function),
     };
 
     const eventHandlerMap = [
@@ -343,41 +344,49 @@ describe('Transaction Controller Init', () => {
         event: 'TransactionController:transactionApproved',
         handler: handleTransactionApprovedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionConfirmed',
         handler: handleTransactionFinalizedEventForMetricsMock,
         payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionDropped',
         handler: handleTransactionFinalizedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionFailed',
         handler: handleTransactionFinalizedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionRejected',
         handler: handleTransactionRejectedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:transactionSubmitted',
         handler: handleTransactionSubmittedEventForMetricsMock,
         payload: { transactionMeta: mockTransactionMeta },
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:unapprovedTransactionAdded',
         handler: handleTransactionAddedEventForMetricsMock,
         payload: mockTransactionMeta,
+        expectedArgs: [mockTransactionMeta, handlerContext],
       },
       {
         event: 'TransactionController:stateChange',
         handler: handleTxParamsGasFeeUpdatesForRedesignedTransactionsMock,
-        payload: [mockTransactionMeta],
+        payload: [],
+        expectedArgs: [[], expect.any(Function)],
       },
     ];
 
@@ -385,9 +394,9 @@ describe('Transaction Controller Init', () => {
     expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
 
     // Test each event handler
-    eventHandlerMap.forEach(({ event, handler, payload }) => {
+    eventHandlerMap.forEach(({ event, handler, payload, expectedArgs }) => {
       subscribeCallbacks[event](payload);
-      expect(handler).toHaveBeenCalledWith(mockTransactionMeta, handlerContext);
+      expect(handler).toHaveBeenCalledWith(...expectedArgs);
     });
   });
 });
