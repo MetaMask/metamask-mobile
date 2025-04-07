@@ -618,6 +618,7 @@ const RevealPrivateCredential = ({
         scrollViewTestID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
+        contentContainerStyle={styles.stretch}
       >
         <>
           <View style={[styles.rowWrapper, styles.normalText]}>
@@ -631,7 +632,7 @@ const RevealPrivateCredential = ({
           </View>
           {renderWarning(credentialSlug)}
 
-          <View style={styles.rowWrapper}>
+          <View style={[styles.rowWrapper, styles.stretch]}>
             {unlocked ? renderTabView(credentialSlug) : renderPasswordEntry()}
           </View>
         </>
