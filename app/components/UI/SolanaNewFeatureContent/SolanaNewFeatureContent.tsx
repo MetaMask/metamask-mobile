@@ -42,12 +42,19 @@ const SolanaNewFeatureContent = () => {
     checkModalStatus();
   }, []);
 
-  const handleClose = async () => {
+  /**
+   * Sheet close functionality (does not fire ref close to prevent infinite recursion)
+   */
+  const handleSheetClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     setIsVisible(false);
-    // Discuss - this ref, is on a component that takes this `handleClose` callback.
-    // So invoking this ref causes an infinite recursive loop (in tests)
-    // Is this ref call intentional?
+  };
+
+  /**
+   * Close Button, invokes both sheet closing and ref closing
+   */
+  const handleClose = async () => {
+    await handleSheetClose();
     sheetRef.current?.onCloseBottomSheet();
   };
 
@@ -85,8 +92,7 @@ const SolanaNewFeatureContent = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      // Places that use the `sheetRef` don't pass an onClose since this causes an infinite loop
-      // onClose={handleClose}
+      onClose={handleSheetClose}
       shouldNavigateBack={false}
     >
       <View style={styles.wrapper}>
