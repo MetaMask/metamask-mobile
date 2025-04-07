@@ -141,7 +141,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -170,7 +170,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               undefined,
               undefined,
               {
-                "fontFamily": "Euclid Circular B",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 18,
                 "fontWeight": "700",
                 "letterSpacing": 0,
@@ -186,7 +186,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
             [
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -225,7 +225,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 30,
                   "fontWeight": "400",
                   "marginVertical": 2,
@@ -268,7 +268,7 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
               [
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 30,
                   "fontWeight": "400",
                   "marginVertical": 2,
@@ -349,10 +349,10 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 {
                   "color": "#4459ff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
@@ -387,10 +387,10 @@ exports[`Show fiat on testnets friction bottom sheet should render 1`] = `
                 {
                   "color": "#ffffff",
                   "fontFamily": "CentraNo1-Medium",
-                  "fontSize": 14,
+                  "fontSize": 16,
                   "fontWeight": "500",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
