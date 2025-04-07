@@ -416,7 +416,7 @@ describe('WalletConnect2Session', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('should call Minimizer.goBack for non-iOS devices', () => {
+    it('allows backward navigation for non-iOS devices', () => {
       (Device.isIos as jest.Mock).mockReturnValue(false);
       
       session.redirect('test');
