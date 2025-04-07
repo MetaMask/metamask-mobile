@@ -20,8 +20,9 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { IMetaMetricsEvent, MetaMetrics } from '../../../Analytics';
+import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
+import { ITrackingEvent } from '../../../Analytics/MetaMetrics.types';
 
 /**
  * Initialize the Snap controller.
@@ -121,9 +122,10 @@ export const snapControllerInit: ControllerInitFunction<
     },
     trackEvent: (params) =>
       MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          params as IMetaMetricsEvent,
-        ).build(),
+        MetricsEventBuilder.createEventBuilder({
+          name: params.event,
+          properties: params.properties,
+        } as ITrackingEvent).build(),
       ),
   });
 
