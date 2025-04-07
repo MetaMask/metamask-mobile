@@ -28,7 +28,7 @@ export function getRequestedCaip25CaveatValue(
       optionalScopes: {},
       requiredScopes: {},
       isMultichainOrigin: false,
-      sessionProperties: {}
+      sessionProperties: {},
     }
   );
 }
