@@ -49,7 +49,7 @@ describe('ApprovalTagUrl', () => {
     expect(queryByTestId(APPROVAL_TAG_URL_ORIGIN_PILL)).toBeNull();
   });
 
-  it('renders correctly when only origin is provided', () => {
+  it('renders origin when only origin is provided', () => {
     const { toJSON, getByTestId } = renderWithProvider(
       <ApprovalTagUrl
         from={ADDRESS_MOCK}
