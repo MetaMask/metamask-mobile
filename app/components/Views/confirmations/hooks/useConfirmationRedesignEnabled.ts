@@ -5,10 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  type ConfirmationRedesignRemoteFlags,
-  selectConfirmationRedesignFlags,
-} from '../../../../selectors/featureFlagController';
+import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../selectors/confirmTransaction';
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
