@@ -5,8 +5,7 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { StatusTypes } from '@metamask/bridge-status-controller';
-import { ActionTypes, BridgeHistoryItem, Step } from '@metamask/bridge-status-controller/dist/types.cjs';
+import { ActionTypes, BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
 import { decimalToPrefixedHex } from '../../../../../util/conversions';
 import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
 import { Box } from '../../../Box/Box';
@@ -14,6 +13,7 @@ import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { StyleSheet } from 'react-native';
+import { Step } from '@metamask/bridge-controller';
 
 /**
  * bridge actions will have step.srcChainId !== step.destChainId
