@@ -5,7 +5,7 @@ import configureMockStore from 'redux-mock-store';
 import useSubmitBridgeTx from './useSubmitBridgeTx';
 import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
-import { DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
+import { DummyQuoteMetadata, DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
 import { QuoteMetadata } from '@metamask/bridge-controller';
@@ -99,7 +99,7 @@ describe('useSubmitBridgeTx', () => {
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      quoteResponse: { ...mockQuoteResponse, ...DummyQuoteMetadata } as QuoteResponse & QuoteMetadata,
     });
 
     expect(mockHandleApprovalTx).not.toHaveBeenCalled();
@@ -121,7 +121,7 @@ describe('useSubmitBridgeTx', () => {
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
 
     const txResult = await result.current.submitBridgeTx({
-      quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+      quoteResponse: { ...mockQuoteResponse, ...DummyQuoteMetadata } as QuoteResponse & QuoteMetadata,
     });
 
     expect(mockHandleApprovalTx).toHaveBeenCalledWith({
@@ -154,7 +154,7 @@ describe('useSubmitBridgeTx', () => {
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: { ...mockQuoteResponse, ...DummyQuoteMetadata } as QuoteResponse & QuoteMetadata,
       })
     ).rejects.toThrow('Approval failed');
 
@@ -173,7 +173,7 @@ describe('useSubmitBridgeTx', () => {
 
     await expect(
       result.current.submitBridgeTx({
-        quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
+        quoteResponse: { ...mockQuoteResponse, ...DummyQuoteMetadata } as QuoteResponse & QuoteMetadata,
       })
     ).rejects.toThrow('Bridge transaction failed');
   });
