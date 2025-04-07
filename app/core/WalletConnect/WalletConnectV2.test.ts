@@ -316,7 +316,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('should handle existing sessionTopic connections', async () => {
+    it('shows loading indicator for existing sessionTopic connections', async () => {
       const mockWcUri = 'wc://test@2?sessionTopic=test-topic';
       const showLoadingSpy = jest.spyOn(wcUtils, 'showWCLoadingState');
 
