@@ -201,7 +201,7 @@ function addTransactionControllerListeners(
   const { initMessenger } = transactionEventHandlerRequest;
 
   // Temporary fix for gas fee updates for redesigned transactions, will be removed after redesign is fully launched
-  // Read more: https://github.com/MetaMask/metamask-mobile/XXX
+  // Read more: https://github.com/MetaMask/MetaMask-planning/issues/4595
   initMessenger.subscribe(
     'TransactionController:stateChange',
     (transactionsToUpdate) =>

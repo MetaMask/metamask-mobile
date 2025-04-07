@@ -23,13 +23,18 @@ import {
   handleTransactionRejectedEventForMetrics,
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
+import {
+  handleTxParamsGasFeeUpdatesForRedesignedTransactions,
+  createUnapprovedTransactionsGasFeeSelector,
+} from './event-handlers/gas';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
 jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
-jest.mock('./transaction-event-handlers');
+jest.mock('./event-handlers/metrics');
+jest.mock('./event-handlers/gas');
 
 /**
  * Build a mock NetworkController.
@@ -104,6 +109,12 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
+  const handleTxParamsGasFeeUpdatesForRedesignedTransactionsMock = jest.mocked(
+    handleTxParamsGasFeeUpdatesForRedesignedTransactions,
+  );
+  const createUnapprovedTransactionsGasFeeSelectorMock = jest.mocked(
+    createUnapprovedTransactionsGasFeeSelector,
+  );
 
   /**
    * Extract a constructor option passed to the controller.
@@ -133,6 +144,7 @@ describe('Transaction Controller Init', () => {
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
     selectSwapsChainFeatureFlagsMock.mockReturnValue({});
     getGlobalChainIdMock.mockReturnValue('0x1');
+    createUnapprovedTransactionsGasFeeSelectorMock.mockReturnValue(() => []);
   });
 
   it('returns controller instance', () => {
@@ -361,6 +373,11 @@ describe('Transaction Controller Init', () => {
         event: 'TransactionController:unapprovedTransactionAdded',
         handler: handleTransactionAddedEventForMetricsMock,
         payload: mockTransactionMeta,
+      },
+      {
+        event: 'TransactionController:stateChange',
+        handler: handleTxParamsGasFeeUpdatesForRedesignedTransactionsMock,
+        payload: [mockTransactionMeta],
       },
     ];
 

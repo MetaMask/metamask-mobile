@@ -265,6 +265,6 @@ describe('createUnapprovedTransactionsGasFeeSelector', () => {
     const result1 = selector(mockState);
     const result2 = selector(mockState);
 
-    expect(result1).toBe(result2); // Should return the same reference
+    expect(result1).toBe(result2);
   });
 });
