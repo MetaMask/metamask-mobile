@@ -454,7 +454,7 @@ describe('WalletConnect2Session', () => {
         expect(mockNavigation.navigate).not.toHaveBeenCalled();
       });
 
-      it('should use universal link if native link is not available', async () => {
+      it('falls back to universal link if native link is not available', async () => {
         const mockUniversalLink = 'https://universal.example.com';
         session.session = {
           ...mockSession,
