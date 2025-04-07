@@ -442,7 +442,7 @@ describe('WC2Manager', () => {
       });
     });
 
-    it('should handle errors during session request processing', async () => {
+    it('logs an error to console on session request error', async () => {
       const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
         ([event]) => event === 'session_request'
       )?.[1];
