@@ -31,10 +31,6 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('../selectors/settings', () => ({
-  selectBasicFunctionalityEnabled: jest.fn(),
-}));
-
 // Mock the feature flag selector
 jest.mock('../selectors/featureFlagController', () => ({
   selectProductSafetyDappScanningEnabled: jest.fn(),
