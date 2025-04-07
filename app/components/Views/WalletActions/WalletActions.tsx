@@ -304,8 +304,6 @@ const WalletActions = () => {
     [styles.icon],
   );
 
-  console.log('chainId', chainId);
-
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
