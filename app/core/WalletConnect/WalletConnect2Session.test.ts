@@ -433,7 +433,7 @@ describe('WalletConnect2Session', () => {
         //(Platform.Version as any) = '17.0';
       });
 
-      it('should open peerLink if available', async () => {
+      it('opens peerLink if available', async () => {
         const mockPeerLink = 'https://example.com';
         session.session = {
           ...mockSession,
