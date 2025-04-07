@@ -29,9 +29,8 @@ jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
 jest.mock('../../util/phishingDetection', () => ({
-  isPhishingDetectionEnabled: jest.fn().mockReturnValue(false),
   isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-  getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
+  getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
 }));
 
 jest.mock('@metamask/assets-controllers', () => {
