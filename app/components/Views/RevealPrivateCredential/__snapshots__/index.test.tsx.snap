@@ -21,6 +21,11 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
+      contentContainerStyle={
+        {
+          "flex": 1,
+        }
+      }
       contentInset={
         {
           "bottom": 0,
@@ -223,9 +228,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </View>
         <View
           style={
-            {
-              "padding": 20,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "flex": 1,
+              },
+            ]
           }
         >
           <Text
@@ -438,6 +448,11 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
+      contentContainerStyle={
+        {
+          "flex": 1,
+        }
+      }
       contentInset={
         {
           "bottom": 0,
@@ -640,9 +655,14 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
         </View>
         <View
           style={
-            {
-              "padding": 20,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "flex": 1,
+              },
+            ]
           }
         >
           <Text
@@ -855,6 +875,11 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
+      contentContainerStyle={
+        {
+          "flex": 1,
+        }
+      }
       contentInset={
         {
           "bottom": 0,
@@ -983,9 +1008,14 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
         </View>
         <View
           style={
-            {
-              "padding": 20,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "flex": 1,
+              },
+            ]
           }
         >
           <Text
@@ -1198,6 +1228,11 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
   >
     <RCTScrollView
       automaticallyAdjustContentInsets={false}
+      contentContainerStyle={
+        {
+          "flex": 1,
+        }
+      }
       contentInset={
         {
           "bottom": 0,
@@ -1326,9 +1361,14 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
         </View>
         <View
           style={
-            {
-              "padding": 20,
-            }
+            [
+              {
+                "padding": 20,
+              },
+              {
+                "flex": 1,
+              },
+            ]
           }
         >
           <Text
