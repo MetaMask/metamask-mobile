@@ -402,7 +402,7 @@ describe('WC2Manager', () => {
       expect(session).toBeDefined();
     });
 
-    it('should reject invalid session requests through event emission', async () => {
+    it('rejects invalid session requests through event emission', async () => {
       const sessionRequestCallback = (mockWeb3Wallet.on as jest.Mock).mock.calls.find(
         ([event]) => event === 'session_request'
       )?.[1];
