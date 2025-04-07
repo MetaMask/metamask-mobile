@@ -29,6 +29,8 @@ const MOCK_DEFAULT_KEYRINGS: KeyringObject[] = [
 ];
 
 export const MOCK_KEYRING_CONTROLLER_STATE = {
+  isUnlocked: jest.fn(),
+  getAccountKeyringType: jest.fn(),
   keyring: {
     keyrings: [
       {

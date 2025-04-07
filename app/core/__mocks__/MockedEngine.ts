@@ -7,6 +7,23 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 export const mockedEngine = {
   init: () => Engine.init({}),
   context: {
+    AccountsController: {
+      listAccounts: jest.fn(),
+      getSelectedAccount: jest.fn(),
+    },
+    AccountTrackerController: {
+      state: {
+        accounts: {},
+      },
+    },
+    PermissionController: {
+      getCaveat: jest.fn(),
+      updateCaveat: jest.fn(),
+      revokePermission: jest.fn(),
+      state: {
+        subjects: {},
+      },
+    },
     KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
     NetworkController: {
       getNetworkClientById: (networkClientId: NetworkClientId) => {
