@@ -6,7 +6,7 @@ export const NOTIFICATIONS_TEAM_SEED_PHRASE =
 export const NOTIFICATIONS_TEAM_PASSWORD = 'notify_password';
 // You can use the storage key below to generate mock data
 export const NOTIFICATIONS_TEAM_STORAGE_KEY =
-  '0d55d30da233959674d14076737198c05ae3fb8631a17e20d3c28c60dddd82f7';
+  '8e05e4135496f3ea56bd256e8d2a802e8a2d9e37fbdec6c1befd0e53f1114b16';
 
 export const NOTIFICATION_WALLET_ACCOUNT_1 =
   '0xAa4179E7f103701e904D27DF223a39Aa9c27405a'.toLowerCase();

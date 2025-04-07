@@ -1,5 +1,10 @@
 // @ts-check
 import {
+  getMockAuthNonceResponse,
+  getMockAuthLoginResponse,
+  getMockAuthAccessTokenResponse,
+} from '@metamask/profile-sync-controller/auth/mocks';
+import {
   getMockFeatureAnnouncementResponse,
   getMockBatchCreateTriggersResponse,
   getMockBatchDeleteTriggersResponse,
@@ -77,6 +82,11 @@ export function getMockFeatureAnnouncementItemId() {
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
 export async function mockNotificationServices(server) {
+  // Auth
+  mockAPICall(server, getMockAuthNonceResponse());
+  mockAPICall(server, getMockAuthLoginResponse());
+  mockAPICall(server, getMockAuthAccessTokenResponse());
+
   // User Storage
   const userStorageMockttpControllerInstance =
     new UserStorageMockttpController();
