@@ -281,7 +281,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const isAllowedOrigin = useCallback((origin: string) => {
     const phishingResult = getPhishingTestResult(origin);
-    return phishingResult?.result === false;
+    return !phishingResult?.result;
   }, []);
 
   useEffect(() => {

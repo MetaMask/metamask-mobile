@@ -57,9 +57,6 @@ const mockInitialState = {
       },
     },
   },
-  settings: {
-    basicFunctionalityEnabled: true,
-  },
 };
 
 describe('AccountApproval', () => {

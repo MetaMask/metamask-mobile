@@ -1,9 +1,6 @@
-import { PhishingController, PhishingDetectorResult } from '@metamask/phishing-controller';
+import { PhishingController, PhishingDetectorResult, PhishingDetectorResultType } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
-import { store } from '../store';
-import { selectBasicFunctionalityEnabled } from '../selectors/settings';
 import {
-  isPhishingDetectionEnabled,
   getPhishingTestResult,
 } from './phishingDetection';
 
@@ -16,59 +13,33 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
-jest.mock('../store', () => ({
-  store: {
-    getState: jest.fn(),
-  },
-}));
-
-jest.mock('../selectors/settings', () => ({
-  selectBasicFunctionalityEnabled: jest.fn(),
-}));
-
 describe('Phishing Detection', () => {
   const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
-  const mockGetState = store.getState as jest.MockedFunction<typeof store.getState>;
-  const mockSelectBasicFunctionalityEnabled = selectBasicFunctionalityEnabled as jest.MockedFunction<typeof selectBasicFunctionalityEnabled>;
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('isPhishingDetectionEnabled', () => {
-    it('returns the value from the settings selector', () => {
-      mockGetState.mockReturnValue({} as never);
-      mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
-
-      expect(isPhishingDetectionEnabled()).toBe(true);
-
-      mockSelectBasicFunctionalityEnabled.mockReturnValue(false);
-      expect(isPhishingDetectionEnabled()).toBe(false);
-
-      expect(mockGetState).toHaveBeenCalledTimes(2);
-      expect(mockSelectBasicFunctionalityEnabled).toHaveBeenCalledTimes(2);
-    });
-  });
-
   describe('getPhishingTestResult', () => {
-    it('returns null if phishing protection is disabled', () => {
-      mockSelectBasicFunctionalityEnabled.mockReturnValue(false);
-
-      expect(getPhishingTestResult('example.com')).toBeNull();
-
-      expect(mockPhishingController.test).not.toHaveBeenCalled();
-      expect(mockPhishingController.maybeUpdateState).not.toHaveBeenCalled();
+    it('should call maybeUpdateState and test with the provided origin', () => {
+      const testOrigin = 'https://example.com';
+      getPhishingTestResult(testOrigin);
+      expect(mockPhishingController.maybeUpdateState).toHaveBeenCalledTimes(1);
+      expect(mockPhishingController.test).toHaveBeenCalledWith(testOrigin);
     });
 
-    it('returns phishing test result if phishing protection is enabled', () => {
-      mockSelectBasicFunctionalityEnabled.mockReturnValue(true);
-      const mockResult = { result: true, name: 'test' } as PhishingDetectorResult;
-      mockPhishingController.test.mockReturnValue(mockResult);
+    it('should return the result from PhishingController.test', () => {
+      const testOrigin = 'https://example.com';
+      const mockResult: PhishingDetectorResult = {
+        result: false,
+        name: 'MetaMask',
+        version: '1.0.0',
+        type: PhishingDetectorResultType.All,
+      };
 
-      expect(getPhishingTestResult('example.com')).toEqual(mockResult);
+      mockPhishingController.test.mockReturnValueOnce(mockResult);
+      const result = getPhishingTestResult(testOrigin);
 
-      expect(mockPhishingController.maybeUpdateState).toHaveBeenCalledTimes(1);
-      expect(mockPhishingController.test).toHaveBeenCalledWith('example.com');
+      expect(result).toEqual(mockResult);
     });
   });
 });
