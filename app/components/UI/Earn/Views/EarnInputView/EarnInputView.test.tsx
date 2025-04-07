@@ -9,10 +9,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import {
-  selectConfirmationRedesignFlags,
-  type ConfirmationRedesignRemoteFlags,
-} from '../../../../../selectors/confirmTransaction';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -35,18 +31,19 @@ import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import EarnInputView from './EarnInputView';
 // eslint-disable-next-line import/no-namespace
+import { BNToHex } from '@metamask/controller-utils';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import BigNumber from 'bignumber.js';
+import { getStakingNavbar } from '../../../Navbar';
 import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
 import {
   EARN_INPUT_VIEW_ACTIONS,
   EarnInputViewProps,
 } from './EarnInputView.types';
-import { BNToHex } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import BigNumber from 'bignumber.js';
-import { getStakingNavbar } from '../../../Navbar';
 // eslint-disable-next-line import/no-namespace
-import * as useBalance from '../../../Stake/hooks/useBalance';
+import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../../selectors/confirmTransaction';
 import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import * as useBalance from '../../../Stake/hooks/useBalance';
 import {
   createMockToken,
   getCreateMockTokenOptions,
