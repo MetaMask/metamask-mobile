@@ -726,7 +726,7 @@ describe('WC2Manager', () => {
       });
     });
 
-    it('should handle errors when removing pending session proposals', async () => {
+    it('logs errors to console when removing pending session proposals fails', async () => {
       const mockPendingProposals = {
         '1': { id: 1, ...mockPendingProposalData }
       };
