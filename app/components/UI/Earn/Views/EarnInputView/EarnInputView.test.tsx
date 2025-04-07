@@ -127,7 +127,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/featureFlagController', () => ({
+jest.mock('../../../../../selectors/featureFlagController/confirmations', () => ({
   selectConfirmationRedesignFlags: jest.fn(),
 }));
 
@@ -281,15 +281,15 @@ describe('StakeInputView', () => {
     mockIsStablecoinLendingFeatureEnabled.mockReturnValue(false);
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
-        ({
-          address: MOCK_ADDRESS_2,
-        } as InternalAccount),
+      ({
+        address: MOCK_ADDRESS_2,
+      } as InternalAccount),
     );
     selectConfirmationRedesignFlagsMock.mockImplementation(
       () =>
-        ({
-          staking_confirmations: false,
-        } as ConfirmationRedesignRemoteFlags),
+      ({
+        staking_confirmations: false,
+      } as ConfirmationRedesignRemoteFlags),
     );
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
