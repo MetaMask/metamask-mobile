@@ -5,8 +5,8 @@ import { strings } from '../../../locales/i18n';
 import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { useNavigation, ParamListBase, NavigationProp } from '@react-navigation/native';
 import Oauth2LoginService from '../../core/Oauth2Login/Oauth2loginService';
-import { ONBOARDING } from '../../constants/navigation';
-import { PREVIOUS_SCREEN } from '../../constants/navigation';
+import { ONBOARDING, PREVIOUS_SCREEN } from '../../constants/navigation';
+
 const styles = StyleSheet.create({
   buttonWrapper: {
     marginBottom: 16,

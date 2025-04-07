@@ -3,8 +3,11 @@ import Oauth2LoginService, { LoginMode, LoginProvider } from '../../Oauth2Login/
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
 import { showAlert } from '../../../actions/alert';
+import { PREVIOUS_SCREEN } from '../../../constants/navigation';
+import ReduxService from '../../redux/ReduxService';
+import { UserActionType } from '../../../actions/user';
 
-function handleOauth2RedirectUrl({
+async function handleOauth2RedirectUrl({
   deeplinkManager,
   url,
   base,
@@ -39,11 +42,24 @@ function handleOauth2RedirectUrl({
         Logger.log('handleOauth2RedirectUrl: mode', mode);
         Logger.log('handleOauth2RedirectUrl: result.existingUser', result.existingUser);
         if (mode === 'onboarding') {
+          ReduxService.store.dispatch({
+            type: UserActionType.OAUTH2_LOGIN_SUCCESS,
+            payload: {
+                existingUser: result.existingUser,
+            },
+          });
           if (result.existingUser) {
             deeplinkManager.navigation.navigate('Login');
           } else {
-            deeplinkManager.navigation.navigate('ChoosePassword');
+            deeplinkManager.navigation.navigate('ChoosePassword', {
+              [PREVIOUS_SCREEN]: 'onboarding',
+            });
           }
+
+          ReduxService.store.dispatch({
+            type: UserActionType.LOADING_UNSET,
+          });
+
         } else if (mode === 'change-password') {
           deeplinkManager.navigation.navigate('ChangePassword');
         }
@@ -51,6 +67,15 @@ function handleOauth2RedirectUrl({
       }
     }).catch((error) => {
       Logger.log('handleOauth2RedirectUrl: error', error);
+      ReduxService.store.dispatch({
+        type: UserActionType.OAUTH2_LOGIN_ERROR,
+        payload: {
+          error: error.message,
+        },
+      });
+      ReduxService.store.dispatch({
+        type: UserActionType.LOADING_UNSET,
+      });
     });
   } else {
     deeplinkManager.dispatch(
@@ -62,7 +87,6 @@ function handleOauth2RedirectUrl({
       }),
     );
   }
-
 }
 
 export default handleOauth2RedirectUrl;

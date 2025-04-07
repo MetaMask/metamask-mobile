@@ -261,6 +261,13 @@ export class Oauth2LoginService {
             throw new Error('Login already in progress');
         }
         this.localState.loginInProgress = true;
+        ReduxService.store.dispatch({
+            type: UserActionType.LOADING_SET,
+            payload: {
+                loadingMsg: 'Logging in...',
+            },
+        });
+
         let result;
         if (Platform.OS === 'ios') {
             result = await this.#iosHandleOauth2Login(provider, mode);
@@ -305,6 +312,19 @@ export class Oauth2LoginService {
                 type: UserActionType.OAUTH2_LOGIN_RESET,
             });
         }
+
+        if ( result.type !== 'pending') {
+            ReduxService.store.dispatch({
+                type: UserActionType.LOADING_UNSET,
+            });
+        } else {
+            setTimeout(() => {
+                ReduxService.store.dispatch({
+                    type: UserActionType.LOADING_UNSET,
+                });
+            }, 10000);
+        }
+
         return result;
     };
 
