@@ -121,11 +121,11 @@ exports[`Tabs should render correctly 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontSize": 18,
                     "fontWeight": "600",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                     "marginLeft": 5,
                     "marginRight": 40,
                     "marginTop": 0,
@@ -233,17 +233,17 @@ exports[`Tabs should render correctly 1`] = `
           {
             "0": {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
               "fontWeight": "400",
             },
             "1": null,
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -328,21 +328,21 @@ exports[`Tabs should render correctly 1`] = `
           {
             "0": {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 16,
               "fontWeight": "400",
             },
             "1": {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontWeight": "600",
             },
             "2": null,
             "color": "#121314",
             "fontFamily": "CentraNo1-Book",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

@@ -73,7 +73,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               },
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               },
             ]
@@ -83,7 +83,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               }
             }
@@ -112,7 +112,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -145,7 +145,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -199,7 +199,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "marginLeft": 10,
                   "marginRight": 40,
@@ -211,7 +211,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontWeight": "600",
                   }
                 }
@@ -260,7 +260,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
                 "marginTop": 10,
               }
@@ -323,7 +323,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -390,7 +390,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -520,7 +520,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               },
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               },
             ]
@@ -530,7 +530,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               }
             }
@@ -559,7 +559,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -592,7 +592,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Bold",
+                  "fontFamily": "CentraNo1-Bold",
                   "fontWeight": "600",
                 }
               }
@@ -646,7 +646,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "marginLeft": 10,
                   "marginRight": 40,
@@ -658,7 +658,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Bold",
+                    "fontFamily": "CentraNo1-Bold",
                     "fontWeight": "600",
                   }
                 }
@@ -707,7 +707,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
                 "marginTop": 10,
               }
@@ -770,7 +770,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -837,7 +837,7 @@ exports[`RevealPrivateCredential renders reveal SRP correctly when the credentia
                   },
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -967,7 +967,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               },
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               },
             ]
@@ -977,7 +977,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               }
             }
@@ -1030,7 +1030,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "marginLeft": 10,
                   "marginRight": 40,
@@ -1080,7 +1080,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
                 "marginTop": 10,
               }
@@ -1143,7 +1143,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -1210,7 +1210,7 @@ exports[`RevealPrivateCredential renders reveal private key correctly 1`] = `
                   },
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -1340,7 +1340,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
               },
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               },
             ]
@@ -1350,7 +1350,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
               }
             }
@@ -1403,7 +1403,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "marginLeft": 10,
                   "marginRight": 40,
@@ -1453,7 +1453,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
             style={
               {
                 "color": "#ca3542",
-                "fontFamily": "EuclidCircularB-Regular",
+                "fontFamily": "CentraNo1-Book",
                 "fontWeight": "400",
                 "marginTop": 10,
               }
@@ -1516,7 +1516,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -1583,7 +1583,7 @@ exports[`RevealPrivateCredential renders with a custom selectedAddress 1`] = `
                   },
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",

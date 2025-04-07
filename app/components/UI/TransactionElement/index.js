@@ -43,6 +43,10 @@ import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
+import {
+  getFontFamily,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -97,17 +101,21 @@ const createStyles = (colors, typography) =>
     },
     listItemTitle: {
       ...typography.sBodyLGMedium,
+      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
       marginTop: 0,
     },
     listItemStatus: {
       ...typography.sBodyMDBold,
+      fontFamily: getFontFamily(TextVariant.BodyMDBold),
     },
     listItemFiatAmount: {
       ...typography.sBodyLGMedium,
+      fontFamily: getFontFamily(TextVariant.BodyLGMedium),
       marginTop: 0,
     },
     listItemAmount: {
       ...typography.sBodyMD,
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       color: colors.text.alternative,
     },
   });
