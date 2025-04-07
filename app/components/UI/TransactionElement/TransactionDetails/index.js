@@ -26,7 +26,6 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
   selectEvmTicker,
 } from '../../../../selectors/networkController';
@@ -114,10 +113,6 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain Id
-     */
-    chainId: PropTypes.string,
-    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -175,7 +170,6 @@ class TransactionDetails extends PureComponent {
       transactionDetails,
       selectedAddress,
       ticker,
-      chainId,
       conversionRate,
       currentCurrency,
       contractExchangeRates,
@@ -185,6 +179,7 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    const { chainId } = transactionObject;
     // console.log('>>> transactionObject', transactionObject);
     // console.log('>>> transactionDetails', transactionDetails);
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
@@ -228,14 +223,13 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      transactionObject: { chainId: txChainId },
-      chainId,
+      transactionObject: { chainId },
       networkConfigurations,
     } = this.props;
 
     let blockExplorer =
-      networkConfigurations?.[txChainId]?.blockExplorerUrls[
-        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      networkConfigurations?.[chainId]?.blockExplorerUrls[
+        networkConfigurations[chainId]?.defaultBlockExplorerUrlIndex
       ] || NO_RPC_BLOCK_EXPLORER;
 
     if (isNonEvmChainId(chainId)) {
@@ -325,8 +319,7 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      chainId,
-      transactionObject: { status, time, txParams },
+      transactionObject: { status, time, txParams, chainId },
       shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
@@ -337,11 +330,7 @@ class TransactionDetails extends PureComponent {
       !shouldUseSmartTransaction;
     const { rpcBlockExplorer } = this.state;
 
-    return (
-      <>
-      <Text>chainId: {chainId}</Text>
-      <Text>transaction object chain id: {this.props.transactionObject.chainId}</Text>
-      {updatedTransactionDetails ? (
+    return updatedTransactionDetails ? (
       <DetailsModal.Body>
         <DetailsModal.Section borderBottom>
           <DetailsModal.Column>
@@ -475,15 +464,11 @@ class TransactionDetails extends PureComponent {
             </TouchableOpacity>
           )}
       </DetailsModal.Body>
-    ) : null}
-      </>
-    )
-    ;
+    ) : null;
   };
 }
 
 const mapStateToProps = (state) => ({
-  chainId: selectChainId(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
