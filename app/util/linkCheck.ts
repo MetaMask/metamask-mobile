@@ -13,7 +13,7 @@ const isAllowedUrl = ({ hostname, origin }: Url<string>): boolean => {
     return false;
   }
   const phishingResult = getPhishingTestResult(origin);
-  return phishingResult?.result === false;
+  return !phishingResult?.result;
 };
 
 export const isLinkSafe = (link: string): boolean => {
