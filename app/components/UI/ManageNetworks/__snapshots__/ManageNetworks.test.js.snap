@@ -56,10 +56,10 @@ exports[`ManageNetworks should render correctly 1`] = `
         {
           "color": "#4459ff",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -128,10 +128,10 @@ exports[`ManageNetworks should render correctly 1`] = `
           "color": "#121314",
           "flexShrink": 1,
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "marginHorizontal": 8,
         }
       }

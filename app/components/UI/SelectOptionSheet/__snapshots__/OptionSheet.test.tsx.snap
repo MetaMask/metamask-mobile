@@ -495,7 +495,7 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                       {
                                         "color": "#121314",
                                         "flex": 1,
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                       }
@@ -524,7 +524,7 @@ exports[`OptionSheet render matches snapshot 1`] = `
                                       {
                                         "color": "#121314",
                                         "flex": 1,
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 14,
                                         "fontWeight": "400",
                                       }
