@@ -1,39 +1,39 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
 
-import { MetaMetrics } from '../../../Analytics';
-import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
-import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
-import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
+import { MetaMetrics } from '../../../../Analytics';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
+import { MetricsEventBuilder } from '../../../../Analytics/MetricsEventBuilder';
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
 import {
-  handleTransactionAdded,
-  handleTransactionApproved,
-  handleTransactionFinalized,
-  handleTransactionRejected,
-  handleTransactionSubmitted,
-} from './transaction-event-handlers';
-import { TransactionEventHandlerRequest } from './types';
+  handleTransactionAddedEventForMetrics,
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+} from './metrics';
+import { TransactionEventHandlerRequest } from '../types';
 import {
   disabledSmartTransactionsState,
   enabledSmartTransactionsState,
-} from './data-helpers';
+} from '../data-helpers';
 
-jest.mock('../../../../util/smart-transactions');
+jest.mock('../../../../../util/smart-transactions');
 
 // Mock dependencies
-jest.mock('../../../Analytics', () => ({
+jest.mock('../../../../Analytics', () => ({
   MetaMetrics: {
     getInstance: jest.fn(),
   },
 }));
 
-jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
+jest.mock('../../../../Analytics/MetricsEventBuilder', () => ({
   MetricsEventBuilder: {
     createEventBuilder: jest.fn(),
   },
 }));
 
-describe('Transaction Event Handlers', () => {
+describe('Transaction Metric Event Handlers', () => {
   const mockGetSmartTransactionMetricsProperties = jest.mocked(
     getSmartTransactionMetricsProperties,
   );
@@ -103,28 +103,28 @@ describe('Transaction Event Handlers', () => {
 
   const handlerTestCases = [
     {
-      handlerName: 'handleTransactionAdded',
-      handler: handleTransactionAdded,
+      handlerName: 'handleTransactionAddedEventForMetrics',
+      handler: handleTransactionAddedEventForMetrics,
       event: TRANSACTION_EVENTS.TRANSACTION_ADDED,
     },
     {
-      handlerName: 'handleTransactionApproved',
-      handler: handleTransactionApproved,
+      handlerName: 'handleTransactionApprovedEventForMetrics',
+      handler: handleTransactionApprovedEventForMetrics,
       event: TRANSACTION_EVENTS.TRANSACTION_APPROVED,
     },
     {
-      handlerName: 'handleTransactionFinalized',
-      handler: handleTransactionFinalized,
+      handlerName: 'handleTransactionFinalizedEventForMetrics',
+      handler: handleTransactionFinalizedEventForMetrics,
       event: TRANSACTION_EVENTS.TRANSACTION_FINALIZED,
     },
     {
-      handlerName: 'handleTransactionRejected',
-      handler: handleTransactionRejected,
+      handlerName: 'handleTransactionRejectedEventForMetrics',
+      handler: handleTransactionRejectedEventForMetrics,
       event: TRANSACTION_EVENTS.TRANSACTION_REJECTED,
     },
     {
-      handlerName: 'handleTransactionSubmitted',
-      handler: handleTransactionSubmitted,
+      handlerName: 'handleTransactionSubmittedEventForMetrics',
+      handler: handleTransactionSubmittedEventForMetrics,
       event: TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
     },
   ];
@@ -150,7 +150,7 @@ describe('Transaction Event Handlers', () => {
       },
     });
 
-    handleTransactionApproved(
+    handleTransactionApprovedEventForMetrics(
       mockTransactionMeta,
       mockTransactionMetricRequest,
     );
@@ -167,7 +167,7 @@ describe('Transaction Event Handlers', () => {
     });
 
     expect(() => {
-      handleTransactionApproved(
+      handleTransactionApprovedEventForMetrics(
         mockTransactionMeta,
         mockTransactionMetricRequest,
       );
@@ -176,7 +176,7 @@ describe('Transaction Event Handlers', () => {
 
   describe('handleTransactionFinalized', () => {
     it('adds STX metrics properties if smart transactions are enabled', async () => {
-      await handleTransactionFinalized(
+      await handleTransactionFinalizedEventForMetrics(
         mockTransactionMeta,
         mockTransactionMetricRequest,
       );
@@ -200,7 +200,7 @@ describe('Transaction Event Handlers', () => {
         }),
       );
 
-      await handleTransactionFinalized(
+      await handleTransactionFinalizedEventForMetrics(
         mockTransactionMeta,
         mockTransactionMetricRequest,
       );
