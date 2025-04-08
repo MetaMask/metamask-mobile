@@ -78,7 +78,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   }: {
     keyDerivationOptions: KeyDerivationOptions;
   }) {
-    this.checkMinimalRequiredIterations(keyDerivationOptions.params.iterations);
     this.keyDerivationOptions = keyDerivationOptions;
   }
 

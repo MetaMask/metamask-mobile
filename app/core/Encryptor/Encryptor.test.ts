@@ -3,7 +3,6 @@ import { Encryptor } from './Encryptor';
 import {
   ShaAlgorithm,
   CipherAlgorithm,
-  KeyDerivationIteration,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
   DERIVATION_OPTIONS_MINIMUM_OWASP2023,
@@ -19,25 +18,6 @@ describe('Encryptor', () => {
   beforeEach(() => {
     encryptor = new Encryptor({
       keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
-    });
-  });
-
-  describe('constructor', () => {
-    it('throws an error if the provided iterations do not meet the minimum required', () => {
-      const iterations = 100;
-      expect(
-        () =>
-          new Encryptor({
-            keyDerivationOptions: {
-              algorithm: 'PBKDF2',
-              params: {
-                iterations,
-              },
-            },
-          }),
-      ).toThrow(
-        `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.OWASP2023Default}. Minimum required is ${KeyDerivationIteration.OWASP2023Minimum}.`,
-      );
     });
   });
 
