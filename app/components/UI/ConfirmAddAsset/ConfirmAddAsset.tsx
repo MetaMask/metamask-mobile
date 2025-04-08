@@ -12,7 +12,9 @@ import { getImportTokenNavbarOptions } from '../Navbar';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import {
   getTestNetImageByChainId,
@@ -177,7 +179,7 @@ const ConfirmAddAsset = () => {
         {strings('wallet.import_token')}
       </Text>
       <ScrollView style={styles.root}>
-        {selectedAsset.map(
+        {selectedAsset?.map(
           (
             asset: {
               symbol: string;
@@ -191,6 +193,7 @@ const ConfirmAddAsset = () => {
             <View style={styles.assetElement} key={i}>
               <View>
                 <BadgeWrapper
+                  badgePosition={BadgePosition.BottomRight}
                   badgeElement={
                     <Badge
                       variant={BadgeVariant.Network}

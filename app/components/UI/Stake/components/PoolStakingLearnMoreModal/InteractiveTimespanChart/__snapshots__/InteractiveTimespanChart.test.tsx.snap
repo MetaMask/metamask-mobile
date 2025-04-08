@@ -21,7 +21,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -34,12 +34,12 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -64,12 +64,12 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -94,12 +94,12 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -120,8 +120,8 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -135,12 +135,12 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -238,7 +238,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -250,7 +250,7 @@ exports[`InteractiveTimespanChart render matches snapshot 1`] = `
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]
@@ -293,7 +293,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -306,12 +306,12 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -336,12 +336,12 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -366,12 +366,12 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -392,8 +392,8 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -405,12 +405,12 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     />
@@ -506,7 +506,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -518,7 +518,7 @@ exports[`InteractiveTimespanChart renders no title or subtitle when defaultTitle
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]
@@ -561,7 +561,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -574,12 +574,12 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -604,12 +604,12 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -634,12 +634,12 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -660,8 +660,8 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -673,12 +673,12 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -776,7 +776,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -788,7 +788,7 @@ exports[`InteractiveTimespanChart renders only the subtitle when title props are
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]
@@ -831,7 +831,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -844,12 +844,12 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -874,12 +874,12 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -904,12 +904,12 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -930,8 +930,8 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -945,12 +945,12 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     />
@@ -1046,7 +1046,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -1058,7 +1058,7 @@ exports[`InteractiveTimespanChart renders only the title when subtitle props are
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]
@@ -1101,7 +1101,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -1114,12 +1114,12 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1144,12 +1144,12 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1174,12 +1174,12 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1200,8 +1200,8 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -1215,12 +1215,12 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -1318,7 +1318,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -1330,7 +1330,7 @@ exports[`InteractiveTimespanChart supports dataPoints as number[] 1`] = `
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]
@@ -1373,7 +1373,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       style={
         {
           "alignItems": "center",
-          "backgroundColor": "#f2f4f6",
+          "backgroundColor": "#f3f5f9",
           "borderRadius": 32,
           "height": 36,
           "justifyContent": "center",
@@ -1386,12 +1386,12 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1416,12 +1416,12 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1446,12 +1446,12 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -1472,8 +1472,8 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#1c8234",
-          "fontFamily": "EuclidCircularB-Bold",
+          "color": "#1c7e33",
+          "fontFamily": "CentraNo1-Bold",
           "fontSize": 24,
           "fontWeight": "700",
           "letterSpacing": 0,
@@ -1487,12 +1487,12 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#6a737d",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 14,
+          "color": "#686e7d",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 16,
           "fontWeight": "500",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -1590,7 +1590,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
               }
               stroke={
                 {
-                  "payload": 4280058420,
+                  "payload": 4280057395,
                   "type": 0,
                 }
               }
@@ -1602,7 +1602,7 @@ exports[`InteractiveTimespanChart supports dataPoints as object[] 1`] = `
                 gradient={
                   [
                     0,
-                    857506356,
+                    857505331,
                     1,
                     872415231,
                   ]

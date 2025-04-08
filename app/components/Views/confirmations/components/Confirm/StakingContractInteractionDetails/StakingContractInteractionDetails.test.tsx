@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import StakingContractInteractionDetails from './StakingContractInteractionDetails';
 
 describe('StakingContractInteractionDetails', () => {
-  it('should render correctly with staking deposit variant', () => { 
+  it('should render correctly with staking deposit variant', () => {
     const { getByText } = renderWithProvider(<StakingContractInteractionDetails />, {
       state: stakingDepositConfirmationState,
     });

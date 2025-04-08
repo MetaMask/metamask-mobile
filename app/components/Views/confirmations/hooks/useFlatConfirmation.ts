@@ -5,6 +5,7 @@ import { useTransactionMetadataRequest } from '../hooks/useTransactionMetadataRe
 const FLAT_TRANSACTION_CONFIRMATIONS: TransactionType[] = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
+  TransactionType.stakingClaim,
 ];
 
 export const useFlatConfirmation = () => {

@@ -2,10 +2,21 @@ import React from 'react';
 import { act, renderHook } from '@testing-library/react-hooks';
 import { Severity, Alert } from '../../types/alerts';
 import { useAlerts, AlertsContextProvider, AlertsContextParams } from './Alerts.context';
+import { useAlertsConfirmed } from '../../../../hooks/useAlertsConfirmed';
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: jest.fn(),
+}));
 
 jest.mock('../../hooks/useConfirmationAlerts', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useAlertsConfirmed', () => ({
+  useAlertsConfirmed: jest.fn(),
 }));
 
 describe('AlertsContext', () => {
@@ -33,8 +44,18 @@ describe('AlertsContext', () => {
 
   const alertsMock = [dangerAlertMock, warningAlertMock, infoAlertMock];
 
+  const mockUseAlertsConfirmed = {
+    hasUnconfirmedDangerAlerts: false,
+    hasUnconfirmedFieldDangerAlerts: false,
+    isAlertConfirmed: jest.fn(),
+    setAlertConfirmed: jest.fn(),
+    unconfirmedDangerAlerts: [],
+    unconfirmedFieldDangerAlerts: [],
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    (useAlertsConfirmed as jest.Mock).mockReturnValue(mockUseAlertsConfirmed);
   });
 
   const renderHookWithProvider = (hook: () => AlertsContextParams) => renderHook(hook, {
@@ -53,6 +74,12 @@ describe('AlertsContext', () => {
       expect(result.current.hasDangerAlerts).toBeDefined();
       expect(result.current.hideAlertModal).toBeDefined();
       expect(result.current.showAlertModal).toBeDefined();
+      expect(result.current.hasUnconfirmedDangerAlerts).toBeDefined();
+      expect(result.current.hasUnconfirmedFieldDangerAlerts).toBeDefined();
+      expect(result.current.isAlertConfirmed).toBeDefined();
+      expect(result.current.setAlertConfirmed).toBeDefined();
+      expect(result.current.unconfirmedDangerAlerts).toBeDefined();
+      expect(result.current.unconfirmedFieldDangerAlerts).toBeDefined();
     });
 
     it('provides showAlertModal and hideAlertModal functions', () => {
@@ -83,9 +110,7 @@ describe('AlertsContext', () => {
       expect(result.current.hasAlerts).toBe(false);
       expect(result.current.hasDangerAlerts).toBe(false);
     });
-  });
 
-  describe('useAlertsManagement', () => {
     it('returns all alerts', () => {
       const { result } = renderHookWithProvider(() => useAlerts());
       expect(result.current.alerts).toEqual(alertsMock);
@@ -116,15 +141,12 @@ describe('AlertsContext', () => {
 
     it('sets a new alert key', () => {
       const { result } = renderHookWithProvider(() => useAlerts());
-
       act(() => {
         result.current.setAlertKey(warningAlertMock.key);
       });
       expect(result.current.alertKey).toBe(warningAlertMock.key);
     });
-  });
 
-  describe('AlertsContextProvider', () => {
     it('should throw error if not wrapped in AlertsContextProvider', () => {
       expect(() => {
         useAlerts();

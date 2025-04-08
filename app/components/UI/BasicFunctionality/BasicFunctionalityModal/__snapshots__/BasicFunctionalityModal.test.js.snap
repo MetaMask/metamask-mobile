@@ -23,7 +23,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#00000099",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -70,14 +70,14 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         [
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#BBC0C566",
+            "borderColor": "#b7bbc866",
             "borderTopLeftRadius": 8,
             "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 1334,
             "overflow": "hidden",
             "paddingBottom": 0,
-            "shadowColor": "#0000001A",
+            "shadowColor": "#0000001a",
             "shadowOffset": {
               "height": 2,
               "width": 0,
@@ -107,7 +107,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         <View
           style={
             {
-              "backgroundColor": "#BBC0C566",
+              "backgroundColor": "#b7bbc866",
               "borderRadius": 2,
               "height": 4,
               "width": 40,
@@ -125,7 +125,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
         }
       >
         <SvgMock
-          color="#d73847"
+          color="#ca3542"
           height={32}
           name="Danger"
           style={
@@ -142,8 +142,8 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 18,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -159,12 +159,12 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
           style={
             {
               "alignSelf": "flex-start",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "paddingBottom": 10,
               "paddingTop": 16,
             }
@@ -197,7 +197,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "backgroundColor": "#ffffff",
-                  "borderColor": "#141618",
+                  "borderColor": "#121314",
                   "borderRadius": 4,
                   "borderWidth": 2,
                   "height": 20,
@@ -217,12 +217,12 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#141618",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "color": "#121314",
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -250,7 +250,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                   "alignItems": "center",
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
-                  "borderColor": "#0376c9",
+                  "borderColor": "#4459ff",
                   "borderRadius": 24,
                   "borderWidth": 1,
                   "flex": 1,
@@ -265,12 +265,12 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#0376c9",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "color": "#4459ff",
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -296,7 +296,7 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#d73847",
+                  "backgroundColor": "#ca3542",
                   "borderRadius": 24,
                   "flex": 1,
                   "flexDirection": "row",
@@ -312,11 +312,11 @@ exports[`BasicFunctionalityModal should render correctly 1`] = `
                 style={
                   {
                     "color": "#ffffff",
-                    "fontFamily": "EuclidCircularB-Medium",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Medium",
+                    "fontSize": 16,
                     "fontWeight": "500",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >

@@ -143,7 +143,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                   style={
                     {
                       "height": 35,
-                      "tintColor": "#141618",
+                      "tintColor": "#121314",
                       "width": 70,
                     }
                   }
@@ -443,8 +443,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                     style={
                                       {
                                         "alignItems": "center",
-                                        "backgroundColor": "#0376c9",
-                                        "borderColor": "#0376c9",
+                                        "backgroundColor": "#4459ff",
+                                        "borderColor": "#4459ff",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -507,7 +507,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#ffffff",
-                                        "borderColor": "#0376c9",
+                                        "borderColor": "#4459ff",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -521,7 +521,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "fontSize": 9,
                                           "overflow": "hidden",
                                         }
@@ -570,7 +570,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                       {
                                         "alignItems": "center",
                                         "backgroundColor": "#ffffff",
-                                        "borderColor": "#9fa6ae",
+                                        "borderColor": "#9ca1af",
                                         "borderRadius": 10,
                                         "borderWidth": 2,
                                         "height": 20,
@@ -584,7 +584,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                     <Text
                                       style={
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#9ca1af",
                                           "fontSize": 9,
                                           "overflow": "hidden",
                                         }
@@ -647,10 +647,10 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#9ca1af",
                                         },
                                         {
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 10,
                                         },
                                       ]
@@ -695,10 +695,10 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#0376c9",
+                                          "color": "#4459ff",
                                         },
                                         {
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 10,
                                         },
                                       ]
@@ -743,10 +743,10 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                           "textAlign": "center",
                                         },
                                         {
-                                          "color": "#9fa6ae",
+                                          "color": "#9ca1af",
                                         },
                                         {
-                                          "fontFamily": "EuclidCircularB-Regular",
+                                          "fontFamily": "CentraNo1-Book",
                                           "fontSize": 10,
                                         },
                                       ]
@@ -770,8 +770,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                               <Text
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Bold",
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Bold",
                                     "fontSize": 24,
                                     "fontWeight": "600",
                                     "marginBottom": 24,
@@ -802,8 +802,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
                                       "fontWeight": "400",
                                       "lineHeight": 20,
@@ -817,7 +817,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                     onPress={[Function]}
                                     style={
                                       {
-                                        "color": "#0376c9",
+                                        "color": "#4459ff",
                                       }
                                     }
                                   >
@@ -829,7 +829,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontWeight": "600",
                                       }
                                     }
@@ -874,8 +874,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                   <Text
                                     style={
                                       {
-                                        "color": "#0376c9",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#4459ff",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 15,
                                         "fontWeight": "400",
                                         "lineHeight": 20,
@@ -890,8 +890,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 11,
                                       "fontWeight": "400",
                                       "lineHeight": 20,
@@ -923,7 +923,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                           "padding": 15,
                                         },
                                         {
-                                          "backgroundColor": "#0376c9",
+                                          "backgroundColor": "#4459ff",
                                           "minHeight": 50,
                                         },
                                         undefined,
@@ -944,7 +944,7 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",
@@ -964,8 +964,8 @@ exports[`AccountBackupStep1 should render correctly 1`] = `
                                 <Text
                                   style={
                                     {
-                                      "color": "#6a737d",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "color": "#686e7d",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 11,
                                       "fontWeight": "400",
                                       "marginTop": 12,

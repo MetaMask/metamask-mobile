@@ -97,7 +97,6 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -392,13 +391,6 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents;
 
-// TODO: Abstract this into controller utils for TransactionController
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
-
 /**
  * Type definition for the controller messenger used in the Engine.
  * It extends the base ControllerMessenger with global actions and events.
@@ -566,6 +558,8 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'

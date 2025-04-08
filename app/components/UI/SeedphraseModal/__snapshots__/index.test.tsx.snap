@@ -51,7 +51,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
     onStartShouldSetResponder={[Function]}
     style={
       {
-        "backgroundColor": "#00000099",
+        "backgroundColor": "#00000066",
         "bottom": 0,
         "height": 1334,
         "left": 0,
@@ -215,9 +215,9 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#141618",
+                      "color": "#121314",
                       "flex": 1,
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 18,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -251,7 +251,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
                           "fontSize": 12,
                         },
                         {
-                          "color": "#141618",
+                          "color": "#121314",
                           "fontSize": 16,
                         },
                         {
@@ -271,8 +271,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,
@@ -286,8 +286,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,
@@ -301,8 +301,8 @@ exports[`SeedphraseModal should render correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                       "lineHeight": 20,
@@ -320,7 +320,7 @@ exports[`SeedphraseModal should render correctly 1`] = `
             style={
               [
                 {
-                  "borderTopColor": "#BBC0C566",
+                  "borderTopColor": "#b7bbc866",
                   "borderTopWidth": 1,
                   "flexDirection": "row",
                   "padding": 16,

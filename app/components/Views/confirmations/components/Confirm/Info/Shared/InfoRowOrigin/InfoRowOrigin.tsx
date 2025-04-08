@@ -10,6 +10,8 @@ import Address from '../../../../UI/InfoRow/InfoValue/Address';
 import DisplayURL from '../../../../UI/InfoRow/InfoValue/DisplayURL';
 import InfoRow from '../../../../UI/InfoRow';
 import InfoSection from '../../../../UI/InfoRow/InfoSection';
+import AlertRow from '../../../../UI/InfoRow/AlertRow';
+import { RowAlertKey } from '../../../../UI/InfoRow/AlertRow/constants';
 
 const InfoRowOrigin = () => {
   const { approvalRequest } = useApprovalRequest();
@@ -26,13 +28,14 @@ const InfoRowOrigin = () => {
     <InfoSection
       testID={ConfirmationPageSectionsSelectorIDs.ORIGIN_INFO_SECTION}
     >
-      <InfoRow
+      <AlertRow
+        alertField={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
         tooltip={strings('confirm.personal_sign_tooltip')}
       >
         {/* TODO: request from url below will only work for signatures */}
         <DisplayURL url={approvalRequest?.requestData?.meta?.url} />
-      </InfoRow>
+      </AlertRow>
       {isSIWEMessage && (
         <InfoRow
           label={strings('confirm.label.signing_in_with')}

@@ -117,8 +117,8 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapOnSelectSourceToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(sourceTokenSymbol);
-
-        await QuoteView.selectToken(sourceTokenSymbol);
+        await TestHelpers.delay(2000);
+        await QuoteView.selectToken(sourceTokenSymbol, 1);
       }
       await QuoteView.enterSwapAmount(quantity);
 
@@ -128,7 +128,7 @@ describe(SmokeSwaps('Swap from Actions'), () => {
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
         await TestHelpers.delay(2000);
-        await QuoteView.selectToken(destTokenSymbol);
+        await QuoteView.selectToken(destTokenSymbol, 1);
       } else await QuoteView.selectToken(destTokenSymbol, firstElement);
 
       //Make sure slippage is zero for wrapped tokens

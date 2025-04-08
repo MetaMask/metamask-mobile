@@ -9,7 +9,7 @@ import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
 import userReducer, { UserState } from './user';
 import wizardReducer from './wizard';
-import onboardingReducer from './onboarding';
+import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
 import signatureRequestReducer from './signatureRequest';
@@ -26,14 +26,11 @@ import rpcEventReducer from './rpcEvents';
 import accountsReducer from './accounts';
 import sdkReducer from './sdk';
 import inpageProviderReducer from '../core/redux/slices/inpageProvider';
-import transactionMetricsReducer from '../core/redux/slices/transactionMetrics';
+import confirmationMetricsReducer from '../core/redux/slices/confirmationMetrics';
 import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
+import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { MultichainSettingsState } from '../actions/multichain/state';
-import multichainReducer from './multichain';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Infer state from a reducer
@@ -85,9 +82,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   wizard: any;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onboarding: any;
+  onboarding: OnboardingState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   notification: any;
@@ -119,13 +114,11 @@ export interface RootState {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   accounts: any;
   inpageProvider: StateFromReducer<typeof inpageProviderReducer>;
-  transactionMetrics: StateFromReducer<typeof transactionMetricsReducer>;
+  confirmationMetrics: StateFromReducer<typeof confirmationMetricsReducer>;
   originThrottling: StateFromReducer<typeof originThrottlingReducer>;
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: MultichainSettingsState;
-  ///: END:ONLY_INCLUDE_IF
+  banners: BannersState;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -161,13 +154,11 @@ const rootReducer = combineReducers<RootState, any>({
   rpcEvents: rpcEventReducer,
   accounts: accountsReducer,
   inpageProvider: inpageProviderReducer,
-  transactionMetrics: transactionMetricsReducer,
   originThrottling: originThrottlingReducer,
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  multichainSettings: multichainReducer,
-  ///: END:ONLY_INCLUDE_IF
+  banners: bannersReducer,
+  confirmationMetrics: confirmationMetricsReducer,
 });
 
 export default rootReducer;

@@ -16,12 +16,20 @@ import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import { ControllerInitRequest } from '../../types';
 import { TransactionControllerInit } from './transaction-controller-init';
+import {
+  handleTransactionAdded,
+  handleTransactionApproved,
+  handleTransactionFinalized,
+  handleTransactionRejected,
+  handleTransactionSubmitted,
+} from './transaction-event-handlers';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
 jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
+jest.mock('./transaction-event-handlers');
 
 /**
  * Build a mock NetworkController.
@@ -81,6 +89,15 @@ describe('Transaction Controller Init', () => {
     selectSwapsChainFeatureFlags,
   );
   const getGlobalChainIdMock = jest.mocked(getGlobalChainId);
+  const handleTransactionApprovedMock = jest.mocked(handleTransactionApproved);
+  const handleTransactionFinalizedMock = jest.mocked(
+    handleTransactionFinalized,
+  );
+  const handleTransactionRejectedMock = jest.mocked(handleTransactionRejected);
+  const handleTransactionSubmittedMock = jest.mocked(
+    handleTransactionSubmitted,
+  );
+  const handleTransactionAddedMock = jest.mocked(handleTransactionAdded);
 
   /**
    * Extract a constructor option passed to the controller.
@@ -273,5 +290,81 @@ describe('Transaction Controller Init', () => {
     });
 
     expect(option?.()).toStrictEqual(MOCK_NETWORK_STATE);
+  });
+
+  it('calls appropriate handlers when transaction events are triggered', () => {
+    const mockSubscribe = jest.fn();
+    const subscribeCallbacks: Record<string, (...args: unknown[]) => void> = {};
+
+    mockSubscribe.mockImplementation((eventName, callback) => {
+      subscribeCallbacks[eventName] = callback;
+    });
+
+    const requestMock = buildInitRequestMock({
+      initMessenger: {
+        subscribe: mockSubscribe,
+      },
+      getState: () => ({ confirmationMetrics: { metricsById: {} } }),
+    });
+
+    TransactionControllerInit(requestMock);
+
+    const mockTransactionMeta = {
+      id: '123',
+      status: 'approved',
+    } as TransactionMeta;
+
+    const handlerContext = {
+      getState: expect.any(Function),
+      initMessenger: expect.any(Object),
+      smartTransactionsController: expect.any(Object),
+    };
+
+    const eventHandlerMap = [
+      {
+        event: 'TransactionController:transactionApproved',
+        handler: handleTransactionApprovedMock,
+        payload: { transactionMeta: mockTransactionMeta },
+      },
+      {
+        event: 'TransactionController:transactionConfirmed',
+        handler: handleTransactionFinalizedMock,
+        payload: mockTransactionMeta,
+      },
+      {
+        event: 'TransactionController:transactionDropped',
+        handler: handleTransactionFinalizedMock,
+        payload: { transactionMeta: mockTransactionMeta },
+      },
+      {
+        event: 'TransactionController:transactionFailed',
+        handler: handleTransactionFinalizedMock,
+        payload: { transactionMeta: mockTransactionMeta },
+      },
+      {
+        event: 'TransactionController:transactionRejected',
+        handler: handleTransactionRejectedMock,
+        payload: { transactionMeta: mockTransactionMeta },
+      },
+      {
+        event: 'TransactionController:transactionSubmitted',
+        handler: handleTransactionSubmittedMock,
+        payload: { transactionMeta: mockTransactionMeta },
+      },
+      {
+        event: 'TransactionController:unapprovedTransactionAdded',
+        handler: handleTransactionAddedMock,
+        payload: mockTransactionMeta,
+      },
+    ];
+
+    // Verify all events are subscribed
+    expect(Object.keys(subscribeCallbacks).length).toBe(eventHandlerMap.length);
+
+    // Test each event handler
+    eventHandlerMap.forEach(({ event, handler, payload }) => {
+      subscribeCallbacks[event](payload);
+      expect(handler).toHaveBeenCalledWith(mockTransactionMeta, handlerContext);
+    });
   });
 });
