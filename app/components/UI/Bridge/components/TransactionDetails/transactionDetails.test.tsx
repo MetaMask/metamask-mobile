@@ -1,10 +1,10 @@
+import React from 'react';
 import { BridgeTransactionDetails } from './transactionDetails';
 import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import { formatChainIdToCaip, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
