@@ -377,6 +377,7 @@ function setupSignature() {
 }
 
 describe('getRpcMethodMiddleware', () => {
+  beforeEach(() => jest.clearAllMocks());
   it('allows unrecognized methods to pass through without PermissionController middleware', async () => {
     const engine = new JsonRpcEngine();
     const middleware = getRpcMethodMiddleware(getMinimalOptions());
@@ -693,7 +694,7 @@ describe('getRpcMethodMiddleware', () => {
       expect(
         MockEngine.context.PermissionController.revokePermissions,
       ).toHaveBeenCalledWith({
-        [hostname]: [Caip25EndowmentPermissionName],
+        [hostname]: ['a', 'b', Caip25EndowmentPermissionName],
       });
     });
 
@@ -902,7 +903,7 @@ describe('getRpcMethodMiddleware', () => {
         Engine.context.PermissionController,
         'requestPermissions',
       );
-      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+      mockGetPermittedAccounts.mockReturnValue([addressMock]);
 
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
