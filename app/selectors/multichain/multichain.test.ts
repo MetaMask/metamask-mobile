@@ -739,6 +739,55 @@ describe('MultichainNonEvm Selectors', () => {
       // Expect total fiat balance: (10 SOL * $100) + (20 JUP * $2) = $1000 + $40 = $1040
       expect(result.totalBalanceFiat).toEqual(1040);
     });
+
+    it('returns undefined balances when no assets found for the chain', () => {
+      const mockState = getNonEvmState(MOCK_SOLANA_ACCOUNT);
+      // Get the account ID from the test account to ensure they match
+      const solanaAccountId = MOCK_SOLANA_ACCOUNT.id;
+
+      // Create mock assets for a different chain (not Solana)
+      const btcNativeAssetId = MultichainNativeAssets.Bitcoin;
+      const mockAssets = {
+        [solanaAccountId]: [btcNativeAssetId] as CaipAssetType[],
+      };
+
+      // Set balances only for Bitcoin, not for Solana
+      const mockBalances = {
+        [solanaAccountId]: {
+          // Only BTC balance, no SOL
+          [btcNativeAssetId]: { amount: '0.5', unit: 'BTC' },
+        },
+      };
+
+      // Set rates
+      const mockAssetsRates = {
+        [btcNativeAssetId]: { rate: '40000', conversionTime: 0 },
+      };
+
+      // Inject mocks into state
+      mockState.engine.backgroundState.MultichainBalancesController.balances =
+        mockBalances;
+      mockState.engine.backgroundState.MultichainAssetsController.accountsAssets =
+        mockAssets;
+      mockState.engine.backgroundState.MultichainAssetsRatesController.conversionRates =
+        mockAssetsRates;
+
+      // Select Solana account and chain
+      mockState.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
+        solanaAccountId;
+      mockState.engine.backgroundState.MultichainNetworkController.selectedMultichainNetworkChainId =
+        SolScope.Mainnet;
+
+      const result =
+        selectSelectedAccountMultichainNetworkAggregatedBalance(mockState);
+
+      // Should return undefined values since there are no Solana assets
+      expect(result.totalNativeTokenBalance).toBeUndefined();
+      expect(result.totalBalanceFiat).toBeUndefined();
+      expect(result.balances).toEqual({
+        [btcNativeAssetId]: { amount: '0.5', unit: 'BTC' },
+      });
+    });
   });
 
   describe('selectSolanaAccountTransactions', () => {
