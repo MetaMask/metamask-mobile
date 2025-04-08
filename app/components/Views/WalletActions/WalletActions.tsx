@@ -304,6 +304,18 @@ const WalletActions = () => {
     [styles.icon],
   );
 
+  const onPressSwaps = useCallback(() => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (chainId === SolScope.Mainnet) {
+      goToBridge();
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    goToSwaps();
+  }, [chainId, goToBridge, goToSwaps]);
+
+
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
@@ -332,7 +344,7 @@ const WalletActions = () => {
           <WalletAction
             actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
-            onPress={chainId === SolScope.Mainnet ? goToBridge : goToSwaps}
+            onPress={onPressSwaps}
             actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
