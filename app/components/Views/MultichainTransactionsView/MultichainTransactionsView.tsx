@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -29,32 +29,15 @@ const MultichainTransactionsView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const [loading, setLoading] = useState(true);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-  useEffect(() => {
-    setLoading(true);
-
-    // use the selector selectSolanaAccountTransactions
-    // simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      // check if solanaAccountTransactions is an object with transactions property
-      if (
-        solanaAccountTransactions &&
-        'transactions' in solanaAccountTransactions
-      ) {
-        setTransactions(solanaAccountTransactions.transactions);
-      } else {
-        setTransactions([]);
-      }
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [solanaAccountTransactions]);
+  const transactions = useMemo(
+    () => solanaAccountTransactions?.transactions,
+    [solanaAccountTransactions],
+  );
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
@@ -96,18 +79,6 @@ const MultichainTransactionsView = () => {
     />
   );
 
-  if (loading) {
-    return (
-      <View style={style.loader}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary.default}
-          testID={`transactions-loading-indicator`}
-        />
-      </View>
-    );
-  }
-
   return (
     <View style={style.wrapper}>
       <FlashList
@@ -116,7 +87,7 @@ const MultichainTransactionsView = () => {
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
-        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
+        ListFooterComponent={transactions?.length > 0 ? renderViewMore() : null}
         estimatedItemSize={200}
       />
     </View>
