@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
@@ -110,21 +110,19 @@ describe('MultichainTransactionsView', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
 
+    // Ensure selector returns a static instance
+    const mockTransactionsData = { transactions: mockTransactions };
+
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
       if (selector === selectSolanaAccountTransactions) {
-        return { transactions: mockTransactions };
+        return mockTransactionsData;
       }
       return null;
     });
-  });
-
-  it('renders loading state initially', () => {
-    const { getByTestId } = customRender(<MultichainTransactionsView />);
-    expect(getByTestId('transactions-loading-indicator')).toBeTruthy();
   });
 
   it('handles case when transactions data is not available', async () => {
@@ -138,32 +136,13 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText, queryByTestId } = customRender(
-      <MultichainTransactionsView />,
-    );
+    const { getByText } = customRender(<MultichainTransactionsView />);
 
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
     expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
   it('renders transaction list items when transactions are available', async () => {
-    const { queryByTestId, queryAllByTestId } = customRender(
-      <MultichainTransactionsView />,
-    );
-
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
+    const { queryAllByTestId } = customRender(<MultichainTransactionsView />);
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);

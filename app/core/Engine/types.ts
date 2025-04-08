@@ -558,6 +558,8 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
