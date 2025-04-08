@@ -352,8 +352,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     console.log(
       `${new Date().toISOString()} [BrowserTab][handleNotAllowedUrl] urlOrigin: ${urlOrigin}`,
     );
-    // Get the current URL that's being loaded or viewed
-    const currentUrlOrigin = new URLParse(submittedUrlRef.current).origin;
     // Ignore showing the phishing modal if the user is no longer on the page.
     const currentUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
     if (currentUrlOrigin !== urlOrigin) {
