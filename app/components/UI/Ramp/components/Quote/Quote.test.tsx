@@ -193,7 +193,7 @@ describe('Quote Component', () => {
     expect(getByText('Most reliable')).toBeTruthy();
   });
 
-  /* it('displays provider logo correctly', () => {
+  it('displays provider logo correctly', () => {
     const { getByLabelText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
       { state: defaultState },
@@ -218,7 +218,7 @@ describe('Quote Component', () => {
     expect(showInfoMock).toHaveBeenCalled();
   });
 
-  it('sets expandedHeight on layout', () => {
+  /* it('sets expandedHeight on layout', () => {
     const { getByTestId } = renderWithProvider(
       <Quote rampType={RampType.BUY} quote={mockQuote} showInfo={jest.fn()} />,
       { state: defaultState },
