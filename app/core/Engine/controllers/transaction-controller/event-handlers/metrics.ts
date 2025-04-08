@@ -1,18 +1,18 @@
 import { merge } from 'lodash';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import { TRANSACTION_EVENTS } from '../../../Analytics/events/confirmations';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 
-import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
-import { getSmartTransactionMetricsProperties } from '../../../../util/smart-transactions';
-import { MetaMetrics } from '../../../Analytics';
-import { BaseControllerMessenger } from '../../types';
-import { generateDefaultTransactionMetrics, generateEvent } from './utils';
-import type { TransactionEventHandlerRequest } from './types';
+import { selectShouldUseSmartTransaction } from '../../../../../selectors/smartTransactionsController';
+import { getSmartTransactionMetricsProperties } from '../../../../../util/smart-transactions';
+import { MetaMetrics } from '../../../../Analytics';
+import { BaseControllerMessenger } from '../../../types';
+import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
+import type { TransactionEventHandlerRequest } from '../types';
 
 // Generic handler for simple transaction events
-const createTransactionEventHandler = (
-  eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS],
-) => (
+const createTransactionEventHandler =
+  (eventType: (typeof TRANSACTION_EVENTS)[keyof typeof TRANSACTION_EVENTS]) =>
+  (
     transactionMeta: TransactionMeta,
     transactionEventHandlerRequest: TransactionEventHandlerRequest,
   ) => {
@@ -28,23 +28,19 @@ const createTransactionEventHandler = (
   };
 
 // Simple handlers - no unique properties / actions
-export const handleTransactionAdded = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_ADDED,
-);
-export const handleTransactionApproved = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_APPROVED,
-);
-export const handleTransactionRejected = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
-);
-export const handleTransactionSubmitted = createTransactionEventHandler(
-  TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
-);
+export const handleTransactionAddedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
+export const handleTransactionApprovedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
+export const handleTransactionRejectedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
+export const handleTransactionSubmittedEventForMetrics =
+  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
 
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.
 // Status could be derived from transactionMeta.status
-export async function handleTransactionFinalized(
+export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {

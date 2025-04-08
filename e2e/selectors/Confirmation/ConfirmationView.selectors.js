@@ -12,7 +12,8 @@ export const ConfirmationTopSheetSelectorsText = {
   BANNER_FAILED_TITLE: enContent.blockaid_banner.failed_title,
   BANNER_FAILED_DESCRIPTION: enContent.blockaid_banner.failed_description,
   BANNER_MALICIOUS_TITLE: enContent.blockaid_banner.deceptive_request_title,
-  BANNER_MALICIOUS_DESCRIPTION: enContent.blockaid_banner.malicious_domain_description,
+  BANNER_MALICIOUS_DESCRIPTION:
+    enContent.blockaid_banner.malicious_domain_description,
 };
 
 export const ConfirmationRequestTypeIDs = {
@@ -37,10 +38,7 @@ export const ConfirmationPageSectionsSelectorIDs = {
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
-};
-
-export const ConfirmAlertModalSelectorsText = {
-  CONFIRM_ALERT_MODAL_TITLE: enContent.alert_system.confirm_modal.title,
+  CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
 };
 
 export const AlertModalSelectorsIDs = {
@@ -51,4 +49,3 @@ export const AlertModalSelectorsIDs = {
 export const AlertModalSelectorsText = {
   ALERT_ORIGIN_MISMATCH_TITLE: enContent.alert_system.domain_mismatch.title,
 };
-

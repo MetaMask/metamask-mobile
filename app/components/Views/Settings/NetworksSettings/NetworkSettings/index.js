@@ -23,6 +23,7 @@ import Networks, {
   getAllNetworks,
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
+  isValidNetworkName,
 } from '../../../../../util/networks';
 import Engine from '../../../../../core/Engine';
 import { isWebUri } from 'valid-url';
@@ -59,11 +60,7 @@ import {
 } from '../../../../../selectors/networkController';
 import { regex } from '../../../../../../app/util/regex';
 import { NetworksViewSelectorsIDs } from '../../../../../../e2e/selectors/Settings/NetworksView.selectors';
-import {
-  NetworksTicker,
-  isSafeChainId,
-  toHex,
-} from '@metamask/controller-utils';
+import { isSafeChainId, toHex } from '@metamask/controller-utils';
 import { CustomDefaultNetworkIDs } from '../../../../../../e2e/selectors/Onboarding/CustomDefaultNetwork.selectors';
 import { updateIncomingTransactions } from '../../../../../util/transaction-controller';
 import { withMetricsAwareness } from '../../../../../components/hooks/useMetrics';
@@ -1192,9 +1189,6 @@ export class NetworkSettings extends PureComponent {
   validateName = (chainToMatch = null) => {
     const { nickname, networkList, chainId } = this.state;
     const { useSafeChainsListValidation } = this.props;
-    const { MAINNET, LINEA_MAINNET } = CHAIN_IDS;
-    const MAINNET_NAME = 'Mainnet';
-    const LINEA_NAME = 'Linea Mainnet';
 
     if (!useSafeChainsListValidation) {
       return;
@@ -1203,23 +1197,10 @@ export class NetworkSettings extends PureComponent {
     // Get the name either from chainToMatch or networkList
     const name = chainToMatch?.name || networkList?.name || null;
 
-    let nameToUse;
-
     // Determine nameToUse based on chainId and nickname comparison
-    if (chainId === MAINNET) {
-      // Allow 'Mainnet' or nickname for Ethereum Mainnet
-      nameToUse =
-        // eslint-disable-next-line eqeqeq
-        name === nickname || nickname == MAINNET_NAME ? undefined : name;
-    } else if (chainId === LINEA_MAINNET) {
-      // Allow 'Linea Mainnet' or nickname for Linea Mainnet
-      nameToUse =
-        // eslint-disable-next-line eqeqeq
-        name === nickname || nickname == LINEA_NAME ? undefined : name;
-    } else {
-      // For other chains, check if name matches the nickname
-      nameToUse = name === nickname ? undefined : name;
-    }
+    const nameToUse = isValidNetworkName(chainId, name, nickname)
+      ? undefined
+      : name;
 
     // Update state with warningName
     this.setState({

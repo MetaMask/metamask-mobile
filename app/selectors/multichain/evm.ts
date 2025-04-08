@@ -100,9 +100,13 @@ export const selectNativeTokensAcrossChains = createSelector(
       const nativeChainId = token.chainId as Hex;
       const nativeTokenInfoByChainId =
         nativeTokenBalancesByChainId[nativeChainId];
-      const isETH = ['ETH', 'GOETH', 'SepoliaETH', 'LineaETH'].includes(
-        token.nativeCurrency || '',
-      );
+      const isETH = [
+        'ETH',
+        'GOETH',
+        'SepoliaETH',
+        'LineaETH',
+        'MegaETH',
+      ].includes(token.nativeCurrency || '');
 
       const name = isETH ? 'Ethereum' : token.nativeCurrency;
       const logo = isETH ? '../images/eth-logo-new.png' : '';
