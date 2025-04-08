@@ -72,7 +72,7 @@ export const startMockServer = async (events, port) => {
 
 /**
  * Stops the mock server.
- *
+ * @param {import('mockttp').Mockttp} mockServer
  */
 export const stopMockServer = async (mockServer) => {
   await mockServer.stop();

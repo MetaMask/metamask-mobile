@@ -18,6 +18,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import SwitchLoadingModal from '../../../../components/UI/Notification/SwitchLoadingModal';
 import { useHandleOptInCancel, useHandleOptInClick } from './OptIn.hooks';
+import { EnableNotificationModalSelectorsIDs } from '../../../../../e2e/selectors/Notifications/EnableNotificationModal.selectors';
 
 const OptIn = () => {
   const metrics = useMetrics();
@@ -52,6 +53,7 @@ const OptIn = () => {
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.textTitle}
+          testID={EnableNotificationModalSelectorsIDs.TITLE}
         >
           {strings('notifications.activation_card.title')}
         </Text>
@@ -102,12 +104,14 @@ const OptIn = () => {
             label={strings('notifications.activation_card.cancel')}
             onPress={handleOptInCancel}
             style={styles.ctaBtn}
+            testID={EnableNotificationModalSelectorsIDs.BUTTON_CANCEL}
           />
           <Button
             variant={ButtonVariants.Primary}
             label={strings('notifications.activation_card.cta')}
             onPress={handleOptInClick}
             style={styles.ctaBtn}
+            testID={EnableNotificationModalSelectorsIDs.BUTTON_ENABLE}
           />
         </View>
       </View>
