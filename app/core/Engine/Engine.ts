@@ -201,7 +201,6 @@ import {
 import { BridgeStatusController } from '@metamask/bridge-status-controller';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
-import { selectProductSafetyDappScanningEnabled } from '../../selectors/featureFlagController';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
