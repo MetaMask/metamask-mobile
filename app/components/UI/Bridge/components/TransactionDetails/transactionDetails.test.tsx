@@ -406,4 +406,49 @@ describe('BridgeTransactionDetails', () => {
     );
     expect(getByText('Status')).toBeTruthy();
   });
+
+  it('displays source and destination token information', () => {
+    const { getByText } = renderScreen(
+      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState }
+    );
+    expect(getByText('1.00000 TOKEN1')).toBeTruthy();
+    expect(getByText('2.00000 TOKEN2')).toBeTruthy();
+  });
+
+  it('displays submission date', () => {
+    const { getByText } = renderScreen(
+      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState }
+    );
+    expect(getByText(/date/i)).toBeTruthy();
+  });
+
+  it('shows total gas fee', () => {
+    const { getByText } = renderScreen(
+      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState }
+    );
+    expect(getByText(/total gas fee/i)).toBeTruthy();
+  });
+
+  it('displays block explorer button', () => {
+    const { getByText } = renderScreen(
+      () => <BridgeTransactionDetails route={{ params: { tx: mockTx } }} />,
+      {
+        name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
+      },
+      { state: mockState }
+    );
+    expect(getByText(/view on block explorer/i)).toBeTruthy();
+  });
 });
