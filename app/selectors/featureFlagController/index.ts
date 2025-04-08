@@ -1,23 +1,11 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
 import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/remote-feature-flag-controller';
+import { getFeatureFlagValue } from './env';
 
 export interface ConfirmationRedesignRemoteFlags {
   signatures: boolean;
   staking_confirmations: boolean;
-}
-
-function getFeatureFlagValue(
-  envValue: string | undefined,
-  remoteValue: boolean,
-): boolean {
-  if (envValue === 'true') {
-    return true;
-  }
-  if (envValue === 'false') {
-    return false;
-  }
-  return remoteValue;
 }
 
 export const selectRemoteFeatureFlagControllerState = (
@@ -59,10 +47,3 @@ export const selectConfirmationRedesignFlags = createSelector(
   },
 );
 
-export const selectProductSafetyDappScanningEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => getFeatureFlagValue(
-    process.env.FEATURE_FLAG_PRODUCT_SAFETY_DAPP_SCANNING,
-    (remoteFeatureFlags?.productSafetyDappScanning as boolean),
-  )
-);

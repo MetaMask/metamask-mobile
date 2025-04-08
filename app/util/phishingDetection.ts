@@ -1,7 +1,8 @@
 import { PhishingDetectorResult, PhishingDetectorResultType, PhishingController as PhishingControllerClass } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
-import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlagController';
+import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlagController/productSafetyDappScanning';
+
 /**
  * Checks if product safety dapp scanning is enabled
  * @returns {boolean} Whether product safety dapp scanning is enabled
