@@ -402,4 +402,55 @@ describe('BlockExplorersModal', () => {
     );
     expect(getByText('View on Block Explorer')).toBeTruthy();
   });
+
+  it('should display both source and destination chain block explorer buttons', () => {
+    const { getAllByText } = renderScreen(
+      () => <BlockExplorersModal {...mockProps} />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: mockState }
+    );
+    const etherscanButtons = getAllByText('Etherscan');
+    expect(etherscanButtons).toHaveLength(2);
+  });
+
+  it('should handle missing destination chain transaction hash', () => {
+    const modifiedState = {
+      ...mockState,
+      engine: {
+        ...mockState.engine,
+        backgroundState: {
+          ...mockState.engine.backgroundState,
+          BridgeStatusController: {
+            txHistory: {
+              [mockTx.id]: {
+                ...mockState.engine.backgroundState.BridgeStatusController.txHistory[mockTx.id],
+                status: {
+                  srcChain: {
+                    txHash: '0x123',
+                  },
+                  destChain: {
+                    txHash: undefined,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const { getAllByText } = renderScreen(
+      () => <BlockExplorersModal {...mockProps} />,
+      {
+        name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
+      },
+      { state: modifiedState }
+    );
+    const etherscanButtons = getAllByText('Etherscan');
+    expect(etherscanButtons).toHaveLength(1);
+  });
+
+  
 });
