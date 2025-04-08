@@ -755,7 +755,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }: {
     url: string;
   }) => {
-    const { origin: urlOrigin } = new URLParse(urlToLoad);
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
       requested: true,
