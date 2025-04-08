@@ -184,7 +184,7 @@ const main = async () => {
         'eth_requestAccounts',
         'wallet_watchAsset',
         'personal_sign', // requires permissions for eth_accounts
-        'wallet_addEthereumChain',
+        // 'wallet_addEthereumChain',
         'eth_signTypedData_v4', // requires permissions for eth_accounts
         'wallet_switchEthereumChain',
         'eth_getEncryptionPublicKey', // requires permissions for eth_accounts
