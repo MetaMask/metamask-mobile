@@ -81,6 +81,7 @@ describe('StakingClaim', () => {
       title: 'Claim',
       onReject: mockOnReject,
       addBackButton: false,
+      theme: expect.any(Object),
     });
   });
 });
