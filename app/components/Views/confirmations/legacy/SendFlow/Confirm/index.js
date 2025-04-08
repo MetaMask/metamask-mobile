@@ -325,6 +325,7 @@ class Confirm extends PureComponent {
     result: {},
     transactionMeta: {},
     isChangeInSimulationModalShown: false,
+    hasHandledFirstGasUpdate: false,
   };
 
   originIsWalletConnect = this.props.transaction.origin?.startsWith(
@@ -605,10 +606,10 @@ class Confirm extends PureComponent {
     const isEIP1559Transaction =
       this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
     const haveGasFeeMaxNativeChanged = isEIP1559Transaction
-      ? EIP1559GasTransaction.gasFeeMaxNative !==
-        prevState.EIP1559GasTransaction.gasFeeMaxNative
-      : legacyGasTransaction.gasFeeMaxNative !==
-        prevState.legacyGasTransaction.gasFeeMaxNative;
+      ? EIP1559GasTransaction.gasFeeMaxHex !==
+        prevState.EIP1559GasTransaction.gasFeeMaxHex
+      : legacyGasTransaction.gasFeeMaxHex !==
+        prevState.legacyGasTransaction.gasFeeMaxHex;
 
     const haveGasPropertiesChanged =
       (this.props.gasFeeEstimates &&
@@ -636,7 +637,8 @@ class Confirm extends PureComponent {
       maxValueMode &&
       selectedAsset.isETH &&
       !isEmpty(gasFeeEstimates) &&
-      haveGasFeeMaxNativeChanged
+      (haveGasFeeMaxNativeChanged || 
+        (this.state.hasHandledFirstGasUpdate && !prevState.transactionMeta?.id))
     ) {
       updateTransactionToMaxValue({
         transactionId,
@@ -647,8 +649,6 @@ class Confirm extends PureComponent {
         setTransactionValue: this.props.setTransactionValue,
       });
 
-      // In order to prevent race condition do not remove this early return.
-      // Another update will be triggered by `updateEditableParams` and validateAmount will be called next update.
       return;
     }
 
@@ -700,6 +700,11 @@ class Confirm extends PureComponent {
         }
         this.parseTransactionDataHeader();
       }
+    }
+
+    // Track if this is the first gas update
+    if (haveGasFeeMaxNativeChanged && !this.state.hasHandledFirstGasUpdate) {
+      this.setState({ hasHandledFirstGasUpdate: true });
     }
   };
 
