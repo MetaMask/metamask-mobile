@@ -166,6 +166,14 @@ export class UserStorageMockttpController {
     };
   }
 
+  /**
+   * @param {string} path - path for feature
+   * @param {import('mockttp').Mockttp} server
+   * @param {{
+   *   getResponse?: import('@metamask/profile-sync-controller/sdk').GetUserStorageAllFeatureEntriesResponse
+   *   getStatusCode?: number
+   * }} overrides - initial state of this mock user storage
+   */
   async setupPath(path, server, overrides) {
     const previouslySetupPath = this.paths.get(path);
 
