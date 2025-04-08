@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { TransactionType } from '@metamask/keyring-api';
 import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
@@ -133,17 +133,13 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText, queryByTestId } = customRender(
-      <MultichainTransactionsView />,
-    );
+    const { getByText } = customRender(<MultichainTransactionsView />);
 
     expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
   it('renders transaction list items when transactions are available', async () => {
-    const { queryByTestId, queryAllByTestId } = customRender(
-      <MultichainTransactionsView />,
-    );
+    const { queryAllByTestId } = customRender(<MultichainTransactionsView />);
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);
