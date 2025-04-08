@@ -27,6 +27,10 @@ class SettingsView {
     return Matchers.getElementByID(SettingsViewSelectorsIDs.NETWORKS);
   }
 
+  get notificationsButton() {
+    return Matchers.getElementByID(SettingsViewSelectorsIDs.NOTIFICATIONS);
+  }
+
   get aesCryptoTestForm() {
     return Matchers.getElementByID(
       SettingsViewSelectorsIDs.AES_CRYPTO_TEST_FORM,
@@ -95,6 +99,10 @@ class SettingsView {
 
   async tapNetworks() {
     await Gestures.waitAndTap(this.networksButton);
+  }
+
+  async tapNotifications() {
+    await Gestures.waitAndTap(this.notificationsButton);
   }
 
   async tapContacts() {

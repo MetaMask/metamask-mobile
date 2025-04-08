@@ -128,9 +128,9 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  ChainId,
   handleFetch,
   toChecksumHexAddress,
-  type ChainId,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
@@ -315,6 +315,9 @@ export class Engine {
         fetch,
         btoa,
       }),
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
