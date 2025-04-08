@@ -48,7 +48,6 @@ import DrawerStatusTracker from '../../../core/DrawerStatusTracker';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import ErrorBoundary from '../ErrorBoundary';
 import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddleware';
-import { selectProductSafetyDappScanningEnabled } from '../../../selectors/featureFlagController';
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
@@ -110,7 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { RecommendedAction } from '@metamask/phishing-controller';
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -207,10 +206,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const isFocused = useIsFocused();
 
-  const productSafetyDappScanningEnabled = useSelector(
-    selectProductSafetyDappScanningEnabled,
-  );
-
   /**
    * Checks if a given url or the current url is the homepage
    */
@@ -304,26 +299,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         return true;
       }
 
-      const { PhishingController } = Engine.context;
-
-      if (productSafetyDappScanningEnabled) {
-        const scanResult = await PhishingController.scanUrl(urlOrigin);
-        if (scanResult.fetchError) {
-          // Log error but don't block the site based on a failed scan
-          Logger.log(
-            '[BrowserTab][isAllowedOrigin] fetch error:',
-            scanResult.fetchError,
-          );
-          return true;
-        }
-        return !(
-          scanResult.recommendedAction === RecommendedAction.Block ||
-          scanResult.recommendedAction === RecommendedAction.Warn
-        );
-      }
-      // Fire-and-forget update.
-      PhishingController.maybeUpdateState();
-      const testResult = PhishingController.test(urlOrigin);
+      const testResult = await getPhishingTestResultAsync(urlOrigin);
       if (testResult.result && testResult.name) {
         blockListType.current = testResult.name;
         return false;
@@ -331,7 +307,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       return true;
     },
-    [whitelist, productSafetyDappScanningEnabled],
+    [whitelist],
   );
 
   /**
