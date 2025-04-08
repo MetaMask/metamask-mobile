@@ -22,7 +22,7 @@ const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.PersonalSign,
 ];
 
-const REDESIGNED_TRANSACTION_TYPES = [
+export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.stakingDeposit,
   TransactionType.stakingUnstake,
   TransactionType.stakingClaim,
@@ -70,7 +70,7 @@ function isRedesignedTransaction({
   }
 
   if (isStakingConfirmation(transactionMetadata?.type as string)) {
-    return confirmationRedesignFlags?.staking_transactions;
+    return confirmationRedesignFlags?.staking_confirmations;
   }
 
   return false;
