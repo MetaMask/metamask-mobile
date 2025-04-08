@@ -51,7 +51,7 @@ describe('StepProgressBarItem', () => {
     const { queryByTestId } = render(
       <StepProgressBarItem
         stepStatus={StatusTypes.UNKNOWN}
-        isLastItem={true}
+        isLastItem
         isEdgeComplete={false}
       >
         <View testID="test-children">Test Content</View>
@@ -68,7 +68,7 @@ describe('StepProgressBarItem', () => {
       <StepProgressBarItem
         stepStatus={StatusTypes.UNKNOWN}
         isLastItem={false}
-        isEdgeComplete={true}
+        isEdgeComplete
       >
         <View testID="test-children">Test Content</View>
       </StepProgressBarItem>
