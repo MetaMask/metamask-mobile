@@ -37,8 +37,8 @@ export function getGasFeeControllerMessenger(
   return messenger.getRestricted({
     name: 'GasFeeController',
     allowedActions: [
-      'NetworkController:getNetworkClientById',
       'NetworkController:getEIP1559Compatibility',
+      'NetworkController:getNetworkClientById',
       'NetworkController:getState',
     ],
     allowedEvents: ['NetworkController:networkDidChange'],

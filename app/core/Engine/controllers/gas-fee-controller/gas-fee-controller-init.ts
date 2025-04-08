@@ -26,10 +26,8 @@ export const GasFeeControllerInit: ControllerInitFunction<
 
   try {
     const gasFeeController = new GasFeeController({
-      messenger: controllerMessenger,
-      getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getProviderAndBlockTracker().provider,
+      clientId: AppConstants.SWAPS.CLIENT_ID,
+      EIP1559APIEndpoint: EIP1559_API_ENDPOINT,
       getCurrentNetworkEIP1559Compatibility: async () =>
         (await networkController.getEIP1559Compatibility()) ?? false,
       getCurrentNetworkLegacyGasAPICompatibility: () => {
@@ -40,9 +38,11 @@ export const GasFeeControllerInit: ControllerInitFunction<
           chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
         );
       },
-      clientId: AppConstants.SWAPS.CLIENT_ID,
+      getProvider: () =>
+        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
+        networkController.getProviderAndBlockTracker().provider,
       legacyAPIEndpoint: LEGACY_GAS_API_ENDPOINT,
-      EIP1559APIEndpoint: EIP1559_API_ENDPOINT,
+      messenger: controllerMessenger,
     });
 
     return { controller: gasFeeController };

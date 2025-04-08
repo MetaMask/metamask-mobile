@@ -246,11 +246,10 @@ export class Engine {
   ///: END:ONLY_INCLUDE_IF
 
   accountsController: AccountsController;
-  transactionController: TransactionController;
   gasFeeController: GasFeeController;
-  smartTransactionsController: SmartTransactionsController;
-
   keyringController: KeyringController;
+  smartTransactionsController: SmartTransactionsController;
+  transactionController: TransactionController;
 
   /**
    * Creates a CoreController instance
@@ -1003,8 +1002,8 @@ export class Engine {
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
-    this.transactionController = transactionController;
     this.gasFeeController = gasFeeController;
+    this.transactionController = transactionController;
 
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
