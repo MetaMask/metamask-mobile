@@ -300,13 +300,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       }
 
       const testResult = await getPhishingTestResultAsync(urlOrigin);
-      if (testResult.result && testResult.name) {
-        console.log('isAllowedOrigin is returning false');
+      if (!testResult?.result && testResult.name) {
         blockListType.current = testResult.name;
-        return false;
       }
-      console.log('isAllowedOrigin is returning true');
-      return true;
+      return testResult.result;
     },
     [whitelist],
   );
