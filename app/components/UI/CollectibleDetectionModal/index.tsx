@@ -32,6 +32,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
+  const { addTraitsToUser } = useMetrics();
 
   const showToastAndEnableNFtDetection = useCallback(async () => {
     // show toast
