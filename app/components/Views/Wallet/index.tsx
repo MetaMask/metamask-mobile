@@ -78,6 +78,8 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -115,9 +117,6 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  selectIsSolanaSupportEnabled,
-  ///: END:ONLY_INCLUDE_IF
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
@@ -148,6 +147,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -199,10 +199,6 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const isSolanaSupportEnabled = useSelector(selectIsSolanaSupportEnabled);
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * Object containing the balance of the current selected account
@@ -719,9 +715,9 @@ const Wallet = ({
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
           {
-          ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-          isSolanaSupportEnabled && <SolanaNewFeatureContent />
-          ///: END:ONLY_INCLUDE_IF
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
           }
         </>
       </View>

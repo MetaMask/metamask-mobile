@@ -5,9 +5,14 @@ import AlertModal from './AlertModal';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { Severity } from '../../types/alerts';
+import { useConfirmationAlertMetrics } from '../../hooks/useConfirmationAlertMetrics';
 
 jest.mock('../context', () => ({
   useAlerts: jest.fn(),
+}));
+
+jest.mock('../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
 }));
 
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -59,9 +64,13 @@ describe('AlertModal', () => {
     hasUnconfirmedDangerAlerts: false,
     hasUnconfirmedFieldDangerAlerts: false,
   };
+  const mockTrackAlertRendered = jest.fn();
 
   beforeEach(() => {
     (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
+    (useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
+      trackAlertRendered: mockTrackAlertRendered,
+    });
     jest.clearAllMocks();
   });
 
@@ -234,5 +243,19 @@ describe('AlertModal', () => {
     });
     const { queryByText } = render(<AlertModal />);
     expect(queryByText(ALERT_MESSAGE_MOCK)).toBeNull();
+  });
+
+  it('calls trackAlertRendered when modal is rendered', () => {
+    render(<AlertModal />);
+    expect(mockTrackAlertRendered).toHaveBeenCalled();
+  });
+
+  it('does not call trackAlertRendered when modal is not visible', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      ...baseMockUseAlerts,
+      alertModalVisible: false,
+    });
+    render(<AlertModal />);
+    expect(mockTrackAlertRendered).not.toHaveBeenCalled();
   });
 });

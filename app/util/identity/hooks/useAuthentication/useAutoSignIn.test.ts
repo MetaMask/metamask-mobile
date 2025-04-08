@@ -42,8 +42,8 @@ const arrangeMockState = (
       },
     },
   },
-  wizard: {
-    step: stateOverrides.completedOnboarding ? 0 : 1,
+  onboarding: {
+    completedOnboarding: stateOverrides.completedOnboarding,
   },
   settings: {
     basicFunctionalityEnabled: stateOverrides.useExternalServices,

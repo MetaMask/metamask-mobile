@@ -1,6 +1,11 @@
 import React from 'react';
-import { StyleSheet, ImageSourcePropType, View } from 'react-native';
-import AssetElement from '../../AssetElement';
+import {
+  StyleSheet,
+  ImageSourcePropType,
+  View,
+  TouchableOpacity,
+  Platform,
+} from 'react-native';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -15,29 +20,36 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import TokenIcon from '../../Swaps/components/TokenIcon';
 import { Box } from '../../Box/Box';
-import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
-import { TokenIWithFiatAmount } from '../hooks/useTokensWithBalance';
-import ButtonIcon, { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor, IconName } from '../../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
+import { AlignItems, FlexDirection } from '../../Box/box.types';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
+import { BridgeToken } from '../types';
+import { ethers } from 'ethers';
+import { fontStyles } from '../../../../styles/common';
+import {
+  TOKEN_BALANCE_LOADING,
+  TOKEN_BALANCE_LOADING_UPPERCASE,
+} from '../../Tokens/constants';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import SkeletonText from '../../Ramp/components/SkeletonText';
 
-const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boolean } }) =>
+const createStyles = ({
+  theme,
+  vars,
+}: {
+  theme: Theme;
+  vars: { isSelected: boolean };
+}) =>
   StyleSheet.create({
-    tokenIcon: {
-      width: 40,
-      height: 40,
-    },
     tokenInfo: {
       flex: 1,
       marginLeft: 8,
     },
-    infoButton: {
-      marginRight: 12,
-    },
     container: {
-      backgroundColor: vars.isSelected ? theme.colors.primary.muted : theme.colors.background.default,
+      backgroundColor: vars.isSelected
+        ? theme.colors.primary.muted
+        : theme.colors.background.default,
       padding: 4,
     },
     selectedIndicator: {
@@ -46,15 +58,40 @@ const createStyles = ({ theme, vars }: { theme: Theme, vars: { isSelected: boole
       borderRadius: 8,
       backgroundColor: theme.colors.primary.default,
     },
+    itemWrapper: {
+      flex: 1,
+      flexDirection: 'row',
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      alignItems: 'flex-start',
+    },
+    balance: {
+      flex: 1,
+      alignItems: 'flex-end',
+    },
+    skeleton: {
+      width: 50,
+    },
+    secondaryBalance: {
+      color: theme.colors.text.alternative,
+      paddingHorizontal: 0,
+      ...fontStyles.normal,
+      textTransform: 'uppercase',
+    },
+    badgeWrapper: {
+      // override the BadgeWrapper alignSelf: 'flex-start', let parent control the alignment
+      alignSelf: undefined,
+    },
   });
 
 interface TokenSelectorItemProps {
-  token: TokenIWithFiatAmount;
-  onPress: (token: TokenIWithFiatAmount) => void;
+  token: BridgeToken;
+  onPress: (token: BridgeToken) => void;
   networkName: string;
   networkImageSource?: ImageSourcePropType;
-  shouldShowBalance?: boolean;
   isSelected?: boolean;
+  shouldShowBalance?: boolean;
+  children?: React.ReactNode;
 }
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -62,79 +99,97 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   onPress,
   networkName,
   networkImageSource,
-  shouldShowBalance = true,
   isSelected = false,
+  shouldShowBalance = true,
+  children,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
-  const navigation = useNavigation();
   const fiatValue = token.balanceFiat;
-  const balanceWithSymbol = `${token.balance} ${token.symbol}`;
+  const balanceWithSymbol = token.balance
+    ? `${token.balance} ${token.symbol}`
+    : undefined;
 
-  // Open the asset details screen as a bottom sheet
-  const handleInfoButtonPress = () => navigation.navigate('Asset', { ...token });
+  const isNative = token.address === ethers.constants.AddressZero;
+
+  const balance = shouldShowBalance ? fiatValue : undefined;
+  const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
   return (
     <Box
       flexDirection={FlexDirection.Row}
-      justifyContent={JustifyContent.spaceBetween}
-      alignItems={AlignItems.center}
       style={styles.container}
     >
       {isSelected && <View style={styles.selectedIndicator} />}
 
-      <AssetElement
+      <TouchableOpacity
         key={token.address}
-        asset={token}
         onPress={() => onPress(token)}
-        balance={shouldShowBalance ? fiatValue : undefined}
-        secondaryBalance={shouldShowBalance ? balanceWithSymbol : undefined}
+        style={styles.itemWrapper}
+        {...generateTestId(Platform, getAssetTestId(token.symbol))}
       >
-        <BadgeWrapper
-          badgePosition={BadgePosition.BottomRight}
-          badgeElement={
-            <Badge
-              variant={BadgeVariant.Network}
-              name={networkName}
-              imageSource={networkImageSource}
-            />
-          }
-        >
-          {token.isNative ? (
-            <TokenIcon
-              symbol={token.symbol}
-              icon={token.image}
-              style={styles.tokenIcon}
-              big={false}
-              biggest={false}
-              testID={`network-logo-${token.symbol}`}
-            />
-          ) : (
-            <AvatarToken
-              name={token.symbol}
-              imageSource={token.image ? { uri: token.image } : undefined}
-              size={AvatarSize.Md}
-            />
-          )}
-        </BadgeWrapper>
-        <Box style={styles.tokenInfo} flexDirection={FlexDirection.Column} gap={4}>
-          <Text variant={TextVariant.BodyLGMedium}>
-            {token.symbol}
-          </Text>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            {token.name}
-          </Text>
+        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+          {/* Token Icon */}
+          <BadgeWrapper
+            style={styles.badgeWrapper}
+            badgePosition={BadgePosition.BottomRight}
+            badgeElement={
+              <Badge
+                variant={BadgeVariant.Network}
+                name={networkName}
+                imageSource={networkImageSource}
+              />
+            }
+          >
+            {isNative ? (
+              <TokenIcon
+                symbol={token.symbol}
+                icon={token.image}
+                medium
+                testID={`network-logo-${token.symbol}`}
+              />
+            ) : (
+              <AvatarToken
+                name={token.symbol}
+                imageSource={token.image ? { uri: token.image } : undefined}
+                size={AvatarSize.Md}
+              />
+            )}
+          </BadgeWrapper>
+
+          {/* Token symbol and name */}
+          <Box
+            style={styles.tokenInfo}
+            flexDirection={FlexDirection.Column}
+            gap={4}
+          >
+            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {token.name}
+            </Text>
+          </Box>
+
+          {/* Token balance and fiat value */}
+          <Box style={styles.balance}>
+            {balance &&
+              (balance === TOKEN_BALANCE_LOADING ||
+              balance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <SkeletonText thin style={styles.skeleton} />
+              ) : (
+                <Text>{balance}</Text>
+              ))}
+            {secondaryBalance ? (
+              secondaryBalance === TOKEN_BALANCE_LOADING ||
+              secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
+                <SkeletonText thin style={styles.skeleton} />
+              ) : (
+                <Text>{secondaryBalance}</Text>
+              )
+            ) : null}
+          </Box>
         </Box>
-      </AssetElement>
-      {!shouldShowBalance && (
-        <ButtonIcon
-          iconName={IconName.Info}
-          size={ButtonIconSizes.Md}
-          onPress={handleInfoButtonPress}
-          iconColor={IconColor.Alternative}
-          style={styles.infoButton}
-          testID="token-info-button"
-        />
-      )}
+      </TouchableOpacity>
+
+      {children}
     </Box>
   );
 };
