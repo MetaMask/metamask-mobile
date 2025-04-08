@@ -1569,6 +1569,55 @@ exports[`TransactionDetails should render correctly 1`] = `
                           </View>
                         </View>
                       </View>
+                      <TouchableOpacity
+                        onPress={[Function]}
+                        style={
+                          {
+                            "marginBottom": 24,
+                            "marginTop": 12,
+                          }
+                        }
+                      >
+                        <Text
+                          style={
+                            [
+                              false,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              undefined,
+                              {
+                                "color": "#4459ff",
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
+                                "fontWeight": "400",
+                                "textAlign": "center",
+                              },
+                            ]
+                          }
+                        >
+                          VIEW ON Etherscan
+                        </Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>

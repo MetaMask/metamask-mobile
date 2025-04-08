@@ -12,7 +12,7 @@ import {
   isMultiLayerFeeNetwork,
   getBlockExplorerTxUrl,
   findBlockExplorerForNonEvmChainId,
-  isLineaMainnet,
+  isLineaMainnetChainId,
 } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
@@ -189,13 +189,13 @@ class TransactionDetails extends PureComponent {
       ] || NO_RPC_BLOCK_EXPLORER;
 
     // Check for default block explorers based on chain ID
-    if (isMainNet(chainId)) {
+    if (isMainNet(txChainId)) {
       blockExplorer = MAINNET_BLOCK_EXPLORER;
-    } else if (isLineaMainnet(chainId)) {
+    } else if (isLineaMainnetChainId(txChainId)) {
       blockExplorer = LINEA_MAINNET_BLOCK_EXPLORER;
-    } else if (chainId === CHAIN_IDS.LINEA_SEPOLIA) {
+    } else if (txChainId === CHAIN_IDS.LINEA_SEPOLIA) {
       blockExplorer = LINEA_SEPOLIA_BLOCK_EXPLORER;
-    } else if (chainId === CHAIN_IDS.SEPOLIA) {
+    } else if (txChainId === CHAIN_IDS.SEPOLIA) {
       blockExplorer = SEPOLIA_BLOCK_EXPLORER;
     }
 
@@ -489,7 +489,6 @@ class TransactionDetails extends PureComponent {
             chainId={chainId}
           />
         </View>
-
         {updatedTransactionDetails.hash &&
           status !== 'cancelled' &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
