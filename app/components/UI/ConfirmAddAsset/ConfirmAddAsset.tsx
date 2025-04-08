@@ -184,10 +184,7 @@ const ConfirmAddAsset = () => {
                   badgeElement={
                     <Badge
                       variant={BadgeVariant.Network}
-                      imageSource={NetworkBadgeSource(
-                        asset.chainId as Hex,
-                        asset.symbol,
-                      )}
+                      imageSource={NetworkBadgeSource(asset.chainId as Hex)}
                       name={networkName}
                     />
                   }

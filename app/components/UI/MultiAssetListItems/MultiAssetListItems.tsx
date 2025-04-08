@@ -91,10 +91,7 @@ const MultiAssetListItems = ({
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}
-                    imageSource={NetworkBadgeSource(
-                      searchResults[i]?.chainId,
-                      searchResults[i]?.symbol,
-                    )}
+                    imageSource={NetworkBadgeSource(searchResults[i]?.chainId)}
                     name={networkName}
                   />
                 }
