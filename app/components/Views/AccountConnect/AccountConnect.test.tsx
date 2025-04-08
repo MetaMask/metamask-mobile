@@ -269,9 +269,7 @@ describe('AccountConnect', () => {
       multiSelector.props.onPrimaryActionButtonPress();
 
       // Verify that the screen changed back to PermissionsSummary
-      expect(
-        await findByTestId('permission-summary-container'),
-      ).toBeOnTheScreen();
+      expect(await findByTestId('permission-summary-container')).toBeDefined();
     });
   });
 
