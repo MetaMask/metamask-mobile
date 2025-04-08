@@ -102,6 +102,7 @@ describe('StakingWithdrawal', () => {
       title: 'Unstake',
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 
