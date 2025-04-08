@@ -1036,7 +1036,7 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',

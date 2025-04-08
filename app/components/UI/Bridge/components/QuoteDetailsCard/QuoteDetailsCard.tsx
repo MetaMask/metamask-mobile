@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   TouchableOpacity,
   LayoutAnimation,
@@ -37,24 +37,18 @@ import { BadgeVariant } from '../../../../../component-library/components/Badges
 import Badge from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
-import { QuoteResponse } from '@metamask/bridge-controller';
+import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
-import {
-  selectDestToken,
-  selectSlippage,
-  selectSourceToken,
-} from '../../../../../core/redux/slices/bridge';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
-// Enable Layout Animation on Android
-if (Platform.OS === 'android') {
-  if (UIManager.setLayoutAnimationEnabledExperimental) {
-    UIManager.setLayoutAnimationEnabledExperimental(true);
-  }
-}
+const ANIMATION_DURATION_MS = 200;
 
-const ANIMATION_DURATION_MS = 300;
+if (
+  Platform.OS === 'android' &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 interface NetworkBadgeProps {
   chainId: string;
@@ -83,9 +77,6 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
   );
 };
 
-// Using first quote from mock data
-const quoteDetails = mockQuotes[0] as unknown as QuoteResponse; //TODO: Remove this once we have a real quote from the controller MMS-1886
-
 const QuoteDetailsCard = () => {
   const theme = useTheme();
   const navigation = useNavigation();
@@ -93,9 +84,13 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const slippage = useSelector(selectSlippage);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
+  const { sourceToken, destToken, formattedQuoteData, sourceAmount } =
+    useBridgeQuoteData();
+
+  // Reset expanded state when dependencies change
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [sourceToken, destToken]);
 
   const toggleAccordion = useCallback(() => {
     LayoutAnimation.configureNext(
@@ -132,26 +127,12 @@ const QuoteDetailsCard = () => {
     });
   };
 
-  if (!quoteDetails || !sourceToken?.chainId || !destToken?.chainId) {
+  // Early return for invalid states
+  if (!sourceToken?.chainId || !destToken?.chainId || !sourceAmount) {
     return null;
   }
 
   const isSameChainId = sourceToken.chainId === destToken.chainId;
-
-  const { quote, estimatedProcessingTimeInSeconds } = quoteDetails;
-
-  // Format the data for display
-  const quoteData = {
-    networkFee: '$0.01', // TODO: Calculate from quote.feeData
-    estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
-    rate: `1 ${sourceToken.symbol} = ${(
-      Number(quote.destTokenAmount) / Number(quote.srcTokenAmount)
-    ).toFixed(1)} ${destToken.symbol}`,
-    priceImpact: '-0.06%', // TODO: Calculate from quote data
-    slippage: `${slippage}%`, // TODO: Get from bridge settings
-    srcChainId: sourceToken.chainId,
-    destChainId: destToken.chainId,
-  };
 
   return (
     <Box style={styles.container}>
@@ -166,9 +147,9 @@ const QuoteDetailsCard = () => {
             alignItems={AlignItems.center}
             style={styles.networkContainer}
           >
-            <NetworkBadge chainId={quoteData.srcChainId} />
+            <NetworkBadge chainId={String(sourceToken.chainId)} />
             <Icon name={IconName.Arrow2Right} size={IconSize.Sm} />
-            <NetworkBadge chainId={quoteData.destChainId} />
+            <NetworkBadge chainId={String(destToken.chainId)} />
           </Box>
         ) : (
           <Box>
@@ -206,7 +187,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: quoteData.networkFee,
+            text: formattedQuoteData?.networkFee,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -221,7 +202,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: quoteData.estimatedTime,
+            text: formattedQuoteData?.estimatedTime,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -243,7 +224,10 @@ const QuoteDetailsCard = () => {
             },
           }}
           value={{
-            label: { text: quoteData.rate, variant: TextVariant.BodyMD },
+            label: {
+              text: formattedQuoteData?.rate,
+              variant: TextVariant.BodyMD,
+            },
           }}
         />
         {!isExpanded && (
@@ -287,7 +271,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: quoteData.priceImpact,
+                text: formattedQuoteData?.priceImpact,
                 variant: TextVariant.BodyMD,
               },
             }}
@@ -320,7 +304,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: quoteData.slippage,
+                text: formattedQuoteData?.slippage,
                 variant: TextVariant.BodyMD,
               },
             }}

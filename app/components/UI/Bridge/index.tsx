@@ -27,12 +27,13 @@ import {
   selectSourceAmount,
   selectDestAmount,
   selectSelectedDestChainId,
-  selectSourceToken,
-  selectDestToken,
   setSourceAmount,
   resetBridgeState,
   setSourceToken,
   setDestToken,
+  selectDestToken,
+  selectSourceToken,
+  setSelectedQuote,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -47,6 +48,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
+import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
+import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -109,20 +112,6 @@ const BridgeView = () => {
     selectBasicFunctionalityEnabled,
   );
 
-  useEffect(() => {
-    const setBridgeFeatureFlags = async () => {
-      try {
-        if (isBasicFunctionalityEnabled) {
-          await Engine.context.BridgeController.setBridgeFeatureFlags();
-        }
-      } catch (error) {
-        console.error('Error setting bridge feature flags', error);
-      }
-    };
-
-    setBridgeFeatureFlags();
-  }, [isBasicFunctionalityEnabled]);
-
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -130,12 +119,13 @@ const BridgeView = () => {
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
 
-  // Bridge state from Redux
+  const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const sourceAmount = useSelector(selectSourceAmount);
   const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectSelectedDestChainId);
+  const { bridgeQuote, isLoading } = useBridgeQuoteData();
+  const updateQuoteParams = useBridgeQuoteRequest();
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -171,6 +161,37 @@ const BridgeView = () => {
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
+
+  // Update quote parameters when relevant state changes
+  useEffect(() => {
+    if (sourceToken?.chainId && destToken?.chainId && sourceAmount) {
+      dispatch(setSelectedQuote(null));
+      updateQuoteParams();
+    }
+    return () => {
+      updateQuoteParams.cancel();
+    };
+  }, [
+    sourceToken?.chainId,
+    destToken?.chainId,
+    sourceAmount,
+    updateQuoteParams,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+    const setBridgeFeatureFlags = async () => {
+      try {
+        if (isBasicFunctionalityEnabled) {
+          await Engine.context.BridgeController.setBridgeFeatureFlags();
+        }
+      } catch (error) {
+        console.error('Error setting bridge feature flags', error);
+      }
+    };
+
+    setBridgeFeatureFlags();
+  }, [isBasicFunctionalityEnabled]);
 
   const handleKeypadChange = ({
     value,
@@ -227,15 +248,6 @@ const BridgeView = () => {
     if (hasInsufficientBalance) {
       return <Text color={TextColor.Error}>Insufficient balance</Text>;
     }
-
-    // TODO: Implement quote request
-    /* Steps:
-    1. Construct Quote params
-    2. Update quoteParams in the BridgeController
-    3. Get selectedQuote from BridgeController state
-    4. If selectedQuote is not null, show the quote details card and populate the destination amount input with the quote amount
-    5. If selectedQuote is null, show the loading state on the destination amount input
-    */
 
     return (
       <>
@@ -305,9 +317,10 @@ const BridgeView = () => {
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
+            isLoading={isLoading}
           />
           <Box style={styles.quoteContainer}>
-            <QuoteDetailsCard />
+            {bridgeQuote && <QuoteDetailsCard />}
           </Box>
         </Box>
 
