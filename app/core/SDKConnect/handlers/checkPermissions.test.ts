@@ -67,7 +67,7 @@ describe('checkPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers().setSystemTime(currentTime);
-    mockGetPermittedAccounts.mockResolvedValue([]);
+    mockGetPermittedAccounts.mockReturnValue([]);
 
     connection = {
       channelId: 'channelId',
@@ -119,14 +119,14 @@ describe('checkPermissions', () => {
   });
 
   it('should return true if permitted accounts exist', async () => {
-    mockGetPermittedAccounts.mockResolvedValue(['0x123']);
+    mockGetPermittedAccounts.mockReturnValue(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(result).toBe(true);
   });
 
   it('should return false if no permitted accounts exist and no approval promise', async () => {
-    mockGetPermittedAccounts.mockResolvedValue([]);
+    mockGetPermittedAccounts.mockReturnValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
 
     const result = await checkPermissions({ connection, engine });
@@ -134,12 +134,12 @@ describe('checkPermissions', () => {
   });
 
   it(`should request permissions if no ${Caip25EndowmentPermissionName} permission exists`, async () => {
-    mockGetPermittedAccounts.mockResolvedValue([]);
+    mockGetPermittedAccounts.mockReturnValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
     requestPermissions.mockResolvedValue({});
     mockGetPermittedAccounts
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce(['0x123']);
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(requestPermissions).toHaveBeenCalledWith(

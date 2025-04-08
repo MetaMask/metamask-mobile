@@ -111,7 +111,7 @@ jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest
     .fn()
-    .mockResolvedValue(['0x1234567890abcdef1234567890abcdef12345678']),
+    .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
 }));
 
 jest.mock('../../selectors/networkController', () => ({

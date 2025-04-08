@@ -17,7 +17,10 @@ import {
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../Permissions';
 import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
 import {
   Caveat,
@@ -116,6 +119,7 @@ const mockStore = store as unknown as {
 };
 
 jest.mock('../Permissions', () => ({
+  ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest.fn(),
 }));
 const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
@@ -889,6 +893,76 @@ describe('getRpcMethodMiddleware', () => {
       expect(
         (response as JsonRpcSuccess<PermissionConstraint[]>).result,
       ).toEqual([expectedEthAccountsPermission]);
+    });
+  });
+
+  describe('eth_requestAccounts', () => {
+    it('can get permitted accounts if permission exists', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_requestAccounts',
+        params: [],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect(requestPermissionsSpy).not.toHaveBeenCalled();
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([addressMock]);
+    });
+
+    it('can get permitted accounts after requesting permissions if permission does not exists', async () => {
+      const requestPermissionsSpy = jest.spyOn(
+        Engine.context.PermissionController,
+        'requestPermissions',
+      );
+      mockGetPermittedAccounts
+        .mockReturnValueOnce([])
+        .mockReturnValue([addressMock]);
+
+      const middleware = getRpcMethodMiddleware({
+        ...getMinimalOptions(),
+        hostname: 'example.metamask.io',
+      });
+
+      const request = {
+        jsonrpc,
+        id: 1,
+        method: 'eth_requestAccounts',
+        params: [],
+      };
+
+      const response = await callMiddleware({ middleware, request });
+
+      expect(
+        (response as JsonRpcSuccess<PermissionConstraint[]>).result,
+      ).toEqual([addressMock]);
+      expect(requestPermissionsSpy).toHaveBeenCalledWith(
+        { origin: 'example.metamask.io' },
+        {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
+        },
+      );
     });
   });
 
