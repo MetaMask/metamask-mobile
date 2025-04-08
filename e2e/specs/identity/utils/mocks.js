@@ -67,8 +67,7 @@ function mockAPICall(server, response) {
 }
 
 const MOCK_ETH_BALANCE = '0xde0b6b3a7640000';
-const INFURA_URL =
-  'https://mainnet.infura.io/v3/00000000000000000000000000000000';
+const INFURA_URL = 'https://mainnet.infura.io/v3/';
 
 /**
  * Sets up mock responses for Infura balance checks and account syncing
