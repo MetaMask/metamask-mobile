@@ -134,7 +134,8 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const getMultiChainFiatBalance = useCallback(
-    (balance: number, currency: string) => {
+    (balance: number | undefined, currency: string) => {
+      if (balance === undefined) return '0';
       return formatWithThreshold(balance, 0, I18n.locale, {
         style: 'currency',
         currency: currency.toUpperCase(),
@@ -145,7 +146,10 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
 
   const getNonEvmDisplayBalance = useCallback(
     (nonEvmAccountBalance: MultichainNetworkAggregatedBalance) => {
-      if (!shouldShowFiat) {
+      if (!shouldShowFiat || !nonEvmAccountBalance.totalBalanceFiat) {
+        if (!nonEvmAccountBalance.totalNativeTokenBalance) {
+          return '0';
+        }
         return `${nonEvmAccountBalance.totalNativeTokenBalance.amount} ${nonEvmAccountBalance.totalNativeTokenBalance.unit}`;
       }
 
@@ -176,8 +180,8 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
       account: InternalAccount,
     ): {
       displayBalance: string;
-      totalFiatBalance: number;
-      totalNativeTokenBalance: string;
+      totalFiatBalance: number | undefined;
+      totalNativeTokenBalance: string | undefined;
       nativeTokenUnit: string;
     } => {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -193,8 +197,9 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
           displayBalance: getNonEvmDisplayBalance(nonEvmAccountBalance),
           totalFiatBalance: nonEvmAccountBalance.totalBalanceFiat,
           totalNativeTokenBalance:
-            nonEvmAccountBalance.totalNativeTokenBalance.amount,
-          nativeTokenUnit: nonEvmAccountBalance.totalNativeTokenBalance.unit,
+            nonEvmAccountBalance.totalNativeTokenBalance?.amount,
+          nativeTokenUnit:
+            nonEvmAccountBalance.totalNativeTokenBalance?.unit || '',
         };
       }
       ///: END:ONLY_INCLUDE_IF
@@ -203,8 +208,8 @@ const useMultichainBalances = (): UseMultichainBalancesHook => {
         displayBalance: evmAccountBalance.displayBalance,
         totalFiatBalance: evmAccountBalance.totalFiatBalance,
         totalNativeTokenBalance:
-          evmAccountBalance.totalNativeTokenBalance.toString(),
-        nativeTokenUnit: evmAccountBalance.nativeTokenUnit,
+          evmAccountBalance.totalNativeTokenBalance?.toString() || '0',
+        nativeTokenUnit: evmAccountBalance.nativeTokenUnit || '',
       };
     },
     [

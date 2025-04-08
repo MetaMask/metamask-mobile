@@ -102,8 +102,8 @@ export const PortfolioBalance = React.memo(() => {
   const renderAggregatedPercentage = () => {
     if (
       !selectedAccountMultichainBalance ||
-      (!selectedAccountMultichainBalance?.shouldShowAggregatedPercentage &&
-        selectedAccountMultichainBalance?.totalFiatBalance)
+      !selectedAccountMultichainBalance?.shouldShowAggregatedPercentage ||
+      selectedAccountMultichainBalance?.totalFiatBalance === undefined
     ) {
       return null;
     }

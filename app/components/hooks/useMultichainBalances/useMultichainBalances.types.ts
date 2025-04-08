@@ -6,8 +6,8 @@ export interface MultichainBalancesData {
   displayBalance?: string;
   displayCurrency: string;
   tokenFiatBalancesCrossChains: AggregatedPercentageCrossChainsProps['tokenFiatBalancesCrossChains'];
-  totalFiatBalance: number;
-  totalNativeTokenBalance: string;
+  totalFiatBalance: number | undefined;
+  totalNativeTokenBalance: string | undefined;
   nativeTokenUnit: string;
   shouldShowAggregatedPercentage: boolean;
   isPortfolioVieEnabled: boolean;

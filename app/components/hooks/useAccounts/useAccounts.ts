@@ -124,9 +124,9 @@ const useAccounts = ({
         ? `${balanceForAccount.displayBalance}\n${balanceForAccount.totalNativeTokenBalance} ${balanceForAccount.nativeTokenUnit}`
         : '';
 
-      const error = checkBalanceError?.(
-        balanceForAccount.totalFiatBalance.toString(),
-      );
+      const error = balanceForAccount.totalFiatBalance
+        ? checkBalanceError?.(balanceForAccount.totalFiatBalance.toString())
+        : undefined;
       balances[account.id] = {
         displayBalance,
         balanceError: typeof error === 'string' ? error : undefined,

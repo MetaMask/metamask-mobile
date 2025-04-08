@@ -734,8 +734,8 @@ describe('MultichainNonEvm Selectors', () => {
         selectSelectedAccountMultichainNetworkAggregatedBalance(mockState);
 
       // Expect only the native asset amount
-      expect(result.totalNativeTokenBalance.amount).toEqual('10');
-      expect(result.totalNativeTokenBalance.unit).toEqual('SOL');
+      expect(result.totalNativeTokenBalance?.amount).toEqual('10');
+      expect(result.totalNativeTokenBalance?.unit).toEqual('SOL');
       // Expect total fiat balance: (10 SOL * $100) + (20 JUP * $2) = $1000 + $40 = $1040
       expect(result.totalBalanceFiat).toEqual(1040);
     });
