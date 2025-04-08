@@ -6,6 +6,26 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 
 export const mockedEngine = {
   init: () => Engine.init({}),
+  controllerMessenger: {
+    subscribe: jest.fn(),
+    call: jest.fn().mockImplementation((method) => {
+      if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
+        return 'mainnet';
+      }
+
+      if (method === 'NetworkController:getNetworkClientById') {
+        return {
+          configuration: {
+            chainId: '0x1',
+            ticker: 'ETH',
+          },
+        };
+      }
+    }),
+  },
+  datamodel: {
+    state: { PreferencesController: { selectedAddress: '' } },
+  },
   context: {
     AccountsController: {
       listAccounts: jest.fn(),
@@ -16,14 +36,24 @@ export const mockedEngine = {
         accounts: {},
       },
     },
+    ApprovalController: {
+      addAndShowApprovalRequest: jest.fn(),
+    },
     PermissionController: {
       requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
       revokePermission: jest.fn(),
+      getPermissions: jest.fn(),
+      hasPermissions: jest.fn(),
+      hasPermission: jest.fn(),
+      executeRestrictedMethod: jest.fn(),
       state: {
         subjects: {},
       },
+    },
+    SelectedNetworkController: {
+      getProviderAndBlockTracker: jest.fn(),
     },
     KeyringController: MOCK_KEYRING_CONTROLLER_STATE,
     NetworkController: {
