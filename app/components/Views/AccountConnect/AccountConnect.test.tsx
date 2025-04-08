@@ -5,7 +5,7 @@ import renderWithProvider, {
 import AccountConnect from './AccountConnect';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { RootState } from '../../../reducers';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
 
@@ -28,6 +28,11 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('react-native/Libraries/Linking/Linking', () => ({
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+}));
 
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -56,6 +61,10 @@ jest.mock('../../../core/Engine', () => ({
       test: jest.fn((url: string) => {
         if (url === 'phishing.com') return { result: true };
         return { result: false };
+      }),
+      scanUrl: jest.fn((url: string) => {
+        if (url === 'phishing.com') return { recommendedAction: 'BLOCK' };
+        return { recommendedAction: 'NONE' };
       }),
     },
     PermissionController: {
@@ -176,7 +185,7 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('should handle onPrimaryActionButtonPress correctly', () => {
+    it('should handle onPrimaryActionButtonPress correctly', async () => {
       // Render the container component with necessary props
       const { getByTestId, UNSAFE_getByType } = renderWithProvider(
         <AccountConnect
@@ -209,8 +218,9 @@ describe('AccountConnect', () => {
       const multiSelector = UNSAFE_getByType(AccountConnectMultiSelector);
 
       // Now we can access the component's props
-      multiSelector.props.onPrimaryActionButtonPress();
-
+      await act(async () => {
+        multiSelector.props.onPrimaryActionButtonPress();
+      });
       // Verify that the screen changed back to PermissionsSummary
       expect(getByTestId('permission-summary-container')).toBeDefined();
     });
