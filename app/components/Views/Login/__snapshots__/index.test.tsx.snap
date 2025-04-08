@@ -214,7 +214,7 @@ exports[`Login should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#4459ff",
-                "borderRadius": 24,
+                "borderRadius": 12,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",

@@ -1018,7 +1018,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                       "alignSelf": "stretch",
                                       "backgroundColor": "transparent",
                                       "borderColor": "#4459ff",
-                                      "borderRadius": 20,
+                                      "borderRadius": 12,
                                       "borderWidth": 1,
                                       "flexDirection": "row",
                                       "height": 40,

@@ -466,7 +466,7 @@ exports[`ActivityView should render correctly 1`] = `
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#b7bbc866",
-                              "borderRadius": 20,
+                              "borderRadius": 12,
                               "borderStyle": "solid",
                               "borderWidth": 1,
                               "flexDirection": "row",

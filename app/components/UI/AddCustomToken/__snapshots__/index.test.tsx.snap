@@ -211,7 +211,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           "alignItems": "center",
           "alignSelf": "center",
           "backgroundColor": "#4459ff",
-          "borderRadius": 24,
+          "borderRadius": 12,
           "color": "#4459ff",
           "flexDirection": "row",
           "fontFamily": "CentraNo1-Book",
