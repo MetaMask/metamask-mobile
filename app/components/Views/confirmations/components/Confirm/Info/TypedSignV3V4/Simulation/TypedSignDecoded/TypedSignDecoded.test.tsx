@@ -129,9 +129,12 @@ const mockState = (
 
 describe('DecodedSimulation', () => {
   it('renders for ERC20 approval', async () => {
-    const { getByText, getByTestId } = renderWithProvider(<TypedSignDecoded />, {
-      state: mockState(stateChangesApprove),
-    });
+    const { getByText, getByTestId } = renderWithProvider(
+      <TypedSignDecoded />,
+      {
+        state: mockState(stateChangesApprove),
+      },
+    );
 
     expect(await getByText('Estimated changes')).toBeDefined();
     expect(await getByText('Spending cap')).toBeDefined();
@@ -155,10 +158,12 @@ describe('DecodedSimulation', () => {
 
   it('renders "Unlimited" for large values', async () => {
     const { getByText } = renderWithProvider(<TypedSignDecoded />, {
-      state: mockState([{
-        ...stateChangesApprove[0],
-        amount: '1461501637330902918203684832716283019655932542975',
-      }]),
+      state: mockState([
+        {
+          ...stateChangesApprove[0],
+          amount: '1461501637330902918203684832716283019655932542975',
+        },
+      ]),
     });
 
     expect(await getByText('Estimated changes')).toBeDefined();
@@ -190,10 +195,10 @@ describe('DecodedSimulation', () => {
       state: mockState(stateChangesNftListing),
     });
 
-    expect(await findByText('Estimated changes')).toBeDefined();
-    expect(await findByText('Listing price')).toBeDefined();
-    expect(await findByText('You list')).toBeDefined();
-    expect(await findByText('#22222')).toBeDefined();
+    expect(await findByText('Estimated changes')).toBeOnTheScreen();
+    expect(await findByText('Listing price')).toBeOnTheScreen();
+    expect(await findByText('You list')).toBeOnTheScreen();
+    expect(await findByText('#22222')).toBeOnTheScreen();
   });
 
   it('renders for ERC1155 token', async () => {
@@ -201,10 +206,10 @@ describe('DecodedSimulation', () => {
       state: mockState(stateChangesListingERC1155),
     });
 
-    expect(await findByText('Estimated changes')).toBeDefined();
-    expect(await findByText('You receive')).toBeDefined();
-    expect(await findByText('You list')).toBeDefined();
-    expect(await findByText('#77789')).toBeDefined();
+    expect(await findByText('Estimated changes')).toBeOnTheScreen();
+    expect(await findByText('You receive')).toBeOnTheScreen();
+    expect(await findByText('You list')).toBeOnTheScreen();
+    expect(await findByText('#77789')).toBeOnTheScreen();
   });
 
   it('renders label only once if there are multiple state changes of same changeType', async () => {
