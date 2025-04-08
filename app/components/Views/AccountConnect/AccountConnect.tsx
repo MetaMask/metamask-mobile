@@ -82,11 +82,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import {
-  getPhishingTestResult,
-  isProductSafetyDappScanningEnabled,
-} from '../../../util/phishingDetection';
-import { RecommendedAction } from '@metamask/phishing-controller';
+import { isAllowedOrigin } from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -283,19 +279,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     }
   }, [selectedChainIds, chainId, hostname]);
 
-  const isAllowedOrigin = useCallback(async (origin: string) => {
-    const { PhishingController } = Engine.context;
-    if (isProductSafetyDappScanningEnabled()) {
-      const result = await PhishingController.scanUrl(origin);
-      return !(
-        result.recommendedAction === RecommendedAction.Warn ||
-        result.recommendedAction === RecommendedAction.Block
-      );
-    }
-    const result = PhishingController.test(origin);
-    return !result.result;
-  }, []);
-
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
 
@@ -307,7 +290,7 @@ const AccountConnect = (props: AccountConnectProps) => {
       }
     };
     checkOrigin();
-  }, [isAllowedOrigin, dappUrl, channelIdOrHostname]);
+  }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
     inappBrowserOrigin || (!isChannelId ? channelIdOrHostname : ''),

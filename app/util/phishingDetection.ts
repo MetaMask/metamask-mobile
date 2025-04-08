@@ -1,7 +1,8 @@
 import {
+  PhishingController as PhishingControllerClass,
   PhishingDetectorResult,
   PhishingDetectorResultType,
-  PhishingController as PhishingControllerClass,
+  RecommendedAction,
 } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
@@ -33,4 +34,24 @@ export const getPhishingTestResult = (
   };
   PhishingController.maybeUpdateState();
   return PhishingController.test(origin);
+};
+
+/**
+ * Checks if an origin is allowed i.e. not blocked or warned by the phishing controller
+ * @param {string} origin - URL origin or hostname to check
+ * @returns {boolean} Whether the origin is allowed
+ */
+export const isAllowedOrigin = async (origin: string): Promise<boolean> => {
+  const { PhishingController } = Engine.context as {
+    PhishingController: PhishingControllerClass;
+  };
+  if (isProductSafetyDappScanningEnabled()) {
+    const result = await PhishingController.scanUrl(origin);
+    return !(
+      result.recommendedAction === RecommendedAction.Warn ||
+      result.recommendedAction === RecommendedAction.Block
+    );
+  }
+  const phishingResult = PhishingController.test(origin);
+  return !phishingResult?.result;
 };
