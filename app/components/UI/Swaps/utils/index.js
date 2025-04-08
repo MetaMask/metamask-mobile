@@ -4,7 +4,9 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { strings } from '../../../../../locales/i18n';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 import { isBridgeUiEnabled } from '../../Bridge/utils';
 
 const {
