@@ -6,17 +6,10 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { BridgeHistoryItem, StatusTypes, ActionTypes } from '@metamask/bridge-status-controller';
 import { Step } from '@metamask/bridge-controller';
 
-jest.mock('./stepProgressBarItem', () => {
-  const { View } = require('react-native');
-  return {
-    __esModule: true,
-    default: jest.fn(({ children, ...props }) => (
-      <View testID="step-progress-bar-item" {...props}>
-        {children}
-      </View>
-    )),
-  };
-});
+jest.mock('./stepProgressBarItem', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
+}));
 
 jest.mock('./bridgeStepDescription', () => ({
   __esModule: true,
@@ -97,7 +90,7 @@ describe('BridgeStepList', () => {
     const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
-    const { getAllByTestId } = render(
+    render(
       <BridgeStepList
         bridgeHistoryItem={mockBridgeHistoryItem}
         srcChainTxMeta={mockSrcChainTxMeta}
@@ -105,42 +98,41 @@ describe('BridgeStepList', () => {
       />,
     );
 
-    const steps = getAllByTestId('step-progress-bar-item');
-    expect(steps).toHaveLength(mockSteps.length);
+    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
 
   it('handles missing bridgeHistoryItem', () => {
-    const { queryByTestId } = render(
+    render(
       <BridgeStepList
         networkConfigurationsByChainId={mockNetworkConfigurations}
       />,
     );
 
-    const steps = queryByTestId('step-progress-bar-item');
-    expect(steps).toBeNull();
+    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    expect(StepProgressBarItem).not.toHaveBeenCalled();
   });
 
   it('handles missing srcChainTxMeta', () => {
     const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
-    const { getAllByTestId } = render(
+    render(
       <BridgeStepList
         bridgeHistoryItem={mockBridgeHistoryItem}
         networkConfigurationsByChainId={mockNetworkConfigurations}
       />,
     );
 
-    const steps = getAllByTestId('step-progress-bar-item');
-    expect(steps).toHaveLength(mockSteps.length);
+    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
 
   it('passes correct props to StepProgressBarItem', () => {
     const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
-    mockGetStepStatus.mockImplementation(({ step }: { step: Step }) => {
-      // First step is PENDING, second step is null (as per component logic)
-      return step.action === ActionTypes.BRIDGE ? StatusTypes.PENDING : null;
-    });
+    mockGetStepStatus.mockImplementation(({ step }: { step: Step }) => 
+      step.action === ActionTypes.BRIDGE ? StatusTypes.PENDING : null
+    );
 
     render(
       <BridgeStepList
