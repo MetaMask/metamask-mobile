@@ -77,7 +77,7 @@ exports[`WarningAlert should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -126,7 +126,7 @@ exports[`WarningAlert should render correctly 1`] = `
           [
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,

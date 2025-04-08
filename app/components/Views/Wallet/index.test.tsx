@@ -105,9 +105,6 @@ const mockInitialState = {
       },
     },
   },
-  multichainSettings: {
-    solanaSupportEnabled: false,
-  },
 };
 
 jest.mock('react-redux', () => ({
@@ -235,17 +232,10 @@ describe('Wallet', () => {
   });
 
   it('should render correctly when Solana support is enabled', () => {
-    const stateWithSolana = {
-      ...mockInitialState,
-      multichainSettings: {
-        solanaSupportEnabled: true,
-      },
-    };
-
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback(stateWithSolana),
+        callback(mockInitialState),
       );
     //@ts-expect-error we are ignoring the navigation params on purpose
     const wrapper = render(Wallet);
