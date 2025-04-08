@@ -232,30 +232,31 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('should handle onPrimaryActionButtonPress correctly', () => {
+    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
       // Render the container component with necessary props
-      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  // Using a valid URL format to ensure PermissionsSummary renders first
-                  origin: 'https://example.com',
-                },
-                permissions: {
-                  eth_accounts: {
-                    parentCapability: 'eth_accounts',
+      const { getByTestId, UNSAFE_getByType, findByTestId } =
+        renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    // Using a valid URL format to ensure PermissionsSummary renders first
+                    origin: 'https://example.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
                   },
                 },
+                permissionRequestId: 'test',
               },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
+            }}
+          />,
+          { state: mockInitialState },
+        );
 
       // First find and click the edit button on PermissionsSummary to show MultiSelector
       const editButton = getByTestId('permission-summary-container');
@@ -268,7 +269,9 @@ describe('AccountConnect', () => {
       multiSelector.props.onPrimaryActionButtonPress();
 
       // Verify that the screen changed back to PermissionsSummary
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(
+        await findByTestId('permission-summary-container'),
+      ).toBeOnTheScreen();
     });
   });
 
