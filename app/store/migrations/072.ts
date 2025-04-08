@@ -89,7 +89,7 @@ function isNonEmptyArrayOfStrings(obj: unknown): obj is NonEmptyArray<string> {
  * @returns Migrated Redux state.
  */
 export default function migrate(oldState: unknown) {
-  const version = 71;
+  const version = 72;
 
   // Ensure the state is valid for migration
   if (!ensureValidState(oldState, version)) {
