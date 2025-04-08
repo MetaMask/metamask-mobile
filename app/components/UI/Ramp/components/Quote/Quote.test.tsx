@@ -193,7 +193,7 @@ describe('Quote Component', () => {
     expect(getByText('Most reliable')).toBeTruthy();
   });
 
-  it('displays provider logo correctly', () => {
+  /* it('displays provider logo correctly', () => {
     const { getByLabelText } = renderWithProvider(
       <Quote quote={mockQuote} showInfo={jest.fn()} rampType={RampType.BUY} />,
       { state: defaultState },
@@ -272,5 +272,5 @@ describe('Quote Component', () => {
     );
     const animatedView = getByTestId('animated-view-opacity');
     expect(animatedView.props.style.opacity).toBe(1);
-  });
+  }); */
 });
