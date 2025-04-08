@@ -5,13 +5,13 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
-import { fireEvent } from '@testing-library/react-native';
+import {fireEvent} from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
-import { useMetrics } from '../../hooks/useMetrics';
+import {useMetrics} from '../../hooks/useMetrics';
 
 const setDisplayNftMediaSpy = jest.spyOn(
-  Engine.context.PreferencesController,
-  'setDisplayNftMedia',
+    Engine.context.PreferencesController,
+    'setDisplayNftMedia',
 );
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -49,6 +49,7 @@ const mockAddTraitsToUser = jest.fn();
 const Stack = createStackNavigator();
 
 describe('ShowNftSheet', () => {
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -70,14 +71,14 @@ describe('ShowNftSheet', () => {
 
   it('setDisplayNftMedia to true on confirm', () => {
     const { getByText } = renderWithProvider(
-      <Stack.Navigator>
-        <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
-          {() => <ShowDisplayNFTMediaSheet />}
-        </Stack.Screen>
-      </Stack.Navigator>,
-      {
-        state: initialState,
-      },
+        <Stack.Navigator>
+          <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
+            {() => <ShowDisplayNFTMediaSheet />}
+          </Stack.Screen>
+        </Stack.Navigator>,
+        {
+          state: initialState,
+        },
     );
 
     const confirmButton = getByText('Confirm');
@@ -85,21 +86,19 @@ describe('ShowNftSheet', () => {
     fireEvent.press(confirmButton);
 
     expect(setDisplayNftMediaSpy).toHaveBeenCalledWith(true);
-    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
-      'Enable OpenSea API': 'ON',
-    });
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({'Enable OpenSea API': 'ON'});
   });
 
   it('do not call setDisplayNftMedia on cancel', () => {
     const { getByText } = renderWithProvider(
-      <Stack.Navigator>
-        <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
-          {() => <ShowDisplayNFTMediaSheet />}
-        </Stack.Screen>
-      </Stack.Navigator>,
-      {
-        state: initialState,
-      },
+        <Stack.Navigator>
+          <Stack.Screen name={Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA}>
+            {() => <ShowDisplayNFTMediaSheet />}
+          </Stack.Screen>
+        </Stack.Navigator>,
+        {
+          state: initialState,
+        },
     );
 
     const cancelButton = getByText('Cancel');

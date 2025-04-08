@@ -62,12 +62,7 @@ const CollectibleDetectionModal = () => {
     } finally {
       hideNftFetchingLoadingIndicator();
     }
-  }, [
-    colors.primary.inverse,
-    toastRef,
-    addTraitsToUser,
-    chainIdsToDetectNftsFor,
-  ]);
+  }, [colors.primary.inverse, toastRef, addTraitsToUser, chainIdsToDetectNftsFor]);
 
   return (
     <View style={styles.alertBar}>

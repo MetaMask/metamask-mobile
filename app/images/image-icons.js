@@ -20,6 +20,7 @@ import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
 import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
 
+
 export default {
   PALM,
   MATIC,

@@ -4,10 +4,7 @@ import { Linking } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import AppConstants from '../../../../../../core/AppConstants';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import {
-  personalSignatureConfirmationState,
-  stakingDepositConfirmationState,
-} from '../../../../../../util/test/confirm-data-helpers';
+import { personalSignatureConfirmationState, stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import/no-namespace
 import * as QRHardwareHook from '../../../context/QRHardwareContext/QRHardwareContext';
 // eslint-disable-next-line import/no-namespace
@@ -63,18 +60,13 @@ const mockAlerts = [
     message: ALERT_MESSAGE_MOCK,
     severity: Severity.Warning,
     alertDetails: ALERT_DETAILS_MOCK,
-  },
+  }
 ];
 
 describe('Footer', () => {
   beforeEach(() => {
-    (useAlerts as jest.Mock).mockReturnValue({
-      fieldAlerts: [],
-      hasDangerAlerts: false,
-    });
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({
-      hasUnconfirmedDangerAlerts: false,
-    });
+    (useAlerts as jest.Mock).mockReturnValue({ fieldAlerts: [], hasDangerAlerts: false, });
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({ hasUnconfirmedDangerAlerts: false, });
     jest.clearAllMocks();
   });
 
@@ -145,9 +137,7 @@ describe('Footer', () => {
     });
 
     fireEvent.press(getByText('Terms of Use'));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      AppConstants.URLS.TERMS_OF_USE,
-    );
+    expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.TERMS_OF_USE);
   });
 
   it('should open Risk Disclosure URL when risk disclosure link is pressed', () => {
@@ -156,9 +146,7 @@ describe('Footer', () => {
     });
 
     fireEvent.press(getByText('Risk Disclosure'));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      AppConstants.URLS.STAKING_RISK_DISCLOSURE,
-    );
+    expect(Linking.openURL).toHaveBeenCalledWith(AppConstants.URLS.STAKING_RISK_DISCLOSURE);
   });
 
   describe('Confirm Alert Modal', () => {
@@ -191,18 +179,12 @@ describe('Footer', () => {
       });
 
       await act(async () => {
-        fireEvent.press(
-          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
-        );
+        fireEvent.press(getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON));
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
       expect(getByText('High risk request')).toBeDefined();
-      expect(
-        getByText(
-          'We suggest you reject this request. If you continue, you might put your assets at risk.',
-        ),
-      ).toBeDefined();
+      expect(getByText('We suggest you reject this request. If you continue, you might put your assets at risk.')).toBeDefined();
     });
 
     it('rejects approval request', async () => {
@@ -211,9 +193,7 @@ describe('Footer', () => {
       });
 
       await act(async () => {
-        fireEvent.press(
-          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
-        );
+        fireEvent.press(getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON));
       });
 
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
@@ -231,9 +211,7 @@ describe('Footer', () => {
       });
 
       await act(async () => {
-        fireEvent.press(
-          getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON),
-        );
+        fireEvent.press(getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON));
       });
 
       await act(async () => {
@@ -250,24 +228,21 @@ describe('Footer', () => {
     it.each([
       { fieldAlertsCount: 2, expectedText: 'Review alerts' },
       { fieldAlertsCount: 1, expectedText: 'Review alert' },
-    ])(
-      'renders button label "$expectedText" when there are $fieldAlertsCount field alerts',
-      async ({ fieldAlertsCount, expectedText }) => {
-        const fieldAlerts = Array(fieldAlertsCount).fill(mockAlerts[0]);
+    ])('renders button label "$expectedText" when there are $fieldAlertsCount field alerts', async ({ fieldAlertsCount, expectedText }) => {
+      const fieldAlerts = Array(fieldAlertsCount).fill(mockAlerts[0]);
 
-        (useAlerts as jest.Mock).mockReturnValue({
-          ...baseMockUseAlerts,
-          fieldAlerts,
-          hasUnconfirmedDangerAlerts: true,
-        });
+      (useAlerts as jest.Mock).mockReturnValue({
+        ...baseMockUseAlerts,
+        fieldAlerts,
+        hasUnconfirmedDangerAlerts: true,
+      });
 
-        const { getByText } = renderWithProvider(<Footer />, {
-          state: personalSignatureConfirmationState,
-        });
+      const { getByText } = renderWithProvider(<Footer />, {
+        state: personalSignatureConfirmationState,
+      });
 
-        expect(getByText(expectedText)).toBeDefined();
-      },
-    );
+      expect(getByText(expectedText)).toBeDefined();
+    });
 
     it('calls trackAlertMetrics when alerts change', () => {
       renderWithProvider(<Footer />, {

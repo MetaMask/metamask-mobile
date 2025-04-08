@@ -62,15 +62,12 @@ describe('StakingClaim', () => {
     const mockRoute: RouteProp<{ params: { amountWei: string } }, 'params'> = {
       key: 'test',
       name: 'params',
-      params: { amountWei: '1000000000000000000' },
+      params: { amountWei: '1000000000000000000' }
     };
 
-    const { getByText } = renderWithProvider(
-      <StakingClaim route={mockRoute} />,
-      {
-        state: stakingClaimConfirmationState,
-      },
-    );
+    const { getByText } = renderWithProvider(<StakingClaim route={mockRoute} />, {
+      state: stakingClaimConfirmationState,
+    });
     expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Claiming to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();

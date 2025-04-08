@@ -28,14 +28,18 @@ const createTransactionEventHandler =
   };
 
 // Simple handlers - no unique properties / actions
-export const handleTransactionAddedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED);
-export const handleTransactionApprovedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
-export const handleTransactionRejectedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
-export const handleTransactionSubmittedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);
+export const handleTransactionAddedEventForMetrics = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_ADDED,
+);
+export const handleTransactionApprovedEventForMetrics = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_APPROVED,
+);
+export const handleTransactionRejectedEventForMetrics = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
+);
+export const handleTransactionSubmittedEventForMetrics = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_SUBMITTED,
+);
 
 // Intentionally using TRANSACTION_FINALIZED for confirmed/failed/dropped transactions
 // as unified type for all finalized transactions.

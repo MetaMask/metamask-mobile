@@ -26,6 +26,8 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
   };
 });
 
+
+
 jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
   useSwitchNetworks: () => ({
     onSetRpcTarget: jest.fn(),
@@ -114,17 +116,15 @@ describe('BridgeDestTokenSelector', () => {
       fireEvent.press(token1Element);
     });
 
-    expect(setDestToken).toHaveBeenCalledWith(
-      expect.objectContaining({
-        address: ethToken2Address,
-        balance: '2',
-        chainId: '0x1',
-        decimals: 18,
-        image: 'https://token2.com/logo.png',
-        name: 'Hello Token',
-        symbol: 'HELLO',
-      }),
-    );
+    expect(setDestToken).toHaveBeenCalledWith(expect.objectContaining({
+      address: ethToken2Address,
+      balance: '2',
+      chainId: '0x1',
+      decimals: 18,
+      image: 'https://token2.com/logo.png',
+      name: 'Hello Token',
+      symbol: 'HELLO',
+    }));
     expect(mockGoBack).toHaveBeenCalled();
   });
 
@@ -152,20 +152,17 @@ describe('BridgeDestTokenSelector', () => {
     fireEvent.press(infoButton);
 
     // Verify navigation to Asset screen with the correct token params
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
-      expect.objectContaining({
-        address: ethToken2Address,
-        balance: '2',
-        balanceFiat: '$200000',
-        chainId: '0x1',
-        decimals: 18,
-        image: 'https://token2.com/logo.png',
-        name: 'Hello Token',
-        symbol: 'HELLO',
-        tokenFiatAmount: 200000,
-      }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.objectContaining({
+      address: ethToken2Address,
+      balance: '2',
+      balanceFiat: '$200000',
+      chainId: '0x1',
+      decimals: 18,
+      image: 'https://token2.com/logo.png',
+      name: 'Hello Token',
+      symbol: 'HELLO',
+      tokenFiatAmount: 200000
+    }));
   });
 
   it('handles close button correctly', () => {

@@ -21,42 +21,37 @@ interface UseTokensProps {
 export function useTokens({
   topTokensChainId,
   balanceChainIds,
-  tokensToExclude,
-}: UseTokensProps): { tokens: BridgeToken[]; pending: boolean } {
+  tokensToExclude
+}: UseTokensProps): { tokens: BridgeToken[], pending: boolean } {
   const tokensWithBalance = useTokensWithBalance({
-    chainIds: balanceChainIds as Hex[],
+    chainIds: balanceChainIds as Hex[]
   });
 
   const { topTokens, pending } = useTopTokens({ chainId: topTokensChainId });
 
-  const topTokensFiltered = useMemo(
-    () =>
-      topTokens
-        // filter out tokens that are already in the tokensWithBalance array
-        ?.filter(
-          (token) =>
-            !tokensWithBalance.some(
-              (t) => t.address === token.address && t.chainId === token.chainId,
-            ),
-        ) ?? [],
-    [topTokens, tokensWithBalance],
+  const topTokensFiltered = useMemo(() =>
+    topTokens
+      // filter out tokens that are already in the tokensWithBalance array
+      ?.filter((token) => !tokensWithBalance.some(
+        (t) => t.address === token.address && t.chainId === token.chainId
+      )) ?? [],
+    [topTokens, tokensWithBalance]
   );
 
   const uniqueTokens = useMemo(
     () => [...tokensWithBalance, ...topTokensFiltered],
-    [tokensWithBalance, topTokensFiltered],
+    [tokensWithBalance, topTokensFiltered]
   );
 
   const filteredTokens = useMemo(
-    () =>
-      uniqueTokens.filter((token) => {
-        // filter out tokens that are in the tokensToExclude array
-        const isSelectedToken = tokensToExclude?.some(
-          (t) => t.address === token.address && t.chainId === token.chainId,
-        );
-        return !isSelectedToken;
-      }),
-    [uniqueTokens, tokensToExclude],
+    () => uniqueTokens.filter((token) => {
+      // filter out tokens that are in the tokensToExclude array
+      const isSelectedToken = tokensToExclude?.some(
+        (t) => t.address === token.address && t.chainId === token.chainId
+      );
+      return !isSelectedToken;
+    }),
+    [uniqueTokens, tokensToExclude]
   );
 
   return { tokens: filteredTokens, pending };

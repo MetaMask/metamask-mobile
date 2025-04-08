@@ -42,7 +42,7 @@ const mockInitialState = {
   browser: {
     tabs: mockTabs,
     activeTab: 1,
-  },
+  }
 };
 
 jest.mock('../../../core/Engine', () => ({
@@ -109,8 +109,7 @@ describe('Browser', () => {
             </Stack.Navigator>
           </NavigationContainer>
         </ThemeContext.Provider>
-      </Provider>,
-      { state: { ...mockInitialState } },
+      </Provider>, { state: { ...mockInitialState } },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -153,9 +152,7 @@ describe('Browser', () => {
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
                 <Browser
-                  route={{
-                    params: { newTabUrl: 'about:blank', timestamp: '987' },
-                  }}
+                  route={{ params: { newTabUrl: 'about:blank', timestamp: '987' } }}
                   tabs={mockTabs}
                   activeTab={1}
                   navigation={mockNavigation}
@@ -169,16 +166,15 @@ describe('Browser', () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-      </Provider>,
+      </Provider>
     );
     // Check if myFunction was called
-    expect(navigationSpy).toHaveBeenCalledWith(
-      Routes.MODAL.MAX_BROWSER_TABS_MODAL,
-    );
+    expect(navigationSpy).toHaveBeenCalledWith(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
 
     // Clean up the spy
     navigationSpy.mockRestore();
   });
+
 
   it('should mark a tab as archived if it has been idle for too long', async () => {
     const mockTabsForIdling = [
@@ -210,7 +206,7 @@ describe('Browser', () => {
             </Stack.Screen>
           </Stack.Navigator>
         </NavigationContainer>
-      </Provider>,
+      </Provider>
     );
 
     // Wrap the timer advancement in act

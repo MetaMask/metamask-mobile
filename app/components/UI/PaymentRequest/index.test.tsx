@@ -179,7 +179,8 @@ describe('PaymentRequest', () => {
   });
 
   it('displays an error when an invalid amount is entered', async () => {
-    const { getByText, getByPlaceholderText, queryByText } = renderComponent();
+    const { getByText, getByPlaceholderText, queryByText } =
+      renderComponent();
 
     (React.useState as jest.Mock).mockImplementation(() => [
       mockShowError,

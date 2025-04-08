@@ -60,7 +60,7 @@ const createStyles = (params: { theme: Theme }) => {
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
     skeletonItem: {
       flex: 1,
-    },
+    }
   });
 };
 
@@ -75,13 +75,13 @@ const SkeletonItem = () => {
     >
       <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
-      <Box gap={4} style={styles.skeletonItem}>
-        <Skeleton height={24} width={'96%'} />
-        <Skeleton height={24} width={'37%'} />
-      </Box>
-
-      <Icon name={IconName.Info} />
+    <Box gap={4} style={styles.skeletonItem}>
+      <Skeleton height={24} width={'96%'} />
+      <Skeleton height={24} width={'37%'} />
     </Box>
+
+    <Icon name={IconName.Info} />
+  </Box>
   );
 };
 
