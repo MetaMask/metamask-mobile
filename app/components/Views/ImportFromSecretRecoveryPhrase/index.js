@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+  useContext,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   // ActivityIndicator,
@@ -77,7 +83,11 @@ import Button, {
 import Icon, {
   IconName,
   IconSize,
+  IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
+import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
+import { validateMnemonic } from '@metamask/scure-bip39';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -101,6 +111,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const seedPhraseInputRefs = useRef([]);
+  const { toastRef } = useContext(ToastContext);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -112,7 +123,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
+  // const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
   const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
@@ -126,6 +137,11 @@ const ImportFromSecretRecoveryPhrase = ({
   ] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  const handleLayout = (event) => {
+    setContainerWidth(event.nativeEvent.layout.width);
+  };
 
   const { enableProfileSyncing } = useProfileSyncing();
 
@@ -408,7 +424,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const numColumns = 3; // Number of columns
   const screenWidth = Dimensions.get('window').width; // Get screen width
-  const itemWidth = screenWidth / numColumns - 10; // Adjust for margins
 
   const handleClear = () => {
     setSeedPhrase(['']);
@@ -416,7 +431,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const validateSeedPhrase = () => {
-    const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
+    const phrase = seedPhrase.filter((item) => item !== '').join(' ');
+    const seedPhraseLength = seedPhrase.length;
     if (
       seedPhraseLength !== 12 &&
       seedPhraseLength !== 15 &&
@@ -424,7 +440,31 @@ const ImportFromSecretRecoveryPhrase = ({
       seedPhraseLength !== 21 &&
       seedPhraseLength !== 24
     ) {
-      Alert.alert(strings('import_from_seed.seed_phrase_length_error'));
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('import_from_seed.seed_phrase_length_error') },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.DangerSolid,
+        iconColor: IconColor.Error,
+      });
+      return false;
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('phrase', phrase);
+
+    if (!validateMnemonic(phrase)) {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        labelOptions: [
+          { label: strings('import_from_seed.invalid_seed_phrase') },
+        ],
+        hasNoTimeout: false,
+        iconName: IconName.DangerSolid,
+        iconColor: IconColor.Error,
+      });
       return false;
     }
     return true;
@@ -606,9 +646,10 @@ const ImportFromSecretRecoveryPhrase = ({
                   <View style={styles.seedPhraseInnerContainer}>
                     {seedPhrase.length <= 1 ? (
                       <TextInput
-                        label="Secret Recovery Phrase"
-                        placeholder="Add a space between each word and make sure no one is watching
-                👀"
+                        label={strings('import_from_seed.srp')}
+                        placeholder={strings(
+                          'import_from_seed.srp_placeholder',
+                        )}
                         value={seedPhrase?.[0] || ''}
                         onChangeText={(text) => handleSeedPhraseChange(text, 0)}
                         style={styles.seedPhraseDefaultInput}
@@ -618,7 +659,10 @@ const ImportFromSecretRecoveryPhrase = ({
                         onKeyPress={(e) => handleKeyPress(e, 0)}
                       />
                     ) : (
-                      <View style={[styles.seedPhraseInputContainer]}>
+                      <View
+                        style={[styles.seedPhraseInputContainer]}
+                        onLayout={handleLayout}
+                      >
                         <FlatList
                           data={seedPhrase}
                           numColumns={numColumns}
@@ -627,7 +671,7 @@ const ImportFromSecretRecoveryPhrase = ({
                             <View
                               style={[
                                 styles.inputContainer,
-                                { width: itemWidth },
+                                { width: containerWidth / (numColumns + 0.1) },
                                 seedPhraseInputFocusedIndex === index &&
                                   styles.seedPhraseInputFocused,
                               ]}
@@ -640,7 +684,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                 ref={(ref) =>
                                   (seedPhraseInputRefs.current[index] = ref)
                                 }
-                                label="Secret Recovery Phrase"
+                                label={strings('import_from_seed.srp')}
                                 value={
                                   item &&
                                   (showAllSeedPhrase
@@ -680,11 +724,19 @@ const ImportFromSecretRecoveryPhrase = ({
                       variant={ButtonVariants.Link}
                       style={styles.pasteButton}
                       onPress={toggleShowAllSeedPhrase}
-                      label={showAllSeedPhrase ? 'Hide All' : 'Show All'}
+                      label={
+                        showAllSeedPhrase
+                          ? strings('import_from_seed.hide_all')
+                          : strings('import_from_seed.show_all')
+                      }
                       width={ButtonWidthTypes.Full}
                     />
                     <Button
-                      label={seedPhrase.length > 1 ? 'Clear all' : 'Paste'}
+                      label={
+                        seedPhrase.length > 1
+                          ? strings('import_from_seed.clear_all')
+                          : strings('import_from_seed.paste')
+                      }
                       variant={ButtonVariants.Link}
                       style={styles.pasteButton}
                       onPress={() => {
@@ -701,7 +753,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 <View style={styles.seedPhraseContinueCta}>
                   <Button
                     variant={ButtonVariants.Primary}
-                    label="Continue"
+                    label={strings('import_from_seed.continue')}
                     onPress={handleContinueImportFlow}
                     width={ButtonWidthTypes.Full}
                   />

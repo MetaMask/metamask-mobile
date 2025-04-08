@@ -56,6 +56,7 @@ import Icon, {
 import ButtonComp, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
+import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -167,6 +168,13 @@ const createStyles = (colors) =>
       fontSize: 16,
       fontWeight: '500',
     },
+    bottomSheetContainer: {
+      padding: 16,
+      flexDirection: 'column',
+      rowGap: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
   });
 
 /**
@@ -227,6 +235,9 @@ class Onboarding extends PureComponent {
     warningModalVisible: false,
     loading: false,
     existingUser: false,
+    createWallet: false,
+    existingWallet: false,
+    bottomSheetVisible: false,
   };
 
   seedwords = null;
@@ -380,6 +391,14 @@ class Onboarding extends PureComponent {
     this.setState({ warningModalVisible: !warningModalVisible });
   };
 
+  handleCtaActions = (actionType) => {
+    this.setState({
+      bottomSheetVisible: true,
+      existingWallet: actionType === 'existing',
+      createWallet: actionType === 'create',
+    });
+  };
+
   renderLoader = () => {
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
@@ -417,46 +436,91 @@ class Onboarding extends PureComponent {
         <View style={styles.createWrapper}>
           <View style={styles.buttonWrapper}>
             <ButtonComp
-              variant={ButtonVariants.Secondary}
-              onPress={this.onPressCreate}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              label={strings('onboarding.continue_with_google')}
-              startIconName={IconName.Google}
-              startIconSize={IconSize.Xl}
-              style={styles.socialBtn}
-            />
-            <ButtonComp
-              variant={ButtonVariants.Secondary}
-              onPress={this.onPressImport}
-              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-              label={strings('onboarding.continue_with_apple')}
-              startIconName={IconName.Apple}
-              startIconSize={IconSize.Xl}
-              style={styles.socialBtn}
-            />
-          </View>
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{strings('onboarding.or')}</Text>
-            <View style={styles.dividerLine} />
-          </View>
-          <View style={styles.buttonWrapper}>
-            <ButtonComp
               variant={ButtonVariants.Primary}
-              onPress={this.onPressCreate}
+              onPress={() => this.handleCtaActions('create')}
               testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
               style={styles.socialBtn}
               label={strings('onboarding.start_exploring_now')}
             />
             <ButtonComp
               variant={ButtonVariants.Secondary}
-              onPress={this.onPressImport}
+              onPress={() => this.handleCtaActions('existing')}
               style={styles.socialBtn}
               testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-              label={strings('onboarding.import_existing_wallet')}
+              label={strings('onboarding.have_existing_wallet')}
             />
           </View>
         </View>
+        {this.state.bottomSheetVisible && (
+          <BottomSheet
+            shouldNavigateBack={false}
+            onClose={() =>
+              this.setState({
+                bottomSheetVisible: false,
+                existingWallet: false,
+                createWallet: false,
+              })
+            }
+          >
+            <View style={styles.bottomSheetContainer}>
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('onboarding.bottom_sheet_title')}
+              </Text>
+              <View style={styles.buttonWrapper}>
+                <ButtonComp
+                  variant={ButtonVariants.Secondary}
+                  onPress={this.onPressCreate}
+                  testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+                  label={
+                    this.state.createWallet
+                      ? strings('onboarding.continue_with_google')
+                      : strings('onboarding.sign_in_with_google')
+                  }
+                  startIconName={IconName.Google}
+                  startIconSize={IconSize.Xl}
+                  style={styles.socialBtn}
+                />
+                <ButtonComp
+                  variant={ButtonVariants.Secondary}
+                  onPress={this.onPressImport}
+                  testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+                  label={
+                    this.state.createWallet
+                      ? strings('onboarding.continue_with_apple')
+                      : strings('onboarding.sign_in_with_apple')
+                  }
+                  startIconName={IconName.Apple}
+                  startIconSize={IconSize.Xl}
+                  style={styles.socialBtn}
+                />
+              </View>
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>
+                  {strings('onboarding.or')}
+                </Text>
+                <View style={styles.dividerLine} />
+              </View>
+              <View style={styles.buttonWrapper}>
+                <ButtonComp
+                  variant={ButtonVariants.Secondary}
+                  onPress={
+                    this.state.createWallet
+                      ? this.onPressCreate
+                      : this.onPressImport
+                  }
+                  style={styles.socialBtn}
+                  testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+                  label={
+                    this.state.createWallet
+                      ? strings('onboarding.continue_with_srp')
+                      : strings('onboarding.import_srp')
+                  }
+                />
+              </View>
+            </View>
+          </BottomSheet>
+        )}
       </View>
     );
   }

@@ -44,6 +44,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [seedPhraseReady, setSeedPhraseReady] = useState(false);
   const [showStatusBottomSheet, setShowStatusBottomSheet] = useState(false);
+  const [leftOutWords, setLeftOutWords] = useState([]);
+  const [selectedLeftOutWordIndex, setSelectedLeftOutWordIndex] = useState(-1);
 
   const currentStep = 2;
   const words =
@@ -63,14 +65,40 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [colors, navigation, route]);
 
+  function shuffleLeftOutWords(array) {
+    const arr = [...array]; // clone to avoid mutating original
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
   useEffect(() => {
     const wordsFromRoute = route.params?.words ?? [];
-    setConfirmedWords(
-      new Array(wordsFromRoute.length).fill({
-        word: undefined,
-        originalPosition: undefined,
-      }),
-    );
+    const updatedConfirmedWords = wordsFromRoute.map((word, index) => ({
+      word: index === 0 || index === 4 || index === 9 ? undefined : word,
+      originalPosition:
+        index === 0 || index === 4 || index === 9 ? undefined : index,
+      currentPosition:
+        index === 0 || index === 4 || index === 9 ? undefined : index,
+    }));
+    setConfirmedWords(updatedConfirmedWords);
+
+    const updatedLeftWords = wordsFromRoute
+      .map((word, index) => {
+        if (index === 0 || index === 4 || index === 9) {
+          return {
+            word,
+            originalPosition: index,
+            currentPosition: index,
+          };
+        }
+        return null;
+      })
+      .filter((word) => word !== null);
+    const shuffledLeftOutWords = shuffleLeftOutWords(updatedLeftWords);
+    setLeftOutWords(shuffledLeftOutWords);
     createWordsDictionary();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,34 +129,36 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         tempConfirmedWords[currentIndex] = { word, originalPosition: i };
         tempCurrentIndex = findNextAvailableIndex();
       }
-
       setCurrentIndex(tempCurrentIndex);
       setWordsDict(tempWordsDict);
       setConfirmedWords(tempConfirmedWords);
       setSeedPhraseReady(findNextAvailableIndex() === -1);
-
-      // const confirmedWordFinal = tempConfirmedWords
-      //   .map((word) => word.word)
-      //   .filter((word) => word !== undefined);
-      // if (confirmedWordFinal.length === route.params?.words.length) {
-      //   setShowStatusBottomSheet(true);
-      // }
     },
     [confirmedWords, currentIndex, findNextAvailableIndex, wordsDict],
   );
 
   const clearConfirmedWordAt = (i) => {
-    const { word, originalPosition } = confirmedWords[i];
-    const currentIndex = i;
-    if (word && (originalPosition || originalPosition === 0)) {
-      wordsDict[[word, originalPosition]].currentPosition = undefined;
-      confirmedWords[i] = { word: undefined, originalPosition: undefined };
-    }
+    if (![0, 4, 9].includes(i)) return;
 
-    setCurrentIndex(currentIndex);
-    setWordsDict(wordsDict);
-    setConfirmedWords(confirmedWords);
-    setSeedPhraseReady(findNextAvailableIndex() === -1);
+    const words = [...confirmedWords];
+    words[i] = {
+      word: undefined,
+      originalPosition: undefined,
+      currentPosition: undefined,
+    };
+    setConfirmedWords([...words]);
+    setCurrentIndex(i);
+    // const { word, originalPosition } = confirmedWords[i];
+    // const currentIndex = i;
+    // if (word && (originalPosition || originalPosition === 0)) {
+    //   wordsDict[[word, originalPosition]].currentPosition = undefined;
+    //   confirmedWords[i] = { word: undefined, originalPosition: undefined };
+    // }
+
+    // setCurrentIndex(currentIndex);
+    // setWordsDict(wordsDict);
+    // setConfirmedWords(confirmedWords);
+    // setSeedPhraseReady(findNextAvailableIndex() === -1);
   };
 
   const validateWords = useCallback(() => {
@@ -187,6 +217,8 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             styles.inputContainer,
             i === currentIndex && styles.currentWord,
             confirmedWords[i].word && styles.confirmedWord,
+            (confirmedWords[i].word === undefined || [0, 4, 9].includes(i)) &&
+              styles.leftOutWord,
           ]}
         >
           <Text style={styles.wordBoxIndex}>{i + 1}.</Text>
@@ -196,16 +228,47 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     );
   };
 
+  const handleLeftOutWordPress = useCallback(
+    (i) => {
+      const words = [...confirmedWords];
+      if (words[0].word === undefined) {
+        words[0] = {
+          word: leftOutWords[i].word,
+          originalPosition: 0,
+          currentPosition: i,
+        };
+        setCurrentIndex(0);
+      } else if (words[4].word === undefined) {
+        words[4] = {
+          word: leftOutWords[i].word,
+          originalPosition: 4,
+          currentPosition: i,
+        };
+        setCurrentIndex(4);
+      } else if (words[9].word === undefined) {
+        words[9] = {
+          word: leftOutWords[i].word,
+          originalPosition: 9,
+          currentPosition: i,
+        };
+        setCurrentIndex(9);
+      }
+      setConfirmedWords(words);
+      setSelectedLeftOutWordIndex(i);
+    },
+    [confirmedWords, leftOutWords],
+  );
+
   const renderWordSelectableBox = useCallback(
     (key, i) => {
-      const [word] = key.split(',');
-      const selected = wordsDict[key].currentPosition !== undefined;
+      const { word, originalPosition, currentPosition } = key;
+      const selected = i === currentPosition;
       const styles = createStyles(colors);
 
       return (
         <TouchableOpacity
           // eslint-disable-next-line react/jsx-no-bind
-          onPress={() => selectWord(word, i)}
+          onPress={() => handleLeftOutWordPress(i)}
           style={[styles.selectableWord, selected && styles.selectedWord]}
           key={`selectableWord_${i}`}
         >
@@ -220,18 +283,16 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         </TouchableOpacity>
       );
     },
-    [colors, selectWord, wordsDict],
+    [colors, handleLeftOutWordPress],
   );
 
   const renderWords = useCallback(
     () => (
       <View style={styles.words}>
-        {Object.keys(wordsDict).map((key, i) =>
-          renderWordSelectableBox(key, i),
-        )}
+        {leftOutWords.map((word, i) => renderWordSelectableBox(word, i))}
       </View>
     ),
-    [renderWordSelectableBox, styles.words, wordsDict],
+    [styles.words, leftOutWords, renderWordSelectableBox],
   );
 
   return (

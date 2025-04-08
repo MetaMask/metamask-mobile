@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useContext, useLayoutEffect, useState } from 'react';
 import {
   ScrollView,
   View,
@@ -33,6 +33,8 @@ import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
+import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
+import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 const wallet_ready_image = require('../../../images/wallet-ready.png'); // eslint-disable-line
 
 interface OnboardingSuccessProps {
@@ -48,6 +50,8 @@ const OnboardingSuccess = ({
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const { toastRef } = useContext(ToastContext);
+
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
   const params = useRoute()?.params as {
@@ -84,6 +88,16 @@ const OnboardingSuccess = ({
         JSON.stringify({ ...parsedHints, manualBackup: hintText }),
       );
     }
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Plain,
+      labelOptions: [
+        {
+          label: strings('onboarding_success.hint_saved_toast'),
+          isBold: true,
+        },
+      ],
+      hasNoTimeout: false,
+    });
   };
 
   // const toggleHint = () => {

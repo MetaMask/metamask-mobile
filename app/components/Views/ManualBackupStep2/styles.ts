@@ -137,6 +137,8 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       lineHeight: 14,
       color: colors.text.default,
+      width: '100%',
+      marginHorizontal: 2,
     },
     words: {
       flexDirection: 'row',
@@ -169,6 +171,10 @@ const createStyles = (colors: any) =>
     },
     confirmedWord: {
       backgroundColor: colors.background.default,
+    },
+    leftOutWord: {
+      borderWidth: 1,
+      borderColor: colors.border.default,
     },
     wordBoxIndex: {
       color: colors.text.default,
