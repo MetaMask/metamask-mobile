@@ -1,4 +1,4 @@
-import { waitFor, web, system } from 'detox';
+import { waitFor, web, device } from 'detox';
 import {
   getFixturesServerPort,
   getGanachePort,
@@ -385,7 +385,10 @@ export default class TestHelpers {
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();
-    if (config.configurationName.endsWith('debug')) {
+    if (
+      config.configurationName.endsWith('debug') ||
+      config.configurationName.endsWith('.apiSpecs')
+    ) {
       return this.launchAppForDebugBuild(platform, launchOptions);
     }
 

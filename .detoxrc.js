@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  
+
   testRunner: {
     args: {
       $0: 'jest',
@@ -68,7 +68,7 @@ module.exports = {
     'ios.simulator': {
       type: 'ios.simulator',
       device: {
-        type: 'iPhone 15 Pro',
+        type: 'iPhone 16 Pro',
       },
     },
     'android.bitrise.emulator': {
