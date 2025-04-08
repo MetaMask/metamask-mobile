@@ -168,7 +168,7 @@ describe('AccountConnect', () => {
     );
 
     // Create a new snapshot since the component UI has changed
-    expect(toJSON()).toMatchSnapshot({ mode: 'shallow' });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('Renders different screens based on SDK URL status', () => {
