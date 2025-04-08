@@ -19,7 +19,6 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import type { RootState } from '../../../../reducers';
-import NotificationManager from '../../../../core/NotificationManager';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
   ControllerInitFunction,
