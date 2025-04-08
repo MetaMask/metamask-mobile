@@ -3,9 +3,6 @@ name: ChangeLog Check
 on:
   pull_request:
     types: [opened, synchronize, labeled, unlabeled]
-  merge_group:
-    types: [checks_requested]
-
 jobs:
   check-changelog:
     uses: MetaMask/github-tools/.github/workflows/changelog-check.yml@changelog-checker
