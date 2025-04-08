@@ -2,7 +2,7 @@ import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
 } from '@metamask/base-controller';
-import { AppMetadataControllerState } from '../../controllers/app-metadata-controller';
+import { AppMetadataControllerState } from '@metamask/app-metadata-controller';
 
 /**
  * The actions that the AppMetadataControllerMessenger can use.
