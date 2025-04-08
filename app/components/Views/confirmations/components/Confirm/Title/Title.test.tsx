@@ -1,4 +1,3 @@
-import { TransactionStatus, TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import {
   generateContractInteractionState,
@@ -8,8 +7,6 @@ import {
   typedSignV4NFTConfirmationState,
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
-import * as TransactionMetadataRequestHook from '../../../hooks/useTransactionMetadataRequest';
 import Title from './Title';
 
 

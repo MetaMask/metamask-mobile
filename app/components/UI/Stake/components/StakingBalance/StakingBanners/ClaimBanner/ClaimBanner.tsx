@@ -19,7 +19,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccount } from '../../../../../../../selectors/accountsController';
-import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/confirmTransaction';
+import { selectConfirmationRedesignFlags } from '../../../../../../../selectors/featureFlagController/confirmations';
 import { selectEvmChainId } from '../../../../../../../selectors/networkController';
 import {
   MetaMetricsEvents,

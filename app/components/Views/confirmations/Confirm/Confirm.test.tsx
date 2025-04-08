@@ -15,6 +15,14 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './Confirm';
 
+jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
+  selectConfirmationRedesignFlags: () => ({
+    signatures: true,
+    staking_confirmations: true,
+    contract_interaction: true,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({

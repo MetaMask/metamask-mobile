@@ -51,7 +51,7 @@ const InfoRowOrigin = (
           'confirm.transaction_tooltip'
         )}
       >
-        <DisplayURL url={url} />
+        <DisplayURL url={url ?? ''} />
       </AlertRow>
       {isSignatureRequest && isSIWEMessage && (
         <InfoRow
