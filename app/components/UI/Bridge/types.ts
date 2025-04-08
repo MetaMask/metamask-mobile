@@ -1,12 +1,17 @@
 import { TxData, Quote } from '@metamask/bridge-controller';
-import type { CaipChainId } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 
+// This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
   address: string;
+  name?: string;
   symbol: string;
-  image: string;
+  image?: string;
   decimals: number;
-  chainId: CaipChainId;
+  chainId: Hex;
+  balance?: string; // A truncated non-atomic balance, e.g. 1.23456
+  balanceFiat?: string; // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
+  tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
 }
 
 // TODO: use type from @metamask/bridge-controller once "approval" is made optional
