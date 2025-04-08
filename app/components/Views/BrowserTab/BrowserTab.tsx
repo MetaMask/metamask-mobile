@@ -301,10 +301,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       const testResult = await getPhishingTestResultAsync(urlOrigin);
       if (testResult.result && testResult.name) {
+        console.log('isAllowedOrigin is returning false');
         blockListType.current = testResult.name;
         return false;
       }
-
+      console.log('isAllowedOrigin is returning true');
       return true;
     },
     [whitelist],
@@ -625,15 +626,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
-      // To handle for Chrome's error page
-      if (webViewError.code === -16) {
-        if (backEnabled) {
-          goBack();
-          return;
-        }
-        onSubmitEditing(HOMEPAGE_HOST);
-        return;
-      }
+      // To handle for Chrome's
+      // if (webViewError.code === -16) {
+      //   if (backEnabled) {
+      //     goBack();
+      //     return;
+      //   }
+      //   onSubmitEditing(HOMEPAGE_HOST);
+      //   return;
+      // }
 
       resolvedUrlRef.current = submittedUrlRef.current;
       titleRef.current = `Can't Open Page`;
@@ -673,9 +674,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       tabId,
       updateTabInfo,
       navigation,
-      backEnabled,
-      onSubmitEditing,
-      goBack,
+      // backEnabled,
+      // onSubmitEditing,
+      // goBack,
     ],
   );
 
@@ -991,12 +992,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
       // Use URL to produce real url. This should be the actual website that the user is viewing.
-      const { origin: urlOrigin, hostname } = new URLParse(nativeEvent.url);
+      // const { origin: urlOrigin, hostname } = new URLParse(nativeEvent.url);
+      const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
-      // Skip processing if this is a navigation to an error page
-      if (hostname === `can't%20open%20page`) {
-        return;
-      }
+      // // Skip processing if this is a navigation to an error page
+      // if (hostname === `can't%20open%20page`) {
+      //   return;
+      // }
 
       webStates.current[nativeEvent.url] = {
         ...webStates.current[nativeEvent.url],
