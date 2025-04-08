@@ -1,4 +1,4 @@
-import { BN } from 'ethereumjs-util';
+import BN from 'bn.js';
 import { remove0x, add0x } from '@metamask/utils';
 import { hexToBN } from '@metamask/controller-utils';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
