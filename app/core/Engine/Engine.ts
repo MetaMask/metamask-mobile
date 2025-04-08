@@ -135,7 +135,6 @@ import {
   ApprovalType,
   ChainId,
   handleFetch,
-  ChainId,
   toChecksumHexAddress,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
@@ -344,9 +343,7 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [
-        ChainId['megaeth-testnet'],
-      ],
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
     networkControllerMessenger.subscribe(
