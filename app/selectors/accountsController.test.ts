@@ -520,7 +520,6 @@ describe('selectPreviouslySelectedEvmAccount', () => {
   };
 
   it('returns the most recently selected EVM account based on lastSelected timestamp', () => {
-    // Create multiple accounts with different lastSelected timestamps
     const accountOldest = createEvmAccountWithLastSelected(
       '0x111',
       'Oldest Account',
@@ -557,8 +556,6 @@ describe('selectPreviouslySelectedEvmAccount', () => {
         },
       },
     } as RootState;
-
-    // Should return the newest account (highest lastSelected value)
     expect(selectPreviouslySelectedEvmAccount(state)).toEqual(accountNewest);
   });
 
@@ -646,9 +643,7 @@ describe('selectPreviouslySelectedEvmAccount', () => {
 
     // The first account in the sorted list should be returned as they all have the same default timestamp (0)
     const result = selectPreviouslySelectedEvmAccount(state);
-    // We cannot assert exactly which account it will be since the sorting with equal timestamps
-    // might depend on implementation details, but we can verify it returns one of the accounts
-    expect([account1, account2, account3]).toContainEqual(result);
+    expect(result).toEqual(account1);
   });
 
   it('only returns EVM accounts when mixed with non-EVM accounts', () => {
