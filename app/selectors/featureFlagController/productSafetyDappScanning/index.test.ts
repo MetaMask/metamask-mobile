@@ -1,5 +1,5 @@
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
-import { selectProductSafetyDappScanningEnabled } from './';
+import { selectProductSafetyDappScanningEnabled, FEATURE_FLAG_NAME } from './';
 import { getFeatureFlagValue } from '../env';
 
 jest.mock('../env', () => ({
@@ -20,39 +20,31 @@ describe('selectProductSafetyDappScanningEnabled', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset the mocked function to use second parameter (remote flag value)
-    (getFeatureFlagValue as jest.Mock).mockImplementation((_, remoteValue) => remoteValue);
   });
 
-  it('should return true when remote flag is true', () => {
-    const mockState = createMockState({
-      productSafetyDappScanning: true,
+  it('should return false regardless of remote flag value', () => {
+    // Test with remote flag true
+    const mockStateTrue = createMockState({
+      [FEATURE_FLAG_NAME]: true,
     });
-    expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(true);
-  });
+    expect(selectProductSafetyDappScanningEnabled(mockStateTrue)).toBe(false);
 
-  it('should return false when remote flag is false', () => {
-    const mockState = createMockState({
-      productSafetyDappScanning: false,
+    // Test with remote flag false
+    const mockStateFalse = createMockState({
+      [FEATURE_FLAG_NAME]: false,
     });
-    expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(false);
+    expect(selectProductSafetyDappScanningEnabled(mockStateFalse)).toBe(false);
+
+    // Test with remote flag undefined
+    const mockStateUndefined = createMockState({});
+    expect(selectProductSafetyDappScanningEnabled(mockStateUndefined)).toBe(false);
   });
 
-  it('should prioritize environment variable over remote flag when set to true', () => {
-    // Mock the getFeatureFlagValue to return true regardless of remote flag
+  it('should ignore environment variables and always return false', () => {
     (getFeatureFlagValue as jest.Mock).mockReturnValue(true);
     const mockState = createMockState({
-      productSafetyDappScanning: false,
-    });
-    expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(true);
-  });
-
-  it('should prioritize environment variable over remote flag when set to false', () => {
-    // Mock the getFeatureFlagValue to return false regardless of remote flag
-    (getFeatureFlagValue as jest.Mock).mockReturnValue(false);
-    const mockState = createMockState({
-      productSafetyDappScanning: true,
+      [FEATURE_FLAG_NAME]: true,
     });
     expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(false);
   });
-}); 
+});
