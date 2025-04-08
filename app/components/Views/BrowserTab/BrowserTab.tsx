@@ -595,11 +595,89 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [isEnabled, getMetaMetricsId, bookmarks, searchEngine],
   );
 
+  const handleEnsUrl = useCallback(
+    async (ens: string) => {
+      try {
+        webviewRef.current?.stopLoading();
+
+        const { hostname, query, pathname } = new URLParse(ens);
+        const ipfsContent = await handleIpfsContent(ens, {
+          hostname,
+          query,
+          pathname,
+        });
+        if (!ipfsContent?.url) return null;
+        const { url: ipfsUrl, reload } = ipfsContent;
+        // Reload with IPFS url
+        if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
+        if (!ipfsContent.hash || !ipfsContent.type) {
+          Logger.error(
+            new Error('IPFS content is missing hash or type'),
+            'Error in handleEnsUrl',
+          );
+          return null;
+        }
+        const { type, hash } = ipfsContent;
+        sessionENSNamesRef.current[ipfsUrl] = { hostname, hash, type };
+        setIsResolvedIpfsUrl(true);
+        return ipfsUrl;
+      } catch (_) {
+        return null;
+      }
+    },
+    [handleIpfsContent, setIsResolvedIpfsUrl],
+  );
+
+  const onSubmitEditing = useCallback(
+    async (text: string) => {
+      if (!text) return;
+      setConnectionType(ConnectionType.UNKNOWN);
+      urlBarRef.current?.setNativeProps({ text });
+      submittedUrlRef.current = text;
+      webviewRef.current?.stopLoading();
+      // Format url for browser to be navigatable by webview
+      const processedUrl = processUrlForBrowser(text, searchEngine);
+      if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
+        const handledEnsUrl = await handleEnsUrl(
+          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
+        );
+        if (!handledEnsUrl) {
+          Logger.error(
+            new Error('Failed to handle ENS url'),
+            'Error in onSubmitEditing',
+          );
+          return;
+        }
+        return onSubmitEditingRef.current(handledEnsUrl);
+      }
+      // Directly update url in webview
+      webviewRef.current?.injectJavaScript(`
+      window.location.href = '${sanitizeUrlInput(processedUrl)}';
+      true;  // Required for iOS
+    `);
+    },
+    [searchEngine, handleEnsUrl, setConnectionType],
+  );
+
+  // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
+  useEffect(() => {
+    onSubmitEditingRef.current = onSubmitEditing;
+  }, [onSubmitEditing]);
+
   /**
    * Handles error for example, ssl certificate error or cannot open page
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
+      if (webViewError.code === -16) {
+        if (backEnabled) {
+          goBack();
+          return;
+        }
+        onSubmitEditing(HOMEPAGE_HOST);
+        return;
+      }
+
       resolvedUrlRef.current = submittedUrlRef.current;
       titleRef.current = `Can't Open Page`;
       iconRef.current = undefined;
@@ -624,6 +702,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       // Used to render tab title in tab selection
       updateTabInfo(`Can't Open Page`, tabId);
+
       Logger.log(webViewError);
     },
     [
@@ -637,6 +716,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       tabId,
       updateTabInfo,
       navigation,
+      backEnabled,
+      onSubmitEditing,
+      goBack,
     ],
   );
 
@@ -1078,78 +1160,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   useEffect(() => {
     checkTabPermissions();
   }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
-
-  const handleEnsUrl = useCallback(
-    async (ens: string) => {
-      try {
-        webviewRef.current?.stopLoading();
-
-        const { hostname, query, pathname } = new URLParse(ens);
-        const ipfsContent = await handleIpfsContent(ens, {
-          hostname,
-          query,
-          pathname,
-        });
-        if (!ipfsContent?.url) return null;
-        const { url: ipfsUrl, reload } = ipfsContent;
-        // Reload with IPFS url
-        if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
-        if (!ipfsContent.hash || !ipfsContent.type) {
-          Logger.error(
-            new Error('IPFS content is missing hash or type'),
-            'Error in handleEnsUrl',
-          );
-          return null;
-        }
-        const { type, hash } = ipfsContent;
-        sessionENSNamesRef.current[ipfsUrl] = { hostname, hash, type };
-        setIsResolvedIpfsUrl(true);
-        return ipfsUrl;
-      } catch (_) {
-        return null;
-      }
-    },
-    [handleIpfsContent, setIsResolvedIpfsUrl],
-  );
-
-  const onSubmitEditing = useCallback(
-    async (text: string) => {
-      if (!text) return;
-      setConnectionType(ConnectionType.UNKNOWN);
-      urlBarRef.current?.setNativeProps({ text });
-      submittedUrlRef.current = text;
-      webviewRef.current?.stopLoading();
-      // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
-      if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
-        const handledEnsUrl = await handleEnsUrl(
-          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
-        );
-        if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
-            'Error in onSubmitEditing',
-          );
-          return;
-        }
-        return onSubmitEditingRef.current(handledEnsUrl);
-      }
-      // Directly update url in webview
-      console.log(
-        `[BrowserTab][onSubmitEditing] updating url: ${processedUrl}`,
-      );
-      webviewRef.current?.injectJavaScript(`
-      window.location.href = '${sanitizeUrlInput(processedUrl)}';
-      true;  // Required for iOS
-    `);
-    },
-    [searchEngine, handleEnsUrl, setConnectionType],
-  );
-
-  // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
-  useEffect(() => {
-    onSubmitEditingRef.current = onSubmitEditing;
-  }, [onSubmitEditing]);
 
   /**
    * Go to home page, reload if already on homepage
