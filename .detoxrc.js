@@ -17,7 +17,7 @@ module.exports = {
       },
     },
   },
-  
+
   testRunner: {
     args: {
       $0: 'jest',
@@ -29,15 +29,6 @@ module.exports = {
     retries: 1,
   },
   configurations: {
-    'ios.sim.apiSpecs': {
-      device: 'ios.simulator',
-      app: process.env.CI ? 'ios.qa' :'ios.debug',
-      testRunner: {
-        args: {
-          "$0": "node e2e/api-specs/run-api-spec-tests.js",
-        },
-      },
-    },
     'ios.sim.debug': {
       device: 'ios.simulator',
       app: 'ios.debug',
