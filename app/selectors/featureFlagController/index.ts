@@ -61,10 +61,8 @@ export const selectConfirmationRedesignFlags = createSelector(
 
 export const selectProductSafetyDappScanningEnabled = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    return getFeatureFlagValue(
-      process.env.FEATURE_FLAG_PRODUCT_SAFETY_DAPP_SCANNING,
-      (remoteFeatureFlags?.productSafetyDappScanning as boolean),
-    );
-  }
+  (remoteFeatureFlags) => getFeatureFlagValue(
+    process.env.FEATURE_FLAG_PRODUCT_SAFETY_DAPP_SCANNING,
+    (remoteFeatureFlags?.productSafetyDappScanning as boolean),
+  )
 );
