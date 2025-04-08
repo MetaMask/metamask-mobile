@@ -41,6 +41,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.default,
       marginTop: 16,
       paddingVertical: 20,
+      paddingHorizontal: 20,
       borderRadius: 8,
       display: 'flex',
       alignItems: 'center',

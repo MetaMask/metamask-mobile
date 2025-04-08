@@ -32,8 +32,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -48,7 +48,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           onChange={[Function]}
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
-          onTintColor="#0376c9"
+          onTintColor="#4459ff"
           style={
             [
               {
@@ -56,13 +56,13 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
                 "width": 51,
               },
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 16,
               },
             ]
           }
           thumbTintColor="#ffffff"
-          tintColor="#BBC0C566"
+          tintColor="#b7bbc866"
           value={false}
         />
       </View>
@@ -70,12 +70,12 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -85,12 +85,12 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -112,6 +112,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             "alignItems": "center",
             "flexDirection": "row",
             "justifyContent": "space-between",
+            "paddingBottom": 8,
           }
         }
       >
@@ -119,8 +120,124 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
+              "fontSize": 16,
+              "fontWeight": "700",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Profile Sync
+        </Text>
+        <RCTSwitch
+          accessibilityRole="switch"
+          disabled={true}
+          onChange={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          onTintColor="#4459ff"
+          style={
+            [
+              {
+                "height": 31,
+                "width": 51,
+              },
+              {
+                "backgroundColor": "#b7bbc866",
+                "borderRadius": 16,
+              },
+            ]
+          }
+          thumbTintColor="#ffffff"
+          tintColor="#b7bbc866"
+          value={false}
+        />
+      </View>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Creates a profile that MetaMask uses to sync some settings among your devices. This is required to get notifications. 
+        <Text
+          accessibilityRole="text"
+          onPress={[Function]}
+          style={
+            {
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
+              "fontWeight": "400",
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            }
+          }
+        >
+          Learn how we protect your privacy
+        </Text>
+      </Text>
+      <Modal
+        animationType="none"
+        deviceHeight={null}
+        deviceWidth={null}
+        hardwareAccelerated={false}
+        hideModalContentWhileAnimating={false}
+        onBackdropPress={[Function]}
+        onModalHide={[Function]}
+        onModalWillHide={[Function]}
+        onModalWillShow={[Function]}
+        onRequestClose={[Function]}
+        onSwipeComplete={[Function]}
+        panResponderThreshold={4}
+        scrollHorizontal={false}
+        scrollOffset={0}
+        scrollOffsetMax={0}
+        scrollTo={null}
+        statusBarTranslucent={false}
+        supportedOrientations={
+          [
+            "portrait",
+            "landscape",
+          ]
+        }
+        swipeDirection="down"
+        swipeThreshold={100}
+        transparent={true}
+        visible={false}
+      />
+    </View>
+    <View
+      style={
+        {
+          "marginVertical": 16,
+        }
+      }
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "flexDirection": "row",
+            "justifyContent": "space-between",
+          }
+        }
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            {
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 16,
               "fontWeight": "700",
               "letterSpacing": 0,
@@ -135,8 +252,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -152,12 +269,12 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           onPress={[Function]}
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -172,7 +289,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#f2f4f6",
+            "backgroundColor": "#f3f5f9",
             "borderRadius": 16,
             "flexDirection": "row",
             "height": 32,
@@ -190,7 +307,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#f2f4f6",
+                "backgroundColor": "#f3f5f9",
                 "borderRadius": 8,
                 "borderWidth": 1,
                 "height": 16,
@@ -205,8 +322,8 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#121314",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 10,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -223,13 +340,13 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           numberOfLines={1}
           style={
             {
-              "color": "#141618",
+              "color": "#121314",
               "flexShrink": 1,
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginHorizontal": 8,
             }
           }
@@ -238,7 +355,7 @@ exports[`OnboardingGeneralSettings should render correctly 1`] = `
           Ethereum Main Network
         </Text>
         <SvgMock
-          color="#141618"
+          color="#121314"
           height={12}
           name="ArrowDown"
           style={

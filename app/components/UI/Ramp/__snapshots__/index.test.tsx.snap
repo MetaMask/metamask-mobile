@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FiatOrders removes authentication URL after successful navigation 1`] = `
+<View
+  style={
+    {
+      "height": 0,
+      "width": 0,
+    }
+  }
+/>
+`;
+
+exports[`FiatOrders renders correctly with authentication URLs 1`] = `
+<View
+  style={
+    {
+      "height": 0,
+      "width": 0,
+    }
+  }
+/>
+`;
+
+exports[`FiatOrders renders correctly with no orders 1`] = `null`;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PhishingModalUI from '../../../../UI/PhishingModal';
 import URLParse from 'url-parse';
 import {
@@ -11,6 +11,9 @@ import { HOMEPAGE_URL } from '../../constants';
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
+import { BrowserUrlBarRef } from '../../../../UI/BrowserUrlBar/BrowserUrlBar.types';
+import { useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PhishingModalProps {
   blockedUrl?: string;
@@ -37,6 +40,22 @@ const PhishingModal = ({
     styles,
     theme: { colors },
   } = useStyles(styleSheet, {});
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  useEffect(() => {
+    if (showPhishingModal && blockedUrl) {
+      const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
+          .addProperties({
+            url: hostname,
+            reason: 'blocklist',
+          })
+          .build(),
+      );
+    }
+  }, [showPhishingModal, blockedUrl, trackEvent, createEventBuilder]);
+
   /**
    * Go to eth-phishing-detect page
    */
@@ -50,6 +69,14 @@ const PhishingModal = ({
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
+    const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PROCEED_ANYWAY_CLICKED)
+        .addProperties({
+          url: hostname,
+        })
+        .build(),
+    );
     const { origin: urlOrigin } = new URLParse(blockedUrl);
 
     addToWhitelist(urlOrigin);
@@ -84,7 +111,6 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-
     setTimeout(() => {
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
@@ -101,7 +127,7 @@ const PhishingModal = ({
       animationOut="slideOutDown"
       style={styles.fullScreenModal}
       backdropOpacity={1}
-      backdropColor={colors.error.default}
+      backdropColor={colors.background.alternative}
       animationInTiming={300}
       animationOutTiming={300}
       useNativeDriver

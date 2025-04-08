@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   UIManager,
   View,
-  ViewStyle
+  ViewStyle,
 } from 'react-native';
 import Animated, {
   interpolate,
@@ -18,7 +18,9 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './InfoSectionAccordion.styles';
 
@@ -112,9 +114,11 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
         testID={`${testID}-header`}
       >
         {typeof header === 'string' ? (
-          <Animated.Text><Text style={styles.headerTitle}>{header}</Text></Animated.Text>
+          <Animated.Text>
+            <Text variant={TextVariant.BodyMDMedium}>{header}</Text>
+          </Animated.Text>
         ) : (
-            header
+          header
         )}
         <Animated.View style={[styles.iconContainer, arrowStyle]}>
           <Icon
@@ -125,7 +129,9 @@ const InfoRowAccordion: React.FC<InfoRowAccordionProps> = ({
           />
         </Animated.View>
       </TouchableOpacity>
-      {isExpanded && <View style={[styles.content, contentStyle]}>{children}</View>}
+      {isExpanded && (
+        <View style={[styles.content, contentStyle]}>{children}</View>
+      )}
     </View>
   );
 };

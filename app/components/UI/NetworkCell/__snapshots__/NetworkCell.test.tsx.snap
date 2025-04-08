@@ -13,7 +13,7 @@ exports[`NetworkCell should render correctly 1`] = `
   style={
     {
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 4,
       "borderWidth": 0,
       "padding": 16,
@@ -34,7 +34,7 @@ exports[`NetworkCell should render correctly 1`] = `
         {
           "alignItems": "center",
           "backgroundColor": "#ffffff",
-          "borderRadius": 16,
+          "borderRadius": 8,
           "height": 32,
           "justifyContent": "center",
           "marginRight": 16,
@@ -70,8 +70,8 @@ exports[`NetworkCell should render correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
@@ -87,12 +87,12 @@ exports[`NetworkCell should render correctly 1`] = `
         numberOfLines={1}
         style={
           {
-            "color": "#6a737d",
-            "fontFamily": "EuclidCircularB-Regular",
-            "fontSize": 14,
+            "color": "#686e7d",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 16,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -111,7 +111,7 @@ exports[`NetworkCell should render correctly 1`] = `
         onChange={[Function]}
         onResponderTerminationRequest={[Function]}
         onStartShouldSetResponder={[Function]}
-        onTintColor="#0376c9"
+        onTintColor="#4459ff"
         style={
           [
             {
@@ -123,7 +123,7 @@ exports[`NetworkCell should render correctly 1`] = `
                 "alignSelf": "flex-start",
               },
               {
-                "backgroundColor": "#BBC0C566",
+                "backgroundColor": "#b7bbc866",
                 "borderRadius": 16,
               },
             ],
@@ -131,7 +131,7 @@ exports[`NetworkCell should render correctly 1`] = `
         }
         testID="incoming-mainnet-toggle"
         thumbTintColor="#ffffff"
-        tintColor="#BBC0C566"
+        tintColor="#b7bbc866"
         value={true}
       />
     </View>

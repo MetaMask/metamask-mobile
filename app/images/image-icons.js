@@ -17,6 +17,9 @@ import GRAVITY from './gravity.png';
 import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
+import BASE from './base.png';
+import MEGAETH_TESTNET from './megaeth-testnet-logo.png';
+
 
 export default {
   PALM,
@@ -40,4 +43,6 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  BASE,
+  'MEGAETH-TESTNET': MEGAETH_TESTNET,
 };

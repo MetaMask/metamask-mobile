@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, View } from 'react-native';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { TextColor } from '../../../component-library/components/Texts/Text';
 import Icon, {
@@ -31,13 +31,18 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => {
   const label = (
     <>
       {children}
+      <View
+        /* eslint-disable-next-line react-native/no-inline-styles */
+        style={{
+          width: 4,
+        }}
+      />
       <Icon
         name={IconName.Export}
         color={IconColor.Primary}
         size={IconSize.Sm}
         /* eslint-disable-next-line react-native/no-inline-styles */
         style={{
-          marginLeft: 2,
           justifyContent: 'center',
           alignItems: 'center',
           alignSelf: 'center',

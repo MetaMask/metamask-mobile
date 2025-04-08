@@ -50,7 +50,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
             <View
               style={
                 {
-                  "backgroundColor": "#848c96",
+                  "backgroundColor": "#b7bbc8",
                   "borderRadius": 4,
                   "height": 5,
                   "width": 48,
@@ -74,8 +74,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -83,7 +83,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontFamily": "CentraNo1-Bold",
                         "fontWeight": "600",
                       },
                       undefined,
@@ -94,7 +94,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                       },
                       undefined,
                       undefined,
@@ -121,8 +121,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -138,7 +138,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                       },
                       undefined,
                       undefined,
@@ -191,7 +191,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                         },
                         {
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#0376c9",
+                          "borderColor": "#4459ff",
                           "borderWidth": 1,
                           "padding": 8,
                         },
@@ -215,8 +215,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                     style={
                       [
                         {
-                          "color": "#141618",
-                          "fontFamily": "EuclidCircularB-Regular",
+                          "color": "#121314",
+                          "fontFamily": "CentraNo1-Book",
                           "fontSize": 30,
                           "fontWeight": "400",
                           "marginVertical": 2,
@@ -241,7 +241,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                         undefined,
                         undefined,
                         {
-                          "color": "#0376c9",
+                          "color": "#4459ff",
                         },
                         undefined,
                         undefined,
@@ -297,8 +297,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -306,19 +306,19 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "fontFamily": "EuclidCircularB-Bold",
+                        "fontFamily": "CentraNo1-Bold",
                         "fontWeight": "600",
                       },
                       undefined,
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                       },
                       undefined,
                       undefined,
                       undefined,
                       undefined,
                       {
-                        "color": "#141618",
+                        "color": "#121314",
                       },
                       undefined,
                       undefined,
@@ -352,8 +352,8 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                   style={
                     [
                       {
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
+                        "color": "#121314",
+                        "fontFamily": "CentraNo1-Book",
                         "fontSize": 30,
                         "fontWeight": "400",
                         "marginVertical": 2,
@@ -382,7 +382,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
                       undefined,
                       undefined,
                       {
-                        "color": "#0376c9",
+                        "color": "#4459ff",
                       },
                       undefined,
                       undefined,
@@ -427,7 +427,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
               "padding": 15,
             },
             {
-              "backgroundColor": "#0376c9",
+              "backgroundColor": "#4459ff",
               "minHeight": 50,
             },
             {
@@ -444,7 +444,7 @@ exports[`CollectibleView Snapshot renders correctly 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 15,
             "fontWeight": "600",
             "marginLeft": 8,

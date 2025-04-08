@@ -23,8 +23,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             },
             undefined,
             {
-              "backgroundColor": "#0376C91A",
-              "borderColor": "#0376c9",
+              "backgroundColor": "#4459ff1a",
+              "borderColor": "#4459ff",
             },
             {
               "marginHorizontal": 20,
@@ -45,7 +45,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#0376c9",
+                  "color": "#4459ff",
                   "fontSize": 18,
                 },
                 {
@@ -68,8 +68,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           style={
             [
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Regular",
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Book",
                 "fontSize": 30,
                 "fontWeight": "400",
                 "marginVertical": 2,
@@ -99,7 +99,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
               undefined,
               [
                 {
-                  "color": "#141618",
+                  "color": "#121314",
                   "flex": 1,
                   "fontSize": 14,
                   "lineHeight": 17,
@@ -114,7 +114,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           <Text
             style={
               {
-                "color": "#141618",
+                "color": "#121314",
               }
             }
           >
@@ -124,7 +124,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
             onPress={[Function]}
             style={
               {
-                "color": "#0376c9",
+                "color": "#4459ff",
               }
             }
             suppressHighlighting={true}
@@ -144,8 +144,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         <Text
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontWeight": "400",
             }
           }
@@ -159,15 +159,15 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#9fa6ae"
+          placeholderTextColor="#9ca1af"
           returnKeyType="next"
           style={
             {
-              "borderColor": "#848c96",
+              "borderColor": "#b7bbc8",
               "borderRadius": 8,
               "borderWidth": 1,
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontWeight": "400",
               "paddingHorizontal": 16,
               "paddingVertical": 12,
@@ -179,8 +179,8 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         <Text
           style={
             {
-              "color": "#d73847",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#ca3542",
+              "fontFamily": "CentraNo1-Book",
               "fontWeight": "400",
               "marginTop": 0,
               "paddingBottom": 8,
@@ -210,11 +210,11 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "center",
-          "backgroundColor": "#0376c9",
+          "backgroundColor": "#4459ff",
           "borderRadius": 24,
-          "color": "#0376c9",
+          "color": "#4459ff",
           "flexDirection": "row",
-          "fontFamily": "EuclidCircularB-Regular",
+          "fontFamily": "CentraNo1-Book",
           "fontSize": 18,
           "fontWeight": "400",
           "height": 48,
@@ -232,11 +232,11 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

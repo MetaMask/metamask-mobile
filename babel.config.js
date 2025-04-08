@@ -44,6 +44,10 @@ module.exports = {
       test: './app/core/Engine/Engine.ts',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
+    {
+      test: './app/core/NavigationService/NavigationService.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
   ],
   env: {
     production: {

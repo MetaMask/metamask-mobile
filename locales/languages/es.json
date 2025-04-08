@@ -1118,7 +1118,6 @@
     "security_alerts": "Alertas de seguridad",
     "security_alerts_desc": "Esta función le alerta sobre actividad maliciosa al revisar localmente sus solicitudes de transacción y firma. Haga siempre su propia diligencia debida antes de aprobar cualquier solicitud. No hay garantía de que esta función detecte toda la actividad maliciosa. Al habilitar esta función, acepta los términos de uso del proveedor.",
     "smart_transactions_opt_in_heading": "Transacciones inteligentes",
-    "smart_transactions_opt_in_desc": "Active las transacciones inteligentes para realizar transacciones más confiables y seguras en la red principal de Ethereum.",
     "smart_transactions_learn_more": "Más información.",
     "simulation_details": "Estimar cambios de saldo",
     "simulation_details_description": "Active esta opción para estimar los cambios de saldo de las transacciones antes de confirmarlas. Esto no garantiza el resultado final de sus transacciones. ",
@@ -2817,9 +2816,12 @@
     "n_quotes": "{{numberOfQuotes}} cotizaciones",
     "view_details": "Ver detalles",
     "estimated_gas_fee": "Tarifa de gas estimada",
+    "gas_fee": "Gas fee",
+    "included": "included",
     "max_gas_fee": "Tarifa de gas máxima",
     "edit": "Editar",
     "quotes_include_fee": "Las cotizaciones incluyen un {{fee}} % de tarifa de MetaMask",
+    "quotes_include_gas_and_metamask_fee": "Quote includes gas and a {{fee}}% MetaMask fee",
     "tap_to_swap": "Toque para intercambiar",
     "swipe_to_swap": "Deslice para intercambiar",
     "swipe_to": "Deslice para",
@@ -2889,6 +2891,8 @@
     "high_recommendation": "Para realizar intercambios el tiempo es muy limitado. \"Alto\" le ayudará a evitar pérdidas potenciales debido a los cambios en las condiciones del mercado.",
     "recommended": "Recomendado",
     "recommended_gas": "Tarifa de gas recomendada",
+    "gas_included_tooltip_explanation": "This quote incorporates gas fees by adjusting the token amount sent or received. You may receive ETH in a separate transaction on your activity list.",
+    "gas_included_tooltip_explanation_link_text": "Learn more about gas fees",
     "gas_education_title": "Tarifas estimadas de gas",
     "gas_education_1": "Las tarifas de gas se abonan a los mineros de criptomonedas que procesan transacciones a través de la ",
     "gas_education_2_ethereum": "red de Ethereum.",
@@ -3432,11 +3436,11 @@
     "not_enough_eth": "No hay suficiente ETH",
     "balance": "Saldo",
     "stake_eth_and_earn": "Haga staking de EHT y gane",
-    "stake_any_amount_of_eth": "Haga staking de cualquier cantidad de ETH",
+    "stake_any_amount_of_eth": "Haz staking de cualquier cantidad de ETH.",
     "no_minimum_required": "No se requiere ningún mínimo.",
-    "earn_eth_rewards": "Gane recompensas de ETH",
+    "earn_eth_rewards": "Gana recompensas de ETH.",
     "earn_eth_rewards_description": "Comience a ganar tan pronto como haga staking. Las recompensas se capitalizan automáticamente.",
-    "flexible_unstaking": "Unstaking flexible",
+    "flexible_unstaking": "Unstaking flexible.",
     "flexible_unstaking_description": "Cancele el staking en cualquier momento. Por lo general, tarda menos de 3 días, pero puede tardar hasta 11 días en procesarse.",
     "disclaimer": "El staking no garantiza recompensas e implica riesgos, incluida la pérdida de fondos.",
     "learn_more": "Más información",
@@ -3495,7 +3499,25 @@
     "estimated_unstaking_time": "De 1 a 11 días",
     "proceed_anyway": "Continuar de todos modos",
     "gas_cost_impact": "Impacto en el costo del gas",
-    "gas_cost_impact_warning": "Advertencia: el costo del gas de la transacción representará más del 30 % de su depósito."
+    "gas_cost_impact_warning": "Advertencia: el costo del gas de la transacción representará más del {{percentOverDeposit}} % de tu depósito.",
+    "view_earnings_history": "Ver historial de ganancias",
+    "earnings_history_title": "Ganancias de {{ticker}}",
+    "earnings_history_list_title": "Historial de pagos",
+    "apr": "TAE",
+    "interactive_chart": {
+      "timespan_buttons": {
+        "7D": "7D",
+        "1M": "1M",
+        "3M": "3M",
+        "6M": "6M"
+      }
+    },
+    "today": "Hoy",
+    "one_week_average": "Promedio de 1 semana",
+    "one_month_average": "Promedio de 1 mes",
+    "three_month_average": "Promedio de 3 meses",
+    "six_month_average": "Promedio de 6 meses",
+    "one_year_average": "Promedio de 1 año"
   },
   "default_settings": {
     "title": "Su monedero está listo",
@@ -3580,12 +3602,15 @@
     "reject": "Rechazar",
     "confirm": "Confirmar",
     "title": {
-      "signature": "Solicitud de firma"
+      "signature": "Solicitud de firma",
+      "signature_siwe": "Solicitud de inicio de sesión"
     },
     "sub_title": {
-      "signature": "Revise los detalles de la solicitud antes de confirmar."
+      "signature": "Revise los detalles de la solicitud antes de confirmar.",
+      "signature_siwe": "Un sitio quiere que inicies sesión para demostrar que eres el titular de esta cuenta."
     },
     "request_from": "Solicitud de",
+    "signing_in_with": "Iniciando sesión con",
     "message": "Mensaje",
     "primary_type": "Tipo primario",
     "personal_sign_tooltip": "Este sitio solicita su firma",
@@ -3593,6 +3618,19 @@
     "account": "Cuenta",
     "balance": "Saldo",
     "network": "Red",
+    "qr_get_sign": "Obtener firma",
+    "qr_scan_text": "Escanea con tu monedero físico",
+    "siwe_message": {
+      "url": "URL",
+      "network": "Red",
+      "account": "Cuenta",
+      "version": "Versión",
+      "chain_id": "ID de cadena",
+      "nonce": "Nonce",
+      "issued": "Emitido",
+      "requestId": "ID de solicitud",
+      "resources": "Recursos"
+    },
     "simulation": {
       "decoded_tooltip_bid_nft": "Una vez aceptada la oferta, el NFT se reflejará en su monedero.",
       "decoded_tooltip_list_nft": "Espere cambios solamente si alguien compra sus NFT.",
@@ -3611,7 +3649,7 @@
       "unavailable": "No disponible"
     },
     "unlimited": "Ilimitado",
-    "none": "None"
+    "none": "Ninguno"
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",

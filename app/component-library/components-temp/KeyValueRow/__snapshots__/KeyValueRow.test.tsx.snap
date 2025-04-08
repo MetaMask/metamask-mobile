@@ -34,7 +34,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={20}
         name="Activity"
         style={
@@ -57,12 +57,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -90,7 +90,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={20}
         name="Add"
         style={
@@ -113,12 +113,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -165,7 +165,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={20}
         name="Activity"
         style={
@@ -188,12 +188,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -221,7 +221,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9fa6ae"
+            color="#9ca1af"
             height={20}
             name="Question"
             style={
@@ -254,7 +254,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
       }
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={20}
         name="Add"
         style={
@@ -277,12 +277,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -310,7 +310,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with icon
           }
         >
           <SvgMock
-            color="#9fa6ae"
+            color="#9ca1af"
             height={20}
             name="Question"
             style={
@@ -373,12 +373,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -406,7 +406,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9fa6ae"
+            color="#9ca1af"
             height={20}
             name="Question"
             style={
@@ -450,12 +450,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -483,7 +483,7 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render text with tool
           }
         >
           <SvgMock
-            color="#9fa6ae"
+            color="#9ca1af"
             height={20}
             name="Question"
             style={
@@ -546,12 +546,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"
@@ -590,12 +590,12 @@ exports[`KeyValueRow Prebuilt Component KeyValueRow should render when there is 
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="label"

@@ -1,4 +1,9 @@
-import { SnapKeyring, SnapKeyringCallbacks } from '@metamask/eth-snap-keyring';
+import {
+  SnapKeyring,
+  SnapKeyringCallbacks,
+  SnapKeyringInternalOptions,
+  getDefaultInternalOptions,
+} from '@metamask/eth-snap-keyring';
 import Logger from '../../util/Logger';
 import { showAccountNameSuggestionDialog } from './utils/showDialog';
 import { SnapKeyringBuilderMessenger } from './types';
@@ -6,6 +11,9 @@ import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
 import { isSnapPreinstalled } from './utils/snaps';
+import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+import { getTraceTags } from '../../util/sentry/tags';
+import { store } from '../../store';
 
 /**
  * Builder type for the Snap keyring.
@@ -113,6 +121,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     skipAccountNameSuggestionDialog: boolean;
   }): Promise<{ accountName?: string }> {
     return await this.withApprovalFlow(async (_) => {
+      endTrace({
+        name: TraceName.CreateSnapAccount,
+      });
       const { success, accountName } = skipAccountNameSuggestionDialog
         ? await this.getAccountNameFromSuggestion(accountNameSuggestion)
         : await this.getAccountNameFromDialog(snapId, accountNameSuggestion);
@@ -139,6 +150,11 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }) {
     await this.withApprovalFlow(async (_) => {
       try {
+        trace({
+          name: TraceName.AddSnapAccount,
+          op: TraceOperation.AddSnapAccount,
+          tags: getTraceTags(store.getState()),
+        });
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -160,6 +176,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
+        endTrace({
+          name: TraceName.AddSnapAccount,
+        });
       } catch (e) {
         // Error occurred while naming the account
         const error = e as Error;
@@ -175,7 +194,9 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
     onceSaved: Promise<string>,
     accountNameSuggestion: string = '',
-    displayAccountNameSuggestion: boolean = true,
+    {
+      displayAccountNameSuggestion,
+    }: SnapKeyringInternalOptions = getDefaultInternalOptions(),
   ) {
     assertIsValidSnapId(snapId);
 

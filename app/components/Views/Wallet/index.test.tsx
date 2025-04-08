@@ -8,6 +8,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import Engine from '../../../core/Engine';
+import { useSelector } from 'react-redux';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -127,13 +128,6 @@ jest.mock('react-native-scrollable-tab-view', () => {
   return ScrollableTabViewMock;
 });
 
-jest.mock('../../../util/identity/hooks/useAccountSyncing', () => ({
-  useAccountSyncing: jest.fn().mockReturnValue({
-    dispatchAccountSyncing: jest.fn(),
-    error: undefined,
-  }),
-}));
-
 jest.mock('../../../util/address', () => ({
   ...jest.requireActual('../../../util/address'),
   getInternalAccountByAddress: jest.fn().mockReturnValue({
@@ -159,6 +153,29 @@ const render = (Component: React.ComponentType) =>
     },
   );
 
+const renderWithoutDetectedTokens = (Component: React.ComponentType) =>
+  renderScreen(
+    Component,
+    {
+      name: Routes.WALLET_VIEW,
+    },
+    {
+      state: {
+        ...mockInitialState,
+        engine: {
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            TokensController: {
+              ...mockInitialState.engine.backgroundState.TokensController,
+              // @ts-expect-error we are testing the invalid case
+              detectedTokens: 'invalid-array',
+            },
+          },
+        },
+      },
+    },
+  );
+
 describe('Wallet', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -168,6 +185,13 @@ describe('Wallet', () => {
     const wrapper = render(Wallet);
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
+
+  it('should render correctly when there are no detected tokens', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    const wrapper = renderWithoutDetectedTokens(Wallet);
+    expect(wrapper.toJSON()).toMatchSnapshot();
+  });
+
   it('should render scan qr icon', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
@@ -205,5 +229,16 @@ describe('Wallet', () => {
     render(Wallet);
 
     expect(mockedAddTokens.addTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('should render correctly when Solana support is enabled', () => {
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+    //@ts-expect-error we are ignoring the navigation params on purpose
+    const wrapper = render(Wallet);
+    expect(wrapper.toJSON()).toMatchSnapshot();
   });
 });

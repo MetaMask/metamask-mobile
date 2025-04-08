@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapControllerStateChangeEvent } from './controllers/SnapController/constants';
+import { SnapControllerStateChangeEvent } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -11,6 +11,7 @@ import { RatesControllerStateChangeEvent } from './controllers/RatesController/c
  */
 export const STATELESS_NON_CONTROLLER_NAMES = [
   'AssetsContractController',
+  'ExecutionService',
   'NftDetectionController',
   'TokenDetectionController',
 ] as const;
@@ -59,6 +60,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'MultichainAssetsRatesController:stateChange',
   // TODO: Export this from the assets controller
   'MultichainAssetsController:stateChange',
+  'MultichainTransactionsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',

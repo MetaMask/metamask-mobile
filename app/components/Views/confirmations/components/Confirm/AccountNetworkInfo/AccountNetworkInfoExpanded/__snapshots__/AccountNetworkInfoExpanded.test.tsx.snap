@@ -45,14 +45,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -63,12 +61,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -105,14 +103,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -123,12 +119,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
         accessibilityRole="text"
         style={
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 14,
             "fontWeight": "400",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -179,14 +175,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "alignItems": "center",
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Bold",
-              "fontSize": 14,
-              "fontWeight": "600",
-              "justifyContent": "center",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
+              "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -232,12 +226,12 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           accessibilityRole="text"
           style={
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 14,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
               "marginLeft": 8,
             }
           }

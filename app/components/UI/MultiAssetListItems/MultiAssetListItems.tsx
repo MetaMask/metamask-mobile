@@ -9,7 +9,9 @@ import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
 } from '../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../component-library/components/Badges/BadgeWrapper';
 import AssetIcon from '../AssetIcon';
 import { useSelector } from 'react-redux';
 import { selectNetworkImageSource } from '../../../selectors/networkInfos';
@@ -70,7 +72,7 @@ const MultiAssetListItems = ({
           {strings('token.no_tokens_found')}
         </Text>
       ) : null}
-      {searchResults.slice(0, 6).map((_, i) => {
+      {searchResults.slice(0, 6)?.map((_, i) => {
         const { symbol, name, address, iconUrl } = searchResults[i] || {};
         const isOnSelected = selectedAsset.some(
           (token) => token.address === address,
@@ -87,6 +89,7 @@ const MultiAssetListItems = ({
           >
             <View style={styles.Icon}>
               <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
                 badgeElement={
                   <Badge
                     variant={BadgeVariant.Network}

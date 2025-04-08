@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
+import { selectPendingSmartTransactionsBySender } from './smartTransactionsController';
 
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
@@ -18,7 +19,18 @@ export const selectTransactions = createDeepEqualSelector(
 export const selectNonReplacedTransactions = createDeepEqualSelector(
   selectTransactionsStrict,
   (transactions) =>
-    transactions.filter((tx) => !(tx.replacedBy && tx.replacedById && tx.hash)),
+    transactions.filter(
+      ({ replacedBy, replacedById, hash }) =>
+        !(replacedBy && replacedById && hash),
+    ),
+);
+
+export const selectSortedTransactions = createDeepEqualSelector(
+  [selectNonReplacedTransactions, selectPendingSmartTransactionsBySender],
+  (nonReplacedTransactions, pendingSmartTransactions) =>
+    [...nonReplacedTransactions, ...pendingSmartTransactions].sort(
+      (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
+    ),
 );
 
 export const selectSwapsTransactions = createSelector(

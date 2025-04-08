@@ -20,7 +20,7 @@ export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
     confirmation_redesign: {
       signatures: true,
-      staking_transactions: true,
+      staking_confirmations: true,
     },
   },
 };
@@ -677,31 +677,69 @@ const stakingConfirmationBaseState = {
 };
 
 export const stakingDepositConfirmationState = merge(
+  {},
   stakingConfirmationBaseState,
   {
     engine: {
-      TransactionController: {
-        transactions: [
-          {
-            type: TransactionType.stakingDeposit,
-          },
-        ],
-      } as unknown as TransactionControllerState,
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingDeposit },
+          ],
+        } as unknown as TransactionControllerState,
+      },
     },
   },
 );
 
 export const stakingWithdrawalConfirmationState = merge(
+  {},
   stakingConfirmationBaseState,
   {
     engine: {
-      TransactionController: {
-        transactions: [
-          {
-            type: TransactionType.stakingUnstake,
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingUnstake },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
           },
-        ],
-      } as unknown as TransactionControllerState,
+        },
+      },
+    },
+  },
+);
+
+export const stakingClaimConfirmationState = merge(
+  {},
+  stakingConfirmationBaseState,
+  {
+    engine: {
+      backgroundState: {
+        TransactionController: {
+          transactions: [
+            { type: TransactionType.stakingClaim },
+          ],
+        } as unknown as TransactionControllerState,
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              '0x0000000000000000000000000000000000000000': {
+                address: '0x0000000000000000000000000000000000000000',
+              },
+            },
+            selectedAccount: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      },
     },
   },
 );

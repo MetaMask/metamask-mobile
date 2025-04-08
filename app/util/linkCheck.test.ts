@@ -16,6 +16,14 @@ jest.mock('../core/Engine', () => ({
   },
 }));
 
+jest.mock('../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
+  },
+}));
+
 describe('linkCheck', () => {
   it('should correctly check links for safety', () => {
     expect(isLinkSafe('example.com')).toEqual(false);

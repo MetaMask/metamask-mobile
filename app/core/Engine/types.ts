@@ -52,6 +52,16 @@ import {
   MultichainAssetsRatesControllerActions,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/assets-controllers';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import {
+  MultichainTransactionsController,
+  MultichainTransactionsControllerState,
+} from '@metamask/multichain-transactions-controller';
+import {
+  MultichainTransactionsControllerEvents,
+  MultichainTransactionsControllerActions,
+} from './messengers/multichain-transactions-controller-messenger/types';
+///: END:ONLY_INCLUDE_IF
 import {
   AddressBookController,
   AddressBookControllerActions,
@@ -87,7 +97,6 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -135,6 +144,7 @@ import {
   SnapController,
   AllowedActions as SnapsAllowedActions,
   AllowedEvents as SnapsAllowedEvents,
+  ExecutionService,
   PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
@@ -312,6 +322,7 @@ type GlobalActions =
   | RatesControllerActions
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
+  | MultichainTransactionsControllerActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | PreferencesControllerActions
@@ -357,6 +368,7 @@ type GlobalEvents =
   | RatesControllerEvents
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
+  | MultichainTransactionsControllerEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -378,13 +390,6 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents;
-
-// TODO: Abstract this into controller utils for TransactionController
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -433,6 +438,7 @@ export type Controllers = {
   SmartTransactionsController: SmartTransactionsController;
   SignatureController: SignatureController;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+  ExecutionService: ExecutionService;
   SnapController: SnapController;
   SnapsRegistry: SnapsRegistry;
   SubjectMetadataController: SubjectMetadataController;
@@ -449,6 +455,7 @@ export type Controllers = {
   MultichainAssetsRatesController: MultichainAssetsRatesController;
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
+  MultichainTransactionsController: MultichainTransactionsController;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
@@ -509,6 +516,7 @@ export type EngineState = {
   RatesController: RatesControllerState;
   MultichainAssetsController: MultichainAssetsControllerState;
   MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
+  MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   MultichainNetworkController: MultichainNetworkControllerState;
   BridgeController: BridgeControllerState;
@@ -546,11 +554,18 @@ export type BaseRestrictedControllerMessenger = RestrictedMessenger<
 export type ControllersToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | 'CronjobController'
+  | 'ExecutionService'
+  | 'SnapController'
+  | 'SnapInterfaceController'
+  | 'SnapsRegistry'
+  | 'NotificationServicesController'
+  | 'NotificationServicesPushController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
+  | 'MultichainTransactionsController'
   ///: END:ONLY_INCLUDE_IF
   | 'CurrencyRateController'
   | 'AccountsController'

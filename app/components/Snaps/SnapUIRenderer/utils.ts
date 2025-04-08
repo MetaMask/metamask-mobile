@@ -1,5 +1,10 @@
-import { JSXElement, GenericSnapElement, Text } from '@metamask/snaps-sdk/jsx';
-import { hasChildren } from '@metamask/snaps-utils';
+import {
+  JSXElement,
+  GenericSnapElement,
+  Text,
+  InputElement,
+} from '@metamask/snaps-sdk/jsx';
+import { getJsxChildren, hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
 import { sha256 } from '@noble/hashes/sha256';
 import {
@@ -22,8 +27,37 @@ export interface MapToTemplateParams {
   onCancel?: () => void;
   onConfirm?: () => void;
   t?: (key: string) => string;
+
+  // React Native specific props
   theme: Theme;
+  // If the component must inherit any of the following props from the parent, the parent must pass the props to its children.
+  textSize?: string;
+  textColor?: string;
+  textVariant?: string;
+  textFontWeight?: string;
+  textAlignment?: string;
 }
+
+/**
+ * Registry of element types that are used within Field element.
+ */
+export const FIELD_ELEMENT_TYPES = [
+  'FileInput',
+  'Input',
+  'Dropdown',
+  'RadioGroup',
+  'Checkbox',
+  'Selector',
+];
+
+/**
+ * Search for the element that is considered to be primary child element of a Field.
+ *
+ * @param children - Children elements specified within Field element.
+ * @returns Number, representing index of a primary field in the array of children elements.
+ */
+export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
+  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
 
 /**
  * Get a truncated version of component children to use in a hash.
@@ -37,6 +71,14 @@ function getChildrenForHash(component: JSXElement) {
   }
 
   const { children } = component.props;
+
+  // Field has special handling to determine the primary child to use for the key
+  if (component.type === 'Field') {
+    const fieldChildren = getJsxChildren(component) as JSXElement[];
+    const primaryChildIndex = getPrimaryChildElementIndex(fieldChildren);
+    const primaryChild = fieldChildren[primaryChildIndex] as InputElement;
+    return { type: primaryChild?.type, name: primaryChild?.props?.name };
+  }
 
   if (typeof children === 'string') {
     // For the hash we reduce long strings
@@ -127,20 +169,38 @@ export const mapToTemplate = (params: MapToTemplateParams): UIComponent => {
 
 export const mapTextToTemplate = (
   elements: NonEmptyArray<JSXElement | string>,
-  params: Pick<MapToTemplateParams, 'map' | 'useFooter' | 'onCancel' | 'theme'>,
+  params: Pick<
+    MapToTemplateParams,
+    | 'map'
+    | 'useFooter'
+    | 'onCancel'
+    | 'theme'
+    | 'textSize'
+    | 'textColor'
+    | 'textVariant'
+    | 'textAlignment'
+    | 'textFontWeight'
+  >,
 ): NonEmptyArray<UIComponent | string> =>
   elements.map((e) => {
     if (typeof e === 'string') {
-      // React Native cannot render strings directly, so we map to an element where we control the props.
       const text = unescapeFn(e);
       const key = generateKey(params.map, Text({ children: text }));
       return {
-        element: 'RNText',
+        element: 'Text',
         key,
         children: text,
-        props: { color: 'inherit' },
+        props: {
+          variant: params.textVariant,
+          color: params.textColor,
+          style: {
+            fontWeight: params.textFontWeight,
+            textAlign: params.textAlignment,
+          },
+        },
       };
     }
+
     return mapToTemplate({ ...params, element: e });
   }) as NonEmptyArray<UIComponent | string>;
 
@@ -173,22 +233,21 @@ export const mergeValue = <Type extends State>(
 };
 
 /**
- * Registry of element types that are used within Field element.
- */
-export const FIELD_ELEMENT_TYPES = [
-  'FileInput',
-  'Input',
-  'Dropdown',
-  'RadioGroup',
-  'Checkbox',
-  'Selector',
-];
-
-/**
- * Search for the element that is considered to be primary child element of a Field.
+ * Map Snap custom size for border radius to mobile compatible size.
  *
- * @param children - Children elements specified within Field element.
- * @returns Number, representing index of a primary field in the array of children elements.
+ * @param snapBorderRadius - Snap custom border radius.
+ * @returns Number, representing border radius size used in mobile design system.
  */
-export const getPrimaryChildElementIndex = (children: JSXElement[]) =>
-  children.findIndex((c) => FIELD_ELEMENT_TYPES.includes(c.type));
+export const mapSnapBorderRadiusToMobileBorderRadius = (
+  snapBorderRadius: string | undefined,
+): number => {
+  switch (snapBorderRadius) {
+    case 'none':
+    default:
+      return 0;
+    case 'medium':
+      return 6;
+    case 'full':
+      return 9999;
+  }
+};
