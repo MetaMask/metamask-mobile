@@ -115,6 +115,7 @@ describe(
       // Verify initial state and balance
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
 
       // Verify each initial account name
       for (const accountName of decryptedAccountNames) {
@@ -146,6 +147,7 @@ describe(
       // Verify initial state and balance
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
 
       // Verify all accounts including newly discovered ones (which would have been synced / have balances)
       for (const accountName of EXPECTED_ACCOUNT_NAMES.WITH_NEW_ACCOUNTS) {
@@ -173,6 +175,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
 
       await Assertions.checkIfVisible(
         AccountListBottomSheet.getAccountElementByAccountName(

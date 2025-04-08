@@ -73,6 +73,7 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
 
       for (const accountName of decryptedAccountNames) {
         await Assertions.checkIfVisible(
