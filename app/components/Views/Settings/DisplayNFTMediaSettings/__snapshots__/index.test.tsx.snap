@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DisplayNFTMediaSettings should render correctly 1`] = `
+exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
 <View
   style={
     {
@@ -23,7 +23,7 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
           "color": "#121314",
           "flex": 1,
           "fontFamily": "CentraNo1-Medium",
-          "fontSize": 16,
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -75,10 +75,10 @@ exports[`DisplayNFTMediaSettings should render correctly 1`] = `
       {
         "color": "#686e7d",
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 14,
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "marginTop": 8,
       }
     }

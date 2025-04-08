@@ -16,7 +16,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -135,7 +135,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           }
@@ -149,7 +149,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -173,7 +173,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           }
@@ -187,7 +187,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -221,7 +221,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           }
@@ -258,7 +258,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -274,7 +274,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           },
@@ -293,7 +293,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -309,7 +309,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           },
@@ -328,7 +328,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontSize": 16,
             "fontWeight": "600",
             "marginTop": 32,
@@ -344,7 +344,7 @@ exports[`AssetDetails renders correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           },
@@ -378,7 +378,7 @@ exports[`AssetDetails renders correctly 1`] = `
         style={
           {
             "color": "#ca3542",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 16,
             "fontWeight": "400",
           }

@@ -33,10 +33,10 @@ exports[`StakingCta render matches snapshot 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingRight": 3,
         }
       }
@@ -49,10 +49,10 @@ exports[`StakingCta render matches snapshot 1`] = `
         {
           "color": "#1c7e33",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
           "paddingRight": 3,
         }
       }
@@ -65,10 +65,10 @@ exports[`StakingCta render matches snapshot 1`] = `
         {
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -85,10 +85,10 @@ exports[`StakingCta render matches snapshot 1`] = `
           "backgroundColor": "transparent",
           "color": "#121314",
           "fontFamily": "CentraNo1-Book",
-          "fontSize": 14,
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
       suppressHighlighting={true}
@@ -99,10 +99,10 @@ exports[`StakingCta render matches snapshot 1`] = `
           {
             "color": "#4459ff",
             "fontFamily": "CentraNo1-Medium",
-            "fontSize": 14,
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
