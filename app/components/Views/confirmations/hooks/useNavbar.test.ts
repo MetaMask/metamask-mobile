@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useNavigation } from '@react-navigation/native';
+import { Theme } from '../../../../util/theme/models';
 import { getNavbar } from '../components/Confirm/Navbar/Navbar';
 import { useConfirmActions } from './useConfirmActions';
 import useNavbar from './useNavbar';
@@ -48,12 +49,14 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
     expect(mockSetOptions).toHaveBeenCalledWith(
       getNavbar({
         title: mockTitle,
         onReject: mockOnReject,
         addBackButton: true,
+        theme: {} as Theme,
       }),
     );
   });
@@ -72,6 +75,7 @@ describe('useNavbar', () => {
       title: 'Updated Title',
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 
@@ -87,6 +91,7 @@ describe('useNavbar', () => {
       title: mockTitle,
       onReject: newOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 });
