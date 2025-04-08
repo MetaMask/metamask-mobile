@@ -1,6 +1,11 @@
-import migrate from './072';
+
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
+
 import { ensureValidState } from './util';
+import migrate from './072';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -13,19 +18,98 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const PermissionNames = {
-  eth_accounts: 'eth_accounts',
-  permittedChains: 'endowment:permitted-chains',
-};
+const createTestState = () => ({
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+          },
+          '0xaa36a7': {
+            chainId: '0xaa36a7',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'SepoliaETH',
+          },
+          '0xe705': {
+            chainId: '0xe705',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-sepolia',
+                url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://sepolia.lineascan.build'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Linea Sepolia',
+            nativeCurrency: 'LineaETH',
+          },
+          '0xe708': {
+            chainId: '0xe708',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-mainnet',
+                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.build'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Linea Mainnet',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+    }
+  }
+});
 
-const version = 72;
+const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
+    chainId: '0x18c6',
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        url: 'https://carrot.megaeth.com/rpc',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://megaexplorer.xyz'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
+});
 
-describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" into "endowment:caip25"', () => {
+describe('Migration 72: Add `MegaEth Testnet`', () => {
   beforeEach(() => {
-    mockedEnsureValidState.mockReturnValue(true);
-  });
-
-  afterEach(() => {
     jest.resetAllMocks();
   });
 
@@ -35,1352 +119,112 @@ describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" i
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toBe(state);
+    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does nothing if PermissionController state is missing', () => {
-    const oldStorage = {
+  it('adds `MegaEth Testnet` as default network to state', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
+    const oldState = createTestState();
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const expectedData = {
       engine: {
         backgroundState: {
-          NetworkController: {},
-          SelectedNetworkController: {},
-        },
-      },
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
+            },
+          },
+        }
+      }
     };
 
-    const newStorage = migrate(oldStorage);
+    const migratedState = migrate(oldState);
 
-    expect(newStorage).toStrictEqual(oldStorage);
+    expect(migratedState).toStrictEqual(expectedData);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does nothing if PermissionController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: 'foo',
-          NetworkController: {},
-          SelectedNetworkController: {},
+  it('replaces `MegaEth Testnet` NetworkConfiguration if there is one', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
+    const oldState = createTestState();
+    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration> ;
+    networkConfigurationsByChainId[megaethTestnetConfiguration.chainId] = {
+      ...megaethTestnetConfiguration,
+      rpcEndpoints: [
+        {
+          networkClientId: 'some-client-id',
+          url: 'https://some-url.com/rpc',
+          type: RpcEndpointType.Custom,
         },
-      },
+      ],
     };
     mockedEnsureValidState.mockReturnValue(true);
 
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController state is missing', () => {
-    const oldStorage = {
+    const expectedData = {
       engine: {
         backgroundState: {
-          PermissionController: {},
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController is undefined`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {},
-          NetworkController: 'foo',
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if SelectedNetworkController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {},
-          NetworkController: {},
-          SelectedNetworkController: 'foo',
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if PermissionController.subjects is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: 'foo',
-          },
-          NetworkController: {},
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController.subjects is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.selectedNetworkClientId is not a non-empty string', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: {},
-          },
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.selectedNetworkClientId is object`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.networkConfigurationsByChainId is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: 'foo',
-          },
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if SelectedNetworkController.domains is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: 'foo',
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController.domains is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.networkConfigurationsByChainId[] is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
+            ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              '0x1': 'foo',
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
+        }
+      }
     };
 
-    const newStorage = migrate(oldStorage);
+    const migratedState = migrate(oldState);
 
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"] is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
+    expect(migratedState).toStrictEqual(expectedData);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does nothing if NetworkController.networkConfigurationsByChainId[].rpcEndpoints is not an array', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: 'foo',
-              },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"].rpcEndpoints is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.networkConfigurationsByChainId[].rpcEndpoints[] is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: ['foo'],
-              },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"].rpcEndpoints[] is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if the currently selected network client is neither built in nor exists in NetworkController.networkConfigurationsByChainId', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: No chainId found for selectedNetworkClientId "nonExistentNetworkClientId"`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if a subject is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': 'foo',
-            },
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: Invalid subject for origin "test.com" of type string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it("does nothing if a subject's permissions is not an object", () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: 'foo',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: Invalid permissions for origin "test.com" of type string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('deletes the permittedChains permission if eth_accounts has not been granted and the permittedChains permissions has been granted', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  [PermissionNames.permittedChains]: {
-                    invoker: 'test.com',
-                    parentCapability: PermissionNames.permittedChains,
-                    date: 2,
-                    caveats: [
-                      {
-                        type: 'restrictNetworkSwitching',
-                        value: ['0xa', '0x64'],
-                      },
-                    ],
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-    expect(newStorage).toStrictEqual({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {},
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
-  it('does nothing if neither eth_accounts nor permittedChains permissions have been granted', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  unrelated: {
-                    foo: 'bar',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-    expect(newStorage).toStrictEqual({
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  unrelated: {
-                    foo: 'bar',
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
-  describe.each([
-    [
-      'built-in',
-      {
-        selectedNetworkClientId: 'mainnet',
-        networkConfigurationsByChainId: {},
-      },
-      '1',
-    ],
-    [
-      'custom',
-      {
-        selectedNetworkClientId: 'customId',
-        networkConfigurationsByChainId: {
-          '0xf': {
-            rpcEndpoints: [
-              {
-                networkClientId: 'customId',
-              },
-            ],
-          },
-        },
-      },
-      '15',
-    ],
-  ])(
-    'the currently selected network client is %s',
-    (
-      _type: string,
-      NetworkController: {
-        networkConfigurationsByChainId: Record<
-          string,
-          {
-            rpcEndpoints: { networkClientId: string }[];
-          }
-        >;
-      } & Record<string, unknown>,
-      chainId: string,
-    ) => {
-      const baseData = () => ({
-        PermissionController: {
-          subjects: {},
-        },
-        NetworkController,
-        SelectedNetworkController: {
-          domains: {},
-        },
-      });
-      const baseEthAccountsPermissionMetadata = {
-        id: '1',
-        date: 2,
-        invoker: 'test.com',
-        parentCapability: PermissionNames.eth_accounts,
-      };
-      const currentScope = `eip155:${chainId}`;
-
-      it('does nothing when eth_accounts and permittedChains permissions are missing metadata', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        invoker: 'test.com',
-                        parentCapability: PermissionNames.eth_accounts,
-                        date: 2,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                      [PermissionNames.permittedChains]: {
-                        invoker: 'test.com',
-                        parentCapability: PermissionNames.permittedChains,
-                        date: 2,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual(oldStorage);
-      });
-
-      it('does nothing when there are malformed network configurations (even if there is a valid networkConfiguration that matches the selected network client)', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                selectedNetworkClientId: 'mainnet',
-                networkConfigurationsByChainId: {
-                  '0x1': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'mainnet',
-                      },
-                    ],
-                  },
-                  '0xInvalid': 'invalid-network-configuration',
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'bar',
-                      },
-                    ],
-                  },
-                },
-              },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'bar',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual(oldStorage);
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the currently selected chain id when the origin does not have its own network client', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [
-                                    `${currentScope}:0xdeadbeef`,
-                                    `${currentScope}:0x999`,
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the globally selected chain id value for the currently selected chain id when the origin does have its own network client that cannot be resolved', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'doesNotExist',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-
-        expect(mockedCaptureException).toHaveBeenCalledWith(
-          new Error(
-            `Migration ${version}: No chainId found for networkClientIdForOrigin "doesNotExist"`,
-          ),
-        );
-
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'doesNotExist',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [
-                                    `${currentScope}:0xdeadbeef`,
-                                    `${currentScope}:0x999`,
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the origin chain id when the origin does have its own network client and it exists in the built-in networks', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'sepolia',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'sepolia',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:11155111': {
-                                  accounts: [
-                                    'eip155:11155111:0xdeadbeef',
-                                    'eip155:11155111:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value without permitted chains when the origin is snapId', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'npm:snap': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'npm:snap': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the origin chain id when the origin does have its own network client and it exists in the custom configurations', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                ...baseData().NetworkController,
-                networkConfigurationsByChainId: {
-                  ...baseData().NetworkController
-                    .networkConfigurationsByChainId,
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'customNetworkClientId',
-                      },
-                    ],
-                  },
-                },
-              },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'customNetworkClientId',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                ...baseData().NetworkController,
-                networkConfigurationsByChainId: {
-                  ...baseData().NetworkController
-                    .networkConfigurationsByChainId,
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'customNetworkClientId',
-                      },
-                    ],
-                  },
-                },
-              },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'customNetworkClientId',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:10': {
-                                  accounts: [
-                                    'eip155:10:0xdeadbeef',
-                                    'eip155:10:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('does not create a CAIP-25 permission when eth_accounts permission is missing', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.permittedChains]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces both eth_accounts and permittedChains permission with a CAIP-25 permission using the values from both permissions', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                      [PermissionNames.permittedChains]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:10': {
-                                  accounts: [
-                                    'eip155:10:0xdeadbeef',
-                                    'eip155:10:0x999',
-                                  ],
-                                },
-                                'eip155:100': {
-                                  accounts: [
-                                    'eip155:100:0xdeadbeef',
-                                    'eip155:100:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces permissions for each subject', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                  'test2.com': {
-                    permissions: {
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [`${currentScope}:0xdeadbeef`],
-                                },
-                                'wallet:eip155': {
-                                  accounts: ['wallet:eip155:0xdeadbeef'],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                  'test2.com': {
-                    permissions: {
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [`${currentScope}:0xdeadbeef`],
-                                },
-                                'wallet:eip155': {
-                                  accounts: ['wallet:eip155:0xdeadbeef'],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
+  it.each([{
+    state: {
+      engine: {}
     },
-  );
+    test: 'empty engine state',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {}
+      }
+    },
+    test: 'empty backgroundState',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {
+          NetworkController: 'invalid'
+        }
+      },
+    },
+    test: 'invalid NetworkController state'
+  }, {
+    state: {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: 'invalid'
+          }
+        }
+      },
+    },
+    test: 'invalid networkConfigurationsByChainId state'
+  }
+  ])('does not modify state if the state is invalid - $test', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const migratedState = migrate(state);
+
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
 });
