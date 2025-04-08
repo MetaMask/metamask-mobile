@@ -1,22 +1,9 @@
-import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
-import { 
-  ChainId,
-  BuiltInNetworkName,
-  NetworkNickname,
-  BUILT_IN_CUSTOM_NETWORKS_RPC,
-  NetworksTicker,
-  BlockExplorerUrl
-} from '@metamask/controller-utils';
-
 import { ensureValidState } from './util';
+import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 71: Add 'MegaEth Testnet'
- *
- * This migration add MegaETH Testnet to the network controller
- * as a default Testnet.
+ * Migration 71: set completedOnboarding based on the state of the KeyringController.
  */
 const migration = (state: unknown): unknown => {
   const migrationVersion = 71;
@@ -27,48 +14,23 @@ const migration = (state: unknown): unknown => {
   }
 
   try {
-    if (
-      hasProperty(state, 'engine') &&
-      hasProperty(state.engine, 'backgroundState') &&
-      hasProperty(state.engine.backgroundState, 'NetworkController') &&
-      isObject(state.engine.backgroundState.NetworkController) &&
-      isObject(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId,
-      )
-    ) {
-      // It is possible to get the MegaEth Network configurtion by `getDefaultNetworkConfigurationsByChainId()`,
-      // But we choose to re-define it here to prevent the need to change this file,
-      // when `getDefaultNetworkConfigurationsByChainId()` has some breaking changes in the future.
-      const megaethTestnet = BuiltInNetworkName.MegaETHTestnet;
-      const megaethTestnetChainId = ChainId[megaethTestnet];
-      const megaethTestnetConfiguration: NetworkConfiguration = {
-          blockExplorerUrls: [BlockExplorerUrl[megaethTestnet]],
-          chainId: megaethTestnetChainId,
-          defaultRpcEndpointIndex: 0,
-          defaultBlockExplorerUrlIndex: 0,
-          name: NetworkNickname[megaethTestnet],
-          nativeCurrency: NetworksTicker[megaethTestnet],
-          rpcEndpoints: [
-            {
-              failoverUrls: [],
-              networkClientId: megaethTestnet,
-              type: RpcEndpointType.Custom,
-              url: BUILT_IN_CUSTOM_NETWORKS_RPC.MEGAETH_TESTNET,
-            },
-          ],
-      };
+    const KeyringController = state.engine.backgroundState.KeyringController;
 
-      // Regardness if the network already exists, we will overwrite it with our default MegaETH configuration.
-      state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-        megaethTestnetChainId
-      ] = megaethTestnetConfiguration
+    if (
+      KeyringController &&
+      hasProperty(KeyringController, 'vault') &&
+      hasProperty(state, 'onboarding') &&
+      isObject(state.onboarding)
+    ) {
+      const { vault } = KeyringController;
+      state.onboarding.completedOnboarding = Boolean(vault);
     }
+
     return state;
   } catch (error) {
     captureException(
       new Error(
-        `Migration 071: Adding MegaETH Testnet failed with error: ${error}`,
+        `Migration 071: setting completedOnboarding failed with error: ${error}`,
       ),
     );
     return state;
