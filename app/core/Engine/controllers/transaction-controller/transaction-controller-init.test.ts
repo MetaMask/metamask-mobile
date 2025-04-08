@@ -30,7 +30,6 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
-jest.mock('./event-handlers/gas');
 
 /**
  * Build a mock NetworkController.
@@ -325,7 +324,6 @@ describe('Transaction Controller Init', () => {
       getState: expect.any(Function),
       initMessenger: expect.any(Object),
       smartTransactionsController: expect.any(Object),
-      updateTransactionGasFees: expect.any(Function),
     };
 
     const eventHandlerMap = [

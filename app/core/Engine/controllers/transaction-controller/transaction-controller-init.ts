@@ -19,6 +19,7 @@ import {
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
 import type { RootState } from '../../../../reducers';
+import NotificationManager from '../../../../core/NotificationManager';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
   ControllerInitFunction,
@@ -32,6 +33,7 @@ import {
   handleTransactionAddedEventForMetrics,
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -190,6 +192,13 @@ function addTransactionControllerListeners(
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
   const { initMessenger } = transactionEventHandlerRequest;
+
+  initMessenger.subscribe(
+    'TransactionController:transactionApproved',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleShowNotification(transactionMeta);
+    },
+  );
 
   initMessenger.subscribe(
     'TransactionController:transactionApproved',
