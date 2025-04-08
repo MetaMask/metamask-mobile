@@ -112,9 +112,9 @@ const PhishingModal = ({
    */
   const goBackToSafety = () => {
     setTimeout(() => {
+      goToUrl(HOMEPAGE_URL);
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
-      goToUrl(HOMEPAGE_URL);
     }, 500);
   };
 
