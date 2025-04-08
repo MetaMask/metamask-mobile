@@ -211,6 +211,7 @@ import {
   onRpcEndpointUnavailable,
 } from './controllers/network-controller/messenger-action-handlers';
 import { INFURA_PROJECT_ID } from '../../constants/network';
+import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -339,10 +340,34 @@ export class Engine {
       infuraProjectId,
       state: initialNetworkControllerState,
       messenger: networkControllerMessenger,
-      getRpcServiceOptions: () => ({
-        fetch,
-        btoa,
-      }),
+      getRpcServiceOptions: (rpcEndpointUrl: string) => {
+        const commonOptions = {
+          fetch: globalThis.fetch.bind(globalThis),
+          btoa: globalThis.btoa.bind(globalThis),
+        };
+
+        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
+          return {
+            ...commonOptions,
+            policyOptions: {
+              // There is currently a bug in the block tracker (and probably
+              // also the middleware layers) that result in a flurry of retries
+              // when an RPC endpoint goes down, causing us to pretty
+              // immediately enter a 30-minute cooldown period during which all
+              // requests will be dropped. This isn't a problem for Infura, as
+              // we need a long cooldown anyway to prevent spamming it while it
+              // is down. But Quicknode is a different story. When we fail over
+              // to it, we expect it to be down at first while it is being
+              // automatically activated. So dropping requests for a lengthy
+              // period would defeat the point. Shortening the cooldown period
+              // mitigates this problem.
+              circuitBreakDuration: 5000,
+            },
+          };
+        }
+
+        return commonOptions;
+      },
       additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
