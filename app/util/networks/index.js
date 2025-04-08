@@ -590,7 +590,7 @@ export const isPortfolioViewEnabled = () =>
 
 export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
 
-// The whiltlisted network names for the given chain IDs to prevent showing warnings on Network Settings.
+// The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
 export const WHILELIST_NETWORK_NAME  = {
   [ChainId.mainnet] : 'Mainnet',
   [ChainId['linea-mainnet']] : 'Linea Mainnet',
