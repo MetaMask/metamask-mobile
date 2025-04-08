@@ -148,10 +148,8 @@ export class WC2Manager {
             JSON.stringify(accountPermission, null, 2),
           );
           let approvedAccounts =
-            (await getPermittedAccounts(accountPermission?.id ?? '')) ?? [];
-          const fromOrigin = await getPermittedAccounts(
-            session.peer.metadata.url,
-          );
+            getPermittedAccounts(accountPermission?.id ?? '') ?? [];
+          const fromOrigin = getPermittedAccounts(session.peer.metadata.url);
 
           DevLogger.log(
             `WC2::init approvedAccounts id ${accountPermission?.id}`,
@@ -168,7 +166,7 @@ export class WC2Manager {
               `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
             );
             approvedAccounts =
-              (await getPermittedAccounts(session.peer.metadata.url)) ?? [];
+              getPermittedAccounts(session.peer.metadata.url) ?? [];
           }
 
           if (approvedAccounts?.length === 0) {
@@ -456,7 +454,7 @@ export class WC2Manager {
 
     try {
       // use Permission controller
-      const approvedAccounts = await getPermittedAccounts(url);
+      const approvedAccounts = getPermittedAccounts(url);
       // TODO: Misleading variable name, this is not the chain ID. This should be updated to use the chain ID.
       const chainId = selectEvmChainId(store.getState());
       DevLogger.log(

@@ -380,7 +380,7 @@ class WalletConnect2Session {
     );
 
     const origin = this.session.peer.metadata.url;
-    return await getPermittedAccounts(origin);
+    return getPermittedAccounts(origin);
   }
 
   handleRequest = async (requestEvent: SingleEthereumTypes.SessionRequest) => {

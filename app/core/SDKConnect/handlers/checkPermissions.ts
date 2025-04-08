@@ -41,7 +41,7 @@ export const checkPermissions = async ({
       connection.originatorInfo,
     );
 
-    const permittedAccounts = await getPermittedAccounts(connection.channelId);
+    const permittedAccounts = getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions permittedAccounts`, permittedAccounts);
 
     if (permittedAccounts.length > 0) {
@@ -127,7 +127,7 @@ export const checkPermissions = async ({
     }
 
     const res = await connection.approvalPromise;
-    const accounts = await getPermittedAccounts(connection.channelId);
+    const accounts = getPermittedAccounts(connection.channelId);
     DevLogger.log(`checkPermissions approvalPromise completed`, res);
     return accounts.length > 0;
   } catch (err) {

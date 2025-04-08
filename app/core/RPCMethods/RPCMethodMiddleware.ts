@@ -164,7 +164,7 @@ export const checkActiveAccountAndChainId = async ({
     );
 
     const origin = isWalletConnect ? hostname : channelId ?? hostname;
-    const accounts = await getPermittedAccounts(origin);
+    const accounts = getPermittedAccounts(origin);
 
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
@@ -412,7 +412,7 @@ export const getRpcMethodMiddleware = ({
     // Used by eth_accounts and eth_coinbase RPCs.
     // TODO: Check on this
     const getEthAccounts = async () => {
-      const accounts = await getPermittedAccounts(origin);
+      const accounts = getPermittedAccounts(origin);
       res.result = accounts;
     };
     const checkTabActive = () => {
@@ -606,7 +606,7 @@ export const getRpcMethodMiddleware = ({
         const { params } = req;
 
         // TODO: Investigate this later
-        const permittedAccounts = await getPermittedAccounts(origin);
+        const permittedAccounts = getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
@@ -627,7 +627,7 @@ export const getRpcMethodMiddleware = ({
               },
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
-            const acc = await getPermittedAccounts(origin);
+            const acc = getPermittedAccounts(origin);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
@@ -981,7 +981,7 @@ export const getRpcMethodMiddleware = ({
        * initialization.
        */
       metamask_getProviderState: async () => {
-        const accounts = await getPermittedAccounts(origin);
+        const accounts = getPermittedAccounts(origin);
         res.result = {
           ...(await getProviderState(origin)),
           accounts,

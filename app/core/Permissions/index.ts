@@ -314,7 +314,7 @@ export const sortAccountsByLastSelected = (accounts: Hex[]) => {
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @param {object} [options] - The options object
  * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
- * @returns {Promise<string[]>} The origin's permitted accounts, or an empty
+ * @returns {string[]} The origin's permitted accounts, or an empty
  * array.
  */
 export const getPermittedAccounts = (
