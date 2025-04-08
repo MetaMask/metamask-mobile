@@ -403,16 +403,7 @@ export class BackgroundBridge extends EventEmitter {
     // setup json rpc engine stack
     const engine = new JsonRpcEngine();
 
-    const {
-      ApprovalController,
-      KeyringController,
-      PermissionController,
-      PreferencesController,
-      NetworkController,
-      SelectedNetworkController,
-      TokensController,
-      NftController,
-    } = Engine.context;
+    const { KeyringController, PermissionController } = Engine.context;
 
     // If the origin is not in the selectedNetworkController's `domains` state
     // when the provider engine is created, the selectedNetworkController will
@@ -445,10 +436,11 @@ export class BackgroundBridge extends EventEmitter {
     engine.push(createUnsupportedMethodMiddleware());
 
     // TODO: remove this try catch after we have things figured out
+    // TODO FIX: --> metamaskState() [jiexi] this isn't correctly shaped for these handlers
     try {
       engine.push(
         createEip1193MethodMiddleware({
-          metamaskState: this.getState(), // TODO FIX: [jiexi] this isn't correctly shaped for these handlers
+          metamaskState: this.getState(),
           // Permission-related
           getAccounts: (...args) =>
             getPermittedAccounts(

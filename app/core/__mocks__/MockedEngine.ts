@@ -7,6 +7,7 @@ import { MOCK_KEYRING_CONTROLLER_STATE } from '../../util/test/keyringController
 export const mockedEngine = {
   init: () => Engine.init({}),
   controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
     subscribe: jest.fn(),
     call: jest.fn().mockImplementation((method) => {
       if (method === 'SelectedNetworkController:getNetworkClientIdForDomain') {
@@ -44,6 +45,7 @@ export const mockedEngine = {
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
       revokePermission: jest.fn(),
+      revokePermissions: jest.fn(),
       getPermissions: jest.fn(),
       hasPermissions: jest.fn(),
       hasPermission: jest.fn(),
@@ -90,6 +92,7 @@ export const mockedEngine = {
     },
   },
   hasFunds: jest.fn(),
+  getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 
 export default mockedEngine;
