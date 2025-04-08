@@ -22,7 +22,7 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 
 describe(
   SmokeIdentity(
-    'Account syncing - syncs & retrieves accounts after adding a custom name account',
+    'Account syncing - syncs and retrieves accounts after adding a custom name account',
   ),
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
@@ -30,7 +30,6 @@ describe(
     let mockServer;
 
     beforeAll(async () => {
-      jest.setTimeout(200000);
       await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer();

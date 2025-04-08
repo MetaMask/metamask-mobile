@@ -67,7 +67,6 @@ describe(
     let accountsToMockBalances = [...INITIAL_ACCOUNTS];
 
     beforeAll(async () => {
-      jest.setTimeout(200000);
       await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer();
