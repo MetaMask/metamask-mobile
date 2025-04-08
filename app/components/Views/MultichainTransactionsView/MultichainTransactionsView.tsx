@@ -34,15 +34,10 @@ const MultichainTransactionsView = () => {
     selectSolanaAccountTransactions,
   );
 
-  const transactions = useMemo(() => {
-    if (
-      solanaAccountTransactions &&
-      'transactions' in solanaAccountTransactions
-    ) {
-      return solanaAccountTransactions.transactions;
-    }
-    return [];
-  }, [solanaAccountTransactions]);
+const transactions = useMemo(() => 
+  solanaAccountTransactions?.transactions || [], 
+  [solanaAccountTransactions]
+);
 
   useEffect(() => {
     // if it has already been set to false, don't re-run the effect
