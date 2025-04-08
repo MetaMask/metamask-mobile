@@ -1,19 +1,15 @@
+/* eslint-disable no-script-url */
 import isLinkSafe from './linkCheck';
 
-// Mock the phishing detection utils instead of Engine
-jest.mock('./phishingDetection', () => ({
-  getPhishingTestResult: jest.fn((origin) => {
-    if (origin === 'http://phishing.com') return { result: true };
-    return { result: false };
-  }),
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
-}));
-
-jest.mock('../store', () => ({
-  store: {
-    getState: jest.fn(() => ({
-      settings: { basicFunctionalityEnabled: true },
-    })),
+jest.mock('../core/Engine', () => ({
+  context: {
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: jest.fn((origin: string) => {
+        if (origin === 'http://phishing.com') return { result: true };
+        return { result: false };
+      }),
+    },
   },
 }));
 
@@ -26,10 +22,6 @@ jest.mock('../store', () => ({
 }));
 
 describe('linkCheck', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('should correctly check links for safety', () => {
     expect(isLinkSafe('example.com')).toEqual(false);
     expect(isLinkSafe('htps://ww.example.com/')).toEqual(false);
@@ -43,7 +35,6 @@ describe('linkCheck', () => {
       ),
     ).toEqual(false);
 
-    /* eslint-disable no-script-url */
     expect(isLinkSafe('javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('j&Tab;avascript:alert(1);')).toEqual(false);
     expect(isLinkSafe('&Tab;javascript:alert(1);&tab;')).toEqual(false);
@@ -61,6 +52,5 @@ describe('linkCheck', () => {
     expect(isLinkSafe('javas\x09cript:javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('javas\x06cript:javascript:alert(1)')).toEqual(false);
     expect(isLinkSafe('javas\x0Ccript:javascript:alert(1)')).toEqual(false);
-    /* eslint-enable no-script-url */
   });
 });

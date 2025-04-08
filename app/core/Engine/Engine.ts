@@ -78,7 +78,7 @@ import {
   deprecatedGetNetworkId,
 } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
-import { store } from '../../store/index';
+import { store } from '../../store';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -205,7 +205,6 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
-import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -427,9 +426,7 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    if (!isProductSafetyDappScanningEnabled()) {
-      phishingController.maybeUpdateState();
-    }
+    phishingController.maybeUpdateState();
 
     const additionalKeyrings = [];
 
