@@ -5,7 +5,7 @@ import { swapsUtils } from '@metamask/swaps-controller';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 // USDC and USDT for now
-const StablecoinsByChainId = {
+const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   [swapsUtils.ETH_CHAIN_ID]: new Set([
     '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48', // USDC
     '0xdac17f958d2ee523a2206206994597c13d831ec7', // USDT
@@ -73,6 +73,7 @@ export const useStablecoinsDefaultSlippage = ({
     const stablecoins = StablecoinsByChainId[chainId];
 
     if (
+      stablecoins &&
       sourceTokenAddress &&
       destTokenAddress &&
       (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
