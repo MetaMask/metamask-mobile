@@ -287,7 +287,6 @@ class AccountApproval extends PureComponent {
 
   checkUrlFlaggedAsPhishing = (hostname) => {
     const phishingResult = getPhishingTestResult(hostname);
-
     this.setState({
       isUrlFlaggedAsPhishing: phishingResult?.result || false,
     });
