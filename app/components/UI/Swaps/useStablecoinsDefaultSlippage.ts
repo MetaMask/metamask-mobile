@@ -49,6 +49,15 @@ const StablecoinsByChainId = {
   ]),
 };
 
+/**
+ * This hook is used to update the slippage for stablecoins swaps.
+ * It checks if the source and destination tokens are both stablecoins and if so,
+ * it sets the slippage to 0.5%.
+ * @param sourceTokenAddress - The address of the source token.
+ * @param destTokenAddress - The address of the destination token.
+ * @param chainId - The chain id of the swap.
+ * @param setSlippage - The function to set the slippage.
+ */
 export const useStablecoinsDefaultSlippage = ({
   sourceTokenAddress,
   destTokenAddress,
