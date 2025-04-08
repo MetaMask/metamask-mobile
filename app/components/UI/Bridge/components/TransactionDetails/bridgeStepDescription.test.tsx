@@ -1,0 +1,90 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import BridgeStepDescription from './bridgeStepDescription';
+import { ActionTypes, StatusTypes } from '@metamask/bridge-status-controller';
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { Step } from '@metamask/bridge-controller';
+
+describe('BridgeStepDescription', () => {
+  const mockStep = {
+    action: ActionTypes.BRIDGE,
+    srcChainId: 1,
+    destChainId: 2,
+    srcAsset: { symbol: 'ETH' },
+    destAsset: { symbol: 'ETH' },
+    srcAmount: '1',
+    destAmount: '1',
+    protocol: 'test-protocol',
+  } as unknown as Step;
+
+  const mockSwapStep = {
+    action: ActionTypes.SWAP,
+    srcChainId: 1,
+    destChainId: 1,
+    srcAsset: { symbol: 'ETH' },
+    destAsset: { symbol: 'USDC' },
+    srcAmount: '1',
+    destAmount: '1000',
+    protocol: 'test-protocol',
+  } as unknown as Step;
+
+  const mockNetworkConfigurations = {
+    '0x1': {
+      chainId: '0x1',
+    } as unknown as NetworkConfiguration,
+    '0x2': {
+      chainId: '0x2',
+    } as unknown as NetworkConfiguration,
+  };
+
+  it('should render bridge action without crashing', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+      />,
+    );
+
+    expect(getByText(/ETH/)).toBeTruthy();
+  });
+
+  it('should render swap action without crashing', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockSwapStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+      />,
+    );
+
+    expect(getByText(/ETH/)).toBeTruthy();
+    expect(getByText(/USDC/)).toBeTruthy();
+  });
+
+  it('should render with time prop', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+        time="10:00 AM"
+      />,
+    );
+
+    expect(getByText(/10:00 AM/)).toBeTruthy();
+    expect(getByText(/ETH/)).toBeTruthy();
+  });
+
+  it('should render with COMPLETE status', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.COMPLETE}
+      />,
+    );
+
+    expect(getByText(/ETH/)).toBeTruthy();
+  });
+});
