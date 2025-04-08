@@ -411,3 +411,17 @@ jest.mock('@react-native-firebase/messaging', () => {
 
   return module;
 });
+
+jest.mock('@metamask/react-native-button', () => {
+  const React = require('react');
+  const { TouchableOpacity, Text } = require('react-native');
+
+  return function Button(props) {
+    const { children, allowFontScaling = true, ...otherProps } = props;
+    return (
+      <TouchableOpacity {...otherProps}>
+        <Text allowFontScaling={allowFontScaling}>{children}</Text>
+      </TouchableOpacity>
+    );
+  };
+});
