@@ -1,18 +1,19 @@
 import isLinkSafe from './linkCheck';
 
-jest.mock('../selectors/featureFlagController', () => ({
-  selectProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+// Mock the phishing detection utils instead of Engine
+jest.mock('./phishingDetection', () => ({
+  getPhishingTestResult: jest.fn((origin) => {
+    if (origin === 'http://phishing.com') return { result: true };
+    return { result: false };
+  }),
+  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
 }));
 
-jest.mock('../core/Engine', () => ({
-  context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: jest.fn((origin: string) => {
-        if (origin === 'http://phishing.com') return { result: true };
-        return { result: false };
-      }),
-    },
+jest.mock('../store', () => ({
+  store: {
+    getState: jest.fn(() => ({
+      settings: { basicFunctionalityEnabled: true },
+    })),
   },
 }));
 
@@ -25,6 +26,10 @@ jest.mock('../store', () => ({
 }));
 
 describe('linkCheck', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should correctly check links for safety', () => {
     expect(isLinkSafe('example.com')).toEqual(false);
     expect(isLinkSafe('htps://ww.example.com/')).toEqual(false);
