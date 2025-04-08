@@ -93,6 +93,7 @@ describe('StakingDeposit', () => {
       title: 'Stake',
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 

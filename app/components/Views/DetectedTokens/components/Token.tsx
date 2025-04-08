@@ -175,7 +175,7 @@ const Token = ({ token, selected, toggleSelected }: Props) => {
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}
-            imageSource={NetworkBadgeSource(chainIdToUse, token.symbol)}
+            imageSource={NetworkBadgeSource(chainIdToUse)}
           />
         }
       >

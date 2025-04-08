@@ -666,6 +666,23 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
+                          </View>
                           <Text
                             style={
                               {
@@ -781,6 +798,70 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   }
                                 >
                                   Linea Sepolia
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "paddingVertical": 12,
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                    }
+                                  }
+                                >
+                                  Mega Testnet
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
