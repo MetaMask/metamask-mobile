@@ -87,4 +87,66 @@ describe('BridgeStepDescription', () => {
 
     expect(getByText(/ETH/)).toBeTruthy();
   });
+
+  it('should handle missing destSymbol in bridge action', () => {
+    const stepWithoutDestSymbol = {
+      ...mockStep,
+      destAsset: { symbol: undefined },
+    } as unknown as Step;
+
+    const { queryByText } = render(
+      <BridgeStepDescription
+        step={stepWithoutDestSymbol}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+      />,
+    );
+
+    expect(queryByText(/ETH/)).toBeFalsy();
+  });
+
+  it('should handle missing symbols in swap action', () => {
+    const stepWithoutSymbols = {
+      ...mockSwapStep,
+      srcAsset: { symbol: undefined },
+      destAsset: { symbol: undefined },
+    } as unknown as Step;
+
+    const { queryByText } = render(
+      <BridgeStepDescription
+        step={stepWithoutSymbols}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+      />,
+    );
+
+    expect(queryByText(/ETH/)).toBeFalsy();
+    expect(queryByText(/USDC/)).toBeFalsy();
+  });
+
+  it('should render with correct text variant based on status', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.PENDING}
+      />,
+    );
+
+    const textElement = getByText(/ETH/);
+    expect(textElement.props.style).toHaveProperty('fontWeight', '500');
+  });
+
+  it('should render with correct text color based on status', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.UNKNOWN}
+      />,
+    );
+
+    const textElement = getByText(/ETH/);
+    expect(textElement.props.style).toHaveProperty('color', '#686e7d');
+  });
 });
