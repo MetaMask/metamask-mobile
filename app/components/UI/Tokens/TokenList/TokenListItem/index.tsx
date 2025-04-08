@@ -54,6 +54,7 @@ import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainN
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { formatWithThreshold } from '../../../../../util/assets';
+import { CustomNetworkNativeImgMapping } from './CustomNetworkNativeImgMapping';
 
 interface TokenListItemProps {
   asset: TokenI;
@@ -281,6 +282,18 @@ export const TokenListItem = React.memo(
 
     const renderNetworkAvatar = useCallback(() => {
       if (asset.isNative) {
+        const isCustomNetwork = CustomNetworkNativeImgMapping[chainId];
+
+        if (isCustomNetwork) {
+          return (
+            <AvatarToken
+              name={asset.symbol}
+              imageSource={CustomNetworkNativeImgMapping[chainId]}
+              size={AvatarSize.Md}
+            />
+          );
+        }
+
         return (
           <NetworkAssetLogo
             chainId={chainId as Hex}
