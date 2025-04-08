@@ -7,10 +7,8 @@ import useAddToken from './useAddToken';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { getQuoteRequest } from '../../../selectors/bridgeController';
-// import { serializeQuoteMetadata } from '..';
-import { QuoteMetadata } from '@metamask/bridge-controller';
-import { QuoteMetadataSerialized } from '@metamask/bridge-status-controller';
 import { serializeQuoteMetadata } from '..';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 
 export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();

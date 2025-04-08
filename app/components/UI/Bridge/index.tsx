@@ -45,7 +45,6 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
-import { DummyQuoteMetadata } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
