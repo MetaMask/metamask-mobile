@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import React, { useMemo } from 'react';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
@@ -29,26 +29,15 @@ const MultichainTransactionsView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const [loading, setLoading] = useState(true);
+
   const solanaAccountTransactions = useSelector(
     selectSolanaAccountTransactions,
   );
 
-const transactions = useMemo(() => 
-  solanaAccountTransactions?.transactions || [], 
-  [solanaAccountTransactions]
-);
-
-  useEffect(() => {
-    // if it has already been set to false, don't re-run the effect
-    if (loading === false) return;
-    // simple timeout to simulate loading
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [loading, solanaAccountTransactions]);
+  const transactions = useMemo(
+    () => solanaAccountTransactions?.transactions,
+    [solanaAccountTransactions],
+  );
 
   const renderEmptyList = () => (
     <View style={style.emptyContainer}>
@@ -90,18 +79,6 @@ const transactions = useMemo(() =>
     />
   );
 
-  if (loading) {
-    return (
-      <View style={style.loader}>
-        <ActivityIndicator
-          size="large"
-          color={colors.primary.default}
-          testID={`transactions-loading-indicator`}
-        />
-      </View>
-    );
-  }
-
   return (
     <View style={style.wrapper}>
       <FlashList
@@ -110,7 +87,7 @@ const transactions = useMemo(() =>
         keyExtractor={(item) => item.id}
         ListEmptyComponent={renderEmptyList}
         style={baseStyles.flexGrow}
-        ListFooterComponent={transactions.length > 0 ? renderViewMore() : null}
+        ListFooterComponent={transactions?.length > 0 ? renderViewMore() : null}
         estimatedItemSize={200}
       />
     </View>

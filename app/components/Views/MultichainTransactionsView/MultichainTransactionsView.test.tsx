@@ -122,11 +122,6 @@ describe('MultichainTransactionsView', () => {
     });
   });
 
-  it('renders loading state initially', () => {
-    const { getByTestId } = customRender(<MultichainTransactionsView />);
-    expect(getByTestId('transactions-loading-indicator')).toBeTruthy();
-  });
-
   it('handles case when transactions data is not available', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
@@ -142,13 +137,6 @@ describe('MultichainTransactionsView', () => {
       <MultichainTransactionsView />,
     );
 
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
     expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
@@ -156,14 +144,6 @@ describe('MultichainTransactionsView', () => {
     const { queryByTestId, queryAllByTestId } = customRender(
       <MultichainTransactionsView />,
     );
-
-    act(() => {
-      jest.advanceTimersByTime(600);
-    });
-
-    await waitFor(() => {
-      expect(queryByTestId('transactions-loading-indicator')).toBeNull();
-    });
 
     const transactionItems = queryAllByTestId('transaction-item');
     expect(transactionItems.length).toBe(2);

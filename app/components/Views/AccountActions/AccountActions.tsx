@@ -420,12 +420,14 @@ const AccountActions = () => {
           onPress={onShare}
           testID={AccountActionsBottomSheetSelectorsIDs.SHARE_ADDRESS}
         />
-        <AccountAction
-          actionTitle={strings('account_details.show_private_key')}
-          iconName={IconName.Key}
-          onPress={goToExportPrivateKey}
-          testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
-        />
+        {selectedAddress && isEvmAccountType(selectedAccount.type) && (
+          <AccountAction
+            actionTitle={strings('account_details.show_private_key')}
+            iconName={IconName.Key}
+            onPress={goToExportPrivateKey}
+            testID={AccountActionsBottomSheetSelectorsIDs.SHOW_PRIVATE_KEY}
+          />
+        )}
         {selectedAddress && isHardwareAccount(selectedAddress) && (
           <AccountAction
             actionTitle={strings('accounts.remove_hardware_account')}
