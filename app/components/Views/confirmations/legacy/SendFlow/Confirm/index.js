@@ -636,7 +636,7 @@ class Confirm extends PureComponent {
       maxValueMode &&
       selectedAsset.isETH &&
       !isEmpty(gasFeeEstimates) &&
-      (haveGasFeeMaxNativeChanged || isControllerTransactionAdded)
+      haveGasFeeMaxNativeChanged
     ) {
       updateTransactionToMaxValue({
         transactionId,
