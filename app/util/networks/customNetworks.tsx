@@ -228,6 +228,8 @@ export const NETWORK_CHAIN_ID: {
   readonly GRAVITY_ALPHA_MAINNET: '0x659';
   readonly KAIA_MAINNET: '0x2019';
   readonly KAIA_KAIROS_TESTNET: '0x3e9';
+  readonly JOC_MAINNET: '0x51';
+  readonly JOC_TESTNET: '0x2761';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -236,6 +238,8 @@ export const NETWORK_CHAIN_ID: {
   GRAVITY_ALPHA_MAINNET: '0x659',
   KAIA_MAINNET: '0x2019',
   KAIA_KAIROS_TESTNET: '0x3e9',
+  JOC_MAINNET: '0x51',
+  JOC_TESTNET: '0x2761',
   ...CHAIN_IDS,
 };
 
@@ -249,4 +253,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: require('../../images/linea-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: require('../../images/kaia.png'),
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: require('../../images/kaia.png'),
+  [NETWORK_CHAIN_ID.JOC_MAINNET]: require('../../images/joc-mainnet-logo.png'),
+  [NETWORK_CHAIN_ID.JOC_TESTNET]: require('../../images/joc-testnet-logo.png'),
 };

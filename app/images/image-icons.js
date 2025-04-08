@@ -18,6 +18,8 @@ import KAIA_MAINNET from './kaia.png';
 import FOX_LOGO from '../../app/images/branding/tiny-logo.png';
 import BTC from './bitcoin-logo.png';
 import BASE from './base.png';
+import JOC_MAINNET from './joc-mainnet-logo.png';
+import JOC_TESTNET from './joc-testnet-logo.png';
 
 export default {
   PALM,
@@ -42,4 +44,6 @@ export default {
   FOX_LOGO,
   BTC,
   BASE,
+  'JOC-MAINNET': JOC_MAINNET,
+  'JOC-TESTNET': JOC_TESTNET,
 };
