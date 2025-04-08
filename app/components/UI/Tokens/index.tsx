@@ -203,7 +203,6 @@ const Tokens = memo(() => {
             onRefresh={onRefresh}
             showRemoveMenu={showRemoveMenu}
             goToAddToken={goToAddToken}
-            showNetworkBadge={isEvmSelected}
           />
         )}
         <ActionSheet
