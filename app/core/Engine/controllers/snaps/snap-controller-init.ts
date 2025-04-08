@@ -13,7 +13,7 @@ import {
 } from '../../../Snaps';
 import {
   Encryptor,
-  DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+  LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../../../Encryptor';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -42,7 +42,7 @@ export const snapControllerInit: ControllerInitFunction<
   const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
 
   const encryptor = new Encryptor({
-    keyDerivationOptions: DERIVATION_OPTIONS_MINIMUM_OWASP2023,
+    keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
   });
 
   // Async because `SnapController` expects a promise.
