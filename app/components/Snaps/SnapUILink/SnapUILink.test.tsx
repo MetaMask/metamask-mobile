@@ -2,13 +2,11 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { SnapUILink } from './SnapUILink';
-import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import Icon, {
   IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { TextColor } from '../../../component-library/components/Texts/Text';
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn(),
@@ -25,14 +23,18 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { UNSAFE_getByType } = render(<SnapUILink {...validProps} />);
+    const { UNSAFE_getByType, getByTestId } = render(
+      <SnapUILink {...validProps} />,
+    );
 
-    const button = UNSAFE_getByType(ButtonLink);
+    const touchable = getByTestId('snaps-ui-link');
     const icon = UNSAFE_getByType(Icon);
 
-    expect(button).toBeTruthy();
-    expect(button.props.testID).toBe('snaps-ui-link');
-    expect(button.props.color).toBe(TextColor.Info);
+    expect(touchable).toBeTruthy();
+    expect(touchable.props.accessibilityRole).toBe('link');
+    expect(touchable.props.accessibilityHint).toBe(
+      `Opens ${validProps.href} in your browser`,
+    );
     expect(icon.props.name).toBe(IconName.Export);
     expect(icon.props.color).toBe(IconColor.Primary);
     expect(icon.props.size).toBe(IconSize.Sm);
