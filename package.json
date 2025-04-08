@@ -216,7 +216,7 @@
     "@metamask/snaps-rpc-methods": "^12.0.0",
     "@metamask/snaps-sdk": "^6.21.0",
     "@metamask/snaps-utils": "^9.1.0",
-    "@metamask/solana-wallet-snap": "^1.18.0",
+    "@metamask/solana-wallet-snap": "^1.18.1",
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^12.1.0",
