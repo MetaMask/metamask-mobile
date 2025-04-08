@@ -320,9 +320,13 @@ export class Engine {
       allowedActions: [],
     });
 
+    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
+
     let initialNetworkControllerState = initialState.NetworkController;
     if (!initialNetworkControllerState) {
-      initialNetworkControllerState = getDefaultNetworkControllerState();
+      initialNetworkControllerState = getDefaultNetworkControllerState(
+        additionalDefaultNetworks,
+      );
 
       // Add failovers for default Infura RPC endpoints
       initialNetworkControllerState.networkConfigurationsByChainId[
@@ -368,7 +372,7 @@ export class Engine {
 
         return commonOptions;
       },
-      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
+      additionalDefaultNetworks,
     };
     const networkController = new NetworkController(networkControllerOpts);
     networkControllerMessenger.subscribe(
