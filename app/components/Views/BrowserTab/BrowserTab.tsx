@@ -109,6 +109,7 @@ import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -294,25 +295,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     (urlOrigin: string) => {
-      const { PhishingController } = Engine.context;
+      if (whitelist?.includes(urlOrigin)) {
+        return true;
+      }
+      const phishingResult = getPhishingTestResult(urlOrigin);
+      // Is safe if no phishing result or if phishing result is false
+      const isSafe = !phishingResult?.result;
+      if (phishingResult && !isSafe && phishingResult.name) {
+        blockListType.current = phishingResult.name;
+      }
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.maybeUpdateState();
-
-      const phishingControllerTestResult = PhishingController.test(urlOrigin);
-
-      // Only assign the if the hostname is on the block list
-      if (
-        phishingControllerTestResult.result &&
-        phishingControllerTestResult.name
-      )
-        blockListType.current = phishingControllerTestResult.name;
-
-      return (
-        whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
-      );
+      return isSafe;
     },
     [whitelist],
   );

@@ -144,7 +144,8 @@
     "nanoid": "^3.3.8",
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
-    "**/@walletconnect/utils/elliptic": "^6.6.1"
+    "**/@walletconnect/utils/elliptic": "^6.6.1",
+    "metro/image-size": "^1.2.1"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -427,7 +428,7 @@
     "@storybook/react-native": "^6.5.6",
     "@testing-library/react": "14.0.0",
     "@testing-library/react-hooks": "^8.0.1",
-    "@testing-library/react-native": "12.1.2",
+    "@testing-library/react-native": "^13.2.0",
     "@types/bnjs4": "npm:@types/bn.js@^4.11.6",
     "@types/bnjs5": "npm:@types/bn.js@^5.1.6",
     "@types/crypto-js": "^4.1.1",
