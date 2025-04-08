@@ -729,7 +729,7 @@ exports[`BridgeDestTokenSelector renders with initial state and displays tokens 
                                         "alignSelf": "flex-start",
                                         "backgroundColor": "transparent",
                                         "borderColor": "#b7bbc866",
-                                        "borderRadius": 20,
+                                        "borderRadius": 12,
                                         "borderWidth": 1,
                                         "flexDirection": "row",
                                         "height": 40,
