@@ -2,6 +2,7 @@ import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { isBridgeUiEnabled } from './';
 
 const {
   MAINNET,
@@ -36,7 +37,7 @@ export default function isBridgeAllowed(chainId: Hex | CaipChainId) {
   if (!AppConstants.BRIDGE.ACTIVE) return false;
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (chainId === SolScope.Mainnet && process.env.MM_BRIDGE_UI_ENABLED === 'true') {
+  if (chainId === SolScope.Mainnet && isBridgeUiEnabled()) {
     return true;
   }
   ///: END:ONLY_INCLUDE_IF(keyring-snaps)

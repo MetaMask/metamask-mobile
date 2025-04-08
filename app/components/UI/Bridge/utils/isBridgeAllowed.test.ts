@@ -2,7 +2,7 @@ import isBridgeAllowed from './isBridgeAllowed';
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
-
+import { isBridgeUiEnabled } from './';
 // Mock AppConstants
 jest.mock('../../../../core/AppConstants', () => ({
   BRIDGE: {
@@ -10,17 +10,12 @@ jest.mock('../../../../core/AppConstants', () => ({
   },
 }));
 
+jest.mock('.', () => ({
+  __esModule: true,
+  isBridgeUiEnabled: jest.fn(() => true),
+}));
+
 describe('isBridgeAllowed', () => {
-  const originalEnv = process.env;
-  beforeEach(() => {
-    jest.resetModules();
-    process.env = { ...originalEnv };
-  });
-
-  afterAll(() => {
-    process.env = originalEnv;
-  });
-
   const {
     MAINNET,
     OPTIMISM,
@@ -72,13 +67,13 @@ describe('isBridgeAllowed', () => {
     });
 
     describe('Solana mainnet handling', () => {
-      it('should return false for Solana mainnet when MM_BRIDGE_UI_ENABLED is false', () => {
-        process.env.MM_BRIDGE_UI_ENABLED = 'false';
-        expect(isBridgeAllowed(SolScope.Mainnet)).toBe(false);
+      it('should return true for Solana mainnet when bridge UI is enabled', () => {
+        (isBridgeUiEnabled as jest.Mock).mockReturnValue(true);
+        expect(isBridgeAllowed(SolScope.Mainnet)).toBe(true);
       });
 
-      it('should return false for Solana mainnet when MM_BRIDGE_UI_ENABLED is undefined', () => {
-        process.env.MM_BRIDGE_UI_ENABLED = undefined;
+      it('should return false for Solana mainnet when bridge UI is disabled', () => {
+        (isBridgeUiEnabled as jest.Mock).mockReturnValue(false);
         expect(isBridgeAllowed(SolScope.Mainnet)).toBe(false);
       });
     });
