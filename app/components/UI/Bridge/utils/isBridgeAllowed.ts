@@ -1,8 +1,16 @@
 import AppConstants from '../../../../core/AppConstants';
 import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  SolScope,
+  ///: END:ONLY_INCLUDE_IF(keyring-snaps)
+} from '@metamask/keyring-api';
+
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { isBridgeUiEnabled } from './';
+///: END:ONLY_INCLUDE_IF(keyring-snaps)
 
 const {
   MAINNET,
