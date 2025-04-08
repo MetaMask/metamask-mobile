@@ -186,7 +186,7 @@ const BridgeView = () => {
     const quoteResponse = {};
     // TESTING: Paste quote metadata from extension here to test the bridge flow
     const quoteMetadata = {};
-    if (quoteResponse && quoteMetadata) {
+    if (Object.keys(quoteResponse).length > 0 && Object.keys(quoteMetadata).length > 0) {
       await submitBridgeTx({ quoteResponse: {...quoteResponse, ...quoteMetadata} as QuoteResponse & QuoteMetadata });
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
