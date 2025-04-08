@@ -257,6 +257,12 @@ import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
+import {
+  AppMetadataController,
+  AppMetadataControllerActions,
+  AppMetadataControllerEvents,
+  AppMetadataControllerState,
+} from './controllers/app-metadata-controller';
 
 /**
  * Controllers that area always instantiated
@@ -340,7 +346,8 @@ type GlobalActions =
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
-  | EarnControllerActions;
+  | EarnControllerActions
+  | AppMetadataControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -389,7 +396,8 @@ type GlobalEvents =
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
+  | EarnControllerEvents
+  | AppMetadataControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -461,6 +469,7 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
+  AppMetadataController: AppMetadataController;
 };
 
 /**
@@ -522,6 +531,7 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
+  AppMetadataController: AppMetadataControllerState;
 };
 
 /** Controller names */
@@ -558,6 +568,7 @@ export type ControllersToInitialize =
   | 'SnapController'
   | 'SnapInterfaceController'
   | 'SnapsRegistry'
+  | 'AppMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
