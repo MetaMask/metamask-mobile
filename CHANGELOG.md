@@ -6,8 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Added
-- feat: a new lineitem for the release a great feature you know
+- A new line item for the release: a great feature you know.
 
 ## [7.43.0]
 
