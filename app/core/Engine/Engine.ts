@@ -133,6 +133,7 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  ChainId,
   handleFetch,
   ChainId,
   toChecksumHexAddress,
@@ -343,6 +344,9 @@ export class Engine {
         fetch,
         btoa,
       }),
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
     networkControllerMessenger.subscribe(

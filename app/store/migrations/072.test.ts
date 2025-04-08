@@ -1,1193 +1,230 @@
-import { RpcEndpointType } from '@metamask/network-controller';
+
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import { Hex } from '@metamask/utils';
+
+import { ensureValidState } from './util';
 import migrate from './072';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
-const captureExceptionMock = jest.mocked(captureException);
 
-const VERSION = 72;
+jest.mock('./util', () => ({
+  ensureValidState: jest.fn(),
+}));
 
-const MM_INFURA_PROJECT_ID = 'some-infura-project-id';
-const QUICKNODE_MAINNET_URL = 'https://example.quicknode.com/mainnet';
-const QUICKNODE_LINEA_MAINNET_URL =
-  'https://example.quicknode.com/linea-mainnet';
-const QUICKNODE_ARBITRUM_URL = 'https://example.quicknode.com/arbitrum';
-const QUICKNODE_AVALANCHE_URL = 'https://example.quicknode.com/avalanche';
-const QUICKNODE_OPTIMISM_URL = 'https://example.quicknode.com/optimism';
-const QUICKNODE_POLYGON_URL = 'https://example.quicknode.com/polygon';
-const QUICKNODE_BASE_URL = 'https://example.quicknode.com/base';
+const mockedCaptureException = jest.mocked(captureException);
+const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe(`Migration #${VERSION}`, () => {
-  let originalEnv: NodeJS.ProcessEnv;
-
-  beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.resetAllMocks();
-
-    originalEnv = { ...process.env };
-  });
-
-  afterEach(() => {
-    for (const key of new Set([
-      ...Object.keys(originalEnv),
-      ...Object.keys(process.env),
-    ])) {
-      if (originalEnv[key]) {
-        process.env[key] = originalEnv[key];
-      } else {
-        delete process.env[key];
-      }
+const createTestState = () => ({
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        selectedNetworkClientId: 'mainnet',
+        networksMetadata: {},
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            rpcEndpoints: [
+              {
+                networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Ethereum Mainnet',
+            nativeCurrency: 'ETH',
+          },
+          '0xaa36a7': {
+            chainId: '0xaa36a7',
+            rpcEndpoints: [
+              {
+                networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://sepolia.etherscan.io'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Sepolia',
+            nativeCurrency: 'SepoliaETH',
+          },
+          '0xe705': {
+            chainId: '0xe705',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-sepolia',
+                url: 'https://linea-sepolia.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://sepolia.lineascan.build'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Linea Sepolia',
+            nativeCurrency: 'LineaETH',
+          },
+          '0xe708': {
+            chainId: '0xe708',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-mainnet',
+                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.build'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Linea Mainnet',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
     }
-  });
+  }
+});
 
-  it('logs an error and returns the state unchanged if MM_INFURA_PROJECT_ID is not set', async () => {
-    const state = {};
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: No MM_INFURA_PROJECT_ID set!`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if the state is not an object', () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = 'not-an-object';
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state to be an object, but is string`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if state.engine is missing', () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {};
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if state.engine is not object', () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = { engine: 'not-an-object' };
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine to be an object, but is string`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if state.engine.backgroundState is missing', () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {},
-    };
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if state.engine.backgroundState is not an object', () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: 'not-an-object',
+const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
+    chainId: '0x18c6',
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        url: 'https://carrot.megaeth.com/rpc',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
       },
-    };
-    const expectedState = state;
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://megaexplorer.xyz'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
+});
 
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState to be an object, but is string`,
-      }),
-    );
+describe('Migration 72: Add `MegaEth Testnet`', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
   });
 
-  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController is missing', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {},
-      },
-    };
-    const expectedState = state;
+  it('returns state unchanged if ensureValidState fails', () => {
+    const state = { some: 'state' };
+    mockedEnsureValidState.mockReturnValue(false);
 
-    const newState = migrate(state);
+    const migratedState = migrate(state);
 
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState.NetworkController`,
-      }),
-    );
+    expect(migratedState).toStrictEqual({ some: 'state' });
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController is not an object', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: 'not-an-object',
-        },
-      },
-    };
-    const expectedState = state;
+  it('adds `MegaEth Testnet` as default network to state', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
+    const oldState = createTestState();
+    mockedEnsureValidState.mockReturnValue(true);
 
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState.NetworkController to be an object, but is string`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController.networkConfigurationsByChainId is missing', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {},
-        },
-      },
-    };
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState.NetworkController.networkConfigurationsByChainId`,
-      }),
-    );
-  });
-
-  it('logs an error and returns the state unchanged if NetworkController.networkConfigurationsByChainId is not an object', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
+    const expectedData = {
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurationsByChainId: 'not-an-object',
-          },
-        },
-      },
-    };
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toBe(expectedState);
-    expect(captureExceptionMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState.NetworkController.networkConfigurationsByChainId to be an object, but is string`,
-      }),
-    );
-  });
-
-  it('returns the state unchanged if state.engine.backgroundState.NetworkController.networkConfigurationsByChainId is empty', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {},
-          },
-        },
-      },
-    };
-    const expectedState = state;
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('does not update any network configurations that are not objects', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              '0x1': 'not-an-object',
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': 'not-an-object',
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
+        }
+      }
     };
 
-    const newState = migrate(state);
+    const migratedState = migrate(oldState);
 
-    expect(newState).toStrictEqual(expectedState);
+    expect(migratedState).toStrictEqual(expectedData);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does not update any network configurations that do not have rpcEndpoints', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
+  it('replaces `MegaEth Testnet` NetworkConfiguration if there is one', () => {
+    const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
+    const oldState = createTestState();
+    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration> ;
+    networkConfigurationsByChainId[megaethTestnetConfiguration.chainId] = {
+      ...megaethTestnetConfiguration,
+      rpcEndpoints: [
+        {
+          networkClientId: 'some-client-id',
+          url: 'https://some-url.com/rpc',
+          type: RpcEndpointType.Custom,
+        },
+      ],
+    };
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const expectedData = {
       engine: {
         backgroundState: {
           NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              '0x1': {},
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {},
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
+        }
+      }
     };
 
-    const newState = migrate(state);
+    const migratedState = migrate(oldState);
 
-    expect(newState).toStrictEqual(expectedState);
+    expect(migratedState).toStrictEqual(expectedData);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('assigns an empty set of failover URLs to custom RPC endpoints that use non-Infura URLs', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
+  it.each([{
+    state: {
+      engine: {}
+    },
+    test: 'empty engine state',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {}
+      }
+    },
+    test: 'empty backgroundState',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {
+          NetworkController: 'invalid'
+        }
+      },
+    },
+    test: 'invalid NetworkController state'
+  }, {
+    state: {
       engine: {
         backgroundState: {
           NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x539': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: 'https://foo.com',
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
+            networkConfigurationsByChainId: 'invalid'
+          }
+        }
       },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x539': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: 'https://foo.com',
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
+    },
+    test: 'invalid networkConfigurationsByChainId state'
+  }
+  ])('does not modify state if the state is invalid - $test', ({ state }) => {
+    const orgState = cloneDeep(state);
+    mockedEnsureValidState.mockReturnValue(true);
 
-    const newState = migrate(state);
+    const migratedState = migrate(state);
 
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('assigns an empty set of failover URLs to custom RPC endpoints that contain an Infura URL but do not use our API key', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: 'https://mainnet.infura.io/v3/some-other-api-key',
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: 'https://mainnet.infura.io/v3/some-other-api-key',
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('assigns failover URLs to known Infura RPC endpoints', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_MAINNET_URL = QUICKNODE_MAINNET_URL;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    process.env.QUICKNODE_ARBITRUM_URL = QUICKNODE_ARBITRUM_URL;
-    process.env.QUICKNODE_AVALANCHE_URL = QUICKNODE_AVALANCHE_URL;
-    process.env.QUICKNODE_OPTIMISM_URL = QUICKNODE_OPTIMISM_URL;
-    process.env.QUICKNODE_POLYGON_URL = QUICKNODE_POLYGON_URL;
-    process.env.QUICKNODE_BASE_URL = QUICKNODE_BASE_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://base.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_MAINNET_URL],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_ARBITRUM_URL],
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_AVALANCHE_URL],
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_OPTIMISM_URL],
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_POLYGON_URL],
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://base.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_BASE_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('assigns an empty set of failover URLs to any Infura endpoints for which the appropriate environment variable is not set', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://base.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://base.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('does not update any Infura RPC endpoints that already have failover URLs defined', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: ['https://foo.com'],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: ['https://foo.com'],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Infura,
-                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('assigns failover URLs to custom RPC endpoints that are actually Infura RPC endpoints in disguise', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_MAINNET_URL = QUICKNODE_MAINNET_URL;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    process.env.QUICKNODE_ARBITRUM_URL = QUICKNODE_ARBITRUM_URL;
-    process.env.QUICKNODE_AVALANCHE_URL = QUICKNODE_AVALANCHE_URL;
-    process.env.QUICKNODE_OPTIMISM_URL = QUICKNODE_OPTIMISM_URL;
-    process.env.QUICKNODE_POLYGON_URL = QUICKNODE_POLYGON_URL;
-    process.env.QUICKNODE_BASE_URL = QUICKNODE_BASE_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_MAINNET_URL],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_ARBITRUM_URL],
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_AVALANCHE_URL],
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_OPTIMISM_URL],
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_POLYGON_URL],
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_BASE_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('assigns an empty set of failover URLs to custom RPC endpoints that are actually Infura RPC endpoints in disguise but for which the appropriate environment variables are not set', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa4b1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa86a': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0xa': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0x89': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-              '0x2105': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
-  });
-
-  it('does not update any in-disguise Infura RPC endpoints that already have failover URLs defined', async () => {
-    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
-    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
-    const state = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: ['https://foo.com'],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-    const expectedState = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            networkConfigurationsByChainId: {
-              '0x1': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: ['https://foo.com'],
-                  },
-                ],
-              },
-              '0xe708': {
-                rpcEndpoints: [
-                  {
-                    type: RpcEndpointType.Custom,
-                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
-                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const newState = migrate(state);
-
-    expect(newState).toStrictEqual(expectedState);
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
