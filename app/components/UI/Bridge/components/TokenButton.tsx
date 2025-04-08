@@ -54,7 +54,7 @@ const createStyles = (params: StylesParams) => {
   });
 };
 
-export const Token: React.FC<TokenProps> = ({
+export const TokenButton: React.FC<TokenProps> = ({
   symbol,
   iconUrl,
   networkImageSource,
