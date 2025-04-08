@@ -17,6 +17,7 @@ export const mockedEngine = {
       },
     },
     PermissionController: {
+      requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
       revokePermission: jest.fn(),

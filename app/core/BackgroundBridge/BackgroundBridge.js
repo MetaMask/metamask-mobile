@@ -23,10 +23,7 @@ import { store } from '../../store';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { rpcErrors } from '@metamask/rpc-errors';
 import snapMethodMiddlewareBuilder from '../Snaps/SnapsMethodMiddleware';
-import {
-  PermissionDoesNotExistError,
-  SubjectType,
-} from '@metamask/permission-controller';
+import { SubjectType } from '@metamask/permission-controller';
 ///: END:ONLY_INCLUDE_IF
 
 import { createEngineStream } from '@metamask/json-rpc-middleware-stream';
@@ -516,7 +513,7 @@ export class BackgroundBridge extends EventEmitter {
       createEthAccountsMethodMiddleware({
         getAccounts: (...args) =>
           getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
-          // TODO: [ffmcgee] verify with Arthur if this check should be done everywhere we are passing in the origin (this.isMMSDK ? ......)
+        // TODO: [ffmcgee] verify with Arthur if this check should be done everywhere we are passing in the origin (this.isMMSDK ? ......)
       }),
     );
 
