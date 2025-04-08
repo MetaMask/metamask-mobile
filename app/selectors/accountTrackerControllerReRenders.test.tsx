@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Store } from 'redux';
 import { act } from '@testing-library/react-native';
-import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
+import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import { CommonQueryOptions } from '@testing-library/react-native/build/queries/options';
 import {
   TextMatch,
