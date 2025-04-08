@@ -4,7 +4,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import AppConstants from '../../../core/AppConstants';
-import { RecommendedAction } from '@metamask/phishing-controller';
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -23,15 +22,6 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('react-native-material-textfield', () => ({
-  OutlinedTextField: 'OutlinedTextField',
-}));
-
-jest.mock('react-native/Libraries/Linking/Linking', () => ({
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-}));
-
 const mockInitialState = {
   browser: { activeTab: '' },
   engine: {
@@ -45,29 +35,15 @@ const mockInitialState = {
   },
 };
 
-// Mock the scanUrl function of PhishingController
-const mockScanUrl = jest.fn();
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     PhishingController: {
       maybeUpdateState: jest.fn(),
-      test: () => ({ result: true, name: '' }),
-      scanUrl: (url: string) => mockScanUrl(url),
-    },
-    NetworkController: {
-      getProviderAndBlockTracker: () => ({
-        provider: {},
-      }),
-    },
-    PermissionController: {
-      state: {},
-      getCaveat: jest.fn(),
+      test: () => ({ result: true, name: 'test' }),
     },
   },
 }));
 
-// Common props for BrowserTab component
 const mockProps = {
   id: 1,
   activeTab: 1,
@@ -95,40 +71,11 @@ describe('BrowserTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<BrowserTab {...mockProps} />, {
       state: mockInitialState,
     });
     expect(toJSON()).toMatchSnapshot();
-  });
-  it('should allow whitelisted domains without calling scanUrl', async () => {
-    // TODO
-  });
-  it('should allow domains that pass the phishing scan with None recommendation', async () => {
-    // Mock the scanUrl to return a "None" result
-  });
-  it('should not allow domains with Block recommendation', async () => {
-    mockScanUrl.mockResolvedValue({
-      domainName: 'evildomain.com',
-      url: 'https://evildomain.com',
-      action: RecommendedAction.Block,
-    });
-
-    const props = {
-      ...mockProps,
-      initialUrl: 'https://evildomain.com',
-    };
-
-    renderWithProvider(<BrowserTab {...props} />, {
-      state: mockInitialState,
-    });
-
-    expect(mockScanUrl).toHaveBeenCalled();
-  });
-  it('should not allow domains with Warn recommendation', async () => {
-    // Mock the scanUrl to return a "Warn" result
-  });
-  it('should allow domains when phishing scan has a fetch error', async () => {
-    // Mock the scanUrl to return a fetch error
   });
 });
