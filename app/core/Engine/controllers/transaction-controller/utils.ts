@@ -3,14 +3,20 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { merge } from 'lodash';
+import type { RootState } from '../../../../reducers';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
 import {
   JsonMap,
   IMetaMetricsEvent,
 } from '../../../Analytics/MetaMetrics.types';
-import type { TransactionMetricRequest } from './types';
+import type {
+  TransactionEventHandlerRequest,
+  TransactionMetrics,
+} from './types';
 
-export function getTransactionTypeValue(transactionType: TransactionType | undefined) {
+export function getTransactionTypeValue(
+  transactionType: TransactionType | undefined,
+) {
   switch (transactionType) {
     case TransactionType.bridgeApproval:
       return 'bridge_approval';
@@ -62,10 +68,19 @@ export function getTransactionTypeValue(transactionType: TransactionType | undef
   }
 }
 
+const getConfirmationMetricProperties = (
+  getState: () => RootState,
+  transactionId: string,
+): TransactionMetrics => {
+  const state = getState();
+  return (state.confirmationMetrics.metricsById?.[transactionId] ||
+    {}) as unknown as TransactionMetrics;
+};
+
 export function generateDefaultTransactionMetrics(
   metametricsEvent: IMetaMetricsEvent,
   transactionMeta: TransactionMeta,
-  { getTransactionMetricProperties }: TransactionMetricRequest,
+  { getState }: TransactionEventHandlerRequest,
 ) {
   const { chainId, id, type, status } = transactionMeta;
 
@@ -79,7 +94,7 @@ export function generateDefaultTransactionMetrics(
         status,
       },
     },
-    getTransactionMetricProperties(id),
+    getConfirmationMetricProperties(getState, id),
   );
 
   return mergedDefaultProperties;
