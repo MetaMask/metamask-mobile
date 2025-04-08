@@ -1154,6 +1154,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
