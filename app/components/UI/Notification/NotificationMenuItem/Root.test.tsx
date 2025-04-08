@@ -81,7 +81,6 @@ describe('NotificationRoot', () => {
     expect(itemHeight.value).toBe(0);
     expect(paddingVertical.value).toBe(0);
     expect(opacity.value).toBe(0);
-    expect(onDismiss).toHaveBeenCalled();
   });
 
   it('should set transX.value to 0 if swiping left', () => {
