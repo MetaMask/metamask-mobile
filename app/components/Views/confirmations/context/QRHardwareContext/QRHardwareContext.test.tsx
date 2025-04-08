@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { userEvent } from '@testing-library/react-native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import Engine from '../../../../../core/Engine';
@@ -96,7 +96,7 @@ describe('QRHardwareContext', () => {
     ).toBe(true);
   });
 
-  it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', () => {
+  it('does not invokes KeyringController.cancelQRSignRequest when request is cancelled id QR signing is not in progress', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
       isQRSigningInProgress: false,
@@ -111,13 +111,13 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Cancel'));
+    await userEvent.press(getByText('Cancel'));
     expect(
       Engine.context.KeyringController.cancelQRSignRequest,
     ).toHaveBeenCalledTimes(0);
   });
 
-  it('invokes KeyringController.cancelQRSignRequest when request is cancelled', () => {
+  it('invokes KeyringController.cancelQRSignRequest when request is cancelled', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: false });
     createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
@@ -132,7 +132,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Cancel'));
+    await userEvent.press(getByText('Cancel'));
     expect(
       Engine.context.KeyringController.cancelQRSignRequest,
     ).toHaveBeenCalledTimes(1);
@@ -156,7 +156,7 @@ describe('QRHardwareContext', () => {
     expect(getByText('Scan with your hardware wallet')).toBeTruthy();
   });
 
-  it('passes correct value of scannerVisible to child components', () => {
+  it('passes correct value of scannerVisible to child components', async () => {
     createCameraSpy({ cameraError: undefined, hasCameraPermission: true });
     createQRHardwareAwarenessSpy({
       isQRSigningInProgress: true,
@@ -174,7 +174,7 @@ describe('QRHardwareContext', () => {
         state: personalSignatureConfirmationState,
       },
     );
-    fireEvent.press(getByText('Get Signature'));
+    await userEvent.press(getByText('Get Signature'));
     expect(
       getByText('Scan your hardware wallet to confirm the transaction'),
     ).toBeTruthy();
