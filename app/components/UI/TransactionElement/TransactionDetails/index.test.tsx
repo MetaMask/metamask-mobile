@@ -211,13 +211,21 @@ describe('TransactionDetails', () => {
           backgroundState: {
             ...initialState.engine.backgroundState,
             NetworkController: {
-              ...mockNetworkState({
+              '0x1': {
                 chainId: '0x1',
-                id: 'mainnet',
-                nickname: 'Mainnet',
-                ticker: 'ETH',
-                blockExplorerUrl: 'https://etherscan.io/',
-              }),
+                blockExplorerUrls: [],
+                rpcEndpoints: [
+                  {
+                    rpcUrl: 'https://mainnet.infura.io/v3/123',
+                    chainId: '0x1',
+                    nickname: 'Mainnet',
+                    ticker: 'ETH',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                name: 'Mainnet',
+                nativeCurrency: 'ETH',
+              },
             },
           },
         },
