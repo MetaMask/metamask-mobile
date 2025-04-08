@@ -401,9 +401,13 @@ describe('UserStorageMockttpController', () => {
         },
       ];
 
-      controller.setupPath(USER_STORAGE_FEATURE_NAMES.accounts, mockServer, {
-        getResponse: mockedData,
-      });
+      await controller.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: mockedData,
+        },
+      );
 
       const deleteRequest = await controller.onDelete(
         USER_STORAGE_FEATURE_NAMES.accounts,

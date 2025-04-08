@@ -23,6 +23,7 @@ import HintModal from '../../UI/HintModal';
 import { useTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
+import { useDispatch } from 'react-redux';
 import Icon, {
   IconName,
   IconColor,
@@ -33,6 +34,7 @@ import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import styles from './index.styles';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
+import { setCompletedOnboarding } from '../../../actions/onboarding';
 
 interface OnboardingSuccessProps {
   onDone: () => void;
@@ -47,6 +49,7 @@ const OnboardingSuccess = ({
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const dispatch = useDispatch();
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
 
@@ -67,10 +70,11 @@ const OnboardingSuccess = ({
   const handleOnDone = useCallback(() => {
     const onOnboardingSuccess = async () => {
       await importAdditionalAccounts();
+      await dispatch(setCompletedOnboarding(true));
     };
     onOnboardingSuccess();
     onDone();
-  }, [onDone]);
+  }, [onDone, dispatch]);
 
   const saveHint = async () => {
     if (!hintText) return;
