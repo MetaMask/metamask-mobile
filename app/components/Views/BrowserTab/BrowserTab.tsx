@@ -307,11 +307,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       const { PhishingController } = Engine.context;
 
       if (productSafetyDappScanningEnabled) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `${new Date().toISOString()} [BrowserTab][isAllowedOrigin] Scanning URL: ${urlOrigin}`,
-        );
-
         const scanResult = await PhishingController.scanUrl(urlOrigin);
         if (scanResult.fetchError) {
           // Log error but don't block the site based on a failed scan
@@ -321,12 +316,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           );
           return true;
         }
-        // eslint-disable-next-line no-console
-        console.log(
-          `${new Date().toISOString()} [BrowserTab][isAllowedOrigin] finished scanning: ${urlOrigin}: ${JSON.stringify(
-            scanResult,
-          )}`,
-        );
         return !(
           scanResult.recommendedAction === RecommendedAction.Block ||
           scanResult.recommendedAction === RecommendedAction.Warn
@@ -344,21 +333,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     },
     [whitelist, productSafetyDappScanningEnabled],
   );
+
   /**
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    // eslint-disable-next-line no-console
-    console.log(
-      `${new Date().toISOString()} [BrowserTab][handleNotAllowedUrl] urlOrigin: ${urlOrigin}`,
-    );
     // Ignore showing the phishing modal if the user is no longer on the page.
     const currentUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
     if (currentUrlOrigin !== urlOrigin) {
-      // eslint-disable-next-line no-console
-      console.log(
-        `${new Date().toISOString()} [BrowserTab][handleNotAllowedUrl] currentUrlOrigin: ${currentUrlOrigin} urlOrigin: ${urlOrigin}`,
-      );
       return;
     }
     setBlockedUrl(urlOrigin);
@@ -667,6 +649,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
+      // To handle for Chrome's error page
       if (webViewError.code === -16) {
         if (backEnabled) {
           goBack();
@@ -905,19 +888,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       event: WebViewNavigationEvent | WebViewErrorEvent;
       forceResolve?: boolean;
     }) => {
-      // eslint-disable-next-line no-console
-      console.log(
-        `${new Date().toISOString()} [BrowserTab][onLoadEnd] started: ${
-          nativeEvent.url
-        }`,
-      );
       if ('code' in nativeEvent) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `${new Date().toISOString()} [BrowserTab][onLoadEnd] calling handleError and then returning ${
-            nativeEvent.url
-          } code: ${nativeEvent.code}`,
-        );
         // Handle error - code is a property of WebViewErrorEvent
         return handleError(nativeEvent);
       }
@@ -944,12 +915,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           canGoForward,
         });
       }
-      // eslint-disable-next-line no-console
-      console.log(
-        `${new Date().toISOString()} [BrowserTab][onLoadEnd] finished: ${
-          nativeEvent.url
-        }`,
-      );
     },
     [handleError, handleSuccessfulPageResolution, favicon],
   );
@@ -1062,21 +1027,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         started: true,
       };
 
-      // eslint-disable-next-line no-console
-      console.log(
-        `${new Date().toISOString()} [BrowserTab][onLoadStart] urlOrigin: ${urlOrigin}`,
-      );
       // Cancel loading the page if we detect its a phishing page
       const isAllowed = await isAllowedOrigin(urlOrigin);
-      // eslint-disable-next-line no-console
-      console.log(
-        `${new Date().toISOString()} [BrowserTab][onLoadStart] isAllowed: ${isAllowed}`,
-      );
       if (!isAllowed) {
-        // eslint-disable-next-line no-console
-        console.log(
-          `${new Date().toISOString()} [BrowserTab][onLoadStart] handleNotAllowedUrl: ${urlOrigin}`,
-        );
         handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
         return false;
       }
