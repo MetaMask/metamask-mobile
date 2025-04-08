@@ -38,8 +38,8 @@ const arrangeMockState = (
     settings: {
       basicFunctionalityEnabled: stateOverrides.useExternalServices,
     },
-    wizard: {
-      step: stateOverrides.completedOnboarding ? 0 : 1,
+    onboarding: {
+      completedOnboarding: stateOverrides.completedOnboarding,
     },
   };
 

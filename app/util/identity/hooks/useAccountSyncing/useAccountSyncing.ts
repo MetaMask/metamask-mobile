@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { selectCurrentOnboardingStep } from '../../../../selectors/wizard';
+import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 import { syncInternalAccountsWithUserStorage } from '../../../../actions/identity';
@@ -28,7 +28,7 @@ export const useShouldDispatchAccountSyncing = () => {
   );
   const isUnlocked: boolean | undefined = useSelector(selectIsUnlocked);
   const isSignedIn = useSelector(selectIsSignedIn);
-  const completedOnboarding = useSelector(selectCurrentOnboardingStep) === 0;
+  const completedOnboarding = useSelector(selectCompletedOnboarding);
 
   const shouldDispatchProfileSyncing: boolean = Boolean(
     basicFunctionality &&
