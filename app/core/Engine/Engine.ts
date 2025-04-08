@@ -205,6 +205,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
@@ -511,7 +512,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+    if (!isProductSafetyDappScanningEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
