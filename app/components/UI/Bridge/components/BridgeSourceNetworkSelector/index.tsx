@@ -7,7 +7,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectEnabledSourceChains,
   selectSelectedSourceChainIds,
-  setSelectedSourceChainIds
+  setSelectedSourceChainIds,
+  setSourceToken
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
 import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
@@ -25,6 +26,10 @@ import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
 import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { Hex } from '@metamask/utils';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
 const createStyles = () => StyleSheet.create({
   listContent: {
@@ -56,6 +61,7 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
+  const evmNetworkConfigurations = useSelector(selectEvmNetworkConfigurationsByChainId);
 
   // Local state for candidate network selections
   const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
@@ -70,14 +76,37 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     formattedTokensWithBalancesPerChain,
   );
 
+  const {
+    chainId: selectedChainId,
+    domainIsConnectedDapp,
+    networkName: selectedNetworkName,
+  } = useNetworkInfo();
+  const { onSetRpcTarget } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId,
+    selectedNetworkName,
+  });
+
   const address = selectedInternalAccount?.address;
 
-  const handleApply = useCallback(() => {
+  const handleApply = useCallback(async () => {
     // Update the Redux state with the candidate selections
     dispatch(setSelectedSourceChainIds(candidateSourceChainIds));
+
+    // If there's only 1 network selected, set the source token to native token of that chain and switch chains
+    if (candidateSourceChainIds.length === 1) {
+      const networkConfiguration = evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
+      if (networkConfiguration) {
+        await onSetRpcTarget(networkConfiguration);
+      }
+
+      // Reset the source token, if undefined will be the native token of the selected chain
+      dispatch(setSourceToken(undefined));
+    }
+
     // Return to previous screen with selected networks
     navigation.goBack();
-  }, [navigation, dispatch, candidateSourceChainIds]);
+  }, [navigation, dispatch, candidateSourceChainIds, evmNetworkConfigurations, onSetRpcTarget]);
 
   // Toggle chain selection
   const toggleChain = useCallback((chainId: string) => {

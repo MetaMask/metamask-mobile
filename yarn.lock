@@ -5564,10 +5564,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.18.1":
-  version "1.18.1"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.1.tgz#4c24daf1c7c0862c759b44aa3d3677f8e47ff398"
-  integrity sha512-9JjYxZLLgi8TkX66HMozwzU+WrMEy+ukHxipEXQEYnacD/ZdfDSklwa1SnUs+koKQsyRD5EM/hB96WByXCaxFQ==
+"@metamask/solana-wallet-snap@^1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
+  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
@@ -5584,10 +5584,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-12.1.0.tgz#092faf636a4dccd593595e367b3682681ee53b3f"
-  integrity sha512-vITGvwCLvueUNdA9I/6axswLtnYjSa3bRA+bFVt7Pp8udHnvr/dOLYzQ0ksuN3FzuAAirF1+bte0pJO0147uSw==
+"@metamask/swaps-controller@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.1.0.tgz#53a9b700cf3131a3c2577beed5f8fcf36176c1a0"
+  integrity sha512-LThNShqW2SP9F9kMjHCrZfF+kLUzd7h4fFCQ5mgeHYEyqHyHr8BH4G8cfF+cFTYp1qZs7lNIdRjJYbZv2F8v/w==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
