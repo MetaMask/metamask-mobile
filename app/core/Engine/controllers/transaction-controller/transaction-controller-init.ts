@@ -18,13 +18,6 @@ import {
   submitSmartTransactionHook,
   type SubmitSmartTransactionRequest,
 } from '../../../../util/smart-transactions/smart-publish-hook';
-import {
-  handleTransactionAdded,
-  handleTransactionApproved,
-  handleTransactionFinalized,
-  handleTransactionRejected,
-  handleTransactionSubmitted,
-} from './transaction-event-handlers';
 import type { RootState } from '../../../../reducers';
 import { TransactionControllerInitMessenger } from '../../messengers/transaction-controller-messenger';
 import type {
@@ -32,6 +25,14 @@ import type {
   ControllerInitRequest,
 } from '../../types';
 import type { TransactionEventHandlerRequest } from './types';
+import {
+  handleTransactionApprovedEventForMetrics,
+  handleTransactionRejectedEventForMetrics,
+  handleTransactionSubmittedEventForMetrics,
+  handleTransactionAddedEventForMetrics,
+  handleTransactionFinalizedEventForMetrics,
+} from './event-handlers/metrics';
+import { handleShowNotification } from './event-handlers/notification';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
@@ -194,7 +195,14 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionApproved',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionApproved(
+      handleShowNotification(transactionMeta);
+    },
+  );
+
+  initMessenger.subscribe(
+    'TransactionController:transactionApproved',
+    ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
+      handleTransactionApprovedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -204,7 +212,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionConfirmed',
     (transactionMeta: TransactionMeta) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -214,7 +222,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionDropped',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -224,7 +232,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionFailed',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionFinalized(
+      handleTransactionFinalizedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -234,7 +242,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionRejected',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionRejected(
+      handleTransactionRejectedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -244,7 +252,7 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:transactionSubmitted',
     ({ transactionMeta }: { transactionMeta: TransactionMeta }) => {
-      handleTransactionSubmitted(
+      handleTransactionSubmittedEventForMetrics(
         transactionMeta,
         transactionEventHandlerRequest,
       );
@@ -254,7 +262,10 @@ function addTransactionControllerListeners(
   initMessenger.subscribe(
     'TransactionController:unapprovedTransactionAdded',
     (transactionMeta: TransactionMeta) => {
-      handleTransactionAdded(transactionMeta, transactionEventHandlerRequest);
+      handleTransactionAddedEventForMetrics(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      );
     },
   );
 }
