@@ -31,7 +31,6 @@ describe(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {
-    let mockServer;
     const decryptedAccountNames = '';
     const unencryptedAccounts = accountsToMockForAccountsSync;
 
@@ -66,12 +65,19 @@ describe(
 
     let accountsToMockBalances = [...INITIAL_ACCOUNTS];
 
-    beforeAll(async () => {
+    /**
+     * This test verifies the complete account syncing flow in three phases:
+     * Phase 1: Initial setup, where we check that 4 accounts are shown due to balance detection even though the user storage only has 2 accounts.
+     * Phase 2: Discovery of 2 more accounts after adding balances. We still expect to only see 6 even though we had 5 accounts synced in the previous test
+     * Phase 3: Verification that any final changes to user storage are persisted and that we don't see any extra accounts created
+     */
+
+    it('handles account syncing with balances correctly', async () => {
       // Account sync test can take a while to run, so we increase the timeout
       jest.setTimeout(600000);
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer();
+      const mockServer = await startMockServer();
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -92,22 +98,7 @@ describe(
         newInstance: true,
         delete: true,
       });
-    });
 
-    afterAll(async () => {
-      if (mockServer) {
-        await stopMockServer(mockServer);
-      }
-    });
-
-    /**
-     * This test verifies the complete account syncing flow in three phases:
-     * Phase 1: Initial setup, where we check that 4 accounts are shown due to balance detection even though the user storage only has 2 accounts.
-     * Phase 2: Discovery of 2 more accounts after adding balances. We still expect to only see 6 even though we had 5 accounts synced in the previous test
-     * Phase 3: Verification that any final changes to user storage are persisted and that we don't see any extra accounts created
-     */
-
-    it('handles account syncing with balances correctly', async () => {
       // PHASE 1: Initial setup and account creation
       // Complete initial setup with provided seed phrase
       await importWalletWithRecoveryPhrase(
@@ -185,6 +176,8 @@ describe(
           'My Renamed Account 6',
         ),
       );
+
+      await stopMockServer(mockServer);
     });
   },
 );

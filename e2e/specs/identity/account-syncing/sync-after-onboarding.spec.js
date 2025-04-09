@@ -21,12 +21,11 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
   () => {
-    let mockServer;
-    beforeAll(async () => {
+    it('retrieves all previously synced accounts', async () => {
       // Account sync test can take a while to run, so we increase the timeout
       jest.setTimeout(600000);
 
-      mockServer = await startMockServer({
+      const mockServer = await startMockServer({
         mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
       });
 
@@ -49,16 +48,6 @@ describe(
         newInstance: true,
         delete: true,
       });
-    });
-
-    afterAll(async () => {
-      if (mockServer) {
-        await stopMockServer(mockServer);
-      }
-    });
-
-    it('retrieves all previously synced accounts', async () => {
-      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const decryptedAccountNames = await Promise.all(
         accountsSyncMockResponse.map(async (response) => {
@@ -84,6 +73,8 @@ describe(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
+
+      await stopMockServer(mockServer);
     });
   },
 );
