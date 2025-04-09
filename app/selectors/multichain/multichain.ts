@@ -302,15 +302,23 @@ export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
   },
 );
 
+const DEFAULT_TRANSACTION_STATE_ENTRY = {
+  transactions: [],
+  next: null,
+  lastUpdated: 0,
+};
+
 export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
   (nonEvmTransactions, selectedAccount) => {
     if (!selectedAccount) {
-      return [];
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
-    return nonEvmTransactions[selectedAccount.id] || [];
+    return (
+      nonEvmTransactions[selectedAccount.id] ?? DEFAULT_TRANSACTION_STATE_ENTRY
+    );
   },
 );
 

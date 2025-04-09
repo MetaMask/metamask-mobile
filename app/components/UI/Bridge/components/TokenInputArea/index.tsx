@@ -3,16 +3,25 @@ import { StyleSheet, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
-import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
-import { Token } from '../Token';
-import { selectCurrentCurrency, selectCurrencyRates } from '../../../../../selectors/currencyRateController';
-import { renderNumber, addCurrencySymbol, balanceToFiatNumber } from '../../../../../util/number';
+import { TokenButton } from '../TokenButton';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../../selectors/currencyRateController';
+import {
+  renderNumber,
+  addCurrencySymbol,
+  balanceToFiatNumber,
+} from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { TokenI } from '../../../Tokens/types';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
+import { BridgeToken } from '../../types';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -38,14 +47,19 @@ const createStyles = () =>
     },
   });
 
-const formatAddress = (address?: string) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+const formatAddress = (address?: string) =>
+  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 interface GetDisplayFiatValueParams {
-  token: TokenI | undefined;
+  token: BridgeToken | undefined;
   amount: string | undefined;
-  multiChainMarketData: Record<Hex, Record<Hex, { price: number | undefined }>> | undefined;
+  multiChainMarketData:
+    | Record<Hex, Record<Hex, { price: number | undefined }>>
+    | undefined;
   networkConfigurationsByChainId: Record<Hex, { nativeCurrency: string }>;
-  multiChainCurrencyRates: Record<string, { conversionRate: number | null }> | undefined;
+  multiChainCurrencyRates:
+    | Record<string, { conversionRate: number | null }>
+    | undefined;
   currentCurrency: string;
 }
 
@@ -65,11 +79,17 @@ export const getDisplayFiatValue = ({
   const multiChainExchangeRates = multiChainMarketData?.[chainId];
   const tokenMarketData = multiChainExchangeRates?.[token.address as Hex];
 
-  const nativeCurrency = networkConfigurationsByChainId[chainId]?.nativeCurrency;
-  const multiChainConversionRate = multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+  const nativeCurrency =
+    networkConfigurationsByChainId[chainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
 
   const balanceFiatCalculation = Number(
-    balanceToFiatNumber(amount, multiChainConversionRate, tokenMarketData?.price ?? 0)
+    balanceToFiatNumber(
+      amount,
+      multiChainConversionRate,
+      tokenMarketData?.price ?? 0,
+    ),
   );
 
   if (balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0) {
@@ -85,7 +105,7 @@ export enum TokenInputAreaType {
 }
 interface TokenInputAreaProps {
   amount?: string;
-  token?: TokenI;
+  token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
@@ -128,12 +148,19 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   });
 
   // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-  const formattedBalance = token?.symbol && tokenBalance ? (
-    `${renderNumber(tokenBalance)} ${token?.symbol}`
-  ) : undefined;
-  const formattedAddress = token?.address && token.address !== ethers.constants.AddressZero ? formatAddress(token?.address) : undefined;
+  const formattedBalance =
+    token?.symbol && tokenBalance
+      ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+      : undefined;
+  const formattedAddress =
+    token?.address && token.address !== ethers.constants.AddressZero
+      ? formatAddress(token?.address)
+      : undefined;
 
-  const subtitle = tokenType === TokenInputAreaType.Source ? formattedBalance : formattedAddress;
+  const subtitle =
+    tokenType === TokenInputAreaType.Source
+      ? formattedBalance
+      : formattedAddress;
 
   return (
     <Box style={styles.container}>
@@ -149,7 +176,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
               testID={`${testID}-input`}
             />
           </Box>
-          <Token
+          <TokenButton
             symbol={token?.symbol}
             iconUrl={token?.image}
             networkImageSource={networkImageSource}
@@ -160,14 +187,10 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
         </Box>
         <Box style={styles.row}>
           {fiatValue ? (
-            <Text color={TextColor.Alternative}>
-              {fiatValue}
-            </Text>
+            <Text color={TextColor.Alternative}>{fiatValue}</Text>
           ) : null}
           {subtitle ? (
-            <Text color={TextColor.Alternative}>
-              {subtitle}
-            </Text>
+            <Text color={TextColor.Alternative}>{subtitle}</Text>
           ) : null}
         </Box>
       </Box>

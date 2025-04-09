@@ -4546,14 +4546,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-7.0.0.tgz#3434c19fb52a0cba15242085867236c3ec1c2aea"
   integrity sha512-M92BTgygZ4zteKL0tlWnXMpeWUY2cyraP1g+f6xIH67litdSu5iUyp2nhzVIlzHwGR+ycQAaicSscKyKm3aUVQ==
 
-"@metamask/earn-controller@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.10.0.tgz#890587d9e51e4fbaa8e85f09077c040e85a99462"
-  integrity sha512-vhywGCsaQphYyDwYksjk7+DZMQAeeC94lpDs6xUEV3xr0l1rG3NR5Ubqhl29oFwYsPV/0HGAbiGW9i3UYOBvkQ==
+"@metamask/earn-controller@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.11.0.tgz#47da160db26efd4b6b3e75dfd3c430541fe4b9b0"
+  integrity sha512-uxiuMYPd1pntHV3s4fq7At4fFSVlJ5LyRjKMVy4ySj+brsLpi8uAaD21ci4AEpvx3mB3NPCyxzCdKYwVRurtIw==
   dependencies:
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/stake-sdk" "^1.0.0"
 
 "@metamask/eslint-config-typescript@^9.0.0":
@@ -5529,10 +5529,10 @@
     ses "^1.1.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^1.18.1":
-  version "1.18.1"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.1.tgz#4c24daf1c7c0862c759b44aa3d3677f8e47ff398"
-  integrity sha512-9JjYxZLLgi8TkX66HMozwzU+WrMEy+ukHxipEXQEYnacD/ZdfDSklwa1SnUs+koKQsyRD5EM/hB96WByXCaxFQ==
+"@metamask/solana-wallet-snap@^1.18.0":
+  version "1.18.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-1.18.0.tgz#289b751f37d9f7641a4975c1fc017cf7bb1c4794"
+  integrity sha512-v6LX6fVtUInKgbCkTpl3orhyaKCuq/s2MjOsRiv1zexzZDrJSp+8Np7f3RsQxK32MhwT9Xoef8PkEvEUgxNE4g==
 
 "@metamask/stake-sdk@^1.0.0":
   version "1.0.0"
@@ -5549,10 +5549,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-12.1.0.tgz#092faf636a4dccd593595e367b3682681ee53b3f"
-  integrity sha512-vITGvwCLvueUNdA9I/6axswLtnYjSa3bRA+bFVt7Pp8udHnvr/dOLYzQ0ksuN3FzuAAirF1+bte0pJO0147uSw==
+"@metamask/swaps-controller@^13.1.0":
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.1.0.tgz#53a9b700cf3131a3c2577beed5f8fcf36176c1a0"
+  integrity sha512-LThNShqW2SP9F9kMjHCrZfF+kLUzd7h4fFCQ5mgeHYEyqHyHr8BH4G8cfF+cFTYp1qZs7lNIdRjJYbZv2F8v/w==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"

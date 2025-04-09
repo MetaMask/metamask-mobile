@@ -205,6 +205,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -319,9 +320,7 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [
-        ChainId['megaeth-testnet'],
-      ],
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -428,7 +427,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+    if (!isProductSafetyDappScanningEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
@@ -1147,6 +1148,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
