@@ -59,11 +59,11 @@ const createStyles = (colors: any) =>
       padding: 16,
     },
     wordWrapperContainer: {
-      flex: 1,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       gap: 8,
+      width: '100%',
     },
     seedPhraseWrapperComplete: {
       borderColor: colors.success.default,
@@ -158,9 +158,8 @@ const createStyles = (colors: any) =>
       marginLeft: 4,
     },
     selectedWord: {
-      backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: importedColors.primaryDefault,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 0,
     },
     selectedWordText: {
       color: importedColors.primaryDefault,
@@ -187,11 +186,13 @@ const createStyles = (colors: any) =>
       flexDirection: 'column',
       marginBottom: 16,
       padding: 16,
+      gap: 4,
     },
     seedPhraseInnerContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap', // Allows wrapping to new lines
       justifyContent: 'center',
+      gap: 4,
     },
     inputContainer: {
       flexDirection: 'row',
@@ -231,6 +232,87 @@ const createStyles = (colors: any) =>
     continueButton: {
       marginTop: 24,
       width: '100%',
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      textAlign: 'center',
+    },
+    gridSlot: {
+      width: '33%',
+      padding: 10,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    emptySlot: {
+      backgroundColor: colors.background.default,
+      opacity: 1,
+      borderColor: colors.border.default,
+      borderWidth: 2,
+    },
+    selectedSlotBox: {
+      borderColor: importedColors.primaryDefault,
+      borderWidth: 2,
+    },
+    missingWords: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      flexWrap: 'wrap',
+    },
+    missingWord: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      margin: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderColor: importedColors.primaryDefault,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 40,
+      color: importedColors.primaryDefault,
+    },
+    missingWordText: {
+      color: importedColors.primaryDefault,
+    },
+    missingWordTextSelected: {
+      color: colors.text.default,
+    },
+    gridItem: {
+      paddingVertical: 4,
+      paddingHorizontal: 8,
+      borderRadius: 8,
+      backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: 4,
+      height: 40,
+      fontSize: 14,
+      color: colors.text.default,
+      ...fontStyles.normal,
+      opacity: 0.5,
+      margin: 4,
+    },
+    gridContainer: {
+      flex: 1,
+      flexDirection: 'column',
+      gap: 4,
+    },
+    gridItemIndex: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      fontSize: 14,
+    },
+    gridItemText: {
+      fontSize: 14,
+      color: colors.text.default,
+      ...fontStyles.normal,
     },
   });
 

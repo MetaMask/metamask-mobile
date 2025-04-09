@@ -672,21 +672,16 @@ const ImportFromSecretRecoveryPhrase = ({
                           renderItem={({ item, index }) => (
                             <View
                               style={[
-                                styles.inputContainer,
-                                { width: containerWidth / (numColumns + 0.1) },
-                                seedPhraseInputFocusedIndex === index &&
-                                  styles.seedPhraseInputFocused,
+                                { width: containerWidth / (numColumns + 0.2) },
+                                styles.seedPhraseInput,
                               ]}
                             >
-                              <Text style={styles.inputNumber}>
-                                {index + 1}.
-                              </Text>
-                              <TextInput
-                                key={index}
-                                ref={(ref) =>
-                                  (seedPhraseInputRefs.current[index] = ref)
+                              <TextField
+                                startAccessory={
+                                  <Text style={styles.inputNumber}>
+                                    {index + 1}.
+                                  </Text>
                                 }
-                                label={strings('import_from_seed.srp')}
                                 value={
                                   item &&
                                   (showAllSeedPhrase
@@ -706,7 +701,6 @@ const ImportFromSecretRecoveryPhrase = ({
                                 onChangeText={(text) =>
                                   handleSeedPhraseChange(text, index)
                                 }
-                                style={[styles.seedPhraseInput]}
                                 placeholderTextColor={colors.text.muted}
                                 autoFocus={
                                   showAllSeedPhrase
@@ -714,6 +708,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                     : index === seedPhrase.length - 1
                                 }
                                 onKeyPress={(e) => handleKeyPress(e, index)}
+                                size={TextFieldSize.Md}
                               />
                             </View>
                           )}
@@ -758,6 +753,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     label={strings('import_from_seed.continue')}
                     onPress={handleContinueImportFlow}
                     width={ButtonWidthTypes.Full}
+                    size={ButtonSize.Lg}
                   />
                 </View>
               </View>

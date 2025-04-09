@@ -7,17 +7,16 @@ import {
   View,
   SafeAreaView,
   FlatList,
+  Dimensions,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import OnboardingProgress from '../../UI/OnboardingProgress';
 import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { strings } from '../../../../locales/i18n';
 import { connect } from 'react-redux';
 import { seedphraseBackedUp } from '../../../actions/user';
-import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import { shuffle, compareMnemonics } from '../../../util/mnemonic';
+import { compareMnemonics } from '../../../util/mnemonic';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useTheme } from '../../../util/theme';
 import createStyles from './styles';
@@ -34,142 +33,31 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
-import Routes from '../../../constants/navigation/Routes';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const [confirmedWords, setConfirmedWords] = useState([]);
-  const [wordsDict, setWordsDict] = useState({});
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [seedPhraseReady, setSeedPhraseReady] = useState(false);
+  const words = route.params?.words;
   const [showStatusBottomSheet, setShowStatusBottomSheet] = useState(false);
-  const [leftOutWords, setLeftOutWords] = useState([]);
-  const [selectedLeftOutWordIndex, setSelectedLeftOutWordIndex] = useState(-1);
-
-  const currentStep = 2;
-  const words =
-    process.env.JEST_WORKER_ID === undefined
-      ? shuffle(route.params?.words)
-      : route.params?.words;
-
-  const createWordsDictionary = () => {
-    const dict = {};
-    words.forEach((word, i) => {
-      dict[`${word},${i}`] = { currentPosition: undefined };
-    });
-    setWordsDict(dict);
-  };
+  const [gridWords, setGridWords] = useState([]);
+  const [emptySlots, setEmptySlots] = useState([]);
+  const [missingWords, setMissingWords] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   const updateNavBar = useCallback(() => {
     navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
   }, [colors, navigation, route]);
 
-  function shuffleLeftOutWords(array) {
-    const arr = [...array]; // clone to avoid mutating original
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
-
-  useEffect(() => {
-    const wordsFromRoute = route.params?.words ?? [];
-    const updatedConfirmedWords = wordsFromRoute.map((word, index) => ({
-      word: index === 0 || index === 4 || index === 9 ? undefined : word,
-      originalPosition:
-        index === 0 || index === 4 || index === 9 ? undefined : index,
-      currentPosition:
-        index === 0 || index === 4 || index === 9 ? undefined : index,
-    }));
-    setConfirmedWords(updatedConfirmedWords);
-
-    const updatedLeftWords = wordsFromRoute
-      .map((word, index) => {
-        if (index === 0 || index === 4 || index === 9) {
-          return {
-            word,
-            originalPosition: index,
-            currentPosition: index,
-          };
-        }
-        return null;
-      })
-      .filter((word) => word !== null);
-    const shuffledLeftOutWords = shuffleLeftOutWords(updatedLeftWords);
-    setLeftOutWords(shuffledLeftOutWords);
-    createWordsDictionary();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(() => {
     updateNavBar();
   }, [updateNavBar]);
 
-  const findNextAvailableIndex = useCallback(
-    () => confirmedWords.findIndex(({ word }) => !word),
-    [confirmedWords],
-  );
-
-  const selectWord = useCallback(
-    (word, i) => {
-      let tempCurrentIndex = currentIndex;
-      const tempWordsDict = wordsDict;
-      const tempConfirmedWords = confirmedWords;
-      if (wordsDict[`${word},${i}`].currentPosition !== undefined) {
-        tempCurrentIndex = wordsDict[`${word},${i}`].currentPosition;
-        tempWordsDict[`${word},${i}`].currentPosition = undefined;
-        tempConfirmedWords[currentIndex] = {
-          word: undefined,
-          originalPosition: undefined,
-        };
-      } else {
-        tempWordsDict[`${word},${i}`].currentPosition = currentIndex;
-        tempConfirmedWords[currentIndex] = { word, originalPosition: i };
-        tempCurrentIndex = findNextAvailableIndex();
-      }
-      setCurrentIndex(tempCurrentIndex);
-      setWordsDict(tempWordsDict);
-      setConfirmedWords(tempConfirmedWords);
-      setSeedPhraseReady(findNextAvailableIndex() === -1);
-    },
-    [confirmedWords, currentIndex, findNextAvailableIndex, wordsDict],
-  );
-
-  const clearConfirmedWordAt = (i) => {
-    if (![0, 4, 9].includes(i)) return;
-
-    const words = [...confirmedWords];
-    words[i] = {
-      word: undefined,
-      originalPosition: undefined,
-      currentPosition: undefined,
-    };
-    setConfirmedWords([...words]);
-    setCurrentIndex(i);
-    // const { word, originalPosition } = confirmedWords[i];
-    // const currentIndex = i;
-    // if (word && (originalPosition || originalPosition === 0)) {
-    //   wordsDict[[word, originalPosition]].currentPosition = undefined;
-    //   confirmedWords[i] = { word: undefined, originalPosition: undefined };
-    // }
-
-    // setCurrentIndex(currentIndex);
-    // setWordsDict(wordsDict);
-    // setConfirmedWords(confirmedWords);
-    // setSeedPhraseReady(findNextAvailableIndex() === -1);
-  };
-
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];
-    const proposedWords = confirmedWords.map(
-      (confirmedWord) => confirmedWord.word,
-    );
 
-    return compareMnemonics(validWords, proposedWords);
-  }, [confirmedWords, route.params?.words]);
+    return compareMnemonics(validWords, gridWords);
+  }, [route.params?.words, gridWords]);
 
   const goNext = () => {
     if (validateWords()) {
@@ -205,95 +93,187 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
     }
   };
 
-  const renderWordBox = (word, i) => {
-    const styles = createStyles(colors);
+  useEffect(() => {
+    if (showStatusBottomSheet) return;
 
-    return (
-      <View key={`word_${i}`} style={styles.wordBoxWrapper}>
-        <TouchableOpacity
-          onPress={() => {
-            clearConfirmedWordAt(i);
-          }}
-          style={[
-            styles.inputContainer,
-            i === currentIndex && styles.currentWord,
-            confirmedWords[i].word && styles.confirmedWord,
-            (confirmedWords[i].word === undefined || [0, 4, 9].includes(i)) &&
-              styles.leftOutWord,
-          ]}
-        >
-          <Text style={styles.wordBoxIndex}>{i + 1}.</Text>
-          <Text style={styles.word}>{word}</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+    const rows = [0, 1, 2, 3];
+    const randomRows = rows.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const indexesToEmpty = randomRows.map((row) => {
+      const col = Math.floor(Math.random() * 3);
+      return row * 3 + col;
+    });
 
-  const handleLeftOutWordPress = useCallback(
-    (i) => {
-      const words = [...confirmedWords];
-      if (words[0].word === undefined) {
-        words[0] = {
-          word: leftOutWords[i].word,
-          originalPosition: 0,
-          currentPosition: i,
-        };
-        setCurrentIndex(0);
-      } else if (words[4].word === undefined) {
-        words[4] = {
-          word: leftOutWords[i].word,
-          originalPosition: 4,
-          currentPosition: i,
-        };
-        setCurrentIndex(4);
-      } else if (words[9].word === undefined) {
-        words[9] = {
-          word: leftOutWords[i].word,
-          originalPosition: 9,
-          currentPosition: i,
-        };
-        setCurrentIndex(9);
+    const tempGrid = [...words];
+    const removed = [];
+
+    indexesToEmpty.forEach((i) => {
+      removed.push(tempGrid[i]);
+      tempGrid[i] = '';
+    });
+
+    setGridWords(tempGrid);
+    setMissingWords(removed);
+    setEmptySlots(indexesToEmpty);
+  }, [words, showStatusBottomSheet]);
+
+  const handleWordSelect = useCallback(
+    (word) => {
+      const updatedGrid = [...gridWords];
+
+      // Step 1: Deselect if already placed
+      const existingIndex = updatedGrid.findIndex((w) => w === word);
+      if (existingIndex !== -1) {
+        updatedGrid[existingIndex] = '';
+        setGridWords(updatedGrid);
+
+        // Clear selection completely if this was the last word
+        const remaining = updatedGrid.filter((w) => w !== '');
+        setSelectedSlot(remaining.length === 0 ? null : null); // ← always reset for top-down behavior
+        return;
       }
-      setConfirmedWords(words);
-      setSelectedLeftOutWordIndex(i);
+
+      // Word must be one of the missing ones
+      if (!missingWords.includes(word)) return;
+
+      // Get empty slots top-down
+      const emptySlots = updatedGrid
+        .map((val, idx) => (val === '' ? idx : null))
+        .filter((i) => i !== null);
+
+      //  If user clicked a slot manually, use it
+      let targetIndex = selectedSlot;
+
+      // FINAL GUARD: Always prefer top-down first empty slot
+      if (
+        targetIndex === null || // no slot selected
+        updatedGrid[targetIndex] !== '' || // slot already filled
+        !emptySlots.includes(targetIndex) // invalid slot
+      ) {
+        targetIndex = emptySlots[0]; // force top-down
+      }
+
+      if (targetIndex === undefined) return;
+
+      updatedGrid[targetIndex] = word;
+      setGridWords(updatedGrid);
+      setSelectedSlot(null); // reset selection after placing
     },
-    [confirmedWords, leftOutWords],
+    [gridWords, missingWords, selectedSlot],
   );
 
-  const renderWordSelectableBox = useCallback(
-    (key, i) => {
-      const { word, originalPosition, currentPosition } = key;
-      const selected = i === currentPosition;
-      const styles = createStyles(colors);
+  const handleSlotPress = useCallback(
+    (index) => {
+      if (!emptySlots.includes(index)) return;
 
-      return (
-        <TouchableOpacity
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={() => handleLeftOutWordPress(i)}
-          style={[styles.selectableWord, selected && styles.selectedWord]}
-          key={`selectableWord_${i}`}
-        >
-          <Text
-            style={[
-              styles.selectableWordText,
-              selected && styles.selectedWordText,
-            ]}
-          >
-            {word}
-          </Text>
-        </TouchableOpacity>
-      );
+      const isFilled = gridWords[index] !== '';
+      const word = gridWords[index];
+
+      const updated = [...gridWords];
+
+      if (isFilled) {
+        updated[index] = '';
+        setGridWords(updated);
+
+        const stillUsed = updated.includes(word);
+        if (!stillUsed) setSelectedSlot(index); // reselect same slot
+      } else {
+        setSelectedSlot(index); // highlight this for next word
+      }
     },
-    [colors, handleLeftOutWordPress],
+    [emptySlots, gridWords],
   );
 
-  const renderWords = useCallback(
+  const innerWidth = Dimensions.get('window').width;
+
+  const renderGrid = useCallback(
     () => (
-      <View style={styles.words}>
-        {leftOutWords.map((word, i) => renderWordSelectableBox(word, i))}
+      <>
+        <View style={[styles.seedPhraseContainer]}>
+          <FlatList
+            data={gridWords}
+            numColumns={3}
+            keyExtractor={(_, index) => index.toString()}
+            renderItem={({ item, index }) => {
+              const isEmpty = emptySlots.includes(index);
+              const isSelected = selectedSlot === index;
+              return (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.gridItem,
+                    isEmpty && styles.emptySlot,
+                    isSelected && styles.selectedSlotBox,
+                    { width: innerWidth / 3.8 },
+                  ]}
+                  onPress={() => handleSlotPress(index)}
+                >
+                  <Text style={styles.gridItemIndex}>{index + 1}.</Text>
+                  <Text style={styles.gridItemText}>
+                    {isEmpty ? item : '••••••'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            }}
+          />
+        </View>
+      </>
+    ),
+    [
+      styles.seedPhraseContainer,
+      styles.gridItem,
+      styles.emptySlot,
+      styles.selectedSlotBox,
+      gridWords,
+      emptySlots,
+      selectedSlot,
+      innerWidth,
+      handleSlotPress,
+      styles.gridItemIndex,
+      styles.gridItemText,
+    ],
+  );
+
+  // const allPlaced = missingWords.every((word) => gridWords.includes(word));
+
+  const renderMissingWords = useCallback(
+    () => (
+      <View style={styles.missingWords}>
+        {missingWords.map((word, i) => {
+          const isUsed = gridWords.includes(word);
+          return (
+            <TouchableOpacity
+              key={i}
+              style={[
+                styles.missingWord,
+                isUsed && styles.selectedWord,
+                { width: innerWidth / 3.9 },
+              ]}
+              onPress={() => handleWordSelect(word)}
+            >
+              <Text
+                style={[
+                  styles.missingWordText,
+                  isUsed && styles.missingWordTextSelected,
+                ]}
+              >
+                {word}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
     ),
-    [styles.words, leftOutWords, renderWordSelectableBox],
+    [
+      styles.missingWords,
+      styles.missingWord,
+      styles.selectedWord,
+      missingWords,
+      gridWords,
+      innerWidth,
+      handleWordSelect,
+      styles.missingWordText,
+      styles.missingWordTextSelected,
+    ],
   );
 
   return (
@@ -304,7 +284,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.complete')}
           onConfirmPress={goNext}
-          confirmDisabled={!seedPhraseReady || !validateWords()}
+          confirmDisabled={!validateWords()}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
           showConfirmButton={false}
@@ -321,27 +301,10 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 {strings('manual_backup_step_2.info')}
               </Text>
             </View>
-            <View
-              style={[
-                styles.seedPhraseContainer,
-                seedPhraseReady && styles.seedPhraseWrapperError,
-                validateWords() && styles.seedPhraseWrapperComplete,
-              ]}
-            >
-              <View style={styles.seedPhraseInnerContainer}>
-                <FlatList
-                  data={confirmedWords}
-                  numColumns={3}
-                  keyExtractor={(_, index) => index.toString()}
-                  renderItem={({ item, index }) => (
-                    <View style={styles.wordWrapperContainer}>
-                      {renderWordBox(item.word, index)}
-                    </View>
-                  )}
-                />
-              </View>
+            <View style={styles.gridContainer}>
+              {renderGrid()}
+              {renderMissingWords()}
             </View>
-            {renderWords()}
             <Button
               variant={ButtonVariants.Primary}
               label={strings('manual_backup_step_2.continue')}
