@@ -1,13 +1,8 @@
 import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { RootState } from '../../reducers';
 import { selectSelectedInternalAccount } from '../accountsController';
-import {
-  selectHDKeyrings,
-  ExtendedKeyring,
-  selectKeyrings,
-} from '../keyringController';
+import { selectHDKeyrings, ExtendedKeyring } from '../keyringController';
 import { createDeepEqualSelector } from '../util';
 
 /**
@@ -34,29 +29,35 @@ export const selectHdKeyringIndexByIdOrDefault = createDeepEqualSelector(
   },
 );
 
-export const getKeyringOfSelectedAccount = createDeepEqualSelector(
-  selectSelectedInternalAccount,
-  selectKeyrings,
-  (selectedAccount: InternalAccount | undefined, keyrings: ExtendedKeyring[]) =>
-    selectedAccount &&
-    keyrings.find((keyring) =>
-      keyring.accounts.some((account) =>
-        isEqualCaseInsensitive(account, selectedAccount.address),
-      ),
-    ),
-);
-
+/**
+ * !! Only use this selector after onboarding
+ * Selects the HD keyring of the currently selected account, or falls back to the primary HD keyring
+ * @param state - The Redux state
+ * @returns The HD keyring containing the selected account if it's an HD keyring, otherwise returns the primary HD keyring
+ */
 export const getHdKeyringOfSelectedAccountOrPrimaryKeyring =
   createDeepEqualSelector(
-    getKeyringOfSelectedAccount,
+    selectSelectedInternalAccount,
     selectHDKeyrings,
     (
-      keyringOfSelectedAccount: ExtendedKeyring | undefined,
+      selectedAccount: InternalAccount | undefined,
       hdKeyrings: ExtendedKeyring[],
     ) => {
-      if (keyringOfSelectedAccount?.type === ExtendedKeyringTypes.hd) {
-        return keyringOfSelectedAccount;
+      if (!selectedAccount || hdKeyrings.length === 0) {
+        // Should never reach this point. This selector is only used after onboarding.
+        throw new Error('No selected account or hd keyrings');
       }
-      return hdKeyrings[0];
+
+      const selectedKeyring = hdKeyrings.find((keyring) =>
+        keyring.accounts.some((account) =>
+          isEqualCaseInsensitive(account, selectedAccount.address),
+        ),
+      );
+
+      if (!selectedKeyring) {
+        return hdKeyrings[0];
+      }
+
+      return selectedKeyring;
     },
   );

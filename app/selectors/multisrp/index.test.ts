@@ -1,6 +1,5 @@
 import {
   selectHdKeyringIndexByIdOrDefault,
-  getKeyringOfSelectedAccount,
   getHdKeyringOfSelectedAccountOrPrimaryKeyring,
 } from './index';
 import { RootState } from '../../reducers';
@@ -17,11 +16,26 @@ const MOCK_ADDRESS_1 = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
 const MOCK_ADDRESS_2 = '0xeE94464eFCa6F3fb77AC3A77Ca995234c0c1f7fC';
 const MOCK_ADDRESS_3 = '0xc7E40ffA6026f7b9c53f5eD5A20a9D0EDFBFbF28';
 
-const mockAccount1 = createMockInternalAccount(MOCK_ADDRESS_1, 'Account 1');
-const mockAccount2 = createMockInternalAccount(MOCK_ADDRESS_2, 'Account 2');
+const mockAccount1 = createMockInternalAccount(
+  MOCK_ADDRESS_1,
+  'Account 1',
+  KeyringTypes.hd,
+);
+const mockAccount2 = createMockInternalAccount(
+  MOCK_ADDRESS_2,
+  'Account 2',
+  KeyringTypes.hd,
+);
 const mockAccount3 = createMockInternalAccount(
   MOCK_ADDRESS_3,
   'Account 3',
+  KeyringTypes.simple,
+);
+
+// This is an account with the same address as mockAccount1, but a different keyring type
+const mockAccount4 = createMockInternalAccount(
+  MOCK_ADDRESS_1,
+  'Account 4',
   KeyringTypes.simple,
 );
 
@@ -40,18 +54,28 @@ const mockSimpleKeyring = {
   type: KeyringTypes.simple,
 };
 
+const mockSimpleKeyring2 = {
+  accounts: [mockAccount4.address],
+  type: KeyringTypes.simple,
+};
+
 const mockHDKeyringMetadata = {
-  id: '',
+  id: '01JREC6GSZQJPCDJF921FT2A82',
   name: '',
 };
 
 const mockHDKeyring2Metadata = {
-  id: '',
+  id: '01JREC6R2ZCCZKQTEYMJ7P0GGT',
   name: '',
 };
 
 const mockSimpleKeyringMetadata = {
-  id: '',
+  id: '01JREC6W64RRX0Y9C15Y8QW3DH',
+  name: '',
+};
+
+const mockSimpleKeyring2Metadata = {
+  id: '01JREC70MCJJNQT13ENMNVYBKM',
   name: '',
 };
 
@@ -60,11 +84,17 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
     engine: {
       backgroundState: {
         KeyringController: {
-          keyrings: [mockHDKeyring, mockHDKeyring2, mockSimpleKeyring],
+          keyrings: [
+            mockHDKeyring,
+            mockHDKeyring2,
+            mockSimpleKeyring,
+            mockSimpleKeyring2,
+          ],
           keyringsMetadata: [
             mockHDKeyringMetadata,
             mockHDKeyring2Metadata,
             mockSimpleKeyringMetadata,
+            mockSimpleKeyring2Metadata,
           ],
         },
         AccountsController: {
@@ -73,6 +103,7 @@ const mockState = (selectedAccount: InternalAccount = mockAccount1) =>
               [mockAccount1.id]: mockAccount1,
               [mockAccount2.id]: mockAccount2,
               [mockAccount3.id]: mockAccount3,
+              [mockAccount4.id]: mockAccount4,
             },
             selectedAccount: selectedAccount.id,
           },
@@ -138,37 +169,13 @@ describe('multisrp selectors', () => {
     });
   });
 
-  describe('getKeyringOfSelectedAccount', () => {
-    it('returns undefined when no account is selected', () => {
-      const result = getKeyringOfSelectedAccount(
-        mockStateWithNoSelectedAccount,
-      );
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when no matching keyring is found', () => {
-      const result = getKeyringOfSelectedAccount(
-        mockStateWithNoSelectedAccount,
-      );
-      expect(result).toBeUndefined();
-    });
-
-    it('returns matching keyring when found', () => {
-      const result = getKeyringOfSelectedAccount(mockState());
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
-      );
-    });
-  });
-
   describe('getHdKeyringOfSelectedAccountOrPrimaryKeyring', () => {
     it('returns first HD keyring when no account is selected', () => {
-      const result = getHdKeyringOfSelectedAccountOrPrimaryKeyring(
-        mockStateWithNoSelectedAccount,
-      );
-      expect(result).toStrictEqual(
-        expectedKeyringWithMetadata(mockHDKeyring, mockHDKeyringMetadata),
-      );
+      expect(() =>
+        getHdKeyringOfSelectedAccountOrPrimaryKeyring(
+          mockStateWithNoSelectedAccount,
+        ),
+      ).toThrow('No selected account or hd keyrings');
     });
 
     it('returns correct HD keyring when the selected account is from the second HD keyring', () => {
