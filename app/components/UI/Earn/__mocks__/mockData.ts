@@ -1,7 +1,7 @@
-import type {
+import {
   PoolStakingRemoteFeatureFlags,
   StablecoinLendingRemoteFeatureFlags,
-} from './types';
+} from '../../../../selectors/featureFlagController/earnFeatureFlags/types';
 
 const mockedPooledStakingFeatureFlagState: PoolStakingRemoteFeatureFlags = {
   earnPooledStakingEnabled: true,
