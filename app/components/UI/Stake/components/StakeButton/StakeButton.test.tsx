@@ -14,6 +14,7 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { mockedEarnFeatureFlagState } from '../../../Earn/__mocks__/mockData';
 
 const mockNavigate = jest.fn();
 
@@ -112,6 +113,11 @@ const STATE_MOCK = {
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
             isEvm: false,
           },
+        },
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagState,
         },
       },
     },
@@ -214,6 +220,11 @@ describe('StakeButton', () => {
               },
             },
           },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ...mockedEarnFeatureFlagState,
+            },
+          },
         },
       },
     } as unknown as RootState;
@@ -234,5 +245,52 @@ describe('StakeButton', () => {
         },
       });
     });
+  });
+
+  it('does not render button when all earn experiences are disabled', () => {
+    const mockedStateWithDisabledEarnExperiences = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: '0x1',
+            }),
+          },
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+
+            multichainNetworkConfigurationsByChainId: {
+              'bip122:000000000019d6689c085ae165831e93': {
+                chainId: 'bip122:000000000019d6689c085ae165831e93',
+                name: 'Bitcoin Mainnet',
+                nativeCurrency:
+                  'bip122:000000000019d6689c085ae165831e93/slip44:0',
+                isEvm: false,
+              },
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                name: 'Solana Mainnet',
+                nativeCurrency:
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+                isEvm: false,
+              },
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingEnabled: false,
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const { queryByTestId } = renderComponent(
+      mockedStateWithDisabledEarnExperiences,
+    );
+
+    expect(queryByTestId(WalletViewSelectorsIDs.STAKE_BUTTON)).toBeNull();
   });
 });
