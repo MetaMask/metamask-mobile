@@ -109,7 +109,10 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -312,9 +315,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    // Ignore showing the phishing modal if the user is no longer on the page.
+    // If dapp scanning is enabled, we want to ignore showing the phishing modal if the user is no
+    // longer on the page. This is because the dapp scanning is async and we don't want to show the
+    // PhishingModal if the user navigates to a safe page like metamask.io.
     const currentUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
-    if (currentUrlOrigin !== urlOrigin) {
+    if (
+      currentUrlOrigin !== urlOrigin &&
+      isProductSafetyDappScanningEnabled()
+    ) {
+      console.log(
+        `not setting phishing modal: ${urlOrigin} ${currentUrlOrigin}`,
+      );
       return;
     }
     setBlockedUrl(urlOrigin);
