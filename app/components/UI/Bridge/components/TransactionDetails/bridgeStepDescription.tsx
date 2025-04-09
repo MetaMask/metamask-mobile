@@ -20,7 +20,6 @@ import { Step } from '@metamask/bridge-controller';
  * We cannot infer the status of the bridge action since 2 different chains are involved
  * The best we can do is the bridgeHistoryItem.estimatedProcessingTimeInSeconds
  *
- * @param t - The i18n context return value to get translations
  * @param stepStatus - The status of the step
  * @param step - The step to be rendered
  * @param networkConfigurationsByChainId - The network configurations by chain id
