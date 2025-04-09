@@ -18,11 +18,13 @@ import {
   endTrace,
   trace,
 } from '../../../util/trace';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectHasCreatedSolanaMainnetAccount } from '../../../selectors/accountsController';
 import { SolScope } from '@metamask/keyring-api';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
+///: END:ONLY_INCLUDE_IF
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
