@@ -8,6 +8,8 @@ import { MetaMetrics } from '../../../../Analytics';
 import { BaseControllerMessenger } from '../../../types';
 import { generateDefaultTransactionMetrics, generateEvent } from '../utils';
 import type { TransactionEventHandlerRequest } from '../types';
+import Logger from '../../../../../util/Logger';
+import { selectTransactionsTxHashInAnalyticsEnabled } from '../../../../../selectors/featureFlagController';
 
 // Generic handler for simple transaction events
 const createTransactionEventHandler =
@@ -48,6 +50,7 @@ export async function handleTransactionFinalizedEventForMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
+  Logger.log('⚡⚡⚡ TRANSACTION FINALIZED METRICS HANDLER CALLED ⚡⚡⚡');
   const { getState, initMessenger, smartTransactionsController } =
     transactionEventHandlerRequest;
 
@@ -69,14 +72,61 @@ export async function handleTransactionFinalizedEventForMetrics(
     );
   }
 
+  const metaMetricsInstance = MetaMetrics.getInstance();
+
+  let isMetricsOptedIn = false;
+  try {
+    // Call isEnabled directly
+    isMetricsOptedIn = metaMetricsInstance.isEnabled();
+  } catch (error) {
+    Logger.error(new Error('Error checking if metrics are enabled:'), error);
+    // If isEnabled() fails, default to false for safety
+    isMetricsOptedIn = false;
+  }
+
+  // Use the selector to check if the feature flag is enabled
+  const isTxHashFeatureFlagEnabled = selectTransactionsTxHashInAnalyticsEnabled(getState());
+
+  let enhancedProperties = {};
+  if (isMetricsOptedIn && isTxHashFeatureFlagEnabled) {
+    // Add enhanced properties for analytics when feature flag is enabled
+    // These properties help with transaction tracking and analysis
+    // while respecting user privacy (only added for opted-in users)
+
+    let metaMetricsId;
+    try {
+      metaMetricsId = await metaMetricsInstance.getMetaMetricsId();
+    } catch (error) {
+      Logger.error(new Error('Error getting MetaMetrics ID:'), error);
+      // Continue with the rest of the properties even if this fails
+    }
+
+    enhancedProperties = {
+      ...(transactionMeta.hash ? { transaction_hash: transactionMeta.hash } : {}),
+      ...(metaMetricsId ? { user_id: metaMetricsId } : {}),
+      ...(transactionMeta.chainId ? { chain_id: transactionMeta.chainId } : {}),
+      ...(transactionMeta.type ? { transaction_type: transactionMeta.type } : {}),
+      ...(transactionMeta.origin ? { dapp_url: transactionMeta.origin } : {})
+    };
+  }
+
   const mergedEventProperties = merge(
     {
-      properties: stxMetricsProperties,
+      properties: {
+        ...stxMetricsProperties,
+        ...enhancedProperties
+      },
     },
     defaultTransactionMetricProperties,
   );
 
   const event = generateEvent(mergedEventProperties);
 
-  MetaMetrics.getInstance().trackEvent(event);
+  Logger.log('Transaction Finalized Event Properties:', JSON.stringify(event.properties, null, 2));
+  Logger.log('Is feature flag enabled:', isTxHashFeatureFlagEnabled);
+  Logger.log('Is metrics opted in:', isMetricsOptedIn);
+  Logger.log('Transaction hash:', transactionMeta.hash);
+  Logger.log('Enhanced Event Properties:', JSON.stringify(enhancedProperties, null, 2));
+
+  metaMetricsInstance.trackEvent(event); // Reuse existing reference
 }

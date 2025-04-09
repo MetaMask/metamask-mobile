@@ -17,7 +17,11 @@ import {
   disabledSmartTransactionsState,
   enabledSmartTransactionsState,
 } from '../data-helpers';
+import { selectTransactionsTxHashInAnalyticsEnabled } from '../../../../../selectors/featureFlagController';
 
+jest.mock('../../../../../selectors/featureFlagController', () => ({
+  selectTransactionsTxHashInAnalyticsEnabled: jest.fn().mockReturnValue(false),
+}));
 jest.mock('../../../../../util/smart-transactions');
 
 // Mock dependencies
@@ -209,6 +213,109 @@ describe('Transaction Metric Event Handlers', () => {
       expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining(mockSmartTransactionMetricsProperties),
       );
+    });
+
+    describe('transaction hash in analytics', () => {
+      // Mock for testing the transaction hash feature
+      const mockTransactionMetaWithHash = {
+        ...mockTransactionMeta,
+        hash: 'test-tx-hash',
+      } as unknown as TransactionMeta;
+
+      // Mock for isEnabled
+      const mockIsEnabled = jest.fn().mockReturnValue(false);
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+
+        // Setup MetaMetrics instance with isEnabled method
+        const mockMetaMetricsInstance = {
+          trackEvent: mockTrackEvent,
+          isEnabled: mockIsEnabled,
+          getMetaMetricsId: jest.fn().mockResolvedValue('mock-metrics-id'),
+        };
+
+        (MetaMetrics.getInstance as jest.Mock).mockReturnValue(mockMetaMetricsInstance);
+      });
+
+      it('includes transaction hash when feature flag is enabled and user is opted in', async () => {
+        // Setup
+        mockIsEnabled.mockReturnValue(true);
+        (selectTransactionsTxHashInAnalyticsEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+        // Execute
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMetaWithHash,
+          mockTransactionMetricRequest
+        );
+
+        // Verify
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: 'test-tx-hash',
+            user_id: 'mock-metrics-id',
+          })
+        );
+      });
+
+      it('does not include transaction hash when feature flag is disabled', async () => {
+        // Setup
+        mockIsEnabled.mockReturnValue(true);
+        (selectTransactionsTxHashInAnalyticsEnabled as unknown as jest.Mock).mockReturnValue(false);
+
+        // Execute
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMetaWithHash,
+          mockTransactionMetricRequest
+        );
+
+        // Verify
+        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: 'test-tx-hash',
+          })
+        );
+      });
+
+      it('does not include transaction hash when user is not opted in', async () => {
+        // Setup
+        mockIsEnabled.mockReturnValue(false);
+        (selectTransactionsTxHashInAnalyticsEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+        // Execute
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMetaWithHash,
+          mockTransactionMetricRequest
+        );
+
+        // Verify
+        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: 'test-tx-hash',
+          })
+        );
+      });
+
+      it('handles errors when checking if metrics are enabled', async () => {
+        // Setup
+        mockIsEnabled.mockImplementation(() => {
+          throw new Error('Test error');
+        });
+        (selectTransactionsTxHashInAnalyticsEnabled as unknown as jest.Mock).mockReturnValue(true);
+
+        // Execute
+        await handleTransactionFinalizedEventForMetrics(
+          mockTransactionMetaWithHash,
+          mockTransactionMetricRequest
+        );
+
+        // Verify no crash and no hash added
+        expect(mockEventBuilder.addProperties).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            transaction_hash: 'test-tx-hash',
+          })
+        );
+      });
     });
   });
 });
