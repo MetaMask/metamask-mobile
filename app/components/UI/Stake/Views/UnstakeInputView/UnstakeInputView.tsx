@@ -27,12 +27,14 @@ import { StakeNavigationParamsList } from '../../types';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './UnstakeInputView.styles';
+import usePooledStakes from '../../hooks/usePooledStakes';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
   const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
+  const { refreshPooledStakesOnTxConfirmation } = usePooledStakes();
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
       selectConfirmationRedesignFlags,
@@ -112,7 +114,7 @@ const UnstakeInputView = () => {
       // redesigned confirmations architecture relies on the transaction
       // metadata object being defined by the time the confirmation is displayed
       // to the user.
-      await attemptUnstakeTransaction(
+      const txRes = await attemptUnstakeTransaction(
         amountWei.toString(),
         activeAccount?.address as string,
       );
@@ -124,6 +126,10 @@ const UnstakeInputView = () => {
           amountFiat: fiatAmount,
         },
       });
+
+      const transactionId = txRes?.transactionMeta?.id;
+
+      refreshPooledStakesOnTxConfirmation(transactionId);
 
       const withRedesignedPropEventProperties = {
         ...unstakeButtonClickEventProperties,
@@ -152,15 +158,16 @@ const UnstakeInputView = () => {
         .build(),
     );
   }, [
+    confirmationRedesignFlags?.staking_confirmations,
     amountEth,
-    amountWei,
-    createEventBuilder,
     fiatAmount,
     navigation,
+    amountWei,
     trackEvent,
+    createEventBuilder,
     attemptUnstakeTransaction,
     activeAccount?.address,
-    confirmationRedesignFlags?.staking_confirmations,
+    refreshPooledStakesOnTxConfirmation,
   ]);
 
   return (

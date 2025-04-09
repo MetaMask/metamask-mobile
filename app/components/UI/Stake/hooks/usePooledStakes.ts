@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { PooledStake } from '@metamask/stake-sdk';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
@@ -21,6 +21,8 @@ const usePooledStakes = () => {
   const pooledStakesData = useSelector(selectPoolStakes);
   const exchangeRate = useSelector(selectExchangeRate);
 
+  const activeSubscriptions = useRef(new Set());
+
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
@@ -35,6 +37,27 @@ const usePooledStakes = () => {
       setIsLoading(false);
     }
   };
+
+  // TEMP: Workaround until we move event listening into the earn-controller
+  const refreshPooledStakesOnTxConfirmation = useCallback(
+    (transactionId?: string) => {
+      if (!transactionId || activeSubscriptions.current.has(transactionId)) {
+        return;
+      }
+
+      activeSubscriptions.current.add(transactionId);
+
+      Engine.controllerMessenger.subscribeOnceIf(
+        'TransactionController:transactionConfirmed',
+        async () => {
+          await fetchData();
+          activeSubscriptions.current.delete(transactionId);
+        },
+        (transactionMeta) => transactionMeta.id === transactionId,
+      );
+    },
+    [],
+  );
 
   const getStatus = (stake: PooledStake) => {
     if (stake.assets === '0' && stake.exitRequests.length > 0) {
@@ -72,6 +95,7 @@ const usePooledStakes = () => {
     isLoadingPooledStakesData: isLoading,
     error,
     refreshPooledStakes: fetchData,
+    refreshPooledStakesOnTxConfirmation,
     ...statusFlags,
   };
 };

@@ -14,8 +14,13 @@ import {
   type ConfirmationRedesignRemoteFlags,
 } from '../../../../../selectors/featureFlagController';
 import usePoolStakedDeposit from '../../hooks/usePoolStakedDeposit';
+import usePooledStakes from '../../hooks/usePooledStakes';
 import { GasImpactModalProps } from './GasImpactModal.types';
 import GasImpactModal from './index';
+import {
+  MOCK_POOLED_STAKES_DATA,
+  MOCK_EXCHANGE_RATE,
+} from '../../__mocks__/earnControllerMockData';
 
 const MOCK_SELECTED_INTERNAL_ACCOUNT = {
   address: '0x123',
@@ -44,6 +49,11 @@ jest.mock('../../../../../selectors/featureFlagController', () => ({
 }));
 
 jest.mock('../../hooks/usePoolStakedDeposit', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePooledStakes', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
@@ -78,6 +88,8 @@ const renderGasImpactModal = () =>
 
 describe('GasImpactModal', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
+  const usePooledStakesMock = jest.mocked(usePooledStakes);
+
   const selectConfirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
@@ -93,6 +105,20 @@ describe('GasImpactModal', () => {
 
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
+    });
+
+    usePooledStakesMock.mockReturnValue({
+      pooledStakesData: MOCK_POOLED_STAKES_DATA,
+      exchangeRate: MOCK_EXCHANGE_RATE,
+      isLoadingPooledStakesData: false,
+      error: '',
+      refreshPooledStakes: jest.fn(),
+      refreshPooledStakesOnTxConfirmation: jest.fn(),
+      hasStakedPositions: false,
+      hasRewards: true,
+      hasRewardsOnly: false,
+      hasNeverStaked: false,
+      hasEthToUnstake: true,
     });
 
     selectSelectedInternalAccountMock.mockReturnValue(
