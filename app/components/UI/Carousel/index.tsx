@@ -53,6 +53,7 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
     [isZeroBalance],
   );
 
+  console.log('PREDEFINED_SLIDES', PREDEFINED_SLIDES);
   const visibleSlides = useMemo(
     () =>
       slidesConfig.filter((slide) => {
@@ -63,6 +64,8 @@ export const Carousel: FC<CarouselProps> = ({ style }) => {
       }),
     [slidesConfig, isZeroBalance, dismissedBanners],
   );
+
+  console.log('visibleSlides', visibleSlides);
 
   const isSingleSlide = visibleSlides.length === 1;
 
