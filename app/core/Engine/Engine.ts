@@ -205,6 +205,7 @@ import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -428,7 +429,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+    if (!isProductSafetyDappScanningEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
@@ -881,8 +884,45 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
-        isAccountSyncingEnabled: false,
+        isAccountSyncingEnabled: true,
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
       },
     });
     ///: END:ONLY_INCLUDE_IF
@@ -1147,6 +1187,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
@@ -1502,23 +1543,12 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController, PreferencesController } =
-      this.context;
-
-    const chainIds = Object.keys(
-      NetworkController.state.networkConfigurationsByChainId,
-    );
-    const filteredChainIds = chainIds.filter(
-      (id) =>
-        PreferencesController.state.showIncomingTransactions[
-          id as keyof typeof PreferencesController.state.showIncomingTransactions
-        ],
-    ) as Hex[];
+    const { TransactionController } = this.context;
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling(filteredChainIds);
+    TransactionController.startIncomingTransactionPolling();
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();

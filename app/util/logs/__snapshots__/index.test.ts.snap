@@ -445,7 +445,6 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "topAggId": null,
         "topAggSavings": null,
         "topAssets": null,
-        "topAssetsLastFetched": 0,
         "usedCustomGas": null,
         "usedGasEstimate": null,
       },
