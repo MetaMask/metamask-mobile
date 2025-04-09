@@ -381,28 +381,6 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
 
       return this.encrypt(password, await this.decrypt(password, vault) as Json);
     };
-
-  /**
-   * Throws an error if the provided number of iterations does not meet the minimum required for key derivation.
-   * This method ensures that the key derivation process is secure by enforcing a minimum number of iterations.
-   * @param iterations - The number of iterations to check.
-   * @throws Error if the number of iterations is less than the minimum required.
-   */
-    private checkMinimalRequiredIterations = (iterations: number): void => {
-      if (!this.isMinimalRequiredIterationsMet(iterations)) {
-        throw new Error(
-          `Invalid key derivation iterations: ${iterations}. Recommended number of iterations is ${KeyDerivationIteration.OWASP2023Default}. Minimum required is ${KeyDerivationIteration.OWASP2023Minimum}.`,
-        );
-      }
-    };
-
-  /**
-   * Checks if the provided number of iterations meets the minimum required for key derivation.
-   * @param iterations - The number of iterations to check.
-   * @returns A boolean indicating whether the minimum required iterations are met.
-   */
-  private isMinimalRequiredIterationsMet = (iterations: number): boolean =>
-    iterations >= KeyDerivationIteration.OWASP2023Minimum;
 }
 
 export { Encryptor };
