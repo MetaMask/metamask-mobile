@@ -167,6 +167,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
+  const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
@@ -315,12 +317,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    // If dapp scanning is enabled, we want to ignore showing the phishing modal if the user is no
-    // longer on the page. This is because the dapp scanning is async and we don't want to show the
-    // PhishingModal if the user navigates to a safe page like metamask.io.
-    const currentUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+    const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+    const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
+    // If either the resolved URL or loading URL is different from the phishing URL
+    // and dapp scanning is enabled, don't show the phishing modal
     if (
-      currentUrlOrigin !== urlOrigin &&
+      (resolvedUrlOrigin !== urlOrigin || loadingUrlOrigin !== urlOrigin) &&
       isProductSafetyDappScanningEnabled()
     ) {
       console.log(
@@ -328,6 +330,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       );
       return;
     }
+
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   }, []);
@@ -880,6 +883,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       // Handle navigation event
       const { url, title, canGoBack, canGoForward } = nativeEvent;
+      loadingUrlRef.current = '';
       // Do not update URL unless website has successfully completed loading.
       webStates.current[url] = { ...webStates.current[url], ended: true };
       const { started, ended } = webStates.current[url];
@@ -999,6 +1003,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
+      loadingUrlRef.current = nativeEvent.url;
+
       // Use URL to produce real url. This should be the actual website that the user is viewing.
       // const { origin: urlOrigin, hostname } = new URLParse(nativeEvent.url);
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
