@@ -100,7 +100,6 @@ const selectChainIdToUse = createSelector(
 
     let chainIdToUse;
 
-    console.log('>>> networkConfigurations', networkConfigurations);
     for (const networkConfig of Object.values(
       networkConfigurations as unknown as Record<Hex, NetworkConfiguration>,
     )) {

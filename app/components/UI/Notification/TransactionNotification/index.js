@@ -220,7 +220,6 @@ function TransactionNotification(props) {
       const tx = transactions.find(
         ({ id }) => id === currentNotification.transaction.id,
       );
-      // console.log('>>> getTransactionInfo tx', tx);
 
       if (!tx) return;
 
@@ -238,16 +237,7 @@ function TransactionNotification(props) {
         swapsTransactions,
         swapsTokens,
       } = props;
-      // console.log(
-      // log the chainId the ticker and the primaryCurrency
-      // console.log('>>> TransactionNotification prop chainId', chainId);
-      // console.log(
-      //   '>>> TransactionNotification prop isInBrowserView',
-      //   isInBrowserView,
-      // );
-      //   '>>> getTransactionInfo TransactionNotification props',
-      //   props,
-      // );
+
       const [transactionElement, transactionDetails] = await decodeTransaction({
         ...props,
         tx,
@@ -275,7 +265,6 @@ function TransactionNotification(props) {
       setGasFee(gasFeeValue);
       setTx(tx);
       setTransactionElement(transactionElement);
-      // console.log('>>> setting transactionDetails', transactionDetails);
       setTransactionDetails(transactionDetails);
     }
     getTransactionInfo();
@@ -460,8 +449,6 @@ const mapStateToProps = (state, ownProps) => {
       chainId
     ] || [];
 
-  const currentTransactionMetadata = selectCurrentTransactionMetadata(state);
-  // console.log('>>> currentTransactionMetadata', currentTransactionMetadata);
   const tx = TransactionController.transactions.find(
     ({ id }) => id === ownProps?.currentNotification.transaction.id,
   );

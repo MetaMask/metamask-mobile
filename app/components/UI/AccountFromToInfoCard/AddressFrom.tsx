@@ -51,15 +51,18 @@ const AddressFrom = ({
   const [accountName, setAccountName] = useState('');
 
   const { styles } = useStyles(stylesheet, {});
-  const { addressBalance } = useAddressBalance(asset, from, dontWatchAsset, chainId);
+  const { addressBalance } = useAddressBalance(
+    asset,
+    from,
+    dontWatchAsset,
+    chainId,
+  );
 
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const activeAddress = toChecksumAddress(from);
 
-  // FIXME: this could be the wrong selector, probably needs to be per dapp (per origin)
-  // console.log('>>> AddressFrom origin', origin);
   const { networkName, networkImageSource } = useNetworkInfo(origin);
 
   const useBlockieIcon = useSelector(

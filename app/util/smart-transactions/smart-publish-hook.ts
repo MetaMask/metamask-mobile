@@ -173,12 +173,6 @@ class SmartTransactionHook {
       return useRegularTransactionSubmit;
     }
 
-    // console.log('>>> transctionMeta', this.#transactionMeta);
-    // console.log(
-    //   '>>> SmartTransactionHook submit origin',
-    //   this.#transactionMeta.origin,
-    // );
-    //makeSelectDomainNetworkClientId
     Logger.log(
       LOG_PREFIX,
       'Started submit hook',

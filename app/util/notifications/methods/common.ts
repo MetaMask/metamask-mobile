@@ -415,7 +415,6 @@ const isSupportedBlockExplorer = (
  * @returns some default block explorers for the chains we support.
  */
 export function getBlockExplorerByChainId(chainId: number) {
-  // console.log('>>> getBlockExplorerByChainId', chainId);
   if (isSupportedBlockExplorer(chainId)) {
     return SUPPORTED_NOTIFICATION_BLOCK_EXPLORERS[chainId].url;
   }
