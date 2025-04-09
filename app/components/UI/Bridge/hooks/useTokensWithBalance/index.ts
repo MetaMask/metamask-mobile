@@ -16,8 +16,7 @@ import {
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
 import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
-
-export type TokenIWithFiatAmount = TokenI & { tokenFiatAmount: number };
+import { BridgeToken } from '../../types';
 
 interface CalculateFiatBalancesParams {
   assets: TokenI[];
@@ -101,13 +100,13 @@ export const calculateBalances = ({
  * Hook to get tokens with fiat balances
  * @param {Object} params - The parameters object
  * @param {Hex[]} params.chainIds - Array of chain IDs to filter by
- * @returns {TokenIWithFiatAmount[]} Array of tokens (native and non-native) with sortable fiat balances
+ * @returns {BridgeToken[]} Array of tokens (native and non-native) with sortable fiat balances
  */
 export const useTokensWithBalance: ({
   chainIds,
 }: {
   chainIds: Hex[];
-}) => TokenIWithFiatAmount[] = ({ chainIds }) => {
+}) => BridgeToken[] = ({ chainIds }) => {
   const tokenSortConfig = useSelector(selectTokenSortConfig);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccountAddress = useSelector(
@@ -142,13 +141,19 @@ export const useTokensWithBalance: ({
       currentCurrency,
       selectedAddress: selectedInternalAccountAddress,
     });
-    const properTokens = allAccountTokens.map((token, i) => ({
-      ...token,
-      tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
-      balance: balances[i].balance,
-      balanceFiat: balances[i].balanceFiat,
-      symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
-    }));
+    const properTokens: BridgeToken[] = allAccountTokens
+      .filter((token) => Boolean(token.chainId)) // Ensure token has a chainId
+      .map((token, i) => ({
+        address: token.address,
+        name: token.name,
+        decimals: token.decimals,
+        symbol: token.isETH ? 'ETH' : token.symbol, // TODO: not sure why symbol is ETHEREUM, will also break the token icon for ETH
+        chainId: token.chainId as Hex,
+        image: token.image,
+        tokenFiatAmount: balances[i].tokenFiatAmount ?? 0,
+        balance: balances[i].balance,
+        balanceFiat: balances[i].balanceFiat,
+      }));
     return sortAssets(properTokens, tokenSortConfig);
   }, [
     accountTokensAcrossChains,

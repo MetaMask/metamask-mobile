@@ -49,7 +49,7 @@ class CreatePasswordView {
 
   async tapCreatePasswordButton() {
     await Gestures.waitAndTap(this.submitButton);
-    await Gestures.waitAndTap(this.submitButton);
+    //  await Gestures.waitAndTap(this.submitButton);
   }
 }
 

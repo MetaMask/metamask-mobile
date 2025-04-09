@@ -7,7 +7,8 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   selectEnabledSourceChains,
   selectSelectedSourceChainIds,
-  setSelectedSourceChainIds
+  setSelectedSourceChainIds,
+  setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
 import { useGetFormattedTokensPerChain } from '../../../../hooks/useGetFormattedTokensPerChain';
@@ -16,33 +17,43 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { addCurrencySymbol, renderNumber } from '../../../../../util/number';
-import Button, { ButtonVariants, ButtonWidthTypes } from '../../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../component-library/components/Checkbox/Checkbox';
 import ListItem from '../../../../../component-library/components/List/ListItem/ListItem';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem/ListItem.types';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
 import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
-import Text, { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { Hex } from '@metamask/utils';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 
-const createStyles = () => StyleSheet.create({
-  listContent: {
-    padding: 8,
-  },
-  fiatValue: {
-    textAlign: 'right',
-    flex: 1,
-  },
-  selectAllContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  applyButtonContainer: {
-    padding: 16,
-    marginTop: 'auto',
-  },
-});
+const createStyles = () =>
+  StyleSheet.create({
+    listContent: {
+      padding: 8,
+    },
+    fiatValue: {
+      textAlign: 'right',
+      flex: 1,
+    },
+    selectAllContainer: {
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    applyButtonContainer: {
+      padding: 16,
+      marginTop: 'auto',
+    },
+  });
 
 export const BridgeSourceNetworkSelector: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -50,15 +61,21 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   const dispatch = useDispatch();
   const enabledSourceChains = useSelector(selectEnabledSourceChains);
   const enabledSourceChainIds = useMemo(
-    () => enabledSourceChains.map((chain) => chain.chainId), [enabledSourceChains]
+    () => enabledSourceChains.map((chain) => chain.chainId),
+    [enabledSourceChains],
   );
   const selectedSourceChainIds = useSelector(selectSelectedSourceChainIds);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
   const { sortedSourceNetworks } = useSortedSourceNetworks();
+  const evmNetworkConfigurations = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
 
   // Local state for candidate network selections
-  const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<string[]>(selectedSourceChainIds);
+  const [candidateSourceChainIds, setCandidateSourceChainIds] = useState<
+    string[]
+  >(selectedSourceChainIds);
 
   const formattedTokensWithBalancesPerChain = useGetFormattedTokensPerChain(
     [selectedInternalAccount as InternalAccount],
@@ -70,25 +87,60 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     formattedTokensWithBalancesPerChain,
   );
 
+  const {
+    chainId: selectedChainId,
+    domainIsConnectedDapp,
+    networkName: selectedNetworkName,
+  } = useNetworkInfo();
+  const { onSetRpcTarget } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId,
+    selectedNetworkName,
+  });
+
   const address = selectedInternalAccount?.address;
 
-  const handleApply = useCallback(() => {
+  const handleApply = useCallback(async () => {
     // Update the Redux state with the candidate selections
     dispatch(setSelectedSourceChainIds(candidateSourceChainIds));
+
+    // If there's only 1 network selected, set the source token to native token of that chain and switch chains
+    if (candidateSourceChainIds.length === 1) {
+      const networkConfiguration =
+        evmNetworkConfigurations[candidateSourceChainIds[0] as Hex];
+      if (networkConfiguration) {
+        await onSetRpcTarget(networkConfiguration);
+      }
+
+      // Reset the source token, if undefined will be the native token of the selected chain
+      dispatch(setSourceToken(undefined));
+    }
+
     // Return to previous screen with selected networks
     navigation.goBack();
-  }, [navigation, dispatch, candidateSourceChainIds]);
+  }, [
+    navigation,
+    dispatch,
+    candidateSourceChainIds,
+    evmNetworkConfigurations,
+    onSetRpcTarget,
+  ]);
 
   // Toggle chain selection
-  const toggleChain = useCallback((chainId: string) => {
-    if (candidateSourceChainIds.includes(chainId)) {
-      // Remove chain if already selected
-      setCandidateSourceChainIds(candidateSourceChainIds.filter(id => id !== chainId));
-    } else {
-      // Add chain if not already selected
-      setCandidateSourceChainIds([...candidateSourceChainIds, chainId]);
-    }
-  }, [candidateSourceChainIds]);
+  const toggleChain = useCallback(
+    (chainId: string) => {
+      if (candidateSourceChainIds.includes(chainId)) {
+        // Remove chain if already selected
+        setCandidateSourceChainIds(
+          candidateSourceChainIds.filter((id) => id !== chainId),
+        );
+      } else {
+        // Add chain if not already selected
+        setCandidateSourceChainIds([...candidateSourceChainIds, chainId]);
+      }
+    },
+    [candidateSourceChainIds],
+  );
 
   // Select or deselect all networks
   const toggleAllChains = useCallback(() => {
@@ -102,52 +154,57 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
   }, [candidateSourceChainIds, enabledSourceChainIds]);
 
   // Calculate total fiat value per chain (native + tokens)
-  const getChainTotalFiatValue = useCallback((chainId: string) => {
-    if (!address || !totalFiatBalancesCrossChain[address]) return 0;
+  const getChainTotalFiatValue = useCallback(
+    (chainId: string) => {
+      if (!address || !totalFiatBalancesCrossChain[address]) return 0;
 
-    const chainData = totalFiatBalancesCrossChain[address].tokenFiatBalancesCrossChains.find(
-      (chain) => chain.chainId === chainId
-    );
+      const chainData = totalFiatBalancesCrossChain[
+        address
+      ].tokenFiatBalancesCrossChains.find((chain) => chain.chainId === chainId);
 
-    if (!chainData) return 0;
+      if (!chainData) return 0;
 
-    // Sum native value and all token values
-    const tokenFiatSum = chainData.tokenFiatBalances.reduce((sum, value) => sum + value, 0);
-    return chainData.nativeFiatValue + tokenFiatSum;
-  }, [address, totalFiatBalancesCrossChain]);
+      // Sum native value and all token values
+      const tokenFiatSum = chainData.tokenFiatBalances.reduce(
+        (sum, value) => sum + value,
+        0,
+      );
+      return chainData.nativeFiatValue + tokenFiatSum;
+    },
+    [address, totalFiatBalancesCrossChain],
+  );
 
   // Format currency value using the user's chosen currency
-  const formatFiatValue = useCallback((value: number) =>
-     addCurrencySymbol(renderNumber(value.toString()), currentCurrency)
-  , [currentCurrency]);
+  const formatFiatValue = useCallback(
+    (value: number) =>
+      addCurrencySymbol(renderNumber(value.toString()), currentCurrency),
+    [currentCurrency],
+  );
 
-  const areAllNetworksSelected = useMemo(() =>
-    candidateSourceChainIds.length === enabledSourceChainIds.length,
-  [candidateSourceChainIds, enabledSourceChainIds]);
+  const areAllNetworksSelected = useMemo(
+    () => candidateSourceChainIds.length === enabledSourceChainIds.length,
+    [candidateSourceChainIds, enabledSourceChainIds],
+  );
 
-  const renderSourceNetworks = useCallback(() => (
-    sortedSourceNetworks.map((chain) => {
-      const totalFiatValue = getChainTotalFiatValue(chain.chainId);
-      const isSelected = candidateSourceChainIds.includes(chain.chainId);
+  const renderSourceNetworks = useCallback(
+    () =>
+      sortedSourceNetworks.map((chain) => {
+        const totalFiatValue = getChainTotalFiatValue(chain.chainId);
+        const isSelected = candidateSourceChainIds.includes(chain.chainId);
 
-      return (
-        <TouchableOpacity
-          key={chain.chainId}
-          onPress={() => toggleChain(chain.chainId)}
-          testID={`chain-${chain.chainId}`}
-        >
-          <ListItem
-            verticalAlignment={VerticalAlignment.Center}
+        return (
+          <TouchableOpacity
+            key={chain.chainId}
+            onPress={() => toggleChain(chain.chainId)}
+            testID={`chain-${chain.chainId}`}
           >
-            <Checkbox
-              isChecked={isSelected}
-              onPress={() => toggleChain(chain.chainId)}
-              testID={`checkbox-${chain.chainId}`}
-            />
-              <NetworkRow
-                chainId={chain.chainId}
-                chainName={chain.name}
-              >
+            <ListItem verticalAlignment={VerticalAlignment.Center}>
+              <Checkbox
+                isChecked={isSelected}
+                onPress={() => toggleChain(chain.chainId)}
+                testID={`checkbox-${chain.chainId}`}
+              />
+              <NetworkRow chainId={chain.chainId} chainName={chain.name}>
                 <Text
                   style={styles.fiatValue}
                   variant={TextVariant.BodyLGMedium}
@@ -155,26 +212,38 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
                   {formatFiatValue(totalFiatValue)}
                 </Text>
               </NetworkRow>
-          </ListItem>
-        </TouchableOpacity>
-      );
-    })
-  ), [candidateSourceChainIds, formatFiatValue, getChainTotalFiatValue, styles, toggleChain, sortedSourceNetworks]);
+            </ListItem>
+          </TouchableOpacity>
+        );
+      }),
+    [
+      candidateSourceChainIds,
+      formatFiatValue,
+      getChainTotalFiatValue,
+      styles,
+      toggleChain,
+      sortedSourceNetworks,
+    ],
+  );
 
   return (
     <BridgeNetworkSelectorBase>
       <Box style={styles.selectAllContainer}>
         <Button
-          label={areAllNetworksSelected ? strings('bridge.deselect_all_networks') : strings('bridge.select_all_networks')}
+          label={
+            areAllNetworksSelected
+              ? strings('bridge.deselect_all_networks')
+              : strings('bridge.select_all_networks')
+          }
           onPress={toggleAllChains}
-          testID={BridgeSourceNetworkSelectorSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON}
+          testID={
+            BridgeSourceNetworkSelectorSelectorsIDs.SELECT_ALL_NETWORKS_BUTTON
+          }
           variant={ButtonVariants.Link}
         />
       </Box>
 
-      <Box style={styles.listContent}>
-        {renderSourceNetworks()}
-      </Box>
+      <Box style={styles.listContent}>{renderSourceNetworks()}</Box>
 
       <Box style={styles.applyButtonContainer}>
         <Button

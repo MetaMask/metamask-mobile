@@ -1,10 +1,11 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useTokenSearch } from '.';
-import { TokenIWithFiatAmount } from '../useTokensWithBalance';
+import { BridgeToken } from '../../types';
+import { Hex } from '@metamask/utils';
 
 describe('useTokenSearch', () => {
   // Mock token data
-  const mockTokens: TokenIWithFiatAmount[] = [
+  const mockTokens: BridgeToken[] = [
     {
       address: '0x1',
       symbol: 'ETH',
@@ -12,11 +13,9 @@ describe('useTokenSearch', () => {
       name: 'Ethereum',
       balance: '1.23',
       balanceFiat: '$2000.00',
-      tokenFiatAmount: 2000.00,
-      aggregators: [],
+      tokenFiatAmount: 2000.0,
       image: 'https://example.com/eth.png',
-      logo: 'https://example.com/eth.png',
-      isETH: true,
+      chainId: '0x1',
     },
     {
       address: '0x2',
@@ -26,10 +25,8 @@ describe('useTokenSearch', () => {
       balance: '100.123',
       balanceFiat: '$100.123',
       tokenFiatAmount: 100.123,
-      aggregators: [],
       image: 'https://example.com/usdc.png',
-      logo: 'https://example.com/usdc.png',
-      isETH: false,
+      chainId: '0x1',
     },
     {
       address: '0x3',
@@ -38,11 +35,9 @@ describe('useTokenSearch', () => {
       name: 'Dai Stablecoin',
       balance: '0',
       balanceFiat: '$0.00',
-      tokenFiatAmount: 0.00,
-      aggregators: [],
+      tokenFiatAmount: 0.0,
       image: 'https://example.com/dai.png',
-      logo: 'https://example.com/dai.png',
-      isETH: false,
+      chainId: '0x1',
     },
     {
       address: '0x4',
@@ -52,10 +47,8 @@ describe('useTokenSearch', () => {
       balance: '20.1',
       balanceFiat: '$20.1',
       tokenFiatAmount: 20.1,
-      aggregators: [],
       image: 'https://example.com/usdt.png',
-      logo: 'https://example.com/usdt.png',
-      isETH: false,
+      chainId: '0x1',
     },
   ];
 
@@ -139,7 +132,9 @@ describe('useTokenSearch', () => {
   });
 
   it('should handle undefined token list', () => {
-    const { result } = renderHook(() => useTokenSearch({ tokens: undefined as unknown as TokenIWithFiatAmount[] }));
+    const { result } = renderHook(() =>
+      useTokenSearch({ tokens: undefined as unknown as BridgeToken[] }),
+    );
 
     act(() => {
       result.current.setSearchString('ETH');
@@ -158,13 +153,13 @@ describe('useTokenSearch', () => {
       balance: '0',
       balanceFiat: '$0.00',
       tokenFiatAmount: 0,
-      aggregators: [],
       image: `https://example.com/tkn${i}.png`,
-      logo: `https://example.com/tkn${i}.png`,
-      isETH: false,
-    })) as TokenIWithFiatAmount[];
+      chainId: '0x1' as Hex,
+    }));
 
-    const { result } = renderHook(() => useTokenSearch({ tokens: largeTokenList }));
+    const { result } = renderHook(() =>
+      useTokenSearch({ tokens: largeTokenList }),
+    );
 
     act(() => {
       result.current.setSearchString('TKN'); // Should match all tokens
