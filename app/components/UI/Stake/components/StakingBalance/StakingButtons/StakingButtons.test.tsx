@@ -17,6 +17,7 @@ import {
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { mockedEarnFeatureFlagState } from '../../../../Earn/__mocks__/mockData';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -46,6 +47,11 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagState,
+        },
+      },
     },
   },
 };
@@ -94,6 +100,39 @@ describe('StakingButtons', () => {
     });
     expect(getByText('Unstake')).toBeDefined();
     expect(getByText('Stake more')).toBeDefined();
+  });
+
+  it('should not render stake/stake more button if pooled staking is disabled', () => {
+    const mockStatePooledStakingDisabled = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
+    };
+    const { getByText, queryByText } = renderWithProvider(
+      <StakingButtons {...props} />,
+      {
+        state: mockStatePooledStakingDisabled,
+      },
+    );
+
+    // Don't prevent users from unstaking
+    expect(getByText('Unstake')).toBeDefined();
+    expect(queryByText('Stake more')).toBeNull();
   });
 
   it('should switch to mainnet if the chain is not supported on press of stake button', async () => {
