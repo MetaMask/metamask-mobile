@@ -13,6 +13,7 @@ import { mockNetworkState } from '../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useRoute } from '@react-navigation/native';
 import { useParams } from '../../../util/navigation/navUtils';
+import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 
 const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
@@ -157,7 +158,9 @@ describe('ConfirmAddAsset', () => {
       state: mockInitialState,
     });
 
-    const confirmButton = getByTestId('bottomsheetfooter-button-subsequent'); // adjust testID as needed
+    const confirmButton = getByTestId(
+      TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+    );
     fireEvent.press(confirmButton);
 
     expect(mockAddTokenList).toHaveBeenCalledTimes(1);
