@@ -838,7 +838,7 @@ describe('WC2Manager', () => {
       jest.clearAllMocks();
     });
 
-    it('should handle session delete event for a deeplink session', async () => {
+    it('handles session delete event for a deeplink session', async () => {
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
@@ -861,7 +861,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('should handle session delete event for a non-deeplink session', async () => {
+    it('handles session delete event for a non-deeplink session', async () => {
       // Set up test data for a non-deeplink session
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
@@ -880,7 +880,7 @@ describe('WC2Manager', () => {
       expect(storageSetItemSpy).not.toHaveBeenCalled();
     });
 
-    it('should handle session delete event for non-existent session', async () => {
+    it('handles session delete event for non-existent session', async () => {
 
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
@@ -898,7 +898,7 @@ describe('WC2Manager', () => {
       expect(storageSetItemSpy).not.toHaveBeenCalled();
     });
 
-    it('should handle errors during storage update', async () => {
+    it('handles errors during storage update', async () => {
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
@@ -930,21 +930,21 @@ describe('WC2Manager', () => {
       jest.restoreAllMocks();
     });
 
-    it('should throw error when projectId is undefined', async () => {
+    it('throws error when projectId is undefined', async () => {
       // eslint-disable-next-line dot-notation
       await expect(WC2Manager['initCore'](undefined))
         .rejects
         .toThrow('WC2::init Init Missing projectId');
     });
 
-    it('should throw error when projectId is empty string', async () => {
+    it('throws error when projectId is empty string', async () => {
       // eslint-disable-next-line dot-notation
       await expect(WC2Manager['initCore'](''))
         .rejects
         .toThrow('WC2::init Init Missing projectId');
     });
 
-    it('should throw error when Core initialization fails', async () => {
+    it('throws error when Core initialization fails', async () => {
       // Override the mock for this specific test
       (Core as unknown as jest.Mock).mockImplementationOnce(() => {
         throw new Error('Core initialization failed');
@@ -962,7 +962,7 @@ describe('WC2Manager', () => {
         );
     });
 
-    it('should successfully initialize Core with valid projectId', async () => {
+    it('successfully initializes Core with valid projectId', async () => {
       // eslint-disable-next-line dot-notation
       const result = await WC2Manager['initCore']('valid-project-id');
       

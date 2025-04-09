@@ -169,19 +169,19 @@ describe('WalletConnect2Session', () => {
     jest.spyOn(Linking, 'openURL').mockReturnValue(Promise.resolve());
   });
 
-  it('should initialize correctly in constructor', () => {
+  it('initializes correctly in constructor', () => {
     expect(session).toBeTruthy();
     expect((session as any).topicByRequestId).toEqual({
       '1': mockSession.topic,
     });
   });
 
-  it('should set deeplink correctly', () => {
+  it('sets deeplink correctly', () => {
     session.setDeeplink(false);
     expect((session as any).deeplink).toBe(false);
   });
 
-  it('should handle request correctly and reject invalid chainId', async () => {
+  it('handles request correctly and rejects invalid chainId', async () => {
     const mockRespondSessionRequest = jest
       .spyOn(mockClient, 'respondSessionRequest')
       .mockImplementation(async () => { /* empty implementation */ });
@@ -218,7 +218,7 @@ describe('WalletConnect2Session', () => {
     });
   });
 
-  it('should remove listeners correctly', async () => {
+  it('removes listeners correctly', async () => {
     const mockOnDisconnect = jest.spyOn(
       (session as any).backgroundBridge,
       'onDisconnect',
@@ -229,7 +229,7 @@ describe('WalletConnect2Session', () => {
     expect(mockOnDisconnect).toHaveBeenCalled();
   });
 
-  it('should approve a request correctly', async () => {
+  it('approves a request correctly', async () => {
     const mockRespondSessionRequest = jest
       .spyOn(mockClient, 'respondSessionRequest')
       .mockResolvedValue(undefined);
@@ -247,7 +247,7 @@ describe('WalletConnect2Session', () => {
     });
   });
 
-  it('should reject a request correctly', async () => {
+  it('rejects a request correctly', async () => {
     const mockRespondSessionRequest = jest
       .spyOn(mockClient, 'respondSessionRequest')
       .mockResolvedValue(undefined);
@@ -265,7 +265,7 @@ describe('WalletConnect2Session', () => {
     });
   });
 
-  it('should handle session update correctly', async () => {
+  it('handles session update correctly', async () => {
     const mockUpdateSession = jest
       .spyOn(mockClient, 'updateSession')
       .mockResolvedValue({ acknowledged: () => Promise.resolve() });
