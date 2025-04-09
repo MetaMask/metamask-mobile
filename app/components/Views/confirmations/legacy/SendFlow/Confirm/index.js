@@ -637,7 +637,7 @@ class Confirm extends PureComponent {
       maxValueMode &&
       selectedAsset.isETH &&
       !isEmpty(gasFeeEstimates) &&
-      (haveGasFeeMaxNativeChanged || 
+      (haveGasFeeMaxNativeChanged ||
         (this.state.hasHandledFirstGasUpdate && !prevState.transactionMeta?.id))
     ) {
       updateTransactionToMaxValue({
@@ -876,12 +876,22 @@ class Confirm extends PureComponent {
       },
       updateConfirmationMetric,
     } = this.props;
-    const { transactionMeta } = this.state;
+    const { EIP1559GasTransaction, legacyGasTransaction, transactionMeta } =
+      this.state;
     const { id: transactionId } = transactionMeta;
+    const isEIP1559Transaction =
+      this.props.gasEstimateType === GAS_ESTIMATE_TYPES.FEE_MARKET;
+    const { gasFeeMaxHex } = isEIP1559Transaction
+      ? EIP1559GasTransaction
+      : legacyGasTransaction;
+
+    const transactionFeeMax = hexToBN(gasFeeMaxHex);
+    const transactionValueHex = hexToBN(value);
+
+    const totalTransactionValue = transactionValueHex.add(transactionFeeMax);
 
     const selectedAddress = transaction?.from;
     const weiBalance = hexToBN(accounts[selectedAddress].balance);
-    const totalTransactionValue = hexToBN(value);
 
     if (!isDecimal(value)) {
       return strings('transaction.invalid_amount');
