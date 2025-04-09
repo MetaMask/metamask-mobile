@@ -8,9 +8,14 @@ import { mockTypedSignV3Message } from '../test/confirm-data-helpers';
 
 describe('string utils', () => {
   describe('sanitizeString', () => {
-    it('should escape all occurences of \u202E in text', async () => {
+    it('escapes all occurences of \u202E', () => {
       const result = sanitizeString('test \u202E test \u202E test');
       expect(result).toEqual('test \\u202E test \\u202E test');
+    });
+
+    it('escapes all occurences of \u202D and \u202E', () => {
+      const result = sanitizeString('test \u202D test \u202E test \u202D test');
+      expect(result).toEqual('test \\u202D test \\u202E test \\u202D test');
     });
   });
 

@@ -27,6 +27,7 @@ jest.mock('../../Navbar/Navbar', () => ({
   getNavbar: jest.fn(),
 }));
 
+const noop = () => undefined;
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -34,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: jest.fn(),
       setOptions: jest.fn(),
+      addListener: jest.fn().mockReturnValue(noop),
     }),
   };
 });
@@ -79,6 +81,7 @@ describe('StakingClaim', () => {
       title: 'Claim',
       onReject: mockOnReject,
       addBackButton: false,
+      theme: expect.any(Object),
     });
   });
 });

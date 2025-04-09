@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { ConfirmationFooterSelectorIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
@@ -17,30 +17,32 @@ import Text, {
 import { useAlerts } from '../../../AlertSystem/context';
 import ConfirmAlertModal from '../../../AlertSystem/ConfirmAlertModal';
 import { useLedgerContext } from '../../../context/LedgerContext';
-import { useAlertsConfirmed } from '../../../../../hooks/useAlertsConfirmed';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
+import { useConfirmationAlertMetrics } from '../../../hooks/useConfirmationAlertMetrics';
 import { useQRHardwareContext } from '../../../context/QRHardwareContext/QRHardwareContext';
 import { useSecurityAlertResponse } from '../../../hooks/useSecurityAlertResponse';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
 import { isStakingConfirmation } from '../../../utils/confirm';
-import { ResultType } from '../../BlockaidBanner/BlockaidBanner.types';
+import { ResultType } from '../../../constants/signatures';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
-  const { fieldAlerts, hasDangerAlerts } = useAlerts();
-  const { hasUnconfirmedDangerAlerts } = useAlertsConfirmed(fieldAlerts);
+  const { alerts, fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { isQRSigningInProgress, needsCameraPermission } = useQRHardwareContext();
+  const { isQRSigningInProgress, needsCameraPermission } =
+    useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const { isLedgerAccount } = useLedgerContext();
   const confirmDisabled = needsCameraPermission;
   const transactionMetadata = useTransactionMetadataRequest();
+  const { trackAlertMetrics } = useConfirmationAlertMetrics();
 
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
 
-  const [confirmAlertModalVisible, setConfirmAlertModalVisible] = useState(false);
+  const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
+    useState(false);
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -61,12 +63,16 @@ export const Footer = () => {
   }, [hideConfirmAlertModal, onConfirm]);
 
   const onSignConfirm = useCallback(async () => {
-    if (hasDangerAlerts && !hasUnconfirmedDangerAlerts) {
+    if (hasDangerAlerts) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
-  }, [hasDangerAlerts, hasUnconfirmedDangerAlerts, onConfirm, showConfirmAlertModal]);
+  }, [hasDangerAlerts, onConfirm, showConfirmAlertModal]);
+
+  useEffect(() => {
+    trackAlertMetrics();
+  }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
     confirmDisabled,
@@ -80,7 +86,9 @@ export const Footer = () => {
       return strings('confirm.sign_with_ledger');
     }
     if (hasUnconfirmedDangerAlerts) {
-      return fieldAlerts.length > 1 ? strings('alert_system.review_alerts') : strings('alert_system.review_alert');
+      return fieldAlerts.length > 1
+        ? strings('alert_system.review_alerts')
+        : strings('alert_system.review_alert');
     }
     return strings('confirm.confirm');
   };
@@ -97,14 +105,16 @@ export const Footer = () => {
   const buttons = [
     {
       variant: ButtonVariants.Secondary,
-      label: strings('confirm.reject'),
+      label: strings('confirm.cancel'),
       size: ButtonSize.Lg,
       onPress: onReject,
       testID: ConfirmationFooterSelectorIDs.CANCEL_BUTTON,
     },
     {
       variant: ButtonVariants.Primary,
-      isDanger: securityAlertResponse?.result_type === ResultType.Malicious || hasDangerAlerts,
+      isDanger:
+        securityAlertResponse?.result_type === ResultType.Malicious ||
+        hasDangerAlerts,
       isDisabled: needsCameraPermission,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
@@ -128,32 +138,37 @@ export const Footer = () => {
         style={styles.base}
       />
       {isStakingConfirmationBool && (
-        <View style={styles.textContainer}>
-          <Text variant={TextVariant.BodySM}>
-            {strings('confirm.staking_footer.part1')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.linkText}
-            onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
-          >
-            {strings('confirm.staking_footer.terms_of_use')}
-          </Text>
-          <Text variant={TextVariant.BodySM}>
-            {strings('confirm.staking_footer.part2')}
-          </Text>
-          <Text
-            variant={TextVariant.BodySM}
-            style={styles.linkText}
-            onPress={() =>
-              Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
-            }
-          >
-            {strings('confirm.staking_footer.risk_disclosure')}
-          </Text>
-          <Text variant={TextVariant.BodySM}>
-            {strings('confirm.staking_footer.part3')}
-          </Text>
+        <View style={styles.bottomTextContainer}>
+          <View style={styles.bottomTextContainerLine}>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part1')}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.linkText}
+              onPress={() => Linking.openURL(AppConstants.URLS.TERMS_OF_USE)}
+            >
+              {strings('confirm.staking_footer.terms_of_use')}
+            </Text>
+          </View>
+          <View style={styles.bottomTextContainerLine}>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part2')}
+              {'\n'}
+            </Text>
+            <Text
+              variant={TextVariant.BodySM}
+              style={styles.linkText}
+              onPress={() =>
+                Linking.openURL(AppConstants.URLS.STAKING_RISK_DISCLOSURE)
+              }
+            >
+              {strings('confirm.staking_footer.risk_disclosure')}
+            </Text>
+            <Text variant={TextVariant.BodySM}>
+              {strings('confirm.staking_footer.part3')}
+            </Text>
+          </View>
         </View>
       )}
     </>

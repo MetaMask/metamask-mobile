@@ -116,7 +116,9 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
-    BRIDGE_TOKEN_SELECTOR: 'BridgeTokenSelector',
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    SELECT_SRP: 'SelectSRP',
+    ///: END:ONLY_INCLUDE_IF
   },
   BROWSER: {
     HOME: 'BrowserTabHome',
@@ -139,7 +141,18 @@ const Routes = {
   ADD_NETWORK: 'AddNetwork',
   EDIT_NETWORK: 'EditNetwork',
   SWAPS: 'Swaps',
-  BRIDGE: 'Bridge',
+  BRIDGE: {
+    ROOT: 'Bridge',
+    MODALS: {
+      ROOT: 'BridgeModals',
+      SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
+      SOURCE_NETWORK_SELECTOR: 'BridgeSourceNetworkSelector',
+      SLIPPAGE_MODAL: 'SlippageModal',
+      DEST_TOKEN_SELECTOR: 'BridgeDestTokenSelector',
+      DEST_NETWORK_SELECTOR: 'BridgeDestNetworkSelector',
+      QUOTE_INFO_MODAL: 'QuoteInfoModal',
+    },
+  },
   LOCK_SCREEN: 'LockScreen',
   CONFIRM_FLAT_PAGE: 'Confirmation Flat Page',
   CONFIRM_MODAL: 'Confirmation Modal',
@@ -168,6 +181,11 @@ const Routes = {
     STAKE_WITHDRAWAL: 'RedesignedStakeWithdrawal',
     STAKE_CLAIM: 'RedesignedStakeClaim',
   },
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  MULTI_SRP: {
+    IMPORT: 'ImportSRPView',
+  },
+  ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',

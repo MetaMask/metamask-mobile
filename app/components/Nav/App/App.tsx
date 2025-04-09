@@ -134,8 +134,11 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
-import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -304,7 +307,18 @@ const DetectedTokensFlow = () => (
   </Stack.Navigator>
 );
 
-const RootModalFlow = () => (
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+interface RootModalFlowProps {
+  route: {
+    params: Record<string, unknown>;
+  };
+}
+///: END:ONLY_INCLUDE_IF(multi-srp)
+const RootModalFlow = (
+  ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+  props: RootModalFlowProps,
+  ///: END:ONLY_INCLUDE_IF
+) => (
   <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
@@ -416,7 +430,21 @@ const RootModalFlow = () => (
       name={Routes.MODAL.ENABLE_AUTOMATIC_SECURITY_CHECKS}
       component={EnableAutomaticSecurityChecksModal}
     />
-    <Stack.Screen name={Routes.MODAL.SRP_REVEAL_QUIZ} component={SRPQuiz} />
+    {
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      <Stack.Screen
+        name={Routes.SHEET.SELECT_SRP}
+        component={SelectSRPBottomSheet}
+      />
+      ///: END:ONLY_INCLUDE_IF
+    }
+    <Stack.Screen
+      name={Routes.MODAL.SRP_REVEAL_QUIZ}
+      component={SRPQuiz}
+      ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+      initialParams={{ ...props.route.params }}
+      ///: END:ONLY_INCLUDE_IF
+    />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_ACTIONS}
       component={AccountActions}
@@ -456,10 +484,6 @@ const RootModalFlow = () => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen
-      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
-    />
   </Stack.Navigator>
 );
 
@@ -477,6 +501,21 @@ const ImportPrivateKeyView = () => (
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
   </Stack.Navigator>
 );
+
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+const ImportSRPView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen
+      name={Routes.MULTI_SRP.IMPORT}
+      component={ImportNewSecretRecoveryPhrase}
+    />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -584,6 +623,15 @@ const AppFlow = () => {
         component={ImportPrivateKeyView}
         options={{ animationEnabled: true }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        <Stack.Screen
+          name="ImportSRPView"
+          component={ImportSRPView}
+          options={{ animationEnabled: true }}
+        />
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}

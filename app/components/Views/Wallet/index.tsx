@@ -78,6 +78,8 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -109,14 +111,17 @@ import {
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
+import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import NonEvmTokens from '../../UI/NonEvmTokens';
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
 ///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
+import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -142,6 +147,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -154,6 +160,9 @@ const createStyles = ({ colors, typography }: Theme) =>
       widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
+    },
+    carouselContainer: {
+      marginTop: 12,
     },
   });
 
@@ -354,6 +363,8 @@ const Wallet = ({
       : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
+  const chainIdsToDetectNftsFor = useNftDetectionChainIds();
+
   /**
    * Shows Nft auto detect modal if the user is on mainnet, never saw the modal and have nft detection off
    */
@@ -489,6 +500,26 @@ const Wallet = ({
     readNotificationCount,
   ]);
 
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: string; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
+
   useEffect(() => {
     const importAllDetectedTokens = async () => {
       // If autodetect tokens toggle is OFF, return
@@ -536,17 +567,26 @@ const Wallet = ({
           );
         }
 
-        currentDetectedTokens.forEach(({ address, symbol }) =>
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-              .addProperties({
-                token_address: address,
-                token_symbol: symbol,
-                chain_id: getDecimalChainId(chainId),
-                source: 'detected',
-              })
-              .build(),
-          ),
+        currentDetectedTokens.forEach(
+          ({ address, symbol }: { address: string; symbol: string }) => {
+            const analyticsParams = getTokenAddedAnalyticsParams({
+              address,
+              symbol,
+            });
+
+            if (analyticsParams) {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                  .addProperties({
+                    token_address: address,
+                    token_symbol: symbol,
+                    chain_id: getDecimalChainId(chainId),
+                    source: 'detected',
+                  })
+                  .build(),
+              );
+            }
+          },
         );
       }
     };
@@ -591,7 +631,7 @@ const Wallet = ({
         const { NftDetectionController } = Engine.context;
         try {
           showNftFetchingLoadingIndicator();
-          await NftDetectionController.detectNfts();
+          await NftDetectionController.detectNfts(chainIdsToDetectNftsFor);
         } finally {
           hideNftFetchingLoadingIndicator();
         }
@@ -602,6 +642,7 @@ const Wallet = ({
       hideNftFetchingLoadingIndicator,
       showNftFetchingLoadingIndicator,
       createEventBuilder,
+      chainIdsToDetectNftsFor,
     ],
   );
 
@@ -620,17 +661,6 @@ const Wallet = ({
     [navigation],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  // to be consolidated with tokensTabProps
-  const nonEvmTokensTabProps = useMemo(
-    () => ({
-      key: 'tokens-tab',
-      tabLabel: strings('wallet.tokens'),
-    }),
-    [],
-  );
-  ///: END:ONLY_INCLUDE_IF
-
   const collectibleContractsTabProps = useMemo(
     () => ({
       key: 'nfts-tab',
@@ -641,24 +671,12 @@ const Wallet = ({
   );
 
   function renderTokensContent() {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    // TODO: [SOLANA] Consider please reusing the Tokens UI, since it handles portion of the UI already (If not please remove dead code from it)
-    if (!isEvmSelected) {
-      return (
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
-        >
-          <NonEvmTokens {...nonEvmTokensTabProps} />
-        </ScrollableTabView>
-      );
-    }
-    ///: END:ONLY_INCLUDE_IF
-
     return (
       <ScrollableTabView renderTabBar={renderTabBar} onChangeTab={onChangeTab}>
         <Tokens {...tokensTabProps} />
-        <CollectibleContracts {...collectibleContractsTabProps} />
+        {isEvmSelected && (
+          <CollectibleContracts {...collectibleContractsTabProps} />
+        )}
       </ScrollableTabView>
     );
   }
@@ -694,7 +712,13 @@ const Wallet = ({
         ) : null}
         <>
           <PortfolioBalance />
+          <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );
@@ -702,11 +726,10 @@ const Wallet = ({
   }, [
     tokens,
     accountBalanceByChainId,
-    styles.wrapper,
-    styles.banner,
+    styles,
+    colors,
     basicFunctionalityEnabled,
     turnOnBasicFunctionality,
-    renderTabBar,
     onChangeTab,
     navigation,
     ticker,

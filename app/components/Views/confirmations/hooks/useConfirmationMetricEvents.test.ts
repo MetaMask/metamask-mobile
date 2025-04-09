@@ -4,6 +4,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import {
   CONFIRMATION_EVENTS,
   CONFIRMATION_EVENT_LOCATIONS,
+  TOOLTIP_TYPES,
 } from '../../../../core/Analytics/events/confirmations';
 import { updateConfirmationMetric } from '../../../../core/redux/slices/confirmationMetrics';
 import { useMetrics } from '../../../hooks/useMetrics';
@@ -96,7 +97,7 @@ describe('useConfirmationMetricEvents', () => {
   it('tracks tooltip clicked event', () => {
     const expectedProperties = {
       location: MOCK_LOCATION,
-      tooltip: 'test-tooltip',
+      tooltip: 'test_tooltip' as TOOLTIP_TYPES,
     };
 
     mockBuild.mockReturnValue(expectedProperties);
@@ -104,8 +105,7 @@ describe('useConfirmationMetricEvents', () => {
     const { result } = renderHook(() => useConfirmationMetricEvents());
 
     result.current.trackTooltipClickedEvent({
-      location: MOCK_LOCATION,
-      tooltip: 'test-tooltip',
+      tooltip: 'test_tooltip' as TOOLTIP_TYPES,
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

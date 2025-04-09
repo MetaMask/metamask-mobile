@@ -26,8 +26,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -35,7 +35,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           undefined,
           undefined,
           {
-            "fontFamily": "EuclidCircularB-Bold",
+            "fontFamily": "CentraNo1-Bold",
             "fontWeight": "600",
           },
           undefined,
@@ -81,8 +81,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
       style={
         [
           {
-            "color": "#141618",
-            "fontFamily": "EuclidCircularB-Regular",
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
             "fontSize": 30,
             "fontWeight": "400",
             "marginVertical": 2,
@@ -118,8 +118,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -157,8 +157,8 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
         style={
           [
             {
-              "color": "#141618",
-              "fontFamily": "EuclidCircularB-Regular",
+              "color": "#121314",
+              "fontFamily": "CentraNo1-Book",
               "fontSize": 30,
               "fontWeight": "400",
               "marginVertical": 2,
@@ -166,7 +166,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
             undefined,
             undefined,
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontWeight": "600",
             },
             undefined,
@@ -212,7 +212,7 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           },
           {
             "backgroundColor": "#ffffff",
-            "borderColor": "#6a737d",
+            "borderColor": "#686e7d",
             "borderWidth": 1,
           },
           undefined,
@@ -233,13 +233,13 @@ exports[`OpenETHAppStep matches snapshot 1`] = `
           null,
           [
             {
-              "fontFamily": "EuclidCircularB-Bold",
+              "fontFamily": "CentraNo1-Bold",
               "fontSize": 14,
               "fontWeight": "600",
               "textAlign": "center",
             },
             {
-              "color": "#6a737d",
+              "color": "#686e7d",
             },
             {
               "width": 600,

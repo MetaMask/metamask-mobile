@@ -7,7 +7,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
       "alignItems": "center",
       "alignSelf": "center",
       "backgroundColor": "#ffffff",
-      "borderColor": "#848c96",
+      "borderColor": "#b7bbc8",
       "borderRadius": 99,
       "borderWidth": 1,
       "flexDirection": "row",
@@ -53,13 +53,13 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#6a737d",
+        "color": "#686e7d",
         "flexShrink": 1,
-        "fontFamily": "EuclidCircularB-Regular",
-        "fontSize": 14,
+        "fontFamily": "CentraNo1-Book",
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
       }
     }
   >

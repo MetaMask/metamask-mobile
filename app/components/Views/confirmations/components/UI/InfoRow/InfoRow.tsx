@@ -1,17 +1,22 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
-import Text from '../../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextVariant,
+  TextColor
+} from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip';
 import styleSheet from './InfoRow.styles';
 
-interface InfoRowProps {
+export interface InfoRowProps {
   label: string;
   children?: ReactNode | string;
   onTooltipPress?: () => void;
   tooltip?: string;
   style?: Record<string, unknown>;
+  labelChildren?: React.ReactNode;
   testID?: string;
+  variant?: TextColor;
 }
 
 const InfoRow = ({
@@ -19,8 +24,10 @@ const InfoRow = ({
   children,
   onTooltipPress,
   style = {},
+  labelChildren = null,
   tooltip,
   testID,
+  variant = TextColor.Default,
 }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -31,8 +38,9 @@ const InfoRow = ({
     >
       {Boolean(label) && (
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>{label}</Text>
-          {tooltip && (
+          <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
+          {labelChildren}
+          {!labelChildren && tooltip && (
             <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
           )}
         </View>

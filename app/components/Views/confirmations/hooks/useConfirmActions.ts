@@ -10,6 +10,8 @@ import { useQRHardwareContext } from '../context/QRHardwareContext';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './useSignatureMetrics';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { useSelector } from 'react-redux';
 
 export const useConfirmActions = () => {
   const {
@@ -26,6 +28,9 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const shouldUseSmartTransaction = useSelector(
+    selectShouldUseSmartTransaction,
+  );
   const isOneOfTheStakingConfirmations = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
@@ -59,7 +64,7 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: false,
+      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
       deleteAfterResult: true,
       handleErrors: false,
     });
@@ -84,6 +89,7 @@ export const useConfirmActions = () => {
     onRequestConfirm,
     isSignatureReq,
     isOneOfTheStakingConfirmations,
+    shouldUseSmartTransaction,
   ]);
 
   return { onConfirm, onReject };

@@ -130,8 +130,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -166,12 +166,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -190,12 +190,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -462,12 +462,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "textAlign": "center",
                                     }
                                   }
@@ -476,8 +476,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -492,8 +492,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -534,8 +534,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -560,7 +560,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6a737d"
+                                  color="#686e7d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -612,7 +612,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6a737d"
+                                  color="#686e7d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -651,7 +651,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#6a737d",
+                                          "color": "#686e7d",
                                           "fontSize": 20,
                                         },
                                         undefined,
@@ -670,8 +670,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -716,12 +716,12 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
@@ -753,7 +753,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376c9",
+                                    "backgroundColor": "#4459ff",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -767,8 +767,8 @@ exports[`SendTransaction View renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 16,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 18,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -925,8 +925,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -961,12 +961,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -985,12 +985,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1257,12 +1257,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "textAlign": "center",
                                     }
                                   }
@@ -1271,8 +1271,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -1287,8 +1287,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1333,8 +1333,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -1359,7 +1359,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 }
                               >
                                 <SvgMock
-                                  color="#6a737d"
+                                  color="#686e7d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -1431,12 +1431,12 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
@@ -1468,7 +1468,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376c9",
+                                    "backgroundColor": "#4459ff",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -1482,8 +1482,8 @@ exports[`SendTransaction View renders correctly for custom action payment method
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 16,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 18,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
@@ -1640,8 +1640,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                 <Text
                   style={
                     {
-                      "color": "#0376c9",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "color": "#4459ff",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1676,12 +1676,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                   numberOfLines={1}
                   style={
                     {
-                      "color": "#141618",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1700,12 +1700,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                     numberOfLines={1}
                     style={
                       {
-                        "color": "#6a737d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "color": "#686e7d",
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1972,12 +1972,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#141618",
-                                      "fontFamily": "EuclidCircularB-Regular",
-                                      "fontSize": 14,
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "textAlign": "center",
                                     }
                                   }
@@ -1986,8 +1986,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2002,8 +2002,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2048,8 +2048,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 18,
                                         "fontWeight": "700",
                                         "letterSpacing": 0,
@@ -2074,7 +2074,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6a737d"
+                                  color="#686e7d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -2126,7 +2126,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 }
                               >
                                 <SvgMock
-                                  color="#6a737d"
+                                  color="#686e7d"
                                   height={24}
                                   name="Arrow2Down"
                                   style={
@@ -2165,7 +2165,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     style={
                                       [
                                         {
-                                          "color": "#6a737d",
+                                          "color": "#686e7d",
                                           "fontSize": 20,
                                         },
                                         undefined,
@@ -2184,8 +2184,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                     accessibilityRole="text"
                                     style={
                                       {
-                                        "color": "#141618",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "color": "#121314",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 18,
                                         "fontWeight": "normal",
                                         "letterSpacing": 0,
@@ -2230,12 +2230,12 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#141618",
-                                    "fontFamily": "EuclidCircularB-Regular",
-                                    "fontSize": 14,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 16,
                                     "fontWeight": "400",
                                     "letterSpacing": 0,
-                                    "lineHeight": 22,
+                                    "lineHeight": 24,
                                     "textAlign": "center",
                                   }
                                 }
@@ -2267,7 +2267,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#0376c9",
+                                    "backgroundColor": "#4459ff",
                                     "borderRadius": 24,
                                     "flexDirection": "row",
                                     "height": 48,
@@ -2281,8 +2281,8 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "EuclidCircularB-Medium",
-                                      "fontSize": 16,
+                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontSize": 18,
                                       "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,

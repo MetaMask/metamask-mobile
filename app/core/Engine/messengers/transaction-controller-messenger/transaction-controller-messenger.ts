@@ -1,5 +1,9 @@
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
+import {
+  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerGetStateAction,
+} from '@metamask/accounts-controller';
 import { ApprovalControllerActions } from '@metamask/approval-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import { Messenger } from '@metamask/base-controller';
 import {
   NetworkControllerFindNetworkClientIdByChainIdAction,
@@ -17,14 +21,19 @@ import {
   TransactionControllerTransactionSubmittedEvent,
   TransactionControllerUnapprovedTransactionAddedEvent,
 } from '@metamask/transaction-controller';
-import { SmartTransactionsControllerSmartTransactionEvent } from '@metamask/smart-transactions-controller';
+import {
+  SmartTransactionsControllerSmartTransactionEvent,
+  SmartTransactionsControllerSmartTransactionConfirmationDoneEvent,
+} from '@metamask/smart-transactions-controller';
 
 type MessengerActions =
-  | ApprovalControllerActions
+  | AccountsControllerGetStateAction
   | AccountsControllerGetSelectedAccountAction
+  | ApprovalControllerActions
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetEIP1559CompatibilityAction
-  | NetworkControllerGetNetworkClientByIdAction;
+  | NetworkControllerGetNetworkClientByIdAction
+  | RemoteFeatureFlagControllerGetStateAction;
 
 type MessengerEvents =
   | TransactionControllerTransactionApprovedEvent
@@ -35,7 +44,8 @@ type MessengerEvents =
   | TransactionControllerTransactionSubmittedEvent
   | TransactionControllerUnapprovedTransactionAddedEvent
   | NetworkControllerStateChangeEvent
-  | SmartTransactionsControllerSmartTransactionEvent;
+  | SmartTransactionsControllerSmartTransactionEvent
+  | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
 
 export type TransactionControllerInitMessenger = ReturnType<
   typeof getTransactionControllerInitMessenger
@@ -49,9 +59,11 @@ export function getTransactionControllerMessenger(
     name: 'TransactionController',
     allowedActions: [
       'AccountsController:getSelectedAccount',
+      'AccountsController:getState',
       `ApprovalController:addRequest`,
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
+      'RemoteFeatureFlagController:getState',
     ],
     allowedEvents: [`NetworkController:stateChange`],
   });
@@ -71,6 +83,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:transactionSubmitted',
       'TransactionController:unapprovedTransactionAdded',
       'SmartTransactionsController:smartTransaction',
+      'SmartTransactionsController:smartTransactionConfirmationDone',
     ],
     allowedActions: [
       'ApprovalController:addRequest',

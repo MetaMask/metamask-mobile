@@ -189,9 +189,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -250,8 +250,8 @@ exports[`NotificationsDetails renders correctly 1`] = `
               numberOfLines={1}
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -259,12 +259,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
               0x881D...300C
             </Text>
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="Copy"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "height": 20,
                   "width": 20,
                 }
@@ -437,9 +437,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -498,8 +498,8 @@ exports[`NotificationsDetails renders correctly 1`] = `
               numberOfLines={1}
               style={
                 {
-                  "color": "#6a737d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "color": "#686e7d",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -507,12 +507,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
               0x881D...300d
             </Text>
             <SvgMock
-              color="#141618"
+              color="#121314"
               height={20}
               name="Copy"
               style={
                 {
-                  "color": "#6a737d",
+                  "color": "#686e7d",
                   "height": 20,
                   "width": 20,
                 }
@@ -537,7 +537,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "center",
-              "backgroundColor": "#1C82341A",
+              "backgroundColor": "#1c7e331a",
               "borderRadius": 16,
               "height": 32,
               "justifyContent": "center",
@@ -547,7 +547,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
           }
         >
           <SvgMock
-            color="#1c8234"
+            color="#1c7e33"
             height={20}
             name="Check"
             style={
@@ -571,9 +571,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -586,12 +586,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -658,19 +658,19 @@ exports[`NotificationsDetails renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#0376c9",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
+                  "color": "#4459ff",
+                  "fontFamily": "CentraNo1-Book",
+                  "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
-                  "lineHeight": 22,
+                  "lineHeight": 24,
                 }
               }
             >
               Transaction ID
             </Text>
             <SvgMock
-              color="#0376c9"
+              color="#4459ff"
               height={20}
               name="Copy"
               style={
@@ -709,8 +709,8 @@ exports[`NotificationsDetails renders correctly 1`] = `
               onError={[Function]}
               placeholderStyle={
                 {
-                  "backgroundColor": "#f2f4f6",
-                  "borderColor": "#f2f4f6",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#f3f5f9",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -724,7 +724,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               }
               style={
                 {
-                  "borderColor": "#f2f4f6",
+                  "borderColor": "#f3f5f9",
                   "borderRadius": 16,
                   "borderWidth": 0.5,
                   "height": 32,
@@ -739,17 +739,17 @@ exports[`NotificationsDetails renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "aspectRatio": 1,
+                "bottom": 0,
                 "height": 0,
                 "justifyContent": "center",
                 "position": "absolute",
                 "right": 0,
-                "top": 0,
                 "transform": [
                   {
                     "translateX": 0,
                   },
                   {
-                    "translateY": -0,
+                    "translateY": 0,
                   },
                 ],
               }
@@ -776,12 +776,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
                     "alignItems": "center",
                     "backgroundColor": "#ffffff",
                     "borderColor": "#ffffff",
-                    "borderRadius": 16,
+                    "borderRadius": 8,
                     "borderWidth": 2,
                     "height": 32,
                     "justifyContent": "center",
                     "overflow": "hidden",
-                    "shadowColor": "#0000001A",
+                    "shadowColor": "#0000001a",
                     "shadowOffset": {
                       "height": 2,
                       "width": 0,
@@ -825,9 +825,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -840,12 +840,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -866,9 +866,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -881,12 +881,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -910,7 +910,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
               "alignItems": "center",
               "alignSelf": "center",
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "justifyContent": "center",
               "overflow": "hidden",
@@ -943,9 +943,9 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#141618",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 16,
+                "color": "#121314",
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -958,12 +958,12 @@ exports[`NotificationsDetails renders correctly 1`] = `
             accessibilityRole="text"
             style={
               {
-                "color": "#6a737d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "color": "#686e7d",
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -983,7 +983,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             "alignItems": "center",
             "alignSelf": "center",
             "backgroundColor": "#ffffff",
-            "borderColor": "#0376c9",
+            "borderColor": "#4459ff",
             "borderRadius": 20,
             "borderWidth": 1,
             "bottom": 10,
@@ -1001,19 +1001,19 @@ exports[`NotificationsDetails renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#0376c9",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "color": "#4459ff",
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
           View on block explorer
         </Text>
         <SvgMock
-          color="#0376c9"
+          color="#4459ff"
           height={16}
           name="Arrow2Upright"
           style={

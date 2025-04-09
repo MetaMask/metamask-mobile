@@ -90,6 +90,7 @@ import { useConnectionHandler } from '../../../util/navigation/useConnectionHand
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { isPortfolioViewEnabled } from '../../../util/networks';
+import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 
 const Stack = createStackNavigator();
 
@@ -121,6 +122,7 @@ const Main = (props) => {
 
   const removeNotVisibleNotifications = props.removeNotVisibleNotifications;
   useNotificationHandler();
+  useIdentityEffects();
   useEnableAutomaticSecurityChecks();
   useMinimumVersions();
 
@@ -136,11 +138,13 @@ const Main = (props) => {
 
   useEffect(() => {
     stopIncomingTransactionPolling();
-
-    if (showIncomingTransactionsNetworks[chainId]) {
-      startIncomingTransactionPolling([chainId]);
-    }
-  }, [chainId, networkClientId, showIncomingTransactionsNetworks]);
+    startIncomingTransactionPolling();
+  }, [
+    chainId,
+    networkClientId,
+    showIncomingTransactionsNetworks,
+    props.networkConfigurations,
+  ]);
 
   const checkInfuraAvailability = useCallback(async () => {
     if (props.providerType !== 'rpc') {
@@ -183,11 +187,11 @@ const Main = (props) => {
         removeNotVisibleNotifications();
 
         BackgroundTimer.runBackgroundTimer(async () => {
-          await updateIncomingTransactions([props.chainId]);
+          await updateIncomingTransactions();
         }, AppConstants.TX_CHECK_BACKGROUND_FREQUENCY);
       }
     },
-    [backgroundMode, removeNotVisibleNotifications, props.chainId],
+    [backgroundMode, removeNotVisibleNotifications],
   );
 
   const initForceReload = () => {
@@ -509,6 +513,10 @@ Main.propTypes = {
    * ID of the global network client
    */
   networkClientId: PropTypes.string,
+  /**
+   * Network configurations
+   */
+  networkConfigurations: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -518,6 +526,7 @@ const mapStateToProps = (state) => ({
   chainId: selectChainId(state),
   networkClientId: selectNetworkClientId(state),
   backUpSeedphraseVisible: state.user.backUpSeedphraseVisible,
+  networkConfigurations: selectNetworkConfigurations(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

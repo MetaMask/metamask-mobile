@@ -39,6 +39,18 @@ jest.mock('../../../../../hooks/useAlertsConfirmed', () => ({
   useAlertsConfirmed: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useConfirmationAlertMetrics', () => ({
+  useConfirmationAlertMetrics: jest.fn(),
+}));
+
+import { useConfirmationAlertMetrics } from '../../../hooks/useConfirmationAlertMetrics';
+
+const mockTrackAlertMetrics = jest.fn();
+
+(useConfirmationAlertMetrics as jest.Mock).mockReturnValue({
+  trackAlertMetrics: mockTrackAlertMetrics,
+});
+
 const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
 const ALERT_DETAILS_MOCK = ['Detail 1', 'Detail 2'];
 const mockAlerts = [
@@ -53,8 +65,8 @@ const mockAlerts = [
 
 describe('Footer', () => {
   beforeEach(() => {
-    (useAlerts as jest.Mock).mockReturnValue({fieldAlerts: [], hasDangerAlerts: false,});
-    (useAlertsConfirmed as jest.Mock).mockReturnValue({hasUnconfirmedDangerAlerts: false,});
+    (useAlerts as jest.Mock).mockReturnValue({ fieldAlerts: [], hasDangerAlerts: false, });
+    (useAlertsConfirmed as jest.Mock).mockReturnValue({ hasUnconfirmedDangerAlerts: false, });
     jest.clearAllMocks();
   });
 
@@ -62,7 +74,7 @@ describe('Footer', () => {
     const { getByText, getAllByRole } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    expect(getByText('Reject')).toBeDefined();
+    expect(getByText('Cancel')).toBeDefined();
     expect(getByText('Confirm')).toBeDefined();
     expect(getAllByRole('button')).toHaveLength(2);
   });
@@ -77,11 +89,11 @@ describe('Footer', () => {
     });
   });
 
-  it('should call onReject when reject button is clicked', async () => {
+  it('should call onReject when cancel button is clicked', async () => {
     const { getByText } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
     });
-    fireEvent.press(getByText('Reject'));
+    fireEvent.press(getByText('Cancel'));
     await waitFor(() => {
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);
     });
@@ -147,20 +159,17 @@ describe('Footer', () => {
       alertModalVisible: true,
       setAlertKey: jest.fn(),
       hasDangerAlerts: true,
-    };
-
-    const baseMockUseAlertsConfirmed = {
       isAlertConfirmed: jest.fn().mockReturnValue(false),
       setAlertConfirmed: jest.fn(),
       unconfirmedDangerAlerts: [],
       unconfirmedFieldDangerAlerts: [],
       hasUnconfirmedDangerAlerts: false,
       hasUnconfirmedFieldDangerAlerts: false,
+      generalAlerts: [],
     };
 
     beforeEach(() => {
       (useAlerts as jest.Mock).mockReturnValue(baseMockUseAlerts);
-      (useAlertsConfirmed as jest.Mock).mockReturnValue(baseMockUseAlertsConfirmed);
       jest.clearAllMocks();
     });
 
@@ -190,7 +199,7 @@ describe('Footer', () => {
       expect(getByTestId('confirm-alert-checkbox')).toBeDefined();
 
       await act(async () => {
-        fireEvent.press(getByTestId('confirm-alert-reject-button'));
+        fireEvent.press(getByTestId('confirm-alert-cancel-button'));
       });
 
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);
@@ -225,9 +234,6 @@ describe('Footer', () => {
       (useAlerts as jest.Mock).mockReturnValue({
         ...baseMockUseAlerts,
         fieldAlerts,
-      });
-      (useAlertsConfirmed as jest.Mock).mockReturnValue({
-        ...baseMockUseAlertsConfirmed,
         hasUnconfirmedDangerAlerts: true,
       });
 
@@ -236,6 +242,13 @@ describe('Footer', () => {
       });
 
       expect(getByText(expectedText)).toBeDefined();
+    });
+
+    it('calls trackAlertMetrics when alerts change', () => {
+      renderWithProvider(<Footer />, {
+        state: personalSignatureConfirmationState,
+      });
+      expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -6,7 +6,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
     style={
       {
         "color": "black",
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 18,
         "fontWeight": "400",
         "paddingVertical": 16,
@@ -92,7 +92,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -158,7 +158,7 @@ exports[`DetectedTokens Component matches snapshot when no detected tokens 1`] =
             },
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -187,7 +187,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
     style={
       {
         "color": "black",
-        "fontFamily": "EuclidCircularB-Regular",
+        "fontFamily": "CentraNo1-Book",
         "fontSize": 18,
         "fontWeight": "400",
         "paddingVertical": 16,
@@ -268,17 +268,17 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 {
                   "alignItems": "center",
                   "aspectRatio": 1,
+                  "bottom": 0,
                   "height": 0,
                   "justifyContent": "center",
                   "position": "absolute",
                   "right": 0,
-                  "top": 0,
                   "transform": [
                     {
                       "translateX": 0,
                     },
                     {
-                      "translateY": -0,
+                      "translateY": 0,
                     },
                   ],
                 }
@@ -305,12 +305,12 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
                       "borderColor": "#ffffff",
-                      "borderRadius": 16,
+                      "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
-                      "shadowColor": "#0000001A",
+                      "shadowColor": "#0000001a",
                       "shadowOffset": {
                         "height": 2,
                         "width": 0,
@@ -355,7 +355,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 18,
                   "fontWeight": "400",
                   "marginBottom": 4,
@@ -376,7 +376,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                   }
@@ -398,7 +398,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                     }
@@ -444,7 +444,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                   }
@@ -526,17 +526,17 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 {
                   "alignItems": "center",
                   "aspectRatio": 1,
+                  "bottom": 0,
                   "height": 0,
                   "justifyContent": "center",
                   "position": "absolute",
                   "right": 0,
-                  "top": 0,
                   "transform": [
                     {
                       "translateX": 0,
                     },
                     {
-                      "translateY": -0,
+                      "translateY": 0,
                     },
                   ],
                 }
@@ -563,12 +563,12 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                       "alignItems": "center",
                       "backgroundColor": "#ffffff",
                       "borderColor": "#ffffff",
-                      "borderRadius": 16,
+                      "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,
                       "justifyContent": "center",
                       "overflow": "hidden",
-                      "shadowColor": "#0000001A",
+                      "shadowColor": "#0000001a",
                       "shadowOffset": {
                         "height": 2,
                         "width": 0,
@@ -613,7 +613,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 18,
                   "fontWeight": "400",
                   "marginBottom": 4,
@@ -634,7 +634,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": undefined,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                   }
@@ -656,7 +656,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                   style={
                     {
                       "color": "blue",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 14,
                       "fontWeight": "400",
                     }
@@ -702,7 +702,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
                 style={
                   {
                     "color": "black",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 14,
                     "fontWeight": "400",
                   }
@@ -803,7 +803,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",
@@ -866,7 +866,7 @@ exports[`DetectedTokens Component renders correctly with detected tokens 1`] = `
             null,
             [
               {
-                "fontFamily": "EuclidCircularB-Bold",
+                "fontFamily": "CentraNo1-Bold",
                 "fontSize": 14,
                 "fontWeight": "600",
                 "textAlign": "center",

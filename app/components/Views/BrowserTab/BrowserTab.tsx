@@ -109,6 +109,7 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -294,25 +295,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     (urlOrigin: string) => {
-      const { PhishingController } = Engine.context;
+      if (whitelist?.includes(urlOrigin)) {
+        return true;
+      }
+      const phishingResult = getPhishingTestResult(urlOrigin);
+      // Is safe if no phishing result or if phishing result is false
+      const isSafe = !phishingResult?.result;
+      if (phishingResult && !isSafe && phishingResult.name) {
+        blockListType.current = phishingResult.name;
+      }
 
-      // Update phishing configuration if it is out-of-date
-      // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-      // down network requests. The configuration is updated for the next request.
-      PhishingController.maybeUpdateState();
-
-      const phishingControllerTestResult = PhishingController.test(urlOrigin);
-
-      // Only assign the if the hostname is on the block list
-      if (
-        phishingControllerTestResult.result &&
-        phishingControllerTestResult.name
-      )
-        blockListType.current = phishingControllerTestResult.name;
-
-      return (
-        whitelist?.includes(urlOrigin) || !phishingControllerTestResult.result
-      );
+      return isSafe;
     },
     [whitelist],
   );
@@ -590,7 +583,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
+      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -692,8 +685,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         });
 
       updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         tabId,
+        {
+          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        },
       );
 
       addToBrowserHistory({
@@ -1070,8 +1065,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           processedUrl.replace(regex.urlHttpToHttps, 'https://'),
         );
         if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
             'Error in onSubmitEditing',
           );
           return;

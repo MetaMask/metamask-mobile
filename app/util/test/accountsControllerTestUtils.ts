@@ -139,7 +139,10 @@ export function createMockSnapInternalAccount(
 export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
   id: 'ae247df6-3911-47f7-9e36-28e6a7d96078',
   address: 'bc1qwl8399fz829uqvqly9tcatgrgtwp3udnhxfq4k',
-  options: {},
+  options: {
+    scope: BtcScope.Mainnet,
+    index: 0,
+  },
   methods: [BtcMethod.SendBitcoin],
   scopes: [BtcScope.Mainnet],
   type: BtcAccountType.P2wpkh,
@@ -154,7 +157,10 @@ export const MOCK_ACCOUNT_BIP122_P2WPKH: InternalAccount = {
 export const MOCK_ACCOUNT_BIP122_P2WPKH_TESTNET: InternalAccount = {
   id: 'fcdafe8b-4bdf-4e25-9051-e255b2a0af5f',
   address: 'tb1q6rmsq3vlfdhjdhtkxlqtuhhlr6pmj09y6w43g8',
-  options: {},
+  options: {
+    scope: BtcScope.Testnet,
+    index: 0,
+  },
   methods: [BtcMethod.SendBitcoin],
   scopes: [BtcScope.Testnet],
   type: BtcAccountType.P2wpkh,
@@ -171,7 +177,11 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
   id: '1',
   type: SolAccountType.DataAccount,
   methods: [SolMethod.SendAndConfirmTransaction],
-  options: {},
+  options: {
+    imported: false,
+    scope: SolScope.Mainnet,
+    entropySource: 'mock-keyring-id',
+  },
   metadata: {
     name: 'Solana Account',
     importTime: 1684232000456,
