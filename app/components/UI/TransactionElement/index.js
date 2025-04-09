@@ -22,18 +22,14 @@ import { TRANSACTION_TYPES } from '../../../util/transactions';
 import ListItem from '../../Base/ListItem';
 import StatusText from '../../Base/StatusText';
 import DetailsModal from '../../Base/DetailsModal';
-import { isMainNet, isTestNet } from '../../../util/networks';
+import { isTestNet } from '../../../util/networks';
 import { weiHexToGweiDec } from '@metamask/controller-utils';
 import {
   WalletDevice,
   isEIP1559Transaction,
 } from '@metamask/transaction-controller';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import {
-  selectChainId,
-  selectEvmNetworkConfigurationsByChainId,
-  selectEvmTicker,
-} from '../../../selectors/networkController';
+import { selectTickerByChainId } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectPrimaryCurrency } from '../../../selectors/settings';
 import { selectSwapsTransactions } from '../../../selectors/transactionController';
@@ -175,10 +171,6 @@ class TransactionElement extends PureComponent {
      * Chain Id
      */
     txChainId: PropTypes.string,
-    /**
-     * Network configurations by chain id
-     */
-    networkConfigurationsByChainId: PropTypes.object,
   };
 
   state = {
@@ -205,7 +197,6 @@ class TransactionElement extends PureComponent {
       swapsTokens: this.props.swapsTokens,
       assetSymbol: this.props.assetSymbol,
       txChainId: this.props.txChainId,
-      networkConfigurationsByChainId: this.props.networkConfigurationsByChainId,
     });
     this.mounted = true;
 
@@ -648,13 +639,12 @@ class TransactionElement extends PureComponent {
   }
 }
 
-const mapStateToProps = (state) => ({
-  networkConfigurationsByChainId:
-    selectEvmNetworkConfigurationsByChainId(state),
+const mapStateToProps = (state, ownProps) => ({
   selectedInternalAccount: selectSelectedInternalAccount(state),
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
+  ticker: selectTickerByChainId(state, ownProps.tx.chainId),
 });
 
 TransactionElement.contextType = ThemeContext;
