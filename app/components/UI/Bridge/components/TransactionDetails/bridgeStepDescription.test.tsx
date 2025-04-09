@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import BridgeStepDescription, { getStepStatus } from './bridgeStepDescription';
+import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import { ActionTypes, StatusTypes, BridgeHistoryItem, StatusResponse, SrcChainStatus } from '@metamask/bridge-status-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Step } from '@metamask/bridge-controller';

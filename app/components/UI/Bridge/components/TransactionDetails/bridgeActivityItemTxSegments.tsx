@@ -6,7 +6,7 @@ import {
 import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
 import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
-import Segment from './segment';
+import Segment from './Segment';
 import { FlexDirection } from '../../../Box/box.types';
 
 const getTxIndex = (srcTxStatus: StatusTypes) => {

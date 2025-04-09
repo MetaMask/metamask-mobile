@@ -4,8 +4,8 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import BridgeStepDescription, {
   getStepStatus,
-} from './bridgeStepDescription';
-import StepProgressBarItem from './stepProgressBarItem';
+} from './BridgeStepDescription';
+import StepProgressBarItem from './StepProgressBarItem';
 import { Box } from '../../../Box/Box';
 import { DateTime } from 'luxon';
 import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';

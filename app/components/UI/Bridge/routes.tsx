@@ -8,7 +8,7 @@ import { BridgeSourceNetworkSelector } from './components/BridgeSourceNetworkSel
 import { BridgeDestNetworkSelector } from './components/BridgeDestNetworkSelector';
 import BridgeView from '.';
 import QuoteInfoModal from './components/QuoteInfoModal';
-import BlockExplorersModal from './components/TransactionDetails/blockExplorersModal';
+import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,

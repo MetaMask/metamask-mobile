@@ -1,5 +1,5 @@
 import React from 'react';
-import { BridgeTransactionDetails } from './transactionDetails';
+import { BridgeTransactionDetails } from './TransactionDetails';
 import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';

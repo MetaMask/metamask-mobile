@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import BridgeActivityItemTxSegments from './bridgeActivityItemTxSegments';
+import BridgeActivityItemTxSegments from './BridgeActivityItemTxSegments';
 import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
 import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import BlockExplorersModal from './blockExplorersModal';
+import BlockExplorersModal from './BlockExplorersModal';
 import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
 import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
