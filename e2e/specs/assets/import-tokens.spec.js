@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import TestHelpers from '../../helpers';
 import WalletView from '../../pages/wallet/WalletView';
 import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
@@ -17,7 +17,7 @@ import Assertions from '../../utils/Assertions';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeAssets('Import Tokens'), () => {
+describe(SmokeNetworkAbstractions('Import Tokens'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

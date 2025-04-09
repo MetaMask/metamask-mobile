@@ -9,11 +9,11 @@ import {
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import NftDetectionModal from '../../pages/wallet/NftDetectionModal';
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 
 import { NftDetectionModalSelectorsText } from '../../selectors/wallet/NftDetectionModal.selectors';
 
-describe(SmokeAssets('NFT Detection Modal'), () => {
+describe(SmokeNetworkAbstractions('NFT Detection Modal'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();

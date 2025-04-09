@@ -185,6 +185,8 @@ stages:
       - run_tade_swimlane_android_smoke: {}
       - run_network_expansion_swimlane_ios_smoke: {}
       - run_network_expansion_swimlane_android_smoke: {}
+      - run_network_abstraction_swimlane_ios_smoke: {}
+      - run_network_abstraction_swimlane_android_smoke: {}
       # - run_tag_smoke_notifications_ios: {}
       # - run_tag_smoke_notifications_android: {}
       # # - run_tag_smoke_identity_ios: {}
@@ -231,8 +233,8 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
-      - run_tag_smoke_notifications_ios: {}
-      - run_tag_smoke_notifications_android: {}
+      # - run_tag_smoke_notifications_ios: {}
+      # - run_tag_smoke_notifications_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -708,6 +710,21 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
     after_run:
       - android_e2e_test
+
+  run_network_abstraction_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+    after_run:
+      - ios_e2e_test
+  run_network_abstraction_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+    after_run:
+      - android_e2e_test
   run_tag_smoke_identity_ios:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
@@ -847,28 +864,16 @@ workflows:
       - android_e2e_test
   run_tade_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_TAG: '.*SmokeEarn.*'
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
       - ios_e2e_test
   run_tade_swimlane_android_smoke:
-  run_tag_smoke_notifications_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
-      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_notifications_android:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: '.*SmokeEarn.*'
-    after_run:
-      - android_e2e_test
-
-      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
-      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
       - android_e2e_test
   android_e2e_build:

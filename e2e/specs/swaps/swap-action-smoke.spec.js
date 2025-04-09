@@ -21,7 +21,7 @@ import NetworkEducationModal from '../../pages/Network/NetworkEducationModal.js'
 import TestHelpers from '../../helpers.js';
 import FixtureServer from '../../fixtures/fixture-server.js';
 import { getFixturesServerPort } from '../../fixtures/utils.js';
-import { SmokeEarn } from '../../tags.js';
+import { SmokeTrade } from '../../tags.js';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView.js';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView.js';
 import Assertions from '../../utils/Assertions.js';
@@ -33,7 +33,7 @@ import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 const fixtureServer = new FixtureServer();
 const firstElement = 0;
 
-describe(SmokeEarn('Swap from Actions'), () => {
+describe(SmokeTrade('Swap from Actions'), () => {
   const FIRST_ROW = 0;
   const SECOND_ROW = 1;
   let currentNetwork = CustomNetworks.Tenderly.Mainnet.providerConfig.nickname;
