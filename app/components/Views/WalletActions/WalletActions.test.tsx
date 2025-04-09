@@ -32,6 +32,7 @@ import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { trace, TraceName } from '../../../util/trace';
 import { RampType } from '../../../reducers/fiatOrders/types';
+import { mockedEarnFeatureFlagState } from '../../UI/Earn/__mocks__/mockData';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
@@ -176,6 +177,11 @@ const mockInitialState: DeepPartial<RootState> = {
         }),
       },
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagState,
+        },
+      },
     },
   },
 };
@@ -255,6 +261,51 @@ describe('WalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeDefined();
+  });
+
+  it('should not render earn button if all earn experiences are disabled ', () => {
+    const mockStateWithDisabledEarnExperiences: DeepPartial<RootState> = {
+      swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+      fiatOrders: {
+        networks: [
+          {
+            active: true,
+            chainId: '1',
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+          },
+        ],
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingEnabled: false,
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const { queryByTestId } = renderWithProvider(<WalletActions />, {
+      state: mockStateWithDisabledEarnExperiences,
+    });
+
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
   });
 
   it('should not show the buy button and swap button if the chain does not allow buying', () => {

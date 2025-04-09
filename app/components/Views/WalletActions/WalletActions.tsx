@@ -55,6 +55,10 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../selectors/featureFlagController/earnFeatureFlags';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -64,6 +68,12 @@ const WalletActions = () => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -355,7 +365,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingFeatureEnabled() && !areEarnExperiencesDisabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}
