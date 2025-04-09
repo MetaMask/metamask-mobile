@@ -73,7 +73,11 @@ export const getPermittedAccountsByHostname = (
  */
 export const getDefaultCaip25CaveatValue = (): Caip25CaveatValue => ({
   requiredScopes: {},
-  optionalScopes: {},
+  optionalScopes: {
+    'wallet:eip155': {
+      accounts: [],
+    },
+  },
   sessionProperties: {},
   isMultichainOrigin: false,
 });
