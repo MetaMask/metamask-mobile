@@ -285,7 +285,7 @@ describe('handleEthereumUrl', () => {
     );
   });
 
-  it('should switch to mainnet when isEvmSelected is false', async () => {
+  it('switch to mainnet when isEvmSelected is false', async () => {
     const url = 'ethereum:transfer';
     const origin = 'test_origin';
     const mockSetActiveNetwork = jest.fn();
