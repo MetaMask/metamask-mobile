@@ -916,13 +916,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       loadingUrlRef.current = nativeEvent.url;
 
       // Use URL to produce real url. This should be the actual website that the user is viewing.
-      // const { origin: urlOrigin, hostname } = new URLParse(nativeEvent.url);
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
-
-      // // Skip processing if this is a navigation to an error page
-      // if (hostname === `can't%20open%20page`) {
-      //   return;
-      // }
 
       webStates.current[nativeEvent.url] = {
         ...webStates.current[nativeEvent.url],
