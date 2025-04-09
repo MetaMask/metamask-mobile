@@ -16,6 +16,7 @@ import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
+import { selectPooledStakingEnabledFlag } from '../../../../../../selectors/featureFlagController/earnFeatureFlags';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;
@@ -30,10 +31,16 @@ const StakingButtons = ({
   hasEthToUnstake,
 }: StakingButtonsProps) => {
   const { navigate } = useNavigation();
+
   const { styles } = useStyles(styleSheet, {});
+
   const { trackEvent, createEventBuilder } = useMetrics();
+
   const chainId = useSelector(selectEvmChainId);
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+
   const { isStakingSupportedChain } = useStakingChain();
+
   const { MultichainNetworkController } = Engine.context;
 
   const handleIsStakingSupportedChain = async () => {
@@ -94,17 +101,19 @@ const StakingButtons = ({
           onPress={onUnstakePress}
         />
       )}
-      <Button
-        testID={'stake-more-button'}
-        style={styles.balanceActionButton}
-        variant={ButtonVariants.Secondary}
-        label={
-          hasStakedPositions
-            ? strings('stake.stake_more')
-            : strings('stake.stake')
-        }
-        onPress={onStakePress}
-      />
+      {isPooledStakingEnabled && (
+        <Button
+          testID={'stake-more-button'}
+          style={styles.balanceActionButton}
+          variant={ButtonVariants.Secondary}
+          label={
+            hasStakedPositions
+              ? strings('stake.stake_more')
+              : strings('stake.stake')
+          }
+          onPress={onStakePress}
+        />
+      )}
     </View>
   );
 };
