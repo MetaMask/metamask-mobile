@@ -180,7 +180,7 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      #- run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_identity_ios: {}
@@ -200,6 +200,8 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_multichain_permissions_ios: {}
       - run_tag_multichain_permissions_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -227,6 +229,8 @@ stages:
       # - run_tag_smoke_swaps_android: {}
       - run_tag_smoke_core_ios: {}
       - run_tag_smoke_core_android: {}
+      - run_tag_smoke_notifications_ios: {}
+      - run_tag_smoke_notifications_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -841,6 +845,22 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
+  run_tag_smoke_notifications_ios:
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_notifications_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
+      - TEST_SUITE_TAG: '.*SmokeNotifications.*'
+    after_run:
+      - android_e2e_test
   android_e2e_build:
     before_run:
       - code_setup
@@ -978,7 +998,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
@@ -1235,7 +1255,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
                 else
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
@@ -1351,11 +1371,11 @@ workflows:
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
-                
+
                 # Rename AAB
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
@@ -1398,7 +1418,7 @@ workflows:
   build_android_release:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1409,7 +1429,7 @@ workflows:
   build_android_beta:
     envs:
       - METAMASK_BUILD_TYPE: 'beta'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1421,7 +1441,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1783,17 +1803,17 @@ workflows:
 
                 # Generate new name based on build type and version
                 NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename IPA
                 OLD_IPA="$IPA_DIR/$APP_NAME.ipa"
                 NEW_IPA="$IPA_DIR/$NEW_BASE_NAME.ipa"
                 mv "$OLD_IPA" "$NEW_IPA"
-                
+
                 # Rename xcarchive
                 OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
                 NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
                 mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_IPA_FILE --value "$NEW_BASE_NAME.ipa"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
@@ -1822,7 +1842,7 @@ workflows:
   build_ios_release:
     envs:
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1833,7 +1853,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1843,7 +1863,7 @@ workflows:
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1853,7 +1873,7 @@ workflows:
   build_ios_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"

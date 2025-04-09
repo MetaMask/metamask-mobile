@@ -155,7 +155,7 @@ const Settings = () => {
   const showHelp = () => {
     let supportUrl = 'https://support.metamask.io';
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    ///: BEGIN:ONLY_INCLUDE_IF(beta)
     supportUrl = 'https://intercom.help/internal-beta-testing/en/';
     ///: END:ONLY_INCLUDE_IF
 

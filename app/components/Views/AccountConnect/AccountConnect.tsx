@@ -27,6 +27,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
+  selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -79,6 +80,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -101,10 +104,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const previouslySelectedEvmAccount = useSelector(
+    selectPreviouslySelectedEvmAccount,
+  );
 
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && isEvmSelected ? [selectedWalletAddress] : [],
+    selectedWalletAddress && isEvmSelected
+      ? [selectedWalletAddress]
+      : [
+          previouslySelectedEvmAccount
+            ? getFormattedAddressFromInternalAccount(
+                previouslySelectedEvmAccount,
+              )
+            : '',
+        ],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);
@@ -273,16 +287,8 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [selectedChainIds, chainId, urlWithProtocol]);
 
   const isAllowedOrigin = useCallback((origin: string) => {
-    const { PhishingController } = Engine.context;
-
-    // Update phishing configuration if it is out-of-date
-    // This is async but we are not `await`-ing it here intentionally, so that we don't slow
-    // down network requests. The configuration is updated for the next request.
-    PhishingController.maybeUpdateState();
-
-    const phishingControllerTestResult = PhishingController.test(origin);
-
-    return !phishingControllerTestResult.result;
+    const phishingResult = getPhishingTestResult(origin);
+    return !phishingResult?.result;
   }, []);
 
   useEffect(() => {
