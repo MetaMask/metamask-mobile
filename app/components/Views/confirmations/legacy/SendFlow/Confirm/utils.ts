@@ -31,6 +31,10 @@ export const updateTransactionToMaxValue = async ({
 
   const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
 
+  if (maxTransactionValueBN.lt(new BN(0))) {
+    return;
+  }
+
   const maxTransactionValueHex = add0x(maxTransactionValueBN.toString(16));
 
   if (transactionId) {
