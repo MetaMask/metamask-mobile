@@ -538,6 +538,40 @@ exports[`Wallet should render correctly 1`] = `
                     </RNGestureHandlerButton>
                   </View>
                 </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -1686,6 +1720,40 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                     </RNGestureHandlerButton>
                   </View>
                 </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
+                </View>
                 <TouchableOpacity
                   accessible={true}
                   activeOpacity={1}
@@ -2833,6 +2901,40 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                       </View>
                     </RNGestureHandlerButton>
                   </View>
+                </View>
+                <View>
+                  <TouchableOpacity
+                    accessible={true}
+                    activeOpacity={1}
+                    disabled={false}
+                    onPress={[Function]}
+                    onPressIn={[Function]}
+                    onPressOut={[Function]}
+                    style={
+                      {
+                        "alignItems": "center",
+                        "borderRadius": 8,
+                        "height": 32,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 32,
+                      }
+                    }
+                    testID="wallet-notifications-button"
+                  >
+                    <SvgMock
+                      color="#121314"
+                      height={24}
+                      name="Notification"
+                      style={
+                        {
+                          "height": 24,
+                          "width": 24,
+                        }
+                      }
+                      width={24}
+                    />
+                  </TouchableOpacity>
                 </View>
                 <TouchableOpacity
                   accessible={true}

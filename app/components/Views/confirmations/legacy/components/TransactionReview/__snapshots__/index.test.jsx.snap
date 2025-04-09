@@ -666,6 +666,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -862,6 +863,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                 >
                                   <Text
                                     allowFontScaling={false}
+                                    selectable={false}
                                     style={
                                       [
                                         {
@@ -880,7 +882,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       ]
                                     }
                                   >
-                                    
+                                    󰋼
                                   </Text>
                                 </TouchableOpacity>
                               </Text>
@@ -1243,6 +1245,7 @@ exports[`TransactionReview should match snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -1259,7 +1262,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               ]
             }
           >
-            
+            
           </Text>
         </TouchableOpacity>
         <Text
@@ -1277,6 +1280,7 @@ exports[`TransactionReview should match snapshot 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1293,7 +1297,7 @@ exports[`TransactionReview should match snapshot 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </View>
       <Text

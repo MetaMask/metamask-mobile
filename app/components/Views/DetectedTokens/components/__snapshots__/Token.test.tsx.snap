@@ -165,6 +165,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -184,7 +185,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>
@@ -436,6 +437,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -455,7 +457,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>
@@ -707,6 +709,7 @@ exports[`Token Component renders correctly 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -726,7 +729,7 @@ exports[`Token Component renders correctly 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>
@@ -978,6 +981,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
         </Text>
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -997,7 +1001,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>

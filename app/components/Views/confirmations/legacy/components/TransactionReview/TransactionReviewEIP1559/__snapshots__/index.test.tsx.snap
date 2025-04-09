@@ -115,6 +115,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -133,7 +134,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
                 ]
               }
             >
-              
+              󰋼
             </Text>
           </TouchableOpacity>
         </Text>

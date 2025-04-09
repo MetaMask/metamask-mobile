@@ -655,6 +655,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                 >
                                   <Text
                                     allowFontScaling={false}
+                                    selectable={false}
                                     style={
                                       [
                                         {
@@ -671,7 +672,7 @@ exports[`SendTransaction View renders correctly 1`] = `
                                       ]
                                     }
                                   >
-                                    
+                                    󰁰
                                   </Text>
                                   <Text
                                     accessibilityRole="text"
@@ -2183,6 +2184,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                 >
                                   <Text
                                     allowFontScaling={false}
+                                    selectable={false}
                                     style={
                                       [
                                         {
@@ -2199,7 +2201,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
                                       ]
                                     }
                                   >
-                                    
+                                    󰁰
                                   </Text>
                                   <Text
                                     accessibilityRole="text"

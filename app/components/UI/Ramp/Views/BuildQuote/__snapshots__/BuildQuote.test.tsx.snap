@@ -482,6 +482,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -507,7 +508,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  
+                                  󰋽
                                 </Text>
                               </View>
                               <View
@@ -1145,6 +1146,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -1170,7 +1172,7 @@ exports[`BuildQuote View Crypto Currency Data renders a special error page if cr
                                     ]
                                   }
                                 >
-                                  
+                                  󰋽
                                 </Text>
                               </View>
                               <View
@@ -1808,6 +1810,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -1833,7 +1836,7 @@ exports[`BuildQuote View Crypto Currency Data renders an error page when there i
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -3410,6 +3413,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -3435,7 +3439,7 @@ exports[`BuildQuote View Fiat Currency Data renders an error page when there is 
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -5012,6 +5016,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -5037,7 +5042,7 @@ exports[`BuildQuote View Payment Method Data renders an error page when there is
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -5779,6 +5784,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -5849,6 +5855,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -6146,6 +6153,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -6429,6 +6437,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                                 
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -6570,6 +6579,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -6724,6 +6734,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                               
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -8056,6 +8067,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8072,7 +8084,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -9577,6 +9589,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -9602,7 +9615,7 @@ exports[`BuildQuote View Regions data renders an error page when there is a regi
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -11283,6 +11296,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -11353,6 +11367,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -11650,6 +11665,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -11933,6 +11949,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                                 
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -12074,6 +12091,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -12228,6 +12246,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                               
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -13606,6 +13625,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -13622,7 +13642,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -14292,6 +14312,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -14362,6 +14383,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -14429,6 +14451,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     </Text>
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -14726,6 +14749,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                                 
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -14997,6 +15021,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -15151,6 +15176,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                               
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -16594,6 +16620,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -16610,7 +16637,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -17176,6 +17203,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -17201,7 +17229,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -17839,6 +17867,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -17864,7 +17893,7 @@ exports[`BuildQuote View renders correctly when sdkError is present 2`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View

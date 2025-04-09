@@ -2209,6 +2209,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -2234,7 +2235,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View

@@ -189,6 +189,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               />
               <Text
                 allowFontScaling={false}
+                selectable={false}
                 style={
                   [
                     {
@@ -307,6 +308,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -325,7 +327,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰁜
             </Text>
             <Text
               style={
@@ -392,6 +394,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -419,7 +422,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰌒
             </Text>
             <Text
               style={
@@ -470,6 +473,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -486,7 +490,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              󰒗
             </Text>
             <Text
               numberOfLines={1}
@@ -525,6 +529,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -593,6 +598,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -648,6 +654,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -664,7 +671,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              
             </Text>
             <Text
               numberOfLines={1}
@@ -703,6 +710,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -719,7 +727,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 ]
               }
             >
-              
+              
             </Text>
             <Text
               numberOfLines={1}

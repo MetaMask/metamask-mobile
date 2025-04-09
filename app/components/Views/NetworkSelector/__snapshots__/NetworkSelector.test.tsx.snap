@@ -447,6 +447,7 @@ exports[`Network Selector renders correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -463,7 +464,7 @@ exports[`Network Selector renders correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onChangeText={[Function]}
@@ -1770,6 +1771,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1786,7 +1788,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <TextInput
                                 onBlur={[Function]}
@@ -3340,6 +3342,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                   >
                                     <Text
                                       allowFontScaling={false}
+                                      selectable={false}
                                       style={
                                         [
                                           {
@@ -3358,7 +3361,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                         ]
                                       }
                                     >
-                                      
+                                      󰋼
                                     </Text>
                                   </TouchableOpacity>
                                 </View>

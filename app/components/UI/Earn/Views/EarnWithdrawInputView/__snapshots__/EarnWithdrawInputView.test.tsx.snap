@@ -1514,6 +1514,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -1540,7 +1541,7 @@ exports[`UnstakeInputView render matches snapshot 1`] = `
                                   ]
                                 }
                               >
-                                
+                                ?
                               </Text>
                             </TouchableOpacity>
                           </View>

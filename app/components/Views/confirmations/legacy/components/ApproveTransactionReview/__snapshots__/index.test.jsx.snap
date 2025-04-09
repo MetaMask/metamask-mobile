@@ -576,6 +576,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                 </Text>
                                                 <Text
                                                   allowFontScaling={false}
+                                                  selectable={false}
                                                   style={
                                                     [
                                                       {
@@ -594,7 +595,7 @@ exports[`ApproveTransactionModal render matches snapshot 1`] = `
                                                     ]
                                                   }
                                                 >
-                                                  
+                                                  
                                                 </Text>
                                               </View>
                                             </TouchableOpacity>

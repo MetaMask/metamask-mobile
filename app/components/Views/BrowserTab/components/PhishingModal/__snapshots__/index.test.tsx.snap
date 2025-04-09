@@ -121,6 +121,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -221,6 +222,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -280,6 +282,7 @@ exports[`PhishingModal should match snapshot when showPhishingModal is true 1`] 
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {

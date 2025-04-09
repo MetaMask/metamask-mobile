@@ -480,6 +480,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -496,7 +497,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
@@ -820,6 +821,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -836,7 +838,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1008,6 +1010,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -1024,7 +1027,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>

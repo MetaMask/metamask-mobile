@@ -23,6 +23,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {
@@ -58,6 +59,7 @@ exports[`ConnectQRHardware renders correctly to match snapshot 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {

@@ -1001,6 +1001,7 @@ exports[`Confirm should render correctly 1`] = `
                                       >
                                         <Text
                                           allowFontScaling={false}
+                                          selectable={false}
                                           style={
                                             [
                                               {
@@ -1295,6 +1296,7 @@ exports[`Confirm should render correctly 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -1313,7 +1315,7 @@ exports[`Confirm should render correctly 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        󰋼
                                       </Text>
                                     </TouchableOpacity>
                                   </Text>

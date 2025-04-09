@@ -60,6 +60,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             >
               <Text
                 allowFontScaling={false}
+                selectable={false}
                 style={
                   [
                     {
@@ -76,7 +77,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                   ]
                 }
               >
-                
+                
               </Text>
             </TouchableOpacity>
             <Text
@@ -96,6 +97,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
             </Text>
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -112,7 +114,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 ]
               }
             >
-              
+              
             </Text>
           </View>
         </View>
@@ -146,6 +148,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -162,7 +165,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 ]
               }
             >
-              
+              󰋼
             </Text>
           </View>
           <View>
@@ -301,6 +304,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -319,7 +323,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           ]
                         }
                       >
-                        
+                        󰋼
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -369,6 +373,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -498,6 +503,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -535,6 +541,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                 >
                   <Text
                     allowFontScaling={false}
+                    selectable={false}
                     style={
                       [
                         {
@@ -677,6 +684,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -695,7 +703,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                           ]
                         }
                       >
-                        
+                        󰋼
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -745,6 +753,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -874,6 +883,7 @@ exports[`EditGasFeeLegacyUpdate should match snapshot 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {

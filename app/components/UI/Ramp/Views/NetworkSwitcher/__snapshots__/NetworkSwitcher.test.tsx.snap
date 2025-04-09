@@ -8229,6 +8229,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8254,7 +8255,7 @@ exports[`NetworkSwitcher View renders correctly with errors 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -8869,6 +8870,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8894,7 +8896,7 @@ exports[`NetworkSwitcher View renders correctly with errors 2`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -9509,6 +9511,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -9534,7 +9537,7 @@ exports[`NetworkSwitcher View renders correctly with no data 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View

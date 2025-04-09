@@ -184,6 +184,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                     >
                       <Text
                         allowFontScaling={false}
+                        selectable={false}
                         style={
                           [
                             {
@@ -200,7 +201,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                           ]
                         }
                       >
-                        
+                        
                       </Text>
                     </TouchableOpacity>
                     <Text
@@ -220,6 +221,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                     </Text>
                     <Text
                       allowFontScaling={false}
+                      selectable={false}
                       style={
                         [
                           {
@@ -236,7 +238,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         ]
                       }
                     >
-                      
+                      
                     </Text>
                   </View>
                 </View>
@@ -357,6 +359,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -375,7 +378,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                󰋼
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -425,6 +428,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -554,6 +558,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -591,6 +596,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                         >
                           <Text
                             allowFontScaling={false}
+                            selectable={false}
                             style={
                               [
                                 {
@@ -733,6 +739,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -751,7 +758,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                󰋼
                               </Text>
                             </TouchableOpacity>
                           </View>
@@ -801,6 +808,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -929,6 +937,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {

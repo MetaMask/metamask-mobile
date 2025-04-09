@@ -759,6 +759,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                             </Text>
                                                             <Text
                                                               allowFontScaling={false}
+                                                              selectable={false}
                                                               style={
                                                                 [
                                                                   {
@@ -777,7 +778,7 @@ exports[`Approve renders transaction approval 1`] = `
                                                                 ]
                                                               }
                                                             >
-                                                              
+                                                              
                                                             </Text>
                                                           </View>
                                                         </TouchableOpacity>

@@ -386,6 +386,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -419,6 +420,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                             >
                               <Text
                                 allowFontScaling={false}
+                                selectable={false}
                                 style={
                                   [
                                     {
@@ -441,7 +443,7 @@ exports[`ImportPrivateKey should render correctly 1`] = `
                                   ]
                                 }
                               >
-                                
+                                
                               </Text>
                               <Text
                                 style={

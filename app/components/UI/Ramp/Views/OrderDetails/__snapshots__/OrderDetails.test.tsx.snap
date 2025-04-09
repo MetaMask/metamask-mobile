@@ -1965,6 +1965,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -1981,7 +1982,7 @@ exports[`OrderDetails renders a completed order 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        
                                       </Text>
                                       <View
                                         style={
@@ -3497,6 +3498,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -3513,7 +3515,7 @@ exports[`OrderDetails renders a created order 1`] = `
                                               ]
                                             }
                                           >
-                                            
+                                            󰝲
                                           </Text>
                                         </View>
                                       </View>
@@ -6449,6 +6451,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -6465,7 +6468,7 @@ exports[`OrderDetails renders a pending order 1`] = `
                                               ]
                                             }
                                           >
-                                            
+                                            󰝲
                                           </Text>
                                         </View>
                                       </View>
@@ -8301,6 +8304,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -8326,7 +8330,7 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -8988,6 +8992,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -9004,7 +9009,7 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                               ]
                                             }
                                           >
-                                            
+                                            󰝲
                                           </Text>
                                         </View>
                                       </View>
@@ -10507,6 +10512,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                     >
                                       <Text
                                         allowFontScaling={false}
+                                        selectable={false}
                                         style={
                                           [
                                             {
@@ -10523,7 +10529,7 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                           ]
                                         }
                                       >
-                                        
+                                        
                                       </Text>
                                       <View
                                         style={
@@ -12087,6 +12093,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -12103,7 +12110,7 @@ exports[`OrderDetails renders transacted orders that do not have timeDescription
                                               ]
                                             }
                                           >
-                                            
+                                            󰝲
                                           </Text>
                                         </View>
                                       </View>
@@ -13552,6 +13559,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                         >
                                           <Text
                                             allowFontScaling={false}
+                                            selectable={false}
                                             style={
                                               [
                                                 {
@@ -13568,7 +13576,7 @@ exports[`OrderDetails renders transacted orders that have timeDescriptionPending
                                               ]
                                             }
                                           >
-                                            
+                                            󰝲
                                           </Text>
                                         </View>
                                       </View>

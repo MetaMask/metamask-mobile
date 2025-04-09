@@ -504,6 +504,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -602,6 +603,7 @@ exports[`AddressInputs AddressTo should match default snapshot 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -775,6 +777,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {
@@ -873,6 +876,7 @@ exports[`AddressInputs AddressTo should match snapshot when layout is vertical 1
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
