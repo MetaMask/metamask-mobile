@@ -1,7 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { LinkChildren } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
-import { TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { Text, StyleSheet, Linking, View } from 'react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -9,18 +9,12 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 
 const styles = StyleSheet.create({
-  linkContainer: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
   },
   spacer: {
     width: 4,
-  },
-  icon: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
   },
 });
 
@@ -42,21 +36,17 @@ const onPress = (href: string) => {
 
 // TODO: This component should show a modal for links when not using preinstalled Snaps
 export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
-  <TouchableOpacity
+  <Text
     testID="snaps-ui-link"
-    style={styles.linkContainer}
+    style={styles.container}
     onPress={() => onPress(href)}
     accessibilityRole="link"
     accessibilityHint={`Opens ${href} in your browser`}
   >
     {children}
-    <Icon
-      name={IconName.Export}
-      color={IconColor.Primary}
-      size={IconSize.Sm}
-      style={styles.icon}
-    />
-  </TouchableOpacity>
+    <View style={styles.spacer} />
+    <Icon name={IconName.Export} color={IconColor.Primary} size={IconSize.Sm} />
+  </Text>
 );
 
 ///: END:ONLY_INCLUDE_IF
