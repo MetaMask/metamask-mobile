@@ -446,10 +446,6 @@ class ChoosePassword extends PureComponent {
         } catch (error) {
           if (Device.isIos) await this.handleRejectedOsBiometricPrompt();
         }
-
-        // get seedphrase from vault
-        // TODO: seedless onboarding create ( {password, seedPhrase} );
-
         this.keyringControllerPasswordSet = true;
         this.props.seedphraseNotBackedUp();
       } else {
