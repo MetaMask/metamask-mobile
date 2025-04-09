@@ -310,7 +310,7 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         testID={CommonSelectorsIDs.EDIT_CONTACT_BACK_BUTTON}
       >
         <IonicIcon
-          name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+          name={Device.isAndroid() ? 'md-arrow-back' : 'arrow-back'}
           size={Device.isAndroid() ? 24 : 28}
           style={innerStyles.headerIcon}
         />
@@ -380,7 +380,7 @@ export function getPaymentRequestOptionsTitle(
           testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
         >
           <IonicIcon
-            name={Device.isAndroid() ? 'md-arrow-back' : 'ios-arrow-back'}
+            name={Device.isAndroid() ? 'md-arrow-back' : 'arrow-back'}
             size={Device.isAndroid() ? 24 : 28}
             style={innerStyles.headerIcon}
           />
@@ -395,7 +395,7 @@ export function getPaymentRequestOptionsTitle(
         style={styles.closeButton}
       >
         <IonicIcon
-          name={'ios-close'}
+          name={'close'}
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -439,7 +439,7 @@ export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
         )}
       >
         <IonicIcon
-          name="ios-close"
+          name="close"
           size={38}
           style={[innerStyles.headerIcon, styles.backIconIOS]}
         />
@@ -1382,7 +1382,7 @@ export function getWebviewNavbar(navigation, route, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />
@@ -1575,7 +1575,7 @@ export function getTransakWebviewNavbar(navigation, route, onPop, themeColors) {
           style={styles.backButton}
         >
           <IonicIcon
-            name="ios-close"
+            name="close"
             size={38}
             style={[innerStyles.headerIcon, styles.backIconIOS]}
           />

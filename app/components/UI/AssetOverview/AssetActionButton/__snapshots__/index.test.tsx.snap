@@ -79,7 +79,7 @@ exports[`AssetActionButtons should render type add correctly 1`] = `
   >
     <Icon
       allowFontScaling={false}
-      name="ios-add"
+      name="add"
       size={30}
       style={
         {

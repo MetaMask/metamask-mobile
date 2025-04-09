@@ -365,7 +365,7 @@ const RegionModal: React.FC<Props> = ({
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
                 <Icon
-                  name="ios-search"
+                  name="search"
                   size={20}
                   style={modalStyles.searchIcon}
                 />
@@ -384,7 +384,7 @@ const RegionModal: React.FC<Props> = ({
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>
                     <Icon
-                      name="ios-close-circle"
+                      name="close-circle"
                       size={20}
                       style={modalStyles.searchIcon}
                       color={colors.text.muted}

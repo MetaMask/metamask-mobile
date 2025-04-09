@@ -306,7 +306,7 @@ class PaymentRequestSuccess extends PureComponent {
                 <View style={styles.buttonContent}>
                   <View style={styles.buttonIconWrapper}>
                     <IonicIcon
-                      name={'ios-link'}
+                      name={'link'}
                       size={18}
                       color={colors.primary.default}
                     />
@@ -391,7 +391,7 @@ class PaymentRequestSuccess extends PureComponent {
                   )}
                 >
                   <IonicIcon
-                    name={'ios-close'}
+                    name={'close'}
                     size={28}
                     color={colors.text.default}
                   />

@@ -1098,7 +1098,7 @@ class ApproveTransactionReview extends PureComponent {
                                 )}
                               </Text>
                               <IonicIcon
-                                name="ios-arrow-down"
+                                name="arrow-down"
                                 size={16}
                                 style={styles.iconDropdown}
                               />

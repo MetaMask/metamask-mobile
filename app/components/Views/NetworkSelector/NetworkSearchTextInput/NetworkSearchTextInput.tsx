@@ -58,7 +58,7 @@ function NetworkSearchTextInput({
 
   return (
     <View style={containerInputStylesWhichAreFeatureFlagged}>
-      <Icon name="ios-search" size={20} color={colors.icon.default} />
+      <Icon name="search" size={20} color={colors.icon.default} />
       <TextInput
         style={inputStylesWhichAreFeatureFlagged}
         placeholder={strings(`networks.${searchPlaceHolder}`)}
@@ -70,7 +70,7 @@ function NetworkSearchTextInput({
       />
       {searchString.length > 0 && (
         <Icon
-          name="ios-close"
+          name="close"
           size={20}
           color={colors.icon.default}
           onPress={clearSearchInput}

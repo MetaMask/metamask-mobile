@@ -136,7 +136,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
             <Animated.View style={videoControlsStyle}>
               <View style={styles.playButtonCircle}>
                 <Ionicons
-                  name={isPlaying ? 'ios-play' : 'ios-pause'}
+                  name={isPlaying ? 'play' : 'pause'}
                   size={24}
                   color={colors.overlay.inverse}
                   style={styles.playIcon}
@@ -151,7 +151,7 @@ function MediaPlayer({ uri, style, onClose, textTracks, selectedTextTrack }) {
               onPress={onPressVolumeControls}
             >
               <Ionicons
-                name={isMuted ? 'ios-volume-off' : 'ios-volume-mute'}
+                name={isMuted ? 'volume-off' : 'volume-mute'}
                 size={isMuted ? 22 : 28}
                 color={colors.overlay.inverse}
               />

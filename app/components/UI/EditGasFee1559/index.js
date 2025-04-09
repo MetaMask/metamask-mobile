@@ -411,7 +411,7 @@ const EditGasFee1559 = ({
               {strings('edit_gas_fee_eip1559.advanced_options')}
             </Text>
             <Text noMargin link bold style={styles.advancedOptionsIcon}>
-              <Icon name={`ios-arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
+              <Icon name={`arrow-${showAdvancedOptions ? 'up' : 'down'}`} />
             </Text>
           </TouchableOpacity>
           {(showAdvancedOptions || updateOption?.showAdvanced) && (
@@ -638,7 +638,7 @@ const EditGasFee1559 = ({
               <View style={styles.customGasHeader}>
                 <TouchableOpacity onPress={onCancel}>
                   <Icon
-                    name={'ios-arrow-back'}
+                    name={'arrow-back'}
                     size={24}
                     color={colors.text.default}
                   />
@@ -647,7 +647,7 @@ const EditGasFee1559 = ({
                   {renderDisplayTitle}
                 </Text>
                 <Icon
-                  name={'ios-arrow-back'}
+                  name={'arrow-back'}
                   size={24}
                   color={colors.background.default}
                 />

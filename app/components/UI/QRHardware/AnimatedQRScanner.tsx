@@ -256,7 +256,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         >
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              {<Icon name={'ios-close'} size={50} color={'white'} />}
+              {<Icon name={'close'} size={50} color={'white'} />}
             </TouchableOpacity>
             <Image source={frameImage} style={styles.frame} />
             <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${

@@ -143,7 +143,7 @@ const Alert = ({
           >
             {
               // All this component is deprecated so it should be replaced and removed
-              <IonicIcon name="ios-close" style={styles.closeIcon} size={30} />
+              <IonicIcon name="close" style={styles.closeIcon} size={30} />
             }
           </TouchableOpacity>
         </View>

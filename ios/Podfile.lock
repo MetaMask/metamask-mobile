@@ -2373,8 +2373,27 @@ PODS:
     - React-Core
   - RNSVG (15.11.1):
     - React-Core
-  - RNVectorIcons (6.4.2):
-    - React
+  - RNVectorIcons (10.2.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
+    - RCT-Folly (= 2024.10.14.00)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - segment-analytics-react-native (2.20.3):
     - React-Core
     - sovran-react-native
@@ -3003,7 +3022,7 @@ SPEC CHECKSUMS:
   RNSentry: df4b9c1441e0b68d67a71945560c30bcf8fcf74f
   RNShare: d03cdc71e750246a48b81dcd62bd792bf57a758e
   RNSVG: 86fecdfc637614ba9def63f7f3f2e7795e018356
-  RNVectorIcons: 24be0b504ce32d5bea38bde6c645f08b9c736392
+  RNVectorIcons: 4330d8f8f8f4184f436e0c08ae9950431ffe466e
   segment-analytics-react-native: 6f98edf18246782ee7428c5380c6519a3d2acf5e
   Sentry: f8374b5415bc38dfb5645941b3ae31230fbeae57
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
