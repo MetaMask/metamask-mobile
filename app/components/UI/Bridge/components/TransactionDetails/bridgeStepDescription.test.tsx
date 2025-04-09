@@ -5,9 +5,7 @@ import { ActionTypes, StatusTypes, BridgeHistoryItem, StatusResponse, SrcChainSt
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Step } from '@metamask/bridge-controller';
 import { TransactionMeta, TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
-import { Hex, CaipChainId } from '@metamask/utils';
-import { ChainId } from '@metamask/controller-utils';
-import type { BridgeToken } from '../../types';
+import { CaipChainId } from '@metamask/utils';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
