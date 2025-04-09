@@ -208,6 +208,7 @@ export const FIELD_ELEMENT_TYPES = [
   'RadioGroup',
   'Checkbox',
   'Selector',
+  'AddressInput',
 ];
 
 /**
