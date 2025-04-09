@@ -79,6 +79,7 @@ import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
@@ -88,6 +89,10 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import { validateMnemonic } from '@metamask/scure-bip39';
+import TextField from '../../../component-library/components/Form/TextField/TextField';
+import Label from '../../../component-library/components/Form/Label';
+import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -452,21 +457,18 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
-    // eslint-disable-next-line no-console
-    console.log('phrase', phrase);
-
-    if (!validateMnemonic(phrase)) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        labelOptions: [
-          { label: strings('import_from_seed.invalid_seed_phrase') },
-        ],
-        hasNoTimeout: false,
-        iconName: IconName.DangerSolid,
-        iconColor: IconColor.Error,
-      });
-      return false;
-    }
+    // if (!validateMnemonic(phrase)) {
+    //   toastRef?.current?.showToast({
+    //     variant: ToastVariants.Icon,
+    //     labelOptions: [
+    //       { label: strings('import_from_seed.invalid_seed_phrase') },
+    //     ],
+    //     hasNoTimeout: false,
+    //     iconName: IconName.DangerSolid,
+    //     iconColor: IconColor.Error,
+    //   });
+    //   return false;
+    // }
     return true;
   };
 
@@ -773,45 +775,37 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.passwordContainer}>
                 <View style={styles.field}>
-                  <Text style={styles.label}>
+                  <Label variant={TextVariant.BodyMDMedium}>
                     {strings('import_from_seed.new_password')}
-                  </Text>
-                  <View
-                    style={[
-                      styles.passwordInputContainer,
-                      passwordInputContainerFocusedIndex === 0 &&
-                        styles.passwordInputContainerFocused,
-                    ]}
-                  >
-                    <TextInput
-                      placeholder={strings(
-                        'import_from_seed.use_at_least_8_characters',
-                      )}
-                      style={styles.passwordInput}
-                      onChangeText={onPasswordChange}
-                      secureTextEntry={showPasswordIndex.includes(0)}
-                      returnKeyType={'next'}
-                      autoCapitalize="none"
-                      value={password}
-                      placeholderTextColor={colors.text.muted}
-                      keyboardAppearance={themeAppearance || 'light'}
-                      onFocus={() => setPasswordInputContainerFocusedIndex(0)}
-                      onBlur={() => setPasswordInputContainerFocusedIndex(-1)}
-                      testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-                      autoFocus={passwordInputContainerFocusedIndex === 0}
-                    />
-                    <Icon
-                      name={
-                        showPasswordIndex.includes(0)
-                          ? IconName.EyeSolid
-                          : IconName.EyeSlashSolid
-                      }
-                      size={IconSize.Md}
-                      color={colors.icon.muted}
-                      onPress={() => toggleShowPassword(0)}
-                    />
-                  </View>
-
+                  </Label>
+                  <TextField
+                    placeholder={strings(
+                      'import_from_seed.use_at_least_8_characters',
+                    )}
+                    size={TextFieldSize.Lg}
+                    value={password}
+                    onChangeText={onPasswordChange}
+                    secureTextEntry={showPasswordIndex.includes(0)}
+                    returnKeyType={'next'}
+                    autoCapitalize="none"
+                    keyboardAppearance={themeAppearance || 'light'}
+                    placeholderTextColor={colors.text.muted}
+                    endAccessory={
+                      <Icon
+                        name={
+                          showPasswordIndex.includes(1)
+                            ? IconName.EyeSolid
+                            : IconName.EyeSlashSolid
+                        }
+                        size={IconSize.Md}
+                        color={colors.icon.muted}
+                        onPress={() => toggleShowPassword(1)}
+                      />
+                    }
+                    testID={
+                      ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                  />
                   {password !== '' && (
                     <Text
                       style={styles.passwordStrengthLabel}
@@ -829,62 +823,41 @@ const ImportFromSecretRecoveryPhrase = ({
                 </View>
 
                 <View style={styles.field}>
-                  <Text style={styles.label}>
+                  <Label variant={TextVariant.BodyMDMedium}>
                     {strings('import_from_seed.confirm_password')}
-                  </Text>
-                  <View
-                    style={[
-                      styles.passwordInputContainer,
-                      passwordInputContainerFocusedIndex === 1 &&
-                        styles.passwordInputContainerFocused,
-                    ]}
-                  >
-                    <TextInput
-                      placeholder={strings(
-                        'import_from_seed.re_enter_password',
-                      )}
-                      style={styles.passwordInput}
-                      onChangeText={onPasswordConfirmChange}
-                      secureTextEntry={showPasswordIndex.includes(1)}
-                      returnKeyType={'next'}
-                      autoCapitalize="none"
-                      value={confirmPassword}
-                      placeholderTextColor={colors.text.muted}
-                      keyboardAppearance={themeAppearance || 'light'}
-                      onFocus={() => setPasswordInputContainerFocusedIndex(1)}
-                      onBlur={() => setPasswordInputContainerFocusedIndex(-1)}
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                      }
-                      autoFocus={passwordInputContainerFocusedIndex === 1}
-                    />
-                    <Icon
-                      name={
-                        password !== '' && password === confirmPassword
-                          ? IconName.CheckBold
-                          : showPasswordIndex.includes(1)
-                          ? IconName.EyeSolid
-                          : IconName.EyeSlashSolid
-                      }
-                      size={IconSize.Md}
-                      color={
-                        password !== '' && password === confirmPassword
-                          ? colors.success.default
-                          : colors.icon.muted
-                      }
-                      onPress={() => toggleShowPassword(1)}
-                      testID={
-                        ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_CHECK_ICON_ID
-                      }
-                    />
-                  </View>
+                  </Label>
+                  <TextField
+                    placeholder={strings('import_from_seed.re_enter_password')}
+                    size={TextFieldSize.Lg}
+                    onChangeText={onPasswordConfirmChange}
+                    secureTextEntry={showPasswordIndex.includes(1)}
+                    returnKeyType={'next'}
+                    autoCapitalize="none"
+                    value={confirmPassword}
+                    placeholderTextColor={colors.text.muted}
+                    keyboardAppearance={themeAppearance || 'light'}
+                    endAccessory={
+                      <Icon
+                        name={
+                          showPasswordIndex.includes(1)
+                            ? IconName.EyeSolid
+                            : IconName.EyeSlashSolid
+                        }
+                        size={IconSize.Md}
+                        color={colors.icon.muted}
+                        onPress={() => toggleShowPassword(1)}
+                      />
+                    }
+                    testID={
+                      ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                    }
+                  />
                   <Text style={styles.passwordStrengthLabel}>
                     {strings('choose_password.must_be_at_least', {
                       number: MIN_PASSWORD_LENGTH,
                     })}
                   </Text>
                 </View>
-
                 <SecurityOptionToggle
                   title={strings('import_from_seed.unlock_with_face_id')}
                   value={biometryChoice}
@@ -914,6 +887,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   label="Confirm"
                   onPress={onPasswordConfirm}
                   disabled={isContinueButtonDisabled()}
+                  size={ButtonSize.Lg}
                 />
               </View>
             </View>

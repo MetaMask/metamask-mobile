@@ -71,7 +71,11 @@ import Checkbox from '../../../component-library/components/Checkbox';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import TextField from '../../../component-library/components/Form/TextField/TextField';
+import Label from '../../../component-library/components/Form/Label';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -702,56 +706,36 @@ class ChoosePassword extends PureComponent {
 
                 <View style={styles.passwordContainer}>
                   <View style={styles.field}>
-                    <Text variant={TextVariant.BodySM} style={styles.label}>
+                    <Label variant={TextVariant.BodyMDMedium}>
                       {strings('choose_password.password')}
-                    </Text>
-                    <View
-                      style={[
-                        styles.passwordInputContainer,
-                        this.state.passwordInputContainerFocusedIndex === 0 &&
-                          styles.passwordInputContainerFocused,
-                      ]}
-                    >
-                      <TextInput
-                        placeholder={strings(
-                          'import_from_seed.use_at_least_8_characters',
-                        )}
-                        style={styles.passwordInput}
-                        value={password}
-                        onChangeText={this.onPasswordChange}
-                        secureTextEntry={this.state.showPasswordIndex.includes(
-                          0,
-                        )}
-                        placeholderTextColor={colors.text.muted}
-                        testID={
-                          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
-                        }
-                        onSubmitEditing={this.jumpToConfirmPassword}
-                        returnKeyType="next"
-                        autoCapitalize="none"
-                        keyboardAppearance={themeAppearance}
-                        onFocus={() =>
-                          this.setState({
-                            passwordInputContainerFocusedIndex: 0,
-                          })
-                        }
-                        onBlur={() =>
-                          this.setState({
-                            passwordInputContainerFocusedIndex: -1,
-                          })
-                        }
-                      />
-                      <Icon
-                        name={
-                          this.state.showPasswordIndex.includes(0)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
-                        }
-                        size={IconSize.Md}
-                        color={colors.icon.muted}
-                        onPress={() => this.toggleShowPassword(0)}
-                      />
-                    </View>
+                    </Label>
+                    <TextField
+                      placeholder={strings(
+                        'import_from_seed.use_at_least_8_characters',
+                      )}
+                      value={password}
+                      onChangeText={this.onPasswordChange}
+                      secureTextEntry={this.state.showPasswordIndex.includes(0)}
+                      placeholderTextColor={colors.text.muted}
+                      testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                      onSubmitEditing={this.jumpToConfirmPassword}
+                      returnKeyType="next"
+                      autoCapitalize="none"
+                      keyboardAppearance={themeAppearance}
+                      size={TextFieldSize.Lg}
+                      endAccessory={
+                        <Icon
+                          name={
+                            this.state.showPasswordIndex.includes(0)
+                              ? IconName.EyeSolid
+                              : IconName.EyeSlashSolid
+                          }
+                          size={IconSize.Md}
+                          color={colors.icon.muted}
+                          onPress={() => this.toggleShowPassword(0)}
+                        />
+                      }
+                    />
 
                     {password !== '' && (
                       <Text variant={TextVariant.BodySM}>
@@ -770,75 +754,47 @@ class ChoosePassword extends PureComponent {
                   </View>
 
                   <View style={styles.field}>
-                    <Text variant={TextVariant.BodySM} style={styles.label}>
+                    <Label variant={TextVariant.BodyMDMedium}>
                       {strings('choose_password.confirm_password')}
-                    </Text>
-                    <View
-                      style={[
-                        styles.passwordInputContainer,
-                        this.state.passwordInputContainerFocusedIndex === 1 &&
-                          styles.passwordInputContainerFocused,
-                      ]}
-                      onBlur={() =>
-                        this.setState({
-                          passwordInputContainerFocusedIndex: -1,
-                        })
+                    </Label>
+                    <TextField
+                      placeholder={strings(
+                        'import_from_seed.re_enter_password',
+                      )}
+                      value={confirmPassword}
+                      onChangeText={this.setConfirmPassword}
+                      secureTextEntry={this.state.showPasswordIndex.includes(1)}
+                      placeholderTextColor={colors.text.muted}
+                      testID={
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                       }
-                    >
-                      <TextInput
-                        placeholder={strings(
-                          'import_from_seed.re_enter_password',
-                        )}
-                        style={styles.passwordInput}
-                        value={confirmPassword}
-                        onChangeText={this.setConfirmPassword}
-                        secureTextEntry={this.state.showPasswordIndex.includes(
-                          1,
-                        )}
-                        placeholderTextColor={colors.text.muted}
-                        testID={
-                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                        }
-                        accessibilityLabel={
-                          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                        }
-                        onSubmitEditing={this.onPressCreate}
-                        returnKeyType={'done'}
-                        autoCapitalize="none"
-                        keyboardAppearance={themeAppearance}
-                        onFocus={() =>
-                          this.setState({
-                            passwordInputContainerFocusedIndex: 1,
-                          })
-                        }
-                        onBlur={() =>
-                          this.setState({
-                            passwordInputContainerFocusedIndex: -1,
-                          })
-                        }
-                      />
-                      <Icon
-                        name={
-                          passwordsMatch
-                            ? IconName.CheckBold
-                            : this.state.showPasswordIndex.includes(1)
-                            ? IconName.EyeSolid
-                            : IconName.EyeSlashSolid
-                        }
-                        size={IconSize.Md}
-                        color={
-                          passwordsMatch
-                            ? colors.success.default
-                            : colors.icon.muted
-                        }
-                        onPress={() => this.toggleShowPassword(1)}
-                      />
-                    </View>
-                    <Text variant={TextVariant.BodySM}>
-                      {strings('choose_password.must_be_at_least', {
-                        number: MIN_PASSWORD_LENGTH,
-                      })}
-                    </Text>
+                      accessibilityLabel={
+                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                      }
+                      onSubmitEditing={this.onPressCreate}
+                      returnKeyType={'done'}
+                      autoCapitalize="none"
+                      keyboardAppearance={themeAppearance}
+                      size={TextFieldSize.Lg}
+                      endAccessory={
+                        <Icon
+                          name={
+                            passwordsMatch
+                              ? IconName.CheckBold
+                              : this.state.showPasswordIndex.includes(1)
+                              ? IconName.EyeSolid
+                              : IconName.EyeSlashSolid
+                          }
+                          size={IconSize.Md}
+                          color={
+                            passwordsMatch
+                              ? colors.success.default
+                              : colors.icon.muted
+                          }
+                          onPress={() => this.toggleShowPassword(1)}
+                        />
+                      }
+                    />
                   </View>
 
                   <SecurityOptionToggle
@@ -883,6 +839,7 @@ class ChoosePassword extends PureComponent {
                   label={strings('choose_password.create_button')}
                   disabled={!canSubmit}
                   width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
                 />
               </View>
             </KeyboardAwareScrollView>

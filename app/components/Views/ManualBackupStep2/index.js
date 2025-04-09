@@ -32,6 +32,7 @@ import Icon, {
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
 
@@ -349,6 +350,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
               onPress={() => {
                 setShowStatusBottomSheet(true);
               }}
+              size={ButtonSize.Lg}
             />
           </View>
         </ActionView>
@@ -389,6 +391,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 setShowStatusBottomSheet(false);
                 validateWords() && goNext();
               }}
+              size={ButtonSize.Lg}
             />
           </View>
         </BottomSheet>

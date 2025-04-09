@@ -37,6 +37,7 @@ import SRPDesign from '../../../images/srp-lock-design.png';
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 
 const createStyles = (colors) =>
@@ -275,6 +276,7 @@ const AccountBackupStep1 = (props) => {
                 onPress={goNext}
                 label={strings('account_backup_step_1.cta_text')}
                 width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
               />
             </View>
             {!hasFunds && (
@@ -284,6 +286,7 @@ const AccountBackupStep1 = (props) => {
                   onPress={showRemindLater}
                   label={strings('account_backup_step_1.remind_me_later')}
                   width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
                 />
               </View>
               // <View style={styles.remindLaterContainer}>

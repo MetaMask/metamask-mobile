@@ -260,7 +260,7 @@ const OnboardingSuccess = ({
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       {!showHint ? (
-        <>
+        <View style={styles.contentContainer}>
           <View style={styles.contentWrapper}>
             {renderContent()}
             {renderFooter()}
@@ -276,7 +276,7 @@ const OnboardingSuccess = ({
               style={styles.doneButton}
             />
           </View>
-        </>
+        </View>
       ) : (
         <View style={styles.hintWrapper}>
           <Text style={styles.hintTitle}>
