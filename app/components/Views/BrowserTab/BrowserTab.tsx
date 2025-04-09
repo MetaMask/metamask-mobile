@@ -299,8 +299,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     async (urlOrigin: string): Promise<boolean> => {
-      const whitelisted = whitelist?.includes(urlOrigin);
-      if (whitelisted) {
+      if (whitelist?.includes(urlOrigin)) {
         return true;
       }
 
