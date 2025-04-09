@@ -1,6 +1,5 @@
 import { hasProperty, isPlainObject, Json } from '@metamask/utils';
 import {
-  KeyDerivationIteration,
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
   LEGACY_DERIVATION_OPTIONS,
