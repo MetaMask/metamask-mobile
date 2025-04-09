@@ -5,6 +5,17 @@ module.exports = {
   plugins: [
     'transform-inline-environment-variables',
     'react-native-reanimated/plugin',
+    [
+      'module-resolver',
+      {
+        root: ['.'],
+        alias: {
+          '~/app': './app',
+          '~/locales': './locales',
+          '~/e2e': './e2e',
+        },
+      },
+    ],
   ],
   overrides: [
     {
