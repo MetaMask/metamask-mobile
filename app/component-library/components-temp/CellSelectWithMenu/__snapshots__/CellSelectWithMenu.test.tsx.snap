@@ -210,7 +210,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 16,
                   "fontWeight": "400",
                   "letterSpacing": 0,
@@ -221,45 +221,18 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             >
               Orangefox.eth
             </Text>
-            <TouchableOpacity
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessible={true}
-              focusable={false}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
-              style={
-                {
-                  "alignItems": "flex-start",
-                  "flexDirection": "row",
-                  "marginBottom": 0,
-                  "zIndex": 1,
-                }
-              }
-            >
+            <View>
               <Text
                 accessibilityRole="text"
                 numberOfLines={1}
                 style={
                   {
                     "color": "#686e7d",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >
@@ -279,7 +252,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 }
                 width={10}
               />
-            </TouchableOpacity>
+            </View>
             <View
               style={
                 {
@@ -300,11 +273,11 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Regular",
-                    "fontSize": 14,
+                    "fontFamily": "CentraNo1-Book",
+                    "fontSize": 16,
                     "fontWeight": "400",
                     "letterSpacing": 0,
-                    "lineHeight": 22,
+                    "lineHeight": 24,
                   }
                 }
               >

@@ -93,7 +93,7 @@ describe('useConfirmationRedesignEnabled', () => {
 
         it('returns false when remote flag is disabled', async () => {
           const withDisabledFlag = cloneDeep(stakingDepositConfirmationState);
-          withDisabledFlag.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.confirmation_redesign.staking_transactions =
+          withDisabledFlag.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.confirmation_redesign.staking_confirmations =
             false;
           const { result } = renderHookWithProvider(
             useConfirmationRedesignEnabled,

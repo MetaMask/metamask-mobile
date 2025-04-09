@@ -1,23 +1,11 @@
 import { createSelector } from 'reselect';
 import { StateWithPartialEngine } from './types';
 import { isRemoteFeatureFlagOverrideActivated } from '../../core/Engine/controllers/remote-feature-flag-controller';
+import { getFeatureFlagValue } from './env';
 
 export interface ConfirmationRedesignRemoteFlags {
   signatures: boolean;
-  staking_transactions: boolean;
-}
-
-function getFeatureFlagValue(
-  envValue: string | undefined,
-  remoteValue: boolean,
-): boolean {
-  if (envValue === 'true') {
-    return true;
-  }
-  if (envValue === 'false') {
-    return false;
-  }
-  return remoteValue;
+  staking_confirmations: boolean;
 }
 
 export const selectRemoteFeatureFlagControllerState = (
@@ -41,9 +29,9 @@ export const selectConfirmationRedesignFlags = createSelector(
       (remoteFeatureFlags?.confirmation_redesign as unknown as ConfirmationRedesignRemoteFlags) ??
       {};
 
-    const isStakingTransactionsEnabled = getFeatureFlagValue(
+    const isStakingConfirmationsEnabled = getFeatureFlagValue(
       process.env.FEATURE_FLAG_REDESIGNED_STAKING_TRANSACTIONS,
-      confirmationRedesignFlags.staking_transactions,
+      confirmationRedesignFlags.staking_confirmations,
     );
 
     const isSignaturesEnabled = getFeatureFlagValue(
@@ -53,8 +41,9 @@ export const selectConfirmationRedesignFlags = createSelector(
 
     return {
       ...confirmationRedesignFlags,
-      staking_transactions: isStakingTransactionsEnabled,
+      staking_confirmations: isStakingConfirmationsEnabled,
       signatures: isSignaturesEnabled,
     };
   },
 );
+

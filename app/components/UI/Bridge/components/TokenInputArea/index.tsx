@@ -5,14 +5,14 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
 import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
-import { Token } from '../Token';
+import { TokenButton } from '../TokenButton';
 import { selectCurrentCurrency, selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { renderNumber, addCurrencySymbol, balanceToFiatNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { TokenI } from '../../../Tokens/types';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
+import { BridgeToken } from '../../types';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -41,7 +41,7 @@ const createStyles = () =>
 const formatAddress = (address?: string) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 interface GetDisplayFiatValueParams {
-  token: TokenI | undefined;
+  token: BridgeToken | undefined;
   amount: string | undefined;
   multiChainMarketData: Record<Hex, Record<Hex, { price: number | undefined }>> | undefined;
   networkConfigurationsByChainId: Record<Hex, { nativeCurrency: string }>;
@@ -85,7 +85,7 @@ export enum TokenInputAreaType {
 }
 interface TokenInputAreaProps {
   amount?: string;
-  token?: TokenI;
+  token?: BridgeToken;
   tokenBalance?: string;
   networkImageSource?: ImageSourcePropType;
   networkName?: string;
@@ -149,7 +149,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
               testID={`${testID}-input`}
             />
           </Box>
-          <Token
+          <TokenButton
             symbol={token?.symbol}
             iconUrl={token?.image}
             networkImageSource={networkImageSource}

@@ -38,6 +38,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { NotificationMenuViewSelectorsIDs } from '../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
 
 export function useMarkAsReadCallback(props: {
   notifications: INotification[];
@@ -169,7 +170,7 @@ export default NotificationsView;
 NotificationsView.navigationOptions = ({
   navigation,
 }: {
-  navigation: NavigationProp<Record<string, undefined>>;
+  navigation: NavigationProp<ParamListBase>;
 }) => ({
   headerRight: () => (
     <ButtonIcon
@@ -188,7 +189,11 @@ NotificationsView.navigationOptions = ({
     />
   ),
   headerTitle: () => (
-    <Text variant={TextVariant.HeadingMD} style={styles.title}>
+    <Text
+      variant={TextVariant.HeadingMD}
+      style={styles.title}
+      testID={NotificationMenuViewSelectorsIDs.TITLE}
+    >
       {strings('app_settings.notifications_title')}
     </Text>
   ),
