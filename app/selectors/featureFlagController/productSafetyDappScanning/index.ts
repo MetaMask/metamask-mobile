@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../';
 // import { hasProperty } from '@metamask/utils';
 
-const DEFAULT_PRODUCT_SAFETY_DAPP_SCANNING_ENABLED = true;
+const DEFAULT_PRODUCT_SAFETY_DAPP_SCANNING_ENABLED = false;
 export const FEATURE_FLAG_NAME = 'productSafetyDappScanning';
 
 export const selectProductSafetyDappScanningEnabled = createSelector(

@@ -12,8 +12,7 @@ import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlag
  * Checks if product safety dapp scanning is enabled
  * @returns {boolean} Whether product safety dapp scanning is enabled
  */
-export const isProductSafetyDappScanningEnabled = (): boolean =>
-  selectProductSafetyDappScanningEnabled(store.getState());
+export const isProductSafetyDappScanningEnabled = (): boolean => selectProductSafetyDappScanningEnabled(store.getState());
 
 /**
  * Gets detailed phishing test results for an origin
