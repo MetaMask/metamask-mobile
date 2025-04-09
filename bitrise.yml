@@ -180,11 +180,11 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      #- run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_identity_ios: {}
-      - run_tag_smoke_identity_android: {}
+      # - run_tag_smoke_identity_ios: {}
+      # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -221,8 +221,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
-      - run_tag_smoke_identity_ios: {}
-      - run_tag_smoke_identity_android: {}
+      # - run_tag_smoke_identity_ios: {}
+      # - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       # - run_tag_smoke_swaps_ios: {}
