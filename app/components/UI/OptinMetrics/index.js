@@ -670,7 +670,7 @@ OptinMetrics.contextType = ThemeContext;
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
   isDataCollectionForMarketingEnabled: state.security.dataCollectionForMarketing,
-  isPastPrivacyPolicyDate: this.props.isPastPrivacyPolicyDate(state)
+  isPastPrivacyPolicyDate: isPastPrivacyPolicyDate(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
