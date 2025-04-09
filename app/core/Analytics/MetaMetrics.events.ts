@@ -411,6 +411,7 @@ enum EVENT_NAME {
   // Profile Syncing
   ACCOUNTS_SYNC_ADDED = 'Accounts Sync Added',
   ACCOUNTS_SYNC_NAME_UPDATED = 'Accounts Sync Name Updated',
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION = 'Accounts Sync Erroneous Situation',
   // network
   MULTI_RPC_MIGRATION_MODAL_ACCEPTED = 'multi_rpc_migration_modal_accepted',
 
@@ -914,6 +915,9 @@ const events = {
   ACCOUNTS_SYNC_ADDED: generateOpt(EVENT_NAME.ACCOUNTS_SYNC_ADDED),
   ACCOUNTS_SYNC_NAME_UPDATED: generateOpt(
     EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
+  ),
+  ACCOUNTS_SYNC_ERRONEOUS_SITUATION: generateOpt(
+    EVENT_NAME.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
   ),
   // Connection
   CONNECTION_DROPPED: generateOpt(EVENT_NAME.CONNECTION_DROPPED),

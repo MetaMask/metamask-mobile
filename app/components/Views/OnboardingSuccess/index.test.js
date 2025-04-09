@@ -33,6 +33,12 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
+const mockImportAdditionalAccounts = jest.fn(() => Promise.resolve());
+jest.mock(
+  '../../../util/importAdditionalAccounts',
+  () => () => mockImportAdditionalAccounts(),
+);
+
 const mockProviderConfig = {
   type: 'mainnet',
   chainId: '1',
@@ -49,7 +55,7 @@ describe('OnboardingSuccess', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('sets completedOnboarding to true when onDone is called', () => {
+  it('imports additional accounts and sets completedOnboarding to true when onDone is called', () => {
     useSelector.mockImplementation((selector) => {
       if (selector === selectProviderConfig) return mockProviderConfig;
     });
@@ -63,6 +69,7 @@ describe('OnboardingSuccess', () => {
     button.props.onPress();
 
     waitFor(() => {
+      expect(mockImportAdditionalAccounts).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalledWith({
         type: SET_COMPLETED_ONBOARDING,
         completedOnboarding: true,

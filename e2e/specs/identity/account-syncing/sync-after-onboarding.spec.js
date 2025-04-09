@@ -8,7 +8,7 @@ import {
   startMockServer,
   stopMockServer,
 } from '../../../api-mocking/mock-server';
-import { accountsSyncMockResponse } from './mockData';
+import { getAccountsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import WalletView from '../../../pages/wallet/WalletView';
@@ -18,60 +18,68 @@ import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
-describe(SmokeIdentity('Account syncing'), () => {
-  beforeAll(async () => {
-    const mockServer = await startMockServer({
-      mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-    });
+describe(
+  SmokeIdentity('Account syncing - syncs previously synced accounts'),
+  () => {
+    let mockServer;
+    beforeAll(async () => {
+      mockServer = await startMockServer({
+        mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
+      });
 
-    const { userStorageMockttpControllerInstance } = await mockIdentityServices(
-      mockServer,
-    );
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
-    userStorageMockttpControllerInstance.setupPath(
-      USER_STORAGE_FEATURE_NAMES.accounts,
-      mockServer,
-      {
-        getResponse: accountsSyncMockResponse,
-      },
-    );
+      const { userStorageMockttpControllerInstance } =
+        await mockIdentityServices(mockServer);
 
-    jest.setTimeout(200000);
-    await TestHelpers.reverseServerPort();
-
-    await TestHelpers.launchApp({
-      newInstance: true,
-      delete: true,
-    });
-  });
-
-  afterAll(async () => {
-    await stopMockServer();
-  });
-
-  it('retrieves all previously synced accounts', async () => {
-    const decryptedAccountNames = await Promise.all(
-      accountsSyncMockResponse.map(async (response) => {
-        const decryptedAccountName = await SDK.Encryption.decryptString(
-          response.Data,
-          IDENTITY_TEAM_STORAGE_KEY,
-        );
-        return JSON.parse(decryptedAccountName).n;
-      }),
-    );
-
-    await importWalletWithRecoveryPhrase(
-      IDENTITY_TEAM_SEED_PHRASE,
-      IDENTITY_TEAM_PASSWORD,
-    );
-
-    await WalletView.tapIdenticon();
-    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-
-    for (const accountName of decryptedAccountNames) {
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(accountName),
+      userStorageMockttpControllerInstance.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: accountsSyncMockResponse,
+        },
       );
-    }
-  });
-});
+
+      jest.setTimeout(200000);
+      await TestHelpers.reverseServerPort();
+
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+      });
+    });
+
+    afterAll(async () => {
+      await stopMockServer(mockServer);
+    });
+
+    it('retrieves all previously synced accounts', async () => {
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+
+      const decryptedAccountNames = await Promise.all(
+        accountsSyncMockResponse.map(async (response) => {
+          const decryptedAccountName = await SDK.Encryption.decryptString(
+            response.Data,
+            IDENTITY_TEAM_STORAGE_KEY,
+          );
+          return JSON.parse(decryptedAccountName).n;
+        }),
+      );
+
+      await importWalletWithRecoveryPhrase(
+        IDENTITY_TEAM_SEED_PHRASE,
+        IDENTITY_TEAM_PASSWORD,
+      );
+
+      await WalletView.tapIdenticon();
+      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+      await TestHelpers.delay(4000);
+
+      for (const accountName of decryptedAccountNames) {
+        await Assertions.checkIfVisible(
+          AccountListBottomSheet.getAccountElementByAccountName(accountName),
+        );
+      }
+    });
+  },
+);
