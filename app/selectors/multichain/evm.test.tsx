@@ -10,7 +10,7 @@ import {
   selectEvmTokensWithZeroBalanceFilter,
 } from './evm';
 import { SolScope } from '@metamask/keyring-api';
-import { GetByQuery } from '@testing-library/react-native/build/queries/makeQueries';
+import { GetByQuery } from '@testing-library/react-native/build/queries/make-queries';
 import {
   TextMatch,
   TextMatchOptions,
