@@ -51,7 +51,7 @@ const PhishingModal = ({
         createEventBuilder(MetaMetricsEvents.PHISHING_PAGE_DISPLAYED)
           .addProperties({
             url: hostname,
-            reason: 'eth-phishing-detect',
+            reason: 'blocklist',
           })
           .build(),
       );
@@ -71,10 +71,11 @@ const PhishingModal = ({
    */
   const continueToPhishingSite = () => {
     if (!blockedUrl) return;
+    const hostname = blockedUrl ? new URL(blockedUrl).hostname : '';
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PROCEED_ANYWAY_CLICKED)
         .addProperties({
-          url: blockedUrl,
+          url: hostname,
         })
         .build(),
     );
@@ -120,6 +121,8 @@ const PhishingModal = ({
     }, 500);
   };
 
+  
+
   if (!showPhishingModal) return null;
 
   return (
@@ -129,7 +132,7 @@ const PhishingModal = ({
       animationOut="slideOutDown"
       style={styles.fullScreenModal}
       backdropOpacity={1}
-      backdropColor={colors.error.default}
+      backdropColor={colors.background.alternative}
       animationInTiming={300}
       animationOutTiming={300}
       useNativeDriver

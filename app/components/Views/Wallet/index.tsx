@@ -78,6 +78,8 @@ import BannerAlert from '../../../component-library/components/Banners/Banner/va
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
 import Text, {
   TextColor,
+  getFontFamily,
+  TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RootState } from '../../../reducers';
@@ -111,11 +113,15 @@ import { Hex } from '@metamask/utils';
 import { Token } from '@metamask/assets-controllers';
 import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent/SolanaNewFeatureContent';
+///: END:ONLY_INCLUDE_IF
 import {
   selectNativeEvmAsset,
   selectStakedEvmAsset,
 } from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
+import Logger from '../../../util/Logger';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -141,6 +147,7 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
     textStyle: {
       ...(typography.sBodyMD as TextStyle),
+      fontFamily: getFontFamily(TextVariant.BodyMD),
       fontWeight: '500',
     },
     loader: {
@@ -493,6 +500,26 @@ const Wallet = ({
     readNotificationCount,
   ]);
 
+  const getTokenAddedAnalyticsParams = useCallback(
+    ({ address, symbol }: { address: string; symbol: string }) => {
+      try {
+        return {
+          token_address: address,
+          token_symbol: symbol,
+          chain_id: getDecimalChainId(chainId),
+          source: 'Add token dropdown',
+        };
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'SearchTokenAutocomplete.getTokenAddedAnalyticsParams',
+        );
+        return undefined;
+      }
+    },
+    [chainId],
+  );
+
   useEffect(() => {
     const importAllDetectedTokens = async () => {
       // If autodetect tokens toggle is OFF, return
@@ -540,17 +567,26 @@ const Wallet = ({
           );
         }
 
-        currentDetectedTokens.forEach(({ address, symbol }) =>
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
-              .addProperties({
-                token_address: address,
-                token_symbol: symbol,
-                chain_id: getDecimalChainId(chainId),
-                source: 'detected',
-              })
-              .build(),
-          ),
+        currentDetectedTokens.forEach(
+          ({ address, symbol }: { address: string; symbol: string }) => {
+            const analyticsParams = getTokenAddedAnalyticsParams({
+              address,
+              symbol,
+            });
+
+            if (analyticsParams) {
+              trackEvent(
+                createEventBuilder(MetaMetricsEvents.TOKEN_ADDED)
+                  .addProperties({
+                    token_address: address,
+                    token_symbol: symbol,
+                    chain_id: getDecimalChainId(chainId),
+                    source: 'detected',
+                  })
+                  .build(),
+              );
+            }
+          },
         );
       }
     };
@@ -678,6 +714,11 @@ const Wallet = ({
           <PortfolioBalance />
           <Carousel style={styles.carouselContainer} />
           {renderTokensContent()}
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+            <SolanaNewFeatureContent />
+            ///: END:ONLY_INCLUDE_IF
+          }
         </>
       </View>
     );

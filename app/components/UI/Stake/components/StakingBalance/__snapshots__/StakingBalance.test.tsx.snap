@@ -179,8 +179,8 @@ exports[`StakingBalance render matches snapshot 1`] = `
           "alignSelf": "center",
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -257,11 +257,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="unstaking-banner"
@@ -318,11 +318,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -341,11 +341,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           suppressHighlighting={true}
@@ -356,11 +356,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -413,11 +413,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -453,11 +453,11 @@ exports[`StakingBalance render matches snapshot 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -648,8 +648,8 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           "alignSelf": "center",
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "justifyContent": "center",
           "letterSpacing": 0,
@@ -726,11 +726,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           testID="unstaking-banner"
@@ -787,11 +787,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -810,11 +810,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
               "alignSelf": "flex-start",
               "backgroundColor": "transparent",
               "color": "#121314",
-              "fontFamily": "EuclidCircularB-Regular",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Book",
+              "fontSize": 16,
               "fontWeight": "400",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
           suppressHighlighting={true}
@@ -825,11 +825,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "EuclidCircularB-Medium",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Medium",
+                "fontSize": 16,
                 "fontWeight": "500",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
               }
             }
           >
@@ -882,11 +882,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -922,11 +922,11 @@ exports[`StakingBalance should match the snapshot when portfolio view is enabled
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "EuclidCircularB-Medium",
-              "fontSize": 14,
+              "fontFamily": "CentraNo1-Medium",
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

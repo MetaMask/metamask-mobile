@@ -28,6 +28,10 @@ jest.mock('../../selectors/smartTransactionsController', () => ({
 jest.mock('../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
 }));
+jest.mock('../../util/phishingDetection', () => ({
+  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+  getPhishingTestResult: jest.fn().mockReturnValue({ result: true }),
+}));
 
 jest.mock('@metamask/assets-controllers', () => {
   const actualControllers = jest.requireActual('@metamask/assets-controllers');
@@ -233,11 +237,12 @@ describe('Engine', () => {
 
     jest
       .spyOn(engine.keyringController, 'getKeyringsByType')
-      .mockImplementation(() => []);
+      .mockImplementationOnce(() => [])
+      .mockImplementationOnce(() => [mockSnapKeyring]);
 
     jest
       .spyOn(engine.keyringController, 'addNewKeyring')
-      .mockImplementation(async () => mockSnapKeyring);
+      .mockResolvedValue({ id: '1234', name: 'Snap Keyring' });
 
     const getSnapKeyringSpy = jest
       .spyOn(engine, 'getSnapKeyring')
