@@ -8,8 +8,10 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
 import { BigNumber, constants, Contract } from 'ethers';
 import usePrevious from '../../../../hooks/usePrevious';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { selectMultichainTokenList } from '../../../../../selectors/multichain/multichain';
+///: END:ONLY_INCLUDE_IF
 
 export async function fetchAtomicTokenBalance(
   address: string,
