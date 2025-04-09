@@ -1,5 +1,4 @@
 import { updateTransactionToMaxValue } from './utils';
-import BN from 'bn.js';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
 import { hexToBN } from '@metamask/controller-utils';
 
@@ -31,7 +30,7 @@ describe('updateTransactionToMaxValue', () => {
       setTransactionValue: mockSetTransactionValue,
     });
 
-    const expectedValue = new BN(accountBalance.slice(2), 16)
+    const expectedValue = hexToBN(accountBalance)
       .sub(hexToBN(gasFeeMaxHex))
       .toString(16);
     const expectedHexValue = `0x${expectedValue}`;
@@ -56,7 +55,7 @@ describe('updateTransactionToMaxValue', () => {
       setTransactionValue: mockSetTransactionValue,
     });
 
-    const expectedValue = new BN(accountBalance.slice(2), 16)
+    const expectedValue = hexToBN(accountBalance)
       .sub(hexToBN(gasFeeMaxHex))
       .toString(16);
     const expectedHexValue = `0x${expectedValue}`;
@@ -98,7 +97,7 @@ describe('updateTransactionToMaxValue', () => {
       setTransactionValue: mockSetTransactionValue,
     });
 
-    const expectedValue = new BN(accountBalance.slice(2), 16)
+    const expectedValue = hexToBN(accountBalance)
       .sub(hexToBN(gasFeeMaxHex))
       .toString(16);
     const expectedHexValue = `0x${expectedValue}`;
