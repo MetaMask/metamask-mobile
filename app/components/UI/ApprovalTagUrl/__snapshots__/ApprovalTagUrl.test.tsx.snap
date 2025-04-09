@@ -68,7 +68,7 @@ exports[`ApprovalTagUrl renders correctly 1`] = `
 </View>
 `;
 
-exports[`ApprovalTagUrl renders correctly when only origin is provided 1`] = `
+exports[`ApprovalTagUrl renders origin when only origin is provided 1`] = `
 <View
   style={
     {
