@@ -32,14 +32,14 @@ describe(
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer();
+      mockServer = await startMockServer({});
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpControllerInstance.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {

@@ -1,8 +1,6 @@
-import { SDK } from '@metamask/profile-sync-controller';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-  IDENTITY_TEAM_STORAGE_KEY,
 } from '../utils/constants';
 import {
   startMockServer,
@@ -75,14 +73,14 @@ describe(
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer();
+      mockServer = await startMockServer({});
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpControllerInstance.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
