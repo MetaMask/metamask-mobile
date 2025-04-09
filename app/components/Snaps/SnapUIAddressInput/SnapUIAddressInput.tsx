@@ -38,6 +38,8 @@ export interface SnapUIAddressInputProps {
   chainId: CaipChainId;
   displayAvatar?: boolean;
   style?: ViewStyle;
+  disabled?: boolean;
+  placeholder?: string;
 }
 
 interface MatchedAccountInfoProps {
@@ -63,17 +65,11 @@ const MatchedAccountInfo = ({
       borderWidth: 1,
       borderRadius: 8,
       borderColor: colors.border.muted,
-      paddingLeft: 16,
-      paddingRight: 16,
+      paddingHorizontal: 16,
       height: 48,
     },
     outerTextContainer: {
-      minWidth: 0,
       flex: 1,
-    },
-    innerTextContainer: {
-      flex: 1,
-      minWidth: 0,
     },
     text: {
       fontWeight: '500',
@@ -88,6 +84,7 @@ const MatchedAccountInfo = ({
       <Box
         backgroundColor={colors.background.default}
         alignItems={AlignItems.center}
+        flexDirection={FlexDirection.Row}
         gap={8}
         style={styles.container}
       >
@@ -95,17 +92,11 @@ const MatchedAccountInfo = ({
           <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
         )}
         <Box
-          alignItems={AlignItems.center}
-          gap={4}
+          flexDirection={FlexDirection.Column}
           style={styles.outerTextContainer}
         >
-          <Box
-            flexDirection={FlexDirection.Column}
-            style={styles.innerTextContainer}
-          >
-            <Text style={styles.text}>{displayName}</Text>
-            <Text variant={TextVariant.BodyXS}>{value}</Text>
-          </Box>
+          <Text style={styles.text}>{displayName}</Text>
+          <Text variant={TextVariant.BodyXS} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
         </Box>
         <ButtonIcon
           onPress={handleClear}
@@ -126,6 +117,7 @@ export const SnapUIAddressInput = ({
   chainId,
   displayAvatar = true,
   style,
+  disabled,
   ...props
 }: SnapUIAddressInputProps) => {
   const { handleInputChange, getValue, focusedInput, setCurrentFocusedInput } =
@@ -169,7 +161,7 @@ export const SnapUIAddressInput = ({
 
   const handleChange = (text: string) => {
     setValue(text);
-    const newValue = value ? `${chainId}:${value}` : '';
+    const newValue = text ? `${chainId}:${text}` : '';
     handleInputChange(name, newValue, form);
   };
 
@@ -205,6 +197,7 @@ export const SnapUIAddressInput = ({
         onBlur={handleBlur}
         id={name}
         value={value}
+        isDisabled={disabled}
         onChangeText={handleChange}
         style={textFieldStyle.textField}
         startAccessory={
