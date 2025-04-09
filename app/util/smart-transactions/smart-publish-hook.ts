@@ -244,10 +244,6 @@ class SmartTransactionHook {
 
   // here first
   #getFees = async () => {
-    console.log(
-      '>>> getFees this.#transactionMeta.networkClientId',
-      this.#transactionMeta.networkClientId,
-    );
     try {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
@@ -347,11 +343,6 @@ class SmartTransactionHook {
     const signedCanceledTransactions = await this.#createSignedTransactions(
       getFeesResponse.tradeTxFees?.cancelFees || [],
       true,
-    );
-    // here second
-    console.log(
-      '>>> submitSignedTransactions this.#transactionMeta.networkClientId',
-      this.#transactionMeta.networkClientId,
     );
     return await this.#smartTransactionsController.submitSignedTransactions({
       signedTransactions,

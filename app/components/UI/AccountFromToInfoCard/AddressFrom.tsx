@@ -10,10 +10,6 @@ import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
 import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
 import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../selectors/networkInfos';
-import {
   getLabelTextByAddress,
   renderAccountName,
 } from '../../../util/address';

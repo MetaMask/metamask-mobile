@@ -62,8 +62,10 @@ const NetworkConnectMultiSelector = ({
     selectEvmNetworkConfigurationsByChainId,
   );
   const globalChainId = useSelector(selectEvmChainId);
+  const networkInfo = useNetworkInfo(hostname);
+
   const { chainId: currentChainId } = isPerDappSelectedNetworkEnabled()
-    ? useNetworkInfo(hostname)
+    ? networkInfo
     : { chainId: globalChainId };
 
   useEffect(() => {
