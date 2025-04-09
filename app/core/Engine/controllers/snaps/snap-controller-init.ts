@@ -22,7 +22,6 @@ import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
 import { MetaMetrics } from '../../../Analytics';
 import { MetricsEventBuilder } from '../../../Analytics/MetricsEventBuilder';
-import { ITrackingEvent } from '../../../Analytics/MetaMetrics.types';
 
 /**
  * Initialize the Snap controller.
@@ -126,9 +125,9 @@ export const snapControllerInit: ControllerInitFunction<
     }) =>
       MetaMetrics.getInstance().trackEvent(
         MetricsEventBuilder.createEventBuilder({
-          name: params.event,
+          category: params.event,
           properties: params.properties,
-        } as ITrackingEvent).build(),
+        }).build(),
       ),
   });
 
