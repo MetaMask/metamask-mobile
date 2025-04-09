@@ -181,20 +181,12 @@ stages:
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
-      - run_tade_swimlane_ios_smoke: {}
-      - run_tade_swimlane_android_smoke: {}
+      - run_trade_swimlane_ios_smoke: {}
+      - run_trade_swimlane_android_smoke: {}
       - run_network_expansion_swimlane_ios_smoke: {}
       - run_network_expansion_swimlane_android_smoke: {}
-      - run_network_abstraction_swimlane_ios_smoke: {}
-      - run_network_abstraction_swimlane_android_smoke: {}
-      # - run_tag_smoke_notifications_ios: {}
-      # - run_tag_smoke_notifications_android: {}
-      # # - run_tag_smoke_identity_ios: {}
-      # # - run_tag_smoke_identity_android: {}
-      # # - run_tag_smoke_assets_ios: {}
-      # - run_tag_smoke_assets_android: {}
-      # - run_tag_smoke_confirmations_ios: {}
-      # - run_tag_smoke_confirmations_android: {}
+      - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_android: {}
       # - run_tag_smoke_ramps_android: {}
       # # - run_tag_smoke_ramps_ios: {}
       # - run_tag_smoke_confirmations_redesigned_ios: {}
@@ -713,7 +705,7 @@ workflows:
 
   run_network_abstraction_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
       - ios_e2e_test
   run_network_abstraction_swimlane_android_smoke:
@@ -722,7 +714,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
+      - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
       - android_e2e_test
   run_tag_smoke_identity_ios:
@@ -862,12 +854,12 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeRamps.*'
     after_run:
       - android_e2e_test
-  run_tade_swimlane_ios_smoke:
+  run_trade_swimlane_ios_smoke:
     envs:
       - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
       - ios_e2e_test
-  run_tade_swimlane_android_smoke:
+  run_trade_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
