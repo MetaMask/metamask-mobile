@@ -21,7 +21,7 @@ import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import {
-  isPastPrivacyPolicyDate,
+  isPastPrivacyPolicyDate as isPastPrivacyPolicyDateFunc,
   shouldShowNewPrivacyToastSelector,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
@@ -174,6 +174,7 @@ interface WalletProps {
   storePrivacyPolicyClickedOrClosed: () => void;
   showNftFetchingLoadingIndicator: () => void;
   hideNftFetchingLoadingIndicator: () => void;
+  isPastPrivacyPolicyDate: boolean;
 }
 
 /**
@@ -186,6 +187,7 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
+  isPastPrivacyPolicyDate,
 }: WalletProps) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
@@ -282,6 +284,7 @@ const Wallet = ({
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
+    isPastPrivacyPolicyDate,
   ]);
 
   useEffect(() => {
@@ -779,6 +782,7 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  isPastPrivacyPolicyDate: isPastPrivacyPolicyDateFunc(state),
 });
 
 // TODO: Replace "any" with type
