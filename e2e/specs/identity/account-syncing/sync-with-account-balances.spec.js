@@ -31,7 +31,6 @@ describe(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {
-    const decryptedAccountNames = '';
     const unencryptedAccounts = accountsToMockForAccountsSync;
 
     const INITIAL_ACCOUNTS = [
@@ -77,7 +76,7 @@ describe(
       jest.setTimeout(600000);
       await TestHelpers.reverseServerPort();
 
-      const mockServer = await startMockServer();
+      const mockServer = await startMockServer(undefined, 8102);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -107,12 +106,13 @@ describe(
       );
 
       // Verify initial state and balance
+      // Adding a delay here to make sure that importAdditionalAccounts has completed
+      await TestHelpers.delay(10000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
 
       // Verify each initial account name
-      for (const accountName of decryptedAccountNames) {
+      for (const accountName of EXPECTED_ACCOUNT_NAMES.INITIAL) {
         await Assertions.checkIfVisible(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
@@ -121,7 +121,7 @@ describe(
       // Create new account and prepare for additional accounts
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(4000);
 
       accountsToMockBalances = [...INITIAL_ACCOUNTS, ...ADDITIONAL_ACCOUNTS];
       setupAccountMockedBalances(mockServer, accountsToMockBalances);
@@ -139,6 +139,8 @@ describe(
       );
 
       // Verify initial state and balance
+      // Adding a delay here to make sure that importAdditionalAccounts has completed
+      await TestHelpers.delay(10000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
       await TestHelpers.delay(4000);

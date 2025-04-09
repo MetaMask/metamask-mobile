@@ -33,7 +33,7 @@ describe(
       jest.setTimeout(600000);
       await TestHelpers.reverseServerPort();
 
-      const mockServer = await startMockServer();
+      const mockServer = await startMockServer(undefined, 8100);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
