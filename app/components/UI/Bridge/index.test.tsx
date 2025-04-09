@@ -16,6 +16,7 @@ import { Hex } from '@metamask/utils';
 import {
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  RequestStatus,
 } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
@@ -121,6 +122,13 @@ describe('BridgeView', () => {
               },
             },
           },
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.LOADING,
+          quotesLastFetched: null,
+          quotes: [],
+          quotesRefreshCount: 0,
         },
         TokenBalancesController: {
           tokenBalances: {
@@ -388,14 +396,25 @@ describe('BridgeView', () => {
         decimals: 18,
         address: '0x0000000000000000000000000000000000000000',
         image: 'https://example.com/image.png',
-        chainId: '0x1' as Hex,
+        chainId: 'eip155:1' as const,
+        balance: '0',
+        string: '0',
       },
-      destToken: undefined,
-      sourceAmount: undefined,
-      destAmount: undefined,
-      selectedDestChainId: undefined,
-      selectedSourceChainIds: [mockChainId, optimismChainId],
-    } as BridgeState,
+      destToken: {
+        symbol: 'ETH',
+        decimals: 18,
+        address: '0x0000000000000000000000000000000000000000',
+        image: 'https://example.com/image.png',
+        chainId: 'eip155:10' as const,
+        balance: '0',
+        string: '0',
+      },
+      sourceAmount: '1',
+      destAmount: '1',
+      selectedDestChainId: 'eip155:10' as const,
+      selectedSourceChainIds: ['eip155:1' as const, 'eip155:10' as const],
+      slippage: '0.5',
+    } as unknown as BridgeState,
   };
 
   beforeEach(() => {
@@ -534,7 +553,8 @@ describe('BridgeView', () => {
           balanceFiat: '11.07915 cad',
           chainId: '0x1' as Hex,
           decimals: 6,
-          image: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
           symbol: 'USDC',
         },
       },
@@ -650,7 +670,6 @@ describe('BridgeView', () => {
                 symbol: 'TOKEN2',
                 decimals: 18,
                 image: 'https://token2.com/logo.png',
-                name: 'Token Two',
                 chainId: optimismChainId,
               },
               selectedDestChainId: optimismChainId,

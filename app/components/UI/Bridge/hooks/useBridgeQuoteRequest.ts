@@ -76,5 +76,5 @@ export const useBridgeQuoteRequest = () => {
   ]);
 
   // Create a stable debounced function that persists across renders
-  return useMemo(() => debounce(updateQuoteParams, 500), [updateQuoteParams]);
+  return useMemo(() => debounce(updateQuoteParams, 300), [updateQuoteParams]);
 };

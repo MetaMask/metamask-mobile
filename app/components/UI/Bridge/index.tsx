@@ -33,7 +33,6 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
-  setSelectedQuote,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -124,7 +123,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectSelectedDestChainId);
-  const { bridgeQuote, isLoading } = useBridgeQuoteData();
+  const { activeQuote, isLoading, destTokenAmount } = useBridgeQuoteData();
   const updateQuoteParams = useBridgeQuoteRequest();
 
   const latestSourceBalance = useLatestBalance({
@@ -165,7 +164,6 @@ const BridgeView = () => {
   // Update quote parameters when relevant state changes
   useEffect(() => {
     if (sourceToken?.chainId && destToken?.chainId && sourceAmount) {
-      dispatch(setSelectedQuote(null));
       updateQuoteParams();
     }
     return () => {
@@ -305,7 +303,7 @@ const BridgeView = () => {
             </Box>
           </Box>
           <TokenInputArea
-            amount={destAmount}
+            amount={destTokenAmount}
             token={destToken}
             networkImageSource={
               destToken
@@ -320,7 +318,7 @@ const BridgeView = () => {
             isLoading={isLoading}
           />
           <Box style={styles.quoteContainer}>
-            {bridgeQuote && <QuoteDetailsCard />}
+            {activeQuote && !isLoading && <QuoteDetailsCard />}
           </Box>
         </Box>
 

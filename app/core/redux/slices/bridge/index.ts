@@ -16,8 +16,6 @@ import {
   AllowedBridgeChainIds,
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
-  type QuoteResponse,
-  type QuoteMetadata,
 } from '@metamask/bridge-controller';
 import { BridgeToken } from '../../../../components/UI/Bridge/types';
 import { PopularList } from '../../../../util/networks/customNetworks';
@@ -33,7 +31,6 @@ export interface BridgeState {
   selectedSourceChainIds: undefined | string[];
   selectedDestChainId: SupportedCaipChainId | Hex | undefined;
   slippage: string;
-  selectedQuote: (QuoteResponse & QuoteMetadata) | null;
 }
 
 export const initialState: BridgeState = {
@@ -44,7 +41,6 @@ export const initialState: BridgeState = {
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
   slippage: '0.5',
-  selectedQuote: null,
 };
 
 const name = 'bridge';
@@ -77,9 +73,6 @@ const slice = createSlice({
     },
     setSlippage: (state, action: PayloadAction<string>) => {
       state.slippage = action.payload;
-    },
-    setSelectedQuote: (state, action) => {
-      state.selectedQuote = action.payload;
     },
   },
 });
@@ -227,11 +220,6 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
-export const selectSelectedQuote = createSelector(
-  selectBridgeState,
-  (bridgeState) => bridgeState.selectedQuote,
-);
-
 // Actions
 export const {
   setSourceAmount,
@@ -242,20 +230,4 @@ export const {
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
-  setSelectedQuote,
 } = actions;
-
-export const selectBridgeQuote = createSelector(
-  selectBridgeControllerState,
-  (bridgeState) => bridgeState.quotes[0],
-);
-
-export const selectBridgeQuoteError = createSelector(
-  selectBridgeControllerState,
-  (bridgeState) => bridgeState.quoteFetchError,
-);
-
-export const selectBridgeQuoteLoading = createSelector(
-  selectBridgeControllerState,
-  (bridgeState) => bridgeState.quotesLoadingStatus,
-);

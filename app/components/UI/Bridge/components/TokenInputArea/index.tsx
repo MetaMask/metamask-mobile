@@ -193,12 +193,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           />
         </Box>
         <Box style={styles.row}>
-          {fiatValue ? (
-            <Text color={TextColor.Alternative}>{fiatValue}</Text>
-          ) : null}
-          {subtitle ? (
-            <Text color={TextColor.Alternative}>{subtitle}</Text>
-          ) : null}
+          {isLoading ? (
+            <Skeleton width={100} height={20} style={styles.input} />
+          ) : (
+            <>
+              {fiatValue ? (
+                <Text color={TextColor.Alternative}>{fiatValue}</Text>
+              ) : null}
+              {subtitle ? (
+                <Text color={TextColor.Alternative}>{subtitle}</Text>
+              ) : null}
+            </>
+          )}
         </Box>
       </Box>
     </Box>
