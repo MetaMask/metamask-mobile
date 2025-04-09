@@ -110,6 +110,7 @@ export interface ITrackingEvent {
  * legacy MetaMetrics event interface
  */
 export interface IMetaMetricsEvent {
+  name?: string;
   category: string;
   properties?: {
     name?: string;
