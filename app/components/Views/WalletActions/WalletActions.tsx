@@ -313,8 +313,13 @@ const WalletActions = () => {
     ///: END:ONLY_INCLUDE_IF
 
     goToSwaps();
-  }, [chainId, goToBridge, goToSwaps]);
-
+  }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    chainId,
+    goToBridge,
+    ///: END:ONLY_INCLUDE_IF
+    goToSwaps,
+  ]);
 
   return (
     <BottomSheet ref={sheetRef}>
