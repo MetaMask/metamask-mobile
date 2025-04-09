@@ -41,6 +41,10 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnI
 import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -81,6 +85,11 @@ const EarnTokenList = () => {
     isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
   );
 
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
   const {
     isEligible: isEligibleToStake,
     isLoadingEligibility: isLoadingStakingEligibility,
@@ -97,8 +106,13 @@ const EarnTokenList = () => {
 
     const eligibleTokens = filterEligibleTokens(
       supportedTokens,
-      // Temporary: hardcoded canLend will be replaced before launch with an eligibility check.
-      { canStake: isEligibleToStake, canLend: true },
+      // TODO: Add eligibility check for stablecoin lending before launch.
+      {
+        canStake: isEligibleToStake && Boolean(isPooledStakingEnabled),
+        canLend:
+          isStablecoinLendingFeatureEnabled() &&
+          Boolean(isStablecoinLendingEnabled),
+      },
     );
 
     const eligibleTokensWithBalances = eligibleTokens?.map((token) =>
@@ -116,6 +130,8 @@ const EarnTokenList = () => {
     getTokenWithBalanceAndApr,
     isEligibleToStake,
     isLoadingStakingEligibility,
+    isPooledStakingEnabled,
+    isStablecoinLendingEnabled,
     tokens,
   ]);
 
