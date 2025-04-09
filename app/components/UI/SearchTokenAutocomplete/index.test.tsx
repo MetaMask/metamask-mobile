@@ -92,7 +92,7 @@ describe('SearchTokenAutocomplete', () => {
 
     const mockOnPress = jest.fn();
 
-    const { getByTestId, getByText, debug } = renderWithProvider(
+    const { getByTestId, getByText } = renderWithProvider(
       <SearchTokenAutocomplete
         navigation={mockNavigation}
         tabLabel={''}
