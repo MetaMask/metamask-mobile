@@ -344,7 +344,13 @@ const NetworkSelector = () => {
     return !isEvmSelected ? false : chainId === selectedChainId;
   };
 
-  const { onSetRpcTarget, onNetworkChange, onNonEvmNetworkChange } = useSwitchNetworks({
+  const {
+    onSetRpcTarget,
+    onNetworkChange,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+  } = useSwitchNetworks({
     domainIsConnectedDapp,
     origin,
     selectedChainId,
