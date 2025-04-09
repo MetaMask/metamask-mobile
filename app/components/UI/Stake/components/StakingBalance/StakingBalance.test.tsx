@@ -18,6 +18,7 @@ import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
+import { mockedEarnFeatureFlagState } from '../../../Earn/__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -31,6 +32,11 @@ const mockInitialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagState,
+        },
+      },
     },
   },
 };
@@ -196,6 +202,35 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeNull();
     expect(queryByText(strings('stake.unstake'))).toBeNull();
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeNull();
+  });
+
+  it('should not render stake cta if pooled staking is disabled', () => {
+    const mockStatePooledStakingDisabled = {
+      settings: {},
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText, getByTestId, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockStatePooledStakingDisabled },
+    );
+
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
+
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByText(strings('stake.unstake'))).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 
   it('should render claim link and action buttons if supported asset.chainId is not selected chainId', () => {
