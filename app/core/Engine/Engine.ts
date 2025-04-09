@@ -320,9 +320,7 @@ export class Engine {
         fetch,
         btoa,
       }),
-      additionalDefaultNetworks: [
-        ChainId['megaeth-testnet'],
-      ],
+      additionalDefaultNetworks: [ChainId['megaeth-testnet']],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
