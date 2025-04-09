@@ -19,3 +19,23 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled;
     return localFlag ?? remoteFlag;
   });
+
+export const selectStablecoinLendingEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED;
+    const remoteFlag = remoteFeatureFlags?.earnStablecoinLendingEnabled;
+    const result = localFlag ?? remoteFlag;
+    return result;
+  },
+);
+
+export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED;
+    const remoteFlag =
+      remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled;
+    const result = localFlag ?? remoteFlag;
+    return result;
+  });

@@ -1,7 +1,20 @@
-import type { PoolStakingRemoteFeatureFlags } from './types';
+import type {
+  PoolStakingRemoteFeatureFlags,
+  StablecoinLendingRemoteFeatureFlags,
+} from './types';
 
-export const mockedPooledStakingFeatureFlagState: PoolStakingRemoteFeatureFlags =
+const mockedPooledStakingFeatureFlagState: PoolStakingRemoteFeatureFlags = {
+  earnPooledStakingEnabled: true,
+  earnPooledStakingServiceInterruptionBannerEnabled: true,
+};
+
+const mockedStablecoinLendingFeatureFlagState: StablecoinLendingRemoteFeatureFlags =
   {
-    earnPooledStakingEnabled: true,
-    earnPooledStakingServiceInterruptionBannerEnabled: true,
+    earnStablecoinLendingEnabled: true,
+    earnStablecoinLendingServiceInterruptionBannerEnabled: true,
   };
+
+export const mockedEarnFeatureFlagState = {
+  ...mockedPooledStakingFeatureFlagState,
+  ...mockedStablecoinLendingFeatureFlagState,
+};
