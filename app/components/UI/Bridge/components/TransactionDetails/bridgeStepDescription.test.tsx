@@ -1,9 +1,13 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import BridgeStepDescription from './bridgeStepDescription';
-import { ActionTypes, StatusTypes } from '@metamask/bridge-status-controller';
+import BridgeStepDescription, { getStepStatus } from './bridgeStepDescription';
+import { ActionTypes, StatusTypes, BridgeHistoryItem, StatusResponse, SrcChainStatus } from '@metamask/bridge-status-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Step } from '@metamask/bridge-controller';
+import { TransactionMeta, TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
+import { Hex, CaipChainId } from '@metamask/utils';
+import { ChainId } from '@metamask/controller-utils';
+import type { BridgeToken } from '../../types';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
@@ -301,5 +305,119 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
     expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+  });
+
+  describe('getStepStatus', () => {
+    const mockBridgeHistoryItem: BridgeHistoryItem = {
+      status: {
+        status: StatusTypes.COMPLETE,
+        srcChain: {
+          chainId: 'eip155:1' as CaipChainId,
+          status: StatusTypes.COMPLETE,
+        } as unknown as SrcChainStatus,
+      } as StatusResponse,
+      quote: {
+        srcChainId: 1,
+        requestId: 'test-request-id',
+        srcAsset: {
+          name: 'ETH',
+          assetId: 'eip155:1',
+          symbol: 'ETH',
+          chainId: 1,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+        srcTokenAmount: '1',
+        destChainId: 1,
+        destAsset: {
+          name: 'ETH',
+          assetId: 'eip155:1',
+          symbol: 'ETH',
+          chainId: 1,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+        },
+        destTokenAmount: '1',
+        feeData: {
+          metabridge: {
+            amount: '0.1',
+            asset: {
+              name: 'ETH',
+              assetId: 'eip155:1',
+              symbol: 'ETH',
+              chainId: 1,
+              address: '0x0000000000000000000000000000000000000000',
+              decimals: 18,
+            }
+          }
+        },
+        bridgeId: 'test-bridge-id',
+        bridges: [],
+        steps: [],
+      },
+      txMetaId: 'test-tx-meta-id',
+      estimatedProcessingTimeInSeconds: 0,
+      slippagePercentage: 0,
+      account: '0x123',
+      hasApprovalTx: false,
+    };
+
+    const mockSrcChainTxMeta: TransactionMeta = {
+      chainId: CHAIN_IDS.MAINNET,
+      id: 'test-id',
+      networkClientId: 'test-network-client-id',
+      time: 1234567890,
+      txParams: {},
+      status: TransactionStatus.confirmed,
+    } as unknown as TransactionMeta;
+
+    it('should return UNKNOWN when bridgeHistoryItem is undefined', () => {
+      const result = getStepStatus({
+        bridgeHistoryItem: undefined,
+        step: mockStep,
+      });
+      expect(result).toBe(StatusTypes.UNKNOWN);
+    });
+
+    it('should return correct status for SWAP action when source chain tx is confirmed', () => {
+      const result = getStepStatus({
+        bridgeHistoryItem: mockBridgeHistoryItem,
+        step: mockSwapStep,
+        srcChainTxMeta: mockSrcChainTxMeta,
+      });
+      expect(result).toBe(StatusTypes.COMPLETE);
+    });
+
+    it('should return correct status for SWAP action when source chain tx is not confirmed', () => {
+      const result = getStepStatus({
+        bridgeHistoryItem: mockBridgeHistoryItem,
+        step: mockSwapStep,
+        srcChainTxMeta: {
+          ...mockSrcChainTxMeta,
+          status: TransactionStatus.submitted,
+        } as unknown as TransactionMeta,
+      });
+      expect(result).toBe(StatusTypes.PENDING);
+    });
+
+    it('should return correct status for BRIDGE action', () => {
+      const result = getStepStatus({
+        bridgeHistoryItem: mockBridgeHistoryItem,
+        step: mockStep,
+      });
+      expect(result).toBe(StatusTypes.COMPLETE);
+    });
+
+    it('should return UNKNOWN for unknown action type', () => {
+      const unknownStep: Step = {
+        ...mockStep,
+        action: 'UNKNOWN_ACTION' as ActionTypes,
+      };
+      const result = getStepStatus({
+        bridgeHistoryItem: mockBridgeHistoryItem,
+        step: unknownStep,
+      });
+      expect(result).toBe(StatusTypes.UNKNOWN);
+    });
   });
 });
