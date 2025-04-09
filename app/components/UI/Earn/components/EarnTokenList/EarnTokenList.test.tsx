@@ -18,6 +18,7 @@ import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligi
 import * as stakeConstants from '../../../Stake/constants';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
+import { mockedEarnFeatureFlagState } from '../../__mocks__/mockData';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -69,6 +70,11 @@ const initialState = {
     backgroundState: {
       ...initialRootState.engine.backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          ...mockedEarnFeatureFlagState,
+        },
+      },
     },
   },
 };
@@ -155,6 +161,118 @@ describe('EarnTokenList', () => {
     const { toJSON } = renderWithProvider(<EarnTokenList />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('filters out pooled-staking assets when pooled staking is disabled', () => {
+    const stateWithPooledStakingDisabled = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ...mockedEarnFeatureFlagState,
+              earnPooledStakingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { queryAllByText, getByText, getAllByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <EarnTokenList />
+      </SafeAreaProvider>,
+      {
+        state: stateWithPooledStakingDisabled,
+      },
+    );
+
+    // Bottom Sheet Title
+    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
+
+    // Upsell Banner
+    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
+    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
+
+    // Token List
+    // Ethereum should be filtered out
+    expect(queryAllByText('Ethereum').length).toBe(0);
+    expect(queryAllByText('2.3% APR').length).toBe(0);
+
+    // DAI
+    expect(getByText('Dai Stablecoin')).toBeDefined();
+    expect(getByText('5.0% APR')).toBeDefined();
+
+    // USDT
+    expect(getByText('Tether USD')).toBeDefined();
+    expect(getByText('4.1% APR')).toBeDefined();
+
+    // USDC
+    expect(getByText('USDC')).toBeDefined();
+    expect(getAllByText('4.5% APR').length).toBe(1);
+
+    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
+    expect(filterEligibleTokensSpy).toHaveBeenCalled();
+  });
+
+  it('filters out stablecoin lending assets when stablecoin lending is disabled', () => {
+    const stateWithPooledStakingDisabled = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ...mockedEarnFeatureFlagState,
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { queryAllByText, queryByText, getByText, getAllByText } =
+      renderWithProvider(
+        <SafeAreaProvider initialMetrics={initialMetrics}>
+          <EarnTokenList />
+        </SafeAreaProvider>,
+        {
+          state: stateWithPooledStakingDisabled,
+        },
+      );
+
+    // Bottom Sheet Title
+    expect(getByText(strings('stake.select_a_token'))).toBeDefined();
+
+    // Upsell Banner
+    expect(getByText(strings('stake.you_could_earn'))).toBeDefined();
+    expect(getByText(strings('stake.per_year_on_your_tokens'))).toBeDefined();
+
+    // Token List
+    // Ethereum
+    expect(getAllByText('Ethereum').length).toBe(1);
+    expect(getAllByText('2.3% APR').length).toBe(1);
+
+    // Stablecoins should be filtered out
+    // DAI
+    expect(queryByText('Dai Stablecoin')).toBeNull();
+    expect(queryByText('5.0% APR')).toBeNull();
+
+    // USDT
+    expect(queryByText('Tether USD')).toBeNull();
+    expect(queryByText('4.1% APR')).toBeNull();
+
+    // USDC
+    expect(queryByText('USDC')).toBeNull();
+    expect(queryAllByText('4.5% APR').length).toBe(0);
+
+    expect(getSupportedEarnTokensSpy).toHaveBeenCalled();
+    expect(filterEligibleTokensSpy).toHaveBeenCalled();
   });
 
   it('changes active network if selected token is on a different network', async () => {
