@@ -215,6 +215,7 @@ export default {
     'price-api',
     'price.api',
     'phishing-detection',
+    'dapp-scanning',
     'infura.io',
     'static.metafi',
     'static.cx',
