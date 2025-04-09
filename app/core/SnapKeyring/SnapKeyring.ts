@@ -10,10 +10,13 @@ import { SnapKeyringBuilderMessenger } from './types';
 import { SnapId } from '@metamask/snaps-sdk';
 import { assertIsValidSnapId } from '@metamask/snaps-utils';
 import { getUniqueAccountName } from './utils/getUniqueAccountName';
-import { isSnapPreinstalled } from './utils/snaps';
+import { getSnapName, isSnapPreinstalled } from './utils/snaps';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
+import { MetaMetrics } from '../../core/Analytics';
+import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { EVENT_NAME, ACTIONS } from '../../core/Analytics/MetaMetrics.events';
 
 /**
  * Builder type for the Snap keyring.
@@ -132,6 +135,12 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
       await handleUserInput(success);
 
       if (!success) {
+        // Track account creation canceled
+        this.trackSnapAccountEvent(
+          EVENT_NAME.ADD_SNAP_ACCOUNT_CANCELED,
+          snapId,
+          false,
+        );
         throw new Error('User denied account creation');
       }
 
@@ -140,6 +149,8 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
   }
 
   private async addAccountFinalize({
+    address: _address,
+    snapId,
     accountName,
     onceSaved,
   }: {
@@ -176,6 +187,16 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
+
+        // Track successful account addition
+        const snapName = getSnapName(snapId, this.#messenger);
+        this.trackSnapAccountEvent(
+          EVENT_NAME.ADD_SNAP_ACCOUNT_SUCCESS,
+          snapId,
+          true,
+          snapName,
+        );
+
         endTrace({
           name: TraceName.AddSnapAccount,
         });
@@ -186,6 +207,49 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
         Logger.error(error, 'Error occurred while creating snap account');
       }
     });
+  }
+
+  /**
+   * Track a Snap account-related event.
+   *
+   * @param eventName - The name of the event to track.
+   * @param snapId - The ID of the Snap.
+   * @param success - Whether the operation was successful.
+   * @param snapName - The name of the Snap.
+   */
+  private trackSnapAccountEvent(
+    eventName: EVENT_NAME,
+    snapId: string,
+    success: boolean,
+    snapName?: string,
+  ): void {
+    try {
+      // If snapName is not provided, try to get it
+      const resolvedSnapName =
+        snapName || getSnapName(snapId as SnapId, this.#messenger);
+
+      const event = MetricsEventBuilder.createEventBuilder({
+        category: eventName,
+        properties: {
+          action: ACTIONS.SNAP_ACCOUNTS,
+          name: `Snap Account: ${snapId}`,
+        },
+      })
+        .addProperties({
+          account_type: 'Snap',
+          snap_id: snapId,
+          snap_name: resolvedSnapName,
+          success,
+        })
+        .build();
+
+      MetaMetrics.getInstance().trackEvent(event);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        `Error tracking snap account event: ${eventName}`,
+      );
+    }
   }
 
   async addAccount(
@@ -203,6 +267,15 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     // Only pre-installed Snaps can skip the account name suggestion dialog.
     const skipAccountNameSuggestionDialog =
       isSnapPreinstalled(snapId) && !displayAccountNameSuggestion;
+
+    // Track add account started
+    const snapName = getSnapName(snapId, this.#messenger);
+    this.trackSnapAccountEvent(
+      EVENT_NAME.ADD_SNAP_ACCOUNT_STARTED,
+      snapId,
+      true,
+      snapName,
+    );
 
     // First part of the flow, which includes confirmation dialogs (if not skipped).
     // Once confirmed, we resume the Snap execution.
@@ -231,6 +304,16 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
     handleUserInput: (accepted: boolean) => Promise<void>,
   ) {
     assertIsValidSnapId(snapId);
+
+    // Track remove account started
+    const snapName = getSnapName(snapId, this.#messenger);
+    this.trackSnapAccountEvent(
+      EVENT_NAME.REMOVE_SNAP_ACCOUNT_STARTED,
+      snapId,
+      true,
+      snapName,
+    );
+
     // TODO: Implement proper snap account confirmations. Currently, we are approving everything for testing purposes.
     Logger.log(
       `SnapKeyring: removeAccount called with \n
@@ -238,19 +321,60 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           - handleUserInput: ${handleUserInput} \n
           - snapId: ${snapId} \n`,
     );
+
     // Approve everything for now because we have not implemented snap account confirmations yet
     await handleUserInput(true);
-    await this.#removeAccountHelper(address);
-    await this.#persistKeyringHelper();
+
+    try {
+      await this.#removeAccountHelper(address);
+      await this.#persistKeyringHelper();
+
+      // Track successful account removal
+      this.trackSnapAccountEvent(
+        EVENT_NAME.REMOVE_SNAP_ACCOUNT_SUCCESS,
+        snapId,
+        true,
+        snapName,
+      );
+    } catch (error) {
+      Logger.error(error as Error, `Error removing snap account: ${address}`);
+      this.trackSnapAccountEvent(
+        EVENT_NAME.ACCOUNT_REMOVE_FAILED,
+        snapId,
+        false,
+        snapName,
+      );
+      throw error;
+    }
   }
 
   async redirectUser(snapId: string, url: string, message: string) {
+    const snapName = getSnapName(snapId as SnapId, this.#messenger);
+
     Logger.log(
       `SnapKeyring: redirectUser called with \n
           - snapId: ${snapId} \n
           - url: ${url} \n
           - message: ${message} \n`,
     );
+
+    // Track redirect attempt using SNAP_ACCOUNT_REDIRECT event
+    const event = MetricsEventBuilder.createEventBuilder({
+      category: EVENT_NAME.SNAP_ACCOUNT_REDIRECT,
+      properties: {
+        action: ACTIONS.SNAP_ACCOUNTS,
+        name: 'Snap Account Redirect',
+      },
+    })
+      .addProperties({
+        snap_id: snapId,
+        snap_name: snapName,
+        url,
+        has_message: Boolean(message),
+      })
+      .build();
+
+    MetaMetrics.getInstance().trackEvent(event);
   }
 }
 
