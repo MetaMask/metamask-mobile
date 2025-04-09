@@ -1,8 +1,6 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-*                                    @MetaMask/mobile-platform @MetaMask/ramp @MetaMask/confirmations @MetaMask/sdk-devs @MetaMask/accounts-engineers @MetaMask/swaps-engineers @MetaMask/notifications @MetaMask/identity @MetaMask/supply-chain @MetaMask/portfolio @MetaMask/wallet-ux @MetaMask/metamask-assets @MetaMask/transactions @MetaMask/metamask-staking @MetaMask/wallet-api-platform-engineers @MetaMask/snaps-devs
-
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
 
