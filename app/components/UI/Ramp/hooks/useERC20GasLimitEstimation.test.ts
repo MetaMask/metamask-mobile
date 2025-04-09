@@ -3,6 +3,7 @@ import useERC20GasLimitEstimation from './useERC20GasLimitEstimation';
 import { getGasLimit } from '../../../../util/custom-gas';
 import { generateTransferData } from '../../../../util/transactions';
 import { toHex } from '@metamask/controller-utils';
+import { flushPromises } from '../../../../util/test/utils';
 
 jest.mock('../../../../util/custom-gas', () => ({
   getGasLimit: jest.fn(),
@@ -147,9 +148,7 @@ describe('useERC20GasLimitEstimation', () => {
 
     renderHook(() => useERC20GasLimitEstimation(params));
 
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await flushPromises();
 
     expect(mockGenerateTransferData).toHaveBeenCalledWith(
       'transfer',
