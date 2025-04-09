@@ -30,6 +30,8 @@ describe(
     let mockServer;
 
     beforeAll(async () => {
+      // Account sync test can take a while to run, so we increase the timeout
+      jest.setTimeout(400000);
       await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer();
