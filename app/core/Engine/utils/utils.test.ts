@@ -45,6 +45,8 @@ import {
 import { TransactionControllerInit } from '../controllers/transaction-controller';
 import { createMockControllerInitFunction } from './test-utils';
 import { getControllerOrThrow, initModularizedControllers } from './utils';
+import { AppMetadataController } from '@metamask/app-metadata-controller';
+import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock(
@@ -108,6 +110,7 @@ describe('initModularizedControllers', () => {
     notificationServicesPushControllerInit,
   );
   const mockGasFeeControllerInit = jest.mocked(GasFeeControllerInit);
+  const mockAppMetadataControllerInit = jest.mocked(appMetadataControllerInit);
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -136,6 +139,7 @@ describe('initModularizedControllers', () => {
           SnapInterfaceController: mockSnapInterfaceControllerInit,
           SnapsRegistry: mockSnapsRegistryInit,
           TransactionController: mockTransactionControllerInit,
+          AppMetadataController: mockAppMetadataControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -196,6 +200,9 @@ describe('initModularizedControllers', () => {
     });
     mockGasFeeControllerInit.mockReturnValue({
       controller: {} as unknown as GasFeeController,
+    });
+    mockAppMetadataControllerInit.mockReturnValue({
+      controller: {} as unknown as AppMetadataController,
     });
   });
 
