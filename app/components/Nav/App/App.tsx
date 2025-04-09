@@ -136,7 +136,7 @@ import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
-import SelectSRP from '../../Views/SelectSRP';
+import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
 
@@ -432,7 +432,10 @@ const RootModalFlow = (
     />
     {
       ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-      <Stack.Screen name={Routes.MODAL.SELECT_SRP} component={SelectSRP} />
+      <Stack.Screen
+        name={Routes.SHEET.SELECT_SRP}
+        component={SelectSRPBottomSheet}
+      />
       ///: END:ONLY_INCLUDE_IF
     }
     <Stack.Screen

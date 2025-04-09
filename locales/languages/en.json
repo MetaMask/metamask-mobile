@@ -2084,7 +2084,8 @@
     "info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
     "info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
     "cta_text": "Create Password",
-    "creating_password": "Creating password..."
+    "creating_password": "Creating password...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Remind me later",
