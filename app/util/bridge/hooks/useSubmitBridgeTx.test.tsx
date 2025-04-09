@@ -9,6 +9,7 @@ import { DummyQuoteMetadata, DummyQuotesNoApproval, DummyQuotesWithApproval } fr
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
 import { QuoteMetadata } from '@metamask/bridge-controller';
+import { BigNumber } from 'bignumber.js';
 
 jest.mock('./useHandleBridgeTx');
 jest.mock('./useHandleApprovalTx');
@@ -193,5 +194,28 @@ describe('useSubmitBridgeTx', () => {
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
       })
     ).rejects.toThrow('Bridge transaction failed');
+  });
+
+  it('should handle errors from serializeQuoteMetadata', async () => {
+    const { result } = renderHook(() => useSubmitBridgeTx(), {
+      wrapper: createWrapper(),
+    });
+
+    // Create an invalid quote response that will cause serialization to fail
+    const invalidQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+      sentAmount: {
+        amount: BigNumber(NaN), // This will cause serialization to fail
+        valueInCurrency: BigNumber('0'),
+        usd: BigNumber('0'),
+      },
+    };
+
+    await expect(
+      result.current.submitBridgeTx({
+        quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
+      })
+    ).rejects.toThrow();
   });
 });
