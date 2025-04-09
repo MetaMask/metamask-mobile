@@ -226,7 +226,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       salt,
       false,
       // If the keyMetadata is not present, we can assume the key was derived using the legacy options
-      keyMetadata || LEGACY_DERIVATION_OPTIONS,
+      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
       lib,
     );
 
@@ -308,7 +308,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       salt,
       true,
       // If the keyMetadata is not present, we can assume the key was derived using the legacy options
-      keyMetadata || LEGACY_DERIVATION_OPTIONS,
+      keyMetadata ?? LEGACY_DERIVATION_OPTIONS,
       payload.lib,
     );
     const exportedKeyString = await this.exportKey(key);
@@ -357,7 +357,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     };
   };
 
-    /**
+   /**
    * Updates the provided vault, re-encrypting
    * data with a safer algorithm if one is available.
    *
