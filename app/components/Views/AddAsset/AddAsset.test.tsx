@@ -41,11 +41,12 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(() => mockUseParamsValues),
 }));
 
-jest.mock('react-native-scrollable-tab-view', () => {
-  return ({ children }: { children: React.ReactNode }) => {
-    return <>{children}</>;
-  };
-});
+jest.mock(
+  'react-native-scrollable-tab-view',
+  () =>
+    ({ children }: { children: React.ReactNode }) =>
+      <>{children}</>,
+);
 
 const initialState = {
   engine: {
@@ -56,8 +57,8 @@ const initialState = {
   },
 };
 
-const renderComponent = (component: React.ReactElement) => {
-  return renderWithProvider(
+const renderComponent = (component: React.ReactElement) =>
+  renderWithProvider(
     <SafeAreaProvider
       initialMetrics={{
         frame: { x: 0, y: 0, width: 0, height: 0 },
@@ -68,9 +69,8 @@ const renderComponent = (component: React.ReactElement) => {
     </SafeAreaProvider>,
     {
       state: initialState,
-    }
+    },
   );
-};
 
 describe('AddAsset component', () => {
   beforeEach(() => {
@@ -102,8 +102,8 @@ describe('AddAsset component', () => {
 
     const filterButton = getByTestId('filter-controls-button');
     fireEvent.press(filterButton);
-    
-    expect(getByTestId("select-network-button")).toBeDefined();
+
+    expect(getByTestId('select-network-button')).toBeDefined();
   });
 
   it('renders display nft warning when displayNftMedia is true', () => {

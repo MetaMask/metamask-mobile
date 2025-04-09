@@ -329,6 +329,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                   "marginTop": 16,
                                 }
                               }
+                              testID="filter-controls-button"
                             >
                               <TouchableOpacity
                                 disabled={false}
