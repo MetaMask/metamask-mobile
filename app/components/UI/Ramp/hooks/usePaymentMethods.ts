@@ -30,29 +30,6 @@ function usePaymentMethods() {
     [paymentMethods, selectedPaymentMethodId],
   );
 
-  // auto-select the first payment method if the current one is not in the list
-  useEffect(() => {
-    const isPaymentMethodInList = Boolean(
-      paymentMethods?.filter((method) => method.id === currentPaymentMethod?.id)
-        .length,
-    );
-    if (
-      !isFetching &&
-      !error &&
-      currentPaymentMethod &&
-      !isPaymentMethodInList
-    ) {
-      setSelectedPaymentMethodId(paymentMethods?.[0]?.id || null);
-    }
-  }, [
-    currentPaymentMethod,
-    error,
-    isFetching,
-    paymentMethods,
-    selectedPaymentMethodId,
-    setSelectedPaymentMethodId,
-  ]);
-
   // auto-select the first payment method if there is no current one
   useEffect(() => {
     if (!isFetching && !error && !currentPaymentMethod && paymentMethods) {
