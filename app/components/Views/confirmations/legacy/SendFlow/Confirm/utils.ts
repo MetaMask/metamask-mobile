@@ -1,4 +1,3 @@
-import BN from 'bn.js';
 import { remove0x, add0x } from '@metamask/utils';
 import { hexToBN } from '@metamask/controller-utils';
 import { updateEditableParams } from '../../../../../../util/transaction-controller';
@@ -26,12 +25,12 @@ export const updateTransactionToMaxValue = async ({
     ? EIP1559GasTransaction
     : legacyGasTransaction;
 
-  const accountBalanceBN = new BN(remove0x(accountBalance), 16);
+  const accountBalanceBN = hexToBN(remove0x(accountBalance));
   const transactionFeeMax = hexToBN(gasFeeMaxHex);
 
   const maxTransactionValueBN = accountBalanceBN.sub(transactionFeeMax);
 
-  if (maxTransactionValueBN.lt(new BN(0))) {
+  if (maxTransactionValueBN.lt(hexToBN('0x0'))) {
     return;
   }
 
