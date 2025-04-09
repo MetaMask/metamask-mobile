@@ -1,7 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Hex, CaipChainId } from '@metamask/utils';
+import {
+  Hex,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipChainId,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/utils';
 import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -88,7 +93,9 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     allNetworkConfigurations,
     selectedSourceToken,
     onSetRpcTarget,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
     evmNetworkConfigurations,
    ]);
 
