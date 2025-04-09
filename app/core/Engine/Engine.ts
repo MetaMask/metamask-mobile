@@ -68,11 +68,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  isMainnetByChainId,
-  isTestNet,
-  getDecimalChainId,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -84,7 +80,6 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
-  addHexPrefix,
   hexToBN,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
@@ -133,9 +128,9 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ApprovalType,
+  ChainId,
   handleFetch,
   toChecksumHexAddress,
-  type ChainId,
 } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
@@ -203,8 +198,10 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -250,10 +247,10 @@ export class Engine {
   ///: END:ONLY_INCLUDE_IF
 
   accountsController: AccountsController;
-  transactionController: TransactionController;
-  smartTransactionsController: SmartTransactionsController;
-
+  gasFeeController: GasFeeController;
   keyringController: KeyringController;
+  smartTransactionsController: SmartTransactionsController;
+  transactionController: TransactionController;
 
   /**
    * Creates a CoreController instance
@@ -319,6 +316,9 @@ export class Engine {
         fetch,
         btoa,
       }),
+      additionalDefaultNetworks: [
+        ChainId['megaeth-testnet'],
+      ],
     };
     const networkController = new NetworkController(networkControllerOpts);
 
@@ -366,36 +366,6 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'GasFeeController',
-        allowedActions: [
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:getEIP1559Compatibility`,
-          `${networkController.name}:getState`,
-        ],
-        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
-      }),
-      getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getProviderAndBlockTracker().provider,
-      getCurrentNetworkEIP1559Compatibility: async () =>
-        (await networkController.getEIP1559Compatibility()) ?? false,
-      getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = getGlobalChainId(networkController);
-        return (
-          isMainnetByChainId(chainId) ||
-          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
-          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
-        );
-      },
-      clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
-    });
-
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
@@ -425,7 +395,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+    if (!isProductSafetyDappScanningEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
@@ -878,8 +850,45 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
-        isAccountSyncingEnabled: false,
+        isAccountSyncingEnabled: true,
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
       },
     });
     ///: END:ONLY_INCLUDE_IF
@@ -989,7 +998,6 @@ export class Engine {
 
     const existingControllersByName = {
       ApprovalController: approvalController,
-      GasFeeController: gasFeeController,
       KeyringController: this.keyringController,
       NetworkController: networkController,
       PreferencesController: preferencesController,
@@ -1004,6 +1012,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -1032,9 +1041,11 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const transactionController = controllersByName.TransactionController;
+    const gasFeeController = controllersByName.GasFeeController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
+    this.gasFeeController = gasFeeController;
     this.transactionController = transactionController;
 
     const multichainNetworkController =
@@ -1144,6 +1155,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
@@ -1311,10 +1323,11 @@ export class Engine {
         }),
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
-        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        fetchGasFeeEstimates: () =>
+          this.gasFeeController.fetchGasFeeEstimates(),
         fetchEstimatedMultiLayerL1Fee,
       }),
-      GasFeeController: gasFeeController,
+      GasFeeController: this.gasFeeController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
@@ -1499,23 +1512,12 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController, PreferencesController } =
-      this.context;
-
-    const chainIds = Object.keys(
-      NetworkController.state.networkConfigurationsByChainId,
-    );
-    const filteredChainIds = chainIds.filter(
-      (id) =>
-        PreferencesController.state.showIncomingTransactions[
-          id as keyof typeof PreferencesController.state.showIncomingTransactions
-        ],
-    ) as Hex[];
+    const { TransactionController } = this.context;
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling(filteredChainIds);
+    TransactionController.startIncomingTransactionPolling();
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();

@@ -413,10 +413,10 @@ exports[`Onboarding should render correctly 1`] = `
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
+                                      "fontSize": 16,
                                       "fontWeight": "400",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginBottom": 16,
                                       "textAlign": "center",
                                     }
@@ -479,7 +479,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",
@@ -539,7 +539,7 @@ exports[`Onboarding should render correctly 1`] = `
                                           null,
                                           [
                                             {
-                                              "fontFamily": "EuclidCircularB-Bold",
+                                              "fontFamily": "CentraNo1-Bold",
                                               "fontSize": 14,
                                               "fontWeight": "600",
                                               "textAlign": "center",

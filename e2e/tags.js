@@ -7,10 +7,11 @@ const tags = {
   SmokeSwaps: 'SmokeSwaps:',
   SmokeRest: 'SmokeRest:',
   smokeAssets: 'smokeAssets:',
-  smokeIdentity: 'smokeIdentity:',
+  smokeIdentity: 'SmokeIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
   SmokeEarn: 'Earn:',
   smokeStake: 'SmokeStake:',
+  smokeNotifications: 'SmokeNotifications:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -26,8 +27,12 @@ const SmokeAssets = (testName) => `${tags.smokeAssets} ${testName}`;
 const SmokeIdentity = (testName) => `${tags.smokeIdentity} ${testName}`;
 const SmokeEarn = (testName) => `${tags.SmokeEarn} ${testName}`;
 
+const SmokeRamps = (testName) => `${tags.smokeRamps} ${testName}`;
 const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
+const SmokeNotifications = (testName) =>
+  `${tags.smokeNotifications} ${testName}`;
+
 export {
   Regression,
   SmokeAccounts,
@@ -40,4 +45,6 @@ export {
   SmokeIdentity,
   SmokeMultiChainPermissions,
   SmokeEarn,
+  SmokeRamps,
+  SmokeNotifications,
 };

@@ -2,7 +2,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, userEvent } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
 import {
   MOCK_HD_ACCOUNTS,
@@ -69,7 +69,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
   const { getByTestId } = render;
 
   const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
-  await fireEvent.press(pasteButton);
+  await userEvent.press(pasteButton);
 
   return render;
 };

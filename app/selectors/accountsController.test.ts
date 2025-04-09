@@ -21,6 +21,7 @@ import {
   selectCanSignTransactions,
   selectSolanaAccountAddress,
   selectSolanaAccount,
+  selectPreviouslySelectedEvmAccount,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -491,5 +492,257 @@ describe('selectCanSignTransactions', () => {
       },
     } as RootState;
     expect(selectCanSignTransactions(state)).toBe(false);
+  });
+});
+
+describe('selectPreviouslySelectedEvmAccount', () => {
+  // Helper to create an EVM account with a lastSelected timestamp
+  const createEvmAccountWithLastSelected = (
+    address: string,
+    name: string,
+    lastSelectedTimestamp: number,
+  ): InternalAccount => {
+    const account = createMockInternalAccount(
+      address,
+      name,
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+    // Add lastSelected to metadata
+    return {
+      ...account,
+      metadata: {
+        ...account.metadata,
+        lastSelected: lastSelectedTimestamp,
+      },
+    };
+  };
+
+  it('returns the most recently selected EVM account based on lastSelected timestamp', () => {
+    const accountOldest = createEvmAccountWithLastSelected(
+      '0x111',
+      'Oldest Account',
+      1000,
+    );
+
+    const accountMiddle = createEvmAccountWithLastSelected(
+      '0x222',
+      'Middle Account',
+      2000,
+    );
+
+    const accountNewest = createEvmAccountWithLastSelected(
+      '0x333',
+      'Newest Account',
+      3000,
+    );
+
+    // Test state with all accounts
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [accountOldest.id]: accountOldest,
+                [accountMiddle.id]: accountMiddle,
+                [accountNewest.id]: accountNewest,
+              },
+              selectedAccount: accountMiddle.id, // Currently selected doesn't affect the result
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+    expect(selectPreviouslySelectedEvmAccount(state)).toEqual(accountNewest);
+  });
+
+  it('handles EVM accounts without lastSelected timestamps', () => {
+    // Create one account with lastSelected timestamp
+    const accountWithTimestamp = createEvmAccountWithLastSelected(
+      '0x111',
+      'Account With Timestamp',
+      1000,
+    );
+
+    // Create another account without lastSelected timestamp
+    const accountWithoutTimestamp = createMockInternalAccount(
+      '0x222',
+      'Account Without Timestamp',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+    // Test state with both accounts
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [accountWithTimestamp.id]: accountWithTimestamp,
+                [accountWithoutTimestamp.id]: accountWithoutTimestamp,
+              },
+              selectedAccount: accountWithoutTimestamp.id,
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+
+    // Should return the account with timestamp as it's considered more recently selected
+    expect(selectPreviouslySelectedEvmAccount(state)).toEqual(
+      accountWithTimestamp,
+    );
+  });
+
+  it('returns the first account when multiple EVM accounts exist but none have lastSelected timestamps', () => {
+    // Create multiple accounts without lastSelected timestamps
+    const account1 = createMockInternalAccount(
+      '0x111',
+      'First Account',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+    const account2 = createMockInternalAccount(
+      '0x222',
+      'Second Account',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+    const account3 = createMockInternalAccount(
+      '0x333',
+      'Third Account',
+      KeyringTypes.hd,
+      EthAccountType.Eoa,
+    );
+
+    // Test state with all accounts
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [account1.id]: account1,
+                [account2.id]: account2,
+                [account3.id]: account3,
+              },
+              selectedAccount: account2.id,
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+
+    // The first account in the sorted list should be returned as they all have the same default timestamp (0)
+    const result = selectPreviouslySelectedEvmAccount(state);
+    expect(result).toEqual(account1);
+  });
+
+  it('only returns EVM accounts when mixed with non-EVM accounts', () => {
+    // Create a mix of EVM and non-EVM accounts with timestamps
+    const evmAccount = createEvmAccountWithLastSelected(
+      '0x111',
+      'EVM Account',
+      1000,
+    );
+
+    // Non-EVM accounts with higher timestamps that should be ignored
+    const solAccount = {
+      ...createMockInternalAccount(
+        'solana_address_456',
+        'Solana Account',
+        KeyringTypes.snap,
+        SolAccountType.DataAccount,
+      ),
+      metadata: {
+        name: 'Solana Account',
+        importTime: 1684232000456,
+        keyring: { type: KeyringTypes.snap },
+        lastSelected: 2000, // Higher timestamp that should be ignored
+      },
+    };
+
+    const btcAccount = {
+      ...createMockInternalAccount(
+        'bc1q123xyz',
+        'Bitcoin Account',
+        KeyringTypes.snap,
+        BtcAccountType.P2wpkh,
+      ),
+      metadata: {
+        name: 'Bitcoin Account',
+        importTime: 1684232000456,
+        keyring: { type: KeyringTypes.snap },
+        lastSelected: 3000, // Highest timestamp that should be ignored
+      },
+    };
+
+    // Test state with mixed accounts
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [evmAccount.id]: evmAccount,
+                [solAccount.id]: solAccount,
+                [btcAccount.id]: btcAccount,
+              },
+              selectedAccount: solAccount.id, // Non-EVM account is currently selected
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+
+    // Should return the EVM account even though non-EVM accounts have higher lastSelected timestamps
+    expect(selectPreviouslySelectedEvmAccount(state)).toEqual(evmAccount);
+  });
+
+  it('returns undefined when no EVM accounts exist', () => {
+    // Create only non-EVM accounts (Solana and Bitcoin)
+    const solAccount = createMockInternalAccount(
+      'solana_address_456',
+      'Solana Account',
+      KeyringTypes.snap,
+      SolAccountType.DataAccount,
+    );
+
+    const btcAccount = createMockInternalAccount(
+      'bc1q123xyz',
+      'Bitcoin Account',
+      KeyringTypes.snap,
+      BtcAccountType.P2wpkh,
+    );
+
+    // Test state with no EVM accounts
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [solAccount.id]: solAccount,
+                [btcAccount.id]: btcAccount,
+              },
+              selectedAccount: solAccount.id,
+            },
+          },
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+        },
+      },
+    } as RootState;
+
+    // Should return undefined as there are no EVM accounts
+    expect(selectPreviouslySelectedEvmAccount(state)).toBeUndefined();
   });
 });
