@@ -30,7 +30,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     jest.clearAllMocks();
   });
 
-  it('should set default slippage when both tokens are stablecoins on Ethereum', () => {
+  it('sets default slippage when both tokens are stablecoins on Ethereum', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -45,7 +45,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).toHaveBeenCalledWith(0.5);
   });
 
-  it('should set default slippage when both tokens are stablecoins with checksum addresses', () => {
+  it('sets default slippage when both tokens are stablecoins with checksum addresses', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -60,7 +60,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).toHaveBeenCalledWith(0.5);
   });
 
-  it('should set default slippage when both tokens are stablecoins on Polygon', () => {
+  it('sets default slippage when both tokens are stablecoins on Polygon', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -75,7 +75,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).toHaveBeenCalledWith(0.5);
   });
 
-  it('should not set slippage when source token is not on the list of stablecoins', () => {
+  it('does not set slippage when source token is not on the list of stablecoins', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -90,7 +90,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('should not set slippage when destination token is not on the list of stablecoins', () => {
+  it('does not set slippage when destination token is not on the list of stablecoins', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -105,7 +105,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('should not set slippage when chain ID is not supported', () => {
+  it('does not set slippage when chain ID is not supported', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -120,7 +120,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('should not set slippage when source token address is missing', () => {
+  it('does not set slippage when source token address is missing', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -134,7 +134,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('should not set slippage when destination token address is missing', () => {
+  it('does not set slippage when destination token address is missing', () => {
     renderHookWithProvider(
       () =>
         useStablecoinsDefaultSlippage({
@@ -148,7 +148,7 @@ describe('useStablecoinsDefaultSlippage', () => {
     expect(mockSetSlippage).not.toHaveBeenCalled();
   });
 
-  it('should call setSlippage only once when dependencies change', () => {
+  it('calls setSlippage only once when dependencies change', () => {
     // First render with stablecoins
     const { rerender } = renderHookWithProvider(
       () =>
