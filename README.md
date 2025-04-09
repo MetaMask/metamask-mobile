@@ -20,6 +20,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [Build Troubleshooting](./docs/readme/troubleshooting.md)
 - [Testing](./docs/readme/testing.md)
 - [Debugging](./docs/readme/debugging.md)
+- [API Call Logging for Debugging](./docs/readme/api-logging.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
 
@@ -96,7 +97,7 @@ cd metamask-mobile
 
 ##### Firebase Messaging Setup
 
-MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you’ll need configuration files for both iOS and Android platforms.
+MetaMask uses Firebase Cloud Messaging (FCM) to enable app communications. To integrate FCM, you'll need configuration files for both iOS and Android platforms.
 
 ###### Internal Contributor instructions
 

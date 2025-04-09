@@ -66,7 +66,8 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
 }));
 
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResult: jest.fn().mockReturnValue(null),
+  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+  getPhishingTestResult: jest.fn().mockReturnValue({ result: false }),
 }));
 
 const Stack = createStackNavigator();

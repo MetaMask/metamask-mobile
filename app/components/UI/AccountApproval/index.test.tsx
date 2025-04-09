@@ -34,6 +34,14 @@ jest.mock('../../../core/Engine', () => {
   };
 });
 
+jest.mock('../../../util/phishingDetection', () => ({
+  getPhishingTestResult: jest.fn((url) => {
+    if (url === 'phishing.com') return { result: true };
+    return { result: false };
+  }),
+  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
+}));
+
 const mockInitialState = {
   engine: {
     backgroundState: {
