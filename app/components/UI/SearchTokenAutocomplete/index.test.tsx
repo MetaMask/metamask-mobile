@@ -6,12 +6,6 @@ import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
-import {
-  FilterOption,
-  handleFilterControlsPress,
-} from '../../Views/AddAsset/AddAsset';
-import Engine from '../../../core/Engine';
-const { PreferencesController } = Engine.context;
 
 const mockInitialState = {
   settings: {},
@@ -189,35 +183,5 @@ describe('SearchTokenAutocomplete', () => {
     );
 
     expect(getByText('Ethereum Main Network')).toBeOnTheScreen();
-  });
-});
-
-describe('AddAsset utils', () => {
-  const tokenNetworkFilterSpy = jest.spyOn(
-    PreferencesController,
-    'setTokenNetworkFilter',
-  );
-  it('should handle AllNetworks filter option', () => {
-    const allNetworksEnabled = { '0x1': true, '0x2': true };
-
-    handleFilterControlsPress({
-      option: FilterOption.AllNetworks,
-      allNetworksEnabled,
-      chainId: '0x1',
-    });
-
-    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith(allNetworksEnabled);
-  });
-
-  it('should handle CurrentNetwork filter option', () => {
-    const chainId = '0x1';
-
-    handleFilterControlsPress({
-      option: FilterOption.CurrentNetwork,
-      allNetworksEnabled: {},
-      chainId,
-    });
-
-    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ [chainId]: true });
   });
 });

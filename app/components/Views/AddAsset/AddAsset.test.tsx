@@ -1,11 +1,13 @@
 import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import AddAsset from './AddAsset';
+import AddAsset, { FilterOption, handleFilterControlsPress } from './AddAsset';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import { fireEvent } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Engine from '../../../core/Engine';
+const { PreferencesController } = Engine.context;
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -26,6 +28,14 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    PreferencesController: {
+      setTokenNetworkFilter: jest.fn(),
+    },
+  },
+}));
 
 const mockUseParamsValues: {
   assetType: string;
@@ -115,5 +125,35 @@ describe('AddAsset component', () => {
     expect(
       getByTestId(AddAssetViewSelectorsIDs.WARNING_ENABLE_DISPLAY_MEDIA),
     ).toBeDefined();
+  });
+});
+
+describe('AddAsset utils', () => {
+  const tokenNetworkFilterSpy = jest.spyOn(
+    PreferencesController,
+    'setTokenNetworkFilter',
+  );
+  it('should handle AllNetworks filter option', () => {
+    const allNetworksEnabled = { '0x1': true, '0x2': true };
+
+    handleFilterControlsPress({
+      option: FilterOption.AllNetworks,
+      allNetworksEnabled,
+      chainId: '0x1',
+    });
+
+    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith(allNetworksEnabled);
+  });
+
+  it('should handle CurrentNetwork filter option', () => {
+    const chainId = '0x1';
+
+    handleFilterControlsPress({
+      option: FilterOption.CurrentNetwork,
+      allNetworksEnabled: {},
+      chainId,
+    });
+
+    expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ [chainId]: true });
   });
 });
