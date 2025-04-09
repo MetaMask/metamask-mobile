@@ -42,15 +42,21 @@ describe('SearchTokenAutocomplete', () => {
       },
     );
 
-    const mockAsset = { address: '0x123', symbol: 'TEST', chainId: '0x1' }
+    const mockAsset = { address: '0x123', symbol: 'TEST', chainId: '0x1' };
 
     const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
     const mockResults = [mockAsset];
-    
-    fireEvent(assetSearch, 'onSearch', { results: mockResults, searchQuery: 'TEST', chainId: '0x1' });
-    
+
+    fireEvent(assetSearch, 'onSearch', {
+      results: mockResults,
+      searchQuery: 'TEST',
+      chainId: '0x1',
+    });
+
     // Verify search results are displayed
-    expect(getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT)).toBeTruthy();
+    expect(
+      getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
+    ).toBeTruthy();
     expect(getByText(mockAsset.symbol)).toBeTruthy();
   });
 
@@ -76,5 +82,33 @@ describe('SearchTokenAutocomplete', () => {
     );
 
     expect(getByText(/token detection/i)).toBeTruthy();
+  });
+
+  it('should handle select asset', () => {
+    const { getByTestId, getByText } = renderScreen(
+      SearchTokenAutocomplete as FunctionComponent,
+      { name: 'SearchTokenAutocomplete' },
+      { state: mockInitialState },
+    );
+
+    const mockAsset = { address: '0x123', symbol: 'TEST', chainId: '0x1' };
+
+    const assetSearch = getByTestId(ImportTokenViewSelectorsIDs.SEARCH_BAR);
+
+    fireEvent(assetSearch, 'onSearch', {
+      results: [mockAsset],
+      searchQuery: 'TEST',
+      chainId: '0x1',
+    });
+
+    const selectAssetButton = getByTestId(
+      ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT,
+    );
+    fireEvent.press(selectAssetButton);
+
+    expect(getByText(mockAsset.symbol)).toBeTruthy();
+
+    const addTokenButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
+    fireEvent.press(addTokenButton);
   });
 });
