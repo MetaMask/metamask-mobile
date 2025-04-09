@@ -1,0 +1,87 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SampleCounterPane render matches snapshot 1`] = `
+<TouchableOpacity
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 4,
+      "borderWidth": 1,
+      "padding": 16,
+      "width": "100%",
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "EuclidCircularB-Bold",
+        "fontSize": 16,
+        "fontWeight": "700",
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+    testID="sample-counter-pane-title"
+  >
+    Counter
+  </Text>
+  <Text
+    accessibilityRole="text"
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "EuclidCircularB-Regular",
+        "fontSize": 14,
+        "fontWeight": "400",
+        "letterSpacing": 0,
+        "lineHeight": 22,
+      }
+    }
+    testID="sample-counter-pane-value"
+  >
+    Value: 42
+  </Text>
+  <TouchableOpacity
+    accessibilityRole="button"
+    accessible={true}
+    activeOpacity={1}
+    onPress={[Function]}
+    onPressIn={[Function]}
+    onPressOut={[Function]}
+    style={
+      {
+        "alignItems": "center",
+        "alignSelf": "flex-start",
+        "backgroundColor": "#4459ff",
+        "borderRadius": 20,
+        "flexDirection": "row",
+        "height": 40,
+        "justifyContent": "center",
+        "paddingHorizontal": 16,
+        "width": "100%",
+      }
+    }
+    testID="sample-counter-pane-increment-button"
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#ffffff",
+          "fontFamily": "EuclidCircularB-Medium",
+          "fontSize": 14,
+          "fontWeight": "500",
+          "letterSpacing": 0,
+          "lineHeight": 22,
+        }
+      }
+    >
+      Increment Redux Counter
+    </Text>
+  </TouchableOpacity>
+</TouchableOpacity>
+`;
