@@ -1806,7 +1806,7 @@ workflows:
                 #!/usr/bin/env bash
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
+                  BUILD_DIR="ios/build/output"
                   DEVICE_TYPE="simulator"
                   BINARY_EXTENSION=".app"
                 else
