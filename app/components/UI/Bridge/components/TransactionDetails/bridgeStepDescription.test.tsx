@@ -149,4 +149,52 @@ describe('BridgeStepDescription', () => {
     const textElement = getByText(/ETH/);
     expect(textElement.props.style).toHaveProperty('color', '#686e7d');
   });
+
+  it('should render bridge action with COMPLETE status text', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.COMPLETE}
+      />,
+    );
+
+    expect(getByText(/ETH/)).toBeTruthy();
+    const textElement = getByText(/ETH/);
+    expect(textElement.props.style).toHaveProperty('color', '#121314');
+    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+  });
+
+  it('should render swap action with COMPLETE status text', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockSwapStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.COMPLETE}
+      />,
+    );
+
+    expect(getByText(/ETH/)).toBeTruthy();
+    expect(getByText(/USDC/)).toBeTruthy();
+    const textElement = getByText(/ETH/);
+    expect(textElement.props.style).toHaveProperty('color', '#121314');
+    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+  });
+
+  it('should render with time and COMPLETE status', () => {
+    const { getByText } = render(
+      <BridgeStepDescription
+        step={mockStep}
+        networkConfigurationsByChainId={mockNetworkConfigurations}
+        stepStatus={StatusTypes.COMPLETE}
+        time="10:00 AM"
+      />,
+    );
+
+    expect(getByText(/10:00 AM/)).toBeTruthy();
+    expect(getByText(/ETH/)).toBeTruthy();
+    const textElement = getByText(/ETH/);
+    expect(textElement.props.style).toHaveProperty('color', '#121314');
+    expect(textElement.props.style).toHaveProperty('fontWeight', '400');
+  });
 });

@@ -451,6 +451,4 @@ describe('BlockExplorersModal', () => {
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);
   });
-
-  
 });
