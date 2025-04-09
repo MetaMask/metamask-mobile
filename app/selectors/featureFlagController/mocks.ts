@@ -1,5 +1,6 @@
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { mockedMinimumAppVersion } from './minimumAppVersion/constants';
+import { mockedPooledStakingFeatureFlagState } from './earnFeatureFlags/constants';
 
 export const mockedState = {
   engine: {
@@ -7,6 +8,7 @@ export const mockedState = {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
           ...mockedMinimumAppVersion,
+          ...mockedPooledStakingFeatureFlagState,
           productSafetyDappScanning: true,
         },
         cacheTimestamp: 0,
