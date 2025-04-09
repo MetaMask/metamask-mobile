@@ -39,7 +39,9 @@ interface UseSwitchNetworksProps {
 interface UseSwitchNetworksReturn {
   onSetRpcTarget: (networkConfiguration: NetworkConfiguration) => Promise<void>;
   onNetworkChange: (type: InfuraNetworkType) => Promise<void>;
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 /**
@@ -239,6 +241,8 @@ export function useSwitchNetworks({
   return {
     onSetRpcTarget,
     onNetworkChange,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
   };
 }

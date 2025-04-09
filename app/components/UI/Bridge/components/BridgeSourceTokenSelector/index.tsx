@@ -30,7 +30,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const { onSetRpcTarget, onNonEvmNetworkChange } = useSwitchNetworks({
+  const {
+    onSetRpcTarget,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+  } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
     selectedNetworkName,
@@ -51,9 +56,13 @@ export const BridgeSourceTokenSelector: React.FC = () => {
 
       if (evmNetworkConfiguration) {
         await onSetRpcTarget(evmNetworkConfiguration);
-      } else {
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      if (!evmNetworkConfiguration) {
         await onNonEvmNetworkChange(token.chainId as CaipChainId);
       }
+      ///: END:ONLY_INCLUDE_IF
 
       navigation.goBack();
     };
