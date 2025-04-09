@@ -118,7 +118,13 @@
     "continue_with_google": "Continue with Google",
     "continue_with_apple": "Continue with Apple",
     "or": "OR",
-    "import_existing_wallet": "Import existing wallet"
+    "import_existing_wallet": "Import existing wallet",
+    "bottom_sheet_title": "Choose an option to continue",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "have_existing_wallet": "I have an existing wallet",
+    "import_srp": "Import using Secret Recovery Phrase",
+    "sign_in_with_google": "Sign in with Google",
+    "sign_in_with_apple": "Sign in with Apple"
   },
   "onboarding_success": {
     "title": "Congratulations!",
@@ -136,7 +142,15 @@
     "import_title": "Your Wallet is ready",
     "import_description": "Remember, if you lose your Secret Recovery Phrase, you lose access to your wallet. ",
     "import_description2": "to keep this set of words safe so you can always access your funds.",
-    "done": "Done"
+    "done": "Done",
+    "create_hint": "Create a Secret Recovery Phrase hint",
+    "hint_title": "Secret Recovery Phrase hint",
+    "hint_description": "Leave yourself a hint to help remember where your Secret Recovery Phrase is stored. This hint is stored on your device, and won’t be shared. ",
+    "hint_description2": "Remember: If you lose this phrase, you won’t be able to use your wallet.",
+    "hint_button": "Create hint",
+    "hint_placeholder": "e.g. mom’s home",
+    "hint_saved": "Save",
+    "hint_saved_toast": "Secret Recovery Phrase hint saved"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -350,7 +364,14 @@
     "use_at_least_8_characters": "Use at least 8 characters",
     "unlock_with_face_id": "Unlock with Face ID?",
     "learn_more": "MetaMask can’t recover this password.",
-    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words"
+    "seed_phrase_length_error": "Secret Recovery Phrase must be 12, 15, 18, 21, or 24 words",
+    "continue": "Continue",
+    "clear_all": "Clear all",
+    "show_all": "Show all",
+    "paste": "Paste",
+    "hide_all": "Hide all",
+    "srp": "Secret Recovery Phrase",
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -2228,7 +2249,8 @@
     "success-title": "Perfect!",
     "success-description": "That’s right! And remember: never share this phrase with anyone, ever.",
     "success-button": "Got It",
-    "error-button": "Try Again"
+    "error-button": "Try Again",
+    "continue": "Continue"
   },
   "manual_backup_step_3": {
     "congratulations": "Congratulations",

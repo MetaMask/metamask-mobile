@@ -77,7 +77,7 @@ const SkipAccountSecurityModal = ({
   const styles = createStyles(colors);
 
   return modalVisible ? (
-    <BottomSheet onClose={onCancel}>
+    <BottomSheet onClose={onPress} shouldNavigateBack={false}>
       <ActionContent
         cancelTestID={SkipAccountSecurityModalSelectorsIDs.CANCEL_BUTTON}
         confirmTestID={SkipAccountSecurityModalSelectorsIDs.SKIP_BUTTON}

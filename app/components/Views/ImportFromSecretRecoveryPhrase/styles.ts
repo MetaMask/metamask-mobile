@@ -85,11 +85,10 @@ const createStyles = (colors: any) =>
       borderWidth: 1,
       borderColor: colors.border.muted,
       borderRadius: 8,
-      paddingHorizontal: 8,
+      paddingHorizontal: 6,
       paddingVertical: 4,
       backgroundColor: colors.background.default,
-      flex: 1,
-      margin: 5,
+      margin: 2,
       columnGap: 8,
     },
     inputNumber: {
@@ -266,7 +265,7 @@ const createStyles = (colors: any) =>
     learnMoreContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: 'flex-start',
       gap: 8,
     },
     learnMoreCheckbox: {
