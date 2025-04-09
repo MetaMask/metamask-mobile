@@ -4541,10 +4541,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/contract-metadata/-/contract-metadata-2.5.0.tgz#33921fa9c15eb1863f55dcd5f75467ae15614ebb"
   integrity sha512-+j7jEcp0P1OUMEpa/OIwfJs/ahBC/akwgWxaRTSWX2SWABvlUKBVRMtslfL94Qj2wN2xw8xjaUy5nSHqrznqDA==
 
-"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0":
-  version "11.6.0"
-  resolved "https://registry.npmjs.org/@metamask/controller-utils/-/controller-utils-11.6.0.tgz#68bae4323ad4a68811befadc018043e6c15f6cc1"
-  integrity sha512-7dcaimnRxNzQBVXdadNH/oezBkfxYJ2bK2qB09d9mYjUY3+/dyWX2BYcUXSb1BOJlyJxtVDEN1+sqIRMnoqL/Q==
+"@metamask/controller-utils@^11.0.0", "@metamask/controller-utils@^11.3.0", "@metamask/controller-utils@^11.4.4", "@metamask/controller-utils@^11.5.0", "@metamask/controller-utils@^11.6.0", "@metamask/controller-utils@^11.7.0":
+  version "11.7.0"
+  resolved "https://registry.npmjs.org/@metamask/controller-utils/-/controller-utils-11.7.0.tgz#1186daecffff9dec6846f64f9da7a319dd9c9a83"
+  integrity sha512-Q2TPmTJT6L/ixBk5TEb+mJ1NRyFAGe+VjFuulNQMVu6AanEBeGSoxsuBnAzWQlIgbt3/EHGP7o31ep1H5gr5Gw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/eth-query" "^4.0.0"
@@ -4563,14 +4563,14 @@
   resolved "https://registry.yarnpkg.com/@metamask/design-tokens/-/design-tokens-5.0.0.tgz#b749fc9d6556a0c2be159c6448b48796e0c14c6f"
   integrity sha512-dpTV8+wuGQNS69JdWamfuMM2EAIpKXDGjXG63tGRe1N27JVvq4l5p5dBtJtWzc061MVspm45EXK6jDrvlJyGDg==
 
-"@metamask/earn-controller@^0.10.0":
-  version "0.10.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.10.0.tgz#890587d9e51e4fbaa8e85f09077c040e85a99462"
-  integrity sha512-vhywGCsaQphYyDwYksjk7+DZMQAeeC94lpDs6xUEV3xr0l1rG3NR5Ubqhl29oFwYsPV/0HGAbiGW9i3UYOBvkQ==
+"@metamask/earn-controller@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-0.11.0.tgz#47da160db26efd4b6b3e75dfd3c430541fe4b9b0"
+  integrity sha512-uxiuMYPd1pntHV3s4fq7At4fFSVlJ5LyRjKMVy4ySj+brsLpi8uAaD21ci4AEpvx3mB3NPCyxzCdKYwVRurtIw==
   dependencies:
     "@ethersproject/providers" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/stake-sdk" "^1.0.0"
 
 "@metamask/eslint-config-typescript@^9.0.0":
