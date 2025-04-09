@@ -36,6 +36,7 @@ import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsM
 import generateUserSettingsAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import { isE2E } from '../../util/test/utils';
 import MetaMetricsPrivacySegmentPlugin from './MetaMetricsPrivacySegmentPlugin';
+import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 
 /**
  * MetaMetrics using Segment as the analytics provider.
@@ -517,7 +518,32 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      const segmentClient = isE2E ? undefined : createClient(config);
+      // In E2E mode, create a mock client that sends events to our test server
+      const segmentClient = isE2E && __DEV__
+        ? {
+            track: (event: string, properties: JsonMap) => {
+              MetaMetricsTestUtils.getInstance().trackEvent({
+                name: event,
+                properties,
+                sensitiveProperties: {},
+                saveDataRecording: true,
+                get isAnonymous() {
+                  return false;
+                },
+                get hasProperties() {
+                  return true;
+                },
+              });
+            },
+            identify: () => Promise.resolve(),
+            group: () => Promise.resolve(),
+            screen: () => Promise.resolve(),
+            flush: () => Promise.resolve(),
+            reset: () => Promise.resolve(),
+            // eslint-disable-next-line no-empty-function
+            add: () => {},
+          }
+        : createClient(config);
 
       this.instance = new MetaMetrics(segmentClient as ISegmentClient);
     }
@@ -547,7 +573,12 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
-      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
+      // Only add plugin if we have a segmentClient
+      if (this.segmentClient) {
+        this.segmentClient.add({
+          plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId),
+        });
+      }
 
       this.#isConfigured = true;
 
@@ -664,6 +695,12 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
+    if (isE2E && __DEV__) {
+      // In E2E mode, send the event to the test server
+      MetaMetricsTestUtils.getInstance().trackEvent(event);
+      return;
+    }
+
     // if event does not have properties, only send the non-anonymous empty event
     // and return to prevent any additional processing
     if (!event.hasProperties) {
@@ -689,8 +726,8 @@ class MetaMetrics implements IMetaMetrics {
         event.name,
         {
           anonymous: true,
-          ...event.properties,
-          ...event.sensitiveProperties,
+        ...event.properties,
+        ...event.sensitiveProperties,
         },
         saveDataRecording,
       );

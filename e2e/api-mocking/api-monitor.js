@@ -11,7 +11,7 @@ const CONSOLE_LOG_CONFIG = {
   showHeaders: false,
   showRequestBody: true,
   showResponseBody: false,
-}
+};
 
 /**
  * Checks if a directory exists at the specified path.
@@ -27,7 +27,7 @@ const dirExists = async (dir) => {
   catch (error) {
     return false;
   }
-} 
+};
 
 /**
  * Creates a new log file name with timestamp
@@ -44,7 +44,7 @@ const createLogFile = async () => {
     .replace(/[:.]/g, '-')
     .replace('T', '-')
     .replace('Z', '');
-  
+
   const logFile = path.join(LOGS_DIR, `api-monitor-${timestamp}.json`);
   await writeFile(logFile, '[]');
   return logFile;
@@ -81,13 +81,13 @@ const releaseLock = (filePath) => {
  */
 const writeToLogFile = async (logFile, logEntry, retries = 3) => {
   await acquireLock(logFile);
-  
+
   try {
     for (let i = 0; i < retries; i++) {
       try {
         const fileContent = await readFile(logFile, 'utf8');
         let logs;
-        
+
         try {
           logs = JSON.parse(fileContent);
         } catch (parseError) {
@@ -104,9 +104,9 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
             }
           }
         }
-        
+
         logs.push(logEntry);
-        
+
         await writeFile(logFile, JSON.stringify(logs, null, 2));
         return;
       } catch (error) {
@@ -142,10 +142,32 @@ export const startApiMonitor = async (port) => {
     .forGet('/health-check')
     .thenReply(200, 'API Monitor is running');
 
+
+  await mockServer
+  .forPost('/track')
+  .thenCallback(async (req) => {
+    // Get and parse the request body
+    const bodyText = await req.body.getText();
+    let bodyJson;
+    try {
+      bodyJson = JSON.parse(bodyText);
+      console.log('Received track request body:', bodyJson);
+    } catch (e) {
+      bodyJson = { raw: bodyText, error: 'Not valid JSON' };
+      console.log('Received non-JSON track request body:', bodyText);
+    }
+
+    return {
+      status: 200,
+      json: bodyJson
+    };
+  });
+
+
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method, rawHeaders, requestBody }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
-      
+
       const requestLog = {
         timestamp: new Date().toISOString(),
         type: 'request',
@@ -171,7 +193,7 @@ export const startApiMonitor = async (port) => {
 
       // Console logging
 
-      console.log(`\n📡 ${method} ${returnUrl}`)
+      console.log(`\n📡 ${method} ${returnUrl}`);
       console.log('----------------------------------------');
 
       if (CONSOLE_LOG_CONFIG.showHeaders) {
@@ -249,4 +271,4 @@ export const startApiMonitor = async (port) => {
 export const stopApiMonitor = async (mockServer) => {
   await mockServer.stop();
   console.log('🛑 API Monitor shutting down');
-}; 
+};
