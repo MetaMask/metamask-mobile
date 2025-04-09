@@ -319,10 +319,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
     const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
     const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
-    // If either the resolved URL or loading URL is different from the phishing URL
+    // If the resolved URL and the loading URL are different from the phishing URL
     // and dapp scanning is enabled, don't show the phishing modal
     if (
-      (resolvedUrlOrigin !== urlOrigin || loadingUrlOrigin !== urlOrigin) &&
+      resolvedUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin != null &&
       isProductSafetyDappScanningEnabled()
     ) {
       console.log(
