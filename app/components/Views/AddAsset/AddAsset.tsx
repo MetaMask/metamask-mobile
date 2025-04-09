@@ -66,10 +66,36 @@ import { enableAllNetworksFilter } from '../../UI/Tokens/util/enableAllNetworksF
 import Engine from '../../../core/Engine';
 import NetworkImageComponent from '../../UI/NetworkImages';
 
-enum FilterOption {
+export enum FilterOption {
   AllNetworks,
   CurrentNetwork,
 }
+
+export interface FilterHandlerParams {
+  option: FilterOption;
+  allNetworksEnabled: Record<string, boolean>;
+  chainId: string;
+}
+
+export const handleFilterControlsPress = ({
+  option,
+  allNetworksEnabled,
+  chainId,
+}: FilterHandlerParams) => {
+  const { PreferencesController } = Engine.context;
+  switch (option) {
+    case FilterOption.AllNetworks:
+      PreferencesController.setTokenNetworkFilter(allNetworksEnabled);
+      break;
+    case FilterOption.CurrentNetwork:
+      PreferencesController.setTokenNetworkFilter({
+        [chainId]: true,
+      });
+      break;
+    default:
+      break;
+  }
+};
 
 const AddAsset = () => {
   const navigation = useNavigation();
@@ -134,21 +160,12 @@ const AddAsset = () => {
   };
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {
-    const { PreferencesController } = Engine.context;
-    switch (option) {
-      case FilterOption.AllNetworks:
-        PreferencesController.setTokenNetworkFilter(allNetworksEnabled);
-        setOpenNetworkFilter(false);
-        break;
-      case FilterOption.CurrentNetwork:
-        PreferencesController.setTokenNetworkFilter({
-          [chainId]: true,
-        });
-        setOpenNetworkFilter(false);
-        break;
-      default:
-        break;
-    }
+    handleFilterControlsPress({
+      option,
+      allNetworksEnabled,
+      chainId,
+    });
+    setOpenNetworkFilter(false);
   };
 
   const renderTabBar = (props: TabBarProps) => (
