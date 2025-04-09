@@ -25,7 +25,7 @@ import {
 } from './transaction-controller-messenger';
 import { getNotificationServicesControllerMessenger } from './notifications/notification-services-controller-messenger';
 import { getNotificationServicesPushControllerMessenger } from './notifications/notification-services-push-controller-messenger';
-
+import { getGasFeeControllerMessenger } from './gas-fee-controller-messenger/gas-fee-controller-messenger';
 /**
  * The messengers for the controllers that have been.
  */
@@ -44,6 +44,10 @@ export const CONTROLLER_MESSENGERS = {
   },
   MultichainNetworkController: {
     getMessenger: getMultichainNetworkControllerMessenger,
+    getInitMessenger: noop,
+  },
+  GasFeeController: {
+    getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
   },
   AppMetadataController: {
