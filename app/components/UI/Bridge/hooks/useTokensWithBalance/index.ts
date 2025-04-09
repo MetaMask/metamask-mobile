@@ -3,7 +3,12 @@ import { useSelector } from 'react-redux';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { TokenI } from '../../../Tokens/types';
 import { selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
-import { selectLastSelectedEvmAccount, selectLastSelectedSolanaAccount } from '../../../../../selectors/accountsController';
+import {
+  selectLastSelectedEvmAccount,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  selectLastSelectedSolanaAccount,
+  ///: END:ONLY_INCLUDE_IF
+} from '../../../../../selectors/accountsController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import {
@@ -15,7 +20,9 @@ import {
   sortAssets,
 } from '../../../Tokens/util';
 import { selectTokenSortConfig } from '../../../../../selectors/preferencesController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainTokenListForAccountId } from '../../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 import { selectAccountTokensAcrossChainsForAddress } from '../../../../../selectors/multichain/evm';
 import { BridgeToken } from '../../types';
 import { RootState } from '../../../../../reducers';
@@ -116,7 +123,9 @@ export const useTokensWithBalance: ({
   );
 
   const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const lastSelectedSolanaAccount = useSelector(selectLastSelectedSolanaAccount);
+  ///: END:ONLY_INCLUDE_IF
 
   // Fiat conversion rates
   const multiChainMarketData = useSelector(selectTokenMarketData);
@@ -146,9 +155,11 @@ export const useTokensWithBalance: ({
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
     ).filter((token) => chainIds.includes(token.chainId as Hex));
 
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allNonEvmAccountTokens = (
       Object.values(nonEvmTokens).flat()
     ).filter((token) => chainIds.includes(token.chainId));
+    ///: END:ONLY_INCLUDE_IF
 
     const balances = calculateBalances({
       assets: allEvmAccountTokens,
