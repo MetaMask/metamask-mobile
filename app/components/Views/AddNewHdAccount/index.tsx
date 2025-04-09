@@ -1,1 +1,1 @@
-export { default } from './AddNewHdAccount';
+export { default } from './AddNewAccount';

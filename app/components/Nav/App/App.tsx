@@ -139,6 +139,7 @@ import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPh
 import SelectSRP from '../../Views/SelectSRP';
 ///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
+import AddNewAccount from '../../Views/AddNewHdAccount';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -340,6 +341,7 @@ const RootModalFlow = (
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
     />
+    <Stack.Screen name={Routes.SHEET.ADD_ACCOUNT} component={AddNewAccount} />
     <Stack.Screen name={Routes.SHEET.SDK_LOADING} component={SDKLoadingModal} />
     <Stack.Screen
       name={Routes.SHEET.SDK_FEEDBACK}

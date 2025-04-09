@@ -15,6 +15,8 @@ import { Text } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
+import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -62,7 +64,6 @@ const mockInitialState = {
 
 const mockProps = {
   onBack: jest.fn(),
-  onAddHdAccount: jest.fn(),
 };
 
 describe('AddAccountActions', () => {
@@ -436,23 +437,48 @@ describe('AddAccountActions', () => {
       },
     } as unknown as RootState;
 
-    it('calls onAddHdAccount when there are multiple srps', async () => {
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: stateWithMultipleHdKeyrings,
-        },
-      );
+    it.each([
+      // This is for hd evm accounts.
+      {
+        buttonId: AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
+      },
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+        buttonId: AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+        buttonId: AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
+      },
+      {
+        scope: MultichainNetwork.BitcoinTestnet,
+        clientType: WalletClientType.Bitcoin,
+        buttonId:
+          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON,
+      },
+    ])(
+      '$clientType creation button navigates to AddNewAccount when there are multiple srps',
+      async ({ scope, clientType, buttonId }) => {
+        renderScreen(
+          () => <AddAccountActions {...mockProps} />,
+          {
+            name: 'AddAccountActions',
+          },
+          {
+            state: stateWithMultipleHdKeyrings,
+          },
+        );
 
-      const addAccountButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
-      );
-      await fireEvent.press(addAccountButton);
+        const addAccountButton = screen.getByTestId(buttonId);
+        await fireEvent.press(addAccountButton);
 
-      expect(mockProps.onAddHdAccount).toHaveBeenCalled();
-    });
+        expect(mockedNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_ACCOUNT, {
+          scope,
+          clientType,
+        });
+      },
+    );
   });
 });

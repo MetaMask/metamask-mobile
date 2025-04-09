@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
-import AddNewHdAccount from './AddNewHdAccount';
+import AddNewHdAccount from './AddNewAccount';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -11,13 +11,25 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
+import { RootState } from '../../../reducers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
-const mockOnBack = jest.fn();
 jest.mock('../../../actions/multiSrp', () => ({
   addNewHdAccount: (keyringId?: string, name?: string) =>
     mockAddNewHdAccount(keyringId, name),
 }));
+
+const mockedNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => {
+  const actualNav = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualNav,
+    useNavigation: () => ({
+      navigate: mockedNavigate,
+    }),
+  };
+});
 
 const mockKeyringMetadata1 = {
   id: '01JKZ55Y6KPCYH08M6B9VSZWKW',
@@ -42,7 +54,7 @@ const mockKeyring2 = {
 };
 
 const mockNextAccountName = 'Account 3';
-
+const mockSnapNextAccountName = 'Snap Account 1';
 const initialState = {
   engine: {
     backgroundState: {
@@ -54,7 +66,20 @@ const initialState = {
       },
     },
   },
-};
+} as unknown as RootState;
+
+const mockGetNextAvailableAccountName = jest
+  .fn()
+  .mockImplementation((keyringType: KeyringTypes) => {
+    switch (keyringType) {
+      case KeyringTypes.hd:
+        return mockNextAccountName;
+      case KeyringTypes.snap:
+        return mockSnapNextAccountName;
+      default:
+        throw new Error(`Should not pass keyring type ${keyringType}`);
+    }
+  });
 
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
@@ -63,8 +88,8 @@ jest.mock('../../../core/Engine', () => {
     context: {
       AccountsController: {
         state: mockAccountsControllerState,
-        getNextAvailableAccountName: () =>
-          jest.fn().mockReturnValue(mockNextAccountName),
+        getNextAvailableAccountName: (keyringType: KeyringTypes) =>
+          mockGetNextAvailableAccountName(keyringType),
       },
     },
   };
@@ -72,28 +97,39 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
+const render = (state: RootState) => {
+  const result = renderWithProvider(<AddNewHdAccount route={{}} />, {
+    state,
+  });
+
+  return result;
+};
+
 describe('AddNewHdAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('shows next available account name as placeholder', () => {
-    const { getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByPlaceholderText } = render(initialState);
     expect(getByPlaceholderText(mockNextAccountName)).toBeDefined();
   });
 
   it('handles account name input', () => {
-    const { getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByPlaceholderText } = render(initialState);
 
     const input = getByPlaceholderText(mockNextAccountName);
     fireEvent.changeText(input, 'My New Account');
@@ -101,12 +137,7 @@ describe('AddNewHdAccount', () => {
   });
 
   it('shows SRP list when selector is clicked', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = render(initialState);
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -119,12 +150,7 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles SRP selection', async () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText, queryByText } = render(initialState);
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -143,12 +169,7 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles account creation', async () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = render(initialState);
 
     const addButton = getByText(strings('accounts.add'));
     fireEvent.press(addButton);
@@ -160,12 +181,7 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles account creation with custom name', async () => {
-    const { getByText, getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText, getByPlaceholderText } = render(initialState);
 
     const input = getByPlaceholderText(mockNextAccountName);
     fireEvent.changeText(input, 'My Custom Account');
@@ -180,26 +196,16 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles cancellation', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = render(initialState);
 
     const cancelButton = getByText(strings('accounts.cancel'));
     fireEvent.press(cancelButton);
 
-    expect(mockOnBack).toHaveBeenCalled();
+    expect(mockedNavigate).toHaveBeenCalled();
   });
 
   it('handles back navigation from SRP list', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = render(initialState);
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -218,16 +224,11 @@ describe('AddNewHdAccount', () => {
     const mockError = new Error('Failed to create account');
     mockAddNewHdAccount.mockRejectedValueOnce(mockError);
 
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = render(initialState);
 
     const addButton = getByText(strings('accounts.add'));
     await fireEvent.press(addButton);
 
-    expect(mockOnBack).not.toHaveBeenCalled();
+    expect(mockedNavigate).not.toHaveBeenCalled();
   });
 });

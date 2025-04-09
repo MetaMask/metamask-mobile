@@ -789,7 +789,9 @@ const NetworkSelector = () => {
   const onNonEvmNetworkChange = async (chainId: CaipChainId) => {
     if (!isSolanaAccountAlreadyCreated && chainId === SolScope.Mainnet) {
       navigate(Routes.SHEET.ACCOUNT_SELECTOR, {
-        navigateToAddAccountActions: AccountSelectorScreens.AddAccountActions,
+        navigateToScreen: {
+          screen: AccountSelectorScreens.AddAccountActions,
+        },
       });
 
       return;

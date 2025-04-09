@@ -52,24 +52,18 @@ import { BtcScope, SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
-const AddAccountActions = (props: AddAccountActionsProps) => {
-  // The props is destructured here because of prettier
-  // causing the fence to be at the ending curly brace.
-  const {
-    onBack,
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    onAddHdAccount,
-    ///: END:ONLY_INCLUDE_IF
-  } = props;
-
+const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const hasMultipleHdKeyrings = hdKeyrings.length > 1;
   ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
@@ -98,10 +92,8 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
 
   const createNewAccount = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    const hasMultipleHdKeyrings = hdKeyrings.length > 1;
-
     if (hasMultipleHdKeyrings) {
-      onAddHdAccount?.();
+      navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -128,7 +120,6 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   }, [
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
     hdKeyrings.length,
-    onAddHdAccount,
     ///: END:ONLY_INCLUDE_IF
     trackEvent,
     createEventBuilder,
@@ -152,6 +143,14 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   );
 
   const createBitcoinAccount = async (scope: CaipChainId) => {
+    if (hasMultipleHdKeyrings) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {
+        clientType: WalletClientType.Bitcoin,
+        scope,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       // Client to create the account using the Bitcoin Snap
@@ -170,6 +169,14 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   };
 
   const createSolanaAccount = async (scope: CaipChainId) => {
+    if (hasMultipleHdKeyrings) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {
+        clientType: WalletClientType.Solana,
+        scope,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       trace({

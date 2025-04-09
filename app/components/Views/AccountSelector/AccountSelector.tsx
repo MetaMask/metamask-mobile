@@ -139,20 +139,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <AddAccountActions
         onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-        onAddHdAccount={() =>
-          setScreen(AccountSelectorScreens.AddHdAccountSelector)
-        }
       />
     ),
     [],
   );
 
   const renderAddHdAccountSelector = useCallback(
-    () => (
-      <AddNewHdAccount
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-      />
-    ),
+    () => <AddNewHdAccount route={{}} />,
     [],
   );
 
