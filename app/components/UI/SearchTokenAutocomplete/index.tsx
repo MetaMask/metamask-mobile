@@ -367,6 +367,7 @@ const SearchTokenAutocomplete = ({
             style={styles.networkSelectorContainer}
             onPress={onPress}
             onLongPress={onPress}
+            testID="filter-controls-button"
           >
             <TouchableOpacity
               style={styles.base}

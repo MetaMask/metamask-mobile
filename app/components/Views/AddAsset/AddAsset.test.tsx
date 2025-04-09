@@ -4,9 +4,17 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import AddAsset from './AddAsset';
 import { AddAssetViewSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAssetView.selectors';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
+import { fireEvent } from '@testing-library/react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -34,11 +42,9 @@ jest.mock('../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
-  const ScrollableTabViewMock = jest
-    .fn()
-    .mockImplementation(() => ScrollableTabViewMock);
-
-  return ScrollableTabViewMock;
+  return ({ children }: { children: React.ReactNode }) => {
+    return <>{children}</>;
+  };
 });
 
 const initialState = {
@@ -50,14 +56,58 @@ const initialState = {
   },
 };
 
+const renderComponent = (component: React.ReactElement) => {
+  return renderWithProvider(
+    <SafeAreaProvider
+      initialMetrics={{
+        frame: { x: 0, y: 0, width: 0, height: 0 },
+        insets: { top: 0, left: 0, right: 0, bottom: 0 },
+      }}
+    >
+      {component}
+    </SafeAreaProvider>,
+    {
+      state: initialState,
+    }
+  );
+};
+
 describe('AddAsset component', () => {
-  it('renders correctly', () => {
-    const { toJSON } = renderWithProvider(<AddAsset />, {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders collectible view correctly', () => {
+    mockUseParamsValues.assetType = 'collectible';
+    const { toJSON, getByTestId } = renderWithProvider(<AddAsset />, {
       state: initialState,
     });
     expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('add-collectible-screen')).toBeDefined();
   });
+
+  it('renders token view correctly', () => {
+    mockUseParamsValues.assetType = 'token';
+    const { toJSON, getByTestId } = renderWithProvider(<AddAsset />, {
+      state: initialState,
+    });
+    expect(toJSON()).toMatchSnapshot();
+    expect(getByTestId('add-token-screen')).toBeDefined();
+  });
+
+  it('handles filter controls press for collectibles', () => {
+    mockUseParamsValues.assetType = 'token';
+    const { getByTestId, debug } = renderComponent(<AddAsset />);
+    debug();
+
+    const filterButton = getByTestId('filter-controls-button');
+    fireEvent.press(filterButton);
+    
+    expect(getByTestId("select-network-button")).toBeDefined();
+  });
+
   it('renders display nft warning when displayNftMedia is true', () => {
+    mockUseParamsValues.assetType = 'collectible';
     const { getByTestId } = renderWithProvider(<AddAsset />, {
       state: initialState,
     });
