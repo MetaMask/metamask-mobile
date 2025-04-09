@@ -466,7 +466,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 >
                                   Private: 
                                 </Text>
-                                clicks and views on the app are stored, but other details (like your public address) are not.
+                                clicks and views on the app are stored, but other details are not.
                               </Text>
                             </View>
                             <View

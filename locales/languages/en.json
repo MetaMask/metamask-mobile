@@ -626,7 +626,7 @@
     "action_description_1_prefix": "Private:",
     "action_description_2_prefix": "General:",
     "action_description_3_prefix": "Optional:",
-    "action_description_1_description": "clicks and views on the app are stored, but other details (like your public address) are not.",
+    "action_description_1_description": "clicks and views on the app are stored, but other details are not.",
     "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
     "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "No thanks",
