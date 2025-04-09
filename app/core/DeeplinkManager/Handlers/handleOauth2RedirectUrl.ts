@@ -44,7 +44,7 @@ async function handleOauth2RedirectUrl({
             deeplinkManager.navigation.navigate(Routes.ONBOARDING.LOGIN);
           } else {
             deeplinkManager.navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
-              [PREVIOUS_SCREEN]: Routes.ONBOARDING.ONBOARDING,
+              [PREVIOUS_SCREEN]: 'onboarding',
             });
           }
 
