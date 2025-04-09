@@ -7,13 +7,6 @@ import { logAppMetadataControllerCreation } from './utils';
 import type { ControllerInitFunction } from '../../types';
 import { defaultAppMetadataControllerState } from './constants';
 
-interface AppMetadataControllerInitRequest {
-  controllerMessenger: AppMetadataControllerMessenger;
-  persistedState: {
-    AppMetadataController?: AppMetadataControllerState;
-  };
-}
-
 // Export types
 export type { AppMetadataControllerMessenger };
 
