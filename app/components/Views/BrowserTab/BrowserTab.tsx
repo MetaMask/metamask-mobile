@@ -327,9 +327,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       loadingUrlOrigin != null &&
       isProductSafetyDappScanningEnabled()
     ) {
-      console.log(
-        `not setting phishing modal: ${urlOrigin} ${currentUrlOrigin}`,
-      );
       return;
     }
 
@@ -639,16 +636,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
-      // To handle for Chrome's
-      // if (webViewError.code === -16) {
-      //   if (backEnabled) {
-      //     goBack();
-      //     return;
-      //   }
-      //   onSubmitEditing(HOMEPAGE_HOST);
-      //   return;
-      // }
-
       resolvedUrlRef.current = submittedUrlRef.current;
       titleRef.current = `Can't Open Page`;
       iconRef.current = undefined;
@@ -671,9 +658,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           ),
         });
 
-      // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
-
       Logger.log(webViewError);
     },
     [
@@ -684,12 +668,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       setProgress,
       isUrlBarFocused,
       isTabActive,
-      tabId,
-      updateTabInfo,
       navigation,
-      // backEnabled,
-      // onSubmitEditing,
-      // goBack,
     ],
   );
 
