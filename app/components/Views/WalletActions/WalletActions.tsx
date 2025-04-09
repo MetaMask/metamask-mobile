@@ -49,6 +49,10 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../../../selectors/featureFlagController/earnFeatureFlags';
 import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
@@ -59,6 +63,12 @@ const WalletActions = () => {
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
   const swapsIsLive = useSelector(swapsLivenessSelector);
+  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+  const areEarnExperiencesDisabled =
+    !isPooledStakingEnabled && !isStablecoinLendingEnabled;
   const dispatch = useDispatch();
   const [isNetworkRampSupported] = useRampNetwork();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -352,7 +362,7 @@ const WalletActions = () => {
           iconSize={AvatarSize.Md}
           disabled={false}
         />
-        {isStablecoinLendingFeatureEnabled() && (
+        {isStablecoinLendingFeatureEnabled() && !areEarnExperiencesDisabled && (
           <WalletAction
             actionType={WalletActionType.Earn}
             iconName={IconName.Plant}
