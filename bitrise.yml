@@ -187,13 +187,7 @@ stages:
       - run_network_expansion_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
-      # - run_tag_smoke_ramps_android: {}
-      # # - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      # # - run_tag_smoke_stake_ios: {}
-      # # - run_tag_smoke_stake_android: {}
+      - run_tag_smoke_confirmations_redesigned_ios: {}
       # - run_tag_smoke_core_ios: {}
       # - run_tag_smoke_core_android: {}
       # - run_tag_multichain_permissions_ios: {}
@@ -751,8 +745,7 @@ workflows:
       - android_e2e_test
   run_tag_smoke_confirmations_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmations '
     after_run:
       - ios_e2e_test
   run_tag_smoke_confirmations_android:
@@ -761,14 +754,12 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmations.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmations '
     after_run:
       - android_e2e_test
   run_tag_smoke_confirmations_redesigned_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/confirmations-redesigned/*'
-      - TEST_SUITE_TAG: '.*SmokeConfirmationsRedesigned.*'
+      - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
     after_run:
       - ios_e2e_test
   run_tag_smoke_swaps_ios:
