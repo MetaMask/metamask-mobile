@@ -26,19 +26,13 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock(
-  '../selectors/featureFlagController/productSafetyDappScanning',
-  () => ({
-    selectProductSafetyDappScanningEnabled: jest.fn(),
-  }),
-);
+jest.mock('../selectors/featureFlagController/productSafetyDappScanning', () => ({
+  selectProductSafetyDappScanningEnabled: jest.fn(),
+}));
 
 describe('Phishing Detection', () => {
-  const mockPhishingController = Engine.context
-    .PhishingController as jest.Mocked<PhishingController>;
-  const mockSelectProductSafetyDappScanningEnabled = jest.requireMock(
-    '../selectors/featureFlagController/productSafetyDappScanning',
-  ).selectProductSafetyDappScanningEnabled;
+  const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
+  const mockSelectProductSafetyDappScanningEnabled = jest.requireMock('../selectors/featureFlagController/productSafetyDappScanning').selectProductSafetyDappScanningEnabled;
 
   beforeEach(() => {
     jest.clearAllMocks();
