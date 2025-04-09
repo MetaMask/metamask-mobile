@@ -23,7 +23,7 @@ describe('useTokenSearchDiscovery', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('updates states correctly when searching tokens', async () => {

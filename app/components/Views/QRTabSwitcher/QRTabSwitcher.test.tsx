@@ -46,7 +46,7 @@ describe('QRTabSwitcher', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('renders QRScanner by default', () => {

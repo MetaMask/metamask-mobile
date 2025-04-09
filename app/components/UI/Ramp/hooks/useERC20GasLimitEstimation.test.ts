@@ -135,7 +135,7 @@ describe('useERC20GasLimitEstimation', () => {
     });
     expect(mockGetGasLimit).toHaveBeenCalledTimes(2);
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles different decimal values correctly', async () => {
@@ -184,7 +184,7 @@ describe('useERC20GasLimitEstimation', () => {
     // Should still be 1 since polling stopped
     expect(mockGetGasLimit).toHaveBeenCalledTimes(1);
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('updates gas estimation when amount changes', async () => {
@@ -229,7 +229,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles invalid amount or decimals', async () => {
@@ -303,7 +303,7 @@ describe('useERC20GasLimitEstimation', () => {
       }),
     );
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('handles concurrent estimation requests', async () => {
@@ -362,6 +362,6 @@ describe('useERC20GasLimitEstimation', () => {
     expect(result.current).toBeGreaterThan(0);
     expect(typeof result.current).toBe('number');
 
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 });

@@ -234,7 +234,7 @@ describe('UnstakeInputView', () => {
 
       fireEvent.press(screen.getByText('Review'));
 
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
       // Wait for the async operation to complete
       await new Promise((resolve) => setTimeout(resolve, 0));
 

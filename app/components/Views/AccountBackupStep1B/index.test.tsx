@@ -5,7 +5,7 @@ describe('AccountBackupStep1B', () => {
   beforeEach(() => jest.useFakeTimers());
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should render correctly', () => {

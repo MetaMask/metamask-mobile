@@ -43,7 +43,7 @@ describe('wait.util', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   test('waitForReadyClient resolves when client is ready', async () => {

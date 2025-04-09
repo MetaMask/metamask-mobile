@@ -48,7 +48,7 @@ describe('LockManagerService', () => {
 
   afterEach(() => {
     lockManagerService.stopListening();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   describe('startListening', () => {

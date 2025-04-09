@@ -10,7 +10,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  jest.useRealTimers();
+  jest.useFakeTimers({ legacyFakeTimers: true });
   jest.clearAllMocks();
 });
 

@@ -14,7 +14,7 @@ describe('formatMenuItemDate', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('returns "No date" if date is not provided', () => {

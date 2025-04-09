@@ -8,7 +8,7 @@ jest.useFakeTimers();
 
 describe('AccountBackupStep1', () => {
   afterEach(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should render correctly', () => {
