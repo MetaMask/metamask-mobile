@@ -185,6 +185,8 @@ stages:
       - run_trade_swimlane_android_smoke: {}
       - run_network_expansion_swimlane_ios_smoke: {}
       - run_network_expansion_swimlane_android_smoke: {}
+      - run_network_abstraction_swimlane_ios_smoke: {}
+      - run_network_abstraction_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
