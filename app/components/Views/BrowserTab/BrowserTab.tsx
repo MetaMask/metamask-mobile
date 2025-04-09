@@ -303,7 +303,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       if (!testResult?.result && testResult.name) {
         blockListType.current = testResult.name;
       }
-      return testResult.result;
+      return testResult?.result;
     },
     [whitelist],
   );

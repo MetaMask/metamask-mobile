@@ -60,5 +60,10 @@ export const getPhishingTestResultAsync = async (
     };
   }
   PhishingController.maybeUpdateState();
-  return PhishingController.test(origin);
+  const result = PhishingController.test(origin);
+  // PhishingDetectorResult.result docs says it is true if the domain is allowed.
+  // This is the opposite of what happens and instead it returns false if it is allowed.
+  // Hence, we negate the result to assume consistency with dev impression of the doc.
+  result.result = !result?.result;
+  return result;
 };
