@@ -17,7 +17,9 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
