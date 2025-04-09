@@ -418,6 +418,7 @@ export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
+  AppMetadataController: AppMetadataController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -469,7 +470,6 @@ export type Controllers = {
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
-  AppMetadataController: AppMetadataController;
 };
 
 /**

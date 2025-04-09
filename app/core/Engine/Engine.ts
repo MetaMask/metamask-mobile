@@ -1176,6 +1176,7 @@ export class Engine {
         }),
         state: initialState.AddressBookController,
       }),
+      AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
