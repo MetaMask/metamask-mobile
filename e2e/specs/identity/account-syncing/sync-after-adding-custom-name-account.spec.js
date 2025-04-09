@@ -27,13 +27,12 @@ describe(
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
     let decryptedAccountNames = '';
+    let mockServer;
 
-    it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
-      // Account sync test can take a while to run, so we increase the timeout
-      jest.setTimeout(600000);
+    beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      const mockServer = await startMockServer(undefined, 8100);
+      mockServer = await startMockServer();
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -62,7 +61,15 @@ describe(
         newInstance: true,
         delete: true,
       });
+    });
 
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
+    it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
       await importWalletWithRecoveryPhrase(
         IDENTITY_TEAM_SEED_PHRASE,
         IDENTITY_TEAM_PASSWORD,
@@ -107,8 +114,6 @@ describe(
       await Assertions.checkIfVisible(
         AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
       );
-
-      await stopMockServer(mockServer);
     });
   },
 );

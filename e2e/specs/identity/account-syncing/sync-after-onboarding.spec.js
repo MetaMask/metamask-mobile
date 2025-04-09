@@ -21,11 +21,9 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
   () => {
-    it('retrieves all previously synced accounts', async () => {
-      // Account sync test can take a while to run, so we increase the timeout
-      jest.setTimeout(600000);
-
-      const mockServer = await startMockServer(undefined, 8101);
+    let mockServer;
+    beforeAll(async () => {
+      mockServer = await startMockServer();
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -46,6 +44,16 @@ describe(
         newInstance: true,
         delete: true,
       });
+    });
+
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
+    it('retrieves all previously synced accounts', async () => {
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const decryptedAccountNames = await Promise.all(
         accountsSyncMockResponse.map(async (response) => {
@@ -71,8 +79,6 @@ describe(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
-
-      await stopMockServer(mockServer);
     });
   },
 );

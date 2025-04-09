@@ -63,6 +63,7 @@ describe(
     };
 
     let accountsToMockBalances = [...INITIAL_ACCOUNTS];
+    let mockServer;
 
     /**
      * This test verifies the complete account syncing flow in three phases:
@@ -71,12 +72,10 @@ describe(
      * Phase 3: Verification that any final changes to user storage are persisted and that we don't see any extra accounts created
      */
 
-    it('handles account syncing with balances correctly', async () => {
-      // Account sync test can take a while to run, so we increase the timeout
-      jest.setTimeout(600000);
+    beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      const mockServer = await startMockServer(undefined, 8102);
+      mockServer = await startMockServer();
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -91,8 +90,16 @@ describe(
         },
       );
 
-      setupAccountMockedBalances(mockServer, accountsToMockBalances);
+      await setupAccountMockedBalances(mockServer, accountsToMockBalances);
+    });
 
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
+    it('handles account syncing with balances correctly', async () => {
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
@@ -107,7 +114,7 @@ describe(
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
-      await TestHelpers.delay(10000);
+      await TestHelpers.delay(2000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
@@ -121,10 +128,11 @@ describe(
       // Create new account and prepare for additional accounts
       await AccountListBottomSheet.tapAddAccountButton();
       await AddAccountBottomSheet.tapCreateAccount();
-      await TestHelpers.delay(4000);
+      await TestHelpers.delay(2000);
 
       accountsToMockBalances = [...INITIAL_ACCOUNTS, ...ADDITIONAL_ACCOUNTS];
-      setupAccountMockedBalances(mockServer, accountsToMockBalances);
+      await setupAccountMockedBalances(mockServer, accountsToMockBalances);
+      await TestHelpers.delay(2000);
 
       // PHASE 2: Verify discovery of new accounts with balances
       // Complete setup again for new session
@@ -140,10 +148,10 @@ describe(
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
-      await TestHelpers.delay(10000);
+      await TestHelpers.delay(2000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await TestHelpers.delay(2000);
 
       // Verify all accounts including newly discovered ones (which would have been synced / have balances)
       for (const accountName of EXPECTED_ACCOUNT_NAMES.WITH_NEW_ACCOUNTS) {
@@ -171,15 +179,13 @@ describe(
 
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await TestHelpers.delay(2000);
 
       await Assertions.checkIfVisible(
         AccountListBottomSheet.getAccountElementByAccountName(
           'My Renamed Account 6',
         ),
       );
-
-      await stopMockServer(mockServer);
     });
   },
 );
