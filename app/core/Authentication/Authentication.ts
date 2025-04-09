@@ -37,6 +37,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import Oauth2LoginService  from '../Oauth2Login/Oauth2loginService';
+import { resetVaultBackup } from '../BackupVault/backupVault';
+import { bytesToString } from '@metamask/utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -113,8 +115,6 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     await Engine.resetState();
-    // eslint-disable-next-line no-console
-    console.log('KeyringController.state', KeyringController.state);
     await KeyringController.createNewVaultAndKeychain(password);
     password = this.wipeSensitiveData();
   };
@@ -501,13 +501,18 @@ class AuthenticationService {
 
     Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
 
-    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase, verifier, verifierID }).catch((error) => {
-      // should allow user to link account later
-      // prompt that account linking failed but vault was created
-      Logger.log('error', error);
+    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase, verifier, verifierID })
+      .catch(async (error) => {
+        await this.newWalletAndKeychain(`${Date.now()}`, {
+          currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
+        });
+        await resetVaultBackup();
+        throw error;
+      }).finally(() => {
+        this.dispatchOauth2Reset();
+      });
 
-    });
-    this.dispatchOauth2Reset();
+    Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
   };
 
   rehydrateSeedPhrase = async(
@@ -521,12 +526,13 @@ class AuthenticationService {
       throw new Error('Verifier details not found');
     }
     const result = await SeedlessOnboardingController.fetchAndRestoreSeedPhraseMetadata( verifier, verifierID, password);
-    if (result.secretData !== null) {
-      await this.newWalletAndRestore(password, authData, result.secretData[0], false);
+    if (result !== null && result.length > 0) {
+      const seedPhrase = bytesToString(result.at(-1) ?? new Uint8Array());
+      await this.newWalletAndRestore(password, authData, seedPhrase, false);
       // add in more srps
-    } else {
-      // should we throw an error here?
-      await this.newWalletAndKeychain(password, authData);
+    } else { 
+      this.dispatchOauth2Reset();
+      throw new Error('No account data found');
     }
     this.dispatchOauth2Reset();
     // throw error if no secret data

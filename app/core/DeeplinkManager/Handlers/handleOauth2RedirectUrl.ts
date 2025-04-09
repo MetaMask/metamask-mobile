@@ -6,6 +6,7 @@ import { showAlert } from '../../../actions/alert';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import ReduxService from '../../redux/ReduxService';
 import { UserActionType } from '../../../actions/user';
+import Routes from '../../../constants/navigation/Routes';
 
 async function handleOauth2RedirectUrl({
   deeplinkManager,
@@ -26,21 +27,12 @@ async function handleOauth2RedirectUrl({
 
   const clientId = state.clientId as string;
 
-  Logger.log('handleOauth2RedirectUrl: provider', provider);
-  Logger.log('handleOauth2RedirectUrl: code', code);
-
-  Logger.log('handleOauth2RedirectUrl: state', state);
   if (code ) {
     Oauth2LoginService.handleCodeFlow({ code, provider , clientId, redirectUri: state.redirectUri, codeVerifier: Oauth2LoginService.localState.codeVerifier ?? undefined })
     .then((result) => {
       Logger.log('handleOauth2RedirectUrl: result', result);
 
-      Logger.log('handleOauth2RedirectUrl: result.existingUser', result.existingUser);
       if (result.type === 'success') {
-        // deeplinkManager.dispatch({type: UserActionType.OAUTH2_LOGIN_SUCCESS});
-
-        Logger.log('handleOauth2RedirectUrl: mode', mode);
-        Logger.log('handleOauth2RedirectUrl: result.existingUser', result.existingUser);
         if (mode === 'onboarding') {
           ReduxService.store.dispatch({
             type: UserActionType.OAUTH2_LOGIN_SUCCESS,
@@ -49,10 +41,10 @@ async function handleOauth2RedirectUrl({
             },
           });
           if (result.existingUser) {
-            deeplinkManager.navigation.navigate('Login');
+            deeplinkManager.navigation.navigate(Routes.ONBOARDING.LOGIN);
           } else {
-            deeplinkManager.navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: 'onboarding',
+            deeplinkManager.navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+              [PREVIOUS_SCREEN]: Routes.ONBOARDING.ONBOARDING,
             });
           }
 
@@ -61,7 +53,7 @@ async function handleOauth2RedirectUrl({
           });
 
         } else if (mode === 'change-password') {
-          deeplinkManager.navigation.navigate('ChangePassword');
+          deeplinkManager.navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD);
         }
         return code;
       }

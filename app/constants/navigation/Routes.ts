@@ -68,6 +68,7 @@ const Routes = {
       STEP_3: 'ManualBackupStep3',
     },
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
+    CHOOSE_PASSWORD: 'ChoosePassword',
   },
   SEND_FLOW: {
     SEND_TO: 'SendTo',

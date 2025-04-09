@@ -75,6 +75,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Routes from '../../../constants/navigation/Routes';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     mainWrapper: {

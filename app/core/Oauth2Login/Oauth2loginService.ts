@@ -1,4 +1,3 @@
-
 import {
     Platform
 } from 'react-native';
@@ -178,21 +177,20 @@ export class Oauth2LoginService {
                 Logger.log('handleGoogleLogin: result', result);
                 DevLogger.log('handleGoogleLogin: result', result);
 
-                if (result.type === 'success') {
+                if (result.idToken === 'google-signin') {
                     return this.handleCodeFlow({
                         provider: 'google',
-                        code: result.params.code, // result.params.idToken
-                        idToken: result.params.idToken,
+                        idToken: result.idToken,
                         clientId: AndroidGoogleWebGID,
                     });
                 }
-                return result;
+                throw new Error('Invalid login : ' + provider);
             }
-            throw new Error('Invalid provider');
+            throw new Error('Invalid provider : ' + provider);
         } catch (error) {
             Logger.log('handleGoogleLogin: error', error);
             DevLogger.log('handleGoogleLogin: error', error);
-            return {type: 'error', existingUser: false};
+            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
         }
     };
 
@@ -238,19 +236,15 @@ export class Oauth2LoginService {
                     endpoints: Object.values(data.endpoints),
                 });
                 Logger.log('handleCodeFlow: result', result);
-                Logger.log('handleCodeFlow: SeedlessOnboardingController state', Engine.context.SeedlessOnboardingController.state);
                 return {type: 'success', existingUser: result.hasValidEncKey};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
         } catch (error) {
-            Logger.log('handleCodeFlow: error', error);
             Logger.error( error as Error, {
                 message: 'handleCodeFlow',
             } );
-            return {type: 'error', existingUser: false};
+            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
         } finally {
-            // ReduxService.store.dispatch({
-            // });
             this.localState.codeVerifier = null;
             this.localState.loginInProgress = false;
         }

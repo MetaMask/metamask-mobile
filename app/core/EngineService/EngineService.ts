@@ -55,9 +55,6 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = reduxState?.engine?.backgroundState ?? {};
-    // const state = {};
-    // eslint-disable-next-line no-console
-    console.log('EngineService: rstate', state);
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
