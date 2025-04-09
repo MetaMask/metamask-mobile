@@ -436,6 +436,10 @@
     "aggregated": {
       "title": "Your balance is aggregated",
       "subtitle": "Control your balance view in settings"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
     }
   },
   "wallet": {
