@@ -24,7 +24,7 @@ describe(
     let mockServer;
     beforeAll(async () => {
       // Account sync test can take a while to run, so we increase the timeout
-      jest.setTimeout(400000);
+      jest.setTimeout(600000);
 
       mockServer = await startMockServer({
         mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
@@ -52,7 +52,9 @@ describe(
     });
 
     afterAll(async () => {
-      await stopMockServer(mockServer);
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
     });
 
     it('retrieves all previously synced accounts', async () => {

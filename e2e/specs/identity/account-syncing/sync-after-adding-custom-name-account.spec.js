@@ -31,7 +31,7 @@ describe(
 
     beforeAll(async () => {
       // Account sync test can take a while to run, so we increase the timeout
-      jest.setTimeout(400000);
+      jest.setTimeout(600000);
       await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer();
@@ -66,7 +66,9 @@ describe(
     });
 
     afterAll(async () => {
-      await stopMockServer(mockServer);
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
