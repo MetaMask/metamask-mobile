@@ -1,7 +1,9 @@
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import React, { FunctionComponent } from 'react';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import SearchTokenAutocomplete from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
-import { FunctionComponent } from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
 
@@ -53,7 +55,6 @@ describe('SearchTokenAutocomplete', () => {
       chainId: '0x1',
     });
 
-    // Verify search results are displayed
     expect(
       getByTestId(ImportTokenViewSelectorsIDs.SEARCH_TOKEN_RESULT),
     ).toBeTruthy();
@@ -85,9 +86,20 @@ describe('SearchTokenAutocomplete', () => {
   });
 
   it('should handle select asset', () => {
-    const { getByTestId, getByText } = renderScreen(
-      SearchTokenAutocomplete as FunctionComponent,
-      { name: 'SearchTokenAutocomplete' },
+    const mockNavigation = {
+      push: jest.fn(),
+    };
+
+    const mockOnPress = jest.fn();
+
+    const { getByTestId, getByText, debug } = renderWithProvider(
+      <SearchTokenAutocomplete
+        navigation={mockNavigation}
+        tabLabel={''}
+        onPress={mockOnPress}
+        isAllNetworksEnabled={false}
+        allNetworksEnabled={{}}
+      />,
       { state: mockInitialState },
     );
 
@@ -110,5 +122,16 @@ describe('SearchTokenAutocomplete', () => {
 
     const addTokenButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
     fireEvent.press(addTokenButton);
+
+    const navigationCall = mockNavigation.push.mock.calls[0];
+    const [screenName, params] = navigationCall;
+
+    expect(screenName).toBe('ConfirmAddAsset');
+    expect(params).toMatchObject({
+      selectedAsset: [mockAsset],
+      chainId: mockAsset.chainId,
+      ticker: 'ETH',
+      networkName: 'Ethereum Main Network',
+    });
   });
 });
