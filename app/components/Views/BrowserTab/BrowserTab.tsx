@@ -1405,6 +1405,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               showPhishingModal={showPhishingModal}
               setShowPhishingModal={setShowPhishingModal}
               setBlockedUrl={setBlockedUrl}
+              urlBarRef={urlBarRef}
               addToWhitelist={triggerAddToWhitelist}
               activeUrl={resolvedUrlRef.current}
               blockListType={blockListType}
