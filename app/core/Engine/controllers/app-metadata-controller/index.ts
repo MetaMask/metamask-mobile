@@ -4,6 +4,7 @@ import {
   type AppMetadataControllerMessenger,
 } from '@metamask/app-metadata-controller';
 import { logAppMetadataControllerCreation } from './utils';
+import type { ControllerInitFunction } from '../../types';
 import { defaultAppMetadataControllerState } from './constants';
 
 interface AppMetadataControllerInitRequest {
@@ -25,9 +26,10 @@ export * from './constants';
  * @param request - The request object.
  * @returns The AppMetadataController.
  */
-export const appMetadataControllerInit = (
-  request: AppMetadataControllerInitRequest,
-) => {
+export const appMetadataControllerInit: ControllerInitFunction<
+  AppMetadataController,
+  AppMetadataControllerMessenger
+> = (request) => {
   const { controllerMessenger, persistedState } = request;
 
   const appMetadataControllerState = (persistedState.AppMetadataController ??

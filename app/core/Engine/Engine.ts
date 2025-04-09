@@ -202,6 +202,7 @@ import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
+import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1010,6 +1011,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         CurrencyRateController: currencyRateControllerInit,

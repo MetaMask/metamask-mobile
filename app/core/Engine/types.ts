@@ -262,7 +262,7 @@ import {
   AppMetadataControllerActions,
   AppMetadataControllerEvents,
   AppMetadataControllerState,
-} from './controllers/app-metadata-controller';
+} from '@metamask/app-metadata-controller';
 
 /**
  * Controllers that area always instantiated
@@ -486,6 +486,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -531,7 +532,6 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
-  AppMetadataController: AppMetadataControllerState;
 };
 
 /** Controller names */
