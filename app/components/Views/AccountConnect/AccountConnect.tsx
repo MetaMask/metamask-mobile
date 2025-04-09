@@ -28,6 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
+  selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -83,6 +84,7 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { Hex } from '@metamask/utils';
 import { getCaip25PermissionsResponse, getRequestedCaip25CaveatValue } from './utils';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -105,10 +107,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const previouslySelectedEvmAccount = useSelector(
+    selectPreviouslySelectedEvmAccount,
+  );
 
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && isEvmSelected ? [selectedWalletAddress] : [],
+    selectedWalletAddress && isEvmSelected
+      ? [selectedWalletAddress]
+      : [
+          previouslySelectedEvmAccount
+            ? getFormattedAddressFromInternalAccount(
+                previouslySelectedEvmAccount,
+              )
+            : '',
+        ],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);

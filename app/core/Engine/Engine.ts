@@ -214,6 +214,7 @@ import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { pick } from 'lodash';
 import { CaveatTypes } from '../Permissions/constants';
+import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -437,7 +438,9 @@ export class Engine {
         allowedEvents: [],
       }),
     });
-    phishingController.maybeUpdateState();
+    if (!isProductSafetyDappScanningEnabled()) {
+      phishingController.maybeUpdateState();
+    }
 
     const additionalKeyrings = [];
 
@@ -1125,6 +1128,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
