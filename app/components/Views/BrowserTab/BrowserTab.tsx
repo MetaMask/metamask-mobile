@@ -756,10 +756,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        tabId,
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
