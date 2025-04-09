@@ -113,7 +113,7 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl });
+    urlBarRef.current?.setNativeProps({ text: HOMEPAGE_URL });
     setTimeout(() => {
       goToUrl(HOMEPAGE_URL);
       setShowPhishingModal(false);
