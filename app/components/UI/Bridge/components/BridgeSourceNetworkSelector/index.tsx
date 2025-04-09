@@ -106,7 +106,9 @@ export const BridgeSourceNetworkSelector: React.FC = () => {
     candidateSourceChainIds,
     evmNetworkConfigurations,
     onSetRpcTarget,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
   ]);
 
   // Toggle chain selection
