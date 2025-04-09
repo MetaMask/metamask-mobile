@@ -1806,7 +1806,7 @@ workflows:
                 #!/usr/bin/env bash
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/output"
+                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
                   DEVICE_TYPE="simulator"
                   BINARY_EXTENSION=".app"
                 else
@@ -1839,7 +1839,6 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/$RENAMED_BINARY_FILE:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: $BINARY_DEPLOY_PATH
           title: Deploy iOS Binary
       - deploy-to-bitrise-io@2.2.3:
