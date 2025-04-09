@@ -12,8 +12,8 @@ import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 
 const PaymentMethods = {
-  SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
-};
+    SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
+  };
 
 describe(SmokeRamps('Off-Ramp Cashout destination'), () => {
   beforeAll(async () => {

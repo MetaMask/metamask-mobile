@@ -29,7 +29,7 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
-  MEGAETH_TESTNET,
+  MEGAETH_TESTNET
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
 import Engine from './../../core/Engine';
@@ -117,14 +117,10 @@ describe('network-utils', () => {
     const allNetworks = getAllNetworks();
     it('should get all networks', () => {
       expect(allNetworks).toStrictEqual([
-        MAINNET,
-        LINEA_MAINNET,
-        SEPOLIA,
-        LINEA_SEPOLIA,
-        MEGAETH_TESTNET,
-      ]);
+        MAINNET,LINEA_MAINNET, SEPOLIA, LINEA_SEPOLIA, MEGAETH_TESTNET
+      ])
     });
-
+  
     it('should exclude rpc', () => {
       expect(allNetworks.includes(RPC)).toEqual(false);
     });
@@ -140,12 +136,9 @@ describe('network-utils', () => {
   });
 
   describe('isTestNet', () => {
-    it.each(TESTNET_CHAIN_IDS)(
-      'should return true if the given chain ID is %s',
-      (chainId) => {
-        expect(isTestNet(chainId)).toEqual(true);
-      },
-    );
+    it.each(TESTNET_CHAIN_IDS)('should return true if the given chain ID is %s', (chainId) => {
+      expect(isTestNet(chainId)).toEqual(true);
+    });
 
     it(`should return false if the given chain ID is not a known testnet`, () => {
       expect(isTestNet('42')).toEqual(false);
@@ -153,26 +146,21 @@ describe('network-utils', () => {
   });
 
   describe('getNetworkTypeById', () => {
-    it.each([getAllNetworks()])(
-      'should get network type by Id - %s',
-      (networkKey) => {
-        const network = NetworkList[
-          networkKey as keyof typeof NetworkList
-        ] as unknown as {
-          networkId: string;
-          networkType: string;
-        };
-        const type = getNetworkTypeById(network.networkId);
-        expect(type).toStrictEqual(network.networkType);
-      },
-    );
-
+    it.each([getAllNetworks()])('should get network type by Id - %s', (networkKey) => {
+      const network = NetworkList[networkKey as keyof typeof NetworkList] as unknown as {
+        networkId: string;
+        networkType: string;
+      }
+      const type = getNetworkTypeById(network.networkId);
+      expect(type).toStrictEqual(network.networkType);
+    });
+  
     it('should fail if network Id is missing', () => {
       expect(() => getNetworkTypeById()).toThrow(
         NetworkSwitchErrorType.missingNetworkId,
       );
     });
-
+  
     it('should fail if network Id is unknown', () => {
       const id = 9999;
       expect(() => getNetworkTypeById(id)).toThrow(
@@ -758,66 +746,62 @@ describe('network-utils', () => {
   });
 
   describe('getTestNetImageByChainId', () => {
-    it.each([
-      {
-        chainId: ChainId.sepolia,
-        expectedImage: networksWithImages?.SEPOLIA,
-      },
-      {
-        chainId: ChainId['linea-goerli'],
-        expectedImage: networksWithImages?.['LINEA-GOERLI'],
-      },
-      {
-        chainId: ChainId['linea-sepolia'],
-        expectedImage: networksWithImages?.['LINEA-SEPOLIA'],
-      },
-      {
-        chainId: ChainId['megaeth-testnet'],
-        expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
-      },
-    ])(
-      'returns corresponding image for the testnet - $.chainId',
-      ({ chainId, expectedImage }) => {
-        const testnetImage = getTestNetImageByChainId(chainId);
-        expect(testnetImage).toEqual(expectedImage);
-      },
-    );
+    it.each(
+      [
+        {
+          chainId: ChainId.sepolia,
+          expectedImage: networksWithImages?.SEPOLIA,
+        },
+        {
+          chainId: ChainId['linea-goerli'],
+          expectedImage: networksWithImages?.['LINEA-GOERLI'],
+        },
+        {
+          chainId: ChainId['linea-sepolia'],
+          expectedImage: networksWithImages?.['LINEA-SEPOLIA'],
+        },
+        {
+          chainId: ChainId['megaeth-testnet'],
+          expectedImage: networksWithImages?.['MEGAETH-TESTNET'],
+        }
+      ]
+    )('returns corresponding image for the testnet - $.chainId', ({
+      chainId,
+      expectedImage,
+    }) => {
+      const testnetImage = getTestNetImageByChainId(chainId);
+      expect(testnetImage).toEqual(expectedImage);
+    })
   });
 
   describe('isValidNetworkName', () => {
     it('returns true if the network nickname is the same with network name ', () => {
-      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(
-        true,
-      );
-    });
+      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(true);
+    })
 
-    it.each([
-      {
-        chainId: ChainId.mainnet,
-        name: 'Ethereum Mainnet',
-        nickname: WHILELIST_NETWORK_NAME[ChainId.mainnet],
-      },
-      {
-        chainId: ChainId['linea-mainnet'],
-        name: 'Linea Mainnet',
-        nickname: WHILELIST_NETWORK_NAME[ChainId['linea-mainnet']],
-      },
-      {
-        chainId: ChainId['megaeth-testnet'],
-        name: 'MegaETH Testnet',
-        nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
-      },
-    ])(
-      'returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name',
-      ({ chainId, name, nickname }) => {
-        expect(isValidNetworkName(chainId, name, nickname)).toBe(true);
-      },
-    );
+    it.each([{
+      chainId: ChainId.mainnet,
+      name: 'Ethereum Mainnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId.mainnet],
+    }, 
+    {
+      chainId: ChainId['linea-mainnet'],
+      name: 'Linea Mainnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['linea-mainnet']],
+    },
+    {
+      chainId: ChainId['megaeth-testnet'],
+      name: 'MegaETH Testnet',
+      nickname: WHILELIST_NETWORK_NAME[ChainId['megaeth-testnet']],
+    },
+    ])('returns true if the chainId is %.chainId and network nickname is the same with the whilelisted name', ({
+      chainId, name, nickname
+    }) =>{
+      expect(isValidNetworkName(chainId, name, nickname)).toBe(true);
+    })
 
     it('returns false if the chainId is not Mainnet, Linea Mainnet, MegaETH Testnet and the network nickname is different with network name', () => {
-      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(
-        true,
-      );
-    });
+      expect(isValidNetworkName(ChainId.sepolia, 'Sepolia', 'Sepolia')).toBe(true);
+    })
   });
 });

@@ -1,16 +1,13 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
-import {
-  type NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
-import {
+import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
+import { 
   ChainId,
   BuiltInNetworkName,
   NetworkNickname,
   BUILT_IN_CUSTOM_NETWORKS_RPC,
   NetworksTicker,
-  BlockExplorerUrl,
+  BlockExplorerUrl
 } from '@metamask/controller-utils';
 
 import { ensureValidState } from './util';
@@ -46,26 +43,26 @@ const migration = (state: unknown): unknown => {
       const megaethTestnet = BuiltInNetworkName.MegaETHTestnet;
       const megaethTestnetChainId = ChainId[megaethTestnet];
       const megaethTestnetConfiguration: NetworkConfiguration = {
-        blockExplorerUrls: [BlockExplorerUrl[megaethTestnet]],
-        chainId: megaethTestnetChainId,
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name: NetworkNickname[megaethTestnet],
-        nativeCurrency: NetworksTicker[megaethTestnet],
-        rpcEndpoints: [
-          {
-            failoverUrls: [],
-            networkClientId: megaethTestnet,
-            type: RpcEndpointType.Custom,
-            url: BUILT_IN_CUSTOM_NETWORKS_RPC.MEGAETH_TESTNET,
-          },
-        ],
+          blockExplorerUrls: [BlockExplorerUrl[megaethTestnet]],
+          chainId: megaethTestnetChainId,
+          defaultRpcEndpointIndex: 0,
+          defaultBlockExplorerUrlIndex: 0,
+          name: NetworkNickname[megaethTestnet],
+          nativeCurrency: NetworksTicker[megaethTestnet],
+          rpcEndpoints: [
+            {
+              failoverUrls: [],
+              networkClientId: megaethTestnet,
+              type: RpcEndpointType.Custom,
+              url: BUILT_IN_CUSTOM_NETWORKS_RPC.MEGAETH_TESTNET,
+            },
+          ],
       };
 
       // Regardless if the network already exists, we will overwrite it with our default MegaETH configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
         megaethTestnetChainId
-      ] = megaethTestnetConfiguration;
+      ] = megaethTestnetConfiguration
     }
     return state;
   } catch (error) {

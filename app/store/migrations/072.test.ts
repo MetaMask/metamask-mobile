@@ -1,9 +1,7 @@
+
 import { captureException } from '@sentry/react-native';
 import { cloneDeep } from 'lodash';
-import {
-  NetworkConfiguration,
-  RpcEndpointType,
-} from '@metamask/network-controller';
+import { NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 
 import { ensureValidState } from './util';
@@ -89,25 +87,25 @@ const createTestState = () => ({
           },
         },
       },
-    },
-  },
+    }
+  }
 });
 
 const createMegaEthTestnetConfiguration = (): NetworkConfiguration => ({
-  chainId: '0x18c6',
-  rpcEndpoints: [
-    {
-      networkClientId: 'megaeth-testnet',
-      url: 'https://carrot.megaeth.com/rpc',
-      type: RpcEndpointType.Custom,
-      failoverUrls: [],
-    },
-  ],
-  defaultRpcEndpointIndex: 0,
-  blockExplorerUrls: ['https://megaexplorer.xyz'],
-  defaultBlockExplorerUrlIndex: 0,
-  name: 'Mega Testnet',
-  nativeCurrency: 'MegaETH',
+    chainId: '0x18c6',
+    rpcEndpoints: [
+      {
+        networkClientId: 'megaeth-testnet',
+        url: 'https://carrot.megaeth.com/rpc',
+        type: RpcEndpointType.Custom,
+        failoverUrls: [],
+      },
+    ],
+    defaultRpcEndpointIndex: 0,
+    blockExplorerUrls: ['https://megaexplorer.xyz'],
+    defaultBlockExplorerUrlIndex: 0,
+    name: 'Mega Testnet',
+    nativeCurrency: 'MegaETH',
 });
 
 describe('Migration 72: Add `MegaEth Testnet`', () => {
@@ -136,14 +134,12 @@ describe('Migration 72: Add `MegaEth Testnet`', () => {
           NetworkController: {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [megaethTestnetConfiguration.chainId]:
-                megaethTestnetConfiguration,
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
-        },
-      },
+        }
+      }
     };
 
     const migratedState = migrate(oldState);
@@ -155,11 +151,7 @@ describe('Migration 72: Add `MegaEth Testnet`', () => {
   it('replaces `MegaEth Testnet` NetworkConfiguration if there is one', () => {
     const megaethTestnetConfiguration = createMegaEthTestnetConfiguration();
     const oldState = createTestState();
-    const networkConfigurationsByChainId = oldState.engine.backgroundState
-      .NetworkController.networkConfigurationsByChainId as Record<
-      Hex,
-      NetworkConfiguration
-    >;
+    const networkConfigurationsByChainId = oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId as Record<Hex, NetworkConfiguration> ;
     networkConfigurationsByChainId[megaethTestnetConfiguration.chainId] = {
       ...megaethTestnetConfiguration,
       rpcEndpoints: [
@@ -178,14 +170,12 @@ describe('Migration 72: Add `MegaEth Testnet`', () => {
           NetworkController: {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController
-                .networkConfigurationsByChainId,
-              [megaethTestnetConfiguration.chainId]:
-                megaethTestnetConfiguration,
+              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              [megaethTestnetConfiguration.chainId]: megaethTestnetConfiguration
             },
           },
-        },
-      },
+        }
+      }
     };
 
     const migratedState = migrate(oldState);
@@ -194,43 +184,39 @@ describe('Migration 72: Add `MegaEth Testnet`', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it.each([
-    {
-      state: {
-        engine: {},
-      },
-      test: 'empty engine state',
+  it.each([{
+    state: {
+      engine: {}
     },
-    {
-      state: {
-        engine: {
-          backgroundState: {},
-        },
-      },
-      test: 'empty backgroundState',
+    test: 'empty engine state',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {}
+      }
     },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: 'invalid',
-          },
-        },
+    test: 'empty backgroundState',
+  }, {
+    state: {
+      engine: {
+        backgroundState: {
+          NetworkController: 'invalid'
+        }
       },
-      test: 'invalid NetworkController state',
     },
-    {
-      state: {
-        engine: {
-          backgroundState: {
-            NetworkController: {
-              networkConfigurationsByChainId: 'invalid',
-            },
-          },
-        },
+    test: 'invalid NetworkController state'
+  }, {
+    state: {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: 'invalid'
+          }
+        }
       },
-      test: 'invalid networkConfigurationsByChainId state',
     },
+    test: 'invalid networkConfigurationsByChainId state'
+  }
   ])('does not modify state if the state is invalid - $test', ({ state }) => {
     const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);

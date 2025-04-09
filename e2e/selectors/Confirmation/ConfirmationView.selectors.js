@@ -12,8 +12,7 @@ export const ConfirmationTopSheetSelectorsText = {
   BANNER_FAILED_TITLE: enContent.blockaid_banner.failed_title,
   BANNER_FAILED_DESCRIPTION: enContent.blockaid_banner.failed_description,
   BANNER_MALICIOUS_TITLE: enContent.blockaid_banner.deceptive_request_title,
-  BANNER_MALICIOUS_DESCRIPTION:
-    enContent.blockaid_banner.malicious_domain_description,
+  BANNER_MALICIOUS_DESCRIPTION: enContent.blockaid_banner.malicious_domain_description,
 };
 
 export const ConfirmationRequestTypeIDs = {
@@ -49,3 +48,4 @@ export const AlertModalSelectorsIDs = {
 export const AlertModalSelectorsText = {
   ALERT_ORIGIN_MISMATCH_TITLE: enContent.alert_system.domain_mismatch.title,
 };
+

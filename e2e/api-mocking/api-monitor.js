@@ -11,7 +11,7 @@ const CONSOLE_LOG_CONFIG = {
   showHeaders: false,
   showRequestBody: true,
   showResponseBody: false,
-};
+}
 
 /**
  * Checks if a directory exists at the specified path.
@@ -23,10 +23,11 @@ const dirExists = async (dir) => {
   try {
     await access(dir);
     return true;
-  } catch (error) {
+  }
+  catch (error) {
     return false;
   }
-};
+} 
 
 /**
  * Creates a new log file name with timestamp
@@ -43,7 +44,7 @@ const createLogFile = async () => {
     .replace(/[:.]/g, '-')
     .replace('T', '-')
     .replace('Z', '');
-
+  
   const logFile = path.join(LOGS_DIR, `api-monitor-${timestamp}.json`);
   await writeFile(logFile, '[]');
   return logFile;
@@ -59,7 +60,7 @@ const fileLocks = new Map();
  */
 const acquireLock = async (filePath) => {
   while (fileLocks.get(filePath)) {
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await new Promise(resolve => setTimeout(resolve, 10));
   }
   fileLocks.set(filePath, true);
 };
@@ -80,19 +81,19 @@ const releaseLock = (filePath) => {
  */
 const writeToLogFile = async (logFile, logEntry, retries = 3) => {
   await acquireLock(logFile);
-
+  
   try {
     for (let i = 0; i < retries; i++) {
       try {
         const fileContent = await readFile(logFile, 'utf8');
         let logs;
-
+        
         try {
           logs = JSON.parse(fileContent);
         } catch (parseError) {
           // If JSON is corrupted, try to recover by reading the file line by line
           console.warn('JSON parse error, attempting to recover...');
-          const lines = fileContent.split('\n').filter((line) => line.trim());
+          const lines = fileContent.split('\n').filter(line => line.trim());
           logs = [];
           for (const line of lines) {
             try {
@@ -103,16 +104,16 @@ const writeToLogFile = async (logFile, logEntry, retries = 3) => {
             }
           }
         }
-
+        
         logs.push(logEntry);
-
+        
         await writeFile(logFile, JSON.stringify(logs, null, 2));
         return;
       } catch (error) {
         if (i === retries - 1) {
           console.error('Error writing to log file:', error);
         } else {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       }
     }
@@ -144,7 +145,7 @@ export const startApiMonitor = async (port) => {
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method, rawHeaders, requestBody }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
-
+      
       const requestLog = {
         timestamp: new Date().toISOString(),
         type: 'request',
@@ -170,7 +171,7 @@ export const startApiMonitor = async (port) => {
 
       // Console logging
 
-      console.log(`\n📡 ${method} ${returnUrl}`);
+      console.log(`\n📡 ${method} ${returnUrl}`)
       console.log('----------------------------------------');
 
       if (CONSOLE_LOG_CONFIG.showHeaders) {
@@ -198,7 +199,7 @@ export const startApiMonitor = async (port) => {
 
       return { url: returnUrl };
     },
-    beforeResponse: async ({ statusCode, headers, body, statusMessage }) => {
+    beforeResponse: async ({ statusCode, headers, body, statusMessage, }) => {
       try {
         const responseBody = await body.getText();
         let parsedBody = responseBody;
@@ -215,7 +216,7 @@ export const startApiMonitor = async (port) => {
           statusCode,
           statusMessage,
           headers: headers || {},
-          body: parsedBody,
+          body: parsedBody
         };
 
         // Write response to log file
@@ -248,4 +249,4 @@ export const startApiMonitor = async (port) => {
 export const stopApiMonitor = async (mockServer) => {
   await mockServer.stop();
   console.log('🛑 API Monitor shutting down');
-};
+}; 

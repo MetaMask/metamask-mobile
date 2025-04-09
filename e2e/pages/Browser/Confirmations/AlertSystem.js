@@ -1,12 +1,5 @@
 import Matchers from '../../../utils/Matchers';
-import {
-  AlertModalSelectorsIDs,
-  AlertModalSelectorsText,
-  ConfirmAlertModalSelectorsIDs,
-  ConfirmationPageSectionsSelectorIDs,
-  ConfirmationTopSheetSelectorsIDs,
-  ConfirmationTopSheetSelectorsText,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationPageSectionsSelectorIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText } from '../../../selectors/Confirmation/ConfirmationView.selectors';
 import Gestures from '../../../utils/Gestures';
 
 class AlertSystem {
@@ -17,41 +10,25 @@ class AlertSystem {
   }
 
   get securityAlertResponseFailedBanner() {
-    return (
-      Matchers.getElementByText(
-        ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
-      ) &&
-      Matchers.getElementByText(
-        ConfirmationTopSheetSelectorsText.BANNER_FAILED_DESCRIPTION,
-      )
-    );
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE) && Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_DESCRIPTION);
   }
 
   get securityAlertResponseMaliciousBanner() {
-    return (
-      Matchers.getElementByText(
-        ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
-      ) &&
-      Matchers.getElementByText(
-        ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_DESCRIPTION,
-      )
-    );
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE) && Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_DESCRIPTION);
   }
 
   get inlineAlert() {
-    return Matchers.getElementByID(
-      ConfirmationPageSectionsSelectorIDs.INLINE_ALERT,
-    );
+    return Matchers.getElementByID(ConfirmationPageSectionsSelectorIDs.INLINE_ALERT);
   }
 
   get alertMismatchTitle() {
-    return Matchers.getElementByText(
-      AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
-    );
+    return Matchers.getElementByText(AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE);
   }
 
   get acknowledgeAlertModal() {
-    return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
+    return Matchers.getElementByID(
+      AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX,
+    );
   }
 
   get gotItAlertModalButton() {
