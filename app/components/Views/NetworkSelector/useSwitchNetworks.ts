@@ -4,7 +4,12 @@ import Engine from '../../../core/Engine';
 import { isMultichainV1Enabled, getDecimalChainId } from '../../../util/networks';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { InfuraNetworkType, BUILT_IN_NETWORKS } from '@metamask/controller-utils';
-import { CaipChainId, Hex } from '@metamask/utils';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipChainId,
+  ///: END:ONLY_INCLUDE_IF
+  Hex,
+} from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
