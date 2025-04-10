@@ -1,5 +1,7 @@
 import React from 'react';
-import NetworkFilterBottomSheet from './NetworkFilterBottomSheet';
+import NetworkFilterBottomSheet, {
+  NETWORK_FILTER_BOTTOM_SHEET,
+} from './NetworkFilterBottomSheet';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { Hex } from '@metamask/utils';
 import { fireEvent } from '@testing-library/react-native';
@@ -123,6 +125,18 @@ describe('NetworkFilterBottomSheet', () => {
     expect(mockOnFilterControlsBottomSheetPress).toHaveBeenCalledWith(
       FilterOption.CurrentNetwork,
     );
+    expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
+  });
+
+  it('calls onClose when BottomSheet is closed', () => {
+    const { getByTestId } = renderWithProvider(
+      <NetworkFilterBottomSheet {...defaultProps} />,
+      { state: mockInitialState },
+    );
+
+    const bottomSheet = getByTestId(NETWORK_FILTER_BOTTOM_SHEET);
+    fireEvent(bottomSheet, 'onClose');
+
     expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
   });
 });

@@ -20,6 +20,8 @@ import {
 import { Hex } from '@metamask/utils';
 import { getNetworkImageSource } from '../../../../util/networks';
 
+export const NETWORK_LIST_BOTTOM_SHEET = 'NETWORK_LIST_BOTTOM_SHEET';
+
 export default function NetworkListBottomSheet({
   selectedNetwork,
   setSelectedNetwork,
@@ -43,6 +45,7 @@ export default function NetworkListBottomSheet({
       onClose={() => setOpenNetworkSelector(false)}
       isInteractable
       style={styles.bottomSheetWrapperContent}
+      testID={NETWORK_LIST_BOTTOM_SHEET}
     >
       <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>
         {strings('networks.select_network')}

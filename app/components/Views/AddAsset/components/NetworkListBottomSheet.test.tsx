@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import NetworkListBottomSheet from './NetworkListBottomSheet';
+import NetworkListBottomSheet, {
+  NETWORK_LIST_BOTTOM_SHEET,
+} from './NetworkListBottomSheet';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -121,5 +123,30 @@ describe('NetworkListBottomSheet', () => {
 
     expect(queryByText('Ethereum Mainnet')).toBeNull();
     expect(queryByText('Polygon')).toBeNull();
+  });
+
+  it('calls onClose when BottomSheet is closed', () => {
+    const emptyNetworkState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: {
+            networkConfigurationsByChainId: {},
+          },
+        },
+      },
+    };
+
+    const { getByTestId } = renderWithProvider(
+      <NetworkListBottomSheet {...defaultProps} />,
+      { state: emptyNetworkState },
+    );
+
+    const bottomSheet = getByTestId(NETWORK_LIST_BOTTOM_SHEET);
+    fireEvent(bottomSheet, 'onClose');
+
+    expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
   });
 });

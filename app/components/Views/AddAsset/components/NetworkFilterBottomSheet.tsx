@@ -21,6 +21,7 @@ import {
 } from '../../../../selectors/networkController';
 import { enableAllNetworksFilter } from '../../../UI/Tokens/util/enableAllNetworksFilter';
 
+export const NETWORK_FILTER_BOTTOM_SHEET = 'NETWORK_FILTER_BOTTOM_SHEET';
 export default function NetworkFilterBottomSheet({
   onFilterControlsBottomSheetPress,
   setOpenNetworkFilter,
@@ -46,6 +47,7 @@ export default function NetworkFilterBottomSheet({
       ref={sheetRef}
       onClose={() => setOpenNetworkFilter(false)}
       isInteractable
+      testID={NETWORK_FILTER_BOTTOM_SHEET}
     >
       <View style={styles.bottomSheetWrapper}>
         <Text variant={TextVariant.HeadingMD} style={styles.bottomSheetTitle}>

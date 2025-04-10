@@ -18,6 +18,7 @@ exports[`NetworkFilterBottomSheet should render correctly 1`] = `
       },
     ]
   }
+  testID="NETWORK_FILTER_BOTTOM_SHEET"
 >
   <View
     style={
