@@ -133,6 +133,11 @@ describe('AddAsset utils', () => {
     PreferencesController,
     'setTokenNetworkFilter',
   );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should handle AllNetworks filter option', () => {
     const allNetworksEnabled = { '0x1': true, '0x2': true };
 
