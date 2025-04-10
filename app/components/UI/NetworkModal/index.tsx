@@ -46,6 +46,7 @@ import {
   RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
+import { Network } from '../../../util/networks/customNetworks';
 
 export interface SafeChain {
   chainId: string;
@@ -57,9 +58,9 @@ export interface SafeChain {
 interface NetworkProps {
   isVisible: boolean;
   onClose: () => void;
-  // TODO: Replace "any" with type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  networkConfiguration: any;
+  networkConfiguration: Network & {
+    formattedRpcUrl?: string | null;
+  };
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -79,6 +80,7 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
+      failoverRpcUrls,
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
@@ -132,8 +134,14 @@ const NetworkModals = (props: NetworkProps) => {
         [customNetworkInformation.chainId]: true,
       });
     } else {
+      const normalizedTokenNetworkFilter = Object.fromEntries(
+        Object.entries(tokenNetworkFilter).map(([key, value]) => [
+          key,
+          Boolean(value),
+        ]),
+      );
       PreferencesController.setTokenNetworkFilter({
-        ...tokenNetworkFilter,
+        ...normalizedTokenNetworkFilter,
         [customNetworkInformation.chainId]: true,
       });
     }
@@ -253,6 +261,7 @@ const NetworkModals = (props: NetworkProps) => {
         rpcEndpoints: [
           {
             url: rpcUrl,
+            failoverUrls: failoverRpcUrls,
             name: nickname,
             type: RpcEndpointType.Custom,
           },
@@ -297,6 +306,7 @@ const NetworkModals = (props: NetworkProps) => {
   const handleNewNetwork = async (
     networkId: `0x${string}`,
     networkRpcUrl: string,
+    networkFailoverRpcUrls: string[],
     name: string,
     nativeCurrency: string,
     networkBlockExplorerUrl: string,
@@ -314,11 +324,12 @@ const NetworkModals = (props: NetworkProps) => {
       rpcEndpoints: [
         {
           url: networkRpcUrl,
+          failoverUrls: networkFailoverRpcUrls,
           name,
           type: RpcEndpointType.Custom,
         },
       ],
-    } as AddNetworkFields;
+    } satisfies AddNetworkFields;
 
     return NetworkController.addNetwork(networkConfig);
   };
@@ -351,6 +362,7 @@ const NetworkModals = (props: NetworkProps) => {
       const addedNetwork = await handleNewNetwork(
         chainId,
         rpcUrl,
+        failoverRpcUrls,
         nickname,
         ticker,
         blockExplorerUrl,
