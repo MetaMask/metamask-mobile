@@ -143,27 +143,6 @@ export const startApiMonitor = async (port) => {
     .thenReply(200, 'API Monitor is running');
 
 
-  await mockServer
-  .forPost('/track')
-  .thenCallback(async (req) => {
-    // Get and parse the request body
-    const bodyText = await req.body.getText();
-    let bodyJson;
-    try {
-      bodyJson = JSON.parse(bodyText);
-      console.log('Received track request body:', bodyJson);
-    } catch (e) {
-      bodyJson = { raw: bodyText, error: 'Not valid JSON' };
-      console.log('Received non-JSON track request body:', bodyText);
-    }
-
-    return {
-      status: 200,
-      json: bodyJson
-    };
-  });
-
-
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method, rawHeaders, requestBody }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
