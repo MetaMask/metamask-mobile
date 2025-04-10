@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -38,13 +38,18 @@ export default function BridgeStepList({
   srcChainTxMeta,
   networkConfigurationsByChainId,
 }: BridgeStepsProps) {
-  const steps = bridgeHistoryItem?.quote.steps || [];
+  const steps = useMemo(
+    () => bridgeHistoryItem?.quote.steps || [],
+    [bridgeHistoryItem?.quote.steps],
+  );
 
-  const stepStatuses = useCallback(() => {
-    return steps.map((step) =>
-      getStepStatus({ bridgeHistoryItem, step: step as Step, srcChainTxMeta }),
-    );
-  }, [bridgeHistoryItem, srcChainTxMeta, steps]);
+  const stepStatuses = useCallback(
+    () =>
+      steps.map((step) =>
+        getStepStatus({ bridgeHistoryItem, step: step as Step, srcChainTxMeta }),
+      ),
+    [bridgeHistoryItem, srcChainTxMeta, steps],
+  );
 
   return (
     <Box>

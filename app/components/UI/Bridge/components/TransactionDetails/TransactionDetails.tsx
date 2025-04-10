@@ -76,7 +76,6 @@ const createStyles = () =>
       width: 40,
       height: 40,
       borderRadius: 20,
-      backgroundColor: '#f0f0f0',
       justifyContent: JustifyContent.center,
       alignItems: AlignItems.center,
     },
