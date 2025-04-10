@@ -1,9 +1,9 @@
 import {
   BridgeFeatureFlags,
   BridgeFeatureFlagsKey,
-  BridgeToken,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
+import type { BridgeToken } from '../types';
 
 const DEFAULT_REFRESH_RATE = 5 * 1000; // 5 seconds
 
