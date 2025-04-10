@@ -776,7 +776,10 @@ class FixtureBuilder {
     const caip25CaveatValue = additionalPermissions?.[
       Caip25EndowmentPermissionName
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
-      optionalScopes: { 'eip155:1': { accounts: [] } },
+      optionalScopes: {
+        'eip155:1': { accounts: [] },
+        'eip155:1337': { accounts: [] },
+      },
       requiredScopes: {},
       sessionProperties: {},
       isMultichainOrigin: false,
