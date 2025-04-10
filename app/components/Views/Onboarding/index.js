@@ -15,7 +15,6 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
-import StyledButton from '../../UI/StyledButton';
 import {
   fontStyles,
   baseStyles,
@@ -57,6 +56,8 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import ButtonComp, {
   ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Oauth2loginService from '../../../core/Oauth2Login/Oauth2loginService';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
@@ -127,7 +128,7 @@ const createStyles = (colors) =>
     buttonWrapper: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      gap: 12,
+      gap: 16,
       width: '100%',
     },
     loader: {
@@ -152,9 +153,6 @@ const createStyles = (colors) =>
       flexDirection: 'row',
       alignItems: 'flex-end',
     },
-    socialBtn: {
-      width: '100%',
-    },
     divider: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -177,6 +175,12 @@ const createStyles = (colors) =>
       rowGap: 16,
       alignItems: 'center',
       justifyContent: 'center',
+      marginBottom: -24,
+    },
+    socialBtn: {
+      borderColor: colors.border.muted,
+      borderWidth: 1,
+      color: colors.text.default,
     },
   });
 
@@ -526,15 +530,17 @@ class Onboarding extends PureComponent {
               variant={ButtonVariants.Primary}
               onPress={() => this.handleCtaActions('create')}
               testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              style={styles.socialBtn}
               label={strings('onboarding.start_exploring_now')}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
             />
             <ButtonComp
               variant={ButtonVariants.Secondary}
               onPress={() => this.handleCtaActions('existing')}
-              style={styles.socialBtn}
               testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
               label={strings('onboarding.have_existing_wallet')}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
             />
           </View>
         </View>
@@ -564,7 +570,9 @@ class Onboarding extends PureComponent {
                       : strings('onboarding.sign_in_with_google')
                   }
                   startIconName={IconName.Google}
-                  startIconSize={IconSize.Xl}
+                  startIconSize={IconSize.XXL}
+                  width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
                   style={styles.socialBtn}
                 />
                 <ButtonComp
@@ -578,6 +586,8 @@ class Onboarding extends PureComponent {
                   }
                   startIconName={IconName.Apple}
                   startIconSize={IconSize.Xl}
+                  width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
                   style={styles.socialBtn}
                 />
               </View>
@@ -596,13 +606,14 @@ class Onboarding extends PureComponent {
                       ? this.onPressCreate
                       : this.onPressImport
                   }
-                  style={styles.socialBtn}
                   testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
                   label={
                     this.state.createWallet
                       ? strings('onboarding.continue_with_srp')
                       : strings('onboarding.import_srp')
                   }
+                  width={ButtonWidthTypes.Full}
+                  size={ButtonSize.Lg}
                 />
               </View>
             </View>

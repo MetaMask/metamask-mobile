@@ -39,9 +39,7 @@ import Routes from '../../../constants/navigation/Routes';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import {
-    UserProfileProperty
-} from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -58,9 +56,10 @@ const createStyles = ({ colors }) =>
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
-      alignItems: 'center',
-      gap: 15,
+      alignItems: 'flex-start',
+      gap: 16,
       marginRight: 25,
+      marginTop: 16,
     },
     icon: {
       marginRight: 5,
@@ -69,12 +68,13 @@ const createStyles = ({ colors }) =>
       flex: 0,
       flexDirection: 'row',
       paddingVertical: 10,
-      alignItems: 'center',
+      alignItems: 'flex-start',
+      gap: 16,
     },
     title: {
       ...fontStyles.bold,
       color: colors.text.default,
-      fontSize: 22,
+      fontSize: 32,
     },
     description: {
       ...fontStyles.normal,
@@ -88,7 +88,13 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 14,
       color: colors.text.default,
-      paddingVertical: 10,
+      marginVertical: 16,
+      // paddingVertical: 16,
+    },
+    policyCheckboxContent: {
+      ...fontStyles.normal,
+      fontSize: 14,
+      color: colors.text.default,
     },
     linkText: {
       ...fontStyles.normal,
@@ -102,9 +108,12 @@ const createStyles = ({ colors }) =>
     },
     privacyPolicy: {
       ...fontStyles.normal,
-      fontSize: 14,
+      fontSize: 12,
       color: colors.text.muted,
-      marginTop: 10,
+    },
+    privacyPolicyButton: {
+      ...fontStyles.normal,
+      fontSize: 12,
     },
     link: {
       textDecorationLine: 'underline',
@@ -127,6 +136,11 @@ const createStyles = ({ colors }) =>
     },
     confirm: {
       marginLeft: 8,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border.muted,
+      marginVertical: 16,
     },
   });
 
@@ -356,17 +370,19 @@ class OptinMetrics extends PureComponent {
       metrics
         .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
-            [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean( isDataCollectionForMarketingEnabled ),
-            is_metrics_opted_in: true,
-            location: 'onboarding_metametrics',
-            updated_after_onboarding: false,
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+            isDataCollectionForMarketingEnabled,
+          ),
+          is_metrics_opted_in: true,
+          location: 'onboarding_metametrics',
+          updated_after_onboarding: false,
         })
         .build(),
     );
 
     await metrics.addTraitsToUser({
-        ...generateDeviceAnalyticsMetaData(),
-        ...generateUserSettingsAnalyticsMetaData(),
+      ...generateDeviceAnalyticsMetaData(),
+      ...generateUserSettingsAnalyticsMetaData(),
     });
 
     // track onboarding events that were stored before user opted in
@@ -449,6 +465,7 @@ class OptinMetrics extends PureComponent {
             <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
             <Button
               variant={ButtonVariants.Link}
+              style={styles.privacyPolicyButton}
               label={strings('privacy_policy.privacy_policy_button')}
               onPress={this.openPrivacyPolicy}
             />
@@ -612,16 +629,16 @@ class OptinMetrics extends PureComponent {
                   : 'privacy_policy.description_content_1_legacy',
               )}
             </Text>
-            <Text style={styles.linkText} onPress={this.handleLink}>
+            {/* <Text style={styles.linkText} onPress={this.handleLink}>
               {strings('privacy_policy.description_content_3')}
-            </Text>
-            <Text style={styles.content}>
+            </Text> */}
+            {/* <Text style={styles.content}>
               {strings(
                 isPastPrivacyPolicyDate
                   ? 'privacy_policy.description_content_2'
                   : 'privacy_policy.description_content_2_legacy',
               )}
-            </Text>
+            </Text> */}
             {this.actionsList.map((action, i) =>
               isPastPrivacyPolicyDate
                 ? this.renderAction(action, i)
@@ -647,11 +664,12 @@ class OptinMetrics extends PureComponent {
                     )
                   }
                 />
-                <Text style={styles.content}>
+                <Text style={styles.policyCheckboxContent}>
                   {strings('privacy_policy.checkbox')}
                 </Text>
               </TouchableOpacity>
             ) : null}
+            <View style={styles.divider} />
             {this.renderPrivacyPolicy()}
           </View>
         </ScrollView>

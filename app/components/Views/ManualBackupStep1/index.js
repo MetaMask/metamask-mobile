@@ -46,7 +46,12 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import Button, {
   ButtonVariants,
   ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import Label from '../../../component-library/components/Form/Label';
+import { TextVariant } from '../../../component-library/components/Texts/Text';
+import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField/TextField';
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -215,35 +220,23 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               {strings('manual_backup_step_1.confirm_password')}
             </Text>
             <View style={styles.text}>
-              <Text style={styles.label}>
+              <Label variant={TextVariant.BodyMDMedium}>
                 {strings('manual_backup_step_1.before_continiuing')}
-              </Text>
+              </Label>
             </View>
-
             <View style={styles.field}>
-              <View
-                style={[
-                  styles.passwordInputContainer,
-                  passwordInputContainerFocusedIndex &&
-                    styles.passwordInputContainerFocused,
-                ]}
-              >
-                <TextInput
-                  placeholder={'Password'}
-                  style={styles.passwordInput}
-                  value={password}
-                  onChangeText={onPasswordChange}
-                  secureTextEntry
-                  placeholderTextColor={colors.text.muted}
-                  onSubmitEditing={tryUnlock}
-                  testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                  keyboardAppearance={themeAppearance}
-                  autoCapitalize="none"
-                  onFocus={() => setPasswordInputContainerFocusedIndex(true)}
-                  onBlur={() => setPasswordInputContainerFocusedIndex(false)}
-                  autoFocus
-                />
-              </View>
+              <TextField
+                placeholder={'Password'}
+                value={password}
+                onChangeText={onPasswordChange}
+                secureTextEntry
+                placeholderTextColor={colors.text.muted}
+                onSubmitEditing={tryUnlock}
+                testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
+                keyboardAppearance={themeAppearance}
+                autoCapitalize="none"
+                size={TextFieldSize.Lg}
+              />
               {warningIncorrectPassword && (
                 <Text style={styles.warningMessageText}>
                   {warningIncorrectPassword}
@@ -258,6 +251,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               label={strings('manual_backup_step_1.confirm')}
               testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
               width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
             />
           </View>
         </View>

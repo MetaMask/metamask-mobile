@@ -77,6 +77,8 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       flexWrap: 'wrap', // Allows wrapping to new lines
       justifyContent: 'center',
+      width: '100%',
+      margin: 4,
     },
     inputContainer: {
       flexDirection: 'row',
@@ -97,12 +99,7 @@ const createStyles = (colors: any) =>
       ...fontStyles.medium,
     },
     seedPhraseInput: {
-      color: colors.text.default,
-      fontSize: 14,
-      fontWeight: '500',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flex: 1,
+      margin: 3,
     },
     clearButton: {
       width: '100%',

@@ -3,11 +3,9 @@ import {
   ScrollView,
   View,
   Linking,
-  // Keyboard,
   TouchableOpacity,
   Image,
   Text as RNText,
-  TextInput,
 } from 'react-native';
 import Button, {
   ButtonSize,
@@ -35,6 +33,10 @@ import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboardi
 import styles from './index.styles';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
+import TextField, {
+  TextFieldSize,
+} from '../../../component-library/components/Form/TextField';
+
 const wallet_ready_image = require('../../../images/wallet-ready.png'); // eslint-disable-line
 
 interface OnboardingSuccessProps {
@@ -260,7 +262,7 @@ const OnboardingSuccess = ({
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       {!showHint ? (
-        <>
+        <View style={styles.contentContainer}>
           <View style={styles.contentWrapper}>
             {renderContent()}
             {renderFooter()}
@@ -276,7 +278,7 @@ const OnboardingSuccess = ({
               style={styles.doneButton}
             />
           </View>
-        </>
+        </View>
       ) : (
         <View style={styles.hintWrapper}>
           <Text style={styles.hintTitle}>
@@ -290,11 +292,13 @@ const OnboardingSuccess = ({
               {strings('onboarding_success.hint_description2')}
             </Text>
           </View>
-          <TextInput
+          <TextField
             style={styles.hintInput}
             placeholder={strings('onboarding_success.hint_placeholder')}
             value={hintText}
             onChangeText={setHintText}
+            size={TextFieldSize.Lg}
+            placeholderTextColor={colors.text.muted}
           />
           <Button
             label={strings('onboarding_success.hint_saved')}

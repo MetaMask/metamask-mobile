@@ -5,6 +5,12 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     flexDirection: 'column',
+    height: '100%',
+  },
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    height: '100%',
   },
   contentWrapper: {
     flex: 1,
@@ -14,7 +20,7 @@ const styles = StyleSheet.create({
   },
   buttonWrapper: {
     paddingHorizontal: 24,
-    marginTop: 50,
+    marginTop: 'auto',
     flex: 1,
   },
   emoji: {

@@ -15,6 +15,8 @@ import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Button, {
   ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import {
   fontStyles,
@@ -141,7 +143,6 @@ const createStyles = (colors: ThemeColors) =>
     },
     gettingStartedButton: {
       borderRadius: 10,
-      width: '100%',
       color: constColors.whiteTransparent,
       backgroundColor: constColors.btnBlack,
     },
@@ -348,6 +349,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
               label={strings('onboarding_carousel.get_started')}
               onPress={onPressGetStarted}
               style={styles.gettingStartedButton}
+              width={ButtonWidthTypes.Full}
+              size={ButtonSize.Lg}
             />
           </View>
         </View>
