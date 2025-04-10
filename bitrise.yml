@@ -1832,8 +1832,11 @@ workflows:
                 else
                   # Zip the .app into an .ipa file so that it can be uploaded to Runway
                   mkdir -p "$BUILD_DIR/Payload"
-                  cp -r "$NEW_BINARY" "$BUILD_DIR/Payload/"
-                  zip -r "$BUILD_DIR/$NEW_BASE_NAME.ipa" "$BUILD_DIR/Payload/"
+                  cp -rv "$NEW_BINARY" "$BUILD_DIR/Payload/"
+                  ls -la "$BUILD_DIR/Payload"
+                  cd "$BUILD_DIR"
+                  zip -r "$NEW_BASE_NAME.ipa" Payload
+                  unzip -l "$BUILD_DIR/$NEW_BASE_NAME.ipa"
                   rm -r "$BUILD_DIR/Payload"
                 fi
 
