@@ -378,36 +378,8 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   "paddingVertical": 10,
                                 }
                               }
-                              testID="optin-metrics-privacy-policy-description"
                             >
-                              We’d like to gather basic usage data to improve MetaMask. Know that we never sell the data you provide here.
-                            </Text>
-                            <Text
-                              onPress={[Function]}
-                              style={
-                                {
-                                  "color": "#4459ff",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              Learn how we protect your privacy while collecting usage data for your profile.
-                            </Text>
-                            <Text
-                              style={
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 14,
-                                  "fontWeight": "400",
-                                  "paddingVertical": 10,
-                                }
-                              }
-                            >
-                              When we gather metrics, it will always be...
+                              We gather basic usage and diagnostics data to improve MetaMask. It will always be:
                             </Text>
                             <View
                               style={
@@ -643,7 +615,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   }
                                 }
                               >
-                                We'll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
+                                We’ll use this data to learn how you interact with our marketing communications. We may share relevant news (like product features).
                               </Text>
                             </TouchableOpacity>
                             <View>
@@ -659,7 +631,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                 }
                               >
                                 <Text>
-                                  We’ll let you know if we decide to use this data for other purposes. You can review our 
+                                  We’ll let you know if we ever plan to use this data for other purposes. You can review our 
                                 </Text>
                                 <Text
                                   accessibilityRole="link"
@@ -697,7 +669,7 @@ exports[`OptinMetrics render matches snapshot 1`] = `
                                   </Text>
                                 </Text>
                                 <Text>
-                                   for more information. Remember, you can go to settings and opt out at any time.
+                                   any time (we never sell the data you provide here).
                                 </Text>
                               </Text>
                             </View>
