@@ -116,6 +116,7 @@ const SnapDialogApproval = () => {
         approvalRequest?.type === DIALOG_APPROVAL_TYPES.default
       }
       onCancel={onCancel}
+      avoidKeyboard
     >
       <View style={styles.root}>
         <SnapUIRenderer

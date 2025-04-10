@@ -148,7 +148,7 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -192,7 +192,7 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -354,7 +354,7 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -398,7 +398,7 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -560,7 +560,7 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -604,7 +604,7 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -766,7 +766,7 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -810,7 +810,7 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -972,7 +972,7 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -1016,7 +1016,7 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -1178,7 +1178,7 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -1222,7 +1222,7 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
@@ -1384,7 +1384,7 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "inherit",
+        "color": "#141618",
         "fontFamily": "EuclidCircularB-Regular",
         "fontSize": 14,
         "fontWeight": "400",
