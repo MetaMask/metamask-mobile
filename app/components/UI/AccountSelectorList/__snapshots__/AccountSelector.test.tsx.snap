@@ -281,34 +281,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 1
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -316,16 +289,16 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xC495...D272
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -349,10 +322,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -365,10 +338,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -681,34 +654,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 2
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -716,16 +662,16 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xd018...78E7
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -749,10 +695,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -765,10 +711,10 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -1110,34 +1056,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   >
                     Account 1
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1145,16 +1064,16 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xC495...D272
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -1446,34 +1365,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                   >
                     Account 2
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1481,16 +1373,16 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xd018...78E7
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -1837,34 +1729,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   >
                     Account 1
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -1872,16 +1737,16 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xC495...D272
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -1905,10 +1770,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -1921,10 +1786,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -2237,34 +2102,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
                   >
                     Account 2
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -2272,16 +2110,16 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xd018...78E7
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -2305,10 +2143,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -2321,10 +2159,10 @@ exports[`AccountSelectorList renders correctly 1`] = `
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -2546,34 +2384,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   >
                     Account 1
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -2581,16 +2392,16 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xC495...D272
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
                 <View
                   style={
@@ -2614,10 +2425,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -2630,10 +2441,10 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#121314",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                           "textAlign": "right",
                         }
                       }
@@ -2830,34 +2641,7 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                   >
                     Account 2
                   </Text>
-                  <TouchableOpacity
-                    accessibilityState={
-                      {
-                        "busy": undefined,
-                        "checked": undefined,
-                        "disabled": undefined,
-                        "expanded": undefined,
-                        "selected": undefined,
-                      }
-                    }
-                    accessible={true}
-                    focusable={false}
-                    onClick={[Function]}
-                    onResponderGrant={[Function]}
-                    onResponderMove={[Function]}
-                    onResponderRelease={[Function]}
-                    onResponderTerminate={[Function]}
-                    onResponderTerminationRequest={[Function]}
-                    onStartShouldSetResponder={[Function]}
-                    style={
-                      {
-                        "alignItems": "flex-start",
-                        "flexDirection": "row",
-                        "marginBottom": 0,
-                        "zIndex": 1,
-                      }
-                    }
-                  >
+                  <View>
                     <Text
                       accessibilityRole="text"
                       numberOfLines={1}
@@ -2865,16 +2649,16 @@ exports[`AccountSelectorList should render all accounts but only the balance for
                         {
                           "color": "#686e7d",
                           "fontFamily": "CentraNo1-Book",
-                          "fontSize": 14,
+                          "fontSize": 16,
                           "fontWeight": "400",
                           "letterSpacing": 0,
-                          "lineHeight": 22,
+                          "lineHeight": 24,
                         }
                       }
                     >
                       0xd018...78E7
                     </Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             </View>

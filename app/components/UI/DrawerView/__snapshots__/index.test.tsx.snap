@@ -179,7 +179,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 20,
                     "fontWeight": "400",
                     "lineHeight": 24,
@@ -218,7 +218,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 14,
                   "fontWeight": "400",
                   "lineHeight": 17,
@@ -233,7 +233,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               style={
                 {
                   "color": "#686e7d",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 12,
                   "fontWeight": "400",
                   "lineHeight": 17,
@@ -331,7 +331,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 27.857142857142858,
                   "fontWeight": "400",
                   "paddingLeft": 8.571428571428571,
@@ -425,7 +425,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
               style={
                 {
                   "color": "#4459ff",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontSize": 27.857142857142858,
                   "fontWeight": "400",
                   "paddingLeft": 8.571428571428571,
@@ -495,7 +495,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                   {
                     "color": "#686e7d",
                     "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 15,
@@ -550,7 +550,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                   {
                     "color": "#686e7d",
                     "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 15,
@@ -618,7 +618,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                   {
                     "color": "#686e7d",
                     "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 15,
@@ -673,7 +673,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                   {
                     "color": "#686e7d",
                     "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 15,
@@ -728,7 +728,7 @@ exports[`DrawerView - Extended Coverage renders correctly (snapshot) 1`] = `
                   {
                     "color": "#686e7d",
                     "flex": 1,
-                    "fontFamily": "EuclidCircularB-Regular",
+                    "fontFamily": "CentraNo1-Book",
                     "fontSize": 16,
                     "fontWeight": "400",
                     "paddingHorizontal": 15,

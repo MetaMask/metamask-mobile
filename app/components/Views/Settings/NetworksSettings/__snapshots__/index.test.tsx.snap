@@ -423,7 +423,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               "borderColor": "#b7bbc8",
                               "color": "#121314",
                               "flex": 1,
-                              "fontFamily": "EuclidCircularB-Regular",
+                              "fontFamily": "CentraNo1-Book",
                               "fontSize": 14,
                               "fontWeight": "400",
                               "paddingLeft": 10,
@@ -439,7 +439,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -486,7 +486,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -558,7 +558,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -632,7 +632,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                     style={
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                       }
@@ -666,11 +666,28 @@ exports[`NetworksSettings should render correctly 1`] = `
                               </Text>
                             </TouchableOpacity>
                           </View>
+                          <View
+                            testID="custom-networks-list"
+                          >
+                            <Text
+                              style={
+                                {
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontSize": 14,
+                                  "fontWeight": "600",
+                                  "paddingVertical": 12,
+                                }
+                              }
+                            >
+                              Custom networks
+                            </Text>
+                          </View>
                           <Text
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontSize": 14,
                                 "fontWeight": "600",
                                 "paddingVertical": 12,
@@ -710,7 +727,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
@@ -774,13 +791,77 @@ exports[`NetworksSettings should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 16,
                                       "fontWeight": "400",
                                     }
                                   }
                                 >
                                   Linea Sepolia
+                                </Text>
+                                <Text
+                                  allowFontScaling={false}
+                                  style={
+                                    [
+                                      {
+                                        "color": "#121314",
+                                        "fontSize": 20,
+                                      },
+                                      {
+                                        "marginLeft": 8,
+                                      },
+                                      {
+                                        "fontFamily": "FontAwesome",
+                                        "fontStyle": "normal",
+                                        "fontWeight": "normal",
+                                      },
+                                      {},
+                                    ]
+                                  }
+                                >
+                                  
+                                </Text>
+                              </View>
+                            </TouchableOpacity>
+                          </View>
+                          <View>
+                            <TouchableOpacity
+                              onLongPress={[Function]}
+                              onPress={[Function]}
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "center",
+                                    "flex": 1,
+                                    "flexDirection": "row",
+                                    "paddingVertical": 12,
+                                  }
+                                }
+                              >
+                                <Image
+                                  source={1}
+                                  style={
+                                    {
+                                      "borderRadius": 10,
+                                      "height": 20,
+                                      "marginRight": 16,
+                                      "marginTop": 2,
+                                      "width": 20,
+                                    }
+                                  }
+                                />
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                    }
+                                  }
+                                >
+                                  Mega Testnet
                                 </Text>
                                 <Text
                                   allowFontScaling={false}
@@ -845,7 +926,7 @@ exports[`NetworksSettings should render correctly 1`] = `
                               null,
                               [
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontSize": 14,
                                   "fontWeight": "600",
                                   "textAlign": "center",
