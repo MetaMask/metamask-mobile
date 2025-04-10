@@ -48,19 +48,6 @@ export default class SegmentHelper {
     this.events.push(eventData);
   }
 
-
-  /**
-   * Asserts that an event with the specified name exists.
-   * @param {string} eventName - The name of the event to check for.
-   * @throws {Error} If no event with the specified name is found.
-   */
-  static async assertEventExists(eventName) {
-    const events = await this.getEventsByName(eventName);
-    if (events.length === 0) {
-      throw new Error(`Event with name "${eventName}" does not exist.`);
-    }
-  }
-
   /**
    * Asserts that an event with the specified name and properties exists.
    * @param {string} eventName - The name of the event to check for.
