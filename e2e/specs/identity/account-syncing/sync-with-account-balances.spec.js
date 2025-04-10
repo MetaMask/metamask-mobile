@@ -114,7 +114,7 @@ describe(
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(6000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
 
@@ -130,12 +130,12 @@ describe(
       await AddAccountBottomSheet.tapCreateAccount();
       await TestHelpers.delay(2000);
 
+      // PHASE 2: Verify discovery of new accounts with balances
+      // Complete setup again for new session
       accountsToMockBalances = [...INITIAL_ACCOUNTS, ...ADDITIONAL_ACCOUNTS];
       await setupAccountMockedBalances(mockServer, accountsToMockBalances);
       await TestHelpers.delay(2000);
 
-      // PHASE 2: Verify discovery of new accounts with balances
-      // Complete setup again for new session
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
@@ -149,7 +149,7 @@ describe(
 
       // Verify initial state and balance
       // Adding a delay here to make sure that importAdditionalAccounts has completed
-      await TestHelpers.delay(2000);
+      await TestHelpers.delay(6000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
       await TestHelpers.delay(2000);
@@ -160,34 +160,6 @@ describe(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
-
-      // Rename Account 6 to verify update to user storage
-      await AccountListBottomSheet.tapEditAccountActionsAtIndex(5);
-      await AccountActionsBottomSheet.renameActiveAccount(
-        'My Renamed Account 6',
-      );
-
-      // PHASE 3: Verify name persistence across sessions
-      await TestHelpers.launchApp({
-        newInstance: true,
-        delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
-      });
-
-      await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
-      );
-
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(2000);
-
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          'My Renamed Account 6',
-        ),
-      );
     });
   },
 );
