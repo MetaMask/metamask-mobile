@@ -880,7 +880,7 @@ describe('WC2Manager', () => {
       expect(storageSetItemSpy).not.toHaveBeenCalled();
     });
 
-    it('handles session delete event for non-existent session', async () => {
+    it('processes delete event for non-existent session', async () => {
 
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
