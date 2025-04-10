@@ -20,22 +20,26 @@ pipelines:
   #Releases MetaMask apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   release_builds_to_store_pipeline:
     stages:
+      - bump_version_stage: {}
       - create_build_release: {}
       - deploy_build_release: {}
       - create_build_qa: {} #Generate QA builds for E2E app upgrade tests
   #Releases MetaMask beta apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store
   beta_builds_to_store_pipeline:
     stages:
+      - bump_version_stage: {}
       - create_build_beta: {}
       - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
-    stages:
+    stages:      
+      - bump_version_stage: {}
       - create_ios_release: {}
       - deploy_ios_release: {}
   #Releases MetaMask apps and stores apk Play(Internal Testing) Store
   release_android_to_store_pipeline:
     stages:
+      - bump_version_stage: {}
       - create_android_release: {}
       - deploy_android_release: {}
   #Run E2E test suite for iOS only
@@ -102,6 +106,9 @@ pipelines:
       - release_notify: {}
 #Stages reference workflows. Those workflows cannot but utility "_this-is-a-utility"
 stages:
+  bump_version_stage:
+    workflows:
+    - bump_version_code: {}
   create_build_all_targets:
     workflows:
       - build_android_release: {}
@@ -143,7 +150,6 @@ stages:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
-      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_qa_flask:
     workflows:
@@ -181,7 +187,7 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      #- run_ios_api_specs: {}
+      - run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_identity_ios: {}
@@ -552,6 +558,23 @@ workflows:
             - issue_number: '$GITHUB_PR_NUMBER'
             - api_base_url: 'https://api.github.com'
             - update_comment_tag: '$GITHUB_PR_HASH'
+  bump_version_code:
+    before_run:
+      - _get_workflow_info
+      # Update Bitrise comment in PR with failure status
+      - script@1:
+          is_always_run: true
+          title: Trigger Update Build Version Action
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                curl -L \
+                  -X POST \
+                  -H "Accept: application/vnd.github+json" \
+                  -H "Authorization: Bearer $GITHUB_ACCESS_TOKEN" \
+                  -H "X-GitHub-Api-Version: 2022-11-28" \
+                  "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
+                  -d '{"ref": "main", "inputs":{ "base-branch": "chore/add-bitrise-version-bump"}}' \
   # CI Steps
   ci_test:
     before_run:
@@ -1768,27 +1791,19 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - certificate-and-profile-installer@1: {
-        run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
-      }
+      - certificate-and-profile-installer@1: {}
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $NAME
             - build_version: $NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
-          title: iOS Sourcemaps & Build
-          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    if [ "$IS_SIM_BUILD" = "true" ]; then
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
-                    else
-                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
-                    fi
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1799,60 +1814,51 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
+          title: iOS Sourcemaps & Build
+          is_always_run: false
       - script@1:
-          title: Rename iOS artifact files
+          title: Rename release files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths
-                if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
-                  DEVICE_TYPE="simulator"
-                  BINARY_EXTENSION=".app"
-                else
-                  BUILD_DIR="ios/build/output"
-                  DEVICE_TYPE="physical"
-                  BINARY_EXTENSION=".ipa"
-                fi
+                IPA_DIR="ios/build/output"
+                ARCHIVE_DIR="ios/build"
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
 
-                # Rename binary
-                OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
-                NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
-                mv "$OLD_BINARY" "$NEW_BINARY"
+                # Rename IPA
+                OLD_IPA="$IPA_DIR/$APP_NAME.ipa"
+                NEW_IPA="$IPA_DIR/$NEW_BASE_NAME.ipa"
+                mv "$OLD_IPA" "$NEW_IPA"
 
-                # Rename xcarchive (only for non-simulator builds)
-                if [ "$IS_SIM_BUILD" != "true" ]; then
-                  ARCHIVE_DIR="ios/build"
-                  OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
-                  NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
-                  mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
-                fi
+                # Rename xcarchive
+                OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
+                NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
+                mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
 
                 # Export new names as environment variables
-                envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
+                envman add --key RENAMED_IPA_FILE --value "$NEW_BASE_NAME.ipa"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
-                envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
+                envman add --key IPA_DEPLOY_PATH --value "$IPA_DIR/$NEW_BASE_NAME.ipa"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $BINARY_DEPLOY_PATH
-            - is_compress: true
-          title: Deploy iOS Binary
+            - pipeline_intermediate_files: ios/build/output/$RENAMED_IPA_FILE:BITRISE_APP_STORE_IPA_PATH
+            - deploy_path: $IPA_DEPLOY_PATH
+          title: Deploy iOS IPA
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
+          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
           inputs:
             - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
           inputs:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
@@ -1896,18 +1902,6 @@ workflows:
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-    after_run:
-      - _ios_build_template
-  build_ios_simbuild:
-    envs:
-      - IS_SIM_BUILD: 'true'
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'debug'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: 'MetaMask'
-      - INFO_PLIST_NAME: 'Info.plist'
     after_run:
       - _ios_build_template
   build_ios_devbuild:
@@ -2178,7 +2172,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: true
+      MM_NOTIFICATIONS_UI_ENABLED: false
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
