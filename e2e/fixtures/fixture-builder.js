@@ -780,7 +780,6 @@ class FixtureBuilder {
         'eip155:1': { accounts: [] },
         // TODO: [ffmcgee] perhaps these networks can be configured via other methods ? Look into `withGanacheNetwork` and `withSepoliaNetwork`
         'eip155:1337': { accounts: [] },
-        'eip155:11155111': { accounts: [] },
       },
       requiredScopes: {},
       sessionProperties: {},
@@ -851,6 +850,16 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withChainPermission(chainIds = ['0x1']) {
+    const defaultCaip25CaveatValue = {
+      optionalScopes: {
+        'eip155:1': { accounts: [] },
+        // TODO: [ffmcgee] perhaps these networks can be configured via other methods ? Look into `withGanacheNetwork` and `withSepoliaNetwork`
+        'eip155:1337': { accounts: [] },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -860,12 +869,7 @@ class FixtureBuilder {
           {
             type: Caip25CaveatType,
             value: setPermittedEthChainIds(
-              {
-                optionalScopes: {},
-                requiredScopes: {},
-                sessionProperties: {},
-                isMultichainOrigin: false,
-              },
+              defaultCaip25CaveatValue,
               chainIds,
             ),
           },

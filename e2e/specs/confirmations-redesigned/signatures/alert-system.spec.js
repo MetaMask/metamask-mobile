@@ -12,6 +12,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../fixtures/fixture-helper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
+import { getSepoliaPermissions } from '../../../fixtures/utils';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -36,7 +37,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(getSepoliaPermissions())
           .build(),
         restartDevice: true,
         testSpecificMock: {
@@ -71,9 +72,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
       await runTest(testSpecificMock, async () => {
         try {
-          await Assertions.checkIfNotVisible(
-            AlertSystem.securityAlertBanner,
-          );
+          await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log('The banner alert is not visible');
@@ -100,7 +99,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
 
       await runTest(testSpecificMock, async () => {
         await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
-        await Assertions.checkIfVisible(AlertSystem.securityAlertResponseMaliciousBanner);
+        await Assertions.checkIfVisible(
+          AlertSystem.securityAlertResponseMaliciousBanner,
+        );
         // Confirm request
         await FooterActions.tapConfirmButton();
         await Assertions.checkIfVisible(AlertSystem.confirmAlertModal);
@@ -134,9 +135,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfVisible(
-          AlertSystem.securityAlertBanner,
-        );
+        await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
         await Assertions.checkIfVisible(
           AlertSystem.securityAlertResponseFailedBanner,
         );
@@ -151,13 +150,11 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
-            .withPermissionControllerConnectedToTestDapp()
+            .withPermissionControllerConnectedToTestDapp(getSepoliaPermissions())
             .build(),
           restartDevice: true,
           testSpecificMock: {
-            GET: [
-              mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations,
-            ],
+            GET: [mockEvents.GET.remoteFeatureFlagsReDesignedConfirmations],
           },
         },
         async () => {
