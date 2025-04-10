@@ -361,7 +361,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                         >
-                          Connect an account
+                          Requesting for Account 2
                         </Text>
                       </Text>
                     </View>
@@ -373,7 +373,169 @@ exports[`AccountConnect renders correctly 1`] = `
                           "minWidth": "25%",
                         }
                       }
-                    />
+                    >
+                      <View
+                        style={
+                          {
+                            "alignItems": "center",
+                            "flexDirection": "row",
+                          }
+                        }
+                      >
+                        <View
+                          style={
+                            {
+                              "marginLeft": 0,
+                            }
+                          }
+                          testID="avatargroup-avatar-container-0"
+                        >
+                          <View
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
+                            testID="avatargroup-avatar"
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "overflow": "hidden",
+                                  },
+                                  {
+                                    "backgroundColor": "#FC4800",
+                                    "borderRadius": 8,
+                                    "height": 16,
+                                    "width": 16,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <RNSVGSvgView
+                                bbHeight={16}
+                                bbWidth={16}
+                                focusable={false}
+                                height={16}
+                                style={
+                                  [
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderWidth": 0,
+                                    },
+                                    {
+                                      "flex": 0,
+                                      "height": 16,
+                                      "width": 16,
+                                    },
+                                  ]
+                                }
+                                width={16}
+                              >
+                                <RNSVGGroup
+                                  fill={
+                                    {
+                                      "payload": 4278190080,
+                                      "type": 0,
+                                    }
+                                  }
+                                >
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278291575,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.41310442982454204,
+                                        -0.910683660806177,
+                                        0.910683660806177,
+                                        -0.41310442982454204,
+                                        4.404802817153955,
+                                        20.16808402411075,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4278410587,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        0.903335292863301,
+                                        -0.42893513340314526,
+                                        0.42893513340314526,
+                                        0.903335292863301,
+                                        -9.297010789302583,
+                                        3.362634662066926,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                  <RNSVGRect
+                                    fill={
+                                      {
+                                        "payload": 4294382337,
+                                        "type": 0,
+                                      }
+                                    }
+                                    height={16}
+                                    matrix={
+                                      [
+                                        -0.6921431738704069,
+                                        -0.7217602280983622,
+                                        0.7217602280983622,
+                                        -0.6921431738704069,
+                                        -6.169639630140347,
+                                        15.20799235933167,
+                                      ]
+                                    }
+                                    propList={
+                                      [
+                                        "fill",
+                                      ]
+                                    }
+                                    width={16}
+                                    x={0}
+                                    y={0}
+                                  />
+                                </RNSVGGroup>
+                              </RNSVGSvgView>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
                   </View>
                 </View>
                 <View
@@ -515,7 +677,7 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                         >
-                          Requesting for 4 networks
+                          Requesting for Ethereum
                         </Text>
                       </Text>
                     </View>
@@ -543,120 +705,6 @@ exports[`AccountConnect renders correctly 1`] = `
                             }
                           }
                           testID="avatargroup-avatar-container-0"
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#ffffff",
-                                "borderRadius": 8,
-                                "borderWidth": 1.5,
-                                "height": 16,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "width": 16,
-                              }
-                            }
-                            testID="avatargroup-avatar"
-                          >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              testID="network-avatar-image"
-                            />
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "marginLeft": -6,
-                            }
-                          }
-                          testID="avatargroup-avatar-container-1"
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#ffffff",
-                                "borderRadius": 8,
-                                "borderWidth": 1.5,
-                                "height": 16,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "width": 16,
-                              }
-                            }
-                            testID="avatargroup-avatar"
-                          >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              testID="network-avatar-image"
-                            />
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "marginLeft": -6,
-                            }
-                          }
-                          testID="avatargroup-avatar-container-2"
-                        >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "backgroundColor": "#ffffff",
-                                "borderColor": "#ffffff",
-                                "borderRadius": 8,
-                                "borderWidth": 1.5,
-                                "height": 16,
-                                "justifyContent": "center",
-                                "overflow": "hidden",
-                                "width": 16,
-                              }
-                            }
-                            testID="avatargroup-avatar"
-                          >
-                            <Image
-                              onError={[Function]}
-                              resizeMode="contain"
-                              source={1}
-                              style={
-                                {
-                                  "height": 16,
-                                  "width": 16,
-                                }
-                              }
-                              testID="network-avatar-image"
-                            />
-                          </View>
-                        </View>
-                        <View
-                          style={
-                            {
-                              "marginLeft": -6,
-                            }
-                          }
-                          testID="avatargroup-avatar-container-3"
                         >
                           <View
                             style={
@@ -804,8 +852,9 @@ exports[`AccountConnect renders correctly 1`] = `
               <TouchableOpacity
                 accessibilityRole="button"
                 accessible={true}
-                activeOpacity={1}
-                disabled={true}
+                activeOpacity={0.2}
+                disabled={false}
+                onPress={[Function]}
                 style={
                   [
                     [
@@ -827,9 +876,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         },
                       ],
                     ],
-                    {
-                      "opacity": 0.6,
-                    },
+                    null,
                   ]
                 }
                 testID="connect-button"
@@ -843,9 +890,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         "fontWeight": "500",
                         "textAlign": "center",
                       },
-                      {
-                        "color": "#dcdcdc",
-                      },
+                      null,
                       [
                         {
                           "fontFamily": "CentraNo1-Bold",
@@ -858,9 +903,7 @@ exports[`AccountConnect renders correctly 1`] = `
                         },
                         undefined,
                       ],
-                      {
-                        "opacity": 0.6,
-                      },
+                      null,
                     ]
                   }
                 >

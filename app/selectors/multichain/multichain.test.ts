@@ -760,7 +760,11 @@ describe('MultichainNonEvm Selectors', () => {
 
     it('returns empty array when no Solana account is selected', () => {
       const state = getEvmState();
-      expect(selectSolanaAccountTransactions(state)).toEqual([]);
+      expect(selectSolanaAccountTransactions(state)).toEqual({
+        lastUpdated: 0,
+        next: null,
+        transactions: [],
+      });
     });
 
     it('returns empty array when Solana account has no transactions', () => {
@@ -769,7 +773,11 @@ describe('MultichainNonEvm Selectors', () => {
       state.engine.backgroundState.MultichainTransactionsController.nonEvmTransactions =
         {};
 
-      expect(selectSolanaAccountTransactions(state)).toEqual([]);
+      expect(selectSolanaAccountTransactions(state)).toEqual({
+        lastUpdated: 0,
+        next: null,
+        transactions: [],
+      });
     });
   });
 });

@@ -8,7 +8,9 @@ export const testConfig = {};
 /**
  * TODO: Update this condition once we change E2E builds to use release instead of debug
  */
+
 export const isTest = process.env.METAMASK_ENVIRONMENT !== 'production' && process.env.IS_TEST === 'true';
+export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FIXTURE_SERVER_PORT;
