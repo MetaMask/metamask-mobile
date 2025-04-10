@@ -10,9 +10,11 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountCo
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
+  MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -314,5 +316,70 @@ describe('AccountConnect', () => {
     });
     // Verify createEventBuilder was called
     expect(mockCreateEventBuilder).toHaveBeenCalled();
+  });
+
+  it('AccountConnect should not change origin if browser URL changes', () => {
+    // Setup a mock store with browser tabs
+    const originalURL = 'https://dapp-requesting-connection.com'
+    const parsedOriginalURL = new URL(originalURL);
+    const mockState = {
+      browser: {
+        activeTab: 1,
+        tabs: [
+          { id: 1, url: originalURL }
+        ]
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        },
+      },
+    };
+
+    // Create a function for rendering that we can use in our test
+
+    const renderComponent = () => renderWithProvider(
+      <AccountConnect
+        route={{
+          params: {
+            hostInfo: {
+              metadata: {
+                id: 'mockId',
+                origin: originalURL,
+              },
+              permissions: {
+                eth_accounts: { parentCapability: 'eth_accounts' },
+              },
+            },
+            permissionRequestId: 'test-id',
+          },
+        }}
+      />,
+      { state: mockState }
+    );
+  
+    // Execute the render function (may succeed or fail)
+    let result = renderComponent();
+  
+    // check that component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    const permissionsRequestOriginWrap = result.getByTestId(PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER);
+    // check if this wrap component includes the original URL
+    expect(permissionsRequestOriginWrap).toBeDefined();
+    // get inner text of permissionsRequestOriginWrap and check for original URL
+    const permissionsRequestOriginText = permissionsRequestOriginWrap.children[0].children[0].props.children;
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+  
+    // now change the mockState to have a different active tab URL
+    const newURL = 'https://different-site.com';
+    mockState.browser.tabs[0].url = newURL;
+    // re-render the component
+    result = renderComponent();
+    // check that the component with testID 'permission-network-permissions-container' is rendered
+    // with the correct origin
+    expect(result.getByTestId(PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER)).toBeDefined();
+    expect(permissionsRequestOriginText).toContain(parsedOriginalURL.hostname);
+    expect(permissionsRequestOriginText).not.toContain(new URL(newURL).hostname);
   });
 });
