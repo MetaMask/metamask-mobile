@@ -52,6 +52,7 @@ import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
 import { getPermittedAccountsByHostname } from '../../../core/Permissions';
+import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
   selectIsIpfsGatewayEnabled,
@@ -74,7 +75,10 @@ import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAs
 import { selectPermissionControllerState } from '../../../selectors/snaps/permissionController';
 import { isTest } from '../../../util/test/utils.js';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useNavigation } from '@react-navigation/native';
+import { PermissionKeys } from '../../../core/Permissions/specifications';
+import { CaveatTypes } from '../../../core/Permissions/constants';
+import { AccountPermissionsScreens } from '../AccountPermissions/AccountPermissions.types';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import { type RootState } from '../../../reducers';
@@ -116,6 +120,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   addToWhitelist: triggerAddToWhitelist,
   showTabs,
   linkType,
+  isInTabsView,
   wizardStep,
   updateTabInfo,
   addToBrowserHistory,
@@ -199,6 +204,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * whitelisted url to bypass the phishing detection
    */
   const whitelist = useSelector((state: RootState) => state.browser.whitelist);
+
+  const isFocused = useIsFocused();
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -593,6 +600,57 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     ],
   );
 
+  const checkTabPermissions = useCallback(() => {
+    if (!(isFocused && !isInTabsView && isTabActive)) {
+      return;
+    }
+    if (!resolvedUrlRef.current) return;
+    const hostname = new URLParse(resolvedUrlRef.current).hostname;
+    const permissionsControllerState =
+      Engine.context.PermissionController.state;
+    const permittedAccounts = getPermittedAccountsByHostname(
+      permissionsControllerState,
+      hostname,
+    );
+
+    const isConnected = permittedAccounts.length > 0;
+
+    if (isConnected) {
+      let permittedChains = [];
+      try {
+        const caveat = Engine.context.PermissionController.getCaveat(
+          hostname,
+          PermissionKeys.permittedChains,
+          CaveatTypes.restrictNetworkSwitching,
+        );
+        permittedChains = Array.isArray(caveat?.value) ? caveat.value : [];
+
+        const currentChainId = activeChainId;
+        const isCurrentChainIdAlreadyPermitted =
+          permittedChains.includes(currentChainId);
+
+        if (!isCurrentChainIdAlreadyPermitted) {
+          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+            screen: Routes.SHEET.ACCOUNT_PERMISSIONS,
+            params: {
+              isNonDappNetworkSwitch: true,
+              hostInfo: {
+                metadata: {
+                  origin: hostname,
+                },
+              },
+              isRenderedAsBottomSheet: true,
+              initialScreen: AccountPermissionsScreens.Connected,
+            },
+          });
+        }
+      } catch (e) {
+        const checkTabPermissionsError = e as Error;
+        Logger.error(checkTabPermissionsError, 'Error in checkTabPermissions');
+      }
+    }
+  }, [activeChainId, navigation, isFocused, isInTabsView, isTabActive]);
+
   /**
    * Handles state changes for when the url changes
    */
@@ -626,17 +684,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        tabId,
-        {
-          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        },
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
         url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
       });
+
+      checkTabPermissions();
     },
     [
       isUrlBarFocused,
@@ -646,6 +703,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       updateTabInfo,
       addToBrowserHistory,
       navigation,
+      checkTabPermissions,
     ],
   );
 
@@ -952,6 +1010,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     () => linkType === EXTERNAL_LINK_TYPE,
     [linkType],
   );
+
+  useEffect(() => {
+    checkTabPermissions();
+  }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
 
   const handleEnsUrl = useCallback(
     async (ens: string) => {
