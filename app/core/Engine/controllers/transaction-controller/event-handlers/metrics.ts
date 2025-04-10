@@ -122,21 +122,5 @@ export async function handleTransactionFinalizedEventForMetrics(
 
   const event = generateEvent(mergedEventProperties);
 
-  console.log('Transaction Finalized Event Properties:', JSON.stringify(event.properties, null, 2));
-  console.log('Is feature flag enabled:', isTxHashFeatureFlagEnabled);
-  console.log('Is metrics opted in:', isMetricsOptedIn);
-  console.log('Transaction hash:', transactionMeta.hash);
-  console.log('Enhanced Event Properties:', JSON.stringify(enhancedProperties, null, 2));
-
-  console.log('Transaction Finalized Analytics Payload:', JSON.stringify({
-    // Debug info
-    isTxHashFeatureFlagEnabled,
-    isMetricsOptedIn,
-
-    // Full properties
-    enhancedProperties,
-    mergedEventProperties
-  }));
-
   metaMetricsInstance.trackEvent(event); // Reuse existing reference
 }
