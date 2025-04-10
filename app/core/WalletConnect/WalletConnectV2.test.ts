@@ -838,7 +838,7 @@ describe('WC2Manager', () => {
       jest.clearAllMocks();
     });
 
-    it('handles session delete event for a deeplink session', async () => {
+    it('processes delete event for deeplink session', async () => {
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
