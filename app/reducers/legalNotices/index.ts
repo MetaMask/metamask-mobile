@@ -3,10 +3,6 @@ import { Action } from 'redux';
 import ACTIONS from './types';
 import { selectRemoteFeatureFlags } from '../../selectors/featureFlagController';
 
-// const currentDate = new Date(Date.now());
-// const newPrivacyPolicyDate = new Date('2024-06-18T12:00:00Z');
-// export const isPastPrivacyPolicyDate = currentDate >= newPrivacyPolicyDate;
-
 const initialState = {
   newPrivacyPolicyToastClickedOrClosed: false,
   newPrivacyPolicyToastShownDate: null,
@@ -24,10 +20,15 @@ export const storePrivacyPolicyClickedOrClosed = () => ({
 // New selector for privacy policy feature flag
 export const selectPrivacyPolicyUpdateFeatureFlag = (state: RootState): string => {
   const remoteFeatureFlags = selectRemoteFeatureFlags(state);
-  return String(remoteFeatureFlags?.transactionsPrivacyPolicyUpdate || '');
+  const policyValue = String(remoteFeatureFlags?.transactionsPrivacyPolicyUpdate || '');
+
+  if (policyValue === 'active_update') {
+    return '2025-04-01T12:00:00Z'; // A date in the past
+  }
+
+  return policyValue;
 };
 
-// Updated selector to use feature flag
 export const shouldShowNewPrivacyToastSelector = (state: RootState): boolean => {
   const {
     newPrivacyPolicyToastShownDate,

@@ -161,5 +161,8 @@ export interface IDeleteRegulationStatus {
 
 export interface TransactionEventProperties extends JsonMap {
   transaction_hash?: string;
-  // Add any other transaction-specific properties here
+  user_id?: string;
+  chain_id?: string;
+  transaction_type?: string;
+  dapp_url?: string;
 }
