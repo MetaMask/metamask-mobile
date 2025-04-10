@@ -36,8 +36,8 @@ function getAspectRatio(viewBox?: string) {
   }
 
   const viewBoxElements = viewBox.split(' ');
-  const originalHeight = viewBoxElements[2];
-  const originalWidth = viewBoxElements[3];
+  const originalWidth = viewBoxElements[2];
+  const originalHeight = viewBoxElements[3];
 
   if (!originalHeight || !originalWidth) {
     return null;

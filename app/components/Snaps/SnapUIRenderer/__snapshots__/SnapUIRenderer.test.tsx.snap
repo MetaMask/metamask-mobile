@@ -1682,7 +1682,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         vbHeight={32}
                         vbWidth={32}
                         width="100%"
-                        xml="<svg viewBox="0 0 32 32" />"
+                        xml="<svg height="32" width="32" />"
                       >
                         <RNSVGGroup
                           fill={
