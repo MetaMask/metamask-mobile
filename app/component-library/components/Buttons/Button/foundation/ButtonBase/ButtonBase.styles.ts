@@ -43,7 +43,6 @@ const styleSheet = (params: {
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: isAutoSize ? 0 : 12,
-        // borderRadius: isAutoSize ? 0 : Number(size) / 2,
         paddingHorizontal: isAutoSize ? 0 : 16,
         ...(isDisabled && { opacity: 0.5 }),
         ...widthObject,
