@@ -1621,14 +1621,17 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   testID="textfield-startacccessory"
                 >
                   <View
+                    color="Default"
+                    flexDirection="column"
+                    gap={8}
+                    justifyContent="flex-start"
                     style={
                       [
                         {
-                          "aspectRatio": 1,
-                          "borderRadius": 0,
-                          "height": undefined,
-                          "overflow": "hidden",
-                          "width": undefined,
+                          "color": "Default",
+                          "flexDirection": "column",
+                          "gap": 8,
+                          "justifyContent": "flex-start",
                         },
                         {
                           "padding": 0,
@@ -1636,40 +1639,61 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                       ]
                     }
                   >
-                    <RNSVGSvgView
-                      bbHeight="100%"
-                      bbWidth="100%"
-                      focusable={false}
-                      height="100%"
+                    <View
                       style={
                         [
                           {
-                            "backgroundColor": "transparent",
-                            "borderWidth": 0,
+                            "aspectRatio": 1,
+                            "borderRadius": 0,
+                            "height": undefined,
+                            "overflow": "hidden",
+                            "width": undefined,
                           },
-                          {
-                            "flex": 1,
-                          },
-                          {
-                            "flex": 0,
-                            "height": "100%",
-                            "width": "100%",
-                          },
+                          undefined,
                         ]
                       }
-                      testID="snaps-ui-image"
-                      width="100%"
-                      xml="<svg />"
                     >
-                      <RNSVGGroup
-                        fill={
-                          {
-                            "payload": 4278190080,
-                            "type": 0,
-                          }
+                      <RNSVGSvgView
+                        align="xMidYMid"
+                        bbHeight="100%"
+                        bbWidth="100%"
+                        focusable={false}
+                        height="100%"
+                        meetOrSlice={0}
+                        minX={0}
+                        minY={0}
+                        style={
+                          [
+                            {
+                              "backgroundColor": "transparent",
+                              "borderWidth": 0,
+                            },
+                            {
+                              "flex": 1,
+                            },
+                            {
+                              "flex": 0,
+                              "height": "100%",
+                              "width": "100%",
+                            },
+                          ]
                         }
-                      />
-                    </RNSVGSvgView>
+                        testID="snaps-ui-image"
+                        vbHeight={32}
+                        vbWidth={32}
+                        width="100%"
+                        xml="<svg viewBox="0 0 32 32" />"
+                      >
+                        <RNSVGGroup
+                          fill={
+                            {
+                              "payload": 4278190080,
+                              "type": 0,
+                            }
+                          }
+                        />
+                      </RNSVGSvgView>
+                    </View>
                   </View>
                 </View>
                 <View

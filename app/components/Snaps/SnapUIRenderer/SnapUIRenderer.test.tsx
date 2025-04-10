@@ -540,7 +540,7 @@ describe('SnapUIRenderer', () => {
             Field({
               label: 'My Input',
               children: [
-                ImageComponent({ src: '<svg />' }),
+                Box({ children: [ImageComponent({ src: '<svg viewBox="0 0 32 32" />' })]}),
                 Input({ name: 'input' }),
                 Button({ type: 'submit', name: 'submit', children: 'Submit' }),
               ],
