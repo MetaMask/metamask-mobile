@@ -316,7 +316,11 @@ describe('useTokensWithBalance', () => {
     );
 
     await waitFor(() => {
-      const nativeToken = result.current.find(token => token.address === constants.AddressZero && token.chainId === mockChainId);
+      const nativeToken = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === mockChainId,
+      );
       expect(nativeToken).toMatchObject({
         address: constants.AddressZero,
         symbol: 'ETH',
@@ -363,7 +367,11 @@ describe('useTokensWithBalance', () => {
       });
 
       // Optimism chain tokens
-      const optimismNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === optimismChainId);
+      const optimismNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === optimismChainId,
+      );
       expect(optimismNative).toMatchObject({
         address: constants.AddressZero,
         symbol: 'ETH',
@@ -399,17 +407,25 @@ describe('useTokensWithBalance', () => {
 
     await waitFor(() => {
       // Ethereum tokens should be present
-      const ethereumNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === mockChainId);
-      const token1 = result.current.find(t => t.address === token1Address);
-      const token2 = result.current.find(t => t.address === token2Address);
+      const ethereumNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === mockChainId,
+      );
+      const token1 = result.current.find((t) => t.address === token1Address);
+      const token2 = result.current.find((t) => t.address === token2Address);
 
       expect(ethereumNative).toBeTruthy();
       expect(token1).toBeTruthy();
       expect(token2).toBeTruthy();
 
       // Optimism tokens should not be present
-      const optimismNative = result.current.find(token => token.address === constants.AddressZero && token.chainId === optimismChainId);
-      const token3 = result.current.find(t => t.address === token3Address);
+      const optimismNative = result.current.find(
+        (token) =>
+          token.address === constants.AddressZero &&
+          token.chainId === optimismChainId,
+      );
+      const token3 = result.current.find((t) => t.address === token3Address);
 
       expect(optimismNative).toBeUndefined();
       expect(token3).toBeUndefined();

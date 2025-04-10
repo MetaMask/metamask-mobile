@@ -42,6 +42,7 @@ exports[`AddCustomToken render matches previous snapshot 1`] = `
         >
           <Text
             allowFontScaling={false}
+            selectable={false}
             style={
               [
                 {

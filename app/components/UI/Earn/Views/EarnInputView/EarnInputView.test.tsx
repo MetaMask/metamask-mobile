@@ -485,7 +485,7 @@ describe('StakeInputView', () => {
 
         fireEvent.press(getByText(strings('stake.review')));
 
-        jest.useRealTimers();
+        jest.useFakeTimers({ legacyFakeTimers: true });
         // Wait for approval to be processed
         await flushPromises();
 

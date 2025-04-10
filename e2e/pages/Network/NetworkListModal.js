@@ -76,6 +76,7 @@ class NetworkListModal {
 
   async scrollToBottomOfNetworkList() {
     await Gestures.swipe(this.networkScroll, 'up', 'fast');
+    await TestHelpers.delay(3000);
   }
 
   async swipeToDismissModal() {

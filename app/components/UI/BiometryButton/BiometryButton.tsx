@@ -39,7 +39,7 @@ const BiometryButton = ({
             color={colors.text.default}
             size={28}
             style={styles.fixCenterIcon}
-            name="ios-finger-print"
+            name="finger-print"
             testID={LoginViewSelectors.IOS_TOUCH_ID_ICON}
           />
         );
@@ -49,7 +49,7 @@ const BiometryButton = ({
             color={colors.text.default}
             size={28}
             style={styles.fixCenterIcon}
-            name="ios-lock"
+            name="lock"
             testID={LoginViewSelectors.IOS_PASSCODE_ICON}
           />
         );
@@ -108,7 +108,7 @@ const BiometryButton = ({
         color={colors.text.default}
         style={styles.fixCenterIcon}
         size={28}
-        name="ios-finger-print"
+        name="finger-print"
         testID={LoginViewSelectors.FALLBACK_FINGERPRINT_ICON}
       />
     );

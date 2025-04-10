@@ -66,7 +66,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
       pagingEnabled={true}
       removeClippedSubviews={false}
       renderItem={[Function]}
-      scrollEventThrottle={50}
+      scrollEventThrottle={0.0001}
       showsHorizontalScrollIndicator={false}
       stickyHeaderIndices={[]}
       viewabilityConfigCallbackPairs={[]}
@@ -567,7 +567,7 @@ exports[`Carousel should render correctly 1`] = `
       pagingEnabled={true}
       removeClippedSubviews={false}
       renderItem={[Function]}
-      scrollEventThrottle={50}
+      scrollEventThrottle={0.0001}
       showsHorizontalScrollIndicator={false}
       stickyHeaderIndices={[]}
       viewabilityConfigCallbackPairs={[]}
@@ -739,6 +739,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -755,7 +756,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1079,6 +1080,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -1095,7 +1097,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1267,6 +1269,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -1283,7 +1286,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>

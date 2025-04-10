@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 // TODO: Remove legacy import
-import { Reason, SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import {
+  Reason,
+  SecurityAlertResponse,
+} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
 import { AlertKeys } from '../../constants/alerts';
 import { Alert, AlertSeverity, Severity } from '../../types/alerts';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
@@ -18,9 +21,7 @@ const IGNORED_RESULT_TYPES = [
   BlockaidResultType.RequestInProgress,
 ];
 
-function getBlockaidAlertSeverity(
-  severity: BlockaidResultType,
-): AlertSeverity {
+function getBlockaidAlertSeverity(severity: BlockaidResultType): AlertSeverity {
   switch (severity) {
     case BlockaidResultType.Malicious:
       return Severity.Danger;
@@ -114,7 +115,9 @@ export default function useBlockaidAlerts(): Alert[] {
         content: (
           <BlockaidAlertContent
             alertDetails={features}
-            securityAlertResponse={securityAlertResponse as SecurityAlertResponse}
+            securityAlertResponse={
+              securityAlertResponse as SecurityAlertResponse
+            }
             onContactUsClicked={onContactUsClicked}
           />
         ),

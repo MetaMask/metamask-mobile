@@ -37,7 +37,9 @@ describe('selectProductSafetyDappScanningEnabled', () => {
 
     // Test with remote flag undefined
     const mockStateUndefined = createMockState({});
-    expect(selectProductSafetyDappScanningEnabled(mockStateUndefined)).toBe(false);
+    expect(selectProductSafetyDappScanningEnabled(mockStateUndefined)).toBe(
+      false,
+    );
   });
 
   it('should ignore environment variables and always return false', () => {

@@ -27,7 +27,8 @@ import { ResultType } from '../../../constants/signatures';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
-  const { alerts, fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } = useAlerts();
+  const { alerts, fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } =
+    useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();

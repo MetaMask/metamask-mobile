@@ -103,7 +103,7 @@ describe('checkPermissions', () => {
   });
 
   afterAll(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should return true if permitted accounts exist', async () => {
@@ -125,13 +125,15 @@ describe('checkPermissions', () => {
     mockGetPermittedAccounts.mockResolvedValue([]);
     permissionController.getPermission = jest.fn().mockReturnValue(null);
     requestPermissions.mockResolvedValue({});
-    mockGetPermittedAccounts.mockResolvedValueOnce([]).mockResolvedValueOnce(['0x123']);
+    mockGetPermittedAccounts
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce(['0x123']);
 
     const result = await checkPermissions({ connection, engine });
     expect(requestPermissions).toHaveBeenCalledWith(
       { origin: connection.channelId },
       { eth_accounts: {} },
-      { preserveExistingPermissions: false }
+      { preserveExistingPermissions: false },
     );
     expect(result).toBe(true);
   });

@@ -1,4 +1,9 @@
-import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToHex } from '@metamask/bridge-controller';
+import {
+  BRIDGE_PROD_API_BASE_URL,
+  BridgeClientId,
+  fetchBridgeTokens,
+  formatChainIdToHex,
+} from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { Hex } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
@@ -13,15 +18,23 @@ interface UseTopTokensProps {
   chainId?: Hex;
 }
 
-export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: BridgeToken[] | undefined, pending: boolean } => {
-  const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
+export const useTopTokens = ({
+  chainId,
+}: UseTopTokensProps): {
+  topTokens: BridgeToken[] | undefined;
+  pending: boolean;
+} => {
+  const swapsChainCache: SwapsControllerState['chainCache'] =
+    useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
     [chainId, swapsChainCache],
   );
   const swapsTopAssetsPending = !swapsTopAssets;
 
-  const cachedBridgeTokens = useRef<Record<string, Record<string, BridgeToken>>>({});
+  const cachedBridgeTokens = useRef<
+    Record<string, Record<string, BridgeToken>>
+  >({});
 
   // Get the top assets from the Swaps API
   useEffect(() => {
@@ -35,53 +48,51 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
           });
         }
       } catch (error: unknown) {
-        Logger.error(
-          error as Error,
-          'Swaps: Error while fetching top assets',
-        );
+        Logger.error(error as Error, 'Swaps: Error while fetching top assets');
       }
     })();
   }, [chainId]);
 
   // Get the token data from the bridge API
-  const { value: bridgeTokens, pending: bridgeTokensPending } = useAsyncResult(async () => {
-    if (!chainId) {
-      return {};
-    }
+  const { value: bridgeTokens, pending: bridgeTokensPending } =
+    useAsyncResult(async () => {
+      if (!chainId) {
+        return {};
+      }
 
-    if (cachedBridgeTokens.current[chainId]) {
-      return cachedBridgeTokens.current[chainId];
-    }
+      if (cachedBridgeTokens.current[chainId]) {
+        return cachedBridgeTokens.current[chainId];
+      }
 
-    const rawBridgeAssets = await fetchBridgeTokens(
-      chainId,
-      BridgeClientId.MOBILE,
-      handleFetch,
-      BRIDGE_PROD_API_BASE_URL,
-    );
+      const rawBridgeAssets = await fetchBridgeTokens(
+        chainId,
+        BridgeClientId.MOBILE,
+        handleFetch,
+        BRIDGE_PROD_API_BASE_URL,
+      );
 
-    // Convert from BridgeAsset to BridgeToken
-    const bridgeTokenObj: Record<string, BridgeToken> = {};
-    Object.keys(rawBridgeAssets).forEach((key) => {
-      const bridgeAsset = rawBridgeAssets[key];
+      // Convert from BridgeAsset to BridgeToken
+      const bridgeTokenObj: Record<string, BridgeToken> = {};
+      Object.keys(rawBridgeAssets).forEach((key) => {
+        const bridgeAsset = rawBridgeAssets[key];
 
-      bridgeTokenObj[key] = {
-        address: bridgeAsset.address,
-        symbol: bridgeAsset.symbol,
-        name: bridgeAsset.name,
-        image: bridgeAsset.iconUrl || bridgeAsset.icon,
-        decimals: bridgeAsset.decimals,
-        chainId: formatChainIdToHex(bridgeAsset.chainId), // TODO handle solana properly
+        bridgeTokenObj[key] = {
+          address: bridgeAsset.address,
+          symbol: bridgeAsset.symbol,
+          name: bridgeAsset.name,
+          image: bridgeAsset.iconUrl || bridgeAsset.icon,
+          decimals: bridgeAsset.decimals,
+          chainId: formatChainIdToHex(bridgeAsset.chainId), // TODO handle solana properly
+        };
+      });
+
+      cachedBridgeTokens.current = {
+        ...cachedBridgeTokens.current,
+        [chainId]: bridgeTokenObj,
       };
-    });
 
-    cachedBridgeTokens.current = {
-      ...cachedBridgeTokens.current,
-      [chainId]: bridgeTokenObj,
-    };
-
-    return bridgeTokenObj;
-  }, [chainId]);
+      return bridgeTokenObj;
+    }, [chainId]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const topTokens = useMemo(() => {
@@ -89,16 +100,21 @@ export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: Bridg
       return [];
     }
 
-    const top = swapsTopAssets.map((asset) => {
-      const candidateBridgeToken = bridgeTokens[asset.address.toLowerCase()]
-        || bridgeTokens[toChecksumHexAddress(asset.address)];
+    const top = swapsTopAssets
+      .map((asset) => {
+        const candidateBridgeToken =
+          bridgeTokens[asset.address.toLowerCase()] ||
+          bridgeTokens[toChecksumHexAddress(asset.address)];
 
-      return candidateBridgeToken;
-    })
-    .filter(Boolean) as BridgeToken[];
+        return candidateBridgeToken;
+      })
+      .filter(Boolean) as BridgeToken[];
 
     return top;
   }, [bridgeTokens, swapsTopAssets]);
 
-  return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
+  return {
+    topTokens,
+    pending: chainId ? bridgeTokensPending || swapsTopAssetsPending : false,
+  };
 };

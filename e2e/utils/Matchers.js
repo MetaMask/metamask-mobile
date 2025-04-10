@@ -101,6 +101,7 @@ class Matchers {
    */
   static async getElementByWebID(webviewID, innerID) {
     const myWebView = this.getWebViewByID(webviewID);
+
     return myWebView.element(by.web.id(innerID));
   }
 
@@ -153,7 +154,6 @@ class Matchers {
   static async getIdentifier(selectorString) {
     return by.id(selectorString);
   }
-
 
   /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text.

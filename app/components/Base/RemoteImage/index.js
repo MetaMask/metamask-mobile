@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Image,
-  ViewPropTypes,
   View,
   StyleSheet,
   Dimensions,
@@ -42,6 +41,8 @@ import {
   PopularList,
   UnpopularNetworkList,
 } from '../../../util/networks/customNetworks';
+
+import { ViewPropTypes } from 'deprecated-react-native-prop-types';
 
 const createStyles = () =>
   StyleSheet.create({

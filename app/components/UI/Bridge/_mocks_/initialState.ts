@@ -1,16 +1,22 @@
 import { Hex } from '@metamask/utils';
-import { formatChainIdToCaip , BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  BridgeFeatureFlagsKey,
+} from '@metamask/bridge-controller';
 
 const ethChainId = '0x1' as Hex;
 const optimismChainId = '0xa' as Hex;
 const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
 
 // Ethereum tokens
-export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
-export const ethToken2Address = '0x0000000000000000000000000000000000000002' as Hex;
+export const ethToken1Address =
+  '0x0000000000000000000000000000000000000001' as Hex;
+export const ethToken2Address =
+  '0x0000000000000000000000000000000000000002' as Hex;
 
 // Optimism tokens
-export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
+export const optimismToken1Address =
+  '0x0000000000000000000000000000000000000003' as Hex;
 
 export const initialState = {
   engine: {
@@ -19,8 +25,14 @@ export const initialState = {
         bridgeFeatureFlags: {
           [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
             chains: {
-              [formatChainIdToCaip(ethChainId)]: { isActiveSrc: true, isActiveDest: true },
-              [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
+              [formatChainIdToCaip(ethChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
+              [formatChainIdToCaip(optimismChainId)]: {
+                isActiveSrc: true,
+                isActiveDest: true,
+              },
             },
           },
         },

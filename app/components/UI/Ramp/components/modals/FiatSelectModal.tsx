@@ -168,7 +168,7 @@ function FiatSelectModal({
           >
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={styles.inputWrapper}>
-                <Icon name="ios-search" size={20} style={styles.searchIcon} />
+                <Icon name="search" size={20} style={styles.searchIcon} />
                 <TextInput
                   ref={searchInput}
                   style={styles.input}
@@ -182,7 +182,7 @@ function FiatSelectModal({
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>
                     <Icon
-                      name="ios-close-circle"
+                      name="close-circle"
                       size={20}
                       style={styles.searchIcon}
                       color={colors.icon.alternative}

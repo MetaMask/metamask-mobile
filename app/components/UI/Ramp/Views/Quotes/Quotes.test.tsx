@@ -185,7 +185,7 @@ jest.mock('../../hooks/useQuotesAndCustomActions', () =>
 describe('Quotes', () => {
   afterEach(() => {
     jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   beforeEach(() => {
@@ -231,7 +231,7 @@ describe('Quotes', () => {
           ?.length,
     });
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -249,12 +249,12 @@ describe('Quotes', () => {
           ?.length,
     });
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
   it('renders animation on first fetching', async () => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
     mockUseQuotesAndCustomActionsValues = {
       ...mockUseQuotesAndCustomActionsInitialValues,
       isFetching: true,
@@ -283,7 +283,7 @@ describe('Quotes', () => {
     expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('No providers available')).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -295,7 +295,7 @@ describe('Quotes', () => {
     });
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -331,7 +331,7 @@ describe('Quotes', () => {
     `);
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -391,7 +391,7 @@ describe('Quotes', () => {
     act(() => {
       jest.advanceTimersByTime(3000);
       jest.clearAllTimers();
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
@@ -451,7 +451,7 @@ describe('Quotes', () => {
       act(() => {
         jest.advanceTimersByTime(3000);
         jest.clearAllTimers();
-        jest.useRealTimers();
+        jest.useFakeTimers({ legacyFakeTimers: true });
       });
 
       const customActionToSelect = screen.getByLabelText(
@@ -482,7 +482,7 @@ describe('Quotes', () => {
       });
       expect(screen.toJSON()).toMatchSnapshot();
       act(() => {
-        jest.useRealTimers();
+        jest.useFakeTimers({ legacyFakeTimers: true });
       });
     });
 
@@ -797,7 +797,7 @@ describe('Quotes', () => {
     expect(description).toBeTruthy();
 
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -809,7 +809,7 @@ describe('Quotes', () => {
     });
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -821,7 +821,7 @@ describe('Quotes', () => {
     });
     expect(screen.getByText('Quotes expire in', { exact: false })).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -839,7 +839,7 @@ describe('Quotes', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Get new quotes' }));
     expect(mockQueryGetQuotes).toHaveBeenCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -887,7 +887,7 @@ describe('Quotes', () => {
       ]
     `);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -938,7 +938,7 @@ describe('Quotes', () => {
       ]
     `);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -951,7 +951,7 @@ describe('Quotes', () => {
     expect(screen.toJSON()).toMatchSnapshot();
     expect(screen.getByText('Example SDK Error')).toBeTruthy();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -966,7 +966,7 @@ describe('Quotes', () => {
     );
     expect(mockPop).toBeCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -978,7 +978,7 @@ describe('Quotes', () => {
     render(Quotes);
     expect(screen.toJSON()).toMatchSnapshot();
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 
@@ -991,7 +991,7 @@ describe('Quotes', () => {
     fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
     expect(mockQueryGetQuotes).toBeCalledTimes(1);
     act(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
   });
 });

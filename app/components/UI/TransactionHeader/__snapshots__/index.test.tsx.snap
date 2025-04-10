@@ -88,6 +88,7 @@ exports[`TransactionHeader render correctly 1`] = `
   >
     <Text
       allowFontScaling={false}
+      selectable={false}
       style={
         [
           {

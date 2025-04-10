@@ -66,6 +66,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -82,7 +83,7 @@ exports[`BaseNotification gets icon correctly for each status 1`] = `
                 ]
               }
             >
-              
+              󰝲
             </Text>
           </View>
         </View>
@@ -261,6 +262,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -277,7 +279,7 @@ exports[`BaseNotification gets icon correctly for each status 2`] = `
                 ]
               }
             >
-              
+              󰝲
             </Text>
           </View>
         </View>
@@ -456,6 +458,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
           >
             <Text
               allowFontScaling={false}
+              selectable={false}
               style={
                 [
                   {
@@ -472,7 +475,7 @@ exports[`BaseNotification gets icon correctly for each status 3`] = `
                 ]
               }
             >
-              
+              󰝲
             </Text>
           </View>
         </View>
@@ -623,6 +626,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -639,7 +643,7 @@ exports[`BaseNotification gets icon correctly for each status 4`] = `
             ]
           }
         >
-          
+          ?
         </Text>
       </View>
       <View
@@ -788,6 +792,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -804,7 +809,7 @@ exports[`BaseNotification gets icon correctly for each status 5`] = `
             ]
           }
         >
-          
+          ?
         </Text>
       </View>
       <View
@@ -953,6 +958,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -969,7 +975,7 @@ exports[`BaseNotification gets icon correctly for each status 6`] = `
             ]
           }
         >
-          
+          ?
         </Text>
       </View>
       <View
@@ -1118,6 +1124,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1134,7 +1141,7 @@ exports[`BaseNotification gets icon correctly for each status 7`] = `
             ]
           }
         >
-          
+          ?
         </Text>
       </View>
       <View
@@ -1283,6 +1290,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1299,7 +1307,7 @@ exports[`BaseNotification gets icon correctly for each status 8`] = `
             ]
           }
         >
-          
+          ?
         </Text>
       </View>
       <View
@@ -1448,6 +1456,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1464,7 +1473,7 @@ exports[`BaseNotification gets icon correctly for each status 9`] = `
             ]
           }
         >
-          
+          󰗖
         </Text>
       </View>
       <View
@@ -1613,6 +1622,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -1629,7 +1639,7 @@ exports[`BaseNotification gets icon correctly for each status 10`] = `
             ]
           }
         >
-          
+          󰗖
         </Text>
       </View>
       <View

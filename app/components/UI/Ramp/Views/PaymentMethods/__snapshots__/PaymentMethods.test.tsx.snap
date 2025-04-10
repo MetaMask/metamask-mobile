@@ -267,7 +267,13 @@ exports[`PaymentMethods View renders correctly 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -275,6 +281,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -540,6 +547,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -558,7 +566,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                   ]
                                                 }
                                               >
-                                                
+                                                󰁰
                                               </Text>
                                             </View>
                                           </View>
@@ -672,6 +680,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -688,7 +697,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -825,6 +834,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -972,6 +982,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -988,7 +999,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -1127,6 +1138,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -1274,6 +1286,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -1290,7 +1303,7 @@ exports[`PaymentMethods View renders correctly 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             5 - 10 mins
@@ -1714,7 +1727,13 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -1722,6 +1741,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -1987,6 +2007,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -2005,7 +2026,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                   ]
                                                 }
                                               >
-                                                
+                                                󰁰
                                               </Text>
                                             </View>
                                           </View>
@@ -2119,6 +2140,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -2135,7 +2157,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -2272,6 +2294,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -2419,6 +2442,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -2435,7 +2459,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -2574,6 +2598,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -2721,6 +2746,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -2737,7 +2763,7 @@ exports[`PaymentMethods View renders correctly for sell 1`] = `
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             5 - 10 mins
@@ -3161,7 +3187,13 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -3169,6 +3201,7 @@ exports[`PaymentMethods View renders correctly while loading 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4386,7 +4419,13 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -4394,6 +4433,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -4594,6 +4634,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -4619,7 +4660,7 @@ exports[`PaymentMethods View renders correctly with empty data 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰋽
                                 </Text>
                               </View>
                               <View
@@ -5044,7 +5085,13 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5052,6 +5099,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5252,6 +5300,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -5277,7 +5326,7 @@ exports[`PaymentMethods View renders correctly with empty data for sell 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰋽
                                 </Text>
                               </View>
                               <View
@@ -5702,7 +5751,13 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -5710,6 +5765,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -5910,6 +5966,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -5935,7 +5992,7 @@ exports[`PaymentMethods View renders correctly with error 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -6358,7 +6415,13 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -6366,6 +6429,7 @@ exports[`PaymentMethods View renders correctly with null data 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7583,7 +7647,13 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -7591,6 +7661,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -7856,6 +7927,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -7874,7 +7946,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                   ]
                                                 }
                                               >
-                                                
+                                                󰁰
                                               </Text>
                                             </View>
                                           </View>
@@ -7988,6 +8060,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -8004,7 +8077,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -8141,6 +8214,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -8288,6 +8362,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -8304,7 +8379,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -8443,6 +8518,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -8590,6 +8666,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -8606,7 +8683,7 @@ exports[`PaymentMethods View renders correctly with payment method with disclaim
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             5 - 10 mins
@@ -9088,7 +9165,13 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -9096,6 +9179,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -9296,6 +9380,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                               >
                                 <Text
                                   allowFontScaling={false}
+                                  selectable={false}
                                   style={
                                     [
                                       {
@@ -9321,7 +9406,7 @@ exports[`PaymentMethods View renders correctly with sdkError 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  󰅚
                                 </Text>
                               </View>
                               <View
@@ -9721,7 +9806,13 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -9729,6 +9820,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >
@@ -9994,6 +10086,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -10012,7 +10105,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                   ]
                                                 }
                                               >
-                                                
+                                                󰁰
                                               </Text>
                                             </View>
                                           </View>
@@ -10126,6 +10219,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -10142,7 +10236,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -10279,6 +10373,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -10426,6 +10521,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -10442,7 +10538,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             Instant
@@ -10581,6 +10677,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                             >
                                               <Text
                                                 allowFontScaling={false}
+                                                selectable={false}
                                                 style={
                                                   [
                                                     {
@@ -10728,6 +10825,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                           >
                                             <Text
                                               allowFontScaling={false}
+                                              selectable={false}
                                               style={
                                                 [
                                                   {
@@ -10744,7 +10842,7 @@ exports[`PaymentMethods View renders correctly with show back button false 1`] =
                                                 ]
                                               }
                                             >
-                                              
+                                              
                                             </Text>
                                              
                                             5 - 10 mins

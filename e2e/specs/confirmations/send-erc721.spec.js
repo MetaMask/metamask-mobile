@@ -25,10 +25,8 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
   });
 
   it('send an ERC721 token from a dapp', async () => {
-    const testSpecificMock  = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache
-      ],
+    const testSpecificMock = {
+      GET: [mockEvents.GET.suggestedGasFeesApiGanache],
     };
 
     await withFixtures(

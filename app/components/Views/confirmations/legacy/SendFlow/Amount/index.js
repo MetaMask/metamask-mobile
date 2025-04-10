@@ -1522,7 +1522,7 @@ class Amount extends PureComponent {
                   </Text>
                   <View styles={styles.arrow}>
                     <Ionicons
-                      name="ios-arrow-down"
+                      name="arrow-down"
                       size={16}
                       color={colors.primary.inverse}
                       style={styles.iconDropdown}
