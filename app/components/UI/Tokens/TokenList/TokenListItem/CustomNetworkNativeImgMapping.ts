@@ -8,6 +8,7 @@ import ApeNetworkImg from '../../../../../images/ape-network.png';
 import GravityImg from '../../../../../images/gravity.png';
 import LineaImg from '../../../../../images/linea-mainnet-logo.png';
 import KaiaImg from '../../../../../images/kaia.png';
+import XrpLevmImg from '../../../../../images/xrp-logo.png';
 
 export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.FLARE_MAINNET]: FlareMainnetImg,
@@ -18,4 +19,5 @@ export const CustomNetworkNativeImgMapping: Record<Hex, ImageSourcePropType> = {
   [NETWORK_CHAIN_ID.LINEA_MAINNET]: LineaImg,
   [NETWORK_CHAIN_ID.KAIA_MAINNET]: KaiaImg,
   [NETWORK_CHAIN_ID.KAIA_KAIROS_TESTNET]: KaiaImg,
+  [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: XrpLevmImg,
 };
