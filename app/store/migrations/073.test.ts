@@ -1,411 +1,454 @@
-import migrate from './073';
+import { RpcEndpointType } from '@metamask/network-controller';
 import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
+import migrate from './073';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
+const captureExceptionMock = jest.mocked(captureException);
 
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
+const VERSION = 73;
 
-const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
+const MM_INFURA_PROJECT_ID = 'some-infura-project-id';
+const QUICKNODE_MAINNET_URL = 'https://example.quicknode.com/mainnet';
+const QUICKNODE_LINEA_MAINNET_URL =
+  'https://example.quicknode.com/linea-mainnet';
+const QUICKNODE_ARBITRUM_URL = 'https://example.quicknode.com/arbitrum';
+const QUICKNODE_AVALANCHE_URL = 'https://example.quicknode.com/avalanche';
+const QUICKNODE_OPTIMISM_URL = 'https://example.quicknode.com/optimism';
+const QUICKNODE_POLYGON_URL = 'https://example.quicknode.com/polygon';
+const QUICKNODE_BASE_URL = 'https://example.quicknode.com/base';
 
-const PermissionNames = {
-  eth_accounts: 'eth_accounts',
-  permittedChains: 'endowment:permitted-chains',
-};
+describe(`Migration #${VERSION}`, () => {
+  let originalEnv: NodeJS.ProcessEnv;
 
-const version = 73;
-
-describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" into "endowment:caip25"', () => {
   beforeEach(() => {
-    mockedEnsureValidState.mockReturnValue(true);
+    jest.restoreAllMocks();
+    jest.resetAllMocks();
+
+    originalEnv = { ...process.env };
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    for (const key of new Set([
+      ...Object.keys(originalEnv),
+      ...Object.keys(process.env),
+    ])) {
+      if (originalEnv[key]) {
+        process.env[key] = originalEnv[key];
+      } else {
+        delete process.env[key];
+      }
+    }
   });
 
-  it('returns state unchanged if ensureValidState fails', () => {
-    const state = { some: 'state' };
-    mockedEnsureValidState.mockReturnValue(false);
+  it('logs an error and returns the state unchanged if MM_INFURA_PROJECT_ID is not set', async () => {
+    const state = {};
+    const expectedState = state;
 
-    const migratedState = migrate(state);
+    const newState = migrate(state);
 
-    expect(migratedState).toBe(state);
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: No MM_INFURA_PROJECT_ID set!`,
+      }),
+    );
   });
 
-  it('does nothing if PermissionController state is missing', () => {
-    const oldStorage = {
+  it('logs an error and returns the state unchanged if the state is not an object', () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = 'not-an-object';
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Expected state to be an object, but is string`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine is missing', () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {};
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine is not object', () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = { engine: 'not-an-object' };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine to be an object, but is string`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine.backgroundState is missing', () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
+      engine: {},
+    };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine.backgroundState is not an object', () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
+      engine: {
+        backgroundState: 'not-an-object',
+      },
+    };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState to be an object, but is string`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController is missing', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
+      engine: {
+        backgroundState: {},
+      },
+    };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState.NetworkController`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController is not an object', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: 'not-an-object',
+        },
+      },
+    };
+    const expectedState = state;
+
+    const newState = migrate(state);
+
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState.NetworkController to be an object, but is string`,
+      }),
+    );
+  });
+
+  it('logs an error and returns the state unchanged if state.engine.backgroundState.NetworkController.networkConfigurationsByChainId is missing', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
       engine: {
         backgroundState: {
           NetworkController: {},
-          SelectedNetworkController: {},
         },
       },
     };
+    const expectedState = state;
 
-    const newStorage = migrate(oldStorage);
+    const newState = migrate(state);
 
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if PermissionController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: 'foo',
-          NetworkController: {},
-          SelectedNetworkController: {},
-        },
-      },
-    };
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController is string`,
-      ),
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Missing state.engine.backgroundState.NetworkController.networkConfigurationsByChainId`,
+      }),
     );
-    expect(newStorage).toStrictEqual(oldStorage);
   });
 
-  it('does nothing if NetworkController state is missing', () => {
-    const oldStorage = {
+  it('logs an error and returns the state unchanged if NetworkController.networkConfigurationsByChainId is not an object', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
       engine: {
         backgroundState: {
-          PermissionController: {},
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController is undefined`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {},
-          NetworkController: 'foo',
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if SelectedNetworkController state is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {},
-          NetworkController: {},
-          SelectedNetworkController: 'foo',
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if PermissionController.subjects is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: 'foo',
-          },
-          NetworkController: {},
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController.subjects is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.selectedNetworkClientId is not a non-empty string', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: {},
+            networkConfigurationsByChainId: 'not-an-object',
           },
-          SelectedNetworkController: {},
         },
       },
     };
+    const expectedState = state;
 
-    const newStorage = migrate(oldStorage);
+    const newState = migrate(state);
 
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.selectedNetworkClientId is object`,
-      ),
+    expect(newState).toBe(expectedState);
+    expect(captureExceptionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: `FATAL ERROR: Migration ${VERSION}: Expected state.engine.backgroundState.NetworkController.networkConfigurationsByChainId to be an object, but is string`,
+      }),
     );
-    expect(newStorage).toStrictEqual(oldStorage);
   });
 
-  it('does nothing if NetworkController.networkConfigurationsByChainId is not an object', () => {
-    const oldStorage = {
+  it('returns the state unchanged if state.engine.backgroundState.NetworkController.networkConfigurationsByChainId is empty', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: 'foo',
-          },
-          SelectedNetworkController: {},
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if SelectedNetworkController.domains is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
             networkConfigurationsByChainId: {},
           },
-          SelectedNetworkController: {
-            domains: 'foo',
-          },
         },
       },
     };
+    const expectedState = state;
 
-    const newStorage = migrate(oldStorage);
+    const newState = migrate(state);
 
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController.domains is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
+    expect(newState).toStrictEqual(expectedState);
   });
 
-  it('does nothing if NetworkController.networkConfigurationsByChainId[] is not an object', () => {
-    const oldStorage = {
+  it('does not update any network configurations that are not objects', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
             networkConfigurationsByChainId: {
-              '0x1': 'foo',
+              '0x1': 'not-an-object',
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
             },
           },
-          SelectedNetworkController: {
-            domains: {},
+        },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': 'not-an-object',
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+            },
           },
         },
       },
     };
 
-    const newStorage = migrate(oldStorage);
+    const newState = migrate(state);
 
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"] is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
+    expect(newState).toStrictEqual(expectedState);
   });
 
-  it('does nothing if NetworkController.networkConfigurationsByChainId[].rpcEndpoints is not an array', () => {
-    const oldStorage = {
+  it('does not update any network configurations that do not have rpcEndpoints', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x1': {},
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {},
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('assigns an empty set of failover URLs to custom RPC endpoints that use non-Infura URLs', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x539': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: 'https://foo.com',
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x539': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: 'https://foo.com',
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('assigns an empty set of failover URLs to custom RPC endpoints that contain an Infura URL but do not use our API key', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
             networkConfigurationsByChainId: {
               '0x1': {
-                rpcEndpoints: 'foo',
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: 'https://mainnet.infura.io/v3/some-other-api-key',
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
               },
             },
-          },
-          SelectedNetworkController: {
-            domains: {},
           },
         },
       },
     };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"].rpcEndpoints is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if NetworkController.networkConfigurationsByChainId[].rpcEndpoints[] is not an object', () => {
-    const oldStorage = {
+    const expectedState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
           NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
             networkConfigurationsByChainId: {
               '0x1': {
-                rpcEndpoints: ['foo'],
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: 'https://mainnet.infura.io/v3/some-other-api-key',
+                    failoverUrls: [],
+                  },
+                ],
               },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: typeof state.NetworkController.networkConfigurationsByChainId["0x1"].rpcEndpoints[] is string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if the currently selected network client is neither built in nor exists in NetworkController.networkConfigurationsByChainId', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          NetworkController: {
-            selectedNetworkClientId: 'nonExistentNetworkClientId',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: No chainId found for selectedNetworkClientId "nonExistentNetworkClientId"`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it('does nothing if a subject is not an object', () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': 'foo',
-            },
-          },
-        },
-      },
-    };
-
-    const newStorage = migrate(oldStorage);
-
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: Invalid subject for origin "test.com" of type string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
-  });
-
-  it("does nothing if a subject's permissions is not an object", () => {
-    const oldStorage = {
-      engine: {
-        backgroundState: {
-          NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: 'foo',
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
               },
             },
           },
@@ -413,43 +456,153 @@ describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" i
       },
     };
 
-    const newStorage = migrate(oldStorage);
+    const newState = migrate(state);
 
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      new Error(
-        `Migration ${version}: Invalid permissions for origin "test.com" of type string`,
-      ),
-    );
-    expect(newStorage).toStrictEqual(oldStorage);
+    expect(newState).toStrictEqual(expectedState);
   });
 
-  it('deletes the permittedChains permission if eth_accounts has not been granted and the permittedChains permissions has been granted', () => {
-    const oldStorage = {
+  it('assigns failover URLs to known Infura RPC endpoints', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_MAINNET_URL = QUICKNODE_MAINNET_URL;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    process.env.QUICKNODE_ARBITRUM_URL = QUICKNODE_ARBITRUM_URL;
+    process.env.QUICKNODE_AVALANCHE_URL = QUICKNODE_AVALANCHE_URL;
+    process.env.QUICKNODE_OPTIMISM_URL = QUICKNODE_OPTIMISM_URL;
+    process.env.QUICKNODE_POLYGON_URL = QUICKNODE_POLYGON_URL;
+    process.env.QUICKNODE_BASE_URL = QUICKNODE_BASE_URL;
+    const state = {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  [PermissionNames.permittedChains]: {
-                    invoker: 'test.com',
-                    parentCapability: PermissionNames.permittedChains,
-                    date: 2,
-                    caveats: [
-                      {
-                        type: 'restrictNetworkSwitching',
-                        value: ['0xa', '0x64'],
-                      },
-                    ],
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
                   },
-                },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://base.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_MAINNET_URL],
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_ARBITRUM_URL],
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_AVALANCHE_URL],
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_OPTIMISM_URL],
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_POLYGON_URL],
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://base.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_BASE_URL],
+                  },
+                ],
               },
             },
           },
@@ -457,48 +610,146 @@ describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" i
       },
     };
 
-    const newStorage = migrate(oldStorage);
-    expect(newStorage).toStrictEqual({
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('assigns an empty set of failover URLs to any Infura endpoints for which the appropriate environment variable is not set', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://base.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
               },
             },
           },
         },
       },
-    });
-  });
-
-  it('does nothing if neither eth_accounts nor permittedChains permissions have been granted', () => {
-    const oldStorage = {
+    };
+    const expectedState = {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  unrelated: {
-                    foo: 'bar',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
                   },
-                },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://arbitrum.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://avalanche.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://optimism.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://polygon.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://base.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [],
+                  },
+                ],
               },
             },
           },
@@ -506,881 +757,437 @@ describe('Migration: transform "eth_accounts" and "endowment:permitted-chains" i
       },
     };
 
-    const newStorage = migrate(oldStorage);
-    expect(newStorage).toStrictEqual({
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('does not update any Infura RPC endpoints that already have failover URLs defined', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
       engine: {
         backgroundState: {
           NetworkController: {
-            selectedNetworkClientId: 'mainnet',
-            networkConfigurationsByChainId: {},
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-          PermissionController: {
-            subjects: {
-              'test.com': {
-                permissions: {
-                  unrelated: {
-                    foo: 'bar',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: ['https://foo.com'],
                   },
-                },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                  },
+                ],
               },
             },
           },
         },
       },
-    });
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: ['https://foo.com'],
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Infura,
+                    url: `https://linea-mainnet.infura.io/v3/{infuraProjectId}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
   });
 
-  describe.each([
-    [
-      'built-in',
-      {
-        selectedNetworkClientId: 'mainnet',
-        networkConfigurationsByChainId: {},
-      },
-      '1',
-    ],
-    [
-      'custom',
-      {
-        selectedNetworkClientId: 'customId',
-        networkConfigurationsByChainId: {
-          '0xf': {
-            rpcEndpoints: [
-              {
-                networkClientId: 'customId',
+  it('assigns failover URLs to custom RPC endpoints that are actually Infura RPC endpoints in disguise', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_MAINNET_URL = QUICKNODE_MAINNET_URL;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    process.env.QUICKNODE_ARBITRUM_URL = QUICKNODE_ARBITRUM_URL;
+    process.env.QUICKNODE_AVALANCHE_URL = QUICKNODE_AVALANCHE_URL;
+    process.env.QUICKNODE_OPTIMISM_URL = QUICKNODE_OPTIMISM_URL;
+    process.env.QUICKNODE_POLYGON_URL = QUICKNODE_POLYGON_URL;
+    process.env.QUICKNODE_BASE_URL = QUICKNODE_BASE_URL;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
               },
-            ],
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+            },
           },
         },
       },
-      '15',
-    ],
-  ])(
-    'the currently selected network client is %s',
-    (
-      _type: string,
-      NetworkController: {
-        networkConfigurationsByChainId: Record<
-          string,
-          {
-            rpcEndpoints: { networkClientId: string }[];
-          }
-        >;
-      } & Record<string, unknown>,
-      chainId: string,
-    ) => {
-      const baseData = () => ({
-        PermissionController: {
-          subjects: {},
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_MAINNET_URL],
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_ARBITRUM_URL],
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_AVALANCHE_URL],
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_OPTIMISM_URL],
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_POLYGON_URL],
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_BASE_URL],
+                  },
+                ],
+              },
+            },
+          },
         },
-        NetworkController,
-        SelectedNetworkController: {
-          domains: {},
+      },
+    };
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('assigns an empty set of failover URLs to custom RPC endpoints that are actually Infura RPC endpoints in disguise but for which the appropriate environment variables are not set', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                  },
+                ],
+              },
+            },
+          },
         },
-      });
-      const baseEthAccountsPermissionMetadata = {
-        id: '1',
-        date: 2,
-        invoker: 'test.com',
-        parentCapability: PermissionNames.eth_accounts,
-      };
-      const currentScope = `eip155:${chainId}`;
-
-      it('does nothing when eth_accounts and permittedChains permissions are missing metadata', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        invoker: 'test.com',
-                        parentCapability: PermissionNames.eth_accounts,
-                        date: 2,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                      [PermissionNames.permittedChains]: {
-                        invoker: 'test.com',
-                        parentCapability: PermissionNames.permittedChains,
-                        date: 2,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
                   },
-                },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa4b1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://arbitrum.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa86a': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://avalanche.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0xa': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://optimism.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0x89': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://polygon.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
+              },
+              '0x2105': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://base.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [],
+                  },
+                ],
               },
             },
           },
-        };
+        },
+      },
+    };
 
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual(oldStorage);
-      });
+    const newState = migrate(state);
 
-      it('does nothing when there are malformed network configurations (even if there is a valid networkConfiguration that matches the selected network client)', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                selectedNetworkClientId: 'mainnet',
-                networkConfigurationsByChainId: {
-                  '0x1': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'mainnet',
-                      },
-                    ],
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('does not update any in-disguise Infura RPC endpoints that already have failover URLs defined', async () => {
+    process.env.MM_INFURA_PROJECT_ID = MM_INFURA_PROJECT_ID;
+    process.env.QUICKNODE_LINEA_MAINNET_URL = QUICKNODE_LINEA_MAINNET_URL;
+    const state = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: ['https://foo.com'],
                   },
-                  '0xInvalid': 'invalid-network-configuration',
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'bar',
-                      },
-                    ],
-                  },
-                },
+                ],
               },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'bar',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
                   },
-                },
+                ],
               },
             },
           },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual(oldStorage);
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the currently selected chain id when the origin does not have its own network client', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
+        },
+      },
+    };
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: ['https://foo.com'],
                   },
-                },
+                ],
+              },
+              '0xe708': {
+                rpcEndpoints: [
+                  {
+                    type: RpcEndpointType.Custom,
+                    url: `https://linea-mainnet.infura.io/v3/${MM_INFURA_PROJECT_ID}`,
+                    failoverUrls: [QUICKNODE_LINEA_MAINNET_URL],
+                  },
+                ],
               },
             },
           },
-        };
+        },
+      },
+    };
 
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [
-                                    `${currentScope}:0xdeadbeef`,
-                                    `${currentScope}:0x999`,
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
+    const newState = migrate(state);
 
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the globally selected chain id value for the currently selected chain id when the origin does have its own network client that cannot be resolved', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'doesNotExist',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-
-        expect(mockedCaptureException).toHaveBeenCalledWith(
-          new Error(
-            `Migration ${version}: No chainId found for networkClientIdForOrigin "doesNotExist"`,
-          ),
-        );
-
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'doesNotExist',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [
-                                    `${currentScope}:0xdeadbeef`,
-                                    `${currentScope}:0x999`,
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the origin chain id when the origin does have its own network client and it exists in the built-in networks', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'sepolia',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'sepolia',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:11155111': {
-                                  accounts: [
-                                    'eip155:11155111:0xdeadbeef',
-                                    'eip155:11155111:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value without permitted chains when the origin is snapId', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'npm:snap': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'npm:snap': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces the eth_accounts permission with a CAIP-25 permission using the eth_accounts value for the origin chain id when the origin does have its own network client and it exists in the custom configurations', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                ...baseData().NetworkController,
-                networkConfigurationsByChainId: {
-                  ...baseData().NetworkController
-                    .networkConfigurationsByChainId,
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'customNetworkClientId',
-                      },
-                    ],
-                  },
-                },
-              },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'customNetworkClientId',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              NetworkController: {
-                ...baseData().NetworkController,
-                networkConfigurationsByChainId: {
-                  ...baseData().NetworkController
-                    .networkConfigurationsByChainId,
-                  '0xa': {
-                    rpcEndpoints: [
-                      {
-                        networkClientId: 'customNetworkClientId',
-                      },
-                    ],
-                  },
-                },
-              },
-              SelectedNetworkController: {
-                domains: {
-                  'test.com': 'customNetworkClientId',
-                },
-              },
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:10': {
-                                  accounts: [
-                                    'eip155:10:0xdeadbeef',
-                                    'eip155:10:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('does not create a CAIP-25 permission when eth_accounts permission is missing', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.permittedChains]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces both eth_accounts and permittedChains permission with a CAIP-25 permission using the values from both permissions', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef', '0x999'],
-                          },
-                        ],
-                      },
-                      [PermissionNames.permittedChains]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictNetworkSwitching',
-                            value: ['0xa', '0x64'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      unrelated: {
-                        foo: 'bar',
-                      },
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                'eip155:10': {
-                                  accounts: [
-                                    'eip155:10:0xdeadbeef',
-                                    'eip155:10:0x999',
-                                  ],
-                                },
-                                'eip155:100': {
-                                  accounts: [
-                                    'eip155:100:0xdeadbeef',
-                                    'eip155:100:0x999',
-                                  ],
-                                },
-                                'wallet:eip155': {
-                                  accounts: [
-                                    'wallet:eip155:0xdeadbeef',
-                                    'wallet:eip155:0x999',
-                                  ],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-
-      it('replaces permissions for each subject', () => {
-        const oldStorage = {
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                  'test2.com': {
-                    permissions: {
-                      [PermissionNames.eth_accounts]: {
-                        ...baseEthAccountsPermissionMetadata,
-                        caveats: [
-                          {
-                            type: 'restrictReturnedAccounts',
-                            value: ['0xdeadbeef'],
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        };
-
-        const newStorage = migrate(oldStorage);
-        expect(newStorage).toStrictEqual({
-          engine: {
-            backgroundState: {
-              ...baseData(),
-              PermissionController: {
-                subjects: {
-                  'test.com': {
-                    permissions: {
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [`${currentScope}:0xdeadbeef`],
-                                },
-                                'wallet:eip155': {
-                                  accounts: ['wallet:eip155:0xdeadbeef'],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                  'test2.com': {
-                    permissions: {
-                      'endowment:caip25': {
-                        ...baseEthAccountsPermissionMetadata,
-                        parentCapability: 'endowment:caip25',
-                        caveats: [
-                          {
-                            type: 'authorizedScopes',
-                            value: {
-                              requiredScopes: {},
-                              optionalScopes: {
-                                [currentScope]: {
-                                  accounts: [`${currentScope}:0xdeadbeef`],
-                                },
-                                'wallet:eip155': {
-                                  accounts: ['wallet:eip155:0xdeadbeef'],
-                                },
-                              },
-                              isMultichainOrigin: false,
-                            },
-                          },
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        });
-      });
-    },
-  );
+    expect(newState).toStrictEqual(expectedState);
+  });
 });
