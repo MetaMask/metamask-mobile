@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../Box/Box';
-import { FlexDirection, JustifyContent, AlignItems } from '../../../Box/box.types';
+import {
+  FlexDirection,
+  JustifyContent,
+  AlignItems,
+} from '../../../Box/box.types';
 import { getBridgeTransactionDetailsNavbar } from '../../../Navbar';
 import { useBridgeTxHistoryData } from '../../../../../util/bridge/hooks/useBridgeTxHistoryData';
 import { TransactionMeta } from '@metamask/transaction-controller';
@@ -12,7 +19,11 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
 import { TokenI } from '../../../Tokens/types';
-import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import TransactionAsset from './TransactionAsset';
 import { StatusTypes } from '@metamask/bridge-status-controller';
 import { calcTokenAmount } from '../../../../../util/transactions';
@@ -21,7 +32,9 @@ import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import Button, { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import Loader from '../../../../../component-library/components-temp/Loader';
 
@@ -88,10 +101,14 @@ const StatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.UNKNOWN]: TextColor.Error,
 };
 
-export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) => {
+export const BridgeTransactionDetails = (
+  props: BridgeTransactionDetailsProps,
+) => {
   const styles = createStyles();
   const navigation = useNavigation();
-  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({txMeta: props.route.params.tx});
+  const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
+    txMeta: props.route.params.tx,
+  });
   const [isStepListExpanded, setIsStepListExpanded] = useState(false);
   const tokens = useSelector(selectEvmTokens);
   const networkConfigurationsByChainId = useSelector(
@@ -108,37 +125,65 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   }
   const { quote, status, startTime } = bridgeTxHistoryItem;
 
-  const sourceToken = tokens.find((token: TokenI) => token.address === quote.srcAsset.address);
-  const sourceTokenAmount = calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(5);
+  const sourceToken = tokens.find(
+    (token: TokenI) => token.address === quote.srcAsset.address,
+  );
+  const sourceTokenAmount = calcTokenAmount(
+    quote.srcTokenAmount,
+    quote.srcAsset.decimals,
+  ).toFixed(5);
   const sourceChainId = decimalToPrefixedHex(quote.srcChainId);
 
-  const destinationToken = tokens.find((token: TokenI) => token.address === quote.destAsset.address);
-  const destinationTokenAmount = calcTokenAmount(quote.destTokenAmount, quote.destAsset.decimals).toFixed(5);
+  const destinationToken = tokens.find(
+    (token: TokenI) => token.address === quote.destAsset.address,
+  );
+  const destinationTokenAmount = calcTokenAmount(
+    quote.destTokenAmount,
+    quote.destAsset.decimals,
+  ).toFixed(5);
   const destinationChainId = decimalToPrefixedHex(quote.destChainId);
 
   const submissionDate = startTime ? new Date(startTime) : null;
-  const submissionDateString = submissionDate ? submissionDate.toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+  const submissionDateString = submissionDate
+    ? submissionDate.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'N/A';
 
   const estimatedCompletionDate = submissionDate
-    ? new Date(submissionDate.getTime() + (bridgeTxHistoryItem.estimatedProcessingTimeInSeconds * 1000))
+    ? new Date(
+        submissionDate.getTime() +
+          bridgeTxHistoryItem.estimatedProcessingTimeInSeconds * 1000,
+      )
     : null;
   const estimatedCompletionString = estimatedCompletionDate
-    ? estimatedCompletionDate.toLocaleString('en-US', { hour: '2-digit', minute: '2-digit' })
+    ? estimatedCompletionDate.toLocaleString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
     : null;
 
-  const totalGasFee = calcTokenAmount(calcHexGasTotal(props.route.params.tx), 18).toFixed(5);
+  const totalGasFee = calcTokenAmount(
+    calcHexGasTotal(props.route.params.tx),
+    18,
+  ).toFixed(5);
 
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          {sourceToken ?
+          {sourceToken ? (
             <TransactionAsset
               token={sourceToken}
               tokenAmount={sourceTokenAmount}
               chainId={sourceChainId as Hex}
             />
-          : <Box
+          ) : (
+            <Box
               flexDirection={FlexDirection.Row}
               justifyContent={JustifyContent.spaceBetween}
               alignItems={AlignItems.center}
@@ -148,17 +193,18 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
                 <Loader />
               </Box>
             </Box>
-          }
+          )}
           <Box style={styles.arrowContainer}>
             <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
           </Box>
-          {destinationToken ?
+          {destinationToken ? (
             <TransactionAsset
               token={destinationToken}
               tokenAmount={destinationTokenAmount}
               chainId={destinationChainId as Hex}
             />
-          : <Box
+          ) : (
+            <Box
               flexDirection={FlexDirection.Row}
               justifyContent={JustifyContent.spaceBetween}
               alignItems={AlignItems.center}
@@ -168,24 +214,46 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
                 <Loader />
               </Box>
             </Box>
-          }
+          )}
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
-          <Box flexDirection={FlexDirection.Row} gap={4} alignItems={AlignItems.center}>
-            <Text variant={TextVariant.BodyMDMedium} color={StatusToColorMap[status.status]} style={styles.textTransform}>{status.status}</Text>
-            {status.status === StatusTypes.PENDING && estimatedCompletionString && (
-              <>
-                <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.estimated_completion')} {estimatedCompletionString}</Text>
-                <TouchableOpacity onPress={() => setIsStepListExpanded(!isStepListExpanded)}>
-                  <Icon
-                    name={isStepListExpanded ? IconName.ArrowUp : IconName.ArrowDown}
-                    color={IconColor.Muted}
-                    size={IconSize.Sm}
-                  />
-                </TouchableOpacity>
-              </>
-            )}
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('bridge_transaction_details.status')}
+          </Text>
+          <Box
+            flexDirection={FlexDirection.Row}
+            gap={4}
+            alignItems={AlignItems.center}
+          >
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={StatusToColorMap[status.status]}
+              style={styles.textTransform}
+            >
+              {status.status}
+            </Text>
+            {status.status === StatusTypes.PENDING &&
+              estimatedCompletionString && (
+                <>
+                  <Text variant={TextVariant.BodyMDMedium}>
+                    {strings('bridge_transaction_details.estimated_completion')}{' '}
+                    {estimatedCompletionString}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setIsStepListExpanded(!isStepListExpanded)}
+                  >
+                    <Icon
+                      name={
+                        isStepListExpanded
+                          ? IconName.ArrowUp
+                          : IconName.ArrowDown
+                      }
+                      color={IconColor.Muted}
+                      size={IconSize.Sm}
+                    />
+                  </TouchableOpacity>
+                </>
+              )}
           </Box>
         </Box>
         {status.status !== StatusTypes.COMPLETE && isStepListExpanded && (
@@ -198,11 +266,15 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
           </Box>
         )}
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.date')}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('bridge_transaction_details.date')}
+          </Text>
           <Text>{submissionDateString}</Text>
         </Box>
         <Box style={styles.detailRow}>
-          <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.total_gas_fee')}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>
+            {strings('bridge_transaction_details.total_gas_fee')}
+          </Text>
           <Text>{totalGasFee} ETH</Text>
         </Box>
       </Box>

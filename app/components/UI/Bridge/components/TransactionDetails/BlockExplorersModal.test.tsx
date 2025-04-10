@@ -1,7 +1,13 @@
 import React from 'react';
 import BlockExplorersModal from './BlockExplorersModal';
-import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
-import { BridgeFeatureFlagsKey, formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
+import {
+  BridgeFeatureFlagsKey,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
@@ -25,7 +31,7 @@ describe('BlockExplorersModal', () => {
     status: TransactionStatus.submitted,
     error: null,
   } as TransactionMeta;
-  
+
   const mockProps = {
     route: {
       params: {
@@ -398,7 +404,7 @@ describe('BlockExplorersModal', () => {
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText('View on Block Explorer')).toBeTruthy();
   });
@@ -409,7 +415,7 @@ describe('BlockExplorersModal', () => {
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
-      { state: mockState }
+      { state: mockState },
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(2);
@@ -425,7 +431,8 @@ describe('BlockExplorersModal', () => {
           BridgeStatusController: {
             txHistory: {
               [mockTx.id]: {
-                ...mockState.engine.backgroundState.BridgeStatusController.txHistory[mockTx.id],
+                ...mockState.engine.backgroundState.BridgeStatusController
+                  .txHistory[mockTx.id],
                 status: {
                   srcChain: {
                     txHash: '0x123',
@@ -446,7 +453,7 @@ describe('BlockExplorersModal', () => {
       {
         name: Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER,
       },
-      { state: modifiedState }
+      { state: modifiedState },
     );
     const etherscanButtons = getAllByText('Etherscan');
     expect(etherscanButtons).toHaveLength(1);

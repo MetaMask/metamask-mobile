@@ -5,12 +5,22 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { ActionTypes, BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
+import {
+  ActionTypes,
+  BridgeHistoryItem,
+  StatusTypes,
+} from '@metamask/bridge-status-controller';
 import { decimalToPrefixedHex } from '../../../../../util/conversions';
-import { AllowedBridgeChainIds, NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../../constants/bridge';
+import {
+  AllowedBridgeChainIds,
+  NETWORK_TO_SHORT_NETWORK_NAME_MAP,
+} from '../../../../../constants/bridge';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
-import Text, { TextColor, TextVariant } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { StyleSheet } from 'react-native';
 import { Step } from '@metamask/bridge-controller';
@@ -48,11 +58,18 @@ const getBridgeActionText = (
   }
 
   return stepStatus === StatusTypes.COMPLETE
-    ? strings('bridge_transaction_details.bridge_step_action_bridge_complete', { destSymbol, destChainName })
-    : strings('bridge_transaction_details.bridge_step_action_bridge_pending', { destSymbol, destChainName });
+    ? strings('bridge_transaction_details.bridge_step_action_bridge_complete', {
+        destSymbol,
+        destChainName,
+      })
+    : strings('bridge_transaction_details.bridge_step_action_bridge_pending', {
+        destSymbol,
+        destChainName,
+      });
 };
 
-const getBridgeActionStatus = (bridgeHistoryItem: BridgeHistoryItem) => bridgeHistoryItem.status ? bridgeHistoryItem.status.status : null;
+const getBridgeActionStatus = (bridgeHistoryItem: BridgeHistoryItem) =>
+  bridgeHistoryItem.status ? bridgeHistoryItem.status.status : null;
 
 /**
  * swap actions can have step.srcChainId === step.destChainId, and can occur on
@@ -91,10 +108,7 @@ const getSwapActionStatus = (
   return null;
 };
 
-const getSwapActionText = (
-  status: StatusTypes | null,
-  step: Step,
-) => {
+const getSwapActionText = (status: StatusTypes | null, step: Step) => {
   const srcSymbol = step.srcAsset?.symbol;
   const destSymbol = step.destAsset?.symbol;
 
@@ -103,8 +117,14 @@ const getSwapActionText = (
   }
 
   return status === StatusTypes.COMPLETE
-    ? strings('bridge_transaction_details.bridge_step_action_swap_complete', { srcSymbol, destSymbol })
-    : strings('bridge_transaction_details.bridge_step_action_swap_pending', { srcSymbol, destSymbol });
+    ? strings('bridge_transaction_details.bridge_step_action_swap_complete', {
+        srcSymbol,
+        destSymbol,
+      })
+    : strings('bridge_transaction_details.bridge_step_action_swap_pending', {
+        srcSymbol,
+        destSymbol,
+      });
 };
 
 export const getStepStatus = ({
@@ -174,11 +194,7 @@ export default function BridgeStepDescription({
       >
         {time && `${time} `}
         {step.action === ActionTypes.BRIDGE &&
-          getBridgeActionText(
-            stepStatus,
-            step,
-            networkConfigurationsByChainId,
-          )}
+          getBridgeActionText(stepStatus, step, networkConfigurationsByChainId)}
         {step.action === ActionTypes.SWAP &&
           getSwapActionText(stepStatus, step)}
       </Text>

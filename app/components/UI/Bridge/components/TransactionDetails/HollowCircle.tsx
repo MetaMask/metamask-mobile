@@ -1,15 +1,19 @@
 import React from 'react';
 import { Box } from '../../../Box/Box';
 import { Display } from '../../../Box/box.types';
-import { IconColor, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import {
+  IconColor,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { View, StyleProp, ViewStyle, StyleSheet } from 'react-native';
 import { useTheme } from '../../../../../util/theme';
 import { ThemeColors } from '@metamask/design-tokens';
 
 const createStyles = (colors: ThemeColors, color?: IconColor) => {
-  const borderColor = color === IconColor.Primary
-    ? colors.primary.default
-    : color === IconColor.Muted
+  const borderColor =
+    color === IconColor.Primary
+      ? colors.primary.default
+      : color === IconColor.Muted
       ? colors.icon.muted
       : colors.icon.default;
   return StyleSheet.create({
@@ -40,10 +44,7 @@ const HollowCircle = React.forwardRef<View, HollowCircleProps>(
       <Box
         ref={ref}
         display={Display.InlineBlock}
-        style={[
-          styles.hollowCircle,
-          style,
-        ]}
+        style={[styles.hollowCircle, style]}
       />
     );
   },

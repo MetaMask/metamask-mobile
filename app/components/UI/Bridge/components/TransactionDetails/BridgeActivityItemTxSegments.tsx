@@ -3,8 +3,13 @@ import {
   TransactionMeta,
   TransactionStatus,
 } from '@metamask/transaction-controller';
-import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
-import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
+import {
+  BridgeHistoryItem,
+  StatusTypes,
+} from '@metamask/bridge-status-controller';
+import Text, {
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
 import Segment from './Segment';
 import { FlexDirection } from '../../../Box/box.types';
@@ -21,7 +26,8 @@ const getTxIndex = (srcTxStatus: StatusTypes) => {
   throw new Error('No more possible states for srcTxStatus');
 };
 
-const getSrcTxStatus = (initialTransaction: TransactionMeta) => initialTransaction.status === TransactionStatus.confirmed
+const getSrcTxStatus = (initialTransaction: TransactionMeta) =>
+  initialTransaction.status === TransactionStatus.confirmed
     ? StatusTypes.COMPLETE
     : StatusTypes.PENDING;
 

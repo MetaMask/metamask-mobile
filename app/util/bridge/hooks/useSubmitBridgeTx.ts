@@ -28,23 +28,26 @@ export default function useSubmitBridgeTx() {
         quoteResponse,
       });
     }
-    const txResult = await handleBridgeTx({ quoteResponse, approvalTxId: approvalTxMeta?.id });
+    const txResult = await handleBridgeTx({
+      quoteResponse,
+      approvalTxId: approvalTxMeta?.id,
+    });
 
     // Start polling for tx history
     try {
       Engine.context.BridgeStatusController.startPollingForBridgeTxStatus({
         bridgeTxMeta: txResult,
         statusRequest: {
-        bridgeId: quoteResponse.quote.bridgeId,
-        bridge: quoteResponse.quote.bridges[0],
-        srcChainId: quoteResponse.quote.srcChainId,
-        destChainId: quoteResponse.quote.destChainId,
-        quote: quoteResponse.quote,
-        refuel: Boolean(quoteResponse.quote.refuel),
-        srcTxHash: txResult.hash, // This might be undefined for STX
-      },
-      quoteResponse: serializeQuoteMetadata(quoteResponse),
-      slippagePercentage: slippage ?? 0,
+          bridgeId: quoteResponse.quote.bridgeId,
+          bridge: quoteResponse.quote.bridges[0],
+          srcChainId: quoteResponse.quote.srcChainId,
+          destChainId: quoteResponse.quote.destChainId,
+          quote: quoteResponse.quote,
+          refuel: Boolean(quoteResponse.quote.refuel),
+          srcTxHash: txResult.hash, // This might be undefined for STX
+        },
+        quoteResponse: serializeQuoteMetadata(quoteResponse),
+        slippagePercentage: slippage ?? 0,
         startTime: txResult.time,
       });
     } catch (error) {

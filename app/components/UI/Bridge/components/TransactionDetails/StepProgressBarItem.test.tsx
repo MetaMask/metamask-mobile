@@ -13,7 +13,7 @@ describe('StepProgressBarItem', () => {
         isEdgeComplete={false}
       >
         <View testID="test-children">Test Content</View>
-      </StepProgressBarItem>
+      </StepProgressBarItem>,
     );
 
     expect(getByTestId('test-children')).toBeTruthy();
@@ -27,7 +27,7 @@ describe('StepProgressBarItem', () => {
         isEdgeComplete={false}
       >
         <View testID="test-children">Test Content</View>
-      </StepProgressBarItem>
+      </StepProgressBarItem>,
     );
 
     expect(getByTestId('test-children')).toBeTruthy();
@@ -41,7 +41,7 @@ describe('StepProgressBarItem', () => {
         isEdgeComplete={false}
       >
         <View testID="test-children">Test Content</View>
-      </StepProgressBarItem>
+      </StepProgressBarItem>,
     );
 
     expect(getByTestId('test-children')).toBeTruthy();
@@ -55,7 +55,7 @@ describe('StepProgressBarItem', () => {
         isEdgeComplete={false}
       >
         <View testID="test-children">Test Content</View>
-      </StepProgressBarItem>
+      </StepProgressBarItem>,
     );
 
     // The vertical line is rendered with a View component, so we can check for its presence
@@ -71,7 +71,7 @@ describe('StepProgressBarItem', () => {
         isEdgeComplete
       >
         <View testID="test-children">Test Content</View>
-      </StepProgressBarItem>
+      </StepProgressBarItem>,
     );
 
     expect(getByTestId('test-children')).toBeTruthy();

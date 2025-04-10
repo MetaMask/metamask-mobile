@@ -3,7 +3,11 @@ import { render } from '@testing-library/react-native';
 import BridgeStepList from './BridgeStepList';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { BridgeHistoryItem, StatusTypes, ActionTypes } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  StatusTypes,
+  ActionTypes,
+} from '@metamask/bridge-status-controller';
 import { Step } from '@metamask/bridge-controller';
 
 jest.mock('./stepProgressBarItem', () => ({
@@ -87,7 +91,9 @@ describe('BridgeStepList', () => {
   });
 
   it('renders correct number of steps', () => {
-    const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
+    const mockGetStepStatus = jest.requireMock(
+      './bridgeStepDescription',
+    ).getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
     render(
@@ -98,7 +104,9 @@ describe('BridgeStepList', () => {
       />,
     );
 
-    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    const StepProgressBarItem = jest.requireMock(
+      './stepProgressBarItem',
+    ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
 
@@ -109,12 +117,16 @@ describe('BridgeStepList', () => {
       />,
     );
 
-    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    const StepProgressBarItem = jest.requireMock(
+      './stepProgressBarItem',
+    ).default;
     expect(StepProgressBarItem).not.toHaveBeenCalled();
   });
 
   it('handles missing srcChainTxMeta', () => {
-    const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
+    const mockGetStepStatus = jest.requireMock(
+      './bridgeStepDescription',
+    ).getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
     render(
@@ -124,14 +136,18 @@ describe('BridgeStepList', () => {
       />,
     );
 
-    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    const StepProgressBarItem = jest.requireMock(
+      './stepProgressBarItem',
+    ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
 
   it('passes correct props to StepProgressBarItem', () => {
-    const mockGetStepStatus = jest.requireMock('./bridgeStepDescription').getStepStatus;
-    mockGetStepStatus.mockImplementation(({ step }: { step: Step }) => 
-      step.action === ActionTypes.BRIDGE ? StatusTypes.PENDING : null
+    const mockGetStepStatus = jest.requireMock(
+      './bridgeStepDescription',
+    ).getStepStatus;
+    mockGetStepStatus.mockImplementation(({ step }: { step: Step }) =>
+      step.action === ActionTypes.BRIDGE ? StatusTypes.PENDING : null,
     );
 
     render(
@@ -142,7 +158,9 @@ describe('BridgeStepList', () => {
       />,
     );
 
-    const StepProgressBarItem = jest.requireMock('./stepProgressBarItem').default;
+    const StepProgressBarItem = jest.requireMock(
+      './stepProgressBarItem',
+    ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
 
     // Check first step props

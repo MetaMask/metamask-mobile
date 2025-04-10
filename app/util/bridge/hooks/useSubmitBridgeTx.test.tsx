@@ -5,7 +5,11 @@ import configureMockStore from 'redux-mock-store';
 import useSubmitBridgeTx from './useSubmitBridgeTx';
 import useHandleBridgeTx from './useHandleBridgeTx';
 import useHandleApprovalTx from './useHandleApprovalTx';
-import { DummyQuoteMetadata, DummyQuotesNoApproval, DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
+import {
+  DummyQuoteMetadata,
+  DummyQuotesNoApproval,
+  DummyQuotesWithApproval,
+} from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
 import Engine from '../../../core/Engine';
 import { QuoteMetadata } from '@metamask/bridge-controller';
@@ -26,9 +30,7 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../selectors/networkController', () => {
-  const original = jest.requireActual(
-    '../../../selectors/networkController',
-  );
+  const original = jest.requireActual('../../../selectors/networkController');
   return {
     ...original,
     selectSelectedNetworkClientId: () => 'mainnet',
@@ -92,13 +94,13 @@ describe('useSubmitBridgeTx', () => {
         backgroundState: {
           BridgeController: {
             quoteRequest: {
-              slippage: 0.5
-            }
+              slippage: 0.5,
+            },
           },
           BridgeStatusController: {
-            startPollingForBridgeTxStatus: jest.fn()
-          }
-        }
+            startPollingForBridgeTxStatus: jest.fn(),
+          },
+        },
       },
       ...mockState,
     });
@@ -112,7 +114,10 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = { ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0], ...DummyQuoteMetadata };
+    const mockQuoteResponse = {
+      ...DummyQuotesNoApproval.OP_0_005_ETH_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
 
@@ -133,7 +138,10 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = {...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0], ...DummyQuoteMetadata};
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     mockHandleApprovalTx.mockResolvedValueOnce({ id: '123' });
     mockHandleBridgeTx.mockResolvedValueOnce({ success: true });
@@ -155,7 +163,7 @@ describe('useSubmitBridgeTx', () => {
         address: mockQuoteResponse.quote.srcAsset.address,
         symbol: mockQuoteResponse.quote.srcAsset.symbol,
         decimals: mockQuoteResponse.quote.srcAsset.decimals,
-      })
+      }),
     );
     expect(txResult).toEqual({ success: true });
   });
@@ -165,7 +173,10 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = { ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0], ...DummyQuoteMetadata };
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     const error = new Error('Approval failed');
     mockHandleApprovalTx.mockRejectedValueOnce(error);
@@ -173,7 +184,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
-      })
+      }),
     ).rejects.toThrow('Approval failed');
 
     expect(mockHandleBridgeTx).not.toHaveBeenCalled();
@@ -184,7 +195,10 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper(),
     });
 
-    const mockQuoteResponse = { ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0], ...DummyQuoteMetadata };
+    const mockQuoteResponse = {
+      ...DummyQuotesWithApproval.ETH_11_USDC_TO_ARB[0],
+      ...DummyQuoteMetadata,
+    };
 
     const error = new Error('Bridge transaction failed');
     mockHandleBridgeTx.mockRejectedValueOnce(error);
@@ -192,7 +206,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: mockQuoteResponse as QuoteResponse & QuoteMetadata,
-      })
+      }),
     ).rejects.toThrow('Bridge transaction failed');
   });
 
@@ -215,7 +229,7 @@ describe('useSubmitBridgeTx', () => {
     await expect(
       result.current.submitBridgeTx({
         quoteResponse: invalidQuoteResponse as QuoteResponse & QuoteMetadata,
-      })
+      }),
     ).rejects.toThrow();
   });
 });

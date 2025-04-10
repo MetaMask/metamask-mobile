@@ -2,13 +2,14 @@ import React, { useCallback } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import BridgeStepDescription, {
-  getStepStatus,
-} from './BridgeStepDescription';
+import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import StepProgressBarItem from './StepProgressBarItem';
 import { Box } from '../../../Box/Box';
 import { DateTime } from 'luxon';
-import { BridgeHistoryItem, StatusTypes } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  StatusTypes,
+} from '@metamask/bridge-status-controller';
 import { Step } from '@metamask/bridge-controller';
 
 const getTime = (
@@ -51,8 +52,7 @@ export default function BridgeStepList({
         const statuses = stepStatuses();
         const prevStepStatus = i > 0 ? statuses[i - 1] : null;
         const stepStatus = statuses[i];
-        const nextStepStatus =
-          i < statuses.length - 1 ? statuses[i + 1] : null;
+        const nextStepStatus = i < statuses.length - 1 ? statuses[i + 1] : null;
 
         const isEdgeComplete =
           stepStatus === StatusTypes.COMPLETE &&
@@ -75,7 +75,9 @@ export default function BridgeStepList({
           bridgeHistoryItem?.startTime || srcChainTxMeta?.time,
           bridgeHistoryItem?.estimatedProcessingTimeInSeconds || 0,
         );
-        const formattedTime = time ? DateTime.fromMillis(time).toFormat('hh:mm a') : '';
+        const formattedTime = time
+          ? DateTime.fromMillis(time).toFormat('hh:mm a')
+          : '';
 
         return (
           <StepProgressBarItem

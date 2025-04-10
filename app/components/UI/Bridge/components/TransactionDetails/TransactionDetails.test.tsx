@@ -1,10 +1,16 @@
 import React from 'react';
 import { BridgeTransactionDetails } from './TransactionDetails';
-import { TransactionMeta, TransactionStatus } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import initialBackgroundState from '../../../../../util/test/initial-background-state.json';
-import { formatChainIdToCaip, BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  BridgeFeatureFlagsKey,
+} from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeState } from '../../../../../core/redux/slices/bridge';
@@ -402,7 +408,7 @@ describe('BridgeTransactionDetails', () => {
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText('Status')).toBeTruthy();
   });
@@ -413,7 +419,7 @@ describe('BridgeTransactionDetails', () => {
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText('1.00000 TOKEN1')).toBeTruthy();
     expect(getByText('2.00000 TOKEN2')).toBeTruthy();
@@ -425,7 +431,7 @@ describe('BridgeTransactionDetails', () => {
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText(/date/i)).toBeTruthy();
   });
@@ -436,7 +442,7 @@ describe('BridgeTransactionDetails', () => {
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText(/total gas fee/i)).toBeTruthy();
   });
@@ -447,7 +453,7 @@ describe('BridgeTransactionDetails', () => {
       {
         name: Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS,
       },
-      { state: mockState }
+      { state: mockState },
     );
     expect(getByText(/view on block explorer/i)).toBeTruthy();
   });

@@ -1,10 +1,20 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
-import { ActionTypes, StatusTypes, BridgeHistoryItem, StatusResponse, SrcChainStatus } from '@metamask/bridge-status-controller';
+import {
+  ActionTypes,
+  StatusTypes,
+  BridgeHistoryItem,
+  StatusResponse,
+  SrcChainStatus,
+} from '@metamask/bridge-status-controller';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { Step } from '@metamask/bridge-controller';
-import { TransactionMeta, TransactionStatus, CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionStatus,
+  CHAIN_IDS,
+} from '@metamask/transaction-controller';
 import { CaipChainId } from '@metamask/utils';
 
 describe('BridgeStepDescription', () => {
@@ -346,8 +356,8 @@ describe('BridgeStepDescription', () => {
               chainId: 1,
               address: '0x0000000000000000000000000000000000000000',
               decimals: 18,
-            }
-          }
+            },
+          },
         },
         bridgeId: 'test-bridge-id',
         bridges: [],

@@ -1,6 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import HollowCircle from './HollowCircle';
 import PulsingCircle from './PulsingCircle';
 import { StatusTypes } from '@metamask/bridge-status-controller';
@@ -34,11 +38,7 @@ const VerticalLine = ({ color }: { color: IconColor }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors, color);
 
-  return (
-    <View
-      style={styles.verticalLine}
-    />
-  );
+  return <View style={styles.verticalLine} />;
 };
 
 interface StepsProgressBarItemProps {
@@ -91,9 +91,7 @@ export default function StepProgressBarItem({
       {/* Line */}
       {!isLastItem && (
         <VerticalLine
-          color={
-            isEdgeComplete ? IconColor.Primary : IconColor.Muted
-          }
+          color={isEdgeComplete ? IconColor.Primary : IconColor.Muted}
         />
       )}
 

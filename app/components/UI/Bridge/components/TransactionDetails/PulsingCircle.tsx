@@ -39,11 +39,7 @@ const createStyles = (colors: ThemeColors) =>
  * @param options
  * @param options.color - The color of the icon
  */
-export default function PulsingCircle({
-  color,
-}: {
-  color: IconColor;
-}) {
+export default function PulsingCircle({ color }: { color: IconColor }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -61,17 +57,14 @@ export default function PulsingCircle({
           duration: 1000,
           useNativeDriver: true,
         }),
-      ])
+      ]),
     ).start();
   }, [pulseAnim]);
 
   return (
     <Box style={styles.container}>
       <Animated.View
-        style={[
-          styles.pulsingAura,
-          { transform: [{ scale: pulseAnim }] },
-        ]}
+        style={[styles.pulsingAura, { transform: [{ scale: pulseAnim }] }]}
       />
       <Box style={styles.hollowCircleContainer}>
         <HollowCircle color={color} />
