@@ -855,7 +855,7 @@ class FixtureBuilder {
       .map((id) => ({
         [`eip155:${parseInt(id)}`]: { accounts: [] },
       }))
-      .reduce(((acc, obj) => ({ ...acc, ...obj }), {}));
+      .reduce(((acc, obj) => ({ ...acc, ...obj })));
 
     const defaultCaip25CaveatValue = {
       optionalScopes,
