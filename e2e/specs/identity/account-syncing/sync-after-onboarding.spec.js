@@ -15,11 +15,11 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(
-  SmokeIdentity('Account syncing - syncs previously synced accounts'),
+  SmokeWalletPlatform('Account syncing - syncs previously synced accounts'),
   () => {
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer;

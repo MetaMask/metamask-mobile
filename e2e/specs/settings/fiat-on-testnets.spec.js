@@ -40,7 +40,7 @@ describe(SmokeAssets('Fiat On Testnets Setting'), () => {
         // Verify no fiat values displayed
         await Assertions.checkIfElementToHaveText(
           WalletView.totalBalance,
-          '$0',
+          '$0.00',
         );
 
         // Wait for network switch toast to disapear

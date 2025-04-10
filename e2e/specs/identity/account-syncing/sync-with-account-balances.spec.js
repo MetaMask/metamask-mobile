@@ -21,11 +21,11 @@ import {
   mockIdentityServices,
   setupAccountMockedBalances,
 } from '../utils/mocks';
-import { SmokeIdentity } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 
 describe(
-  SmokeIdentity(
+  SmokeWalletPlatform(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {

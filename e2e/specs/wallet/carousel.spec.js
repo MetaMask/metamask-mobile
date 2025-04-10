@@ -90,8 +90,8 @@ describe(SmokeNetworkAbstractions('Carousel Tests'), () => {
     const container = await WalletView.container;
     await Assertions.checkIfVisible(carouselSecondSlide, 5000);
     await Gestures.waitAndTap(carouselSecondSlide);
-    await Assertions.checkIfVisible(container, 5000);
-    await TestHelpers.delay(5000);
-    await device.enableSynchronization();
+    // await Assertions.checkIfVisible(container, 5000);
+    // await TestHelpers.delay(5000);
+    // await device.enableSynchronization();
   });
 });

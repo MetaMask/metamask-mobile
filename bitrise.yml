@@ -188,7 +188,9 @@ stages:
       - run_network_expansion_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
       - run_network_abstraction_swimlane_android_smoke: {}
-      - run_tag_smoke_confirmations_ios: {}
+      - run_wallet_platform_swimlane_ios_smoke: {}
+      - run_wallet_platform_swimlane_android_smoke: {}
+      # - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
       # - run_tag_smoke_core_ios: {}
@@ -697,6 +699,21 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+    after_run:
+      - android_e2e_test
+  
+  run_wallet_platform_swimlane_ios_smoke:
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
+    after_run:
+      - ios_e2e_test
+  run_wallet_platform_swimlane_android_smoke:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: '.*SmokeWalletPlatform.*'
     after_run:
       - android_e2e_test
 

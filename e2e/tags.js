@@ -11,6 +11,7 @@ const tags = {
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
   SmokeTrade: 'Trade:',
   SmokeNetworkAbstractions: 'NetworkAbstractions:',
+  SmokeWalletPlatform: 'WalletPlatform:',
   SmokeNetworkExpansion: 'NetworkExpansion:',
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
@@ -34,6 +35,7 @@ const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
+const SmokeWalletPlatform = (testName) => `${tags.SmokeWalletPlatform} ${testName}`;
 
 const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
@@ -54,6 +56,7 @@ export {
   SmokeTrade,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
+  SmokeWalletPlatform,
   SmokeRamps,
   SmokeNotifications,
 };
