@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback } from 'react';
+import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -10,13 +10,10 @@ import Text, {
 import { View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EarnTokenList.styles';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import {
   getDecimalChainId,
   isPortfolioViewEnabled,
 } from '../../../../../util/networks';
-import { selectAccountTokensAcrossChains } from '../../../../../selectors/multichain';
 import { TokenI } from '../../../Tokens/types';
 import { ScrollView } from 'react-native-gesture-handler';
 import { Hex } from '@metamask/utils';
@@ -31,20 +28,11 @@ import { strings } from '../../../../../../locales/i18n';
 import UpsellBanner from '../../../Stake/components/UpsellBanner';
 import { UPSELL_BANNER_VARIANTS } from '../../../Stake/components/UpsellBanner/UpsellBanner.types';
 import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
-import {
-  filterEligibleTokens,
-  getSupportedEarnTokens,
-} from '../../../Earn/utils/token';
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import useStakingEligibility from '../../../Stake/hooks/useStakingEligibility';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import useEarnTokens from '../../hooks/useEarnTokens';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -78,62 +66,9 @@ const EarnTokenList = () => {
   const { createEventBuilder, trackEvent } = useMetrics();
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
-  const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const tokens = useSelector((state: RootState) =>
-    isPortfolioViewEnabled() ? selectAccountTokensAcrossChains(state) : {},
-  );
-
-  const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
-  const isStablecoinLendingEnabled = useSelector(
-    selectStablecoinLendingEnabledFlag,
-  );
-
-  const {
-    isEligible: isEligibleToStake,
-    isLoadingEligibility: isLoadingStakingEligibility,
-  } = useStakingEligibility();
-
-  const supportedStablecoins = useMemo(() => {
-    if (isLoadingStakingEligibility) return [];
-
-    const allTokens = Object.values(tokens).flat() as TokenI[];
-
-    if (!allTokens.length) return [];
-
-    const supportedTokens = getSupportedEarnTokens(allTokens);
-
-    const eligibleTokens = filterEligibleTokens(
-      supportedTokens,
-      // TODO: Add eligibility check for stablecoin lending before launch.
-      {
-        canStake: isEligibleToStake && Boolean(isPooledStakingEnabled),
-        canLend:
-          isStablecoinLendingFeatureEnabled() &&
-          Boolean(isStablecoinLendingEnabled),
-      },
-    );
-
-    const eligibleTokensWithBalances = eligibleTokens?.map((token) =>
-      getTokenWithBalanceAndApr(token),
-    );
-
-    // Tokens with a balance of 0 are placed at the end of the list.
-    return eligibleTokensWithBalances.sort((a, b) => {
-      const fiatBalanceA = parseFloat(a.balanceFormatted);
-      const fiatBalanceB = parseFloat(b.balanceFormatted);
-
-      return (fiatBalanceA === 0 ? 1 : 0) - (fiatBalanceB === 0 ? 1 : 0);
-    });
-  }, [
-    getTokenWithBalanceAndApr,
-    isEligibleToStake,
-    isLoadingStakingEligibility,
-    isPooledStakingEnabled,
-    isStablecoinLendingEnabled,
-    tokens,
-  ]);
+  const supportedStablecoins = useEarnTokens();
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
