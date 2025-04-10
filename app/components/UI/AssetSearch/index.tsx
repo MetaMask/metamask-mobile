@@ -216,6 +216,7 @@ const AssetSearch = ({
             setSearchQuery('');
             handleSearch('');
           }}
+          testID={ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR}
         />
       </View>
     </View>

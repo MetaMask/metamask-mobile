@@ -3,6 +3,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import AssetSearch from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import Engine from '../../../core/Engine';
+import { ImportTokenViewSelectorsIDs } from '../../../../e2e/selectors/wallet/ImportTokenView.selectors';
+import { fireEvent } from '@testing-library/react-native';
 const mockedEngine = Engine;
 
 jest.mock('../../../core/Engine', () => ({
@@ -64,5 +66,24 @@ describe('AssetSearch', () => {
       { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('should call onSearch', () => {
+    const onSearch = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <AssetSearch
+        onSearch={onSearch}
+        onFocus={jest.fn}
+        onBlur={jest.fn}
+        allNetworksEnabled
+      />,
+      { state: initialState },
+    );
+    const clearSearchBar = getByTestId(
+      ImportTokenViewSelectorsIDs.CLEAR_SEARCH_BAR,
+    );
+    fireEvent.press(clearSearchBar);
+
+    expect(onSearch).toHaveBeenCalled();
   });
 });
