@@ -1,0 +1,211 @@
+Commit Message,Author,PR Link,Team,Change Type
+chore(cleanup): Remove crowdin actions for workflow that was never put into place (#14589),Desi McAdam,https://github.com/MetaMask/metamask-mobile/pull/14589,team-extension-platform,,Changed
+New Crowdin translations by Github Action (#14572),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/14572,team-bot,,Unknown
+chore: chore/7.44.0-Changelog (#14282),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/14282,team-bot,,Changed
+chore: New Crowdin translations by Github Action (#13263),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/13263,team-bot,,Changed
+feat: 7.42.1 (#14109),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/14109,team-bot,,Added
+chore: chore/7.43.0-Changelog (#14017),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/14017,team-bot,,Changed
+feat: 7.42.0 (#13760),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/13760,team-bot,,Added
+chore: chore/7.41.0-Changelog (#13511),MetaMask Bot,https://github.com/MetaMask/metamask-mobile/pull/13511,team-bot,,Changed
+chore: Add Soneium network and native img (#14538),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14538,team-assets,,Changed
+fix: cp-7.45.0 fix block explorer link for default networks on trx detail modal. (#14498),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/14498,team-assets,,Fixed
+test: reduce flakiness with notification e2e mocks (#14580),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14580,team-assets,,Changed
+build: enable notifications (#14507),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14507,team-assets,,Unknown
+chore: Add XRPEVM logo (#14536),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14536,team-assets,,Changed
+feat: Add support for native asset token images on custom networks (#14491),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14491,team-assets,,Added
+refactor: fix type strictness and improve tests on notifications (#14510),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14510,team-assets,,Changed
+chore: Add asset multichain network logo (#14453),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14453,team-assets,,Changed
+test: add back `@testing-library/react-native` concurrentRoot in tests. (#14454),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14454,team-assets,,Changed
+fix: prevent text overlap in notification opt-in modal (#14481),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14481,team-assets,,Fixed
+test: notification e2e tests (#14431),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14431,team-assets,,Changed
+feat: Init asset details balance remove PV flag (#14439),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14439,team-assets,,Added
+feat: upgrade `@testing-library/react-native` to `13.2.0` (#14450),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14450,team-assets,,Added
+build: add resolution for metro/image-size (#14482),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14482,team-assets,,Unknown
+fix: fix dark mode for trx history network selector (#14416),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/14416,team-assets,,Fixed
+feat: bump `@metamask/notification-services-controller` to `^5.0.1` (#14296),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14296,team-assets,,Added
+fix: Dont send empty set "Token Added" event to Mixpanel (#14303),Nick Gambino,https://github.com/MetaMask/metamask-mobile/pull/14303,team-assets,,Fixed
+chore: bump @metamask/controller-utils to v11.6.0 (#14156),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/14156,team-assets,,Ops
+chore: bump assets controllers v55.0.1 (#14201),sahar-fehri,https://github.com/MetaMask/metamask-mobile/pull/14201,team-assets,,Ops
+fix: notification switch loading flicker (#14331),Prithpal Sooriya,https://github.com/MetaMask/metamask-mobile/pull/14331,team-assets,,Fixed
+feat: multichain trx history (#13922),Salim TOUBAL,https://github.com/MetaMask/metamask-mobile/pull/13922,team-assets,,Added
+refactor(walletconnect): migrate to WalletKit and implement multi-chain support (#13515),abretonc7s,https://github.com/MetaMask/metamask-mobile/pull/13515,team-sdk,,Changed
+chore(runway): cherry-pick a09607a (#14088) (#14585),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14585,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: Resolve a couple of Snaps UI dark mode issues (#14353) (#14568),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14568,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: deeplinks when non evm network is selected (#14521) (#14581),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14581,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: activity reloads every minute (#14465) (#14567),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14567,team-runway-bot,,Ops
+chore(runway): cherry-pick 2ab39eb (#14475) (#14483),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14483,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: 3273 keyboard blocks send flow (Solana) (#14403) (#14548),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14548,team-runway-bot,,Ops
+chore(runway): cherry-pick b7c4950 (#14433) (#14484),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14484,team-runway-bot,,Ops
+chore(runway): cherry-pick test: update token used in ramps test (#14363) (#14512),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14512,team-runway-bot,,Ops
+chore(runway): cherry-pick test: update token selection function for flaky test (#14337) (#14546),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14546,team-runway-bot,,Ops
+chore(runway): cherry-pick STAKE-1005 refresh staking data when staking txs are confirmed (#14541),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14541,team-runway-bot,,Ops
+chore(runway): cherry-pick c804616 (#14509),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14509,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.44.0 Fix header styling for redesigned staking confirmations (#14496),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14496,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: bump `@metamask/keyring-controller` to `^19.2.2` (#14236),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14236,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 correctly fetch token rates during onboarding (#14220),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14220,team-runway-bot,,Ops
+chore(runway): cherry-pick chore: 7.42.1 stable-main sync (#14213),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14213,team-runway-bot,,Ops
+chore(runway): cherry-pick chore: 7.42.0 stable sync (#14119),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14119,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: Disable Snaps APIs when using WalletConnect or SDK (#14195),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14195,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: Xcode 16 bitcode upload issue (#14129),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14129,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 useInterval deps (#14123),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14123,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.42.0 Refactor AddNickname with missing data (#14073),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14073,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 Updated ThemeProvider to no longer have wrapping View (#14063),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14063,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 moved xcode 16 as default and applied xcode 15 only to testflight builds (#14061),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14061,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 remove network fee section in notification details (#14058),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14058,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 add remote feature flag for notifications (#14048),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14048,team-runway-bot,,Added
+chore(runway): cherry-pick fix: cp-7.43.0 updated root to use themeprovider (#14053),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14053,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.43.0 - Temporarily disable notifications (#14037),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14037,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: Revert "chore: upgrade Xcode 16 on bitrise.yml" (#14030),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/14030,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: app store icon (#13726),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13726,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.41.0 13708 fix the submitQRSignature scope issue (#13721),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13721,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.41.0 support NFT collectibles that have multiple images (#13701),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13701,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.41.0 Handle better errors by getting tags in pre-init (#13694),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13694,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.41.0 implement transparent app icons for improved dark/light mode handling (#13697),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13697,team-runway-bot,,Ops
+chore(runway): cherry-pick Temporarily revert gas included swaps (#13678),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13678,team-runway-bot,,Ops
+chore(runway): cherry-pick fix: cp-7.41.0 Prevent flickering on `RetryModal` (#13669),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13669,team-runway-bot,,Ops
+chore(runway): cherry-pick chore: remove SRP videos (#13512),runway-github[bot],https://github.com/MetaMask/metamask-mobile/pull/13512,team-runway-bot,,Ops
+fix: deeplinks when non evm network is selected (#14521),tommasini,https://github.com/MetaMask/metamask-mobile/pull/14521,team-mobile-platform,,Fixed
+feat: 14467 expo ios simulator (#14569),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/14569,team-mobile-platform,,Added
+fix: Crowdin Action (#14562),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14562,team-mobile-platform,,Fixed
+fix: 10371 hide biometrics button on manual lock (#14396),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/14396,team-mobile-platform,,Fixed
+chore: added a new script in the setup help onboard engineers to EXPO (#14424),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14424,team-mobile-platform,,Changed
+chore: apply all teams to remaining files in CODEOWNERs (#14212),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14212,team-mobile-platform,,Changed
+cherry-pick 70ddf46 (#14547),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/14547,team-mobile-platform,,Ops
+chore: Update code ownesrhip of deep link manager (#14537),tommasini,https://github.com/MetaMask/metamask-mobile/pull/14537,team-mobile-platform,,Changed
+fix: cp-7.44.0 Update traits when tracked settings change 2/2 (#14088),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/14088,team-mobile-platform,,Fixed
+fix: 3273 keyboard blocks send flow (Solana) (#14403),Daniel Cross,https://github.com/MetaMask/metamask-mobile/pull/14403,team-mobile-platform,,Fixed
+chore: cherry pick fix: cp-7.44.0 Add new feature flag for staking confirmations (#14401) (#14409),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/14409,team-mobile-platform,,Added
+fix: #3931 Stop loading when enabling biometrics from settings (#14412),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/14412,team-mobile-platform,,Fixed
+fix: anonymous props that's not moved to sensitive props (#12931),Nico MASSART,https://github.com/MetaMask/metamask-mobile/pull/12931,team-mobile-platform,,Fixed
+fix: Fix missing invalid password for login #13558 (#14308),Cal Leung,https://github.com/MetaMask/metamask-mobile/pull/14308,team-mobile-platform,,Fixed
+fix: yml formatting causing error (#14277),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14277,team-mobile-platform,,Fixed
+chore: 7.43.0 stable main sync (#14279),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14279,team-mobile-platform,,Changed
+chore: 7.43.0 stable main sync (#14279),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14279,team-mobile-platform,,Changed
+fix: yml formatting causing error (#14277),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/14277,team-mobile-platform,,Fixed
+test: Fix Swap smoke tests (#14186) (#14239),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14239,team-mobile-platform,,Changed
+fix: ramps: change token to tap and confirm (#14197) (#14238),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14238,team-mobile-platform,,Fixed
+fix: Loading state bug (#14096) (#14235),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14235,team-mobile-platform,,Fixed
+ci: cp-7.43.0 add trigger to kick off qa builds after release is publ… (#14188),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14188,team-mobile-platform,,Changed
+fix: cp-7.43.0 bell icon colour and styles (#14084) (#14163),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14163,team-mobile-platform,,Fixed
+fix: cp-7.43.0 QR hardware signature requests not showing result afte… (#14165),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/14165,team-mobile-platform,,Fixed
+feat: 7.41.0 (#13751),sethkfman,https://github.com/MetaMask/metamask-mobile/pull/13751,team-mobile-platform,,Added
+chore: cherry-pick #12857 (#13538),Aslau Mario-Daniel,https://github.com/MetaMask/metamask-mobile/pull/13538,team-mobile-platform,,Ops
+fix: account syncing flaky E2E tests (#14557),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14557,team-identity,,Changed
+fix: temporarily disable identity E2E (#14570),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14570,team-identity,,Fixed
+chore: bump transaction-controller to 52.3.0 (#14326),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14326,team-identity,,Ops
+feat: add account syncing (#14291),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14291,team-identity,,Added
+fix: cp-7.44.0 STAKE-1005 refresh staking data when staking txs are confirmed (#14520),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/14520,team-identity,,Fixed
+feat: add new `completedOnboarding` onboarding state property (#14370),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14370,team-identity,,Added
+chore: bump multichain controllers (#14320),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14320,team-identity,,Ops
+chore: bump preferences-controller to 17.0.0 (#14322),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14322,team-identity,,Ops
+chore: bump accounts-controller to 27.0.0 (#14317),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14317,team-identity,,Ops
+chore: bump selected-network-controller to 22.0.0 (#14324),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14324,team-identity,,Ops
+chore: bump approval-controller to 7.1.3 (#14315),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14315,team-identity,,Ops
+chore: bump bridge controllers (#14316),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14316,team-identity,,Ops
+chore: bump profile-sync-controller to 11.0.0 (#14323),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14323,team-identity,,Ops
+chore: bump phishing-controller to 12.4.1 (#14321),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14321,team-identity,,Ops
+chore: bump signature-controller to 25.0.0 (#14325),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14325,team-identity,,Ops
+chore: bump json-rpc-middleware-stream to 8.0.7 (#14319),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14319,team-identity,,Ops
+chore: bump gas-fee-controller to 23.0.0 (#14318),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14318,team-identity,,Ops
+chore: bump `@metamask/keyring-controller` to `^21.0.1` (#14304),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14304,team-identity,,Ops
+fix: E2E phishing test on android (#14402),Mathieu Artu,https://github.com/MetaMask/metamask-mobile/pull/14402,team-identity,,Changed
+cp-7.43.0: fix race condition for fresh installs causing geo block (#14234),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/14234,team-identity,,Fixed
+chore: cherry-pick #13594 (feat: STAKE-934: integrate earn controller package into existing pooled staking hooks) (#13612),Matthew Grainger,https://github.com/MetaMask/metamask-mobile/pull/13612,team-identity,,Added
+fix: show multisrp banner (#14564),Monte Lai,https://github.com/MetaMask/metamask-mobile/pull/14564,team-accounts,,Fixed
+feat: multi srp reveal seed (#13825),Monte Lai,https://github.com/MetaMask/metamask-mobile/pull/13825,team-accounts,,Added
+fix: SDK Connection when multichain account is selected (cherry pick from #14494) (#14522),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14522,team-accounts,,Ops
+fix: SDK Connection when multichain account is selected (#14494),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14494,team-accounts,,Fixed
+fix: create Solana account in beta builds (cherry pick from #14460) (#14462),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14462,team-accounts,,Ops
+fix: create Solana account in beta builds (#14460),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14460,team-accounts,,Fixed
+fix: Remove bitcoin from beta release (cherry pick from #14406) (#14418),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14418,team-accounts,,Ops
+fix: Remove bitcoin from beta release (#14406),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14406,team-accounts,,Fixed
+fix: import button (#14398),Monte Lai,https://github.com/MetaMask/metamask-mobile/pull/14398,team-accounts,,Fixed
+fix: clear error if the srp is cleared manually. (#14327),Monte Lai,https://github.com/MetaMask/metamask-mobile/pull/14327,team-accounts,,Fixed
+fix: Hide account list selector balance for non evm accounts (#14379),Owen Craston,https://github.com/MetaMask/metamask-mobile/pull/14379,team-accounts,,Fixed
+feat: add accounts to different srps (#13852),Monte Lai,https://github.com/MetaMask/metamask-mobile/pull/13852,team-accounts,,Added
+feat: new cicd integration changelog-check (#14011),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/14011,team-dev-ops,,Added
+chore: fix merge queue failures (#14544),jake-perkins,https://github.com/MetaMask/metamask-mobile/pull/14544,team-dev-ops,,Changed
+chore: Add small bottom padding to Browser 5-tab max toast (#14306),Kylan Hurt,https://github.com/MetaMask/metamask-mobile/pull/14306,Unknown,,Changed
+chore: cherry-pick #cherry-pick-7.44.0-import-srp (#14404),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/14404,Unknown,,Ops
+chore: cherry-pick #14379 (#14389),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/14389,Unknown,,Ops
+chore: cherry-pick #13590 (#13648),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13648,Unknown,,Ops
+chore: cherry-pick #13509 (test: Fixed swap chart test and remove bug workarounds) (#13586),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13586,Unknown,,Ops
+chore: cherry-pick #13514 (test: remove old permission system test) (#13587),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13587,Unknown,,Ops
+chore: cherry-pick #13554 (#13561),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13561,Unknown,,Ops
+chore: cherry-pick #13503 (#13537),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13537,Unknown,,Ops
+chore: cherry-pick #13484 (#13536),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13536,Unknown,,Ops
+chore: cherry-pick #13513 (#13535),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13535,Unknown,,Ops
+chore: cherry-pick #13530 (#13532),github-actions[bot],https://github.com/MetaMask/metamask-mobile/pull/13532,Unknown,,Ops
+Fix/swaps usdc usdt slippage (#14525),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/14525,team-swaps-and-bridge,,Unknown
+feat: bridge solana bridge button (#14364),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/14364,team-swaps-and-bridge,,Added
+feat: bridge top tokens (#14258),infiniteflower,https://github.com/MetaMask/metamask-mobile/pull/14258,team-swaps-and-bridge,,Added
+feat: add quote details card component to Bridge UI (#14264),Amitabh Aggarwal,https://github.com/MetaMask/metamask-mobile/pull/14264,team-swaps-and-bridge,,Added
+feat: Auto-failover to Quicknode when Infura is down (#14139),Elliot Winkler,https://github.com/MetaMask/metamask-mobile/pull/14139,team-wallet-framework,,Added
+chore: Bump network-controller to 23.2.0 controller-utils to 11.7.0 (#14408),Elliot Winkler,https://github.com/MetaMask/metamask-mobile/pull/14408,team-wallet-framework,,Changed
+refactor: Apply modular init approach to `GasFeeController` (#14464),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14464,team-confirmations,,Changed
+Cherry pick `7744ef4` into `7.44.0` (#14505),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14505,team-confirmations,,Unknown
+Cherry pick `9d20463` into `7.44.0` (#14501),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14501,team-confirmations,,Unknown
+fix: cp-7.44.0 Add notification when redesigned transaction confirmation submitted and finalized (#14495),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14495,team-confirmations,,Fixed
+fix: cp-7.44.0 Fix header styling for redesigned staking confirmations (#14472),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14472,team-confirmations,,Fixed
+fix: update `ConfirmAlertModal` copy blockaid (#14206),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/14206,team-confirmations,,Fixed
+feat: add metrics for Alert System (#14246),Vinicius Stevam,https://github.com/MetaMask/metamask-mobile/pull/14246,team-confirmations,,Added
+fix: cp-7.44.0 Add new feature flag for staking confirmations (#14401),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14401,team-confirmations,,Added
+fix: Relocate confirmations code to `legacy` folder (#14313),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14313,team-confirmations,,Fixed
+fix: ledger singing on re-designed signature pages (#14266),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/14266,team-confirmations,,Fixed
+feat: escape / sanitize signTypedData update (#14280),digiwand,https://github.com/MetaMask/metamask-mobile/pull/14280,team-confirmations,,Added
+fix: Remove `Transaction Finalized` event tied to STX (#14293),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/14293,team-confirmations,,Fixed
+cherry-pick: accessibility issue with footer buttons (#13717),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13717,team-confirmations,,Ops
+cherry-pick: @metamask/transaction-controller version to exact 45.0.0 (#13695),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13695,team-confirmations,,Ops
+fix: origin url displayed for signatures (#13692),Jyoti Puri,https://github.com/MetaMask/metamask-mobile/pull/13692,team-confirmations,,Fixed
+chore: Cherry-pick `13637`  (#13661),OGPoyraz,https://github.com/MetaMask/metamask-mobile/pull/13661,team-confirmations,,Changed
+feat: feature flag to disable epd (#14407),AugmentedMode,https://github.com/MetaMask/metamask-mobile/pull/14407,team-product-safety,,Added
+feat: util file for phishing detection (#14232),AugmentedMode,https://github.com/MetaMask/metamask-mobile/pull/14232,team-product-safety,,Added
+Feat/redesign phishing screen (#14390),AugmentedMode,https://github.com/MetaMask/metamask-mobile/pull/14390,team-product-safety,,Unknown
+fix: small update for event consistency (#14357),mar,https://github.com/MetaMask/metamask-mobile/pull/14357,team-product-safety,,Fixed
+feat: add phishing tracking events to PhishingModal component (#14254),AugmentedMode,https://github.com/MetaMask/metamask-mobile/pull/14254,team-product-safety,,Added
+feat: api request logging (#14083),cmd-ob,https://github.com/MetaMask/metamask-mobile/pull/14083,team-qa,,Added
+test: new e2e case for offramps cashout destination (#14419),Iván,https://github.com/MetaMask/metamask-mobile/pull/14419,team-qa,,Changed
+test: new test cases for off-ramp token amounts (#14415),Iván,https://github.com/MetaMask/metamask-mobile/pull/14415,team-qa,,Changed
+test: move limits ramps test to quarantine (#14436) (#14461),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14461,team-qa,,Changed
+fix: Cherry pick Fix swap smoke tests (#14388) (#14421),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14421,team-qa,,Changed
+fix:  cp fix(14255): invalid url on account list (#14420),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14420,team-qa,,Fixed
+test: move limits ramps test to quarantine (#14436),Iván,https://github.com/MetaMask/metamask-mobile/pull/14436,team-qa,,Changed
+test: Fix swap smoke tests (#14388),Davide Brocchetto,https://github.com/MetaMask/metamask-mobile/pull/14388,team-qa,,Changed
+test: update ramp used token text (#14383),Iván,https://github.com/MetaMask/metamask-mobile/pull/14383,team-qa,,Changed
+test: update token used in ramps test (#14363),Iván,https://github.com/MetaMask/metamask-mobile/pull/14363,team-qa,,Changed
+chore: patch detox default lockfile sync timeout (#14358),CW,https://github.com/MetaMask/metamask-mobile/pull/14358,team-qa,,Changed
+chore: Revert "fix: anonymous props that's not moved to sensitive props (#12… (#14362),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14362,team-qa,,Changed
+ci: Fix Android expodev build (#14359),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14359,team-qa,,Changed
+test: update token selection function for flaky test (#14337),Iván,https://github.com/MetaMask/metamask-mobile/pull/14337,team-qa,,Changed
+test: temporary skipping flaking e2e test (#14335),Curtis David,https://github.com/MetaMask/metamask-mobile/pull/14335,team-qa,,Changed
+chore: Enable e2e testing for flask builds in ci (#14283),yande,https://github.com/MetaMask/metamask-mobile/pull/14283,team-qa,,Changed
+feat(ramp): erc20 gas and balance checks for off-ramp (#12526),Pedro Pablo Aste Kompen,https://github.com/MetaMask/metamask-mobile/pull/12526,team-ramp,,Added
+feat(ramp): paymentMethods refactor for sdk evolution (#13464),AxelGes,https://github.com/MetaMask/metamask-mobile/pull/13464,team-ramp,,Added
+chore: revert update solana (#14517),Alejandro Garcia Anglada,https://github.com/MetaMask/metamask-mobile/pull/14517,team-solana,,Changed
+fix: activity reloads every minute (#14465),Alejandro Garcia Anglada,https://github.com/MetaMask/metamask-mobile/pull/14465,team-solana,,Fixed
+chore: update solana (#14485),Alejandro Garcia Anglada,https://github.com/MetaMask/metamask-mobile/pull/14485,team-solana,,Changed
+fix: code fence name - show only in Beta (#14490),António Regadas,https://github.com/MetaMask/metamask-mobile/pull/14490,team-solana,,Fixed
+chore: updates the support url to use the internal-beta-testing (#14435),António Regadas,https://github.com/MetaMask/metamask-mobile/pull/14435,team-solana,,Changed
+fix: hide show private key in non-evm accounts (#14466),Alejandro Garcia Anglada,https://github.com/MetaMask/metamask-mobile/pull/14466,team-solana,,Fixed
+fix: fix typo in network message (#14434),António Regadas,https://github.com/MetaMask/metamask-mobile/pull/14434,team-solana,,Fixed
+fix: activity showing same transactions (#14449),Alejandro Garcia Anglada,https://github.com/MetaMask/metamask-mobile/pull/14449,team-solana,,Fixed
+feat: solana opt-in modal (#14298),António Regadas,https://github.com/MetaMask/metamask-mobile/pull/14298,team-solana,,Added
+fix: adds translations for a Swap tx in the Multichain activity view (#14314),António Regadas,https://github.com/MetaMask/metamask-mobile/pull/14314,team-solana,,Fixed
+feat: add `MegaETH Testnet` as default network (#14241),Stanley Yuen,https://github.com/MetaMask/metamask-mobile/pull/14241,team-network-enablement,,Added
+fix: Prevent re-renders of Field component in Snaps UI [cp-7.44.0] (#14475),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14475,team-snaps-platform,,Fixed
+fix: Prevent Snap footer buttons from being pushed out of the modal (#14430),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14430,team-snaps-platform,,Fixed
+fix: Disable auto correct on Snaps UI inputs [cp-7.44.0] (#14433),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14433,team-snaps-platform,,Fixed
+feat: Snaps UI text styling inheritance (#14355),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14355,team-snaps-platform,,Added
+fix: Resolve a couple of Snaps UI dark mode issues (#14353),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14353,team-snaps-platform,,Fixed
+chore: Bump Snaps dependencies (#14328),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14328,team-snaps-platform,,Changed
+feat: Support input types on `SnapUIInput` (#14312),Frederik Bolding,https://github.com/MetaMask/metamask-mobile/pull/14312,team-snaps-platform,,Added
+feat: Updated design-tokens package to 7.0 (#14395),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/14395,team-design-system,,Added
+feat: added mmpoly and mmsans font files (#14394),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/14394,team-design-system,,Added
+Updated default font to Centra No 1 (#14349),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/14349,team-design-system,,Unknown
+chore: Updated CODEOWNER for snap files (#14380),Brian August Nguyen,https://github.com/MetaMask/metamask-mobile/pull/14380,team-design-system,,Changed
+feat: upgrade to brand evolution colors (#14218),George Marshall,https://github.com/MetaMask/metamask-mobile/pull/14218,team-design-system,,Added
+fix(14305): removed background color for header in QR code screen (#14411),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/14411,team-wallet-ux,,Fixed
+fix: #13410: Don't switch networks when 'Close' button is tapped in Add Network flow (#14297),David Walsh,https://github.com/MetaMask/metamask-mobile/pull/14297,team-wallet-ux,,Fixed
+fix(14255): invalid url on account list  (#14259),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/14259,team-wallet-ux,,Fixed
+fix: additional app icons and remove tint fields (#13543),Vince Howard,https://github.com/MetaMask/metamask-mobile/pull/13543,team-wallet-ux,,Fixed
+refactor: create a new earn input screen that works with evm tokens (#14237),Nicholas Smith,https://github.com/MetaMask/metamask-mobile/pull/14237,team-stake,,Changed
