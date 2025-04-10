@@ -518,30 +518,19 @@ class MetaMetrics implements IMetaMetrics {
           )}`,
         );
 
-      // In E2E mode, create a mock client that sends events to our test server
-      const segmentClient = isE2E && __DEV__
+      /*
+      E2E tests hang when segment is enabled see: https://github.com/MetaMask/metamask-mobile/pull/9791
+      So we need to mock the Segment client when running E2E tests
+      */
+      const segmentClient = isE2E
         ? {
-            track: (event: string, properties: JsonMap) => {
-              MetaMetricsTestUtils.getInstance().trackEvent({
-                name: event,
-                properties,
-                sensitiveProperties: {},
-                saveDataRecording: true,
-                get isAnonymous() {
-                  return false;
-                },
-                get hasProperties() {
-                  return true;
-                },
-              });
-            },
+            track: () => Promise.resolve(),
             identify: () => Promise.resolve(),
             group: () => Promise.resolve(),
             screen: () => Promise.resolve(),
             flush: () => Promise.resolve(),
             reset: () => Promise.resolve(),
-            // eslint-disable-next-line no-empty-function
-            add: () => {},
+            add: () => Promise.resolve(),
           }
         : createClient(config);
 
