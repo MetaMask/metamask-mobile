@@ -898,7 +898,7 @@ describe('WC2Manager', () => {
       expect(storageSetItemSpy).not.toHaveBeenCalled();
     });
 
-    it('handles errors during storage update', async () => {
+    it('deletes session on storage update error', async () => {
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
           topic: 'test-topic',
