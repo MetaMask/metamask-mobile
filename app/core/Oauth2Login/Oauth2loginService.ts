@@ -60,19 +60,54 @@ interface ByoaResponse {
 
 export class Oauth2LoginService {
     public localState: {
-        codeVerifier: string | null;
         verifier: OAuthVerifier | null;
         verifierID: string | null;
     };
 
-
     constructor() {
         this.localState = {
-            codeVerifier: null,
             verifier: null,
             verifierID: null,
         };
     }
+
+    #dispatchLogin = () =>{
+        ReduxService.store.dispatch({
+            type: UserActionType.LOADING_SET,
+            payload: {
+                loadingMsg: 'Logging in...',
+            },
+        });
+        ReduxService.store.dispatch({
+            type: UserActionType.OAUTH2_LOGIN,
+        });
+    };
+
+    #dispatchPostLogin = (result: HandleOauth2LoginResult) => {
+        if (result.type === 'success') {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_SUCCESS,
+                payload: {
+                    existingUser: result.existingUser,
+                },
+            });
+        } else if (result.type === 'error' && 'error' in result) {
+            this.clearVerifierDetails();
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_ERROR,
+                payload: {
+                    error: result.error,
+                },
+            });
+        } else {
+            ReduxService.store.dispatch({
+                type: UserActionType.OAUTH2_LOGIN_RESET,
+            });
+        }
+        ReduxService.store.dispatch({
+            type: UserActionType.LOADING_UNSET,
+        });
+    };
 
     #iosHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
         try {
@@ -153,12 +188,13 @@ export class Oauth2LoginService {
                         response_mode: 'form_post',
                     }
                 });
+                // generate the auth url
                 const authUrl = await authRequest.makeAuthUrlAsync({
                     authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
                 });
-                Logger.log('authUrl', authUrl);
-            
-                const authRequestProxy = new AuthRequest({
+
+                // create a dummy auth request so that the auth-session can return result on appRedirectUrl
+                const authRequestDummy = new AuthRequest({
                     clientId: AppleWebClientId,
                     redirectUri: AppRedirectUri,
                     scopes: ['email', 'name'],
@@ -171,24 +207,22 @@ export class Oauth2LoginService {
                     }
                 });
 
-                // result return type `dismissed` which is hard to differentiate between dismissed or pending redirect url
-                const result = await authRequestProxy.promptAsync({
+                // prompt the auth request using generated auth url instead of the dummy auth request
+                const result = await authRequestDummy.promptAsync({
                     authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
                 }, {
                     url: authUrl,
                 });
 
-                Logger.log('result ===============', result);
                 if (result.type === 'success') {
                     return this.handleCodeFlow({
                         provider: 'apple',
-                        code: result.params.code, // result.params.idToken
+                        code: result.params.code,
                         clientId: AppleWebClientId,
                         redirectUri: AppleServerRedirectUri,
                         codeVerifier: authRequest.codeVerifier,
                     });
                 }
-                this.localState.codeVerifier = authRequest.codeVerifier ?? null;
                 return {...result, existingUser: false};
             } else if (provider === 'google') {
                 const result = await signInWithGoogle({
@@ -264,8 +298,6 @@ export class Oauth2LoginService {
                 message: 'handleCodeFlow',
             } );
             return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
-        } finally {
-            this.localState.codeVerifier = null;
         }
     };
 
@@ -274,73 +306,18 @@ export class Oauth2LoginService {
         if (state.user.oauth2LoginInProgress) {
             throw new Error('Login already in progress');
         }
-        ReduxService.store.dispatch({
-            type: UserActionType.LOADING_SET,
-            payload: {
-                loadingMsg: 'Logging in...',
-            },
-        });
-        ReduxService.store.dispatch({
-            type: UserActionType.OAUTH2_LOGIN,
-        });
+        this.#dispatchLogin();
 
         let result;
         if (Platform.OS === 'ios') {
             result = await this.#iosHandleOauth2Login(provider, mode);
         } else if (Platform.OS === 'android') {
             result = await this.#androidHandleOauth2Login(provider, mode);
-        }
-
-        if (result === undefined) {
-            this.localState.loginInProgress = false;
-            ReduxService.store.dispatch({
-                type: UserActionType.OAUTH2_LOGIN_ERROR,
-                payload: {
-                    error: 'Invalid platform',
-                },
-            });
+        } else {
+            this.#dispatchPostLogin({type: 'error', existingUser: false, error: 'Invalid platform'});
             throw new Error('Invalid platform');
         }
-
-        if (result.type === 'success') {
-            ReduxService.store.dispatch({
-                type: UserActionType.OAUTH2_LOGIN_SUCCESS,
-                payload: {
-                    existingUser: result.existingUser,
-                },
-            });
-        } else if (result.type === 'error' && 'error' in result) {
-            this.clearVerifierDetails();
-            ReduxService.store.dispatch({
-                type: UserActionType.OAUTH2_LOGIN_ERROR,
-                payload: {
-                    error: result.error,
-                },
-            });
-        } else if (result.type === 'pending') {
-            setTimeout(() => {
-                ReduxService.store.dispatch({
-                    type: UserActionType.OAUTH2_LOGIN_COMPLETE,
-                });
-            }, 10000);
-        } else {
-            ReduxService.store.dispatch({
-                type: UserActionType.OAUTH2_LOGIN_RESET,
-            });
-        }
-
-        if ( result.type !== 'pending') {
-            ReduxService.store.dispatch({
-                type: UserActionType.LOADING_UNSET,
-            });
-        } else {
-            setTimeout(() => {
-                ReduxService.store.dispatch({
-                    type: UserActionType.LOADING_UNSET,
-                });
-            }, 10000);
-        }
-
+        this.#dispatchPostLogin(result);
         return result;
     };
 
