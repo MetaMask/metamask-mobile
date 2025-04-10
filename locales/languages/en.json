@@ -632,7 +632,7 @@
     "action_description_3_prefix": "Optional:",
     "action_description_1_description": "clicks and views on the app are stored, but other details are not.",
     "action_description_2_description": "we temporarily use your IP address to detect a general location (like your country or region), but it's never stored.",
-    "action_description_3_description": "Optional: you decide if you want to share or delete your usage data via settings any time.",
+    "action_description_3_description": "you decide if you want to share or delete your usage data via settings any time.",
     "cta_no_thanks": "No thanks",
     "cta_i_agree": "I agree",
     "fine_print_1_legacy": "This data is aggregated and is therefore anonymous for the purposes of General Data Protection Regulation (EU) 2016/679.",

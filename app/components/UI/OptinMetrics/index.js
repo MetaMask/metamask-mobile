@@ -604,21 +604,6 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <Text
-              style={styles.content}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-              }
-            >
-              {strings(
-                this.props.isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_1'
-                  : 'privacy_policy.description_content_1_legacy',
-              )}
-            </Text>
-            <Text style={styles.linkText} onPress={this.handleLink}>
-              {strings('privacy_policy.description_content_3')}
-            </Text>
             <Text style={styles.content}>
               {strings(
                 this.props.isPastPrivacyPolicyDate
