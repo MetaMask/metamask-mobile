@@ -49,6 +49,7 @@ import { AppMetadataController } from '@metamask/app-metadata-controller';
 import { appMetadataControllerInit } from '../controllers/app-metadata-controller';
 
 jest.mock('../controllers/accounts-controller');
+jest.mock('../controllers/app-metadata-controller');
 jest.mock(
   '../controllers/currency-rate-controller/currency-rate-controller-init',
 );
