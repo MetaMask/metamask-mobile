@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { Regression } from '../../tags';
 import ProtectYourWalletView from '../../pages/Onboarding/ProtectYourWalletView';
 import CreatePasswordView from '../../pages/Onboarding/CreatePasswordView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
@@ -24,7 +24,7 @@ import ExperienceEnhancerBottomSheet from '../../pages/Onboarding/ExperienceEnha
 const PASSWORD = '12345678';
 
 describe(
-  SmokeNetworkAbstractions('Onboarding wizard opt-in, metametrics opt out from settings'),
+  Regression('Onboarding wizard opt-in, metametrics opt out from settings'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);

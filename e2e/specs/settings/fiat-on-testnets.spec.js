@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAssets } from '../../tags';
+import { SmokeNetworkAbstractions } from '../../tags';
 import SettingsView from '../../pages/Settings/SettingsView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../viewHelper';
@@ -16,7 +16,7 @@ import TestHelpers from '../../helpers.js';
 
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
-describe(SmokeAssets('Fiat On Testnets Setting'), () => {
+describe(SmokeNetworkAbstractions('Fiat On Testnets Setting'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
