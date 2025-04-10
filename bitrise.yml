@@ -562,6 +562,7 @@ workflows:
     before_run:
       - _get_workflow_info
       # Update Bitrise comment in PR with failure status
+    steps:
       - script@1:
           is_always_run: true
           title: Trigger Update Build Version Action
