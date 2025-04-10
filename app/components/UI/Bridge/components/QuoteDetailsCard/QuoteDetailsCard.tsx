@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   TouchableOpacity,
   LayoutAnimation,
@@ -41,7 +41,7 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
-const ANIMATION_DURATION_MS = 200;
+const ANIMATION_DURATION_MS = 300;
 
 if (
   Platform.OS === 'android' &&
@@ -87,10 +87,10 @@ const QuoteDetailsCard = () => {
   const { sourceToken, destToken, formattedQuoteData, sourceAmount } =
     useBridgeQuoteData();
 
-  // Reset expanded state when dependencies change
-  useEffect(() => {
-    setIsExpanded(false);
-  }, [sourceToken, destToken]);
+  // // Reset expanded state when dependencies change
+  // useEffect(() => {
+  //   setIsExpanded(false);
+  // }, [sourceToken, destToken]);
 
   const toggleAccordion = useCallback(() => {
     LayoutAnimation.configureNext(
@@ -136,6 +136,9 @@ const QuoteDetailsCard = () => {
   ) {
     return null;
   }
+
+  const { networkFee, estimatedTime, rate, priceImpact, slippage } =
+    formattedQuoteData;
 
   const isSameChainId = sourceToken.chainId === destToken.chainId;
 
@@ -192,7 +195,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: formattedQuoteData?.networkFee,
+            text: networkFee,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -207,7 +210,7 @@ const QuoteDetailsCard = () => {
         }}
         value={{
           label: {
-            text: formattedQuoteData?.estimatedTime,
+            text: estimatedTime,
             variant: TextVariant.BodyMD,
           },
         }}
@@ -230,7 +233,7 @@ const QuoteDetailsCard = () => {
           }}
           value={{
             label: {
-              text: formattedQuoteData?.rate,
+              text: rate,
               variant: TextVariant.BodyMD,
             },
           }}
@@ -276,7 +279,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: formattedQuoteData?.priceImpact,
+                text: priceImpact,
                 variant: TextVariant.BodyMD,
               },
             }}
@@ -309,7 +312,7 @@ const QuoteDetailsCard = () => {
             }}
             value={{
               label: {
-                text: formattedQuoteData?.slippage,
+                text: slippage,
                 variant: TextVariant.BodyMD,
               },
             }}

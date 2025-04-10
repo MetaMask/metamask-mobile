@@ -5,19 +5,19 @@ import {
   selectDestToken,
   selectSourceAmount,
   selectSlippage,
-} from '../../../../core/redux/slices/bridge';
+} from '../../../../../core/redux/slices/bridge';
 import {
   BridgeFeatureFlagsKey,
   RequestStatus,
 } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
-import { fromTokenMinimalUnit } from '../../../../util/number';
+import { fromTokenMinimalUnit } from '../../../../../util/number';
 
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
-} from '../utils/quoteUtils';
+} from '../../utils/quoteUtils';
 
 /**
  * Hook for getting bridge quote data without request logic
