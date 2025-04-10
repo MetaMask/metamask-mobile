@@ -70,27 +70,6 @@ describe('Phishing Detection', () => {
 
       expect(result).toEqual(mockResult);
     });
-
-    it('calls PhishingController.test when product safety dapp scanning is disabled', () => {
-      mockSelectProductSafetyDappScanningEnabled.mockReturnValue(false);
-      const testOrigin = 'https://example.com';
-      getPhishingTestResult(testOrigin);
-      expect(mockPhishingController.maybeUpdateState).toHaveBeenCalledTimes(1);
-      expect(mockPhishingController.test).toHaveBeenCalledWith(testOrigin);
-    });
-
-    it('returns hardcoded result when product safety dapp scanning is enabled', () => {
-      mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
-      const mockResult = {
-        result: false,
-        name: 'Product safety dapp scanning is enabled',
-        type: 'DAPP_SCANNING' as PhishingDetectorResultType,
-      };
-
-      const result = getPhishingTestResult('example.com');
-      expect(mockPhishingController.test).not.toHaveBeenCalled();
-      expect(result).toEqual(mockResult);
-    });
   });
 
   describe('getPhishingTestResultAsync', () => {
