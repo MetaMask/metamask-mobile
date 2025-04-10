@@ -6,7 +6,7 @@ import { zeroAddress } from 'ethereumjs-util';
 import useAddToken from './useAddToken';
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { getQuoteRequest } from '../../../selectors/bridgeController';
+import { selectQuoteRequest } from '../../../selectors/bridgeController';
 import { serializeQuoteMetadata } from '..';
 import { QuoteMetadata } from '@metamask/bridge-controller';
 
@@ -14,7 +14,7 @@ export default function useSubmitBridgeTx() {
   const { handleBridgeTx } = useHandleBridgeTx();
   const { handleApprovalTx } = useHandleApprovalTx();
   const { addSourceToken, addDestToken } = useAddToken();
-  const { slippage } = useSelector(getQuoteRequest);
+  const { slippage } = useSelector(selectQuoteRequest);
 
   const submitBridgeTx = async ({
     quoteResponse,
