@@ -170,7 +170,7 @@ export function useSwitchNetworks({
 
         // Update incoming transactions after a delay
         setTimeout(async () => {
-          await updateIncomingTransactions([networkConfiguration.chainId]);
+          await updateIncomingTransactions();
         }, 1000);
       }
 

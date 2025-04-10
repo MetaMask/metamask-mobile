@@ -109,7 +109,10 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -164,6 +167,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
+  const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
@@ -294,8 +299,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const isAllowedOrigin = useCallback(
     async (urlOrigin: string): Promise<boolean> => {
-      const whitelisted = whitelist?.includes(urlOrigin);
-      if (whitelisted) {
+      if (whitelist?.includes(urlOrigin)) {
         return true;
       }
 
@@ -312,11 +316,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    // Ignore showing the phishing modal if the user is no longer on the page.
-    const currentUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
-    if (currentUrlOrigin !== urlOrigin) {
+    const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+    const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
+    // If the resolved URL and the loading URL are different from the phishing URL
+    // and dapp scanning is enabled, don't show the phishing modal
+    if (
+      resolvedUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin != null &&
+      isProductSafetyDappScanningEnabled()
+    ) {
       return;
     }
+
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   }, []);
@@ -549,90 +561,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     [isEnabled, getMetaMetricsId, bookmarks, searchEngine],
   );
 
-  const handleEnsUrl = useCallback(
-    async (ens: string) => {
-      try {
-        webviewRef.current?.stopLoading();
-
-        const { hostname, query, pathname } = new URLParse(ens);
-        const ipfsContent = await handleIpfsContent(ens, {
-          hostname,
-          query,
-          pathname,
-        });
-        if (!ipfsContent?.url) return null;
-        const { url: ipfsUrl, reload } = ipfsContent;
-        // Reload with IPFS url
-        if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
-        if (!ipfsContent.hash || !ipfsContent.type) {
-          Logger.error(
-            new Error('IPFS content is missing hash or type'),
-            'Error in handleEnsUrl',
-          );
-          return null;
-        }
-        const { type, hash } = ipfsContent;
-        sessionENSNamesRef.current[ipfsUrl] = { hostname, hash, type };
-        setIsResolvedIpfsUrl(true);
-        return ipfsUrl;
-      } catch (_) {
-        return null;
-      }
-    },
-    [handleIpfsContent, setIsResolvedIpfsUrl],
-  );
-
-  const onSubmitEditing = useCallback(
-    async (text: string) => {
-      if (!text) return;
-      setConnectionType(ConnectionType.UNKNOWN);
-      urlBarRef.current?.setNativeProps({ text });
-      submittedUrlRef.current = text;
-      webviewRef.current?.stopLoading();
-      // Format url for browser to be navigatable by webview
-      const processedUrl = processUrlForBrowser(text, searchEngine);
-      if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
-        const handledEnsUrl = await handleEnsUrl(
-          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
-        );
-        if (!handledEnsUrl) {
-          Logger.error(
-            new Error('Failed to handle ENS url'),
-            'Error in onSubmitEditing',
-          );
-          return;
-        }
-        return onSubmitEditingRef.current(handledEnsUrl);
-      }
-      // Directly update url in webview
-      webviewRef.current?.injectJavaScript(`
-      window.location.href = '${sanitizeUrlInput(processedUrl)}';
-      true;  // Required for iOS
-    `);
-    },
-    [searchEngine, handleEnsUrl, setConnectionType],
-  );
-
-  // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
-  useEffect(() => {
-    onSubmitEditingRef.current = onSubmitEditing;
-  }, [onSubmitEditing]);
-
   /**
    * Handles error for example, ssl certificate error or cannot open page
    */
   const handleError = useCallback(
     (webViewError: WebViewError) => {
-      // To handle for Chrome's
-      // if (webViewError.code === -16) {
-      //   if (backEnabled) {
-      //     goBack();
-      //     return;
-      //   }
-      //   onSubmitEditing(HOMEPAGE_HOST);
-      //   return;
-      // }
-
       resolvedUrlRef.current = submittedUrlRef.current;
       titleRef.current = `Can't Open Page`;
       iconRef.current = undefined;
@@ -655,9 +588,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           ),
         });
 
-      // Used to render tab title in tab selection
-      updateTabInfo(`Can't Open Page`, tabId);
-
       Logger.log(webViewError);
     },
     [
@@ -668,12 +598,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       setProgress,
       isUrlBarFocused,
       isTabActive,
-      tabId,
-      updateTabInfo,
       navigation,
-      // backEnabled,
-      // onSubmitEditing,
-      // goBack,
     ],
   );
 
@@ -761,10 +686,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        tabId,
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
@@ -869,6 +793,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       // Handle navigation event
       const { url, title, canGoBack, canGoForward } = nativeEvent;
+      loadingUrlRef.current = '';
       // Do not update URL unless website has successfully completed loading.
       webStates.current[url] = { ...webStates.current[url], ended: true };
       const { started, ended } = webStates.current[url];
@@ -988,14 +913,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
-      // Use URL to produce real url. This should be the actual website that the user is viewing.
-      // const { origin: urlOrigin, hostname } = new URLParse(nativeEvent.url);
-      const { origin: urlOrigin } = new URLParse(nativeEvent.url);
+      loadingUrlRef.current = nativeEvent.url;
 
-      // // Skip processing if this is a navigation to an error page
-      // if (hostname === `can't%20open%20page`) {
-      //   return;
-      // }
+      // Use URL to produce real url. This should be the actual website that the user is viewing.
+      const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
       webStates.current[nativeEvent.url] = {
         ...webStates.current[nativeEvent.url],
@@ -1091,6 +1012,75 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   useEffect(() => {
     checkTabPermissions();
   }, [checkTabPermissions, isFocused, isInTabsView, isTabActive]);
+
+  const handleEnsUrl = useCallback(
+    async (ens: string) => {
+      try {
+        webviewRef.current?.stopLoading();
+
+        const { hostname, query, pathname } = new URLParse(ens);
+        const ipfsContent = await handleIpfsContent(ens, {
+          hostname,
+          query,
+          pathname,
+        });
+        if (!ipfsContent?.url) return null;
+        const { url: ipfsUrl, reload } = ipfsContent;
+        // Reload with IPFS url
+        if (reload) return onSubmitEditingRef.current?.(ipfsUrl);
+        if (!ipfsContent.hash || !ipfsContent.type) {
+          Logger.error(
+            new Error('IPFS content is missing hash or type'),
+            'Error in handleEnsUrl',
+          );
+          return null;
+        }
+        const { type, hash } = ipfsContent;
+        sessionENSNamesRef.current[ipfsUrl] = { hostname, hash, type };
+        setIsResolvedIpfsUrl(true);
+        return ipfsUrl;
+      } catch (_) {
+        return null;
+      }
+    },
+    [handleIpfsContent, setIsResolvedIpfsUrl],
+  );
+
+  const onSubmitEditing = useCallback(
+    async (text: string) => {
+      if (!text) return;
+      setConnectionType(ConnectionType.UNKNOWN);
+      urlBarRef.current?.setNativeProps({ text });
+      submittedUrlRef.current = text;
+      webviewRef.current?.stopLoading();
+      // Format url for browser to be navigatable by webview
+      const processedUrl = processUrlForBrowser(text, searchEngine);
+      if (isENSUrl(processedUrl, ensIgnoreListRef.current)) {
+        const handledEnsUrl = await handleEnsUrl(
+          processedUrl.replace(regex.urlHttpToHttps, 'https://'),
+        );
+        if (!handledEnsUrl) {
+          trackErrorAsAnalytics(
+            'Browser: Failed to handle ENS url',
+            'Error in onSubmitEditing',
+          );
+          return;
+        }
+        return onSubmitEditingRef.current(handledEnsUrl);
+      }
+      // Directly update url in webview
+      webviewRef.current?.injectJavaScript(`
+      window.location.href = '${sanitizeUrlInput(processedUrl)}';
+      true;  // Required for iOS
+    `);
+    },
+    [searchEngine, handleEnsUrl, setConnectionType],
+  );
+
+  // Assign the memoized function to the ref. This is needed since onSubmitEditing is a useCallback and is accessed recursively
+  useEffect(() => {
+    onSubmitEditingRef.current = onSubmitEditing;
+  }, [onSubmitEditing]);
 
   /**
    * Go to home page, reload if already on homepage
@@ -1388,6 +1378,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
               showPhishingModal={showPhishingModal}
               setShowPhishingModal={setShowPhishingModal}
               setBlockedUrl={setBlockedUrl}
+              urlBarRef={urlBarRef}
               addToWhitelist={triggerAddToWhitelist}
               activeUrl={resolvedUrlRef.current}
               blockListType={blockListType}

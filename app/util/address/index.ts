@@ -44,6 +44,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -169,6 +170,27 @@ export async function importAccountFromPrivateKey(private_key: string) {
     );
   const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
   Engine.setSelectedAddress(checksummedAddress);
+}
+
+export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
+  if (
+    account.metadata.keyring.type !== KeyringTypes.snap &&
+    account.metadata.keyring.type !== KeyringTypes.hd
+  ) {
+    return false;
+  }
+
+  if (
+    account.metadata.keyring.type === KeyringTypes.snap &&
+    !PREINSTALLED_SNAPS.some(
+      (snap) => snap.snapId === account.metadata.snap?.id,
+    ) &&
+    !account.options?.entropySource
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 /**
