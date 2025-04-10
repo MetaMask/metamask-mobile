@@ -526,6 +526,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                         "width": 24,
                                       }
                                     }
+                                    testID="clear-search-bar"
                                   >
                                     <SvgMock
                                       color="#121314"
