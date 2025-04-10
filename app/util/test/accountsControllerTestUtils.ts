@@ -180,6 +180,7 @@ export const MOCK_SOLANA_ACCOUNT: InternalAccount = {
   options: {
     imported: false,
     scope: SolScope.Mainnet,
+    entropySource: 'mock-keyring-id',
   },
   metadata: {
     name: 'Solana Account',

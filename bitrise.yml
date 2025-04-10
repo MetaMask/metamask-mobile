@@ -143,6 +143,7 @@ stages:
       - build_android_devbuild: {}
       - build_android_qa: {}
       - build_ios_devbuild: {}
+      - build_ios_simbuild: {}
       - build_ios_qa: {}
   create_build_qa_flask:
     workflows:
@@ -180,11 +181,11 @@ stages:
       - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
-      - run_ios_api_specs: {}
+      #- run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -221,8 +222,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       # - run_tag_smoke_swaps_ios: {}
@@ -998,7 +999,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/ 
+                  IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:android:run:qa-release e2e/specs/flask/
                 else
                   IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
@@ -1255,7 +1256,7 @@ workflows:
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
                 if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/ 
+                IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
                 else
                 IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release "$TEST_SUITE_FOLDER" --testNamePattern="$TEST_SUITE"
                 fi
@@ -1371,11 +1372,11 @@ workflows:
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
                 mv "$OLD_APK" "$NEW_APK"
-                
+
                 # Rename AAB
                 NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
                 mv "$OLD_AAB" "$NEW_AAB"
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_APK_FILE --value "$NEW_BASE_NAME.apk"
                 envman add --key RENAMED_AAB_FILE --value "$NEW_BASE_NAME.aab"
@@ -1418,7 +1419,7 @@ workflows:
   build_android_release:
     envs:
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1429,7 +1430,7 @@ workflows:
   build_android_beta:
     envs:
       - METAMASK_BUILD_TYPE: 'beta'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1441,7 +1442,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - KEYSTORE_PATH: 'android/keystores/release.keystore'
@@ -1767,19 +1768,27 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      - certificate-and-profile-installer@1: {}
+      - certificate-and-profile-installer@1: {
+        run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
+      }
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $NAME
             - build_version: $NUMBER
             - plist_path: $PROJECT_LOCATION_IOS/MetaMask/$INFO_PLIST_NAME
       - script@1:
+          title: iOS Sourcemaps & Build
+          is_always_run: false
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 echo 'This is the current build type: $METAMASK_BUILD_TYPE'
                 if [ "$IS_DEV_BUILD" = "true" ]; then #EXPO BUILD
-                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                    if [ "$IS_SIM_BUILD" = "true" ]; then
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn start:ios:e2e
+                    else
+                        GIT_BRANCH=$BITRISE_GIT_BRANCH yarn build:ios:devbuild
+                    fi
                 elif [ "$METAMASK_BUILD_TYPE" = "main" ]; then
                     yarn build:ios:pre-release
                 elif [ "$METAMASK_BUILD_TYPE" = "beta" ]; then
@@ -1790,51 +1799,60 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
-          title: iOS Sourcemaps & Build
-          is_always_run: false
       - script@1:
-          title: Rename release files
+          title: Rename iOS artifact files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Set base paths
-                IPA_DIR="ios/build/output"
-                ARCHIVE_DIR="ios/build"
+                if [ "$IS_SIM_BUILD" = "true" ]; then
+                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
+                  DEVICE_TYPE="simulator"
+                  BINARY_EXTENSION=".app"
+                else
+                  BUILD_DIR="ios/build/output"
+                  DEVICE_TYPE="physical"
+                  BINARY_EXTENSION=".ipa"
+                fi
 
                 # Generate new name based on build type and version
-                NEW_BASE_NAME="metamask-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
-                # Rename IPA
-                OLD_IPA="$IPA_DIR/$APP_NAME.ipa"
-                NEW_IPA="$IPA_DIR/$NEW_BASE_NAME.ipa"
-                mv "$OLD_IPA" "$NEW_IPA"
-                
-                # Rename xcarchive
-                OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
-                NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
-                mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
-                
+                NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
+
+                # Rename binary
+                OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
+                NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
+                mv "$OLD_BINARY" "$NEW_BINARY"
+
+                # Rename xcarchive (only for non-simulator builds)
+                if [ "$IS_SIM_BUILD" != "true" ]; then
+                  ARCHIVE_DIR="ios/build"
+                  OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
+                  NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
+                  mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                fi
+
                 # Export new names as environment variables
-                envman add --key RENAMED_IPA_FILE --value "$NEW_BASE_NAME.ipa"
+                envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
-                envman add --key IPA_DEPLOY_PATH --value "$IPA_DIR/$NEW_BASE_NAME.ipa"
+                envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
-            - pipeline_intermediate_files: ios/build/output/$RENAMED_IPA_FILE:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: $IPA_DEPLOY_PATH
-          title: Deploy iOS IPA
+            - deploy_path: $BINARY_DEPLOY_PATH
+            - is_compress: true
+          title: Deploy iOS Binary
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
-          run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
           inputs:
             - deploy_path: ios/build/$RENAMED_ARCHIVE_FILE
           title: Deploy Symbols File
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
+          run_if: '{{not (enveq "IS_SIM_BUILD" "true")}}' # Only run for physical builds
           inputs:
             - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
             - deploy_path: sourcemaps/ios/index.js.map
@@ -1842,7 +1860,7 @@ workflows:
   build_ios_release:
     envs:
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1853,7 +1871,7 @@ workflows:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
       - METAMASK_BUILD_TYPE: "main"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1863,7 +1881,7 @@ workflows:
   build_ios_beta:
     envs:
       - METAMASK_BUILD_TYPE: "beta"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -1873,11 +1891,23 @@ workflows:
   build_ios_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: "flask"
-      - METAMASK_ENVIRONMENT: 'production' 
+      - METAMASK_ENVIRONMENT: 'production'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
       - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+      - IS_DEV_BUILD: 'true'
+      - METAMASK_BUILD_TYPE: 'main'
+      - METAMASK_ENVIRONMENT: 'debug'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: 'MetaMask'
+      - INFO_PLIST_NAME: 'Info.plist'
     after_run:
       - _ios_build_template
   build_ios_devbuild:
@@ -2148,7 +2178,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
