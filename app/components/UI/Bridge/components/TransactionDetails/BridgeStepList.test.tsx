@@ -10,12 +10,12 @@ import {
 } from '@metamask/bridge-status-controller';
 import { Step } from '@metamask/bridge-controller';
 
-jest.mock('./stepProgressBarItem', () => ({
+jest.mock('./StepProgressBarItem', () => ({
   __esModule: true,
   default: jest.fn(() => null),
 }));
 
-jest.mock('./bridgeStepDescription', () => ({
+jest.mock('./BridgeStepDescription', () => ({
   __esModule: true,
   default: jest.fn(() => null),
   getStepStatus: jest.fn(),
@@ -92,7 +92,7 @@ describe('BridgeStepList', () => {
 
   it('renders correct number of steps', () => {
     const mockGetStepStatus = jest.requireMock(
-      './bridgeStepDescription',
+      './BridgeStepDescription',
     ).getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
@@ -105,7 +105,7 @@ describe('BridgeStepList', () => {
     );
 
     const StepProgressBarItem = jest.requireMock(
-      './stepProgressBarItem',
+      './StepProgressBarItem',
     ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
@@ -118,14 +118,14 @@ describe('BridgeStepList', () => {
     );
 
     const StepProgressBarItem = jest.requireMock(
-      './stepProgressBarItem',
+      './StepProgressBarItem',
     ).default;
     expect(StepProgressBarItem).not.toHaveBeenCalled();
   });
 
   it('handles missing srcChainTxMeta', () => {
     const mockGetStepStatus = jest.requireMock(
-      './bridgeStepDescription',
+      './BridgeStepDescription',
     ).getStepStatus;
     mockGetStepStatus.mockReturnValue(StatusTypes.PENDING);
 
@@ -137,14 +137,14 @@ describe('BridgeStepList', () => {
     );
 
     const StepProgressBarItem = jest.requireMock(
-      './stepProgressBarItem',
+      './StepProgressBarItem',
     ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
   });
 
   it('passes correct props to StepProgressBarItem', () => {
     const mockGetStepStatus = jest.requireMock(
-      './bridgeStepDescription',
+      './BridgeStepDescription',
     ).getStepStatus;
     mockGetStepStatus.mockImplementation(({ step }: { step: Step }) =>
       step.action === ActionTypes.BRIDGE ? StatusTypes.PENDING : null,
@@ -159,7 +159,7 @@ describe('BridgeStepList', () => {
     );
 
     const StepProgressBarItem = jest.requireMock(
-      './stepProgressBarItem',
+      './StepProgressBarItem',
     ).default;
     expect(StepProgressBarItem).toHaveBeenCalledTimes(mockSteps.length);
 
