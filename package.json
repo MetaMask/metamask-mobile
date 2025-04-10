@@ -146,6 +146,7 @@
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
     "**/@walletconnect/utils/elliptic": "^6.6.1",
+    "@ethereumjs/tx": "npm:@ethereumjs/tx@^5.4.0",
     "@keystonehq/metamask-airgapped-keyring": "^0.15.2",
     "metro/image-size": "^1.2.1"
   },
@@ -280,7 +281,7 @@
     "eth-ens-namehash": "2.0.8",
     "eth-url-parser": "1.0.4",
     "ethereumjs-abi": "^0.6.8",
-    "ethereumjs-util": "^6.2.0",
+    "ethereumjs-util": "^7.0.10",
     "ethers": "^5.0.14",
     "ethjs-ens": "2.0.1",
     "eventemitter2": "^6.4.9",
