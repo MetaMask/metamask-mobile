@@ -612,6 +612,7 @@ class TransactionReview extends PureComponent {
                         <AccountFromToInfoCard
                           transactionState={transaction}
                           layout="vertical"
+                          origin={origin}
                         />
                       </View>
                     )}

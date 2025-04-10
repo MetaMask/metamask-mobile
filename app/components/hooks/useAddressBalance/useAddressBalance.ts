@@ -1,6 +1,7 @@
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import BN4 from 'bnjs4';
 
 import Engine from '../../../core/Engine';
@@ -10,25 +11,42 @@ import {
   renderFromWei,
 } from '../../../util/number';
 import { safeToChecksumAddress } from '../../../util/address';
-import { selectEvmTicker } from '../../../selectors/networkController';
-import { selectAccounts } from '../../../selectors/accountTrackerController';
+import {
+  selectEvmTicker,
+  selectNetworkConfigurationByChainId,
+} from '../../../selectors/networkController';
+import {
+  selectAccounts,
+  selectAccountsByChainId,
+} from '../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { Asset } from './useAddressBalance.types';
+import { RootState } from '../../../reducers';
 
 const useAddressBalance = (
   asset?: Asset,
   address?: string,
   dontWatchAsset?: boolean,
+  chainId?: string,
 ) => {
   const [addressBalance, setAddressBalance] = useState('0');
 
-  const accounts = useSelector(selectAccounts);
+  let accounts = useSelector(selectAccounts);
+  let ticker = useSelector(selectEvmTicker);
+  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const networkConfigurationByChainId = useSelector((state: RootState) =>
+    selectNetworkConfigurationByChainId(state, chainId as Hex),
+  );
   const contractBalances = useSelector(selectContractBalances);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const ticker = useSelector(selectEvmTicker);
+  if (chainId) {
+    // If chainId is provided, use the accounts and ticker for that chain
+    accounts = accountsByChainId[chainId];
+    ticker = networkConfigurationByChainId?.nativeCurrency;
+  }
 
   useEffect(() => {
     if (asset && !asset.isETH && !asset.tokenId) {

@@ -329,6 +329,7 @@ describe('submitSmartTransactionHook', () => {
           signedCanceledTransactions: [],
           txParams,
           transactionMeta: request.transactionMeta,
+          networkClientId: 'testNetworkClientId',
         });
 
         expect(
@@ -423,6 +424,7 @@ describe('submitSmartTransactionHook', () => {
           signedCanceledTransactions: [],
           txParams,
           transactionMeta: request.transactionMeta,
+          networkClientId: 'testNetworkClientId',
         });
 
         expect(
@@ -518,6 +520,7 @@ describe('submitSmartTransactionHook', () => {
             signedCanceledTransactions: [],
             txParams,
             transactionMeta: request.transactionMeta,
+            networkClientId: 'testNetworkClientId',
           });
 
           expect(
@@ -639,6 +642,7 @@ describe('submitSmartTransactionHook', () => {
             signedCanceledTransactions: [],
             txParams,
             transactionMeta: request.transactionMeta,
+            networkClientId: 'testNetworkClientId',
           });
 
           expect(

@@ -26,9 +26,10 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
-  selectEvmTicker,
+  selectProviderConfig,
+  selectTicker,
+  selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
   selectConversionRate,
@@ -114,10 +115,6 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain Id
-     */
-    chainId: PropTypes.string,
-    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -175,7 +172,6 @@ class TransactionDetails extends PureComponent {
       transactionDetails,
       selectedAddress,
       ticker,
-      chainId,
       conversionRate,
       currentCurrency,
       contractExchangeRates,
@@ -185,6 +181,7 @@ class TransactionDetails extends PureComponent {
       swapsTokens,
       transactions,
     } = this.props;
+    const { chainId } = transactionObject;
     const multiLayerFeeNetwork = isMultiLayerFeeNetwork(chainId);
     const transactionHash = transactionDetails?.hash;
     if (
@@ -226,14 +223,13 @@ class TransactionDetails extends PureComponent {
 
   componentDidMount = () => {
     const {
-      transactionObject: { chainId: txChainId },
-      chainId,
+      transactionObject: { chainId },
       networkConfigurations,
     } = this.props;
 
     let blockExplorer =
-      networkConfigurations?.[txChainId]?.blockExplorerUrls[
-        networkConfigurations[txChainId]?.defaultBlockExplorerUrlIndex
+      networkConfigurations?.[chainId]?.blockExplorerUrls[
+        networkConfigurations[chainId]?.defaultBlockExplorerUrlIndex
       ] || NO_RPC_BLOCK_EXPLORER;
 
     if (isNonEvmChainId(chainId)) {
@@ -323,8 +319,7 @@ class TransactionDetails extends PureComponent {
 
   render = () => {
     const {
-      chainId,
-      transactionObject: { status, time, txParams },
+      transactionObject: { status, time, txParams, chainId },
       shouldUseSmartTransaction,
     } = this.props;
     const { updatedTransactionDetails } = this.state;
@@ -473,12 +468,12 @@ class TransactionDetails extends PureComponent {
   };
 }
 
-const mapStateToProps = (state) => ({
-  chainId: selectChainId(state),
+const mapStateToProps = (state, ownProps) => ({
+  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),
-  ticker: selectEvmTicker(state),
+  ticker: selectTickerByChainId(state, ownProps.transactionObject.chainId),
   tokens: selectTokensByAddress(state),
   contractExchangeRates: selectContractExchangeRates(state),
   conversionRate: selectConversionRate(state),
