@@ -26,13 +26,14 @@ describe(
   ),
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames = '';
     let mockServer;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer({});
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -60,6 +61,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
@@ -100,6 +102,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
       await importWalletWithRecoveryPhrase(

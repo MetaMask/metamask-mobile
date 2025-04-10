@@ -21,9 +21,11 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
   () => {
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer;
+
     beforeAll(async () => {
-      mockServer = await startMockServer({});
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -43,6 +45,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
