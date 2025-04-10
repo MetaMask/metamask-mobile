@@ -436,6 +436,10 @@
     "aggregated": {
       "title": "Your balance is aggregated",
       "subtitle": "Control your balance view in settings"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
     }
   },
   "wallet": {
@@ -962,9 +966,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
