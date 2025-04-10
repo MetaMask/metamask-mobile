@@ -14,14 +14,12 @@ import {
   } from 'expo-auth-session';
 import {signInWithGoogle} from 'react-native-google-acm';
 
-import DevLogger from '../SDKConnect/utils/DevLogger';
 import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
 import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
 
-
+// to be get from enviroment variable
 const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-// const ByoaServerUrl = 'https://organic-gannet-privately.ngrok-free.app';
 const Web3AuthNetwork = 'sapphire_devnet';
 const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
 
@@ -31,6 +29,7 @@ const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o30
 const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
 const AppleServerRedirectUri = `${ByoaServerUrl}/api/v1/oauth/callback`;
 const AppleWebClientId = 'com.web3auth.appleloginextension';
+
 
 
 export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
@@ -61,7 +60,6 @@ interface ByoaResponse {
 
 export class Oauth2LoginService {
     public localState: {
-        loginInProgress: boolean;
         codeVerifier: string | null;
         verifier: OAuthVerifier | null;
         verifierID: string | null;
@@ -70,7 +68,6 @@ export class Oauth2LoginService {
 
     constructor() {
         this.localState = {
-            loginInProgress: false,
             codeVerifier: null,
             verifier: null,
             verifierID: null,
@@ -156,26 +153,22 @@ export class Oauth2LoginService {
                         response_mode: 'form_post',
                     }
                 });
-                const result = await authRequest.promptAsync({
+
+                // result return type `dismissed` which is hard to differentiate between dismissed or pending redirect url
+                const _ = await authRequest.promptAsync({
                     authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
                 });
                 this.localState.codeVerifier = authRequest.codeVerifier ?? null;
 
-                Logger.log('handleAppleLogin: result', authRequest.codeVerifier);
                 // Apple login use redirect flow thus no handleCodeFlow here
-                Logger.log('handleAppleLogin: result', result);
-
                 return {type: 'pending'};
             } else if (provider === 'google') {
-                Logger.log('handleGoogleLogin: AndroidGID', AndroidGoogleWebGID);
                 const result = await signInWithGoogle({
                     serverClientId: AndroidGoogleWebGID,
                     nonce: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
                     autoSelectEnabled: true,
                 });
-
                 Logger.log('handleGoogleLogin: result', result);
-                DevLogger.log('handleGoogleLogin: result', result);
 
                 if (result.idToken === 'google-signin') {
                     return this.handleCodeFlow({
@@ -184,12 +177,11 @@ export class Oauth2LoginService {
                         clientId: AndroidGoogleWebGID,
                     });
                 }
-                throw new Error('Invalid login : ' + provider);
+                throw new Error('login failed : ' + provider);
             }
             throw new Error('Invalid provider : ' + provider);
         } catch (error) {
             Logger.log('handleGoogleLogin: error', error);
-            DevLogger.log('handleGoogleLogin: error', error);
             return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
         }
     };
@@ -246,20 +238,22 @@ export class Oauth2LoginService {
             return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
         } finally {
             this.localState.codeVerifier = null;
-            this.localState.loginInProgress = false;
         }
     };
 
     handleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
-        if (this.localState.loginInProgress) {
+        const state = ReduxService.store.getState();
+        if (state.user.oauth2LoginInProgress) {
             throw new Error('Login already in progress');
         }
-        this.localState.loginInProgress = true;
         ReduxService.store.dispatch({
             type: UserActionType.LOADING_SET,
             payload: {
                 loadingMsg: 'Logging in...',
             },
+        });
+        ReduxService.store.dispatch({
+            type: UserActionType.OAUTH2_LOGIN,
         });
 
         let result;
@@ -288,6 +282,7 @@ export class Oauth2LoginService {
                 },
             });
         } else if (result.type === 'error' && 'error' in result) {
+            this.clearVerifierDetails();
             ReduxService.store.dispatch({
                 type: UserActionType.OAUTH2_LOGIN_ERROR,
                 payload: {
@@ -301,7 +296,6 @@ export class Oauth2LoginService {
                 });
             }, 10000);
         } else {
-            this.localState.loginInProgress = false;
             ReduxService.store.dispatch({
                 type: UserActionType.OAUTH2_LOGIN_RESET,
             });
