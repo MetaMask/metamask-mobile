@@ -11,7 +11,7 @@ import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
-import { getSepoliaPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../fixtures/utils';
 
 describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
@@ -21,7 +21,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
 
   const defaultFixture = new FixtureBuilder()
     .withSepoliaNetwork()
-    .withPermissionControllerConnectedToTestDapp(getSepoliaPermissions())
+    .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
     .build();
 
   const navigateToTestDApp = async () => {

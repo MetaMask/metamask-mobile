@@ -12,7 +12,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../fixtures/fixture-helper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { getSepoliaPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../fixtures/utils';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -37,7 +37,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
-          .withPermissionControllerConnectedToTestDapp(getSepoliaPermissions())
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
           .build(),
         restartDevice: true,
         testSpecificMock: {
@@ -150,7 +150,7 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           dapp: true,
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
-            .withPermissionControllerConnectedToTestDapp(getSepoliaPermissions())
+            .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
             .build(),
           restartDevice: true,
           testSpecificMock: {

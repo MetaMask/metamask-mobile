@@ -13,6 +13,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import ImportNFTView from '../../pages/wallet/ImportNFTFlow/ImportNFTView';
 import Assertions from '../../utils/Assertions';
 import enContent from '../../../locales/languages/en.json';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeAssets('NFT Details page'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -28,7 +29,7 @@ describe(SmokeAssets('NFT Details page'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

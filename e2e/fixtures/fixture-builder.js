@@ -778,8 +778,6 @@ class FixtureBuilder {
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
       optionalScopes: {
         'eip155:1': { accounts: [] },
-        // TODO: [ffmcgee] perhaps these networks can be configured via other methods ? Look into `withGanacheNetwork` and `withSepoliaNetwork`
-        'eip155:1337': { accounts: [] },
       },
       requiredScopes: {},
       sessionProperties: {},
@@ -813,10 +811,13 @@ class FixtureBuilder {
 
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToTestDapp() {
-    this.withPermissionController(this.createPermissionControllerConfig());
+  withPermissionControllerConnectedToTestDapp(additionalPermissions = {}) {
+    this.withPermissionController(
+      this.createPermissionControllerConfig(additionalPermissions),
+    );
     return this;
   }
 
@@ -850,16 +851,19 @@ class FixtureBuilder {
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
   withChainPermission(chainIds = ['0x1']) {
+    const optionalScopes = chainIds
+      .map((id) => ({
+        [`eip155:${parseInt(id)}`]: { accounts: [] },
+      }))
+      .reduce(((acc, obj) => ({ ...acc, ...obj }), {}));
+
     const defaultCaip25CaveatValue = {
-      optionalScopes: {
-        'eip155:1': { accounts: [] },
-        // TODO: [ffmcgee] perhaps these networks can be configured via other methods ? Look into `withGanacheNetwork` and `withSepoliaNetwork`
-        'eip155:1337': { accounts: [] },
-      },
+      optionalScopes,
       requiredScopes: {},
       sessionProperties: {},
       isMultichainOrigin: false,
     };
+
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
         id: 'Lde5rzDG2bUF6HbXl4xxT',
@@ -868,10 +872,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setPermittedEthChainIds(
-              defaultCaip25CaveatValue,
-              chainIds,
-            ),
+            value: setPermittedEthChainIds(defaultCaip25CaveatValue, chainIds),
           },
         ],
         date: 1732715918637,

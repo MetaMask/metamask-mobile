@@ -13,6 +13,7 @@ import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import ErrorBoundaryView from '../../pages/ErrorBoundaryView/ErrorBoundaryView';
+import { buildPermissions } from '../../fixtures/utils';
 const PASSWORD = '123123123';
 
 describe(SmokeAccounts('Error Boundary Screen'), () => {
@@ -27,7 +28,7 @@ describe(SmokeAccounts('Error Boundary Screen'), () => {
         dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp()
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
         ganacheOptions: defaultGanacheOptions,

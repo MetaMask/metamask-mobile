@@ -2,7 +2,6 @@ import { captureException } from '@sentry/react-native';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { PermissionKeys } from './specifications';
 import { KnownCaipNamespace, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -18,7 +17,6 @@ import {
   CaveatConstraint,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
-import { CaveatTypes } from './constants';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
