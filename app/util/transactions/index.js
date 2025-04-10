@@ -458,7 +458,7 @@ export async function getTransactionActionKey(transaction, chainId) {
     return SWAPS_TRANSACTION_ACTION_KEY;
   }
 
-  if (transaction.type === 'bridge') {
+  if (transaction.type === TransactionType.bridge) {
     return BRIDGE_TRANSACTION_ACTION_KEY;
   }
 
