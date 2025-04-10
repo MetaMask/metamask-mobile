@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -38,17 +38,21 @@ export default function BridgeStepList({
   networkConfigurationsByChainId,
 }: BridgeStepsProps) {
   const steps = bridgeHistoryItem?.quote.steps || [];
-  const stepStatuses = steps.map((step) =>
-    getStepStatus({ bridgeHistoryItem, step: step as Step, srcChainTxMeta }),
-  );
+
+  const stepStatuses = useCallback(() => {
+    return steps.map((step) =>
+      getStepStatus({ bridgeHistoryItem, step: step as Step, srcChainTxMeta }),
+    );
+  }, [bridgeHistoryItem, srcChainTxMeta, steps]);
 
   return (
     <Box>
       {steps.map((step, i) => {
-        const prevStepStatus = i > 0 ? stepStatuses[i - 1] : null;
-        const stepStatus = stepStatuses[i];
+        const statuses = stepStatuses();
+        const prevStepStatus = i > 0 ? statuses[i - 1] : null;
+        const stepStatus = statuses[i];
         const nextStepStatus =
-          i < stepStatuses.length - 1 ? stepStatuses[i + 1] : null;
+          i < statuses.length - 1 ? statuses[i + 1] : null;
 
         const isEdgeComplete =
           stepStatus === StatusTypes.COMPLETE &&
