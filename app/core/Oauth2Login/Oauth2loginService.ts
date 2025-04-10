@@ -5,58 +5,13 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
-import { signInAsync, AppleAuthenticationScope } from 'expo-apple-authentication';
-import {
-    AuthRequest,
-    ResponseType,
-    CodeChallengeMethod,
-    AuthSessionResult,
-  } from 'expo-auth-session';
-import {signInWithGoogle} from 'react-native-google-acm';
-
-import { ACTIONS, PREFIXES } from '../../constants/deeplinks';
 import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
-
-// to be get from enviroment variable
-const ByoaServerUrl = 'https://api-develop-torus-byoa.web3auth.io';
-const Web3AuthNetwork = 'sapphire_devnet';
-const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`;
-
-const IosGID = '882363291751-nbbp9n0o307cfil1lup766g1s99k0932.apps.googleusercontent.com';
-const IosGoogleRedirectUri = 'com.googleusercontent.apps.882363291751-nbbp9n0o307cfil1lup766g1s99k0932:/oauth2redirect/google';
-
-const AndroidGoogleWebGID = '882363291751-2a37cchrq9oc1lfj1p419otvahnbhguv.apps.googleusercontent.com';
-const AppleServerRedirectUri = `${ByoaServerUrl}/api/v1/oauth/callback`;
-const AppleWebClientId = 'com.web3auth.appleloginextension';
-
-
-
-export type HandleOauth2LoginResult = ({type: 'pending'} | {type: AuthSessionResult['type'], existingUser: boolean} | {type: 'error', error: string});
-export type LoginProvider = 'apple' | 'google';
-export type LoginMode = 'onboarding' | 'change-password';
-
-
-interface HandleFlowParams {
-    provider: LoginProvider;
-    code?: string;
-    idToken?: string;
-    clientId: string;
-    redirectUri?: string;
-    codeVerifier?: string;
-    web3AuthNetwork?: string;
-}
-
-interface ByoaResponse {
-    id_token: string;
-    verifier: string;
-    verifier_id: string;
-    indexes: Record<string, number>;
-    endpoints: Record<string, string>;
-    success: boolean;
-    message: string;
-    jwt_tokens: Record<string, string>;
-}
+import { handleAndroidAppleLogin } from './android/apple';
+import { handleAndroidGoogleLogin } from './android/google';
+import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork } from './Oauth2loginInterface';
+import { handleIosGoogleLogin } from './ios/google';
+import { handleIosAppleLogin } from './ios/apple';
 
 export class Oauth2LoginService {
     public localState: {
@@ -109,143 +64,27 @@ export class Oauth2LoginService {
         });
     };
 
-    #iosHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
-        try {
-            if (provider === 'apple') {
-                const credential = await signInAsync({
-                    requestedScopes: [
-                        AppleAuthenticationScope.FULL_NAME,
-                        AppleAuthenticationScope.EMAIL,
-                    ],
-                });
-                if (credential.identityToken) {
-                    return await this.handleCodeFlow({
-                            provider: 'apple',
-                            idToken: credential.identityToken,
-                            clientId: IosGID,
-                    } );
-                }
-                return {type: 'dismiss', existingUser: false};
-            } else if (provider === 'google') {
-                const state = JSON.stringify({
-                    mode,
-                    random: Math.random().toString(36).substring(2, 15),
-                });
-                const authRequest = new AuthRequest({
-                    clientId: IosGID,
-                    redirectUri: IosGoogleRedirectUri,
-                    scopes: ['email', 'profile'],
-                    responseType: ResponseType.Code,
-                    codeChallengeMethod: CodeChallengeMethod.S256,
-                    usePKCE: true,
-                    state,
-                });
-                const result = await authRequest.promptAsync({
-                    authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-                });
-
-                if (result.type === 'success') {
-                    return this.handleCodeFlow({
-                        provider: 'google',
-                        code: result.params.code, // result.params.idToken
-                        clientId: IosGID,
-                        redirectUri: IosGoogleRedirectUri,
-                        codeVerifier: authRequest.codeVerifier,
-                    });
-                }
-                return {...result, existingUser: false};
-            }
-            throw new Error('Invalid provider : ' + provider);
-        } catch (error) {
-            Logger.error( error as Error, {
-                message: 'iosHandleOauth2Login',
-                provider,
-            } );
-            return {type: 'error', existingUser: false};
+    #iosHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleFlowParams | undefined> => {
+        if (provider === 'apple') {
+            const result = await handleIosAppleLogin();
+            return result;
+        } else if (provider === 'google') {
+            const result = await handleIosGoogleLogin(mode);
+            return result;
         }
+        throw new Error('Invalid provider : ' + provider);
     };
 
-    #androidHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
-        try {
-            if (provider === 'apple') {
-                const state = JSON.stringify({
-                    provider: 'apple',
-                    client_redirect_back_uri: AppRedirectUri,
-                    redirectUri: AppleServerRedirectUri,
-                    clientId: AppleWebClientId,
-                    random: Math.random().toString(36).substring(2, 15),
-                    mode,
-                });
-                const authRequest = new AuthRequest({
-                    clientId: AppleWebClientId,
-                    redirectUri: AppleServerRedirectUri,
-                    scopes: ['email', 'name'],
-                    responseType: ResponseType.Code,
-                    codeChallengeMethod: CodeChallengeMethod.S256,
-                    usePKCE: false,
-                    state,
-                    extraParams: {
-                        response_mode: 'form_post',
-                    }
-                });
-                // generate the auth url
-                const authUrl = await authRequest.makeAuthUrlAsync({
-                    authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
-                });
-
-                // create a dummy auth request so that the auth-session can return result on appRedirectUrl
-                const authRequestDummy = new AuthRequest({
-                    clientId: AppleWebClientId,
-                    redirectUri: AppRedirectUri,
-                    scopes: ['email', 'name'],
-                    responseType: ResponseType.Code,
-                    codeChallengeMethod: CodeChallengeMethod.S256,
-                    usePKCE: false,
-                    state,
-                    extraParams: {
-                        response_mode: 'form_post',
-                    }
-                });
-
-                // prompt the auth request using generated auth url instead of the dummy auth request
-                const result = await authRequestDummy.promptAsync({
-                    authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
-                }, {
-                    url: authUrl,
-                });
-
-                if (result.type === 'success') {
-                    return this.handleCodeFlow({
-                        provider: 'apple',
-                        code: result.params.code,
-                        clientId: AppleWebClientId,
-                        redirectUri: AppleServerRedirectUri,
-                        codeVerifier: authRequest.codeVerifier,
-                    });
-                }
-                return {...result, existingUser: false};
-            } else if (provider === 'google') {
-                const result = await signInWithGoogle({
-                    serverClientId: AndroidGoogleWebGID,
-                    nonce: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
-                    autoSelectEnabled: true,
-                });
-                Logger.log('handleGoogleLogin: result', result);
-
-                if (result.idToken === 'google-signin') {
-                    return this.handleCodeFlow({
-                        provider: 'google',
-                        idToken: result.idToken,
-                        clientId: AndroidGoogleWebGID,
-                    });
-                }
-                throw new Error('login failed : ' + provider);
-            }
-            throw new Error('Invalid provider : ' + provider);
-        } catch (error) {
-            Logger.log('handleGoogleLogin: error', error);
-            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
+    #androidHandleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleFlowParams | undefined> => {
+        if (provider === 'apple') {
+            const result = await handleAndroidAppleLogin(mode);
+            return result;
+        } else if (provider === 'google') {
+            const result = await handleAndroidGoogleLogin(mode);
+            return result;
         }
+        throw new Error('Invalid provider : ' + provider);
+
     };
 
     handleCodeFlow = async (params : HandleFlowParams) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean}> => {
@@ -308,17 +147,30 @@ export class Oauth2LoginService {
         }
         this.#dispatchLogin();
 
-        let result;
-        if (Platform.OS === 'ios') {
-            result = await this.#iosHandleOauth2Login(provider, mode);
-        } else if (Platform.OS === 'android') {
-            result = await this.#androidHandleOauth2Login(provider, mode);
-        } else {
-            this.#dispatchPostLogin({type: 'error', existingUser: false, error: 'Invalid platform'});
-            throw new Error('Invalid platform');
+        try {
+            let result;
+            if (Platform.OS === 'ios') {
+                result = await this.#iosHandleOauth2Login(provider, mode);
+            } else if (Platform.OS === 'android') {
+                result = await this.#androidHandleOauth2Login(provider, mode);
+            } else {
+                throw new Error('Invalid platform');
+            }
+
+            if (result) {
+                const handleCodeFlowResult = await this.handleCodeFlow(result);
+                this.#dispatchPostLogin(handleCodeFlowResult);
+                return handleCodeFlowResult;
+            }
+            this.#dispatchPostLogin({type: 'dismiss', existingUser: false});
+            return {type: 'dismiss', existingUser: false};
+        } catch (error) {
+            Logger.error( error as Error, {
+                message: 'handleOauth2Login',
+            } );
+            this.#dispatchPostLogin({type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'});
+            return {type: 'error', existingUser: false, error: error instanceof Error ? error.message : 'Unknown error'};
         }
-        this.#dispatchPostLogin(result);
-        return result;
     };
 
     getVerifierDetails = () => ({
