@@ -11,10 +11,12 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedEthChainIds,
+  setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { getPermittedAccounts } from '../../Permissions';
+import Engine from '../../Engine';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
 
@@ -253,22 +255,6 @@ export async function switchToNetwork({
 
   if (caip25Caveat) {
     ethChainIds = getPermittedEthChainIds(caip25Caveat.value);
-
-    if (!ethChainIds.includes(chainId)) {
-      await requestPermittedChainsPermissionIncrementalForOrigin({
-        chainId,
-        autoApprove,
-      });
-    } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
-      await requestUserApproval({
-        origin,
-        type: ApprovalType.SwitchEthereumChain,
-        requestData: {
-          toNetworkConfiguration,
-          fromNetworkConfiguration,
-        },
-      });
-    }
   } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       chainId,
@@ -305,6 +291,35 @@ export async function switchToNetwork({
     await requestUserApproval({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: requestModalType },
+    });
+    await Engine.context.PermissionController.grantPermissionsIncremental({
+      subject: { origin },
+      approvedPermissions: {
+        [Caip25EndowmentPermissionName]: {
+          caveats: [
+            {
+              type: Caip25CaveatType,
+              value: setPermittedEthChainIds(caip25Caveat.value, [chainId]),
+            },
+          ],
+        },
+      },
+    });
+  }
+
+  if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
+    await requestPermittedChainsPermissionIncrementalForOrigin({
+      chainId,
+      autoApprove,
+    });
+  } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
+    await requestUserApproval({
+      origin,
+      type: ApprovalType.SwitchEthereumChain,
+      requestData: {
+        toNetworkConfiguration,
+        fromNetworkConfiguration,
+      },
     });
   }
 
