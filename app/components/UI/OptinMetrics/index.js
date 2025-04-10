@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import {
   View,
   SafeAreaView,
-  Text,
   StyleSheet,
   ScrollView,
   BackHandler,
@@ -12,7 +11,6 @@ import {
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
-import Entypo from 'react-native-vector-icons/Entypo';
 import { getOptinMetricsNavbarOptions } from '../Navbar';
 import { strings } from '../../../../locales/i18n';
 import setOnboardingWizardStep from '../../../actions/wizard';
@@ -40,6 +38,15 @@ import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
@@ -59,7 +66,6 @@ const createStyles = ({ colors }) =>
       alignItems: 'flex-start',
       gap: 16,
       marginRight: 25,
-      marginTop: 16,
     },
     icon: {
       marginRight: 5,
@@ -67,7 +73,7 @@ const createStyles = ({ colors }) =>
     action: {
       flex: 0,
       flexDirection: 'row',
-      paddingVertical: 10,
+      // paddingVertical: 10,
       alignItems: 'flex-start',
       gap: 16,
     },
@@ -105,6 +111,9 @@ const createStyles = ({ colors }) =>
     wrapper: {
       marginTop: 10,
       marginHorizontal: 20,
+      flex: 1,
+      flexDirection: 'column',
+      rowGap: 16,
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -114,6 +123,8 @@ const createStyles = ({ colors }) =>
     privacyPolicyButton: {
       ...fontStyles.normal,
       fontSize: 12,
+      padding: 0,
+      color: colors.text.primary,
     },
     link: {
       textDecorationLine: 'underline',
@@ -140,7 +151,6 @@ const createStyles = ({ colors }) =>
     divider: {
       height: 1,
       backgroundColor: colors.border.muted,
-      marginVertical: 16,
     },
   });
 
@@ -281,21 +291,25 @@ class OptinMetrics extends PureComponent {
     return (
       <View style={styles.action} key={i}>
         {action === 0 ? (
-          <Entypo
-            name="check"
-            size={20}
-            style={[styles.icon, styles.checkIcon]}
+          <Icon
+            name={IconName.CheckBold}
+            size={IconSize.Lg}
+            color={IconColor.Success}
           />
         ) : (
-          <Entypo
-            name="cross"
-            size={24}
-            style={[styles.icon, styles.crossIcon]}
+          <Icon
+            name={IconName.CircleX}
+            size={IconSize.Lg}
+            color={IconColor.Error}
           />
         )}
         <Text style={styles.description}>
-          <Text style={styles.descriptionBold}>{prefix}</Text>
-          {description}
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {prefix}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {description}
+          </Text>
         </Text>
       </View>
     );
@@ -306,14 +320,18 @@ class OptinMetrics extends PureComponent {
 
     return (
       <View style={styles.action} key={i}>
-        <Entypo
-          name="check"
-          size={20}
-          style={[styles.icon, styles.checkIcon]}
+        <Icon
+          name={IconName.CheckBold}
+          size={IconSize.Lg}
+          color={IconColor.Success}
         />
         <Text style={styles.description}>
-          <Text style={styles.descriptionBold}>{prefix + ' '}</Text>
-          {description}
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {prefix + ' '}
+          </Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {description}
+          </Text>
         </Text>
       </View>
     );
@@ -461,15 +479,16 @@ class OptinMetrics extends PureComponent {
     if (isPastPrivacyPolicyDate) {
       return (
         <View>
-          <Text style={styles.privacyPolicy}>
-            <Text>{strings('privacy_policy.fine_print_1') + ' '}</Text>
-            <Button
-              variant={ButtonVariants.Link}
-              style={styles.privacyPolicyButton}
-              label={strings('privacy_policy.privacy_policy_button')}
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('privacy_policy.fine_print_1') + ' '}
+            <Text
+              color={TextColor.Primary}
+              variant={TextVariant.BodySM}
               onPress={this.openPrivacyPolicy}
-            />
-            <Text>{' ' + strings('privacy_policy.fine_print_2')}</Text>
+            >
+              {strings('privacy_policy.privacy_policy_button')}
+            </Text>
+            {' ' + strings('privacy_policy.fine_print_2')}
           </Text>
         </View>
       );
@@ -612,13 +631,15 @@ class OptinMetrics extends PureComponent {
         >
           <View style={styles.wrapper}>
             <Text
-              style={styles.title}
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
               testID={MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID}
             >
               {strings('privacy_policy.description_title')}
             </Text>
             <Text
-              style={styles.content}
+              variant={TextVariant.BodyMD}
+              color={TextColor.Default}
               testID={
                 MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
               }
@@ -629,16 +650,6 @@ class OptinMetrics extends PureComponent {
                   : 'privacy_policy.description_content_1_legacy',
               )}
             </Text>
-            {/* <Text style={styles.linkText} onPress={this.handleLink}>
-              {strings('privacy_policy.description_content_3')}
-            </Text> */}
-            {/* <Text style={styles.content}>
-              {strings(
-                isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_2'
-                  : 'privacy_policy.description_content_2_legacy',
-              )}
-            </Text> */}
             {this.actionsList.map((action, i) =>
               isPastPrivacyPolicyDate
                 ? this.renderAction(action, i)
@@ -664,7 +675,10 @@ class OptinMetrics extends PureComponent {
                     )
                   }
                 />
-                <Text style={styles.policyCheckboxContent}>
+                <Text
+                  variant={TextVariant.BodySMMedium}
+                  color={TextColor.Default}
+                >
                   {strings('privacy_policy.checkbox')}
                 </Text>
               </TouchableOpacity>

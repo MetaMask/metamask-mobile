@@ -1,6 +1,8 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
+
+const { height } = Dimensions.get('window');
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,7 +26,10 @@ const createStyles = (colors: any) =>
     },
     wrapper: {
       flex: 1,
-      // paddingHorizontal: 32,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      height: '100%',
+      rowGap: 16,
     },
     onBoardingWrapper: {
       paddingHorizontal: 20,
@@ -182,7 +187,6 @@ const createStyles = (colors: any) =>
       backgroundColor: colors.background.muted,
       borderRadius: 10,
       height: 'auto',
-      flex: 1,
       flexDirection: 'column',
       marginBottom: 16,
       padding: 16,
@@ -230,7 +234,8 @@ const createStyles = (colors: any) =>
       width: '100%',
     },
     continueButton: {
-      marginTop: 24,
+      flex: 1,
+      flexDirection: 'column',
       width: '100%',
     },
     title: {
@@ -313,6 +318,13 @@ const createStyles = (colors: any) =>
       fontSize: 14,
       color: colors.text.default,
       ...fontStyles.normal,
+    },
+    content: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      rowGap: 16,
+      height: height - 290,
     },
   });
 

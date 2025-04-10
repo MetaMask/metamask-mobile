@@ -1,17 +1,15 @@
 import React from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
-import Icon from 'react-native-vector-icons/FontAwesome';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import ActionModal from '../../UI/ActionModal';
 import { useTheme } from '../../../util/theme';
 import ActionContent from '../ActionModal/ActionContent';
-// import Icon, {
-//   IconName,
-//   IconSize,
-// } from '../../../component-library/components/Icons/Icon';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -74,6 +72,10 @@ const createStyles = (colors) =>
     listContainer: {
       marginLeft: 10,
     },
+    explanationTextContainer: {
+      flexDirection: 'column',
+      gap: 16,
+    },
   });
 
 const SeedphraseModal = ({
@@ -104,24 +106,31 @@ const SeedphraseModal = ({
         <View style={styles.modalContainer}>
           <View style={styles.titleContainer}>
             <View style={styles.auxCenterView} />
-            <Text style={styles.whatIsSeedphraseTitle}>
+            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
               {strings('account_backup_step_1.what_is_seedphrase_title')}
             </Text>
           </View>
-          <View>
-            <Text style={styles.explanationText}>
+          <View style={styles.explanationTextContainer}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {strings('account_backup_step_1.what_is_seedphrase_text_1')}
             </Text>
-            <Text style={styles.explanationText}>
-              {strings('account_backup_step_1.what_is_seedphrase_text_4')}
-            </Text>
-            <View style={styles.listContainer}>
-              {seedPhrasePoints.map((point, index) => (
-                <View style={styles.listItem} key={index}>
-                  <Text style={styles.bullet}>{'\u2022'}</Text>
-                  <Text>{point}</Text>
-                </View>
-              ))}
+            <View>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                {strings('account_backup_step_1.what_is_seedphrase_text_4')}
+              </Text>
+              <View style={styles.listContainer}>
+                {seedPhrasePoints.map((point, index) => (
+                  <View style={styles.listItem} key={index}>
+                    <Text style={styles.bullet}>{'\u2022'}</Text>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
+                      {point}
+                    </Text>
+                  </View>
+                ))}
+              </View>
             </View>
           </View>
         </View>

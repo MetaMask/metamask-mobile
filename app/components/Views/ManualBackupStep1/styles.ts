@@ -1,7 +1,9 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Dimensions } from 'react-native';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
+
+const { height } = Dimensions.get('window');
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,8 +27,9 @@ export const createStyles = (colors: any) =>
     },
     wrapper: {
       flex: 1,
-      height: '100%',
       flexDirection: 'column',
+      gap: 16,
+      height: height - 290,
     },
     onBoardingWrapper: {
       paddingHorizontal: 20,
@@ -68,7 +71,6 @@ export const createStyles = (colors: any) =>
       borderRadius: 8,
     },
     seedPhraseConcealer: {
-      backgroundColor: colors.overlay.alternative,
       alignItems: 'center',
       borderRadius: 8,
       paddingHorizontal: 24,
@@ -79,6 +81,16 @@ export const createStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'center',
     },
+    blurContainer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      bottom: 0,
+      right: 0,
+      height: '100%',
+      borderRadius: 8,
+      flex: 1,
+    },
     blurView: {
       position: 'absolute',
       top: 0,
@@ -88,6 +100,8 @@ export const createStyles = (colors: any) =>
       height: '100%',
       borderRadius: 8,
       flex: 1,
+      opacity: 0.5,
+      backgroundColor: colors.overlay.alternative,
     },
     icon: {
       color: colors.overlay.inverse,
@@ -128,8 +142,6 @@ export const createStyles = (colors: any) =>
       paddingTop: 16,
       backgroundColor: colors.background.muted,
       borderRadius: 10,
-      height: 'auto',
-      flex: 1,
       flexDirection: 'column',
       minHeight: 230,
       marginBottom: 64,

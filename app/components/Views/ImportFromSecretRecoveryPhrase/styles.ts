@@ -10,6 +10,7 @@ const createStyles = (colors: any) =>
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+      marginVertical: 16,
     },
     wrapper: {
       flex: 1,
@@ -277,6 +278,12 @@ const createStyles = (colors: any) =>
       color: importedColors.primaryDefault,
       fontSize: 12,
       ...fontStyles.normal,
+    },
+    learnMoreTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: 1,
     },
   });
 

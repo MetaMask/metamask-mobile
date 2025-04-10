@@ -3,10 +3,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-// import CheckBox from '@react-native-community/checkbox';
-import FeatherIcon from 'react-native-vector-icons/Feather';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
@@ -37,6 +39,9 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'column',
       marginTop: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 16,
     },
     skipModalXButton: {
       alignItems: 'flex-end',
@@ -48,6 +53,7 @@ const createStyles = (colors) =>
     skipModalActionButtons: {
       flexDirection: 'row',
       alignItems: 'flex-start',
+      paddingHorizontal: 16,
     },
     skipModalCheckbox: {
       height: 18,
@@ -97,7 +103,7 @@ const SkipAccountSecurityModal = ({
             style={styles.imageWarning}
             {...generateTestId(Platform, 'skip-backup-warning')}
           />
-          <Text style={styles.skipTitle}>
+          <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
             {strings('account_backup_step_1.skip_title')}
           </Text>
           <View
@@ -114,7 +120,8 @@ const SkipAccountSecurityModal = ({
             />
             <Text
               onPress={toggleSkipCheckbox}
-              style={styles.skipModalText}
+              variant={TextVariant.BodySM}
+              color={TextColor.Default}
               testID={
                 SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID
               }
