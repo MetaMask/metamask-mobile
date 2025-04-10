@@ -18,6 +18,7 @@ import {
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
 import { Hex } from '@metamask/utils';
+import { getNetworkImageSource } from '../../../../util/networks';
 
 export default function NetworkListBottomSheet({
   selectedNetwork,
