@@ -11,12 +11,12 @@ import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
   MOCK_ADDRESS_1 as mockAddress1,
-  MOCK_ADDRESS_2 as mockAddress2,
- createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+  MOCK_ADDRESS_2 as mockAddress2
+} from '../../../util/test/accountsControllerTestUtils';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 
-const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerStateUtil([
   mockAddress1,
   mockAddress2,
 ]);
