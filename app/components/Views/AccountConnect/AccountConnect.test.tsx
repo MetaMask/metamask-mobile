@@ -10,11 +10,22 @@ import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountCo
 import Engine from '../../../core/Engine';
 import {
   createMockAccountsControllerState as createMockAccountsControllerStateUtil,
-  MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_1 as mockAddress1,
   MOCK_ADDRESS_2 as mockAddress2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { PermissionSummaryBottomSheetSelectorsIDs } from '../../../../e2e/selectors/Browser/PermissionSummaryBottomSheet.selectors';
+
+import { act } from '@testing-library/react';
+
+import { createMockAccountsControllerState } from '../../../util/test/accountsControllerTestUtils';
+
+const MOCK_ADDRESS_1 = '0x0';
+const MOCK_ADDRESS_2 = '0x1';
+
+const MOCK_ACCOUNTS_CONTROLLER_STATE = createMockAccountsControllerState([
+  MOCK_ADDRESS_1,
+  MOCK_ADDRESS_2,
+]);
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -338,7 +349,6 @@ describe('AccountConnect', () => {
     };
 
     // Create a function for rendering that we can use in our test
-
     const renderComponent = () => renderWithProvider(
       <AccountConnect
         route={{
