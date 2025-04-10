@@ -189,11 +189,13 @@ describe('Carousel', () => {
       CAROUSEL_SECOND_SLIDE,
       CAROUSEL_THIRD_SLIDE,
       CAROUSEL_FOURTH_SLIDE,
+      CAROUSEL_FIFTH_SLIDE,
     } = WalletViewSelectorsIDs;
     const firstSlide = getByTestId(CAROUSEL_FIRST_SLIDE);
     const secondSlide = getByTestId(CAROUSEL_SECOND_SLIDE);
     const thirdSlide = getByTestId(CAROUSEL_THIRD_SLIDE);
     const fourthSlide = getByTestId(CAROUSEL_FOURTH_SLIDE);
+    const fifthSlide = getByTestId(CAROUSEL_FIFTH_SLIDE);
 
     // Test card banner
     fireEvent.press(firstSlide);
@@ -211,6 +213,10 @@ describe('Carousel', () => {
 
     // Test aggregated banner
     fireEvent.press(fourthSlide);
+    expect(mockNavigate).toHaveBeenCalled();
+
+    // Test multisrp banner
+    fireEvent.press(fifthSlide);
     expect(mockNavigate).toHaveBeenCalled();
   });
 
