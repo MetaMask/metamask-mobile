@@ -1823,18 +1823,24 @@ workflows:
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
                 mv "$OLD_BINARY" "$NEW_BINARY"
 
-                # Rename xcarchive (only for non-simulator builds)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
+                  # Rename xcarchive (only for non-simulator builds)
                   ARCHIVE_DIR="ios/build"
                   OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
                   NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
                   mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                else
+                  # Zip the .app into an .ipa file so that it can be uploaded to Runway
+                  mkdir -p "$BUILD_DIR/Payload"
+                  cp -r "$NEW_BINARY" "$BUILD_DIR/Payload/"
+                  zip -r "$BUILD_DIR/$NEW_BASE_NAME.ipa" "$BUILD_DIR/Payload/"
+                  rm -r "$BUILD_DIR/Payload"
                 fi
 
                 # Export new names as environment variables
-                envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
-                envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
+                # File path to upload to Bitrise artifacts
+                envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME.ipa"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
