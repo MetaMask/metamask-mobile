@@ -39,17 +39,24 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
-              element: 'RNText',
+              element: 'Text',
               props: {
-                color: 'inherit',
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -83,17 +90,24 @@ describe('banner component', () => {
           children: [
             {
               key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_2',
-              element: 'RNText',
+              element: 'Text',
               props: {
-                color: 'inherit',
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
               },
               children: 'Test content',
             },
           ],
           props: {
-            color: 'inherit',
-            fontWeight: 'normal',
-            textAlign: 'left',
+            color: undefined,
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
             variant: 'sBodyMD',
           },
         },
@@ -101,6 +115,57 @@ describe('banner component', () => {
       props: {
         severity: 'Error',
         title: 'Test Title',
+      },
+    });
+  });
+
+  it('removes empty title', () => {
+    const el: BannerElement = {
+      type: 'Banner',
+      props: {
+        title: '',
+        severity: 'info',
+        children: createTextElement('Test content'),
+      },
+      key: null,
+    };
+
+    const result = banner({ element: el, ...defaultParams });
+
+    expect(result).toEqual({
+      element: 'SnapUIBanner',
+      children: [
+        {
+          element: 'Text',
+          key: 'mock-key',
+          children: [
+            {
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
+              element: 'Text',
+              props: {
+                color: undefined,
+                variant: 'sBodyMD',
+                style: {
+                  fontWeight: '400',
+                  textAlign: 'left',
+                },
+              },
+              children: 'Test content',
+            },
+          ],
+          props: {
+            color: undefined,
+            variant: 'sBodyMD',
+            style: {
+              fontWeight: '400',
+              textAlign: 'left',
+            },
+          },
+        },
+      ],
+      props: {
+        severity: 'Info',
+        title: null,
       },
     });
   });

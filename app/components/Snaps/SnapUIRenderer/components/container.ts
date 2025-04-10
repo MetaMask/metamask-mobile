@@ -3,6 +3,7 @@ import { getJsxChildren } from '@metamask/snaps-utils';
 import { mapToTemplate } from '../utils';
 import { UIComponentFactory } from './types';
 import { DEFAULT_FOOTER } from './footer';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 
 export const container: UIComponentFactory<BoxElement> = ({
   element: e,
@@ -39,6 +40,7 @@ export const container: UIComponentFactory<BoxElement> = ({
         key: 'default-button',
         props: {
           onCancel,
+          variant: ButtonVariants.Secondary,
           isSnapAction: false,
         },
         children: t('navigation.close'),

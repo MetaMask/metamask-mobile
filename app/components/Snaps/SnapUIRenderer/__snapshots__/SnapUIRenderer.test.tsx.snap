@@ -53,21 +53,31 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -125,7 +135,7 @@ exports[`SnapUIRenderer adds a footer if required 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#ffffff",
+              "color": "#0376c9",
               "fontFamily": "EuclidCircularB-Medium",
               "fontSize": 14,
               "fontWeight": "500",
@@ -690,21 +700,31 @@ exports[`SnapUIRenderer renders basic UI 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -1134,7 +1154,6 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -1190,7 +1209,18 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1259,21 +1289,31 @@ exports[`SnapUIRenderer renders footers 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -1363,7 +1403,6 @@ exports[`SnapUIRenderer renders footers 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -1419,7 +1458,18 @@ exports[`SnapUIRenderer renders footers 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
@@ -1639,27 +1689,10 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-endacccessory"
                 >
-                  <Text
-                    accessibilityRole="link"
-                    accessible={true}
+                  <TouchableOpacity
                     disabled={false}
                     id="submit"
                     onPress={[Function]}
-                    onPressIn={[Function]}
-                    onPressOut={[Function]}
-                    padding={0}
-                    style={
-                      {
-                        "backgroundColor": "transparent",
-                        "color": "#141618",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 14,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 22,
-                      }
-                    }
-                    suppressHighlighting={true}
                   >
                     <Text
                       accessibilityRole="text"
@@ -1668,19 +1701,16 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           "color": "#0376c9",
                           "fontFamily": "EuclidCircularB-Medium",
                           "fontSize": 14,
-                          "fontWeight": "500",
+                          "fontWeight": undefined,
                           "letterSpacing": 0,
                           "lineHeight": 22,
+                          "textAlign": undefined,
                         }
                       }
                     >
-                      <Text
-                        color="inherit"
-                      >
-                        Submit
-                      </Text>
+                      Submit
                     </Text>
-                  </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -2715,26 +2745,10 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                 </View>
               </View>
             </Modal>
-            <Text
-              accessibilityRole="link"
-              accessible={true}
+            <TouchableOpacity
               disabled={false}
               id="submit"
               onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "backgroundColor": "transparent",
-                  "color": "#141618",
-                  "fontFamily": "EuclidCircularB-Regular",
-                  "fontSize": 14,
-                  "fontWeight": "400",
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                }
-              }
-              suppressHighlighting={true}
             >
               <Text
                 accessibilityRole="text"
@@ -2743,19 +2757,16 @@ exports[`SnapUIRenderer supports forms with fields 1`] = `
                     "color": "#0376c9",
                     "fontFamily": "EuclidCircularB-Medium",
                     "fontSize": 14,
-                    "fontWeight": "500",
+                    "fontWeight": undefined,
                     "letterSpacing": 0,
                     "lineHeight": 22,
+                    "textAlign": undefined,
                   }
                 }
               >
-                <Text
-                  color="inherit"
-                >
-                  Submit
-                </Text>
+                Submit
               </Text>
-            </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -2944,21 +2955,31 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
         >
           <Text
             accessibilityRole="text"
-            fontWeight="normal"
             style={
               {
-                "color": "inherit",
+                "color": "#141618",
                 "fontFamily": "EuclidCircularB-Regular",
                 "fontSize": 14,
                 "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
+                "textAlign": "left",
               }
             }
-            textAlign="left"
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#141618",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": "400",
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": "left",
+                }
+              }
             >
               Hello world!
             </Text>
@@ -3048,7 +3069,6 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             "paddingHorizontal": 16,
           }
         }
-        textVariant="sBodyMDMedium"
       >
         <View
           style={
@@ -3104,7 +3124,18 @@ exports[`SnapUIRenderer supports the onCancel prop 1`] = `
             }
           >
             <Text
-              color="inherit"
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "inherit",
+                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontSize": 14,
+                  "fontWeight": undefined,
+                  "letterSpacing": 0,
+                  "lineHeight": 22,
+                  "textAlign": undefined,
+                }
+              }
             >
               Foo
             </Text>
