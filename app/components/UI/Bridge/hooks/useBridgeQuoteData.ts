@@ -61,11 +61,11 @@ export const useBridgeQuoteData = () => {
   const destAmount = activeQuote?.quote.destTokenAmount;
 
   const destTokenAmount =
-    destAmount && destToken
+    destAmount && destToken && sourceAmount && sourceToken
       ? fromTokenMinimalUnit(destAmount, destToken.decimals)
       : undefined;
   const formattedDestTokenAmount = destTokenAmount
-    ? Number(destTokenAmount).toFixed(1)
+    ? Number(destTokenAmount).toFixed(2)
     : undefined;
 
   const quoteRate = Number(destTokenAmount) / Number(sourceAmount);
