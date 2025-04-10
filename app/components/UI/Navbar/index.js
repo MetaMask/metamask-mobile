@@ -1775,7 +1775,7 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   return {
     headerTitle: () => (
       <NavbarTitle
-        title={'Transaction Details'}
+        title={strings('bridge_transaction_details.transaction_details')}
         disableNetwork
         showSelectedNetwork={false}
         translate={false}
