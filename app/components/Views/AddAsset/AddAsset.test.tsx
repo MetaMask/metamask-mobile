@@ -156,4 +156,16 @@ describe('AddAsset utils', () => {
 
     expect(tokenNetworkFilterSpy).toHaveBeenCalledWith({ [chainId]: true });
   });
+
+  it('should handle invalid filter option', () => {
+    const chainId = '0x1';
+
+    handleFilterControlsPress({
+      option: 'test' as unknown as FilterOption,
+      allNetworksEnabled: {},
+      chainId,
+    });
+
+    expect(tokenNetworkFilterSpy).not.toHaveBeenCalled();
+  });
 });
