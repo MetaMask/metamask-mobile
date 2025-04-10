@@ -7,6 +7,8 @@ import formattedDeeplinkParsedValue from '../../../util/formattedDeeplinkParsedV
 import { NetworkSwitchErrorType } from '../../../constants/error';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getDecimalChainId } from '../../../util/networks';
+import Engine from '../../Engine';
+import { MAINNET } from '../../../constants/network';
 
 async function handleEthereumUrl({
   deeplinkManager,
@@ -28,6 +30,11 @@ async function handleEthereumUrl({
   const txMeta = { ...ethUrl, source: url };
 
   try {
+    const { MultichainNetworkController } = Engine.context;
+
+    if (!MultichainNetworkController.state.isEvmSelected) {
+      await MultichainNetworkController.setActiveNetwork(MAINNET);
+    }
     // If the deeplink has a goerli chainId, show deprecation modal and return
     if (
       ethUrl.chain_id === getDecimalChainId(CHAIN_IDS.GOERLI) ||
