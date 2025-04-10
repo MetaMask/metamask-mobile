@@ -1239,7 +1239,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 xcrun simctl boot "iPhone 15 Pro" || true
-                simulator_id=$(xcrun simctl list devices | grep "iPhone 15 Pro" | awk '{print $1}')
+                xcrun simctl list | grep Booted
       - script@1:
           title: Run detox test
           timeout: 1200
