@@ -153,9 +153,6 @@ export function handleMetaMaskDeeplink({
       .replace(`${PREFIXES.METAMASK}${ACTIONS.SELL}`, '');
     instance._handleSellCrypto(rampPath);
   }
-  // else if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.OAUTH2_REDIRECT}`)) {
-  //   instance._handleOauth2RedirectUrl(url);
-  // }
 }
 
 export default handleMetaMaskDeeplink;
