@@ -265,7 +265,7 @@ describe('WalletConnect2Session', () => {
     });
   });
 
-  it('handles session update correctly', async () => {
+  it('updates session', async () => {
     const mockUpdateSession = jest
       .spyOn(mockClient, 'updateSession')
       .mockResolvedValue({ acknowledged: () => Promise.resolve() });
