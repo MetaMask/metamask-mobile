@@ -181,7 +181,7 @@ describe('WalletConnect2Session', () => {
     expect((session as any).deeplink).toBe(false);
   });
 
-  it('handles request correctly and rejects invalid chainId', async () => {
+  it('rejects invalid chainId', async () => {
     const mockRespondSessionRequest = jest
       .spyOn(mockClient, 'respondSessionRequest')
       .mockImplementation(async () => { /* empty implementation */ });
