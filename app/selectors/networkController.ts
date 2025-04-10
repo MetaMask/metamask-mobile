@@ -247,7 +247,7 @@ export const selectAllPopularNetworkConfigurations = createSelector(
   },
 );
 
-export const selectIsPopularNetwork = createDeepEqualSelector(
+export const selectIsPopularNetwork = createSelector(
   selectChainId,
   (chainId) =>
     chainId === CHAIN_IDS.MAINNET ||
