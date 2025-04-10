@@ -69,9 +69,6 @@ export class Oauth2LoginService {
             verifier: null,
             verifierID: null,
         };
-        ReduxService.store.dispatch({
-            type: UserActionType.OAUTH2_LOGIN_RESET,
-        });
     }
 
     #dispatchLogin = () =>{
