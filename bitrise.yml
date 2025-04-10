@@ -184,8 +184,8 @@ stages:
       #- run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -222,8 +222,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       # - run_tag_smoke_swaps_ios: {}
@@ -1817,12 +1817,12 @@ workflows:
 
                 # Generate new name based on build type and version
                 NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename binary
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
                 mv "$OLD_BINARY" "$NEW_BINARY"
-                
+
                 # Rename xcarchive (only for non-simulator builds)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
                   ARCHIVE_DIR="ios/build"
@@ -1830,7 +1830,7 @@ workflows:
                   NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
                   mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
                 fi
-                
+
                 # Export new names as environment variables
                 envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
