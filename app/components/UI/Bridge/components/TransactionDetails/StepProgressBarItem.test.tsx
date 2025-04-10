@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
-import StepProgressBarItem from './stepProgressBarItem';
+import StepProgressBarItem from './StepProgressBarItem';
 import { StatusTypes } from '@metamask/bridge-status-controller';
 
 describe('StepProgressBarItem', () => {

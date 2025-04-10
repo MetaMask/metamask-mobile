@@ -29,7 +29,6 @@ describe('BlockExplorersModal', () => {
       data: '0x',
     },
     status: TransactionStatus.submitted,
-    error: null,
   } as TransactionMeta;
 
   const mockProps = {

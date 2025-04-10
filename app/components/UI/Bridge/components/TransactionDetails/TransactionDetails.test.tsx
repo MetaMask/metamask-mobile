@@ -41,7 +41,6 @@ describe('BridgeTransactionDetails', () => {
       data: '0x',
     },
     status: TransactionStatus.submitted,
-    error: null,
   } as TransactionMeta;
 
   const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
