@@ -153,15 +153,43 @@ export class Oauth2LoginService {
                         response_mode: 'form_post',
                     }
                 });
-
-                // result return type `dismissed` which is hard to differentiate between dismissed or pending redirect url
-                const _ = await authRequest.promptAsync({
+                const authUrl = await authRequest.makeAuthUrlAsync({
                     authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
                 });
-                this.localState.codeVerifier = authRequest.codeVerifier ?? null;
+                Logger.log('authUrl', authUrl);
+            
+                const authRequestProxy = new AuthRequest({
+                    clientId: AppleWebClientId,
+                    redirectUri: AppRedirectUri,
+                    scopes: ['email', 'name'],
+                    responseType: ResponseType.Code,
+                    codeChallengeMethod: CodeChallengeMethod.S256,
+                    usePKCE: false,
+                    state,
+                    extraParams: {
+                        response_mode: 'form_post',
+                    }
+                });
 
-                // Apple login use redirect flow thus no handleCodeFlow here
-                return {type: 'pending'};
+                // result return type `dismissed` which is hard to differentiate between dismissed or pending redirect url
+                const result = await authRequestProxy.promptAsync({
+                    authorizationEndpoint: 'https://appleid.apple.com/auth/authorize',
+                }, {
+                    url: authUrl,
+                });
+
+                Logger.log('result ===============', result);
+                if (result.type === 'success') {
+                    return this.handleCodeFlow({
+                        provider: 'apple',
+                        code: result.params.code, // result.params.idToken
+                        clientId: AppleWebClientId,
+                        redirectUri: AppleServerRedirectUri,
+                        codeVerifier: authRequest.codeVerifier,
+                    });
+                }
+                this.localState.codeVerifier = authRequest.codeVerifier ?? null;
+                return {...result, existingUser: false};
             } else if (provider === 'google') {
                 const result = await signInWithGoogle({
                     serverClientId: AndroidGoogleWebGID,
