@@ -50,9 +50,6 @@ const Routes = {
     WALLET_ACTIONS: 'WalletActions',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    SELECT_SRP: 'SelectSRP',
-    ///: END:ONLY_INCLUDE_IF
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
   },
   ONBOARDING: {
@@ -119,6 +116,9 @@ const Routes = {
     TOKEN_SORT: 'TokenSort',
     TOKEN_FILTER: 'TokenFilter',
     CHANGE_IN_SIMULATION_MODAL: 'ChangeInSimulationModal',
+    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+    SELECT_SRP: 'SelectSRP',
+    ///: END:ONLY_INCLUDE_IF
   },
   BROWSER: {
     HOME: 'BrowserTabHome',

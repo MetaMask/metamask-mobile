@@ -52,21 +52,21 @@ export default function useAddToken() {
       if (!featuredRpc) {
         throw new Error('No featured RPC found');
       }
-      addedDestNetworkConfig =
-        (await Engine.context.NetworkController.addNetwork({
-          chainId: featuredRpc.chainId,
-          name: featuredRpc.nickname,
-          nativeCurrency: featuredRpc.ticker,
-          rpcEndpoints: [
-            {
-              url: featuredRpc.rpcUrl,
-              type: RpcEndpointType.Custom,
-            },
-          ],
-          defaultRpcEndpointIndex: 0,
-          blockExplorerUrls: [featuredRpc.rpcPrefs.blockExplorerUrl],
-          defaultBlockExplorerUrlIndex: 0,
-        })) as NetworkConfiguration;
+      addedDestNetworkConfig = (await Engine.context.NetworkController.addNetwork({
+        chainId: featuredRpc.chainId,
+        name: featuredRpc.nickname,
+        nativeCurrency: featuredRpc.ticker,
+        rpcEndpoints: [
+          {
+            url: featuredRpc.rpcUrl,
+            failoverUrls: featuredRpc.failoverRpcUrls,
+            type: RpcEndpointType.Custom,
+          },
+        ],
+        defaultRpcEndpointIndex: 0,
+        blockExplorerUrls: [featuredRpc.rpcPrefs.blockExplorerUrl],
+        defaultBlockExplorerUrlIndex: 0,
+      })) as NetworkConfiguration;
     }
 
     const destNetworkConfig = foundDestNetworkConfig || addedDestNetworkConfig;
