@@ -48,10 +48,11 @@ export const getHdKeyringOfSelectedAccountOrPrimaryKeyring =
         throw new Error('No selected account or hd keyrings');
       }
 
-      const selectedKeyring = hdKeyrings.find((keyring) =>
-        keyring.accounts.some((account) =>
-          isEqualCaseInsensitive(account, selectedAccount.address),
-        ),
+      const selectedKeyring = hdKeyrings.find(
+        (keyring) =>
+          keyring.accounts.some((account) =>
+            isEqualCaseInsensitive(account, selectedAccount.address),
+          ) && keyring.type === selectedAccount.metadata.keyring.type,
       );
 
       if (!selectedKeyring) {
