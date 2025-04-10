@@ -2,7 +2,8 @@ import { captureException } from '@sentry/react-native';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { Hex } from '@metamask/utils';
+import { PermissionKeys } from './specifications';
+import { KnownCaipNamespace, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Caip25CaveatType,
@@ -17,6 +18,7 @@ import {
   CaveatConstraint,
   PermissionDoesNotExistError,
 } from '@metamask/permission-controller';
+import { CaveatTypes } from './constants';
 
 const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 
@@ -357,4 +359,31 @@ export const getPermittedAccounts = (
 
   const ethAccounts = getEthAccounts(caveat.value);
   return sortAccountsByLastSelected(ethAccounts);
+};
+
+/**
+ * Get permitted chains for the given the host.
+ *
+ * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
+ * @returns An array containing permitted chains for the specified host.
+ */
+export const getPermittedChains = async (
+  hostname: string,
+): Promise<string[]> => {
+  const { PermissionController } = Engine.context;
+  const caveat = PermissionController.getCaveat(
+    hostname,
+    Caip25EndowmentPermissionName,
+  );
+
+  if (caveat) {
+    // TODO: [ffmcgee] Jiexi look into this, perhaps we can do it in a cleaner manner, but fixed this during merge conflict so just speed running it atm
+    const chains = getPermittedEthChainIds(caveat.value).map(
+      (chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`,
+    );
+
+    return chains;
+  }
+
+  return [];
 };

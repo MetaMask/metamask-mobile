@@ -285,6 +285,9 @@ export async function switchToNetwork({
       networkConfiguration.shortName,
     ticker: networkConfiguration.ticker || 'ETH',
     chainColor: networkConfiguration.color,
+    pageMeta: {
+      url: origin,
+    },
   };
 
   if (shouldShowRequestModal) {
