@@ -1240,6 +1240,13 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Boot up simulator
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                xcrun simctl boot "iPhone 15 Pro" || true
+                simulator_id=$(xcrun simctl list devices | grep "iPhone 15 Pro" | awk '{print $1}')
+      - script@1:
           title: Run detox test
           timeout: 1200
           is_always_run: false
