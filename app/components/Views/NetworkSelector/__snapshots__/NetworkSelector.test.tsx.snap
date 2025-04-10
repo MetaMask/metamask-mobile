@@ -1873,7 +1873,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2119,7 +2118,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2337,7 +2335,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2555,7 +2552,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2773,7 +2769,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
@@ -2991,7 +2986,6 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                     disabled={false}
                                     onLongPress={[Function]}
                                     onPress={[Function]}
-                                    onTextClick={[Function]}
                                     style={
                                       {
                                         "alignItems": "center",
