@@ -3,7 +3,6 @@ import DeeplinkManager from './DeeplinkManager';
 import handleBrowserUrl from './Handlers/handleBrowserUrl';
 import handleEthereumUrl from './Handlers/handleEthereumUrl';
 import handleRampUrl from './Handlers/handleRampUrl';
-import handleOauth2RedirectUrl from './Handlers/handleOauth2RedirectUrl';
 import switchNetwork from './Handlers/switchNetwork';
 import parseDeeplink from './ParseManager/parseDeeplink';
 import approveTransaction from './TransactionManager/approveTransaction';
@@ -15,7 +14,6 @@ jest.mock('./Handlers/handleBrowserUrl');
 jest.mock('./Handlers/handleRampUrl');
 jest.mock('./ParseManager/parseDeeplink');
 jest.mock('./Handlers/switchNetwork');
-jest.mock('./Handlers/handleOauth2RedirectUrl');
 
 const mockNavigation = {
   navigate: jest.fn(),
@@ -125,19 +123,6 @@ describe('DeeplinkManager', () => {
       }),
     );
   });
-
-
-  it('should handle oauth2 redirect url action correctly', () => {
-    const redirectPath = '/example/path?and=params';
-    deeplinkManager._handleOauth2RedirectUrl(redirectPath);
-    expect(handleOauth2RedirectUrl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        redirectPath,
-        navigation: mockNavigation,
-      }),
-    );
-  });
-
 
   it('should parse deeplinks correctly', () => {
     const url = 'http://example.com';

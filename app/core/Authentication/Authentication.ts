@@ -185,11 +185,7 @@ class AuthenticationService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
     // Restore vault with empty password
-    // eslint-disable-next-line no-console
-    console.log('resetVault: KeyringController', KeyringController);
     await KeyringController.submitPassword('');
-    // eslint-disable-next-line no-console
-    console.log('resetVault: KeyringController after submitPassword', KeyringController);
     await this.resetPassword();
   };
 

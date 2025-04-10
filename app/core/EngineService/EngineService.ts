@@ -47,7 +47,6 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
-    // ReduxService.store.dispatch({ type: UPDATE_BG_STATE_KEY });
     trace({
       name: TraceName.EngineInitialization,
       op: TraceOperation.EngineInitialization,
