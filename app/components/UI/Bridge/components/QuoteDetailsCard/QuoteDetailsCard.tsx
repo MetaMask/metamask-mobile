@@ -128,7 +128,12 @@ const QuoteDetailsCard = () => {
   };
 
   // Early return for invalid states
-  if (!sourceToken?.chainId || !destToken?.chainId || !sourceAmount) {
+  if (
+    !sourceToken?.chainId ||
+    !destToken?.chainId ||
+    !sourceAmount ||
+    !formattedQuoteData
+  ) {
     return null;
   }
 
