@@ -27,7 +27,9 @@ const styleSheet = (params: {
         backgroundColor: theme.colors.background.alternative,
         borderWidth: 1,
       }
-    : {};
+    : {
+        borderRadius: 8,
+      };
   return StyleSheet.create({
     base: Object.assign(
       { justifyContent: 'center', alignItems: 'center' },

@@ -40,6 +40,7 @@ import {
   isNonEvmAddress,
 } from '../../../core/Multichain/utils';
 import { getAccountBalances } from './utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 
 /**
  * Hook that returns both wallet accounts and ens name information.
@@ -175,6 +176,7 @@ const useAccounts = ({
           const balanceTicker = getTicker(ticker);
           const balanceLabel = `${balanceFiat}\n${balanceETH} ${balanceTicker}`;
           const balanceError = checkBalanceError?.(balanceWeiHex);
+          const isEvmAccount = isEvmAccountType(internalAccount.type);
           const isBalanceAvailable =
             isMultiAccountBalancesEnabled || isSelected;
           const mappedAccount: Account = {
@@ -185,9 +187,11 @@ const useAccounts = ({
             isSelected,
             // TODO - Also fetch assets. Reference AccountList component.
             // assets
-            assets: isBalanceAvailable
-              ? { fiatBalance: balanceLabel }
-              : undefined,
+            assets:
+              // TODO = Render non evm assets. This is a temporary fix.
+              isBalanceAvailable && isEvmAccount
+                ? { fiatBalance: balanceLabel }
+                : undefined,
             balanceError,
           };
           // Calculate height of the account item.

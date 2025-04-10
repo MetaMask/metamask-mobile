@@ -1,25 +1,26 @@
-import { BigNumber } from 'bignumber.js';
-import { useSelector } from 'react-redux';
-import { useCallback, useMemo } from 'react';
-import { Hex, add0x } from '@metamask/utils';
-import type { TransactionMeta } from '@metamask/transaction-controller';
-import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { hexToBN } from '@metamask/controller-utils';
-
+import { GasFeeEstimates } from '@metamask/gas-fee-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
+import { Hex, add0x } from '@metamask/utils';
+import { BigNumber } from 'bignumber.js';
+import { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import I18n from '../../../../../locales/i18n';
+import { formatAmount } from '../../../../components/UI/SimulationDetails/formatAmount';
+import { RootState } from '../../../../reducers';
+import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
+import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
-  decGWEIToHexWEI,
   addHexes,
+  decGWEIToHexWEI,
   decimalToHex,
   getValueFromWeiHex,
   multiplyHexes,
 } from '../../../../util/conversions';
-import { selectConversionRateByChainId } from '../../../../selectors/currencyRateController';
-import { RootState } from '../../../../reducers';
-import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
-import { useSupportsEIP1559 } from './useSupportsEIP1559';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
+import { useSupportsEIP1559 } from './useSupportsEIP1559';
 
 const HEX_ZERO = '0x0';
 
@@ -43,15 +44,21 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
       const nativeConversionRateInBN = new BigNumber(
         nativeConversionRate as number,
       );
+      const locale = I18n.locale;
       const nativeCurrencyFee = `${
-        getValueFromWeiHex({
-          value: hexFee,
-          fromCurrency: 'WEI',
-          toCurrency: 'ETH',
-          numberOfDecimals: 4,
-          conversionRate: 1,
-          toDenomination: 'ETH',
-        }) || 0
+        formatAmount(
+          locale,
+          new BigNumber(
+            getValueFromWeiHex({
+              value: hexFee,
+              fromCurrency: 'WEI',
+              toCurrency: 'ETH',
+              numberOfDecimals: 4,
+              conversionRate: 1,
+              toDenomination: 'ETH',
+            }) || 0
+          )
+        )
       } ${nativeCurrency}`;
 
       const decimalCurrentCurrencyFee = Number(

@@ -62,7 +62,6 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { ChoosePasswordSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { enableProfileSyncing } from '../../../actions/identity';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -374,7 +373,6 @@ class ChoosePassword extends PureComponent {
         wallet_setup_type: 'new',
         new_wallet: true,
       });
-      await enableProfileSyncing();
     } catch (error) {
       try {
         await this.recreateVault('');

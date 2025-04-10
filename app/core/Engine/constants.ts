@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import { SnapControllerStateChangeEvent } from './controllers/SnapController/constants';
+import { SnapControllerStateChangeEvent } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

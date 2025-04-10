@@ -27,6 +27,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import { selectTokenSelectors } from '../../../../../e2e/selectors/Ramps/SelectToken.selectors';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -208,6 +209,7 @@ function TokenSelectModal({
                   placeholderTextColor={colors.text.muted}
                   value={searchString}
                   onChangeText={handleSearchTextChange}
+                  testID={selectTokenSelectors.TOKEN_SELECT_MODAL_SEARCH_INPUT}
                 />
                 {searchString.length > 0 && (
                   <TouchableOpacity onPress={handleClearSearch}>

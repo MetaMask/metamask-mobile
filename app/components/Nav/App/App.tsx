@@ -113,6 +113,7 @@ import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetec
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
+import MaxBrowserTabsModal from '../../Views/Browser/MaxBrowserTabsModal';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import ChangeInSimulationModal from '../../Views/ChangeInSimulationModal/ChangeInSimulationModal';
 import TooltipModal from '../../../components/Views/TooltipModal';
@@ -133,8 +134,10 @@ import {
 import getUIStartupSpan from '../../../core/Performance/UIStartup';
 import { selectUserLoggedIn } from '../../../reducers/user/selectors';
 import { Confirm } from '../../Views/confirmations/Confirm';
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../../../core/NavigationService';
-import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -455,10 +458,6 @@ const RootModalFlow = () => (
       component={ChangeInSimulationModal}
     />
     <Stack.Screen name={Routes.SHEET.TOOLTIP_MODAL} component={TooltipModal} />
-    <Stack.Screen
-      name={Routes.SHEET.BRIDGE_TOKEN_SELECTOR}
-      component={BridgeTokenSelector}
-    />
   </Stack.Navigator>
 );
 
@@ -476,6 +475,18 @@ const ImportPrivateKeyView = () => (
     <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
   </Stack.Navigator>
 );
+
+///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+const ImportSRPView = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+    }}
+  >
+    <Stack.Screen name="ImportSRP" component={ImportNewSecretRecoveryPhrase} />
+  </Stack.Navigator>
+);
+///: END:ONLY_INCLUDE_IF
 
 const ConnectQRHardwareFlow = () => (
   <Stack.Navigator
@@ -557,6 +568,10 @@ const AppFlow = () => {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name={Routes.MODAL.MAX_BROWSER_TABS_MODAL}
+        component={MaxBrowserTabsModal}
+      />
+      <Stack.Screen
         name="OnboardingRootNav"
         component={OnboardingRootNav}
         options={{ headerShown: false }}
@@ -579,6 +594,15 @@ const AppFlow = () => {
         component={ImportPrivateKeyView}
         options={{ animationEnabled: true }}
       />
+      {
+        ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
+        <Stack.Screen
+          name="ImportSRPView"
+          component={ImportSRPView}
+          options={{ animationEnabled: true }}
+        />
+        ///: END:ONLY_INCLUDE_IF
+      }
       <Stack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}

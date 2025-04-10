@@ -4,7 +4,12 @@ import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectFlattenedKeyringAccounts } from './keyringController';
-import { BtcMethod, EthMethod, SolMethod } from '@metamask/keyring-api';
+import {
+  BtcMethod,
+  EthMethod,
+  SolMethod,
+  isEvmAccountType,
+} from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
@@ -72,12 +77,35 @@ export const selectSelectedInternalAccount = createDeepEqualSelector(
 /**
  * A memoized selector that returns the selected internal account address in checksum format
  */
-export const selectSelectedInternalAccountFormattedAddress = createSelector(
-  selectSelectedInternalAccount,
-  (account) =>
+export const selectSelectedInternalAccountFormattedAddress =
+  createDeepEqualSelector(selectSelectedInternalAccount, (account) =>
     account?.address
       ? getFormattedAddressFromInternalAccount(account)
       : undefined,
+  );
+
+/**
+ * A memoized selector that returns the previously selected EVM account
+ */
+export const selectPreviouslySelectedEvmAccount = createDeepEqualSelector(
+  selectInternalAccounts,
+  (accounts) => {
+    const evmAccounts = accounts.filter((account) =>
+      isEvmAccountType(account.type),
+    );
+
+    if (evmAccounts.length === 0) {
+      return undefined;
+    }
+
+    const previouslySelectedEvmAccount = [...evmAccounts].sort((a, b) => {
+      const aTimestamp = a?.metadata?.lastSelected || 0;
+      const bTimestamp = b?.metadata?.lastSelected || 0;
+      return bTimestamp - aTimestamp;
+    })[0];
+
+    return previouslySelectedEvmAccount;
+  },
 );
 
 /**
@@ -146,6 +174,11 @@ export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
 export const selectSolanaAccountAddress = createSelector(
   selectInternalAccounts,
   (accounts) => accounts.find((account) => isSolanaAccount(account))?.address,
+);
+
+export const selectSolanaAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) => accounts.find((account) => isSolanaAccount(account)),
 );
 
 ///: END:ONLY_INCLUDE_IF

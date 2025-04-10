@@ -97,7 +97,6 @@ import {
   TransactionControllerActions,
   TransactionControllerEvents,
   TransactionControllerState,
-  TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   GasFeeController,
@@ -391,13 +390,6 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents;
-
-// TODO: Abstract this into controller utils for TransactionController
-export interface TransactionEventPayload {
-  transactionMeta: TransactionMeta;
-  actionId?: string;
-  error?: string;
-}
 
 /**
  * Type definition for the controller messenger used in the Engine.

@@ -122,13 +122,15 @@ describe('AutoDetectNFTSettings', () => {
       ).toHaveBeenCalledWith(true);
       expect(mockAddTraitsToUser).toHaveBeenCalledWith({
         'NFT Autodetection': 'ON',
+        'Enable OpenSea API': 'ON',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith(
         MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
         )
           .addProperties({
-            'NFT Autodetection': 'ON',
+            'NFT Autodetection': true,
+            'Enable OpenSea API': true,
             location: 'app_settings',
           })
           .build(),
@@ -154,7 +156,7 @@ describe('AutoDetectNFTSettings', () => {
           MetaMetricsEvents.NFT_AUTO_DETECTION_ENABLED,
         )
           .addProperties({
-            'NFT Autodetection': 'OFF',
+            'NFT Autodetection': false,
             location: 'app_settings',
           })
           .build(),

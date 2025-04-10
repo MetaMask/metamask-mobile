@@ -3,13 +3,11 @@ import { ButtonType, UserInputEventType } from '@metamask/snaps-sdk';
 import ButtonLink from '../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import { ButtonLinkProps } from '../../../component-library/components/Buttons/Button/variants/ButtonLink/ButtonLink.types';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import Icon, {
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
+import AnimatedLottieView from 'lottie-react-native';
 
 export interface SnapUIButtonProps {
   name?: string;
@@ -68,9 +66,15 @@ export const SnapUIButton: FunctionComponent<
       disabled={disabled}
       label={
         loading ? (
-          <Icon
-            // TODO: Animate this icon.
-            name={IconName.Loading}
+          <AnimatedLottieView
+            source={{ uri: './loading.json' }}
+            autoPlay
+            loop
+            // eslint-disable-next-line react-native/no-inline-styles
+            style={{
+              width: 24,
+              height: 24,
+            }}
           />
         ) : (
           <Text color={color} variant={textVariant}>

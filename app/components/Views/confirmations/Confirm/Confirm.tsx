@@ -1,24 +1,26 @@
 import React from 'react';
 import {
-  ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from '../../../../component-library/components/BottomSheets/BottomSheet';
 import { useStyles } from '../../../../component-library/hooks';
 import { UnstakeConfirmationViewProps } from '../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
 import { Footer } from '../components/Confirm/Footer';
 import Info from '../components/Confirm/Info';
-import SignatureBlockaidBanner from '../components/Confirm/SignatureBlockaidBanner';
-import Title from '../components/Confirm/Title';
 import { LedgerContextProvider } from '../context/LedgerContext';
 import { QRHardwareContextProvider } from '../context/QRHardwareContext/QRHardwareContext';
+import Title from '../components/Confirm/Title';
 import useApprovalRequest from '../hooks/useApprovalRequest';
 import { useConfirmActions } from '../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../hooks/useConfirmationRedesignEnabled';
 import { useFlatConfirmation } from '../hooks/useFlatConfirmation';
 import styleSheet from './Confirm.styles';
+import { AlertsContextProvider } from '../AlertSystem/context';
+import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
+import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
 
 const ConfirmWrapped = ({
   styles,
@@ -26,22 +28,28 @@ const ConfirmWrapped = ({
 }: {
   styles: StyleSheet.NamedStyles<Record<string, unknown>>;
   route?: UnstakeConfirmationViewProps['route'];
-}) => (
-  <QRHardwareContextProvider>
-    <LedgerContextProvider>
-      <Title />
-      <ScrollView style={styles.scrollView}>
-        <TouchableWithoutFeedback>
-          <>
-            <SignatureBlockaidBanner />
-            <Info route={route} />
-          </>
-        </TouchableWithoutFeedback>
-      </ScrollView>
-      <Footer />
-    </LedgerContextProvider>
-  </QRHardwareContextProvider>
-);
+}) => {
+  const alerts = useConfirmationAlerts();
+
+  return (
+    <AlertsContextProvider alerts={alerts}>
+      <QRHardwareContextProvider>
+        <LedgerContextProvider>
+          <Title />
+          <ScrollView style={styles.scrollView} nestedScrollEnabled>
+            <TouchableWithoutFeedback>
+              <>
+                <GeneralAlertBanner />
+                <Info route={route} />
+              </>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+          <Footer />
+        </LedgerContextProvider>
+      </QRHardwareContextProvider>
+    </AlertsContextProvider>
+  );
+};
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
@@ -70,6 +78,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   return (
     <BottomSheet
       onClose={onReject}
+      shouldNavigateBack={false}
       style={styles.bottomSheetDialogSheet}
       testID="modal-confirmation-container"
     >

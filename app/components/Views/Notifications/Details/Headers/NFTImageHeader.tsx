@@ -3,8 +3,9 @@ import { View } from 'react-native';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { DEFAULT_BADGEWRAPPER_BADGEPOSITION } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.constants';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { ModalHeaderNFTImage } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import RemoteImage from '../../../../Base/RemoteImage';
 import useStyles from '../useStyles';
@@ -26,7 +27,7 @@ export default function NFTImageHeader(props: NFTImageHeaderProps) {
     <View style={styles.headerImageContainer}>
       {/* Collection Icon + Network Badge */}
       <BadgeWrapper
-        badgePosition={DEFAULT_BADGEWRAPPER_BADGEPOSITION}
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             testID={'badge-element'}

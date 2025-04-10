@@ -111,7 +111,7 @@ jest.mock('../../hooks/usePoolStakedUnstake', () => ({
 
 jest.mock('../../../../../selectors/featureFlagController', () => ({
   selectConfirmationRedesignFlags: jest.fn(() => ({
-    staking_transactions: false,
+    staking_confirmations: false,
   })),
 }));
 
@@ -175,15 +175,17 @@ describe('UnstakeInputView', () => {
     });
   });
 
-  describe('when staking_transactions feature flag is enabled', () => {
+  describe('when staking_confirmations feature flag is enabled', () => {
     let originalMock: jest.Mock;
     let mockAttemptUnstakeTransaction: jest.Mock;
 
     beforeEach(() => {
       originalMock = jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags as jest.Mock;
 
-      jest.requireMock('../../../../../selectors/featureFlagController').selectConfirmationRedesignFlags = jest.fn(() => ({
-        staking_transactions: true,
+      jest.requireMock(
+        '../../../../../selectors/featureFlagController',
+      ).selectConfirmationRedesignFlags = jest.fn(() => ({
+        staking_confirmations: true,
       }));
 
       mockAttemptUnstakeTransaction = jest.fn().mockResolvedValue(undefined);
