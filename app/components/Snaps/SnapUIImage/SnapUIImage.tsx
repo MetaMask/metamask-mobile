@@ -1,5 +1,5 @@
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import React, { useState } from 'react';
+import React from 'react';
 import { ImageStyle, StyleProp, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
