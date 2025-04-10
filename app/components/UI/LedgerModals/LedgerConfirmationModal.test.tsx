@@ -50,8 +50,6 @@ const mockTrackEvent = jest.fn();
 
 describe('LedgerConfirmationModal', () => {
   beforeEach(() => {
-    jest.resetAllMocks();
-
     // Mock hook return value
     (useBluetoothPermissions as jest.Mock).mockReturnValue({
       hasBluetoothPermissions: true,
