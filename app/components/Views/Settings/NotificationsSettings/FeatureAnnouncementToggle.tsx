@@ -4,9 +4,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import CustomNotificationsRow from './CustomNotificationsRow';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-
-export const FEATURE_ANNOUNCEMENT_TOGGLE_TEST_ID =
-  'feature-announcement-toggle';
+import { NotificationSettingsViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationSettingsView.selectors';
 
 export function FeatureAnnouncementToggle() {
   const { data: isEnabled, switchFeatureAnnouncements } =
@@ -34,7 +32,7 @@ export function FeatureAnnouncementToggle() {
       icon={IconName.Sparkle}
       isEnabled={isEnabled}
       toggleCustomNotificationsEnabled={toggleCustomNotificationsEnabled}
-      testID={FEATURE_ANNOUNCEMENT_TOGGLE_TEST_ID}
+      testID={NotificationSettingsViewSelectorsIDs.FEATURE_ANNOUNCEMENTS_TOGGLE}
     />
   );
 }

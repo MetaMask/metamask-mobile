@@ -37,10 +37,7 @@ export const ConfirmationPageSectionsSelectorIDs = {
 export const ConfirmAlertModalSelectorsIDs = {
   CONFIRM_ALERT_CHECKBOX: 'confirm-alert-checkbox',
   CONFIRM_ALERT_BUTTON: 'confirm-alert-confirm-button',
-};
-
-export const ConfirmAlertModalSelectorsText = {
-  CONFIRM_ALERT_MODAL_TITLE: enContent.alert_system.confirm_modal.title,
+  CONFIRM_ALERT_MODAL: 'confirm-alert-modal',
 };
 
 export const AlertModalSelectorsIDs = {

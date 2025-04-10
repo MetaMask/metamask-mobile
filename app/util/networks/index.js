@@ -8,9 +8,10 @@ import {
   LINEA_GOERLI,
   LINEA_MAINNET,
   LINEA_SEPOLIA,
+  MEGAETH_TESTNET
 } from '../../../app/constants/network';
 import { NetworkSwitchErrorType } from '../../../app/constants/error';
-import { ChainId, NetworkType, toHex } from '@metamask/controller-utils';
+import { BlockExplorerUrl, ChainId, NetworkType, toHex } from '@metamask/controller-utils';
 import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
@@ -21,6 +22,7 @@ const ethLogo = require('../../images/eth-logo-new.png');
 const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
 const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
 const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
+const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
 
 /* eslint-enable */
 import {
@@ -111,6 +113,19 @@ export const NetworkList = {
     networkType: 'linea-sepolia',
     imageSource: lineaTestnetLogo,
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
+  },
+  [MEGAETH_TESTNET]: {
+    name: 'Mega Testnet',
+    shortName: 'Mega Testnet',
+    networkId: 6342,
+    chainId: toHex('6342'),
+    ticker: 'MegaETH',
+    // Third party color
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    color: '#61dfff',
+    networkType: 'megaeth-testnet',
+    imageSource: megaEthTestnetLogo,
+    blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
   },
   [RPC]: {
     name: 'Private Network',
@@ -221,6 +236,9 @@ export const getTestNetImageByChainId = (chainId) => {
   if (NETWORKS_CHAIN_ID.LINEA_SEPOLIA === chainId) {
     return networksWithImages?.['LINEA-SEPOLIA'];
   }
+  if (NETWORKS_CHAIN_ID.MEGAETH_TESTNET === chainId) {
+    return networksWithImages?.['MEGAETH-TESTNET'];
+  }
 };
 
 /**
@@ -231,6 +249,7 @@ export const TESTNET_CHAIN_IDS = [
   ChainId[NetworkType.sepolia],
   ChainId[NetworkType['linea-goerli']],
   ChainId[NetworkType['linea-sepolia']],
+  ChainId[NetworkType['megaeth-testnet']],
 ];
 
 /**
@@ -573,3 +592,29 @@ export const isPortfolioViewEnabled = () =>
   process.env.PORTFOLIO_VIEW === 'true';
 
 export const isMultichainV1Enabled = () => process.env.MULTICHAIN_V1 === 'true';
+
+// The whitelisted network names for the given chain IDs to prevent showing warnings on Network Settings.
+export const WHILELIST_NETWORK_NAME  = {
+  [ChainId.mainnet] : 'Mainnet',
+  [ChainId['linea-mainnet']] : 'Linea Mainnet',
+  [ChainId['megaeth-testnet']] : 'Mega Testnet',
+}
+
+/**
+ * Checks if the network name is valid for the given chain ID.
+ * This function allows for specific network names for certain chain IDs.
+ * For example, it allows 'Mainnet' for Ethereum Mainnet, 'Linea Mainnet' for Linea Mainnet,
+ * and 'Mega Testnet' for MegaEth Testnet.
+ *
+ * @param {string} chainId - The chain ID to check.
+ * @param {string} networkName - The network name to validate.
+ * @param {string} nickname - The nickname of the network.
+ * @returns A boolean indicating whether the network name is valid for the given chain ID.
+ */
+export const isValidNetworkName = (
+  chainId,
+  networkName,
+  nickname,
+) =>
+  networkName === nickname ||
+  WHILELIST_NETWORK_NAME[chainId] === nickname;
