@@ -23,6 +23,7 @@ import BridgeStepList from './BridgeStepList';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import Button, { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
+import Loader from '../../../../../component-library/components-temp/Loader';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -51,6 +52,24 @@ const createStyles = () =>
     },
     textTransform: {
       textTransform: 'capitalize',
+    },
+    container: {
+      flexDirection: FlexDirection.Row,
+      justifyContent: JustifyContent.spaceBetween,
+      alignItems: AlignItems.center,
+      padding: 8,
+    },
+    tokenIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: '#f0f0f0',
+      justifyContent: JustifyContent.center,
+      alignItems: AlignItems.center,
+    },
+    tokenInfo: {
+      flexDirection: FlexDirection.Column,
+      gap: 2,
     },
   });
 
@@ -89,8 +108,6 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
   }
   const { quote, status, startTime } = bridgeTxHistoryItem;
 
-  
-
   const sourceToken = tokens.find((token: TokenI) => token.address === quote.srcAsset.address);
   const sourceTokenAmount = calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals).toFixed(5);
   const sourceChainId = decimalToPrefixedHex(quote.srcChainId);
@@ -115,19 +132,43 @@ export const BridgeTransactionDetails = (props: BridgeTransactionDetailsProps) =
     <ScreenView>
       <Box style={styles.transactionContainer}>
         <Box style={styles.transactionAssetsContainer}>
-          <TransactionAsset
-            token={sourceToken as TokenI}
-            tokenAmount={sourceTokenAmount}
-            chainId={sourceChainId as Hex}
-          />
+          {sourceToken ?
+            <TransactionAsset
+              token={sourceToken}
+              tokenAmount={sourceTokenAmount}
+              chainId={sourceChainId as Hex}
+            />
+          : <Box
+              flexDirection={FlexDirection.Row}
+              justifyContent={JustifyContent.spaceBetween}
+              alignItems={AlignItems.center}
+              style={styles.container}
+            >
+              <Box style={styles.tokenIcon}>
+                <Loader />
+              </Box>
+            </Box>
+          }
           <Box style={styles.arrowContainer}>
             <Icon name={IconName.Arrow2Down} size={IconSize.Sm} />
           </Box>
-          <TransactionAsset
-            token={destinationToken as TokenI}
-            tokenAmount={destinationTokenAmount}
-            chainId={destinationChainId as Hex}
-          />
+          {destinationToken ?
+            <TransactionAsset
+              token={destinationToken}
+              tokenAmount={destinationTokenAmount}
+              chainId={destinationChainId as Hex}
+            />
+          : <Box
+              flexDirection={FlexDirection.Row}
+              justifyContent={JustifyContent.spaceBetween}
+              alignItems={AlignItems.center}
+              style={styles.container}
+            >
+              <Box style={styles.tokenIcon}>
+                <Loader />
+              </Box>
+            </Box>
+          }
         </Box>
         <Box style={styles.detailRow}>
           <Text variant={TextVariant.BodyMDMedium}>{strings('bridge_transaction_details.status')}</Text>
