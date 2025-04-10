@@ -1,7 +1,9 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import NetworkListBottomSheet from './NetworkListBottomSheet';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 
 const mockInitialState = {
   settings: {},
@@ -14,6 +16,7 @@ const mockInitialState = {
         networkConfigurationsByChainId: {
           '0x1': {
             chainId: '0x1' as Hex,
+            name: 'Ethereum Mainnet',
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
@@ -23,6 +26,7 @@ const mockInitialState = {
           },
           '0x89': {
             chainId: '0x89' as Hex,
+            name: 'Polygon',
             nativeCurrency: 'POL',
             rpcEndpoints: [
               {
@@ -54,7 +58,7 @@ jest.mock('react-native-safe-area-context', () => ({
 
 jest.mock('../../../../util/networks', () => ({
   ...jest.requireActual('../../../../util/networks'),
-  getNetworkImageSource: jest.fn(),
+  getNetworkImageSource: jest.fn(() => ({ uri: 'mock-image-uri' })),
 }));
 
 const mockSetSelectedNetwork = jest.fn();
@@ -79,9 +83,43 @@ describe('NetworkListBottomSheet', () => {
       { state: mockInitialState },
     );
 
-    // expect(getByText(strings('networks.select_network'))).toBeTruthy();
-    // expect(getByText('Ethereum Mainnet')).toBeTruthy();
-    // expect(getByText('Polygon')).toBeTruthy();
-    expect(true).toBe(true);
+    expect(getByText(strings('networks.select_network'))).toBeTruthy();
+    expect(getByText('Ethereum Mainnet')).toBeTruthy();
+    expect(getByText('Polygon')).toBeTruthy();
+  });
+
+  it('handles network selection', () => {
+    const { getByText } = renderWithProvider(
+      <NetworkListBottomSheet {...defaultProps} />,
+      { state: mockInitialState },
+    );
+
+    fireEvent.press(getByText('Polygon'));
+
+    expect(mockSetSelectedNetwork).toHaveBeenCalledWith('0x89');
+    expect(mockSetOpenNetworkSelector).toHaveBeenCalledWith(false);
+  });
+
+  it('renders empty state when no networks available', () => {
+    const emptyNetworkState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkController: {
+            networkConfigurationsByChainId: {},
+          },
+        },
+      },
+    };
+
+    const { queryByText } = renderWithProvider(
+      <NetworkListBottomSheet {...defaultProps} />,
+      { state: emptyNetworkState },
+    );
+
+    expect(queryByText('Ethereum Mainnet')).toBeNull();
+    expect(queryByText('Polygon')).toBeNull();
   });
 });
