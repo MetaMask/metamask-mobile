@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
+import AnalyticsHelper from '../specs/analytics/utils/AnalyticsHelper';
 
 /**
  * Starts the mock server and sets up mock events.
@@ -66,6 +67,28 @@ export const startMockServer = async (events, port) => {
       return { url: updatedUrl };
     },
   });
+
+  await mockServer
+    .forPost('/track')
+    .thenCallback(async (req) => {
+      // Get and parse the request body
+      const bodyText = await req.body.getText();
+      let bodyJson;
+      try {
+        bodyJson = JSON.parse(bodyText);
+        console.log('Received track request body:', bodyJson);
+        // Store the event in AnalyticsHelper
+        AnalyticsHelper.handleTrackEvent(bodyJson);
+      } catch (e) {
+        bodyJson = { raw: bodyText, error: 'Not valid JSON' };
+        console.log('Received non-JSON track request body:', bodyText);
+      }
+
+      return {
+        status: 200,
+        json: bodyJson
+      };
+    });
 
   return mockServer;
 };
