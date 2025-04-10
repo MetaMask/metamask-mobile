@@ -861,7 +861,7 @@ describe('WC2Manager', () => {
       );
     });
 
-    it('handles session delete event for a non-deeplink session', async () => {
+    it('processes delete event for non-deeplink session', async () => {
       // Set up test data for a non-deeplink session
       (mockWeb3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         'test-topic': {
