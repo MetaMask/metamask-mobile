@@ -20,7 +20,7 @@ import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
-import Text from '../../../Base/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { withNavigation } from '@react-navigation/compat';
@@ -491,18 +491,17 @@ class TransactionDetails extends PureComponent {
         </View>
         {updatedTransactionDetails.hash &&
           status !== 'cancelled' &&
+          rpcBlockExplorer &&
           rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER && (
             <TouchableOpacity
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              {rpcBlockExplorer ? (
-                <Text reset style={styles.viewOnEtherscan}>
-                  {`${strings('transactions.view_on')} ${getBlockExplorerName(
-                    rpcBlockExplorer,
-                  )}`}
-                </Text>
-              ) : null}
+              <Text style={styles.viewOnEtherscan}>
+                {`${strings('transactions.view_on')} ${getBlockExplorerName(
+                  rpcBlockExplorer,
+                )}`}
+              </Text>
             </TouchableOpacity>
           )}
       </DetailsModal.Body>

@@ -497,44 +497,18 @@ exports[`TransactionDetails should render correctly 1`] = `
                             Date
                           </Text>
                           <Text
+                            accessibilityRole="text"
+                            primary={true}
+                            small={true}
                             style={
-                              [
-                                {
-                                  "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
-                                  "fontSize": 30,
-                                  "fontWeight": "400",
-                                  "marginVertical": 2,
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                {
-                                  "color": "#121314",
-                                },
-                                undefined,
-                                undefined,
-                                {
-                                  "fontSize": 12,
-                                },
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                                undefined,
-                              ]
+                              {
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
+                                "fontSize": 16,
+                                "fontWeight": "400",
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
                             }
                           >
                             [missing "en.date.months.NaN" translation] NaN at 12:NaN am
@@ -778,44 +752,18 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   </View>
                                 </View>
                                 <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
                                   style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#121314",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                   testID="account-label"
                                 >
@@ -1058,44 +1006,18 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   </View>
                                 </View>
                                 <Text
+                                  accessibilityRole="text"
+                                  primary={true}
+                                  small={true}
                                   style={
-                                    [
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
-                                        "fontSize": 30,
-                                        "fontWeight": "400",
-                                        "marginVertical": 2,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "color": "#121314",
-                                      },
-                                      undefined,
-                                      undefined,
-                                      {
-                                        "fontSize": 12,
-                                      },
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                      undefined,
-                                    ]
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Book",
+                                      "fontSize": 16,
+                                      "fontWeight": "400",
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    }
                                   }
                                   testID="account-label"
                                 >
@@ -1579,40 +1501,17 @@ exports[`TransactionDetails should render correctly 1`] = `
                         }
                       >
                         <Text
+                          accessibilityRole="text"
                           style={
-                            [
-                              false,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              undefined,
-                              {
-                                "color": "#4459ff",
-                                "fontFamily": "CentraNo1-Book",
-                                "fontSize": 16,
-                                "fontWeight": "400",
-                                "textAlign": "center",
-                              },
-                            ]
+                            {
+                              "color": "#4459ff",
+                              "fontFamily": "CentraNo1-Book",
+                              "fontSize": 16,
+                              "fontWeight": "400",
+                              "letterSpacing": 0,
+                              "lineHeight": 24,
+                              "textAlign": "center",
+                            }
                           }
                         >
                           VIEW ON Etherscan

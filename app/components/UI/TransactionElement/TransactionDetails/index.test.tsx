@@ -55,6 +55,13 @@ const initialState = {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
     },
+    // NetworkController: {
+    //   ...mockNetworkState({
+    //     chainId: '0x89',
+    //     id: 'Polygon',
+    //     nickname: 'Polygon',
+    //   }),
+    // },
     SmartTransactionsController: {
       smartTransactionsState: {
         liveness: 'live',
