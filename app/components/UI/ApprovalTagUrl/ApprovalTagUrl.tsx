@@ -58,6 +58,8 @@ const ApprovalTagUrl = ({
       title = prefixUrlWithProtocol(origin);
     } else if (url) {
       title = prefixUrlWithProtocol(getHost(url));
+    } else if (origin) {
+      title = prefixUrlWithProtocol(getHost(origin));
     } else {
       title = '';
     }
@@ -77,7 +79,8 @@ const ApprovalTagUrl = ({
         uri: '',
       };
 
-  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
+  const showOrigin =
+    origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   if (showOrigin) {
     return (
