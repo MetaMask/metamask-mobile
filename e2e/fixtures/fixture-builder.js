@@ -778,7 +778,9 @@ class FixtureBuilder {
     ]?.caveats?.find((caveat) => caveat.type === Caip25CaveatType)?.value ?? {
       optionalScopes: {
         'eip155:1': { accounts: [] },
+        // TODO: [ffmcgee] perhaps these networks can be configured via other methods ? Look into `withGanacheNetwork` and `withSepoliaNetwork`
         'eip155:1337': { accounts: [] },
+        'eip155:11155111': { accounts: [] },
       },
       requiredScopes: {},
       sessionProperties: {},
