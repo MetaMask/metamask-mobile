@@ -9,6 +9,7 @@ import {
 } from '@metamask/token-search-discovery-controller';
 import { Hex } from '@metamask/utils';
 import { selectSupportedSwapTokenAddressesByChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
+import { tokenSearchDiscoveryEnabled } from '../../../selectors/featureFlagController/tokenSearchDiscovery';
 
 const SEARCH_DEBOUNCE_DELAY = 50;
 const MINIMUM_QUERY_LENGTH = 2;
@@ -39,6 +40,8 @@ export const useTokenSearchDiscovery = () => {
 
   const swapsTokenAddresses = useSelector(selectSupportedSwapTokenAddressesByChainId);
 
+  const tokenSearchEnabled = useSelector(tokenSearchDiscoveryEnabled);
+
   const filteredResults = useMemo(() => results.filter((result) => {
       const chainId = result.chainId as Hex;
       const tokenAddresses = swapsTokenAddresses[chainId];
@@ -50,13 +53,14 @@ export const useTokenSearchDiscovery = () => {
       debounce(async (params: SearchDiscoveryParams) => {
         setIsLoading(true);
         setError(null);
-        const requestId = ++latestRequestId.current;
 
-        if (!params.query || params.query.length < MINIMUM_QUERY_LENGTH) {
+        if (!params.query || params.query.length < MINIMUM_QUERY_LENGTH || !tokenSearchEnabled) {
           setResults([]);
           setIsLoading(false);
           return;
         }
+
+        const requestId = ++latestRequestId.current;
 
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
