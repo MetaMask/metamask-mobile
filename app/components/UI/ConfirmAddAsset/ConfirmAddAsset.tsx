@@ -179,7 +179,7 @@ const ConfirmAddAsset = () => {
         {strings('wallet.import_token')}
       </Text>
       <ScrollView style={styles.root}>
-        {selectedAsset.map(
+        {selectedAsset?.map(
           (
             asset: {
               symbol: string;

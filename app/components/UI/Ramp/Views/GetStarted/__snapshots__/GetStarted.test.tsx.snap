@@ -144,11 +144,11 @@ exports[`GetStarted renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -168,11 +168,11 @@ exports[`GetStarted renders correctly 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -211,7 +211,7 @@ exports[`GetStarted renders correctly 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -472,7 +472,7 @@ exports[`GetStarted renders correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -482,7 +482,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontWeight": "600",
                                       },
                                       undefined,
@@ -528,7 +528,7 @@ exports[`GetStarted renders correctly 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -538,7 +538,7 @@ exports[`GetStarted renders correctly 1`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontWeight": "600",
                                       },
                                       undefined,
@@ -618,7 +618,7 @@ exports[`GetStarted renders correctly 1`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 14,
                                         "fontWeight": "600",
                                         "textAlign": "center",
@@ -795,11 +795,11 @@ exports[`GetStarted renders correctly 2`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -819,11 +819,11 @@ exports[`GetStarted renders correctly 2`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -862,7 +862,7 @@ exports[`GetStarted renders correctly 2`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1123,7 +1123,7 @@ exports[`GetStarted renders correctly 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -1133,7 +1133,7 @@ exports[`GetStarted renders correctly 2`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontWeight": "600",
                                       },
                                       undefined,
@@ -1179,7 +1179,7 @@ exports[`GetStarted renders correctly 2`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -1189,7 +1189,7 @@ exports[`GetStarted renders correctly 2`] = `
                                       },
                                       undefined,
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontWeight": "600",
                                       },
                                       undefined,
@@ -1269,7 +1269,7 @@ exports[`GetStarted renders correctly 2`] = `
                                     null,
                                     [
                                       {
-                                        "fontFamily": "EuclidCircularB-Bold",
+                                        "fontFamily": "CentraNo1-Bold",
                                         "fontSize": 14,
                                         "fontWeight": "600",
                                         "textAlign": "center",
@@ -1446,11 +1446,11 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1470,11 +1470,11 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1513,7 +1513,7 @@ exports[`GetStarted renders correctly when getStarted is true 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -1873,11 +1873,11 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "EuclidCircularB-Bold",
-                      "fontSize": 14,
+                      "fontFamily": "CentraNo1-Bold",
+                      "fontSize": 16,
                       "fontWeight": "700",
                       "letterSpacing": 0,
-                      "lineHeight": 22,
+                      "lineHeight": 24,
                     }
                   }
                 >
@@ -1897,11 +1897,11 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                     style={
                       {
                         "color": "#686e7d",
-                        "fontFamily": "EuclidCircularB-Regular",
-                        "fontSize": 12,
+                        "fontFamily": "CentraNo1-Book",
+                        "fontSize": 14,
                         "fontWeight": "400",
                         "letterSpacing": 0,
-                        "lineHeight": 20,
+                        "lineHeight": 22,
                       }
                     }
                   >
@@ -1940,7 +1940,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "EuclidCircularB-Regular",
+                      "fontFamily": "CentraNo1-Book",
                       "fontSize": 23.57142857142857,
                       "fontWeight": "400",
                     }
@@ -2221,11 +2221,11 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "EuclidCircularB-Bold",
+                                      "fontFamily": "CentraNo1-Bold",
                                       "fontSize": 18,
                                       "fontWeight": "600",
                                       "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "lineHeight": 24,
                                       "marginVertical": 3,
                                       "textAlign": "center",
                                     }
@@ -2246,7 +2246,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                     [
                                       {
                                         "color": "#121314",
-                                        "fontFamily": "EuclidCircularB-Regular",
+                                        "fontFamily": "CentraNo1-Book",
                                         "fontSize": 30,
                                         "fontWeight": "400",
                                         "marginVertical": 2,
@@ -2327,7 +2327,7 @@ exports[`GetStarted renders correctly when sdkError is present 1`] = `
                                         null,
                                         [
                                           {
-                                            "fontFamily": "EuclidCircularB-Bold",
+                                            "fontFamily": "CentraNo1-Bold",
                                             "fontSize": 14,
                                             "fontWeight": "600",
                                             "textAlign": "center",

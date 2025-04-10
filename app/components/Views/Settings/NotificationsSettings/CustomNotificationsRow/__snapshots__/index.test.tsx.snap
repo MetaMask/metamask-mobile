@@ -9,6 +9,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
       "marginBottom": 24,
     }
   }
+  testID="notifications-switch--container"
 >
   <SvgMock
     color="#121314"
@@ -37,8 +38,8 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -53,8 +54,8 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         {
           "color": "#121314",
           "flex": 1,
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -87,7 +88,7 @@ exports[`CustomNotificationsRow should render correctly 1`] = `
         ],
       ]
     }
-    testID="custom-notifications-row--switch"
+    testID="notifications-switch"
     thumbTintColor="#ffffff"
     tintColor="#b7bbc866"
     value={false}

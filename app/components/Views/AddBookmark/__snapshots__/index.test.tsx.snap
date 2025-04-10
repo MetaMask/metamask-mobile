@@ -93,7 +93,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -112,7 +112,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "padding": 16,
                 }
@@ -124,7 +124,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -141,7 +141,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -159,7 +159,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   "borderRadius": 4,
                   "borderWidth": 1,
                   "color": "black",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                   "padding": 16,
                 }
@@ -171,7 +171,7 @@ exports[`AddBookmark should render correctly 1`] = `
               style={
                 {
                   "color": "red",
-                  "fontFamily": "EuclidCircularB-Regular",
+                  "fontFamily": "CentraNo1-Book",
                   "fontWeight": "400",
                 }
               }
@@ -233,7 +233,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",
@@ -297,7 +297,7 @@ exports[`AddBookmark should render correctly 1`] = `
                   null,
                   [
                     {
-                      "fontFamily": "EuclidCircularB-Bold",
+                      "fontFamily": "CentraNo1-Bold",
                       "fontSize": 14,
                       "fontWeight": "600",
                       "textAlign": "center",

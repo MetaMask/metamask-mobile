@@ -101,5 +101,8 @@ export function renderHookWithProvider<Result, Props>(
     <Provider store={store}>{children}</Provider>
   );
 
-  return renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>);
+  return {
+    ...renderHook(hook, { wrapper: Providers } as RenderHookOptions<Props>),
+    store,
+  };
 }

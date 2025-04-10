@@ -38,7 +38,9 @@ const MultichainTransactionListItem = ({
     const fromUnit = fromAsset?.fungible ? fromAsset.unit : '';
     const toUnit = toAsset?.fungible ? toAsset.unit : '';
 
-    title = `${strings('swap')} ${fromUnit} ${strings('to')} ${toUnit}`;
+    title = `${strings('transactions.swap')} ${fromUnit} ${strings(
+      'transactions.to',
+    )} ${toUnit}`;
   }
 
   const style = styles(colors, typography);

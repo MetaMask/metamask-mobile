@@ -7,10 +7,7 @@ import {
   selectEvmChainId,
   selectProviderConfig as selectEvmProviderConfig,
 } from '../networkController';
-import {
-  selectSelectedInternalAccount,
-  selectSolanaAccount,
-} from '../accountsController';
+import { selectSelectedInternalAccount } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
 import { BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
@@ -52,35 +49,6 @@ export const MULTICHAIN_NETWORK_TO_ASSET_TYPES: Record<
   [BtcScope.Mainnet]: [MultichainNativeAssets.Bitcoin],
   [BtcScope.Testnet]: [MultichainNativeAssets.BitcoinTestnet],
 };
-/**
- * Get the state of the `bitcoinSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinSupportEnabled` flag.
- */
-export function selectIsBitcoinSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinSupportEnabled;
-}
-
-/**
- * Get the state of the `bitcoinTestnetSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `bitcoinTestnetSupportEnabled` flag.
- */
-export function selectIsBitcoinTestnetSupportEnabled(state: RootState) {
-  return state.multichainSettings.bitcoinTestnetSupportEnabled;
-}
-
-/**
- * Get the state of the `solanaSupportEnabled` flag.
- *
- * @param {*} state
- * @returns The state of the `solanaSupportEnabled` flag.
- */
-export function selectIsSolanaSupportEnabled(state: RootState) {
-  return state.multichainSettings.solanaSupportEnabled;
-}
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -334,15 +302,23 @@ export const selectMultichainNetworkAggregatedBalance = createDeepEqualSelector(
   },
 );
 
+const DEFAULT_TRANSACTION_STATE_ENTRY = {
+  transactions: [],
+  next: null,
+  lastUpdated: 0,
+};
+
 export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
-  selectSolanaAccount,
+  selectSelectedInternalAccount,
   (nonEvmTransactions, selectedAccount) => {
     if (!selectedAccount) {
-      return [];
+      return DEFAULT_TRANSACTION_STATE_ENTRY;
     }
 
-    return nonEvmTransactions[selectedAccount.id] || [];
+    return (
+      nonEvmTransactions[selectedAccount.id] ?? DEFAULT_TRANSACTION_STATE_ENTRY
+    );
   },
 );
 

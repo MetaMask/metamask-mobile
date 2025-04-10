@@ -71,6 +71,9 @@ import migration67 from './067';
 import migration68 from './068';
 import migration69 from './069';
 import migration70 from './070';
+import migration71 from './071';
+import migration72 from './072';
+import migration73 from './073';
 
 // Add migrations above this line
 import { validatePostMigrationState } from '../validateMigration/validateMigration';
@@ -158,6 +161,9 @@ export const migrationList: MigrationsList = {
   68: migration68,
   69: migration69,
   70: migration70,
+  71: migration71,
+  72: migration72,
+  73: migration73,
 };
 
 // Enable both synchronous and asynchronous migrations
