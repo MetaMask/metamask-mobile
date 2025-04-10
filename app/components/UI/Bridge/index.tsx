@@ -25,7 +25,6 @@ import { getNetworkImageSource } from '../../../util/networks';
 import { useLatestBalance } from './hooks/useLatestBalance';
 import {
   selectSourceAmount,
-  selectDestAmount,
   selectSelectedDestChainId,
   setSourceAmount,
   resetBridgeState,
@@ -121,7 +120,6 @@ const BridgeView = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectSelectedDestChainId);
   const { activeQuote, isLoading, destTokenAmount } = useBridgeQuoteData();
   const updateQuoteParams = useBridgeQuoteRequest();

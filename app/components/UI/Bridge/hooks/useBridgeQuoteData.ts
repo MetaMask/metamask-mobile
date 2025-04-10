@@ -7,17 +7,17 @@ import {
   selectSlippage,
 } from '../../../../core/redux/slices/bridge';
 import {
-  RequestStatus,
   BridgeFeatureFlagsKey,
-  BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE,
+  RequestStatus,
 } from '@metamask/bridge-controller';
 import { useMemo } from 'react';
+import { fromTokenMinimalUnit } from '../../../../util/number';
+
 import {
+  isQuoteExpired,
   getQuoteRefreshRate,
   shouldRefreshQuote,
-  isQuoteExpired,
 } from '../utils/quoteUtils';
-import { fromTokenMinimalUnit } from '../../../../util/number';
 
 /**
  * Hook for getting bridge quote data without request logic
@@ -63,24 +63,28 @@ export const useBridgeQuoteData = () => {
   const destTokenAmount =
     destAmount && destToken
       ? fromTokenMinimalUnit(destAmount, destToken.decimals)
-      : null;
+      : undefined;
   const formattedDestTokenAmount = destTokenAmount
     ? Number(destTokenAmount).toFixed(1)
-    : null;
+    : undefined;
 
   const quoteRate = Number(destTokenAmount) / Number(sourceAmount);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
 
-    const { estimatedProcessingTimeInSeconds } = activeQuote;
+    const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
+
+    //@ts-expect-error - priceImpact is not typed
+    const priceImpact = quote.bridgePriceData.priceImpact;
+    const priceImpactPercentage = Number(priceImpact) * 100;
     return {
-      networkFee: '44', // TODO: Calculate from quote data
+      networkFee: '44', // TODO: Needs quote metadata in bridge controller
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate: `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
         destToken?.symbol
       }`,
-      priceImpact: `${BRIDGE_QUOTE_MAX_RETURN_DIFFERENCE_PERCENTAGE}%`, //TODO: Need to calculate this
+      priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
       slippage: `${slippage}%`,
     };
   }, [

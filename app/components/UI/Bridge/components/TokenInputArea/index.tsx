@@ -194,7 +194,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
         </Box>
         <Box style={styles.row}>
           {isLoading ? (
-            <Skeleton width={100} height={20} style={styles.input} />
+            <Skeleton width={100} height={10} />
           ) : (
             <>
               {fiatValue ? (
