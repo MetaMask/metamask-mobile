@@ -22,23 +22,17 @@ describe('selectProductSafetyDappScanningEnabled', () => {
     jest.clearAllMocks();
   });
 
-  it('should return false regardless of remote flag value', () => {
-    // Test with remote flag true
-    const mockStateTrue = createMockState({
-      [FEATURE_FLAG_NAME]: true,
-    });
-    expect(selectProductSafetyDappScanningEnabled(mockStateTrue)).toBe(false);
-
+  it('should return true regardless of remote flag value', () => {
     // Test with remote flag false
     const mockStateFalse = createMockState({
       [FEATURE_FLAG_NAME]: false,
     });
-    expect(selectProductSafetyDappScanningEnabled(mockStateFalse)).toBe(false);
+    expect(selectProductSafetyDappScanningEnabled(mockStateFalse)).toBe(true);
 
     // Test with remote flag undefined
     const mockStateUndefined = createMockState({});
     expect(selectProductSafetyDappScanningEnabled(mockStateUndefined)).toBe(
-      false,
+      true,
     );
   });
 
@@ -47,6 +41,6 @@ describe('selectProductSafetyDappScanningEnabled', () => {
     const mockState = createMockState({
       [FEATURE_FLAG_NAME]: true,
     });
-    expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(false);
+    expect(selectProductSafetyDappScanningEnabled(mockState)).toBe(true);
   });
 });
