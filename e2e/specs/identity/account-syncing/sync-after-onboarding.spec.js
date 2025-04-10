@@ -21,18 +21,18 @@ import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sd
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
   () => {
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8001;
     let mockServer;
+
     beforeAll(async () => {
-      mockServer = await startMockServer({
-        mockUrl: 'https://user-storage.api.cx.metamask.io/api/v1/userstorage',
-      });
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpControllerInstance.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -40,17 +40,19 @@ describe(
         },
       );
 
-      jest.setTimeout(200000);
       await TestHelpers.reverseServerPort();
 
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
     afterAll(async () => {
-      await stopMockServer(mockServer);
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
     });
 
     it('retrieves all previously synced accounts', async () => {
