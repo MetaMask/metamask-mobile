@@ -224,22 +224,6 @@ class Onboarding extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
-    /**
-     * oauth2LoginInProgress
-     */
-    oauth2LoginInProgress: PropTypes.bool,
-    /**
-     * oauth2LoginError
-     */
-    oauth2LoginError: PropTypes.string,
-    /**
-     * oauth2LoginSuccess
-     */
-    oauth2LoginSuccess: PropTypes.bool,
-    /**
-     * oauth2LoginExistingUser
-     */
-    oauth2LoginExistingUser: PropTypes.bool,
   };
   notificationAnimated = new Animated.Value(100);
   detailsYAnimated = new Animated.Value(0);
@@ -401,7 +385,7 @@ class Onboarding extends PureComponent {
   };
 
 
-  metricNavigationWrapper = (targetRoute, previousScreen) => {
+  metricNavigationWrapper = (targetRoute, previousScreen, metricEvent) => {
     const { metrics } = this.props;
     if (metrics.isEnabled()) {
       this.props.navigation.push(
@@ -410,7 +394,7 @@ class Onboarding extends PureComponent {
           [PREVIOUS_SCREEN]: previousScreen,
         }
       );
-      this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+      this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
     } else {
       this.props.navigation.navigate('OptinMetrics', {
         onContinue: () => {
@@ -420,9 +404,39 @@ class Onboarding extends PureComponent {
               [PREVIOUS_SCREEN]: previousScreen,
             }
           );
-          this.track(MetaMetricsEvents.WALLET_IMPORT_STARTED);
+          this.track(metricEvent === 'import' ? MetaMetricsEvents.WALLET_IMPORT_STARTED : MetaMetricsEvents.WALLET_SETUP_STARTED);
         },
       });
+    }
+  };
+
+  handlePostSocialLogin = (result) => {
+    if (result.type === 'success') {
+      if (this.state.createWallet) {
+        if (result.existingUser) {
+          this.props.navigation.navigate('AccountAlreadyExists', {
+            accountName: result.accountName,
+            onContinue: () => {
+              this.metricNavigationWrapper('Login', ONBOARDING, 'create');
+            },
+          });
+        } else {
+          this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'create');
+        }
+      } else if (!this.state.createWallet) {
+        if (result.existingUser) {
+          this.metricNavigationWrapper('Login', ONBOARDING, 'import');
+        } else {
+          this.props.navigation.navigate('AccountNotFound', {
+            accountName: result.accountName,
+            onContinue: () => {
+              this.metricNavigationWrapper('ChoosePassword', ONBOARDING, 'import');
+            },
+          });
+        }
+      }
+    } else {
+      // handle error: show error message in the UI
     }
   };
 
@@ -433,14 +447,7 @@ class Onboarding extends PureComponent {
         return {type: 'error', error: e, existingUser: false};
       });
 
-      if (result.type === 'success') {
-
-        if (result.existingUser) {
-          this.metricNavigationWrapper('Login', ONBOARDING);
-        } else {
-          this.metricNavigationWrapper('ChoosePassword', ONBOARDING);
-        }
-      }
+      this.handlePostSocialLogin(result);
     };
     this.handleExistingUser(action);
   };
@@ -452,13 +459,7 @@ class Onboarding extends PureComponent {
         return {type: 'error', error: e, existingUser: false};
       });
 
-      if (result.type === 'success') {
-        if (result.existingUser) {
-          this.metricNavigationWrapper('Login', ONBOARDING);
-        } else {
-          this.metricNavigationWrapper('ChoosePassword', ONBOARDING);
-        }
-      }
+      this.handlePostSocialLogin(result);
     };
     this.handleExistingUser(action);
   };

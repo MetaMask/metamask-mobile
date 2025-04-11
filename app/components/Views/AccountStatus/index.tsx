@@ -5,7 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '../../../component-library/components/Texts/Text/Text.types';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { useTheme } from '../../../util/theme';
@@ -20,15 +20,23 @@ const account_status_img = require('../../../images/account_status.png'); // esl
 
 interface AccountStatusProps {
   type?: 'found' | 'not_exist';
+}
+
+interface AccountRouteParams {
   accountName?: string;
+  onContinue?: () => void;
 }
 
 const AccountStatus = ({
   type = 'not_exist',
-  accountName = 'username@gmail.com',
 }: AccountStatusProps) => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { colors } = useTheme();
+
+  const accountName = (route.params as AccountRouteParams)?.accountName;
+  const onContinue = (route.params as AccountRouteParams)?.onContinue;
+
 
   useLayoutEffect(() => {
     navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
@@ -64,7 +72,14 @@ const AccountStatus = ({
         variant={ButtonVariants.Primary}
         size={ButtonSize.Lg}
         width={ButtonWidthTypes.Full}
-        onPress={() => navigation.navigate('Onboarding')}
+        onPress={() => {
+          if (onContinue) {
+            onContinue();
+          } else {
+            // better handling if no onContinue is provided
+            navigation.navigate('Onboarding');
+          }
+        }}
         label={
           type === 'found'
             ? strings('account_status.log_in')
