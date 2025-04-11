@@ -3,7 +3,6 @@ import {
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
-  //@ts-expect-error - This error is expected, but ethereumjs-util exports this function
   isHexPrefixed,
 } from 'ethereumjs-util';
 import punycode from 'punycode/punycode';
@@ -43,7 +42,8 @@ import {
   KeyringTypes,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
-import { Hex, isHexString } from '@metamask/utils';
+import { isHexString } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
