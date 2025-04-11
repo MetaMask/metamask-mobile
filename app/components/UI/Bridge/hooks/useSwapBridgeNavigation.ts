@@ -47,6 +47,7 @@ export const useSwapBridgeNavigation = ({
   const token = tokenBase ?? nativeSourceTokenFormatted;
 
   // Bridge
+  // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
   const goToNativeBridge = useCallback(
     (title: string) => {
       navigation.navigate('Bridge', {
