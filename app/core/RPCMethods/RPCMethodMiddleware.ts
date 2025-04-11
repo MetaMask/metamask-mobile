@@ -11,7 +11,7 @@ import {
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import RPCMethods from './index.js';
 import { RPC } from '../../constants/network';
-import { ChainId, NetworkType } from '@metamask/controller-utils';
+import { ApprovalType, ChainId, NetworkType } from '@metamask/controller-utils';
 import {
   PermissionController,
   permissionRpcMethods,
@@ -49,6 +49,8 @@ import {
   SignatureController,
 } from '@metamask/signature-controller';
 import { PermissionKeys } from '../Permissions/specifications.js';
+import { startConfirmationStartupSpan } from '../Performance/confirmations';
+import { TransactionType } from '@metamask/transaction-controller';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -599,6 +601,11 @@ export const getRpcMethodMiddleware = ({
       },
 
       personal_sign: async () => {
+        startConfirmationStartupSpan({
+          approvalType: ApprovalType.PersonalSign,
+          signatureType: TransactionType.personalSign,
+        });
+
         const firstParam = req.params[0];
         const secondParam = req.params[1];
         const params = {
@@ -674,6 +681,11 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData: async () => {
+        startConfirmationStartupSpan({
+          approvalType: ApprovalType.EthSignTypedData,
+          signatureType: TransactionType.signTypedData,
+        });
+
         endTrace({ name: TraceName.Middleware, id: req.id });
 
         const pageMeta = {
@@ -725,6 +737,11 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v3: async () => {
+        startConfirmationStartupSpan({
+          approvalType: ApprovalType.EthSignTypedData,
+          signatureType: TransactionType.signTypedData,
+        });
+
         const data =
           typeof req.params[1] === 'string'
             ? JSON.parse(req.params[1])
@@ -754,6 +771,11 @@ export const getRpcMethodMiddleware = ({
       },
 
       eth_signTypedData_v4: async () => {
+        startConfirmationStartupSpan({
+          approvalType: ApprovalType.EthSignTypedData,
+          signatureType: TransactionType.signTypedData,
+        });
+
         const data = JSON.parse(req.params[1]);
         const chainId = data.domain.chainId;
 

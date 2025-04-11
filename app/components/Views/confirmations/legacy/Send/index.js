@@ -71,6 +71,7 @@ import {
   /* eslint-enable no-restricted-syntax */
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
+import { endConfirmationStartupSpan } from '../../../../../core/Performance/confirmations';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -232,6 +233,7 @@ class Send extends PureComponent {
    * Sets state mounted to true, resets transaction and check for deeplinks
    */
   async componentDidMount() {
+    endConfirmationStartupSpan();
     const {
       navigation,
       transaction: { assetType, selectedAsset },

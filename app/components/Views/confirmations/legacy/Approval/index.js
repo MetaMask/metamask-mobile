@@ -59,6 +59,7 @@ import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import SDKConnect from '../../../../../core/SDKConnect/SDKConnect';
 import WC2Manager from '../../../../../core/WalletConnect/WalletConnectV2';
 import { selectProviderTypeByChainId } from '../../../../../selectors/networkController';
+import { endConfirmationStartupSpan } from '../../../../../core/Performance/confirmations';
 
 const REVIEW = 'review';
 const EDIT = 'edit';
@@ -246,6 +247,7 @@ class Approval extends PureComponent {
   };
 
   componentDidMount = () => {
+    endConfirmationStartupSpan();
     const { navigation } = this.props;
     this.updateNavBar();
     this.appStateListener = AppState.addEventListener(
