@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
 import { BridgeToken } from '../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from './useInitialSourceToken';
+import { BridgeRouteParams, BridgeViewTitle } from './useInitialSourceToken';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
@@ -50,7 +50,7 @@ export const useSwapBridgeNavigation = ({
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
   const goToNativeBridge = useCallback(
-    (title: string) => {
+    (title: BridgeViewTitle) => {
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
@@ -64,7 +64,7 @@ export const useSwapBridgeNavigation = ({
   );
 
   const goToBridge = useCallback(
-    (title: string) => {
+    (title: BridgeViewTitle) => {
       if (isBridgeUiEnabled()) {
         goToNativeBridge(title);
       } else {
@@ -115,7 +115,7 @@ export const useSwapBridgeNavigation = ({
       token?.chainId === SolScope.Mainnet ||
       selectedChainId === SolScope.Mainnet
     ) {
-      goToBridge('Swaps');
+      goToBridge(BridgeViewTitle.Swaps);
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -131,7 +131,7 @@ export const useSwapBridgeNavigation = ({
   ]);
 
   return {
-    goToBridge: () => goToBridge('Bridge'),
+    goToBridge: () => goToBridge(BridgeViewTitle.Bridge),
     goToSwaps,
   };
 };

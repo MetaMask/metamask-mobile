@@ -51,6 +51,7 @@ import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useInitialSourceToken, BridgeRouteParams } from './hooks/useInitialSourceToken';
+import { useInitialDestToken } from './hooks/useInitialDestToken';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -129,6 +130,7 @@ const BridgeView = () => {
   const destAddress = useSelector(selectDestAddress);
 
   useInitialSourceToken();
+  useInitialDestToken();
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,

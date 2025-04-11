@@ -28,10 +28,15 @@ const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
+export enum BridgeViewTitle {
+  Swaps = 'Swaps',
+  Bridge = 'Bridge',
+}
+
 export interface BridgeRouteParams {
   token: BridgeToken;
   sourcePage: string;
-  title: string;
+  title: BridgeViewTitle;
 }
 
 export const useInitialSourceToken = () => {
