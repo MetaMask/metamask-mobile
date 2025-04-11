@@ -38,7 +38,7 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import AddNewHdAccount from '../AddNewHdAccount';
+import AddNewHdAccount from '../AddNewAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();

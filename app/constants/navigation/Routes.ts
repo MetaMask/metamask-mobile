@@ -89,6 +89,7 @@ const Routes = {
   },
   SHEET: {
     ACCOUNT_SELECTOR: 'AccountSelector',
+    ADD_ACCOUNT: 'AddAccount',
     AMBIGUOUS_ADDRESS: 'AmbiguousAddress',
     BASIC_FUNCTIONALITY: 'BasicFunctionality',
     PROFILE_SYNCING: 'ProfileSyncing',

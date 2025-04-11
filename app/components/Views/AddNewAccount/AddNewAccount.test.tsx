@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
-import AddNewHdAccount from './AddNewHdAccount';
+import AddNewAccount from './AddNewAccount';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -72,14 +72,14 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
-describe('AddNewHdAccount', () => {
+describe('AddNewAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('shows next available account name as placeholder', () => {
     const { getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
+      <AddNewAccount route={{}} />,
       {
         state: initialState,
       },
@@ -89,7 +89,7 @@ describe('AddNewHdAccount', () => {
 
   it('handles account name input', () => {
     const { getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
+      <AddNewAccount route={{}} />,
       {
         state: initialState,
       },
@@ -101,12 +101,9 @@ describe('AddNewHdAccount', () => {
   });
 
   it('shows SRP list when selector is clicked', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
+      state: initialState,
+    });
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -120,7 +117,7 @@ describe('AddNewHdAccount', () => {
 
   it('handles SRP selection', async () => {
     const { getByText, queryByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
+      <AddNewAccount route={{}} />,
       {
         state: initialState,
       },
@@ -144,12 +141,9 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles account creation', async () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
+      state: initialState,
+    });
 
     const addButton = getByText(strings('accounts.add'));
     fireEvent.press(addButton);
@@ -162,7 +156,7 @@ describe('AddNewHdAccount', () => {
 
   it('handles account creation with custom name', async () => {
     const { getByText, getByPlaceholderText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
+      <AddNewAccount route={{}} />,
       {
         state: initialState,
       },
@@ -181,12 +175,9 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles cancellation', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
+      state: initialState,
+    });
 
     const cancelButton = getByText(strings('accounts.cancel'));
     fireEvent.press(cancelButton);
@@ -195,12 +186,9 @@ describe('AddNewHdAccount', () => {
   });
 
   it('handles back navigation from SRP list', () => {
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
+      state: initialState,
+    });
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -219,12 +207,9 @@ describe('AddNewHdAccount', () => {
     const mockError = new Error('Failed to create account');
     mockAddNewHdAccount.mockRejectedValueOnce(mockError);
 
-    const { getByText } = renderWithProvider(
-      <AddNewHdAccount onBack={mockOnBack} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
+      state: initialState,
+    });
 
     const addButton = getByText(strings('accounts.add'));
     await fireEvent.press(addButton);

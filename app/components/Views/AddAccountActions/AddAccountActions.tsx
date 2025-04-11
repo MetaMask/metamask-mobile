@@ -51,6 +51,7 @@ import {
 import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { BtcScope } from '@metamask/keyring-api';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = (props: AddAccountActionsProps) => {
@@ -69,6 +70,7 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   const [isLoading, setIsLoading] = useState(false);
   ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const useCreateAccountWithSrps = hdKeyrings.length > 1;
   ///: END:ONLY_INCLUDE_IF
 
   const openImportAccount = useCallback(() => {
@@ -143,6 +145,14 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   );
 
   const createBitcoinAccount = async (scope: CaipChainId) => {
+    if (useCreateAccountWithSrps) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {
+        scope,
+        clientType: WalletClientType.Bitcoin,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
       // Client to create the account using the Bitcoin Snap
@@ -162,13 +172,21 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createSolanaAccount = async (scope: CaipChainId) => {
+    trace({
+      name: TraceName.CreateSnapAccount,
+      op: TraceOperation.CreateSnapAccount,
+      tags: getTraceTags(store.getState()),
+    });
+    if (useCreateAccountWithSrps) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {
+        scope,
+        clientType: WalletClientType.Solana,
+      });
+      return;
+    }
+
     try {
       setIsLoading(true);
-      trace({
-        name: TraceName.CreateSnapAccount,
-        op: TraceOperation.CreateSnapAccount,
-        tags: getTraceTags(store.getState()),
-      });
       // Client to create the account using the Solana Snap
       const client = new KeyringClient(new SolanaWalletSnapSender());
       // This will trigger the Snap account creation flow (+ account renaming)
