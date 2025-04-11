@@ -24,8 +24,9 @@ import { useEarnTokenDetails } from '../../../Earn/hooks/useEarnTokenDetails';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import _ from 'lodash';
+import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -39,6 +40,10 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   const { createEventBuilder, trackEvent } = useMetrics();
 
   const { colors } = theme;
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const { getTokenWithBalanceAndApr } = useEarnTokenDetails();
 
@@ -65,8 +70,7 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
     });
   };
 
-  if (!token || _.isEmpty(token) || !isStablecoinLendingFeatureEnabled())
-    return <></>;
+  if (!token || _.isEmpty(token) || !isStablecoinLendingEnabled) return <></>;
 
   return (
     <View style={styles.container}>

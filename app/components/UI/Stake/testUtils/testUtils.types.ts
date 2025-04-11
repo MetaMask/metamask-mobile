@@ -8,6 +8,7 @@ export interface CreateMockTokenOptions {
   ticker?: string;
   decimals?: number;
   isStaked?: boolean;
+  balanceFiat?: string;
 }
 
 export enum TOKENS_WITH_DEFAULT_OPTIONS {

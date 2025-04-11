@@ -4,7 +4,6 @@ import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
 } from '../../../../selectors/featureFlagController/earnFeatureFlags';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
 import { TokenI } from '../../Tokens/types';
 import { getSupportedEarnTokens, filterEligibleTokens } from '../utils';
@@ -46,9 +45,7 @@ const useEarnTokens = () => {
       // TODO: Add eligibility check for stablecoin lending before launch.
       {
         canStake: isEligibleToStake && Boolean(isPooledStakingEnabled),
-        canLend:
-          isStablecoinLendingFeatureEnabled() &&
-          Boolean(isStablecoinLendingEnabled),
+        canLend: isStablecoinLendingEnabled,
       },
     );
 

@@ -39,7 +39,7 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
 
 const EarnWithdrawInputView = () => {
@@ -55,6 +55,10 @@ const EarnWithdrawInputView = () => {
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const confirmationRedesignFlags = useSelector(
     selectConfirmationRedesignFlags,
+  );
+
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
   );
 
   const conversionRate = useSelector(selectConversionRate) ?? 1;
@@ -143,7 +147,6 @@ const EarnWithdrawInputView = () => {
     //   },
     // },
   };
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
   const navBarOptions = isStablecoinLendingEnabled
     ? earnNavBarOptions
     : stakingNavBarOptions;

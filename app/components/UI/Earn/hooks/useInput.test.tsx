@@ -9,12 +9,6 @@ import {
   renderHookWithProvider,
 } from '../../../../util/test/renderWithProvider';
 import useInputHandler, { InputHandlerParams } from './useInput';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
-
-// mock stablecoin lending feature flag
-jest.mock('../../Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn(() => false),
-}));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(() => 'USD'),
@@ -101,9 +95,42 @@ describe('useInputHandler', () => {
   });
 
   it('should initialize with default values with stablecoin lending enabled', () => {
-    jest.mocked(isStablecoinLendingFeatureEnabled).mockReturnValue(true);
+    const mockStateWithStablecoinLendingEnabled = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: undefined,
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networkConfigurationsByChainId: {
+              [CHAIN_IDS.MAINNET]: {
+                chainId: CHAIN_IDS.MAINNET,
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                  },
+                ],
+                defaultBlockExplorerUrlIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+              },
+            },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: true,
+            },
+          },
+        },
+      },
+    };
 
-    const { result } = renderHook();
+    const { result } = renderHook(mockStateWithStablecoinLendingEnabled);
 
     expect(result.current.amountToken).toBe('0');
     expect(result.current.amountTokenMinimalUnit).toEqual(new BN4(0));

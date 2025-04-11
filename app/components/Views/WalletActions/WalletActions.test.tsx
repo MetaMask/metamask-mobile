@@ -28,16 +28,10 @@ import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
 import Engine from '../../../core/Engine';
-import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
-import { mockedEarnFeatureFlagState } from '../../UI/Earn/__mocks__/mockData';
 
 jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
-}));
-
-jest.mock('../../../components/UI/Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -174,7 +168,7 @@ const mockInitialState: DeepPartial<RootState> = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagState,
+          earnStablecoinLendingEnabled: false,
         },
       },
     },
@@ -219,9 +213,12 @@ describe('WalletActions', () => {
         .fn()
         .mockImplementation((callback) => callback(mockInitialState)),
     }));
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <WalletActions />,
+      {
+        state: mockInitialState,
+      },
+    );
 
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
@@ -238,12 +235,48 @@ describe('WalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     ).toBeDefined();
+    // Feature flag is disabled by default
+    expect(
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
+    ).toBeNull();
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const mockStateWithStablecoinLendingEnabled = {
+      swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+      fiatOrders: {
+        networks: [
+          {
+            active: true,
+            chainId: '1',
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+          },
+        ],
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
     const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
+      state: mockStateWithStablecoinLendingEnabled,
     });
 
     expect(
@@ -385,9 +418,41 @@ describe('WalletActions', () => {
   });
 
   it('should call the onEarn function when the Earn button is pressed', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const mockStateWithStablecoinLendingEnabled = {
+      swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
+      fiatOrders: {
+        networks: [
+          {
+            active: true,
+            chainId: '1',
+            chainName: 'Ethereum Mainnet',
+            nativeTokenSupported: true,
+          },
+        ],
+      },
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          NetworkController: {
+            ...mockNetworkState({
+              chainId: CHAIN_IDS.MAINNET,
+              id: 'mainnet',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            }),
+          },
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
     const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
+      state: mockStateWithStablecoinLendingEnabled,
     });
 
     fireEvent.press(
@@ -401,7 +466,6 @@ describe('WalletActions', () => {
   });
 
   it('disables action buttons when the account cannot sign transactions', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(false);
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
     (isBridgeAllowed as jest.Mock).mockReturnValue(true);
@@ -409,33 +473,39 @@ describe('WalletActions', () => {
       .requireMock('../../UI/Ramp/hooks/useRampNetwork')
       .default.mockReturnValue([true]);
 
-    const mockStateWithoutSigning: DeepPartial<RootState> = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine?.backgroundState,
-          AccountsController: {
-            ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-            internalAccounts: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-              accounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                [expectedUuid2]: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
-                    expectedUuid2
-                  ],
-                  methods: [],
+    const mockStateWithoutSigningAndStablecoinLendingEnabled: DeepPartial<RootState> =
+      {
+        ...mockInitialState,
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine?.backgroundState,
+            AccountsController: {
+              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+              internalAccounts: {
+                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+                accounts: {
+                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+                  [expectedUuid2]: {
+                    ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+                      expectedUuid2
+                    ],
+                    methods: [],
+                  },
                 },
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                earnStablecoinLendingEnabled: true,
               },
             },
           },
         },
-      },
-    };
+      };
 
     const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockStateWithoutSigning,
+      state: mockStateWithoutSigningAndStablecoinLendingEnabled,
     });
 
     const sellButton = getByTestId(

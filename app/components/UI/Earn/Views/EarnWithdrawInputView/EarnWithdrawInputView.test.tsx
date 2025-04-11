@@ -132,6 +132,13 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
 
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/earnFeatureFlags',
+  () => ({
+    selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
+  }),
+);
+
 describe('UnstakeInputView', () => {
   const selectConfirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags)
 

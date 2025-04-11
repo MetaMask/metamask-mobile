@@ -16,7 +16,8 @@ import {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { useSelector } from 'react-redux';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -49,7 +50,9 @@ interface CurrencyToggleProps {
 const CurrencyToggle = ({ onPress, value }: CurrencyToggleProps) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   if (isStablecoinLendingEnabled) {
     return (
