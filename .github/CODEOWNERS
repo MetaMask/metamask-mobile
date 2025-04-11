@@ -1,8 +1,6 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
-*                                    @MetaMask/mobile-devs
-
 # Design System Team
 app/component-library/               @MetaMask/design-system-engineers
 
@@ -43,6 +41,7 @@ app/reducers/fiatOrders/             @MetaMask/ramp
 
 # Confirmation Team
 app/components/Views/confirmations   @MetaMask/confirmations
+app/core/Engine/controllers/gas-fee-controller             @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller             @MetaMask/confirmations
 app/core/Analytics/events/confirmations   @MetaMask/confirmations
 ppom                                 @MetaMask/confirmations
