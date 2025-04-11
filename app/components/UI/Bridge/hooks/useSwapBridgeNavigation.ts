@@ -7,9 +7,9 @@ import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectChainId } from '../../../../selectors/networkController';
-import { BridgeToken } from '../types';
+import { BridgeToken, BridgeViewMode } from '../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BridgeRouteParams, BridgeViewMode } from './useInitialSourceToken';
+import { BridgeRouteParams } from './useInitialSourceToken';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
@@ -115,7 +115,7 @@ export const useSwapBridgeNavigation = ({
       token?.chainId === SolScope.Mainnet ||
       selectedChainId === SolScope.Mainnet
     ) {
-      goToBridge(BridgeViewMode.Swaps);
+      goToBridge(BridgeViewMode.Swap);
       return;
     }
     ///: END:ONLY_INCLUDE_IF

@@ -13,9 +13,8 @@ import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/co
 import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
-import { BridgeToken } from '../../types';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
-import { BridgeViewMode } from '../../hooks/useInitialSourceToken';
 
 export interface BridgeDestTokenSelectorRouteParams {
   bridgeViewMode: BridgeViewMode;
