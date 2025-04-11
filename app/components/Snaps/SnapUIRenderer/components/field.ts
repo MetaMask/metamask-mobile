@@ -30,7 +30,7 @@ export const field: UIComponentFactory<FieldElement> = ({
     flexBasis: '50%',
   };
 
-  switch (child.type) {
+  switch (child?.type) {
     case 'Input': {
       const getLeftAccessory = () =>
         mapToTemplate({
@@ -76,14 +76,22 @@ export const field: UIComponentFactory<FieldElement> = ({
             ...leftAccessoryMapped,
             props: {
               ...leftAccessoryMapped.props,
-              padding: 0,
+              style: {
+                padding: 0,
+                height: '100%',
+                justifyContent: 'center',
+              },
             },
           },
           endAccessory: rightAccessoryMapped && {
             ...rightAccessoryMapped,
             props: {
               ...rightAccessoryMapped.props,
-              padding: 0,
+              style: {
+                padding: 0,
+                height: '100%',
+                justifyContent: 'center',
+              },
             },
           },
         },
