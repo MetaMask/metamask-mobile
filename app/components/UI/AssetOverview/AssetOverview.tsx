@@ -46,8 +46,6 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
-import useGoToBridge from '../Bridge/hooks/useGoToBridge';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
@@ -56,7 +54,7 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-
+import { useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
 interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
@@ -106,6 +104,14 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     vsCurrency: currentCurrency,
   });
 
+  const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
+    location: 'TokenDetails',
+    token: {
+      address: asset.address,
+      chainId: asset.chainId,
+    },
+  });
+
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
 
@@ -135,35 +141,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
       networkName,
     });
   };
-
-  const handleSwapNavigation = useCallback(() => {
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      },
-    });
-  }, [navigation, asset.address, asset.chainId]);
-
-  const handleBridgeNavigation = useCallback(() => {
-    navigation.navigate('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        sourceToken: asset.address,
-        sourcePage: 'MainView',
-        chainId: asset.chainId,
-      },
-    });
-  }, [navigation, asset.address, asset.chainId]);
-
-  const goToPortfolioBridge = useGoToBridge('TokenDetails');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
 
   const onSend = async () => {
     navigation.navigate(Routes.WALLET.HOME, {
@@ -197,35 +174,6 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     }
     navigation.navigate('SendFlowView', {});
   };
-
-  const goToSwaps = useCallback(() => {
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
-    if (asset.chainId !== selectedChainId) {
-      const { NetworkController, MultichainNetworkController } = Engine.context;
-      const networkConfiguration =
-        NetworkController.getNetworkConfigurationByChainId(
-          asset.chainId as Hex,
-        );
-
-      const networkClientId =
-        networkConfiguration?.rpcEndpoints?.[
-          networkConfiguration.defaultRpcEndpointIndex
-        ]?.networkClientId;
-
-      MultichainNetworkController.setActiveNetwork(
-        networkClientId as string,
-      ).then(() => {
-        handleSwapNavigation();
-      });
-    } else {
-      handleSwapNavigation();
-    }
-  }, [navigation, asset.chainId, selectedChainId, handleSwapNavigation]);
 
   const onBuy = () => {
     navigation.navigate(
