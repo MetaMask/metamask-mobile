@@ -14,7 +14,7 @@ import { RootState } from '../../../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { mockedEarnFeatureFlagState } from '../../../Earn/__mocks__/mockData';
+import { mockedEarnFeatureFlagsEnabledState } from '../../../Earn/__mocks__/mockData';
 
 const mockNavigate = jest.fn();
 
@@ -117,7 +117,7 @@ const STATE_MOCK = {
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagState,
+          ...mockedEarnFeatureFlagsEnabledState,
         },
       },
     },
@@ -222,7 +222,7 @@ describe('StakeButton', () => {
           },
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...mockedEarnFeatureFlagState,
+              ...mockedEarnFeatureFlagsEnabledState,
             },
           },
         },

@@ -17,7 +17,7 @@ import {
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/mockData';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { mockedEarnFeatureFlagState } from '../../../../Earn/__mocks__/mockData';
+import { mockedEarnFeatureFlagsEnabledState } from '../../../../Earn/__mocks__/mockData';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -49,7 +49,7 @@ const mockInitialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagState,
+          ...mockedEarnFeatureFlagsEnabledState,
         },
       },
     },

@@ -14,7 +14,7 @@ const mockedStablecoinLendingFeatureFlagState: StablecoinLendingRemoteFeatureFla
     earnStablecoinLendingServiceInterruptionBannerEnabled: true,
   };
 
-export const mockedEarnFeatureFlagState = {
+export const mockedEarnFeatureFlagsEnabledState = {
   ...mockedPooledStakingFeatureFlagState,
   ...mockedStablecoinLendingFeatureFlagState,
 };

@@ -51,7 +51,7 @@ import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
 import { selectPooledStakingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
-import { EarnServiceInterruptionBanner } from '../../../Earn/components/EarnServiceInterruptionBanner';
+import EarnServiceInterruptionBanner from '../../../Earn/components/EarnServiceInterruptionBanner';
 
 export interface StakingBalanceProps {
   asset: TokenI;
