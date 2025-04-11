@@ -4,7 +4,8 @@ import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
-import { initialState } from '../../_mocks_/initialState';
+import { createBridgeTestState } from '../../testUtils';
+import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -16,23 +17,9 @@ jest.mock('@react-navigation/native', () => ({
 //Mock useBridgeQuoteData hook
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
   useBridgeQuoteData: jest.fn().mockImplementation(() => ({
-    sourceToken: {
-      address: '0x0000000000000000000000000000000000000000',
-      chainId: '0x1',
-      decimals: 18,
-      symbol: 'ETH',
-    },
-    destToken: {
-      address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
-      chainId: '0xa',
-      decimals: 6,
-      symbol: 'USDC',
-    },
     quoteFetchError: null,
     activeQuote: mockQuotes[0],
-    sourceAmount: '1',
     destTokenAmount: '24.44',
-    slippage: 0.5,
     isLoading: false,
     formattedQuoteData: {
       networkFee: '0.01',
@@ -43,6 +30,8 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     },
   })),
 }));
+
+const testState = createBridgeTestState({}, mockBridgeReducerState);
 
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {
@@ -55,7 +44,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -66,7 +55,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion
@@ -82,7 +71,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     expect(getByText('0.01')).toBeDefined();
@@ -94,7 +83,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     expect(getByText('1 min')).toBeDefined();
@@ -106,7 +95,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
@@ -118,7 +107,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Initially price impact should not be visible
@@ -145,7 +134,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion first
@@ -168,7 +157,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     expect(getByText('Ethereum Mainnet')).toBeDefined();
@@ -181,7 +170,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion first

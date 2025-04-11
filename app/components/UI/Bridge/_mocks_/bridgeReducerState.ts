@@ -1,4 +1,3 @@
-import { ChainId } from '@metamask/controller-utils';
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
 
 export const mockBridgeReducerState: BridgeState = {
@@ -22,9 +21,9 @@ export const mockBridgeReducerState: BridgeState = {
     symbol: 'USDC',
     balance: '0',
     balanceFiat: '$0',
-    chainId: ChainId['linea-mainnet'],
+    chainId: '0xa',
   },
   selectedSourceChainIds: ['0x1'],
-  selectedDestChainId: '0x89',
+  selectedDestChainId: '0xa',
   slippage: '0.5',
 };
