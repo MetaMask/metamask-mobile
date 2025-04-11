@@ -43,6 +43,7 @@ import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { QuoteMetadata } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 
 const createStyles = (params: { theme: Theme }) => {
@@ -179,12 +180,15 @@ const BridgeView = () => {
     dispatch(setSourceAmount(value || undefined));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // TODO: Implement bridge transaction with source and destination amounts
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = undefined;
-    if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
+    const quoteResponse = {};
+    // TESTING: Paste quote metadata from extension here to test the bridge flow
+    const quoteMetadata = {};
+    if (Object.keys(quoteResponse).length > 0 && Object.keys(quoteMetadata).length > 0) {
+      await submitBridgeTx({ quoteResponse: {...quoteResponse, ...quoteMetadata} as QuoteResponse & QuoteMetadata });
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 

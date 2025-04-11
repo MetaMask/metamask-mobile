@@ -121,6 +121,9 @@ describe('BridgeView', () => {
               },
             },
           },
+          quoteRequest: {
+            slippage: 0.5,
+          },
         },
         TokenBalancesController: {
           tokenBalances: {

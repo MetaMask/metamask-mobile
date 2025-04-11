@@ -3,8 +3,14 @@ import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import useHandleTx from './useHandleTx';
-import { TransactionType, WalletDevice } from '@metamask/transaction-controller';
-import { addTransaction, updateTransaction } from '../../transaction-controller';
+import {
+  TransactionType,
+  WalletDevice,
+} from '@metamask/transaction-controller';
+import {
+  addTransaction,
+  updateTransaction,
+} from '../../transaction-controller';
 import { resetTransaction } from '../../../actions/transaction';
 import { DummyQuotesWithApproval } from '../../../../e2e/api-mocking/mock-responses/bridge-api-quotes';
 import { getTransaction1559GasFeeEstimates } from '../../../components/UI/Swaps/utils/gas';
@@ -19,25 +25,28 @@ const mockGasEstimates = {
     maxWaitTimeEstimate: 30000,
     minWaitTimeEstimate: 15000,
     suggestedMaxFeePerGas: '3.616246823',
-    suggestedMaxPriorityFeePerGas: '2'
+    suggestedMaxPriorityFeePerGas: '2',
   },
   medium: {
     maxWaitTimeEstimate: 45000,
     minWaitTimeEstimate: 15000,
     suggestedMaxFeePerGas: '1.504883895',
-    suggestedMaxPriorityFeePerGas: '0.5'
+    suggestedMaxPriorityFeePerGas: '0.5',
   },
   low: {
     maxWaitTimeEstimate: 60000,
     minWaitTimeEstimate: 15000,
     suggestedMaxFeePerGas: '0.715662921',
-    suggestedMaxPriorityFeePerGas: '0.012946911'
+    suggestedMaxPriorityFeePerGas: '0.012946911',
   },
   networkCongestion: 0.51605,
   priorityFeeTrend: 'down' as const,
   historicalBaseFeeRange: ['0.553548688', '0.9957375'] as [string, string],
   latestPriorityFeeRange: ['0.006886655', '3.093944657'] as [string, string],
-  historicalPriorityFeeRange: ['0.000080453', '194.293042042'] as [string, string]
+  historicalPriorityFeeRange: ['0.000080453', '194.293042042'] as [
+    string,
+    string,
+  ],
 };
 
 jest.mock('../../transaction-controller');
@@ -79,13 +88,15 @@ describe('useHandleTx', () => {
 
     // Add consistent mock implementation
     (addTransaction as jest.Mock).mockResolvedValue({
-      transactionMeta: { hash: '0x789' }
+      transactionMeta: { hash: '0x789' },
     });
   });
 
   it('should handle legacy transaction correctly', async () => {
     const mockTransactionMeta = { hash: '0x789' };
-    (addTransaction as jest.Mock).mockResolvedValueOnce({ transactionMeta: mockTransactionMeta });
+    (addTransaction as jest.Mock).mockResolvedValueOnce({
+      transactionMeta: mockTransactionMeta,
+    });
 
     const { result } = renderHook(() => useHandleTx(), { wrapper });
 
@@ -126,8 +137,12 @@ describe('useHandleTx', () => {
       maxPriorityFeePerGas: '0x1',
     };
 
-    (getTransaction1559GasFeeEstimates as jest.Mock).mockResolvedValue(mockEIP1559Estimates);
-    (addTransaction as jest.Mock).mockResolvedValue({ transactionMeta: mockTransactionMeta });
+    (getTransaction1559GasFeeEstimates as jest.Mock).mockResolvedValue(
+      mockEIP1559Estimates,
+    );
+    (addTransaction as jest.Mock).mockResolvedValue({
+      transactionMeta: mockTransactionMeta,
+    });
 
     const { result } = renderHook(() => useHandleTx(), { wrapper });
 
@@ -168,7 +183,9 @@ describe('useHandleTx', () => {
 
   it('should handle bridge approval transaction type', async () => {
     const mockTransactionMeta = { hash: '0x789' };
-    (addTransaction as jest.Mock).mockResolvedValueOnce({ transactionMeta: mockTransactionMeta });
+    (addTransaction as jest.Mock).mockResolvedValueOnce({
+      transactionMeta: mockTransactionMeta,
+    });
 
     const { result } = renderHook(() => useHandleTx(), { wrapper });
 
@@ -195,7 +212,9 @@ describe('useHandleTx', () => {
     };
 
     const mockTransactionMeta = { hash: '0x789' };
-    (addTransaction as jest.Mock).mockResolvedValueOnce({ transactionMeta: mockTransactionMeta });
+    (addTransaction as jest.Mock).mockResolvedValueOnce({
+      transactionMeta: mockTransactionMeta,
+    });
 
     const { result } = renderHook(() => useHandleTx(), { wrapper });
 
