@@ -1,18 +1,14 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { Hex } from '@metamask/utils';
 import {
-  selectEvmNetworkConfigurationsByChainId,
-  selectNetworkConfigurations,
-} from '../../../../../selectors/networkController';
-import {
-  selectSelectedSourceChainIds,
-  selectEnabledSourceChains,
-  setSourceToken,
-  selectSourceToken,
-  selectDestToken,
-} from '../../../../../core/redux/slices/bridge';
+  Hex,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  CaipChainId,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/utils';
+import { selectEvmNetworkConfigurationsByChainId, selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { selectSelectedSourceChainIds, selectEnabledSourceChains, setSourceToken, selectSourceToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
@@ -44,7 +40,12 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo();
-  const { onSetRpcTarget } = useSwitchNetworks({
+  const {
+    onSetRpcTarget,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+  } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId,
     selectedNetworkName,
@@ -61,11 +62,48 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       const handleTokenPress = async (token: BridgeToken) => {
         dispatch(setSourceToken(token));
 
-        // Switch to the chain of the selected token
-        const networkConfiguration = evmNetworkConfigurations[token.chainId];
-        if (networkConfiguration) {
-          await onSetRpcTarget(networkConfiguration);
+      // Switch to the chain of the selected token
+      const evmNetworkConfiguration = evmNetworkConfigurations[token.chainId as Hex];
+
+      if (evmNetworkConfiguration) {
+        await onSetRpcTarget(evmNetworkConfiguration);
+      }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      if (!evmNetworkConfiguration) {
+        await onNonEvmNetworkChange(token.chainId as CaipChainId);
+      }
+      ///: END:ONLY_INCLUDE_IF
+
+      navigation.goBack();
+    };
+
+    const networkName = allNetworkConfigurations[item.chainId]?.name;
+
+    return (
+      <TokenSelectorItem
+        token={item}
+        onPress={handleTokenPress}
+        networkName={networkName}
+        // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+        networkImageSource={getNetworkImageSource({ chainId: item.chainId })}
+        isSelected={
+          selectedSourceToken?.address === item.address &&
+          selectedSourceToken?.chainId === item.chainId
         }
+      />
+    );
+  }, [
+    dispatch,
+    navigation,
+    allNetworkConfigurations,
+    selectedSourceToken,
+    onSetRpcTarget,
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    onNonEvmNetworkChange,
+    ///: END:ONLY_INCLUDE_IF
+    evmNetworkConfigurations,
+   ]);
 
         navigation.goBack();
       };

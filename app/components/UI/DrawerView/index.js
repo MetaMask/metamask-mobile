@@ -1063,7 +1063,7 @@ class DrawerView extends PureComponent {
       (accounts[this.selectedChecksummedAddress] &&
         renderFromWei(accounts[this.selectedChecksummedAddress].balance)) ||
       0;
-    const fiatBalance = Engine.getTotalFiatAccountBalance();
+    const fiatBalance = Engine.getTotalEvmFiatAccountBalance();
     const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.tokenFiat;
     if (totalFiatBalance !== Number(this.previousBalance)) {
       this.previousBalance = this.currentBalance;

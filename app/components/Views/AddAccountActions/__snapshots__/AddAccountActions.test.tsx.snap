@@ -397,6 +397,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -410,7 +411,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -453,7 +454,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -496,7 +497,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -539,7 +540,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -585,6 +586,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -598,7 +600,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -641,7 +643,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }
@@ -687,6 +689,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                               "fontWeight": "500",
                               "letterSpacing": 0,
                               "lineHeight": 22,
+                              "marginVertical": 16,
                               "paddingHorizontal": 16,
                             }
                           }
@@ -700,7 +703,7 @@ exports[`AddAccountActions renders correctly 1`] = `
                             {
                               "alignItems": "center",
                               "flexDirection": "row",
-                              "paddingVertical": 16,
+                              "paddingVertical": 8,
                               "width": "100%",
                             }
                           }

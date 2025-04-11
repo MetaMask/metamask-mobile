@@ -51,7 +51,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     NetworkController: {
       setActiveNetwork: jest.fn(),

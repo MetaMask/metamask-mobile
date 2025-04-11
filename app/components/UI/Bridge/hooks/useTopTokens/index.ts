@@ -1,11 +1,6 @@
-import {
-  BRIDGE_PROD_API_BASE_URL,
-  BridgeClientId,
-  fetchBridgeTokens,
-  formatChainIdToHex,
-} from '@metamask/bridge-controller';
+import { BRIDGE_PROD_API_BASE_URL, BridgeClientId, fetchBridgeTokens, formatChainIdToCaip, formatChainIdToHex, isSolanaChainId } from '@metamask/bridge-controller';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId, isCaipChainId } from '@metamask/utils';
 import { handleFetch, toChecksumHexAddress } from '@metamask/controller-utils';
 import { BridgeToken } from '../../types';
 import { useEffect, useMemo, useRef } from 'react';
@@ -14,8 +9,11 @@ import { useSelector } from 'react-redux';
 import Logger from '../../../../../util/Logger';
 import { selectChainCache } from '../../../../../reducers/swaps';
 import { SwapsControllerState } from '@metamask/swaps-controller';
+import { selectTopAssetsFromFeatureFlags } from '../../../../../core/redux/slices/bridge';
+import { RootState } from '../../../../../reducers';
+import { SolScope } from '@metamask/keyring-api';
 interface UseTopTokensProps {
-  chainId?: Hex;
+  chainId?: Hex | CaipChainId;
 }
 
 export const useTopTokens = ({
@@ -30,7 +28,14 @@ export const useTopTokens = ({
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
     [chainId, swapsChainCache],
   );
-  const swapsTopAssetsPending = !swapsTopAssets;
+  // For non-EVM chains, we don't need to fetch top assets from the Swaps API
+  const swapsTopAssetsPending = isCaipChainId(chainId) ? false : !swapsTopAssets;
+
+  // Get top assets for Solana from Bridge API feature flags for now,
+  // Swap API doesn't have top assets for Solana
+  const topAssetsFromFeatureFlags = useSelector(
+    (state: RootState) => selectTopAssetsFromFeatureFlags(state, chainId),
+  );
 
   const cachedBridgeTokens = useRef<
     Record<string, Record<string, BridgeToken>>
@@ -41,7 +46,7 @@ export const useTopTokens = ({
     (async () => {
       const { SwapsController } = Engine.context;
       try {
-        if (chainId) {
+        if (chainId && !isCaipChainId(chainId)) {
           // Maintains an internal cache, will fetch if past internal threshold
           await SwapsController.fetchTopAssetsWithCache({
             chainId,
@@ -54,11 +59,14 @@ export const useTopTokens = ({
   }, [chainId]);
 
   // Get the token data from the bridge API
-  const { value: bridgeTokens, pending: bridgeTokensPending } =
-    useAsyncResult(async () => {
-      if (!chainId) {
-        return {};
-      }
+  const {
+    value: bridgeTokens,
+    pending: bridgeTokensPending,
+    error: bridgeTokensError,
+  } = useAsyncResult(async () => {
+    if (!chainId || bridgeTokensError) {
+      return {};
+    }
 
       if (cachedBridgeTokens.current[chainId]) {
         return cachedBridgeTokens.current[chainId];
@@ -71,24 +79,21 @@ export const useTopTokens = ({
         BRIDGE_PROD_API_BASE_URL,
       );
 
-      // Convert from BridgeAsset to BridgeToken
-      const bridgeTokenObj: Record<string, BridgeToken> = {};
-      Object.keys(rawBridgeAssets).forEach((key) => {
-        const bridgeAsset = rawBridgeAssets[key];
+    // Convert from BridgeAsset type to BridgeToken type
+    const bridgeTokenObj: Record<string, BridgeToken> = {};
+    Object.keys(rawBridgeAssets).forEach((addr) => {
+      const bridgeAsset = rawBridgeAssets[addr];
 
-        bridgeTokenObj[key] = {
-          address: bridgeAsset.address,
-          symbol: bridgeAsset.symbol,
-          name: bridgeAsset.name,
-          image: bridgeAsset.iconUrl || bridgeAsset.icon,
-          decimals: bridgeAsset.decimals,
-          chainId: formatChainIdToHex(bridgeAsset.chainId), // TODO handle solana properly
-        };
-      });
+      const caipChainId = formatChainIdToCaip(bridgeAsset.chainId);
+      const hexChainId = formatChainIdToHex(bridgeAsset.chainId);
 
-      cachedBridgeTokens.current = {
-        ...cachedBridgeTokens.current,
-        [chainId]: bridgeTokenObj,
+      bridgeTokenObj[addr] = {
+        address: bridgeAsset.address,
+        symbol: bridgeAsset.symbol,
+        name: bridgeAsset.name,
+        image: bridgeAsset.iconUrl || bridgeAsset.icon,
+        decimals: bridgeAsset.decimals,
+        chainId: caipChainId === SolScope.Mainnet ? caipChainId : hexChainId,
       };
 
       return bridgeTokenObj;
@@ -96,22 +101,54 @@ export const useTopTokens = ({
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const topTokens = useMemo(() => {
-    if (!bridgeTokens || !swapsTopAssets) {
+    const swapsTopAssetsAddrs = swapsTopAssets?.map((asset) => asset.address);
+
+    // Prioritize top assets from feature flags
+    const topAssetAddrs = topAssetsFromFeatureFlags || swapsTopAssetsAddrs;
+
+    if (!bridgeTokens || !topAssetAddrs) {
       return [];
     }
 
-    const top = swapsTopAssets
-      .map((asset) => {
-        const candidateBridgeToken =
-          bridgeTokens[asset.address.toLowerCase()] ||
-          bridgeTokens[toChecksumHexAddress(asset.address)];
+    const top = topAssetAddrs.map((topAssetAddr) => {
+      // Note that Solana addresses are CASE-SENSITIVE, EVM addresses are NOT
+      const candidateBridgeToken =
+        bridgeTokens[topAssetAddr]
+        || bridgeTokens[topAssetAddr.toLowerCase()]
+        || bridgeTokens[toChecksumHexAddress(topAssetAddr)];
 
         return candidateBridgeToken;
       })
       .filter(Boolean) as BridgeToken[];
 
+    // Create a Set of normalized addresses for O(1) lookups
+    const topTokenAddresses = new Set(
+      top.map(token =>
+        isSolanaChainId(token.chainId)
+          ? token.address // Solana addresses are case-sensitive
+          : token.address.toLowerCase() // EVM addresses are case-insensitive
+      )
+    );
+
+    // Create a new object with only non-top tokens
+    const nonTopBridgeTokens: Record<string, BridgeToken> = {};
+    for (const [address, token] of Object.entries(bridgeTokens)) {
+      const normalizedAddress = isSolanaChainId(token.chainId)
+        ? address // Solana addresses are case-sensitive
+        : address.toLowerCase(); // EVM addresses are case-insensitive
+
+      if (!topTokenAddresses.has(normalizedAddress)) {
+        nonTopBridgeTokens[address] = token;
+      }
+    }
+
+    // Append unique bridge tokens to the top tokens
+    Object.values(nonTopBridgeTokens).forEach((token) => {
+      top.push(token);
+    });
+
     return top;
-  }, [bridgeTokens, swapsTopAssets]);
+  }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
   return {
     topTokens,
