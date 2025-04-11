@@ -17,6 +17,7 @@ export const CHAIN_ID_TO_SHORT_NAME_MAP: Record<
   [CHAIN_IDS.ZKSYNC_ERA]: 'ZkSync Era',
   [CHAIN_IDS.BASE]: 'Base',
 
+  [toEvmCaipChainId(CHAIN_IDS.MAINNET)]: 'Ethereum',
   [toEvmCaipChainId(CHAIN_IDS.LINEA_MAINNET)]: 'Linea',
   [toEvmCaipChainId(CHAIN_IDS.POLYGON)]: 'Polygon',
   [toEvmCaipChainId(CHAIN_IDS.AVALANCHE)]: 'Avalanche',
