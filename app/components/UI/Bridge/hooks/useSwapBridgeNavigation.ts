@@ -8,6 +8,9 @@ import Engine from '../../../../core/Engine';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
@@ -57,7 +60,7 @@ export const useSwapBridgeNavigation = ({
     });
   }, [navigation, token.address, token.chainId]);
 
-  const goToSwaps = useCallback(() => {
+  const handleSwapsNavigation = useCallback(() => {
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
@@ -85,6 +88,23 @@ export const useSwapBridgeNavigation = ({
       handleSwapNavigation();
     }
   }, [navigation, token.chainId, selectedChainId, handleSwapNavigation]);
+
+  const goToSwaps = useCallback(() => {
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    if (token.chainId === SolScope.Mainnet) {
+      goToBridge();
+      return;
+    }
+    ///: END:ONLY_INCLUDE_IF
+
+    handleSwapsNavigation();
+  }, [
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    token.chainId,
+    goToBridge,
+    ///: END:ONLY_INCLUDE_IF
+    handleSwapsNavigation,
+  ]);
 
   return {
     goToBridge,

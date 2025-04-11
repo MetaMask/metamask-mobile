@@ -17,7 +17,6 @@ import {
 import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import isBridgeAllowed from '../../UI/Bridge/utils/isBridgeAllowed';
-import useGoToBridge from '../../UI/Bridge/hooks/useGoToPortfolioBridge';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
@@ -51,6 +50,7 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
+import { useSwapBridgeNavigation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,6 +68,14 @@ const WalletActions = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
+    location: 'TabBar',
+    // No token selected on main page, so default to the native swaps token address for the chain
+    token: {
+      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
+      chainId,
+    },
+  });
 
   const closeBottomSheetAndNavigate = useCallback(
     (navigateFunc: () => void) => {
@@ -233,13 +241,7 @@ const WalletActions = () => {
 
   const goToSwaps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
-      });
+      goToSwapsBase()
     });
 
     trackEvent(
@@ -254,21 +256,15 @@ const WalletActions = () => {
     );
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
+    goToSwapsBase,
     trackEvent,
     chainId,
     createEventBuilder,
   ]);
 
-  const handleBridgeNavigation = useCallback(() => {
+  const goToBridge = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate('Bridge', {
-        screen: 'BridgeView',
-        params: {
-          sourceToken: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-          sourcePage: 'MainView',
-        },
-      });
+      goToBridgeBase()
     });
 
     trackEvent(
@@ -283,18 +279,11 @@ const WalletActions = () => {
     );
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
+    goToBridgeBase,
     trackEvent,
     chainId,
     createEventBuilder,
   ]);
-
-  const goToPortfolioBridge = useGoToBridge('TabBar');
-
-  const goToBridge =
-    process.env.MM_BRIDGE_UI_ENABLED === 'true'
-      ? handleBridgeNavigation
-      : goToPortfolioBridge;
 
   const sendIconStyle = useMemo(
     () => ({
@@ -303,23 +292,6 @@ const WalletActions = () => {
     }),
     [styles.icon],
   );
-
-  const onPressSwaps = useCallback(() => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (chainId === SolScope.Mainnet) {
-      goToBridge();
-      return;
-    }
-    ///: END:ONLY_INCLUDE_IF
-
-    goToSwaps();
-  }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    chainId,
-    goToBridge,
-    ///: END:ONLY_INCLUDE_IF
-    goToSwaps,
-  ]);
 
   return (
     <BottomSheet ref={sheetRef}>
@@ -349,7 +321,7 @@ const WalletActions = () => {
           <WalletAction
             actionType={WalletActionType.Swap}
             iconName={IconName.SwapHorizontal}
-            onPress={onPressSwaps}
+            onPress={goToSwaps}
             actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
