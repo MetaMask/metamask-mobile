@@ -483,7 +483,7 @@
     "typescript": "~5.4.5",
     "wdio-cucumberjs-json-reporter": "^4.4.3",
     "webpack": "^5.96.1",
-    "webpack-cli": "^5.1.4",
+    "webpack-cli": "^6.0.1",
     "xhr2": "^0.2.1",
     "xml2js": "^0.5.0",
     "yarn-deduplicate": "^6.0.2"
