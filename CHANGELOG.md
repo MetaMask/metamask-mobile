@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#/13394] https://github.com/MetaMask/metamask-mobile/pull/13394)
 
+### Added
+
+- feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
+
 ## [7.43.0]
 
 ### Added

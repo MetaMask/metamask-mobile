@@ -26,20 +26,21 @@ describe(
   ),
   () => {
     const NEW_ACCOUNT_NAME = 'My third account';
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames = '';
     let mockServer;
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
-      mockServer = await startMockServer();
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
         await mockIdentityServices(mockServer);
 
-      userStorageMockttpControllerInstance.setupPath(
+      await userStorageMockttpControllerInstance.setupPath(
         USER_STORAGE_FEATURE_NAMES.accounts,
         mockServer,
         {
@@ -60,11 +61,14 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
     afterAll(async () => {
-      await stopMockServer(mockServer);
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
@@ -98,6 +102,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
       await importWalletWithRecoveryPhrase(
