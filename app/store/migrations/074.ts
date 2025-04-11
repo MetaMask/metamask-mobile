@@ -35,9 +35,11 @@ interface Caip25CaveatValue {
 }
 
 // Locally defined types
+//@ts-expect-error Caip25CaveatValue is a valid Caveat Value
 type Caip25Caveat = Caveat<typeof Caip25CaveatType, Caip25CaveatValue>;
 type Caip25Permission = ValidPermission<
   typeof Caip25EndowmentPermissionName,
+  //@ts-expect-error this is a valid permission
   Caip25Caveat
 >;
 
@@ -403,6 +405,7 @@ export default function migrate(oldState: unknown) {
       caveats: [
         {
           type: Caip25CaveatType,
+          //@ts-expect-error this is a valid CAIP-25 caveat value
           value: {
             requiredScopes: {},
             optionalScopes: scopes,
