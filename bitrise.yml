@@ -1245,7 +1245,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 xcrun simctl boot "iPhone 15 Pro" || true
-                simulator_id=$(xcrun simctl list devices | grep "iPhone 15 Pro" | awk '{print $1}')
+                xcrun simctl list | grep Booted
       - script@1:
           title: Run detox test
           timeout: 1200
@@ -1841,7 +1841,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $BINARY_DEPLOY_PATH
+            - deploy_path: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
             - is_compress: true
           title: Deploy iOS Binary
       - deploy-to-bitrise-io@2.2.3:
@@ -2234,16 +2234,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.43.0
+      VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1656
+      VERSION_NUMBER: 1678
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.43.0
+      FLASK_VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1656
+      FLASK_VERSION_NUMBER: 1678
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''

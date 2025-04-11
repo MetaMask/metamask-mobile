@@ -48,6 +48,10 @@ describe(Regression('Send ERC Token'), () => {
   it('should Import custom token', async () => {
     await WalletView.tapImportTokensButton();
     await ImportTokensView.switchToCustomTab();
+    // choose network here
+    await ImportTokensView.tapOnNetworkInput();
+    await ImportTokensView.tapNetworkOption('Sepolia');
+
     await ImportTokensView.typeTokenAddress(TOKEN_ADDRESS);
     await ImportTokensView.tapSymbolInput();
     await ImportTokensView.tapTokenSymbolText();
