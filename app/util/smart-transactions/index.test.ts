@@ -513,15 +513,13 @@ describe('Smart Transactions utils', () => {
     it('returns the token fee when the full path exists', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
       } as unknown as GasIncludedQuote;
@@ -546,7 +544,7 @@ describe('Smart Transactions utils', () => {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
       } as unknown as GasIncludedQuote;
@@ -586,21 +584,19 @@ describe('Smart Transactions utils', () => {
     it('returns transaction fees when gas is included and token fee exists', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         isGasIncludedTrade: true,
       } as unknown as GasIncludedQuote;
@@ -615,15 +611,13 @@ describe('Smart Transactions utils', () => {
     it('returns undefined when gas is not included', () => {
       const mockQuote = {
         tradeTxFees: {
-          fees: [
-            {
-              tokenFees: ['mockTokenFee'],
-            },
-          ],
+          fees: [{
+            tokenFees: ['mockTokenFee'],
+          }],
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
         isGasIncludedTrade: false,
@@ -640,7 +634,7 @@ describe('Smart Transactions utils', () => {
           cancelFees: {},
           feeEstimate: '0x0',
           gasLimit: '0x0',
-          gasUsed: '0x0',
+          gasUsed: '0x0'
         },
         approvalTxFees: null,
         isGasIncludedTrade: true,
