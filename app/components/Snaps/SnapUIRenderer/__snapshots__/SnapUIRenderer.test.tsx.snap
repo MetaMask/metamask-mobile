@@ -1645,9 +1645,9 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                           {
                             "aspectRatio": 1,
                             "borderRadius": 0,
-                            "height": undefined,
+                            "height": 32,
                             "overflow": "hidden",
-                            "width": undefined,
+                            "width": 32,
                           },
                           undefined,
                         ]

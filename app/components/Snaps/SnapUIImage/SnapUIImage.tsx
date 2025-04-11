@@ -30,7 +30,7 @@ function getViewBox(svg: string) {
   return undefined;
 }
 
-function getAspectRatio(viewBox?: string) {
+function getDimensions(viewBox?: string) {
   if (!viewBox) {
     return null;
   }
@@ -52,18 +52,21 @@ function getAspectRatio(viewBox?: string) {
     return null;
   }
 
-  return aspectRatio;
+  return { aspectRatio, height: parsedHeight, width: parsedWidth };
 }
 
 export const SnapUIImage: React.FC<SnapUIImageProps> = ({
   value,
-  width,
-  height,
+  width: propWidth,
+  height: propHeight,
   style,
   borderRadius,
 }) => {
   const viewBox = getViewBox(value);
-  const aspectRatio = getAspectRatio(viewBox) ?? 1;
+  const dimensions = getDimensions(viewBox);
+  const aspectRatio = dimensions?.aspectRatio ?? 1;
+  const width = propWidth ?? dimensions?.width;
+  const height = propHeight ?? dimensions?.height;
 
   return (
     <View
