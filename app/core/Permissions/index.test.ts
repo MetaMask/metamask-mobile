@@ -11,7 +11,12 @@ import {
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { PermissionDoesNotExistError } from '@metamask/permission-controller';
+import {
+  Caveat,
+  PermissionDoesNotExistError,
+  PermissionSubjectEntry,
+  ValidPermission,
+} from '@metamask/permission-controller';
 import {
   getPermittedAccountsByHostname,
   getDefaultCaip25CaveatValue,
@@ -23,7 +28,7 @@ import {
   sortAccountsByLastSelected,
   getPermittedAccounts,
 } from '.';
-import { Hex } from '@metamask/utils';
+import { Hex, Json } from '@metamask/utils';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -40,6 +45,12 @@ jest.mock('@metamask/chain-agnostic-permission', () => ({
   setEthAccounts: jest.fn(),
   setPermittedEthChainIds: jest.fn(),
 }));
+
+const mockGetCaveat = Engine.context.PermissionController
+  .getCaveat as jest.Mock;
+const mockListAccounts = Engine.context.AccountsController
+  .listAccounts as jest.Mock;
+const mockIsUnlocked = Engine.context.KeyringController.isUnlocked as jest.Mock;
 
 // Mock process.env
 process.env.MM_FOX_CODE = 'metamask';
@@ -89,9 +100,7 @@ describe('Permission Utility Functions', () => {
       const mockAccounts1: Hex[] = ['0x1', '0x2'];
       const mockAccounts2: Hex[] = ['0x3', '0x4'];
 
-      (
-        Engine.context.AccountsController.listAccounts as jest.Mock
-      ).mockReturnValue(
+      mockListAccounts.mockReturnValue(
         [...mockAccounts1, ...mockAccounts2].map((a, i) => ({
           address: a,
           metadata: { lastSelected: 1 - i },
@@ -191,7 +200,7 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      Engine.context.PermissionController.getCaveat.mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
       const result = getCaip25Caveat('https://example.com');
       expect(result).toEqual(mockCaveat);
@@ -205,7 +214,7 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should return undefined when permission does not exist', () => {
-      Engine.context.PermissionController.getCaveat.mockImplementation(() => {
+      mockGetCaveat.mockImplementation(() => {
         throw new PermissionDoesNotExistError(
           'Permission does not exist',
           Caip25EndowmentPermissionName,
@@ -218,7 +227,7 @@ describe('Permission Utility Functions', () => {
 
     it('should throw error for other errors', () => {
       const error = new Error('Some other error');
-      Engine.context.PermissionController.getCaveat.mockImplementation(() => {
+      mockGetCaveat.mockImplementation(() => {
         throw error;
       });
 
@@ -239,18 +248,13 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingAccounts = ['0x1', '0x2'];
-      const newAccounts = ['0x3', '0x4'];
+      const newAccounts: Hex[] = ['0x3', '0x4'];
       const allAccounts = ['0x1', '0x2', '0x3', '0x4'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
 
-      // Mock setEthAccounts
       (setEthAccounts as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated accounts would be here in the real implementation
@@ -275,10 +279,7 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should throw error if no permission exists', () => {
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(undefined);
+      mockGetCaveat.mockReturnValue(undefined);
 
       expect(() =>
         addPermittedAccounts('https://example.com', ['0x1']),
@@ -298,17 +299,12 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      const existingAccounts = ['0x1', '0x2'];
+      const existingAccounts: Hex[] = ['0x1', '0x2'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
 
-      // Mock console.error
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
       const result = addPermittedAccounts(
@@ -337,18 +333,11 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingAccounts = ['0x1', '0x2', '0x3'];
-      const accountsToRemove = ['0x2', '0x3'];
+      const accountsToRemove: Hex[] = ['0x2', '0x3'];
       const remainingAccounts = ['0x1'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
-
-      // Mock getEthAccounts
+      mockGetCaveat.mockReturnValue(mockCaveat);
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
-
-      // Mock setEthAccounts
       (setEthAccounts as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated accounts would be here in the real implementation
@@ -383,14 +372,10 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingAccounts = ['0x1', '0x2'];
-      const accountsToRemove = ['0x1', '0x2'];
+      const accountsToRemove: Hex[] = ['0x1', '0x2'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
 
       removePermittedAccounts('https://example.com', accountsToRemove);
@@ -408,9 +393,7 @@ describe('Permission Utility Functions', () => {
 
     it('should throw error if no permission exists', () => {
       // Mock getCaip25Caveat to return undefined
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(undefined);
+      mockGetCaveat.mockReturnValue(undefined);
 
       expect(() =>
         removePermittedAccounts('https://example.com', ['0x1']),
@@ -431,14 +414,10 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingAccounts = ['0x1', '0x2'];
-      const accountsToRemove = ['0x3', '0x4'];
+      const accountsToRemove: Hex[] = ['0x3', '0x4'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
 
       removePermittedAccounts('https://example.com', accountsToRemove);
@@ -470,16 +449,16 @@ describe('Permission Utility Functions', () => {
 
       const ethAccounts: Hex[] = ['0x1', '0x2'];
       Engine.context.PermissionController.state.subjects = {
-        'https://example.com': {},
-        'https://another.com': {},
+        'https://example.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
+        'https://another.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
       };
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
       // Mock removePermittedAccounts
@@ -502,14 +481,16 @@ describe('Permission Utility Functions', () => {
 
     it('should log errors and continue if removing accounts fails', async () => {
       Engine.context.PermissionController.state.subjects = {
-        'https://example.com': {},
-        'https://another.com': {},
+        'https://example.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
+        'https://another.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
       };
 
       // Mock getCaip25Caveat return undefined
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(undefined);
+      mockGetCaveat.mockReturnValue(undefined);
 
       await removeAccountsFromPermissions(['0x1', '0x2']);
 
@@ -533,28 +514,21 @@ describe('Permission Utility Functions', () => {
       };
 
       const existingChainIds = ['0x1'];
-      const newChainIds = ['0xa'];
+      const newChainIds: Hex[] = ['0xa'];
       const allChainIds = ['0x1', '0xa'];
       const ethAccounts = ['0x123'];
 
-      // Mock getCaip25Caveat
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
+      mockGetCaveat.mockReturnValue(mockCaveat);
 
-      // Mock getPermittedEthChainIds
       (getPermittedEthChainIds as jest.Mock).mockReturnValue(existingChainIds);
 
-      // Mock setPermittedEthChainIds
       (setPermittedEthChainIds as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated chains would be here in the real implementation
       });
 
-      // Mock getEthAccounts
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
-      // Mock setEthAccounts
       (setEthAccounts as jest.Mock).mockReturnValue({
         ...mockCaveat.value,
         // The updated accounts would be here in the real implementation
@@ -581,9 +555,7 @@ describe('Permission Utility Functions', () => {
 
     it('should throw error if no permission exists', () => {
       // Mock getCaip25Caveat to return undefined
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(undefined);
+      mockGetCaveat.mockReturnValue(undefined);
 
       expect(() => addPermittedChains('https://example.com', ['0x1'])).toThrow(
         'Cannot add chain permissions for origin "https://example.com": no permission currently exists for this origin.',
@@ -593,7 +565,7 @@ describe('Permission Utility Functions', () => {
 
   describe('sortAccountsByLastSelected', () => {
     it('should sort accounts by lastSelected timestamp', () => {
-      const accounts = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
         {
           address: '0x1',
@@ -609,16 +581,14 @@ describe('Permission Utility Functions', () => {
         },
       ];
 
-      Engine.context.AccountsController.listAccounts.mockReturnValue(
-        internalAccounts,
-      );
+      mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
     });
 
     it('should handle accounts with undefined lastSelected', () => {
-      const accounts = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
         {
           address: '0x1',
@@ -634,16 +604,14 @@ describe('Permission Utility Functions', () => {
         },
       ];
 
-      Engine.context.AccountsController.listAccounts.mockReturnValue(
-        internalAccounts,
-      );
+      mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x3', '0x1', '0x2']);
     });
 
     it('should handle accounts with same lastSelected value', () => {
-      const accounts = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
         {
           address: '0x1',
@@ -659,9 +627,7 @@ describe('Permission Utility Functions', () => {
         },
       ];
 
-      Engine.context.AccountsController.listAccounts.mockReturnValue(
-        internalAccounts,
-      );
+      mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
       // We don't assert the exact order for accounts with the same lastSelected value
@@ -672,7 +638,7 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should throw error if account is missing from identities', () => {
-      const accounts = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
         {
           address: '0x1',
@@ -685,12 +651,10 @@ describe('Permission Utility Functions', () => {
         },
       ];
 
-      Engine.context.AccountsController.listAccounts.mockReturnValue(
-        internalAccounts,
-      );
-      Engine.context.KeyringController.getAccountKeyringType.mockResolvedValue(
-        'Simple Key Pair',
-      );
+      mockListAccounts.mockReturnValue(internalAccounts);
+      (
+        Engine.context.KeyringController.getAccountKeyringType as jest.Mock
+      ).mockResolvedValue('Simple Key Pair');
 
       expect(() => sortAccountsByLastSelected(accounts)).toThrow(
         'Missing identity for address: "0x2".',
@@ -699,7 +663,7 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should handle case insensitive address comparison', () => {
-      const accounts = ['0x1', '0x2', '0x3'];
+      const accounts: Hex[] = ['0x1', '0x2', '0x3'];
       const internalAccounts = [
         {
           address: '0X1', // Uppercase
@@ -715,9 +679,7 @@ describe('Permission Utility Functions', () => {
         },
       ];
 
-      Engine.context.AccountsController.listAccounts.mockReturnValue(
-        internalAccounts,
-      );
+      mockListAccounts.mockReturnValue(internalAccounts);
 
       const result = sortAccountsByLastSelected(accounts);
       expect(result).toEqual(['0x2', '0x3', '0x1']);
@@ -729,9 +691,9 @@ describe('Permission Utility Functions', () => {
       const selectedAccount = {
         address: '0x123',
       };
-      Engine.context.AccountsController.getSelectedAccount.mockReturnValue(
-        selectedAccount,
-      );
+      (
+        Engine.context.AccountsController.getSelectedAccount as jest.Mock
+      ).mockReturnValue(selectedAccount);
 
       const result = getPermittedAccounts(TransactionTypes.MMM);
       expect(result).toEqual(['0x123']);
@@ -753,24 +715,19 @@ describe('Permission Utility Functions', () => {
       };
 
       const ethAccounts = ['0x1', '0x2', '0x3'];
-      const sortedAccounts = ['0x3', '0x1', '0x2'];
+      const sortedAccounts: Hex[] = ['0x3', '0x1', '0x2'];
 
-      (
-        Engine.context.AccountsController.listAccounts as jest.Mock
-      ).mockReturnValue(
+      mockListAccounts.mockReturnValue(
         sortedAccounts.map((a, i) => ({
           address: a,
           metadata: { lastSelected: 1 - i },
         })),
       );
 
-      (
-        Engine.context.PermissionController.getCaveat as jest.Mock
-      ).mockReturnValue(mockCaveat);
-      Engine.context.KeyringController.isUnlocked.mockReturnValue(true);
+      mockGetCaveat.mockReturnValue(mockCaveat);
+      mockIsUnlocked.mockReturnValue(true);
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
-      // Mock sortAccountsByLastSelected
       jest
         .spyOn(permissions, 'sortAccountsByLastSelected')
         .mockReturnValue(sortedAccounts);
@@ -790,8 +747,8 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      Engine.context.PermissionController.getCaveat.mockReturnValue(mockCaveat);
-      Engine.context.KeyringController.isUnlocked.mockReturnValue(false);
+      mockGetCaveat.mockReturnValue(mockCaveat);
+      mockIsUnlocked.mockReturnValue(false);
 
       const result = getPermittedAccounts('https://example.com');
       expect(result).toEqual([]);
@@ -809,18 +766,16 @@ describe('Permission Utility Functions', () => {
       };
 
       const ethAccounts = ['0x1', '0x2', '0x3'];
-      const sortedAccounts = ['0x3', '0x1', '0x2'];
+      const sortedAccounts: Hex[] = ['0x3', '0x1', '0x2'];
 
-      (
-        Engine.context.AccountsController.listAccounts as jest.Mock
-      ).mockReturnValue(
+      mockListAccounts.mockReturnValue(
         sortedAccounts.map((a, i) => ({
           address: a,
           metadata: { lastSelected: 1 - i },
         })),
       );
-      Engine.context.PermissionController.getCaveat.mockReturnValue(mockCaveat);
-      Engine.context.KeyringController.isUnlocked.mockReturnValue(false);
+      mockGetCaveat.mockReturnValue(mockCaveat);
+      mockIsUnlocked.mockReturnValue(false);
       (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
 
       // Mock sortAccountsByLastSelected
@@ -835,7 +790,7 @@ describe('Permission Utility Functions', () => {
     });
 
     it('should return empty array when permission does not exist', () => {
-      Engine.context.PermissionController.getCaveat.mockImplementation(() => {
+      mockGetCaveat.mockImplementation(() => {
         throw new PermissionDoesNotExistError(
           'Permission does not exist',
           Caip25EndowmentPermissionName,
@@ -848,7 +803,7 @@ describe('Permission Utility Functions', () => {
 
     it('should throw error for other errors', () => {
       const error = new Error('Some other error');
-      Engine.context.PermissionController.getCaveat.mockImplementation(() => {
+      mockGetCaveat.mockImplementation(() => {
         throw error;
       });
 
