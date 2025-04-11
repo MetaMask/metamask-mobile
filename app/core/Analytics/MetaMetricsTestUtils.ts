@@ -13,24 +13,24 @@ class MetaMetricsTestUtils {
     return MetaMetricsTestUtils.instance;
   }
 
-
   private constructor() {
-  /**
+    /**
      * This class is used to send test events to the detox test server.
      * It is initialized with the `detoxTestId` from the launch arguments.
-   * To add a `detoxTestId`, ensure you launch the app with the appropriate
-   * launch arguments, as shown below:
-   *
-   * ```typescript
-   * await TestHelpers.launchApp({
-   *   newInstance: true,
-   *   launchArgs: {
-   *     detoxTestId,
-   *   }
-   * });
-   * ```
-   */
-    this.detoxTestId = LaunchArguments.value<{detoxTestId?: string}>().detoxTestId || null;
+     * To add a `detoxTestId`, ensure you launch the app with the appropriate
+     * launch arguments, as shown below:
+     *
+     * ```typescript
+     * await TestHelpers.launchApp({
+     *   newInstance: true,
+     *   launchArgs: {
+     *     detoxTestId,
+     *   }
+     * });
+     * ```
+     */
+    this.detoxTestId =
+      LaunchArguments.value<{ detoxTestId?: string }>().detoxTestId || null;
   }
 
   /**
@@ -55,7 +55,7 @@ class MetaMetricsTestUtils {
           headers: {
             'X-Detox-Test-Id': this.detoxTestId,
           },
-        }
+        },
       );
     } catch (error) {
       if (isAxiosError(error) && error.message === 'Network Error') {

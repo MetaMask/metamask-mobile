@@ -1,4 +1,4 @@
-'use strict';
+// @ts-check
 import { SmokeAnalytics } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
@@ -8,7 +8,9 @@ import SegmentTracker from './utils/SegmentTracker';
 import Assertions from '../../utils/Assertions';
 
 describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
+  /** @type {import('mockttp').Mockttp} */
   let mockServer;
+  /** @type {SegmentTracker} */
   let segmentTracker;
 
   beforeAll(async () => {
@@ -37,10 +39,10 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
       1,
     );
     await Assertions.checkIfObjectsMatch(
-      walletSetupEvent,
+      walletSetupEvent[0].properties,
       {
         wallet_setup_type: 'import',
-        new_wallet: true,
+        new_wallet: false,
       },
     );
   });
