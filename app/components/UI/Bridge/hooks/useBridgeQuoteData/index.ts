@@ -58,11 +58,12 @@ export const useBridgeQuoteData = () => {
 
   const activeQuote = isExpired && !willRefresh ? undefined : bestQuote;
 
-  const destAmount = activeQuote?.quote.destTokenAmount;
-
   const destTokenAmount =
-    destAmount && destToken && sourceAmount && sourceToken
-      ? fromTokenMinimalUnit(destAmount, destToken.decimals)
+    activeQuote && destToken
+      ? fromTokenMinimalUnit(
+          activeQuote.quote.destTokenAmount,
+          destToken.decimals,
+        )
       : undefined;
   const formattedDestTokenAmount = destTokenAmount
     ? Number(destTokenAmount).toFixed(2)
@@ -81,22 +82,21 @@ export const useBridgeQuoteData = () => {
     //@ts-expect-error - priceImpact is not typed
     const priceImpact = quote.bridgePriceData.priceImpact;
     const priceImpactPercentage = Number(priceImpact) * 100;
+
+    const rate = quoteRate
+      ? `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
+          destToken?.symbol
+        }`
+      : '--';
+
     return {
       networkFee: '44', // TODO: Needs quote metadata in bridge controller
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
-      rate: `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
-        destToken?.symbol
-      }`,
+      rate,
       priceImpact: `${priceImpactPercentage.toFixed(2)}%`, //TODO: Need to calculate this
       slippage: `${slippage}%`,
     };
-  }, [
-    activeQuote,
-    sourceToken?.symbol,
-    quoteRate,
-    destToken?.symbol,
-    slippage,
-  ]);
+  }, [activeQuote, sourceToken, destToken, quoteRate, slippage]);
 
   return {
     quoteFetchError,
