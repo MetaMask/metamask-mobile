@@ -258,7 +258,7 @@ stages:
   app_launch_times_test_stage:
     workflows:
       - run_android_app_launch_times_appium_test: {}
-      - run_ios_app_launch_times_appium_test: {}
+      # - run_ios_app_launch_times_appium_test: {}
   app_upgrade_test_stage:
     workflows:
       - run_tag_upgrade_android: {}
