@@ -54,7 +54,7 @@ jest.mock('../../../core/Engine', () => ({
       updateExchangeRatesByChainId: jest.fn(() => Promise.resolve()),
     },
   },
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({

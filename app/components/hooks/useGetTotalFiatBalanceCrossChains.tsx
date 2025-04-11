@@ -14,6 +14,7 @@ import {
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
+import { useMemo } from 'react';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -46,100 +47,124 @@ export const useGetTotalFiatBalanceCrossChains = (
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
   const currentChainId = useSelector(selectChainId);
 
-  const validAccounts =
-    accounts.length > 0 && accounts.every((item) => item !== undefined);
-  if (!validAccounts || (isTestNet(currentChainId) && !showFiatOnTestnets)) {
-    return {};
-  }
+  return useMemo(() => {
+    const validAccounts =
+      accounts.length > 0 && accounts.every((item) => item !== undefined);
+    if (!validAccounts || (isTestNet(currentChainId) && !showFiatOnTestnets)) {
+      return {};
+    }
 
-  const tokenFiatBalancesCrossChains = accounts.map((account) => {
-    const formattedPerNetwork = formattedTokensWithBalancesPerChain[
-      account.address
-    ].map((singleChainTokenBalances) => {
-      const { tokensWithBalances } = singleChainTokenBalances;
-      const matchedChainSymbol =
-        allNetworks[singleChainTokenBalances.chainId].nativeCurrency;
+    function getERC20TotalBalance(arr: number[]) {
+      let sum = 0;
+      for (const num of arr) {
+        sum += num;
+      }
+      return sum;
+    }
 
-      const tokenFiatBalances = tokensWithBalances.map(
-        (token) => token.tokenBalanceFiat,
-      );
+    function getTotalTokenFiat(array: TokenFiatBalancesCrossChains[]) {
+      let totalTokenFiat = 0;
+      let totalFiatBalance = 0;
 
-      const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
-      const conversionRate =
-        currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
-      let ethFiat = 0;
-      if (
-        account &&
-        accountsByChainId?.[toHexadecimal(singleChainTokenBalances.chainId)]?.[
-          toChecksumHexAddress(account.address)
-        ]
-      ) {
-        const balanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-            toChecksumHexAddress(account.address)
-          ].balance,
+      for (const tokenFiatBalances of array) {
+        const tokenTmpTotal = getERC20TotalBalance(
+          tokenFiatBalances.tokenFiatBalances,
         );
-        const stakedBalanceBN = hexToBN(
-          accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-            toChecksumHexAddress(account.address)
-          ].stakedBalance || '0x00',
-        );
-        const totalAccountBalance = balanceBN
-          .add(stakedBalanceBN)
-          .toString('hex');
-        ethFiat = weiToFiatNumber(
-          totalAccountBalance,
-          conversionRate,
-          decimalsToShow,
-        );
+        totalTokenFiat += tokenTmpTotal;
+        totalFiatBalance += tokenTmpTotal + tokenFiatBalances.nativeFiatValue;
       }
 
+      return { totalTokenFiat, totalFiatBalance };
+    }
+
+    const tokenFiatBalancesCrossChains = accounts.map((account) => {
+      // Check if the account address exists in formattedTokensWithBalancesPerChain
+      if (!formattedTokensWithBalancesPerChain[account.address]) {
+        return { [account.address]: [] };
+      }
+
+      const formattedPerNetwork = formattedTokensWithBalancesPerChain[
+        account.address
+      ].map((singleChainTokenBalances) => {
+        const { tokensWithBalances } = singleChainTokenBalances;
+        const matchedChainSymbol =
+          allNetworks[singleChainTokenBalances.chainId]?.nativeCurrency;
+
+        if (!matchedChainSymbol) {
+          return {
+            ...singleChainTokenBalances,
+            tokenFiatBalances: [],
+            nativeFiatValue: 0,
+          };
+        }
+
+        const tokenFiatBalances = tokensWithBalances.map(
+          (token) => token.tokenBalanceFiat,
+        );
+
+        const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
+        const conversionRate =
+          currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
+        let ethFiat = 0;
+        if (
+          account &&
+          accountsByChainId?.[
+            toHexadecimal(singleChainTokenBalances.chainId)
+          ]?.[toChecksumHexAddress(account.address)]
+        ) {
+          const balanceBN = hexToBN(
+            accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
+              toChecksumHexAddress(account.address)
+            ].balance,
+          );
+          const stakedBalanceBN = hexToBN(
+            accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
+              toChecksumHexAddress(account.address)
+            ].stakedBalance || '0x00',
+          );
+          const totalAccountBalance = balanceBN
+            .add(stakedBalanceBN)
+            .toString('hex');
+          ethFiat = weiToFiatNumber(
+            totalAccountBalance,
+            conversionRate,
+            decimalsToShow,
+          );
+        }
+
+        return {
+          ...singleChainTokenBalances,
+          tokenFiatBalances,
+          nativeFiatValue: ethFiat,
+        };
+      });
+
       return {
-        ...singleChainTokenBalances,
-        tokenFiatBalances,
-        nativeFiatValue: ethFiat,
+        [account.address]: formattedPerNetwork,
       };
     });
 
-    return {
-      [account.address]: formattedPerNetwork,
-    };
-  });
-
-  function getERC20TotalBalance(arr: number[]) {
-    let sum = 0;
-    for (const num of arr) {
-      sum += num;
-    }
-    return sum;
-  }
-
-  function getTotalTokenFiat(array: TokenFiatBalancesCrossChains[]) {
-    let totalTokenFiat = 0;
-    let totalFiatBalance = 0;
-
-    for (const tokenFiatBalances of array) {
-      const tokenTmpTotal = getERC20TotalBalance(
-        tokenFiatBalances.tokenFiatBalances,
-      );
-      totalTokenFiat += tokenTmpTotal;
-      totalFiatBalance += tokenTmpTotal + tokenFiatBalances.nativeFiatValue;
+    const aggregatedBalPerAccount: TotalFiatBalancesCrossChains = {};
+    for (const accountElement of tokenFiatBalancesCrossChains) {
+      for (const [key, value] of Object.entries(accountElement)) {
+        const { totalFiatBalance, totalTokenFiat } = getTotalTokenFiat(value);
+        aggregatedBalPerAccount[key] = {
+          totalFiatBalance,
+          totalTokenFiat,
+          tokenFiatBalancesCrossChains: value,
+        };
+      }
     }
 
-    return { totalTokenFiat, totalFiatBalance };
-  }
-
-  const aggregatedBalPerAccount: TotalFiatBalancesCrossChains = {};
-  for (const accountElement of tokenFiatBalancesCrossChains) {
-    for (const [key, value] of Object.entries(accountElement)) {
-      const { totalFiatBalance, totalTokenFiat } = getTotalTokenFiat(value);
-      aggregatedBalPerAccount[key] = {
-        totalFiatBalance,
-        totalTokenFiat,
-        tokenFiatBalancesCrossChains: value,
-      };
-    }
-  }
-
-  return aggregatedBalPerAccount;
+    return aggregatedBalPerAccount;
+  }, [
+    accounts,
+    formattedTokensWithBalancesPerChain,
+    allNetworks,
+    currencyRates,
+    currentCurrency,
+    accountsByChainId,
+    showFiatOnTestnets,
+    currentChainId,
+  ]);
 };
