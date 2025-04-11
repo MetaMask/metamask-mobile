@@ -917,45 +917,57 @@ exports[`SnapUIRenderer renders complex nested components 1`] = `
                   ]
                 }
               >
-                <RNSVGSvgView
-                  bbHeight={32}
-                  bbWidth={32}
-                  focusable={false}
-                  height={32}
-                  onLayout={[Function]}
+                <View
                   style={
                     [
                       {
-                        "backgroundColor": "transparent",
-                        "borderWidth": 0,
-                      },
-                      [
-                        {
-                          "borderRadius": 0,
-                          "overflow": "hidden",
-                        },
-                        undefined,
-                      ],
-                      {
-                        "flex": 0,
+                        "aspectRatio": 1,
+                        "borderRadius": 999,
                         "height": 32,
+                        "maxHeight": "100%",
+                        "maxWidth": "100%",
+                        "overflow": "hidden",
                         "width": 32,
                       },
+                      undefined,
                     ]
                   }
-                  testID="snaps-ui-image"
-                  width={32}
-                  xml="<svg />"
                 >
-                  <RNSVGGroup
-                    fill={
-                      {
-                        "payload": 4278190080,
-                        "type": 0,
-                      }
+                  <RNSVGSvgView
+                    bbHeight="100%"
+                    bbWidth="100%"
+                    focusable={false}
+                    height="100%"
+                    style={
+                      [
+                        {
+                          "backgroundColor": "transparent",
+                          "borderWidth": 0,
+                        },
+                        {
+                          "flex": 1,
+                        },
+                        {
+                          "flex": 0,
+                          "height": "100%",
+                          "width": "100%",
+                        },
+                      ]
                     }
-                  />
-                </RNSVGSvgView>
+                    testID="snaps-ui-image"
+                    width="100%"
+                    xml="<svg />"
+                  >
+                    <RNSVGGroup
+                      fill={
+                        {
+                          "payload": 4278190080,
+                          "type": 0,
+                        }
+                      }
+                    />
+                  </RNSVGSvgView>
+                </View>
                 <View
                   flexDirection="column"
                   style={
@@ -1558,43 +1570,85 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                   }
                   testID="textfield-startacccessory"
                 >
-                  <RNSVGSvgView
-                    bbHeight="100%"
-                    bbWidth="100%"
-                    focusable={false}
-                    onLayout={[Function]}
+                  <View
+                    color="Default"
+                    flexDirection="column"
+                    gap={8}
+                    justifyContent="flex-start"
                     style={
                       [
                         {
-                          "backgroundColor": "transparent",
-                          "borderWidth": 0,
+                          "color": "Default",
+                          "flexDirection": "column",
+                          "gap": 8,
+                          "justifyContent": "flex-start",
                         },
-                        [
-                          {
-                            "borderRadius": 0,
-                            "overflow": "hidden",
-                          },
-                          undefined,
-                        ],
                         {
-                          "flex": 0,
                           "height": "100%",
-                          "width": "100%",
+                          "justifyContent": "center",
+                          "padding": 0,
                         },
                       ]
                     }
-                    testID="snaps-ui-image"
-                    xml="<svg />"
                   >
-                    <RNSVGGroup
-                      fill={
-                        {
-                          "payload": 4278190080,
-                          "type": 0,
-                        }
+                    <View
+                      style={
+                        [
+                          {
+                            "aspectRatio": 1,
+                            "borderRadius": 0,
+                            "height": 32,
+                            "maxHeight": "100%",
+                            "maxWidth": "100%",
+                            "overflow": "hidden",
+                            "width": 32,
+                          },
+                          undefined,
+                        ]
                       }
-                    />
-                  </RNSVGSvgView>
+                    >
+                      <RNSVGSvgView
+                        align="xMidYMid"
+                        bbHeight="100%"
+                        bbWidth="100%"
+                        focusable={false}
+                        height="100%"
+                        meetOrSlice={0}
+                        minX={0}
+                        minY={0}
+                        style={
+                          [
+                            {
+                              "backgroundColor": "transparent",
+                              "borderWidth": 0,
+                            },
+                            {
+                              "flex": 1,
+                            },
+                            {
+                              "flex": 0,
+                              "height": "100%",
+                              "width": "100%",
+                            },
+                          ]
+                        }
+                        testID="snaps-ui-image"
+                        vbHeight={32}
+                        vbWidth={32}
+                        width="100%"
+                        xml="<svg height="32" width="32" />"
+                      >
+                        <RNSVGGroup
+                          fill={
+                            {
+                              "payload": 4278190080,
+                              "type": 0,
+                            }
+                          }
+                        />
+                      </RNSVGSvgView>
+                    </View>
+                  </View>
                 </View>
                 <View
                   style={
