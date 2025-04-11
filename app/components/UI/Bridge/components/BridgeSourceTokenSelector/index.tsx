@@ -44,8 +44,6 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     >();
   const bridgeViewMode = route.params.bridgeViewMode;
 
-  console.log('bridgeViewMode', bridgeViewMode);
-
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -71,8 +69,6 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     selectedChainId: selectedEvmChainId,
     selectedNetworkName,
   });
-
-  console.log('selectedEvmChainId', selectedEvmChainId);
 
   let balanceChainIds;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
