@@ -155,7 +155,6 @@ describe('AccountConnect', () => {
                 origin: 'mockOrigin',
               },
               permissions: {
-                // TODO: Fix this file
                 eth_accounts: {
                   parentCapability: 'eth_accounts',
                 },

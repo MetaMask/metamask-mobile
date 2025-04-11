@@ -82,7 +82,10 @@ import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { Hex } from '@metamask/utils';
-import { getCaip25PermissionsResponse, getRequestedCaip25CaveatValue } from './utils';
+import {
+  getCaip25PermissionsResponse,
+  getRequestedCaip25CaveatValue,
+} from './utils';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
@@ -395,7 +398,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const handleConnect = useCallback(async () => {
     const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
-      // TODO: Fix this :(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       hostInfo.permissions as any,
     );
@@ -418,7 +420,7 @@ const AccountConnect = (props: AccountConnectProps) => {
           selectedAddresses as Hex[],
           chainsToPermit as Hex[],
         ),
-      }
+      },
     };
     const connectedAccountLength = selectedAddresses.length;
     const activeAddress = selectedAddresses[0];
@@ -475,7 +477,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     faviconSource,
     createEventBuilder,
     selectedChainIds,
-    chainId
+    chainId,
   ]);
 
   const handleCreateAccount = useCallback(

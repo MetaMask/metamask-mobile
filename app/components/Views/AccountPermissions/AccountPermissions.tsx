@@ -773,7 +773,6 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       onEditNetworks: () =>
         setPermissionsScreen(AccountPermissionsScreens.ConnectMoreNetworks),
       onUserAction: setUserIntent,
-      // TODO: Verify if this collides with the added wallet_addEthereumChain behavior
       onAddNetwork: () => {
         if (!chainId) {
           throw new Error('No chainId provided');

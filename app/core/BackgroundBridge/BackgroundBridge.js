@@ -516,13 +516,13 @@ export class BackgroundBridge extends EventEmitter {
     ///: END:ONLY_INCLUDE_IF
 
     // Append PermissionController middleware
-    // engine.push(
-    //   Engine.context.PermissionController.createPermissionMiddleware({
-    //     // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
-    //     // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
-    //     origin: this.isMMSDK ? this.channelId : origin,
-    //   }),
-    // );
+    engine.push(
+      Engine.context.PermissionController.createPermissionMiddleware({
+        // FIXME: This condition exists so that both WC and SDK are compatible with the permission middleware.
+        // This is not a long term solution. BackgroundBridge should be not contain hardcoded logic pertaining to WC, SDK, or browser.
+        origin: this.isMMSDK ? this.channelId : origin,
+      }),
+    );
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     // The Snaps middleware is disabled in WalletConnect and SDK for now.

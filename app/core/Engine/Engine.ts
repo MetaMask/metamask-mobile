@@ -839,7 +839,6 @@ export class Engine {
       }),
       state: initialState.PermissionController,
       caveatSpecifications: getCaveatSpecifications({
-        // TODO: try to change this to bind? Will require reordering these controller instantiations :/
         listAccounts: (...args) =>
           this.accountsController.listAccounts(...args),
         findNetworkClientIdByChainId:
