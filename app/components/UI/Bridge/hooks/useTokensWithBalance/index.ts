@@ -134,7 +134,10 @@ export const useTokensWithBalance: ({
   // All EVM tokens across chains and their balances
   // Includes native and non-native tokens
   const evmAccountTokensAcrossChains = useSelector((state: RootState) =>
-    selectAccountTokensAcrossChainsForAddress(state, lastSelectedEvmAccount?.address),
+    selectAccountTokensAcrossChainsForAddress(
+      state,
+      lastSelectedEvmAccount?.address,
+    ),
   );
   const evmTokenBalances = useSelector(selectTokensBalances);
 
@@ -153,7 +156,9 @@ export const useTokensWithBalance: ({
 
     const allEvmAccountTokens = (
       Object.values(evmAccountTokensAcrossChains).flat() as TokenI[]
-    ).filter((token) => chainIds.includes(token.chainId as Hex));
+    )
+      .filter((token) => chainIds.includes(token.chainId as Hex))
+      .filter((token) => !token.isStaked);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     const allNonEvmAccountTokens = (
@@ -185,12 +190,15 @@ export const useTokensWithBalance: ({
         const nonEvmBalance = renderNumber(token.balance ?? '0');
 
         const evmBalanceFiat = balances?.[i]?.balanceFiat;
-        const nonEvmBalanceFiat = renderFiat(Number(token.balanceFiat ?? 0), currentCurrency);
+        const nonEvmBalanceFiat = renderFiat(
+          Number(token.balanceFiat ?? 0),
+          currentCurrency,
+        );
 
         const evmTokenFiatAmount = balances?.[i]?.tokenFiatAmount;
         const nonEvmTokenFiatAmount = Number(token.balanceFiat);
 
-        return ({
+        return {
           address: token.address,
           name: token.name,
           decimals: token.decimals,
@@ -200,7 +208,8 @@ export const useTokensWithBalance: ({
           tokenFiatAmount: evmTokenFiatAmount ?? nonEvmTokenFiatAmount,
           balance: evmBalance ?? nonEvmBalance,
           balanceFiat: evmBalanceFiat ?? nonEvmBalanceFiat,
-      });});
+        };
+      });
     return sortAssets(properTokens, tokenSortConfig);
   }, [
     evmAccountTokensAcrossChains,
