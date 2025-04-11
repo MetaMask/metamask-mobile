@@ -28,6 +28,7 @@ const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
   return nativeSourceTokenFormatted;
 };
 
+// TODO: remove this once we move to Unified Swaps
 export enum BridgeViewMode {
   Swaps = 'Swaps',
   Bridge = 'Bridge',
