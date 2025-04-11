@@ -240,6 +240,7 @@ const RootRPCMethodsUI = (props) => {
           quote_vs_executionRatio: quoteVsExecutionRatio,
           token_to_amount_received: tokenToAmountReceived.toString(),
           is_smart_transaction: props.shouldUseSmartTransaction,
+          gas_included: analyticsParams.isGasIncludedTrade,
           ...smartTransactionMetricsProperties,
           available_quotes: analyticsParams.available_quotes,
           best_quote_source: analyticsParams.best_quote_source,
