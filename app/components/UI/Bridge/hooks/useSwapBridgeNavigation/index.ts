@@ -1,15 +1,15 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import useGoToPortfolioBridge from './useGoToPortfolioBridge';
-import { isBridgeUiEnabled } from '../utils';
-import Routes from '../../../../constants/navigation/Routes';
+import useGoToPortfolioBridge from '../useGoToPortfolioBridge';
+import { isBridgeUiEnabled } from '../../utils';
+import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
-import Engine from '../../../../core/Engine';
+import Engine from '../../../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectChainId } from '../../../../selectors/networkController';
-import { BridgeToken, BridgeViewMode } from '../types';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { BridgeToken, BridgeViewMode } from '../../types';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
-import { BridgeRouteParams } from './useInitialSourceToken';
+import { BridgeRouteParams } from '../useInitialSourceToken';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
