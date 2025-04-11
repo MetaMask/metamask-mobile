@@ -14,6 +14,7 @@ import { Hex, CaipChainId } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectChainId } from '../../../../../selectors/networkController';
 
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens: boolean;
@@ -31,6 +32,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const route = useRoute<RouteProp<{ params: BridgeDestNetworkSelectorRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
+  const currentChainId = useSelector(selectChainId);
 
   const handleChainSelect = useCallback((chainId: Hex | CaipChainId) => {
     dispatch(setSelectedDestChainId(chainId));
@@ -46,7 +48,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   }, [dispatch, navigation, route.params.shouldGoToTokens]);
 
   const renderDestChains = useCallback(() => (
-    enabledDestChains.map((chain) => (
+    enabledDestChains.filter(chain => chain.chainId !== currentChainId).map((chain) => (
       <TouchableOpacity
         key={chain.chainId}
         onPress={() => handleChainSelect(chain.chainId)}
@@ -61,7 +63,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
         </ListItem>
       </TouchableOpacity>
     ))
-  ), [enabledDestChains, handleChainSelect]);
+  ), [enabledDestChains, handleChainSelect, currentChainId]);
 
   return (
     <BridgeNetworkSelectorBase>
