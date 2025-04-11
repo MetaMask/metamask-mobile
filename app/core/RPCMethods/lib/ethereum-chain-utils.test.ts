@@ -3,12 +3,26 @@ import MetaMetrics from '../../Analytics/MetaMetrics';
 import { MetricsEventBuilder } from '../../Analytics/MetricsEventBuilder';
 import { MetaMetricsEvents } from '../../Analytics';
 import { switchToNetwork } from './ethereum-chain-utils';
+import { getDefaultCaip25CaveatValue } from '../../Permissions';
 
 jest.mock('../../Analytics/MetaMetrics');
 jest.mock('../../Analytics/MetricsEventBuilder');
 jest.mock('../../../core/Permissions', () => ({
   ...jest.requireActual('../../../core/Permissions'),
   getPermittedAccounts: jest.fn().mockReturnValue([]),
+}));
+jest.mock('../../Engine', () => ({
+  context: {
+    MultichainNetworkController: {
+      setActiveNetwork: jest.fn(),
+    },
+    PermissionController: {
+      grantPermissionsIncremental: jest.fn(),
+    },
+    SelectedNetworkController: {
+      setNetworkClientIdForDomain: jest.fn(),
+    },
+  },
 }));
 
 describe('switchToNetwork', () => {
@@ -26,7 +40,9 @@ describe('switchToNetwork', () => {
     });
 
     const mockHooks = {
-      getCaveat: jest.fn(),
+      getCaveat: jest
+        .fn()
+        .mockReturnValue({ value: getDefaultCaip25CaveatValue() }),
       requestPermittedChainsPermissionIncrementalForOrigin: jest.fn(),
       hasApprovalRequestsForOrigin: jest.fn(),
       toNetworkConfiguration: jest.fn(),
@@ -44,12 +60,6 @@ describe('switchToNetwork', () => {
       ticker: 'ETH',
     });
 
-    const mockMultichainNetworkController = {
-      setActiveNetwork: jest.fn(),
-    };
-
-    const mockSelectedNetworkController = {};
-
     const requestUserApproval = jest.fn();
     const analytics = {
       test: 'test',
@@ -60,10 +70,6 @@ describe('switchToNetwork', () => {
     await switchToNetwork({
       network: [networkClientId, network],
       chainId,
-      controllers: {
-        MultichainNetworkController: mockMultichainNetworkController,
-        SelectedNetworkController: mockSelectedNetworkController,
-      },
       requestUserApproval,
       analytics,
       origin,

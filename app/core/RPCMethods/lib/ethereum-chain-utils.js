@@ -209,7 +209,6 @@ export function findExistingNetwork(chainId, networkConfigurations) {
  * @param end - The JSON RPC request's end callback.
  * @param {object} params.network - Network configuration of the chain being switched to.
  * @param {string} params.chainId - The network client being switched to.
- * @param {object} params.controllers - A collection of controller instances from the `Engine`.
  * @param {Function} params.requestUserApproval - The callback to trigger user approval flow.
  * @param {object} params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param {string} params.origin - The origin sending this request.
@@ -220,7 +219,6 @@ export function findExistingNetwork(chainId, networkConfigurations) {
 export async function switchToNetwork({
   network,
   chainId,
-  controllers,
   requestUserApproval,
   analytics,
   origin,
@@ -235,8 +233,11 @@ export async function switchToNetwork({
     toNetworkConfiguration,
     fromNetworkConfiguration,
   } = hooks;
-  const { MultichainNetworkController, SelectedNetworkController } =
-    controllers;
+  const {
+    MultichainNetworkController,
+    PermissionController,
+    SelectedNetworkController,
+  } = Engine.context;
 
   const [networkConfigurationId, networkConfiguration] = network;
 
@@ -295,7 +296,7 @@ export async function switchToNetwork({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: requestModalType },
     });
-    await Engine.context.PermissionController.grantPermissionsIncremental({
+    await PermissionController.grantPermissionsIncremental({
       subject: { origin },
       approvedPermissions: {
         [Caip25EndowmentPermissionName]: {
