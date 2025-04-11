@@ -13,7 +13,7 @@
       "message": "Le sugerimos que rechace esta solicitud. Si continúa, podría poner en peligro sus activos.",
       "title_blockaid": "Sus activos pueden estar en peligro",
       "blockaid": {
-        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que cancele esta solicitud.",
+        "message": "Si confirma esta solicitud, podría perder sus activos. Le recomendamos que la cancele.",
         "message1": "Si confirma esta solicitud, permitirá que un estafador retire y gaste sus activos. No los recuperará.",
         "message2": "Está enviando sus activos a un estafador. Si continúa, perderá esos activos.",
         "message3": "Si continúa, todos los activos que ha registrado en OpenSea podrían estar en peligro.",
@@ -2251,7 +2251,7 @@
     "proceed_anyway": "continuar de todas formas,",
     "but_please_do_so_at_your_own_risk": "pero hágalo bajo su propia responsabilidad.",
     "report_detection_problem": "Informar sobre un problema de detección",
-    "share_on_twitter": "Si le resultó útil, ¡compártalo en X!",
+    "share_on_twitter": "Si esto le resultó útil, ¡compártalo en X!",
     "share_text": "MetaMask me protegió de visitar un sitio potencialmente peligroso: {{url}}. ¡Manténgase seguro!"
   },
   "notifications": {
