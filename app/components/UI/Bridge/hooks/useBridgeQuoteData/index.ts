@@ -68,7 +68,10 @@ export const useBridgeQuoteData = () => {
     ? Number(destTokenAmount).toFixed(2)
     : undefined;
 
-  const quoteRate = Number(destTokenAmount) / Number(sourceAmount);
+  const quoteRate =
+    Number(sourceAmount) === 0
+      ? undefined
+      : Number(destTokenAmount) / Number(sourceAmount);
 
   const formattedQuoteData = useMemo(() => {
     if (!activeQuote) return undefined;
