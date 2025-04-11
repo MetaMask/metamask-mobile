@@ -1037,6 +1037,7 @@ export class Engine {
         name: 'BridgeController',
         allowedActions: [
           'AccountsController:getSelectedMultichainAccount',
+          'SnapController:handleRequest',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
