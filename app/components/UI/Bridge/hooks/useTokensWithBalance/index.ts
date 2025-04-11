@@ -124,9 +124,7 @@ export const useTokensWithBalance: ({
 
   const lastSelectedEvmAccount = useSelector(selectLastSelectedEvmAccount);
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const lastSelectedSolanaAccount = useSelector(
-    selectLastSelectedSolanaAccount,
-  );
+  const lastSelectedSolanaAccount = useSelector(selectLastSelectedSolanaAccount);
   ///: END:ONLY_INCLUDE_IF
 
   // Fiat conversion rates
@@ -163,9 +161,9 @@ export const useTokensWithBalance: ({
       .filter((token) => !token.isStaked);
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const allNonEvmAccountTokens = Object.values(nonEvmTokens)
-      .flat()
-      .filter((token) => chainIds.includes(token.chainId));
+    const allNonEvmAccountTokens = (
+      Object.values(nonEvmTokens).flat()
+    ).filter((token) => chainIds.includes(token.chainId));
     ///: END:ONLY_INCLUDE_IF
 
     const balances = calculateBalances({
