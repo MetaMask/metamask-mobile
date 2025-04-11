@@ -194,7 +194,7 @@ describe('checkPermissions', () => {
       requestPermissions.mockResolvedValue({});
       mockGetPermittedAccounts
         .mockReturnValueOnce([])
-        .mockResolvedValueOnce(['0x123']);
+        .mockReturnValueOnce(['0x123']);
 
       await checkPermissions({ connection, engine });
       expect(wait).toHaveBeenCalledWith(100);
@@ -207,7 +207,7 @@ describe('checkPermissions', () => {
       requestPermissions.mockResolvedValue({});
       mockGetPermittedAccounts
         .mockReturnValueOnce([])
-        .mockResolvedValueOnce(['0x123']);
+        .mockReturnValueOnce(['0x123']);
 
       await checkPermissions({ connection, engine });
       expect(wait).not.toHaveBeenCalledWith(100);
