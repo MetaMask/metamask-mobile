@@ -44,6 +44,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { Hex, isHexString } from '@metamask/utils';
+import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 
 const {
   ASSET: { ERC721, ERC1155 },
@@ -171,6 +172,27 @@ export async function importAccountFromPrivateKey(private_key: string) {
   Engine.setSelectedAddress(checksummedAddress);
 }
 
+export function isHDOrFirstPartySnapAccount(account: InternalAccount) {
+  if (
+    account.metadata.keyring.type !== KeyringTypes.snap &&
+    account.metadata.keyring.type !== KeyringTypes.hd
+  ) {
+    return false;
+  }
+
+  if (
+    account.metadata.keyring.type === KeyringTypes.snap &&
+    !PREINSTALLED_SNAPS.some(
+      (snap) => snap.snapId === account.metadata.snap?.id,
+    ) &&
+    !account.options?.entropySource
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * judge address is QR hardware account or not
  *
@@ -265,7 +287,7 @@ export function isEthAddress(address: string): boolean {
  * @param {String} address - String corresponding to an address
  * @returns {InternalAccount | undefined} - Returns the internal account by address
  */
-function getInternalAccountByAddress(
+export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;

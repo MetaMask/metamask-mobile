@@ -4,8 +4,8 @@ exports[`Banner should render correctly 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#D738471A",
-      "borderColor": "#d73847",
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -24,7 +24,7 @@ exports[`Banner should render correctly 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#ca3542"
       height={24}
       name="Danger"
       style={
@@ -47,9 +47,9 @@ exports[`Banner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -62,12 +62,12 @@ exports[`Banner should render correctly 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -81,8 +81,8 @@ exports[`Banner should render correctly with a close button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#D738471A",
-      "borderColor": "#d73847",
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -101,7 +101,7 @@ exports[`Banner should render correctly with a close button 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#ca3542"
       height={24}
       name="Danger"
       style={
@@ -124,9 +124,9 @@ exports[`Banner should render correctly with a close button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -139,12 +139,12 @@ exports[`Banner should render correctly with a close button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -162,7 +162,7 @@ exports[`Banner should render correctly with a close button 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -176,12 +176,12 @@ exports[`Banner should render correctly with a close button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >
@@ -216,7 +216,7 @@ exports[`Banner should render correctly with a close button 1`] = `
       testID="banner-close-button-icon"
     >
       <SvgMock
-        color="#141618"
+        color="#121314"
         height={16}
         name="Close"
         style={
@@ -236,8 +236,8 @@ exports[`Banner should render correctly with a start accessory 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#D738471A",
-      "borderColor": "#d73847",
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -259,12 +259,12 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -282,9 +282,9 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -297,12 +297,12 @@ exports[`Banner should render correctly with a start accessory 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -316,8 +316,8 @@ exports[`Banner should render correctly with an action button 1`] = `
 <View
   style={
     {
-      "backgroundColor": "#D738471A",
-      "borderColor": "#d73847",
+      "backgroundColor": "#ca35421a",
+      "borderColor": "#ca3542",
       "borderLeftWidth": 4,
       "borderRadius": 4,
       "flexDirection": "row",
@@ -336,7 +336,7 @@ exports[`Banner should render correctly with an action button 1`] = `
     }
   >
     <SvgMock
-      color="#d73847"
+      color="#ca3542"
       height={24}
       name="Danger"
       style={
@@ -359,9 +359,9 @@ exports[`Banner should render correctly with an action button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Medium",
-          "fontSize": 16,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Medium",
+          "fontSize": 18,
           "fontWeight": "500",
           "letterSpacing": 0,
           "lineHeight": 24,
@@ -374,12 +374,12 @@ exports[`Banner should render correctly with an action button 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#141618",
-          "fontFamily": "EuclidCircularB-Regular",
-          "fontSize": 14,
+          "color": "#121314",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 16,
           "fontWeight": "400",
           "letterSpacing": 0,
-          "lineHeight": 22,
+          "lineHeight": 24,
         }
       }
     >
@@ -397,7 +397,7 @@ exports[`Banner should render correctly with an action button 1`] = `
           "alignItems": "center",
           "alignSelf": "flex-start",
           "backgroundColor": "transparent",
-          "borderColor": "#0376c9",
+          "borderColor": "#4459ff",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
@@ -411,12 +411,12 @@ exports[`Banner should render correctly with an action button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#0376c9",
-            "fontFamily": "EuclidCircularB-Medium",
-            "fontSize": 14,
+            "color": "#4459ff",
+            "fontFamily": "CentraNo1-Medium",
+            "fontSize": 16,
             "fontWeight": "500",
             "letterSpacing": 0,
-            "lineHeight": 22,
+            "lineHeight": 24,
           }
         }
       >

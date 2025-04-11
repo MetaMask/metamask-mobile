@@ -110,13 +110,16 @@ describe('MultichainTransactionsView', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
 
+    // Ensure selector returns a static instance
+    const mockTransactionsData = { transactions: mockTransactions };
+
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
       }
       if (selector === selectSolanaAccountTransactions) {
-        return { transactions: mockTransactions };
+        return mockTransactionsData;
       }
       return null;
     });

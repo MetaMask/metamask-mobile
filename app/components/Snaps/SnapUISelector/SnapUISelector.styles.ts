@@ -20,6 +20,7 @@ const styleSheet = (params: { theme: Theme }) => {
       minHeight: 300,
       paddingBottom: Device.isIphoneX() ? 20 : 0,
       overflow: 'hidden',
+      maxHeight: '80%',
     },
     content: {
       paddingLeft: 16,

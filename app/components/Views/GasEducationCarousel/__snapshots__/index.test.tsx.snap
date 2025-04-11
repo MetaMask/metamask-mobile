@@ -138,8 +138,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -147,19 +147,19 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "fontFamily": "EuclidCircularB-Bold",
+                                "fontFamily": "CentraNo1-Bold",
                                 "fontWeight": "600",
                               },
                               undefined,
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                               },
                               undefined,
                               undefined,
                               undefined,
                               undefined,
                               {
-                                "color": "#141618",
+                                "color": "#121314",
                               },
                               undefined,
                               undefined,
@@ -191,8 +191,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -204,7 +204,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "color": "#6a737d",
+                                "color": "#686e7d",
                               },
                               undefined,
                               undefined,
@@ -240,8 +240,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                           style={
                             [
                               {
-                                "color": "#141618",
-                                "fontFamily": "EuclidCircularB-Regular",
+                                "color": "#121314",
+                                "fontFamily": "CentraNo1-Book",
                                 "fontSize": 30,
                                 "fontWeight": "400",
                                 "marginVertical": 2,
@@ -253,7 +253,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                               undefined,
                               undefined,
                               {
-                                "color": "#6a737d",
+                                "color": "#686e7d",
                               },
                               undefined,
                               undefined,
@@ -289,8 +289,8 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                             style={
                               [
                                 {
-                                  "color": "#141618",
-                                  "fontFamily": "EuclidCircularB-Regular",
+                                  "color": "#121314",
+                                  "fontFamily": "CentraNo1-Book",
                                   "fontSize": 30,
                                   "fontWeight": "400",
                                   "marginVertical": 2,
@@ -298,7 +298,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
                                 undefined,
                                 undefined,
                                 {
-                                  "fontFamily": "EuclidCircularB-Bold",
+                                  "fontFamily": "CentraNo1-Bold",
                                   "fontWeight": "600",
                                 },
                                 undefined,
@@ -366,7 +366,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -383,7 +383,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,
@@ -398,7 +398,7 @@ exports[`GasEducationCarousel should render correctly 1`] = `
               style={
                 [
                   {
-                    "backgroundColor": "#141618",
+                    "backgroundColor": "#121314",
                     "borderRadius": 4,
                     "height": 8,
                     "marginHorizontal": 8,

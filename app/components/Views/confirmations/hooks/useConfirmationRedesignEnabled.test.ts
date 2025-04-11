@@ -3,10 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
 // eslint-disable-next-line import/no-namespace
-import {
-  isExternalHardwareAccount,
-  isHardwareAccount,
-} from '../../../../util/address';
+import { isHardwareAccount } from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   personalSignatureConfirmationState,
@@ -21,7 +18,7 @@ jest.mock('../../../../util/address', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {
@@ -46,18 +43,6 @@ describe('useConfirmationRedesignEnabled', () => {
       );
 
       expect(result.current.isRedesignedEnabled).toBe(true);
-    });
-
-    it('returns false for external accounts', async () => {
-      (isExternalHardwareAccount as jest.Mock).mockReturnValue(true);
-      const { result } = renderHookWithProvider(
-        useConfirmationRedesignEnabled,
-        {
-          state: personalSignatureConfirmationState,
-        },
-      );
-
-      expect(result.current.isRedesignedEnabled).toBe(false);
     });
 
     it('returns false when remote flag is disabled', async () => {

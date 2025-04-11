@@ -324,7 +324,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                         style={
                           [
                             {
-                              "backgroundColor": "#00000099",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -371,7 +371,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             [
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderColor": "#BBC0C566",
+                                "borderColor": "#b7bbc866",
                                 "borderTopLeftRadius": 8,
                                 "borderTopRightRadius": 8,
                                 "borderWidth": 1,
@@ -379,7 +379,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
                                 "paddingBottom": 0,
-                                "shadowColor": "#0000001A",
+                                "shadowColor": "#0000001a",
                                 "shadowOffset": {
                                   "height": 2,
                                   "width": 0,
@@ -409,7 +409,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                             <View
                               style={
                                 {
-                                  "backgroundColor": "#BBC0C566",
+                                  "backgroundColor": "#b7bbc866",
                                   "borderRadius": 2,
                                   "height": 4,
                                   "width": 40,
@@ -491,9 +491,9 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                       accessibilityRole="text"
                                       style={
                                         {
-                                          "color": "#141618",
+                                          "color": "#121314",
                                           "flex": 1,
-                                          "fontFamily": "EuclidCircularB-Bold",
+                                          "fontFamily": "CentraNo1-Bold",
                                           "fontSize": 18,
                                           "fontWeight": "700",
                                           "letterSpacing": 0,
@@ -525,7 +525,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                         testID="bridge-network-selector-close-button"
                                       >
                                         <SvgMock
-                                          color="#141618"
+                                          color="#121314"
                                           height={16}
                                           name="Close"
                                           style={
@@ -656,9 +656,9 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -754,9 +754,9 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             accessibilityRole="text"
                                             style={
                                               {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
+                                                "color": "#121314",
+                                                "fontFamily": "CentraNo1-Medium",
+                                                "fontSize": 18,
                                                 "fontWeight": "500",
                                                 "letterSpacing": 0,
                                                 "lineHeight": 24,
@@ -764,104 +764,6 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                                             }
                                           >
                                             Optimism
-                                          </Text>
-                                        </View>
-                                      </View>
-                                    </View>
-                                  </View>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={[Function]}
-                                >
-                                  <View
-                                    accessibilityRole="none"
-                                    accessible={true}
-                                    style={
-                                      {
-                                        "padding": 16,
-                                      }
-                                    }
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "alignItems": "center",
-                                          "flexDirection": "row",
-                                        }
-                                      }
-                                    >
-                                      <View
-                                        alignItems="center"
-                                        flexDirection="row"
-                                        style={
-                                          [
-                                            {
-                                              "alignItems": "center",
-                                              "flexDirection": "row",
-                                            },
-                                            {
-                                              "flex": 1,
-                                            },
-                                          ]
-                                        }
-                                      >
-                                        <View
-                                          alignItems="center"
-                                          flexDirection="row"
-                                          gap={8}
-                                          style={
-                                            [
-                                              {
-                                                "alignItems": "center",
-                                                "flexDirection": "row",
-                                                "gap": 8,
-                                              },
-                                              {
-                                                "flex": 1,
-                                              },
-                                            ]
-                                          }
-                                        >
-                                          <View
-                                            style={
-                                              {
-                                                "alignItems": "center",
-                                                "backgroundColor": "#ffffff",
-                                                "borderRadius": 8,
-                                                "height": 32,
-                                                "justifyContent": "center",
-                                                "overflow": "hidden",
-                                                "width": 32,
-                                              }
-                                            }
-                                          >
-                                            <Image
-                                              onError={[Function]}
-                                              resizeMode="contain"
-                                              source={1}
-                                              style={
-                                                {
-                                                  "height": 32,
-                                                  "width": 32,
-                                                }
-                                              }
-                                              testID="network-avatar-image"
-                                            />
-                                          </View>
-                                          <Text
-                                            accessibilityRole="text"
-                                            style={
-                                              {
-                                                "color": "#141618",
-                                                "fontFamily": "EuclidCircularB-Medium",
-                                                "fontSize": 16,
-                                                "fontWeight": "500",
-                                                "letterSpacing": 0,
-                                                "lineHeight": 24,
-                                              }
-                                            }
-                                          >
-                                            Base
                                           </Text>
                                         </View>
                                       </View>

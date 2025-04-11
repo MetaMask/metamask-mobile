@@ -99,7 +99,15 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
       getOrAddQRKeyring: jest.fn(),
-      withKeyring: jest.fn(),
+      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
+        operation({
+          keyring: {
+            cancelSync: jest.fn(),
+            submitCryptoAccount: jest.fn(),
+            submitCryptoHDKey: jest.fn(),
+          },
+          metadata: { id: '1234' },
+        }),
       connectQRHardware: jest.fn(),
     },
     AccountTrackerController: {

@@ -2,7 +2,7 @@ import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportNewSecretRecoveryPhrase from './';
 import { ImportSRPIDs } from '../../../../e2e/selectors/MultiSRP/SRPImport.selectors';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, userEvent } from '@testing-library/react-native';
 import messages from '../../../../locales/languages/en.json';
 import {
   MOCK_HD_ACCOUNTS,
@@ -69,7 +69,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
   const { getByTestId } = render;
 
   const pasteButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
-  await fireEvent.press(pasteButton);
+  await userEvent.press(pasteButton);
 
   return render;
 };
@@ -266,6 +266,41 @@ describe('ImportNewSecretRecoveryPhrase', () => {
             .error_srp_is_case_sensitive,
         ),
       ).toBeTruthy();
+    });
+
+    it('does not display error if SRP is empty', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('invalid mnemonic');
+
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
+
+      const clearButton = getByTestId(ImportSRPIDs.PASTE_BUTTON);
+      await fireEvent.press(clearButton);
+
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(updatedError).toBeNull();
+    });
+
+    it('does not display error if SRP is cleared manually', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('invalid mnemonic');
+
+      const error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
+
+      const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      fireEvent.changeText(firstWord, '');
+
+      const secondWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-2`);
+      fireEvent.changeText(secondWord, '');
+
+      const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(updatedError).toBeNull();
     });
   });
 });
