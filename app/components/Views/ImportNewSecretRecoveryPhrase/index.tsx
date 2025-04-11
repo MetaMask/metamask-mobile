@@ -253,20 +253,22 @@ const ImportNewSecretRecoveryPhrase = () => {
         return state;
       };
 
-      const joinedDraftSrp = newDraftSrp.join(' ').trim();
-      const invalidWords = Array(newDraftSrp.length).fill(false);
-      let validationResult = validateSRP(newDraftSrp, invalidWords);
-      validationResult = validateCompleteness(validationResult, newDraftSrp);
-      validationResult = validateCase(validationResult, joinedDraftSrp);
-      validationResult = validateWords(validationResult);
-      validationResult = validateMnemonic(validationResult, joinedDraftSrp);
-      validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
+      if (newDraftSrp.filter((word) => word !== '').length === numberOfWords) {
+        const joinedDraftSrp = newDraftSrp.join(' ').trim();
+        const invalidWords = Array(newDraftSrp.length).fill(false);
+        let validationResult = validateSRP(newDraftSrp, invalidWords);
+        validationResult = validateCompleteness(validationResult, newDraftSrp);
+        validationResult = validateCase(validationResult, joinedDraftSrp);
+        validationResult = validateWords(validationResult);
+        validationResult = validateMnemonic(validationResult, joinedDraftSrp);
+        validationResult = hideErrorIfSrpIsEmpty(validationResult, newDraftSrp);
+        setSrpError(validationResult.error);
+        setInvalidSRPWords(validationResult.words);
+      }
 
       setSecretRecoveryPhrase(newDraftSrp);
-      setSrpError(validationResult.error);
-      setInvalidSRPWords(validationResult.words);
     },
-    [setSrpError, setSecretRecoveryPhrase],
+    [setSrpError, setSecretRecoveryPhrase, numberOfWords],
   );
 
   const onSrpPaste = useCallback(async () => {

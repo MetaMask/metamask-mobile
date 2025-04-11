@@ -41,6 +41,9 @@ const valid12WordMnemonic =
 const valid24WordMnemonic =
   'verb middle giant soon wage common wide tool gentle garlic issue nut retreat until album recall expire bronze bundle live accident expect dry cook';
 
+const invalidMnemonic =
+  'aaaaa youth dentist air relief leave neither liquid belt aspect bone frame';
+
 const mockPaste = jest
   .spyOn(ClipboardManager, 'getString')
   .mockResolvedValue(valid24WordMnemonic);
@@ -301,6 +304,32 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       const updatedError = queryByTestId(ImportSRPIDs.SRP_ERROR);
 
       expect(updatedError).toBeNull();
+    });
+
+    it('displays errors only if all the words are entered', async () => {
+      const { getByTestId, queryByTestId } =
+        await renderSRPImportComponentAndPasteSRP('invalid mnemonic');
+
+      let error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeNull();
+
+      const firstWord = getByTestId(`${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-1`);
+      fireEvent.changeText(firstWord, '');
+
+      await act(() => {
+        for (const [index, word] of invalidMnemonic.split(' ').entries()) {
+          const value = getByTestId(
+            `${ImportSRPIDs.SRP_INPUT_WORD_NUMBER}-${index + 1}`,
+          );
+
+          expect(value.props.value).toBe(word);
+        }
+      });
+
+      error = queryByTestId(ImportSRPIDs.SRP_ERROR);
+
+      expect(error).toBeTruthy();
     });
   });
 });
