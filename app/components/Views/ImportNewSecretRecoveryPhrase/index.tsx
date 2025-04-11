@@ -272,7 +272,7 @@ const ImportNewSecretRecoveryPhrase = () => {
 
       setSecretRecoveryPhrase(newDraftSrp);
     },
-    [setSrpError, setSecretRecoveryPhrase, numberOfWords],
+    [setSrpError, setSecretRecoveryPhrase],
   );
 
   const onSrpPaste = useCallback(async () => {
