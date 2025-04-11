@@ -2,7 +2,7 @@ import { ChainId } from '@metamask/controller-utils';
 import type { BridgeState } from '../../../../core/redux/slices/bridge';
 
 export const mockBridgeReducerState: BridgeState = {
-  sourceAmount: undefined,
+  sourceAmount: '1000000000000000000',
   destAmount: undefined,
   sourceToken: {
     address: '0x0000000000000000000000000000000000000000',

@@ -1,0 +1,296 @@
+[
+  {
+    "quote": {
+      "requestId": "5cb5a527-d4e4-4b5e-b753-136afc3986d3",
+      "srcChainId": 1151111081099710,
+      "srcTokenAmount": "1000000000",
+      "srcAsset": {
+        "address": "0x0000000000000000000000000000000000000000",
+        "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+        "symbol": "SOL",
+        "decimals": 9,
+        "name": "SOL",
+        "aggregators": [],
+        "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+        "metadata": {},
+        "chainId": 1151111081099710,
+        "price": "124.92"
+      },
+      "destChainId": 10,
+      "destTokenAmount": "143291269234176100000",
+      "destAsset": {
+        "address": "0x4200000000000000000000000000000000000042",
+        "assetId": "eip155:10/erc20:0x4200000000000000000000000000000000000042",
+        "symbol": "OP",
+        "decimals": 18,
+        "name": "Optimism",
+        "coingeckoId": "optimism",
+        "aggregators": [
+          "coinGecko",
+          "openSwap",
+          "optimism",
+          "uniswap",
+          "oneInch",
+          "liFi",
+          "xSwap",
+          "socket",
+          "rubic",
+          "squid"
+        ],
+        "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x4200000000000000000000000000000000000042.png",
+        "metadata": {
+          "honeypotStatus": {
+            "goPlus": false
+          },
+          "isContractVerified": false,
+          "storage": {
+            "balance": 0,
+            "approval": 1
+          },
+          "erc20Permit": true,
+          "description": {
+            "en": "OP is the token for the Optimism Collective that governs the Optimism L2 blockchain. The Optimism Collective is a large-scale experiment in digital democratic governance, built to drive rapid and sustainable growth of a decentralized ecosystem, and stewarded by the newly formed Optimism Foundation.OP governs upgrades to the protocol and network parameters, and creates an ongoing system of incentives for projects and users in the Optimism ecosystem. 5.4% of the total token supply will be distributed to projects on Optimism over the next six months via governance. If you're building something in the Ethereum ecosystem, you can consider applying for the grant."
+          },
+          "createdAt": "2023-10-31T22:16:37.494Z"
+        },
+        "chainId": 10,
+        "price": "0.865"
+      },
+      "feeData": {
+        "metabridge": {
+          "amount": "0",
+          "asset": {
+            "address": "0x0000000000000000000000000000000000000000",
+            "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+            "symbol": "SOL",
+            "decimals": 9,
+            "name": "SOL",
+            "aggregators": [],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+            "metadata": {},
+            "chainId": 1151111081099710,
+            "price": "124.92"
+          }
+        }
+      },
+      "bridgeId": "lifi",
+      "bridges": ["mayan"],
+      "steps": [
+        {
+          "action": "bridge",
+          "srcChainId": 1151111081099710,
+          "destChainId": 10,
+          "protocol": {
+            "name": "mayan",
+            "displayName": "Mayan (Swift)",
+            "icon": "https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.png"
+          },
+          "srcAsset": {
+            "address": "0x0000000000000000000000000000000000000000",
+            "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+            "symbol": "SOL",
+            "decimals": 9,
+            "name": "SOL",
+            "aggregators": [],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+            "metadata": {},
+            "chainId": 1151111081099710
+          },
+          "destAsset": {
+            "address": "0x4200000000000000000000000000000000000042",
+            "assetId": "eip155:10/erc20:0x4200000000000000000000000000000000000042",
+            "symbol": "OP",
+            "decimals": 18,
+            "name": "Optimism",
+            "coingeckoId": "optimism",
+            "aggregators": [
+              "coinGecko",
+              "openSwap",
+              "optimism",
+              "uniswap",
+              "oneInch",
+              "liFi",
+              "xSwap",
+              "socket",
+              "rubic",
+              "squid"
+            ],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x4200000000000000000000000000000000000042.png",
+            "metadata": {
+              "honeypotStatus": {
+                "goPlus": false
+              },
+              "isContractVerified": false,
+              "storage": {
+                "balance": 0,
+                "approval": 1
+              },
+              "erc20Permit": true,
+              "description": {
+                "en": "OP is the token for the Optimism Collective that governs the Optimism L2 blockchain. The Optimism Collective is a large-scale experiment in digital democratic governance, built to drive rapid and sustainable growth of a decentralized ecosystem, and stewarded by the newly formed Optimism Foundation.OP governs upgrades to the protocol and network parameters, and creates an ongoing system of incentives for projects and users in the Optimism ecosystem. 5.4% of the total token supply will be distributed to projects on Optimism over the next six months via governance. If you're building something in the Ethereum ecosystem, you can consider applying for the grant."
+              },
+              "createdAt": "2023-10-31T22:16:37.494Z"
+            },
+            "chainId": 10
+          },
+          "srcAmount": "991250000",
+          "destAmount": "143291269234176100000"
+        }
+      ],
+      "bridgePriceData": {
+        "totalFromAmountUsd": "124.9200",
+        "totalToAmountUsd": "123.9469",
+        "priceImpact": "0.007789785462696144"
+      }
+    },
+    "trade": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAHDXLY8oVRIwA8ZdRSGjM5RIZJW8Wv+Twyw3NqU4Hov+OHoHp/dmeDvstKbICW3ezeGR69t3/PTAvdXgZVdJFJXaxkoKXUTWfEAyQyCCG9nwVoDsd10OFdnM9ldSi+9SLqHpqWVDV+zzkmftkF//DpbXxqeH8obNXHFR7pUlxG9uNVOn64oNsFdeUvD139j1M51iRmUY839Y25ET4jDRscT081oGb+rLnywLjLSrIQx6MkqNBhCFbxqY1YmoGZVORW/QMGRm/lIRcy/+ytunLDm+e8jOW7xfcSayxDmzpAAAAAjJclj04kifG7PRApFI4NgwtaE5na/xCEBI572Nvp+FkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAbd9uHXZaGT2cvhRs7reawctIXtX1s3kTqM9YV+/wCpBHnVW/IxwG7udMVuzmgVB/2xst6j9I5RArHNola8E4+0P/on9df2SnTAmx8pWHneSwmrNt/J3VFLMhqns4zl6JmXkZ+niuxMhAGrmKBaBo94uMv2Sl+Xh3i+VOO0m5BdNZ1ElenbwQylHQY+VW1ydG1MaUEeNpG+EVgswzPMwPoLBgAFAsBcFQAGAAkDQA0DAAAAAAAHBgABAhMICQAHBgADABYICQEBCAIAAwwCAAAAUEYVOwAAAAAJAQMBEQoUCQADBAETCgsKFw0ODxARAwQACRQj5RfLl3rjrSoBAAAAQ2QAAVBGFTsAAAAAyYZnBwAAAABkAAAJAwMAAAEJDAkAAAIBBBMVCQjGASBMKQwnooTbKNxdBwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUHTKomh4KXvNgA0ovYKS5F8GIOBgAAAAAAAAAAAAAAAAAQgAAAAAAAAAAAAAAAAAAAAAAAEIF7RFOAwAAAAAAAAAAAAAAaAIAAAAAAAC4CwAAAAAAAOAA2mcAAAAAAAAAAAAAAAAAAAAApapuIXG0FuHSfsU8qME9s/kaic0AAwGCsZdSuxV5eCm+Ria4LEQPgTg4bg65gNrTAefEzpAfPQgCABIMAgAAAAAAAAAAAAAACAIABQwCAAAAsIOFAAAAAAADWk6DVOZO8lMFQg2r0dgfltD6tRL/B1hH3u00UzZdgqkAAxEqIPdq2eRt/F6mHNmFe7iwZpdrtGmHNJMFlK7c6Bc6k6kjBezr6u/tAgvu3OGsJSwSElmcOHZ21imqH/rhJ2KgqDJdBPFH4SYIM1kBAAA=",
+    "estimatedProcessingTimeInSeconds": 12
+  },
+  {
+    "quote": {
+      "requestId": "12c94d29-4b5c-4aee-92de-76eee4172d3d",
+      "srcChainId": 1151111081099710,
+      "srcTokenAmount": "1000000000",
+      "srcAsset": {
+        "address": "0x0000000000000000000000000000000000000000",
+        "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+        "symbol": "SOL",
+        "decimals": 9,
+        "name": "SOL",
+        "aggregators": [],
+        "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+        "metadata": {},
+        "chainId": 1151111081099710,
+        "price": "124.92"
+      },
+      "destChainId": 10,
+      "destTokenAmount": "141450025181571360000",
+      "destAsset": {
+        "address": "0x4200000000000000000000000000000000000042",
+        "assetId": "eip155:10/erc20:0x4200000000000000000000000000000000000042",
+        "symbol": "OP",
+        "decimals": 18,
+        "name": "Optimism",
+        "coingeckoId": "optimism",
+        "aggregators": [
+          "coinGecko",
+          "openSwap",
+          "optimism",
+          "uniswap",
+          "oneInch",
+          "liFi",
+          "xSwap",
+          "socket",
+          "rubic",
+          "squid"
+        ],
+        "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x4200000000000000000000000000000000000042.png",
+        "metadata": {
+          "honeypotStatus": {
+            "goPlus": false
+          },
+          "isContractVerified": false,
+          "storage": {
+            "balance": 0,
+            "approval": 1
+          },
+          "erc20Permit": true,
+          "description": {
+            "en": "OP is the token for the Optimism Collective that governs the Optimism L2 blockchain. The Optimism Collective is a large-scale experiment in digital democratic governance, built to drive rapid and sustainable growth of a decentralized ecosystem, and stewarded by the newly formed Optimism Foundation.OP governs upgrades to the protocol and network parameters, and creates an ongoing system of incentives for projects and users in the Optimism ecosystem. 5.4% of the total token supply will be distributed to projects on Optimism over the next six months via governance. If you're building something in the Ethereum ecosystem, you can consider applying for the grant."
+          },
+          "createdAt": "2023-10-31T22:16:37.494Z"
+        },
+        "chainId": 10,
+        "price": "0.865"
+      },
+      "feeData": {
+        "metabridge": {
+          "amount": "0",
+          "asset": {
+            "address": "0x0000000000000000000000000000000000000000",
+            "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+            "symbol": "SOL",
+            "decimals": 9,
+            "name": "SOL",
+            "aggregators": [],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+            "metadata": {},
+            "chainId": 1151111081099710,
+            "price": "124.92"
+          }
+        }
+      },
+      "bridgeId": "lifi",
+      "bridges": ["mayanMCTP"],
+      "steps": [
+        {
+          "action": "bridge",
+          "srcChainId": 1151111081099710,
+          "destChainId": 10,
+          "protocol": {
+            "name": "mayanMCTP",
+            "displayName": "Mayan (MCTP)",
+            "icon": "https://raw.githubusercontent.com/lifinance/types/main/src/assets/icons/bridges/mayan.png"
+          },
+          "srcAsset": {
+            "address": "0x0000000000000000000000000000000000000000",
+            "assetId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:11111111111111111111111111111111",
+            "symbol": "SOL",
+            "decimals": 9,
+            "name": "SOL",
+            "aggregators": [],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/11111111111111111111111111111111.png",
+            "metadata": {},
+            "chainId": 1151111081099710
+          },
+          "destAsset": {
+            "address": "0x4200000000000000000000000000000000000042",
+            "assetId": "eip155:10/erc20:0x4200000000000000000000000000000000000042",
+            "symbol": "OP",
+            "decimals": 18,
+            "name": "Optimism",
+            "coingeckoId": "optimism",
+            "aggregators": [
+              "coinGecko",
+              "openSwap",
+              "optimism",
+              "uniswap",
+              "oneInch",
+              "liFi",
+              "xSwap",
+              "socket",
+              "rubic",
+              "squid"
+            ],
+            "iconUrl": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/10/erc20/0x4200000000000000000000000000000000000042.png",
+            "metadata": {
+              "honeypotStatus": {
+                "goPlus": false
+              },
+              "isContractVerified": false,
+              "storage": {
+                "balance": 0,
+                "approval": 1
+              },
+              "erc20Permit": true,
+              "description": {
+                "en": "OP is the token for the Optimism Collective that governs the Optimism L2 blockchain. The Optimism Collective is a large-scale experiment in digital democratic governance, built to drive rapid and sustainable growth of a decentralized ecosystem, and stewarded by the newly formed Optimism Foundation.OP governs upgrades to the protocol and network parameters, and creates an ongoing system of incentives for projects and users in the Optimism ecosystem. 5.4% of the total token supply will be distributed to projects on Optimism over the next six months via governance. If you're building something in the Ethereum ecosystem, you can consider applying for the grant."
+              },
+              "createdAt": "2023-10-31T22:16:37.494Z"
+            },
+            "chainId": 10
+          },
+          "srcAmount": "991250000",
+          "destAmount": "141450025181571360000"
+        }
+      ],
+      "bridgePriceData": {
+        "totalFromAmountUsd": "124.9200",
+        "totalToAmountUsd": "122.3543",
+        "priceImpact": "0.020538744796669922"
+      }
+    },
+    "trade": "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAQAIEnLY8oVRIwA8ZdRSGjM5RIZJW8Wv+Twyw3NqU4Hov+OHz7U6VQBhniAZG564p5JhG+y5+5uEABjxPtimE61bsqsz4TFeaDdmFmlW16xBf2qhUAUla7cIQjqp3HfLznM1aZqWVDV+zzkmftkF//DpbXxqeH8obNXHFR7pUlxG9uNVZ0EED+QHqrBQRqB+cbMfYZjXZcTe9r+CfdbguirL8P49t1pWG6qWtPmFmciR1xbrt4IW+b1nNcz2N5abYbCcsDgByJFz/oyJeNAhYJfn7erTZs6xJHjnuAV0v/cuH6iQNCzB1ajK9lOERjgtFNI8XDODau1kgDlDaRIGFfFNP09KMWgsU3Ye36HzgEdq38sqvZDFOifcDzPxfPOcDxeZgLShtMST0fB39lSGQI7f01fZv+JVg5S4qIF2zdmCAhSAAwZGb+UhFzL/7K26csOb57yM5bvF9xJrLEObOkAAAACMlyWPTiSJ8bs9ECkUjg2DC1oTmdr/EIQEjnvY2+n4WQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABt324ddloZPZy+FGzut5rBy0he1fWzeROoz1hX7/AKkEedVb8jHAbu50xW7OaBUH/bGy3qP0jlECsc2iVrwTj1E+LF26QsO9gzDavYNO6ZflUDWJ+gBV9eCQ5OcuzAMStD/6J/XX9kp0wJsfKVh53ksJqzbfyd1RSzIap7OM5egJanTpAxnCBLW4j9Mn+DAuluhVY4cEgRJ9Pah1VqYQXzWdRJXp28EMpR0GPlVtcnRtTGlBHjaRvhFYLMMzzMD6CQoABQLAXBUACgAJA0ANAwAAAAAACwYAAQIbDA0ACwYAAwAcDA0BAQwCAAMMAgAAAFBGFTsAAAAADQEDAREOKQ0PAAMEBQEcGw4OEA4dDx4SBAYTFBUNBxYICQ4fDwYFFxgZGiAhIiMNKMEgmzNB1pyBAwIAAAAaZAABOGQBAlBGFTsAAAAAP4hnBwAAAABkAAANAwMAAAEJEQUAAgEbDLwBj+v8wtNahk0AAAAAAAAAAAAAAAAUHTKomh4KXvNgA0ovYKS5F8GIOCjcXQcAAAAAAAAAAAAAAACUXhgAAAAAABb1AwAAAAAAGABuuH/gY8j1t421m3ekiET/qFVeKhVA3SJVS5OH/NW+oQMAAAAAAAAAAAAAAABCAAAAAAAAAAAAAAAAAAAAAAAAQrPV80YDAAAACwLaZwAAAAAAAAAAAAAAAAAAAAClqm4hcbQW4dJ+xTyowT2z+RqJzQADWk6DVOZO8lMFQg2r0dgfltD6tRL/B1hH3u00UzZdgqkAARE9whapJMxiYg1Y/S9bROWrjXfldZCFcyME/snbeFkkhAUXFisYKQMaKiVZfTkrqqg0GkW+iGFAaIHEbhkRX4YCBLoWvHI1OH2T2gSmTlKhBREUDA0H",
+    "estimatedProcessingTimeInSeconds": 120
+  }
+]
