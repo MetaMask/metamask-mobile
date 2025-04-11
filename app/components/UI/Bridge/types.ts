@@ -1,5 +1,5 @@
 import { TxData, Quote } from '@metamask/bridge-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 
 // This is slightly different from the BridgeToken type in @metamask/bridge-controller
 export interface BridgeToken {
@@ -8,7 +8,7 @@ export interface BridgeToken {
   symbol: string;
   image?: string;
   decimals: number;
-  chainId: Hex;
+  chainId: Hex | CaipChainId;
   balance?: string; // A truncated non-atomic balance, e.g. 1.23456
   balanceFiat?: string; // A formatted fiat value, e.g. "$100.12345", "100.12345 cad"
   tokenFiatAmount?: number; // A sortable fiat value in the user's currency, e.g. 100.12345
