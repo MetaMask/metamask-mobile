@@ -27,6 +27,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.background.default,
       borderColor: colors.border.muted,
       borderWidth: 1,
+      borderRadius: 16,
     },
     currencyToggleText: {
       flexDirection: 'row',

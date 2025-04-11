@@ -267,7 +267,7 @@ exports[`QuoteInfoModal renders correctly 1`] = `
                   "alignSelf": "flex-start",
                   "backgroundColor": "transparent",
                   "borderColor": "#4459ff",
-                  "borderRadius": 24,
+                  "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",

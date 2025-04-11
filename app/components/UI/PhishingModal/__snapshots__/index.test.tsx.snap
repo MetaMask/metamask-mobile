@@ -225,7 +225,7 @@ exports[`PhishingModal should render correctly 1`] = `
         "alignItems": "center",
         "alignSelf": "stretch",
         "backgroundColor": "#4459ff",
-        "borderRadius": 20,
+        "borderRadius": 12,
         "flexDirection": "row",
         "height": 48,
         "justifyContent": "center",

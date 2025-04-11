@@ -984,7 +984,7 @@ exports[`NotificationsDetails renders correctly 1`] = `
             "alignSelf": "center",
             "backgroundColor": "#ffffff",
             "borderColor": "#4459ff",
-            "borderRadius": 20,
+            "borderRadius": 12,
             "borderWidth": 1,
             "bottom": 10,
             "flexDirection": "row",
