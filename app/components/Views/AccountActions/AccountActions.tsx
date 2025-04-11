@@ -258,7 +258,7 @@ const AccountActions = () => {
   const removeHardwareAccount = useCallback(async () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      await removeAccountsFromPermissions([selectedAddress as Hex]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({
@@ -294,7 +294,7 @@ const AccountActions = () => {
   const removeSnapAccount = useCallback(async () => {
     if (selectedAddress) {
       await controllers.KeyringController.removeAccount(selectedAddress as Hex);
-      await removeAccountsFromPermissions([selectedAddress]);
+      await removeAccountsFromPermissions([selectedAddress as Hex]);
       trackEvent(
         createEventBuilder(MetaMetricsEvents.ACCOUNT_REMOVED)
           .addProperties({

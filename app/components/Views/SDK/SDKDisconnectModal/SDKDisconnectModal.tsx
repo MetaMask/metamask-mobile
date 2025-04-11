@@ -22,6 +22,7 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
+import { Hex } from '@metamask/utils';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -81,7 +82,7 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
 
   const onConfirm = async () => {
     if (account && channelId) {
-      removePermittedAccounts(channelId, [account]);
+      removePermittedAccounts(channelId, [account as Hex]);
     } else if (!account && channelId) {
       SDKConnect.getInstance().removeChannel({
         channelId,

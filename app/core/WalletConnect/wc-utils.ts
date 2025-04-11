@@ -18,6 +18,7 @@ import {
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
 
 export interface WCMultiVersionParams {
   protocol: string;
@@ -158,9 +159,7 @@ export const waitForNetworkModalOnboarding = async ({
   }
 };
 
-export const getApprovedSessionMethods = (_: {
-  origin: string;
-}): string[] => {
+export const getApprovedSessionMethods = (_: { origin: string }): string[] => {
   const allEIP155Methods = [
     // Standard JSON-RPC methods
     'eth_sendTransaction',
@@ -246,7 +245,10 @@ export const onRequestUserApproval = (origin: string) => async (args: any) => {
 export const checkWCPermissions = async ({
   origin,
   caip2ChainId,
-}: { origin: string; caip2ChainId: string }) => {
+}: {
+  origin: string;
+  caip2ChainId: string;
+}) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const decimalChainId = caip2ChainId.split(':')[1];
   const hexChainIdString = `0x${parseInt(decimalChainId, 10).toString(16)}`;
@@ -267,12 +269,14 @@ export const checkWCPermissions = async ({
   const isAllowedChainId = permittedChains.includes(caip2ChainId);
 
   const providerConfig = selectProviderConfig(store.getState());
-  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(providerConfig.chainId, 16)}`;
+  const activeCaip2ChainId = `${KnownCaipNamespace.Eip155}:${parseInt(
+    providerConfig.chainId,
+    16,
+  )}`;
 
   DevLogger.log(
     `WC::checkWCPermissions origin=${origin} caip2ChainId=${caip2ChainId} activeCaip2ChainId=${activeCaip2ChainId} permittedChains=${permittedChains} isAllowedChainId=${isAllowedChainId}`,
   );
-
 
   if (!isAllowedChainId) {
     DevLogger.log(`WC::checkWCPermissions chainId is not permitted`);
@@ -291,13 +295,12 @@ export const checkWCPermissions = async ({
       await switchToNetwork({
         network: existingNetwork,
         chainId: hexChainIdString,
-        controllers: Engine.context,
         requestUserApproval: onRequestUserApproval(origin),
         analytics: {},
         origin,
         isAddNetworkFlow: false,
+        hooks: getRpcMethodMiddlewareHooks(origin),
       });
-
     } catch (error) {
       DevLogger.log(
         `WC::checkWCPermissions error switching to network:`,

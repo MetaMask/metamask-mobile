@@ -312,7 +312,7 @@ const generateRawSignature = async ({
  * @param origin - The origin of the connection.
  * @returns The hooks object.
  */
-const getRpcMethodMiddlewareHooks = (origin: string) => ({
+export const getRpcMethodMiddlewareHooks = (origin: string) => ({
   getCaveat: ({
     target,
     caveatType,
