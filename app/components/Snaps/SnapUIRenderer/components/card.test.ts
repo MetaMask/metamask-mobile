@@ -58,6 +58,7 @@ describe('card component mapper', () => {
               "address": "0xab16a96D359eC26a11e2C2b3d8f8B8942d5Bfcdb",
               "avatar": undefined,
               "avatarSize": "xs",
+              "color": undefined,
               "displayName": undefined,
               "truncate": undefined,
             },
