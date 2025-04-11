@@ -1,22 +1,10 @@
 import { fireEvent } from '@testing-library/react-native';
-import {
-  renderScreen,
-  DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { defaultBridgeControllerState } from '../../../../../core/Engine/controllers/bridge-controller/constants';
-import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
-import { QuoteResponse } from '@metamask/bridge-controller';
-import { mockNetworkState } from '../../../../../util/test/network';
-import { RpcEndpointType } from '@metamask/network-controller';
-import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
-import initialRootState from '../../../../../util/test/initial-root-state';
-import { RootState } from '../../../../../reducers';
-import { ChainId } from '@metamask/controller-utils';
-import { createMockInternalAccount } from '../../../../../util/test/accountsControllerTestUtils';
-
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
+import { createBridgeTestState } from '../../testUtils';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -25,56 +13,26 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-describe('QuoteDetailsCard', () => {
-  const mockAccount = createMockInternalAccount(
-    '0x1234567890123456789012345678901234567890',
-    'Test Account',
-  );
-
-  const initialState: DeepPartial<RootState> = {
-    engine: {
-      backgroundState: {
-        ...initialRootState,
-        BridgeController: {
-          ...defaultBridgeControllerState,
-          quotes: mockQuotes as unknown as QuoteResponse[],
-        },
-        NetworkController: {
-          ...mockNetworkState(
-            {
-              chainId: ChainId.mainnet,
-              id: 'mainnet',
-              nickname: 'Ethereum',
-              ticker: 'ETH',
-              type: RpcEndpointType.Infura,
-              rpcUrl: 'https://eth-mainnet.alchemyapi.io/v2/demo',
-            },
-            {
-              chainId: ChainId['linea-mainnet'],
-              id: 'linea',
-              nickname: 'Linea',
-              ticker: 'LINEA',
-              type: RpcEndpointType.Custom,
-              rpcUrl: 'https://linea-rpc.com',
-            },
-          ),
-        },
-        MultichainNetworkController: {
-          multichainNetworkConfigurationsByChainId: {},
-        },
-        AccountsController: {
-          internalAccounts: {
-            accounts: {
-              [mockAccount.id]: mockAccount,
-            },
-            selectedAccount: mockAccount.id,
-          },
-        },
-      },
+//Mock useBridgeQuoteData hook
+jest.mock('../../hooks/useBridgeQuoteData', () => ({
+  useBridgeQuoteData: jest.fn().mockImplementation(() => ({
+    quoteFetchError: null,
+    activeQuote: mockQuotes[0],
+    destTokenAmount: '24.44',
+    isLoading: false,
+    formattedQuoteData: {
+      networkFee: '0.01',
+      estimatedTime: '1 min',
+      rate: '1 ETH = 24.4 USDC',
+      priceImpact: '-0.06%',
+      slippage: '0.5%',
     },
-    bridge: mockBridgeReducerState,
-  };
+  })),
+}));
 
+const testState = createBridgeTestState();
+
+describe('QuoteDetailsCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -85,7 +43,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -96,7 +54,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion
@@ -112,10 +70,10 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
-    expect(getByText('$0.01')).toBeDefined();
+    expect(getByText('0.01')).toBeDefined();
   });
 
   it('displays processing time', () => {
@@ -124,7 +82,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     expect(getByText('1 min')).toBeDefined();
@@ -136,10 +94,10 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
-    expect(getByText('1 ETH = 0.0 USDC')).toBeDefined();
+    expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
   });
 
   it('toggles content visibility on chevron press', () => {
@@ -148,7 +106,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Initially price impact should not be visible
@@ -175,7 +133,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion first
@@ -198,11 +156,11 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
-    expect(getByText('Ethereum')).toBeDefined();
-    expect(getByText('Linea')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('Optimism')).toBeDefined();
   });
 
   it('displays slippage value', () => {
@@ -211,7 +169,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: initialState },
+      { state: testState },
     );
 
     // Expand the accordion first

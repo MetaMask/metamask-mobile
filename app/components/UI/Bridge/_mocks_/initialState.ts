@@ -1,40 +1,38 @@
+import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
-import { formatChainIdToCaip , BridgeFeatureFlagsKey } from '@metamask/bridge-controller';
 import { SolScope } from '@metamask/keyring-api';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
 
 export const evmAccountId = 'evmAccountId';
-export const evmAccountAddress = '0x1234567890123456789012345678901234567890' as Hex;
+export const evmAccountAddress =
+  '0x1234567890123456789012345678901234567890' as Hex;
 
 export const solanaAccountId = 'solanaAccountId';
-export const solanaAccountAddress = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
+export const solanaAccountAddress =
+  'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
 // Ethereum tokens
-export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
-export const ethToken2Address = '0x0000000000000000000000000000000000000002' as Hex;
+export const ethToken1Address =
+  '0x0000000000000000000000000000000000000001' as Hex;
+export const ethToken2Address =
+  '0x0000000000000000000000000000000000000002' as Hex;
 
 // Optimism tokens
-export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
+export const optimismToken1Address =
+  '0x0000000000000000000000000000000000000003' as Hex;
 
 // Solana tokens
-export const solanaNativeTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
-export const solanaToken2Address = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
+export const solanaNativeTokenAddress =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
+export const solanaToken2Address =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' as CaipAssetId;
 
 export const initialState = {
   engine: {
     backgroundState: {
-      BridgeController: {
-        bridgeFeatureFlags: {
-          [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-            chains: {
-              [formatChainIdToCaip(ethChainId)]: { isActiveSrc: true, isActiveDest: true },
-              [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
-            },
-          },
-        },
-      },
+      BridgeController: defaultBridgeControllerState,
       TokenBalancesController: {
         tokenBalances: {
           [evmAccountAddress]: {
@@ -187,16 +185,14 @@ export const initialState = {
       },
       MultichainAssetsController: {
         accountsAssets: {
-          [solanaAccountId]: [
-            solanaNativeTokenAddress,
-            solanaToken2Address,
-          ],
+          [solanaAccountId]: [solanaNativeTokenAddress, solanaToken2Address],
         },
         assetsMetadata: {
           [solanaNativeTokenAddress]: {
             name: 'Solana',
             symbol: 'SOL',
-            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            iconUrl:
+              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
             fungible: true as const,
             units: [
               {
@@ -209,7 +205,8 @@ export const initialState = {
           [solanaToken2Address]: {
             name: 'USD Coin',
             symbol: 'USDC',
-            iconUrl: 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
+            iconUrl:
+              'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v/logo.png',
             fungible: true as const,
             units: [
               {
@@ -219,7 +216,7 @@ export const initialState = {
               },
             ],
           },
-        }
+        },
       },
       MultichainAssetsRatesController: {
         conversionRates: {
@@ -381,5 +378,6 @@ export const initialState = {
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
+    slippage: '0.5',
   },
 };
