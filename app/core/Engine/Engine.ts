@@ -2025,6 +2025,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -2073,6 +2074,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
