@@ -3,7 +3,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
+import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { createBridgeTestState } from '../../testUtils';
 import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 const mockNavigate = jest.fn();
