@@ -41,6 +41,7 @@ export const mockedEngine = {
       addAndShowApprovalRequest: jest.fn(),
     },
     PermissionController: {
+      createPermissionMiddleware: jest.fn(),
       requestPermissions: jest.fn(),
       getCaveat: jest.fn(),
       updateCaveat: jest.fn(),
