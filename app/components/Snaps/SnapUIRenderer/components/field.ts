@@ -80,6 +80,7 @@ export const field: UIComponentFactory<FieldElement> = ({
               ...leftAccessoryMapped.props,
               style: {
                 padding: 0,
+                height: '100%',
               },
             },
           },
@@ -89,6 +90,7 @@ export const field: UIComponentFactory<FieldElement> = ({
               ...rightAccessoryMapped.props,
               style: {
                 padding: 0,
+                height: '100%',
               },
             },
           },

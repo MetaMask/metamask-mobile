@@ -78,6 +78,8 @@ export const SnapUIImage: React.FC<SnapUIImageProps> = ({
           borderRadius,
           overflow: 'hidden',
           aspectRatio,
+          maxHeight: '100%',
+          maxWidth: '100%',
         },
         style,
       ]}
