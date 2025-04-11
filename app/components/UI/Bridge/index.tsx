@@ -52,6 +52,8 @@ import DestinationAccountSelector from './components/DestinationAccountSelector.
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useInitialSourceToken, BridgeRouteParams } from './hooks/useInitialSourceToken';
 import { useInitialDestToken } from './hooks/useInitialDestToken';
+import { BridgeSourceTokenSelectorRouteParams } from './components/BridgeSourceTokenSelector';
+import { BridgeDestTokenSelectorRouteParams } from './components/BridgeDestTokenSelector';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -232,7 +234,9 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.bridgeViewMode,
+      } as BridgeSourceTokenSelectorRouteParams,
     });
 
   const handleDestTokenPress = () =>
@@ -240,7 +244,7 @@ const BridgeView = () => {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {
         bridgeViewMode: route.params.bridgeViewMode,
-      },
+      } as BridgeDestTokenSelectorRouteParams,
     });
 
   const renderBottomContent = () => {
