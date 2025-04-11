@@ -85,6 +85,7 @@ import { selectAddressBook } from '../../../../../../selectors/addressBookContro
 import { buildTransactionParams } from '../../../../../../util/confirmation/transactions';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
+import { endConfirmationStartupSpan } from '../../../../../../core/Performance/confirmations';
 
 const EDIT = 'edit';
 const REVIEW = 'review';
@@ -290,6 +291,7 @@ class Approve extends PureComponent {
   };
 
   componentDidMount = async () => {
+    endConfirmationStartupSpan();
     const { showCustomNonce } = this.props;
     if (!this.props?.transaction?.id) {
       this.props.hideModal();

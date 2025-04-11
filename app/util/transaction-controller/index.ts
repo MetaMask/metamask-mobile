@@ -1,20 +1,26 @@
 import {
   TransactionParams,
   TransactionController as BaseTransactionController,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
+import { ApprovalType } from '@metamask/controller-utils';
 
 import Engine from '../../core/Engine';
 import { NetworkClientId } from '@metamask/network-controller';
 import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { store } from '../../store';
+import { startConfirmationStartupSpan } from '../../core/Performance/confirmations';
 
 export async function addTransaction(
   transaction: TransactionParams,
   opts: Parameters<BaseTransactionController['addTransaction']>[1],
 ) {
   const { TransactionController } = Engine.context;
-
+  startConfirmationStartupSpan({
+    approvalType: ApprovalType.Transaction,
+    transactionType: opts.type as TransactionType,
+  });
   return await TransactionController.addTransaction(transaction, opts);
 }
 

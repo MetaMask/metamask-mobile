@@ -21,6 +21,7 @@ import styleSheet from './Confirm.styles';
 import { AlertsContextProvider } from '../AlertSystem/context';
 import useConfirmationAlerts from '../hooks/useConfirmationAlerts';
 import GeneralAlertBanner from '../AlertSystem/GeneralAlertBanner';
+import usePerformanceTrackers from '../hooks/usePerformanceTrackers';
 
 const ConfirmWrapped = ({
   styles,
@@ -30,6 +31,7 @@ const ConfirmWrapped = ({
   route?: UnstakeConfirmationViewProps['route'];
 }) => {
   const alerts = useConfirmationAlerts();
+  usePerformanceTrackers();
 
   return (
     <AlertsContextProvider alerts={alerts}>

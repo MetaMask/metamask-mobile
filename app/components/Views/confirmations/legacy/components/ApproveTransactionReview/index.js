@@ -106,6 +106,8 @@ import { WALLET_CONNECT_ORIGIN } from '../../../../../../util/walletconnect';
 import { isNonEvmChainId } from '../../../../../../core/Multichain/utils';
 
 import SmartTransactionsMigrationBanner from '../SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
+import { endConfirmationStartupSpan } from '../../../../../../core/Performance/confirmations';
+
 const { ORIGIN_DEEPLINK, ORIGIN_QR_CODE } = AppConstants.DEEPLINKS;
 const POLLING_INTERVAL_ESTIMATED_L1_FEE = 30000;
 
@@ -348,6 +350,7 @@ class ApproveTransactionReview extends PureComponent {
   };
 
   componentDidMount = async () => {
+    endConfirmationStartupSpan();
     const { chainId } = this.props;
     const {
       // We need to extract transaction.transaction here to retrieve up-to-date nonce

@@ -41,6 +41,7 @@ export enum TraceName {
   Tokens = 'Tokens List',
   CreateSnapAccount = 'Create Snap Account',
   AddSnapAccount = 'Add Snap Account',
+  ConfirmationStartup = 'Confirmation Startup',
 }
 
 export enum TraceOperation {

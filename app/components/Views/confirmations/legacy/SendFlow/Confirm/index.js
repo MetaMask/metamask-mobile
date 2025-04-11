@@ -140,6 +140,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
+import { endConfirmationStartupSpan } from '../../../../../../core/Performance/confirmations';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -337,7 +338,7 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+      const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -515,6 +516,7 @@ class Confirm extends PureComponent {
 
     let result, transactionMeta;
     try {
+      // Don't use `addTransaction` utility in order to track performance of this legacy flow
       ({ result, transactionMeta } = await TransactionController.addTransaction(
         transactionParams,
         {
@@ -523,6 +525,7 @@ class Confirm extends PureComponent {
           origin: TransactionTypes.MMM,
         },
       ));
+      endConfirmationStartupSpan();
     } catch (error) {
       Logger.error(error, 'error while adding transaction (Confirm)');
       navigation.navigate(Routes.WALLET_VIEW);

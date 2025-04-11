@@ -1,5 +1,7 @@
 import React, { PureComponent } from 'react';
 import BigNumber from 'bignumber.js';
+import { TransactionType } from '@metamask/transaction-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import { fontStyles } from '../../../../../../styles/common';
 import {
   StyleSheet,
@@ -109,6 +111,7 @@ import {
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { isNativeToken } from '../../../utils/generic';
+import { startConfirmationStartupSpan } from '../../../../../../core/Performance/confirmations';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -716,6 +719,10 @@ class Amount extends PureComponent {
     if (onConfirm) {
       onConfirm();
     } else {
+      startConfirmationStartupSpan({
+        approvalType: ApprovalType.Transaction,
+        transactionType: TransactionType.simpleSend,
+      });
       navigation.navigate(Routes.SEND_FLOW.CONFIRM);
     }
   };
