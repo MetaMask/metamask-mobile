@@ -4,6 +4,7 @@ import {
 } from '@metamask/bridge-controller';
 import { initialState } from '../_mocks_/initialState';
 import { mockBridgeReducerState } from '../_mocks_/bridgeReducerState';
+import type { BridgeState } from '../../../../core/redux/slices/bridge';
 
 type BridgeControllerStateOverride = Partial<BridgeControllerState>;
 
@@ -21,16 +22,17 @@ export const createBridgeControllerState = (
 
 /**
  * Creates a complete test state for bridge components/hooks
- * @param bridgeControllerOverrides - Overrides for bridge controller state
- * @param bridgeReducerOverrides - Overrides for bridge reducer state
+ * @param overrides - Object containing optional overrides for bridge controller and reducer state
  * @returns Complete test state
  */
 export const createBridgeTestState = (
-  bridgeControllerOverrides: BridgeControllerStateOverride = {},
-  bridgeReducerOverrides = {},
+  overrides: {
+    bridgeControllerOverrides?: BridgeControllerStateOverride;
+    bridgeReducerOverrides?: Partial<BridgeState>;
+  } = {},
 ) => {
   const bridgeControllerState = createBridgeControllerState(
-    bridgeControllerOverrides,
+    overrides.bridgeControllerOverrides ?? {},
   );
 
   return {
@@ -44,7 +46,7 @@ export const createBridgeTestState = (
     },
     bridge: {
       ...mockBridgeReducerState,
-      ...bridgeReducerOverrides,
+      ...(overrides.bridgeReducerOverrides ?? {}),
     },
   };
 };

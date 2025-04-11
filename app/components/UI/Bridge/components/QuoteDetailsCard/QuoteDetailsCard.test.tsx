@@ -5,7 +5,6 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { createBridgeTestState } from '../../testUtils';
-import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -31,7 +30,7 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
   })),
 }));
 
-const testState = createBridgeTestState({}, mockBridgeReducerState);
+const testState = createBridgeTestState();
 
 describe('QuoteDetailsCard', () => {
   beforeEach(() => {

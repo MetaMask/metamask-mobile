@@ -91,7 +91,9 @@ describe('Bridge Test Utilities', () => {
         quotes: [],
       };
 
-      const result = createBridgeTestState(bridgeControllerOverrides);
+      const result = createBridgeTestState({
+        bridgeControllerOverrides,
+      });
 
       expect(result.engine.backgroundState.BridgeController).toEqual({
         ...getDefaultBridgeControllerState(),
@@ -105,7 +107,9 @@ describe('Bridge Test Utilities', () => {
         destAmount: '1000000000000000000',
       };
 
-      const result = createBridgeTestState({}, bridgeReducerOverrides);
+      const result = createBridgeTestState({
+        bridgeReducerOverrides,
+      });
 
       expect(result.bridge).toEqual({
         ...mockBridgeReducerState,

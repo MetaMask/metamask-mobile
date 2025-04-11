@@ -4,7 +4,6 @@ import { createBridgeTestState } from '../../testUtils';
 import { isQuoteExpired, getQuoteRefreshRate } from '../../utils/quoteUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
 import { useBridgeQuoteData } from '.';
-import { mockBridgeReducerState } from '../../_mocks_/bridgeReducerState';
 
 jest.mock('../../utils/quoteUtils', () => ({
   isQuoteExpired: jest.fn(),
@@ -20,14 +19,15 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('should return correct quote data when available', () => {
-    const testState = createBridgeTestState(
-      {
-        quotes: mockQuotes as unknown as QuoteResponse[],
-        quotesLoadingStatus: null,
-        quoteFetchError: null,
-      },
-      mockBridgeReducerState,
-    );
+    const bridgeControllerOverrides = {
+      quotes: mockQuotes as unknown as QuoteResponse[],
+      quotesLoadingStatus: null,
+      quoteFetchError: null,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
+    });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
       state: testState,
@@ -49,10 +49,14 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('should handle no available quotes', () => {
-    const testState = createBridgeTestState({
+    const bridgeControllerOverrides = {
       quotes: [],
       quotesLoadingStatus: null,
       quoteFetchError: null,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
@@ -71,10 +75,14 @@ describe('useBridgeQuoteData', () => {
   it('should handle expired quote', () => {
     (isQuoteExpired as jest.Mock).mockReturnValue(true);
 
-    const testState = createBridgeTestState({
+    const bridgeControllerOverrides = {
       quotes: mockQuotes as unknown as QuoteResponse[],
       quotesLoadingStatus: null,
       quoteFetchError: null,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
@@ -91,10 +99,14 @@ describe('useBridgeQuoteData', () => {
   });
 
   it('should handle loading state', () => {
-    const testState = createBridgeTestState({
+    const bridgeControllerOverrides = {
       quotes: [],
       quotesLoadingStatus: RequestStatus.LOADING,
       quoteFetchError: null,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
@@ -112,10 +124,14 @@ describe('useBridgeQuoteData', () => {
 
   it('should handle fetch error', () => {
     const error = 'Failed to fetch quotes';
-    const testState = createBridgeTestState({
+    const bridgeControllerOverrides = {
       quotes: [],
       quotesLoadingStatus: null,
       quoteFetchError: error,
+    };
+
+    const testState = createBridgeTestState({
+      bridgeControllerOverrides,
     });
 
     const { result } = renderHookWithProvider(() => useBridgeQuoteData(), {
