@@ -24,7 +24,7 @@ describe('image component', () => {
     expect(result).toEqual({
       element: 'SnapUIImage',
       props: {
-        borderRadius: 'full',
+        borderRadius: 999,
         value: '<svg />',
       },
     });
