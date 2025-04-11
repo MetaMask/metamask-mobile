@@ -10,7 +10,6 @@ import {
   BridgeHistoryItem,
   StatusTypes,
 } from '@metamask/bridge-status-controller';
-import { Step } from '@metamask/bridge-controller';
 
 const getTime = (
   index: number,
@@ -43,10 +42,10 @@ export default function BridgeStepList({
     [bridgeHistoryItem?.quote.steps],
   );
 
-  const stepStatuses = useCallback(
+  const stepStatuses = useMemo(
     () =>
       steps.map((step) =>
-        getStepStatus({ bridgeHistoryItem, step: step as Step, srcChainTxMeta }),
+        getStepStatus({ bridgeHistoryItem, step, srcChainTxMeta }),
       ),
     [bridgeHistoryItem, srcChainTxMeta, steps],
   );
@@ -54,7 +53,7 @@ export default function BridgeStepList({
   return (
     <Box>
       {steps.map((step, i) => {
-        const statuses = stepStatuses();
+        const statuses = stepStatuses;
         const prevStepStatus = i > 0 ? statuses[i - 1] : null;
         const stepStatus = statuses[i];
         const nextStepStatus = i < statuses.length - 1 ? statuses[i + 1] : null;
