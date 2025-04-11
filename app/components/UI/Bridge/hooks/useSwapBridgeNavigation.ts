@@ -6,8 +6,9 @@ import Routes from '../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { useSelector } from 'react-redux';
-import { selectEvmChainId } from '../../../../selectors/networkController';
+import { selectChainId } from '../../../../selectors/networkController';
 import { BridgeToken } from '../types';
+import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
@@ -21,52 +22,58 @@ import { SolScope } from '@metamask/keyring-api';
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  token,
+  token: tokenBase,
 }: {
   location: string;
   sourcePage: string;
   token?: BridgeToken;
 }) => {
   const navigation = useNavigation();
-  const selectedChainId = useSelector(selectEvmChainId);
+  const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
 
-  // Bridge
-  const goToNativeBridge = useCallback(() => {
-    navigation.navigate('Bridge', {
-      screen: 'BridgeView',
-      params: {
-        token,
-        sourcePage,
-      },
-    });
-  }, [navigation, token, sourcePage]);
+  const nativeSourceToken = getNativeAssetForChainId(
+    tokenBase?.chainId ?? selectedChainId,
+  );
+  const nativeSourceTokenFormatted: BridgeToken = {
+    address: nativeSourceToken.address,
+    name: nativeSourceToken.name ?? '',
+    symbol: nativeSourceToken.symbol,
+    image: 'iconUrl' in nativeSourceToken ? nativeSourceToken.iconUrl : '',
+    decimals: nativeSourceToken.decimals,
+    chainId: selectedChainId,
+  };
 
-  const goToBridge = isBridgeUiEnabled()
-    ? goToNativeBridge
-    : goToPortfolioBridge;
+  const token = tokenBase ?? nativeSourceTokenFormatted;
+
+  // Bridge
+  const goToNativeBridge = useCallback(
+    (title: string) => {
+      navigation.navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          token,
+          sourcePage,
+          title,
+        },
+      });
+    },
+    [navigation, token, sourcePage],
+  );
+
+  const goToBridge = useCallback(
+    (title: string) => {
+      if (isBridgeUiEnabled()) {
+        goToNativeBridge(title);
+      } else {
+        goToPortfolioBridge();
+      }
+    },
+    [goToNativeBridge, goToPortfolioBridge],
+  );
 
   // Swaps
-  const handleSwapNavigation = useCallback(() => {
-    if (!token) {
-      return;
-    }
-
-    navigation.navigate('Swaps', {
-      screen: 'SwapsAmountView',
-      params: {
-        sourceToken: token.address,
-        chainId: token.chainId,
-        sourcePage,
-      },
-    });
-  }, [navigation, token, sourcePage]);
-
-  const handleSwapsNavigation = useCallback(() => {
-    if (!token) {
-      return;
-    }
-
+  const handleSwapsNavigation = useCallback(async () => {
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
@@ -85,20 +92,28 @@ export const useSwapBridgeNavigation = ({
           networkConfiguration.defaultRpcEndpointIndex
         ]?.networkClientId;
 
-      MultichainNetworkController.setActiveNetwork(
+      await MultichainNetworkController.setActiveNetwork(
         networkClientId as string,
-      ).then(() => {
-        handleSwapNavigation();
-      });
-    } else {
-      handleSwapNavigation();
+      );
     }
-  }, [navigation, token, selectedChainId, handleSwapNavigation]);
+
+    navigation.navigate('Swaps', {
+      screen: 'SwapsAmountView',
+      params: {
+        sourceToken: token.address,
+        chainId: token.chainId,
+        sourcePage,
+      },
+    });
+  }, [navigation, token, selectedChainId, sourcePage]);
 
   const goToSwaps = useCallback(() => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (token?.chainId === SolScope.Mainnet) {
-      goToBridge();
+    if (
+      token?.chainId === SolScope.Mainnet ||
+      selectedChainId === SolScope.Mainnet
+    ) {
+      goToBridge('Swaps');
       return;
     }
     ///: END:ONLY_INCLUDE_IF
@@ -107,13 +122,14 @@ export const useSwapBridgeNavigation = ({
   }, [
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     token?.chainId,
+    selectedChainId,
     goToBridge,
     ///: END:ONLY_INCLUDE_IF
     handleSwapsNavigation,
   ]);
 
   return {
-    goToBridge,
+    goToBridge: () => goToBridge('Bridge'),
     goToSwaps,
   };
 };

@@ -1,7 +1,6 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import { swapsUtils } from '@metamask/swaps-controller';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 
@@ -44,7 +43,7 @@ import { isStablecoinLendingFeatureEnabled } from '../../UI/Stake/constants';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
-import { isEvmAccountType, SolScope } from '@metamask/keyring-api';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
@@ -237,7 +236,7 @@ const WalletActions = () => {
 
   const goToSwaps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToSwapsBase()
+      goToSwapsBase();
     });
 
     trackEvent(
@@ -260,7 +259,7 @@ const WalletActions = () => {
 
   const goToBridge = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      goToBridgeBase()
+      goToBridgeBase();
     });
 
     trackEvent(
