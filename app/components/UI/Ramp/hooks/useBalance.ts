@@ -5,7 +5,10 @@ import {
   selectConversionRate,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccount,
+  selectSelectedInternalAccountFormattedAddress,
+} from '../../../../selectors/accountsController';
 import { selectContractBalances } from '../../../../selectors/tokenBalancesController';
 import { selectContractExchangeRates } from '../../../../selectors/tokenRatesController';
 import { selectEvmChainId } from '../../../../selectors/networkController';
@@ -18,6 +21,10 @@ import {
   toHexadecimal,
   weiToFiat,
 } from '../../../../util/number';
+import { Hex } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { selectMultichainBalances } from '../../../../selectors/multichain';
+///: END:ONLY_INCLUDE_IF
 
 const defaultReturn = {
   balance: null,
@@ -26,51 +33,67 @@ const defaultReturn = {
 };
 
 interface Asset {
-  address: string;
+  address?: string;
   decimals: number;
+  chainId?: string;
+  assetId?: string;
 }
 
 export default function useBalance(asset?: Asset) {
   const accountsByChainId = useSelector(selectAccountsByChainId);
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const multiChainTokenBalance = useSelector(selectMultichainBalances);
+  ///: END:ONLY_INCLUDE_IF
   const chainId = useSelector(selectEvmChainId);
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
   const conversionRate = useSelector(selectConversionRate);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenExchangeRates = useSelector(selectContractExchangeRates);
   const balances = useSelector(selectContractBalances);
 
-  if (!asset) {
-    return defaultReturn;
-  }
-
-  const assetAddress = safeToChecksumAddress(asset.address);
-
-  if (!assetAddress) {
+  if (
+    !asset ||
+    (!asset.address && !asset.assetId) ||
+    !selectedAddress ||
+    !selectedAccount
+  ) {
     return defaultReturn;
   }
 
   let balance, balanceFiat, balanceBN;
-  if (assetAddress === NATIVE_ADDRESS) {
+
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  if (asset.assetId) {
+    // CAIP19 asset identifier
+    const assetCaip19Identifier = `${asset.chainId}/${asset.assetId}`;
+    const assetBalance =
+      multiChainTokenBalance?.[selectedAccount.id]?.[assetCaip19Identifier];
+    balance = `${assetBalance?.amount ?? ''} ${
+      assetBalance?.unit ?? ''
+    }`.trim();
+  }
+  ///: END:ONLY_INCLUDE_IF
+  if (!balance && asset.address === NATIVE_ADDRESS) {
     // Chain id should exist in accountsByChainId in AccountTrackerController at this point in time
     if (!accountsByChainId[toHexadecimal(chainId)]) {
       return defaultReturn;
     }
 
     balance = renderFromWei(
-      //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
 
     balanceBN = hexToBN(
-      //@ts-expect-error - TODO: Ramps team
       accountsByChainId[toHexadecimal(chainId)][selectedAddress]?.balance,
     );
 
     balanceFiat = weiToFiat(balanceBN, conversionRate, currentCurrency);
-  } else {
-    const exchangeRate = tokenExchangeRates?.[assetAddress]?.price;
+  } else if (asset.address) {
+    const assetAddress = safeToChecksumAddress(asset.address);
+    const exchangeRate = tokenExchangeRates?.[assetAddress as Hex]?.price;
     balance =
       assetAddress && assetAddress in balances
         ? renderFromTokenMinimalUnit(

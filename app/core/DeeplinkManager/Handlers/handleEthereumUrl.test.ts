@@ -5,6 +5,8 @@ import { NetworkSwitchErrorType } from '../../../constants/error';
 import DeeplinkManager from '../DeeplinkManager';
 import handleEthereumUrl from './handleEthereumUrl';
 import { getDecimalChainId } from '../../../util/networks';
+import Engine from '../../Engine';
+import { MAINNET } from '../../../constants/network';
 
 jest.mock('react-native');
 
@@ -18,6 +20,17 @@ jest.mock('../../../util/networks', () => ({
 
 jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
+}));
+
+jest.mock('../../Engine', () => ({
+  context: {
+    MultichainNetworkController: {
+      state: {
+        isEvmSelected: true,
+      },
+      setActiveNetwork: jest.fn(),
+    },
+  },
 }));
 
 describe('handleEthereumUrl', () => {
@@ -270,5 +283,29 @@ describe('handleEthereumUrl', () => {
       'SendView',
       expect.any(Object), // The exact expectations here depend on the intended behavior
     );
+  });
+
+  it('switch to mainnet when isEvmSelected is false', async () => {
+    const url = 'ethereum:transfer';
+    const origin = 'test_origin';
+    const mockSetActiveNetwork = jest.fn();
+
+    mockParse.mockReturnValue({
+      function_name: ETH_ACTIONS.TRANSFER,
+      chain_id: 1,
+      parameters: {},
+    });
+
+    // Override the mock for this specific test
+    const mockState = Engine.context.MultichainNetworkController.state as {
+      isEvmSelected: boolean;
+    };
+    mockState.isEvmSelected = false;
+    Engine.context.MultichainNetworkController.setActiveNetwork =
+      mockSetActiveNetwork;
+
+    await handleEthereumUrl({ deeplinkManager, url, origin });
+
+    expect(mockSetActiveNetwork).toHaveBeenCalledWith(MAINNET);
   });
 });

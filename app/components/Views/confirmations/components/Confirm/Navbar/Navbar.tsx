@@ -1,27 +1,40 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import {
-  default as MorphText,
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
 import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import {
+  default as MorphText,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import Device from '../../../../../../util/device';
+import { Theme } from '../../../../../../util/theme/models';
 
 export function getNavbar({
   title,
   onReject,
+  addBackButton = true,
+  theme,
 }: {
   title: string;
   onReject: () => void;
+  addBackButton?: boolean;
+  theme: Theme;
 }) {
   const innerStyles = StyleSheet.create({
     headerLeft: {
       marginHorizontal: 16,
+      display: addBackButton ? undefined : 'none',
     },
     headerTitle: {
       alignItems: 'center',
+      marginRight: Device.isAndroid() ? 60 : undefined,
+    },
+    headerStyle: {
+      backgroundColor: theme.colors.background.alternative,
+      // @ts-expect-error - null is the only way to remove the shadow but it's not typed
+      shadowOffset: null,
     },
   });
 
@@ -46,5 +59,6 @@ export function getNavbar({
         testID={`${title}-navbar-back-button`}
       />
     ),
+    headerStyle: innerStyles.headerStyle,
   };
 }

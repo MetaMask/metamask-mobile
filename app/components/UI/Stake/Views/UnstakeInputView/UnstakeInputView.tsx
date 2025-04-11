@@ -1,5 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useEffect } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,6 +12,7 @@ import Button, {
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 import Keypad from '../../../../Base/Keypad';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -21,14 +23,14 @@ import QuickAmounts from '../../components/QuickAmounts';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import usePoolStakedUnstake from '../../hooks/usePoolStakedUnstake';
 import useUnstakingInputHandlers from '../../hooks/useUnstakingInput';
+import { StakeNavigationParamsList } from '../../types';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import UnstakeInputViewBanner from './UnstakeBanner';
 import styleSheet from './UnstakeInputView.styles';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController';
 
 const UnstakeInputView = () => {
   const title = strings('stake.unstake_eth');
-  const navigation = useNavigation();
+  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const activeAccount = useSelector(selectSelectedInternalAccount);
@@ -84,11 +86,28 @@ const UnstakeInputView = () => {
     );
   }, [navigation, theme.colors, title]);
 
+  const [isSubmittingStakeWithdrawalTransaction, setIsSubmittingStakeWithdrawalTransaction] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setIsSubmittingStakeWithdrawalTransaction(false);
+    }, [])
+  );
+
   const handleUnstakePress = useCallback(async () => {
     const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_transactions;
+      confirmationRedesignFlags?.staking_confirmations;
+
+    const unstakeButtonClickEventProperties = {
+      selected_provider: EVENT_PROVIDERS.CONSENSYS,
+      tokens_to_stake_native_value: amountEth,
+      tokens_to_stake_usd_value: fiatAmount,
+    };
 
     if (isStakingDepositRedesignedEnabled) {
+      // this prevents the user from adding the transaction withdrawal into the
+      // controller state multiple times
+      setIsSubmittingStakeWithdrawalTransaction(true);
+
       // Here we add the transaction to the transaction controller. The
       // redesigned confirmations architecture relies on the transaction
       // metadata object being defined by the time the confirmation is displayed
@@ -105,22 +124,31 @@ const UnstakeInputView = () => {
           amountFiat: fiatAmount,
         },
       });
-    } else {
-      navigation.navigate('StakeScreens', {
-        screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
-        params: {
-          amountWei: amountWei.toString(),
-          amountFiat: fiatAmount,
-        },
-      });
+
+      const withRedesignedPropEventProperties = {
+        ...unstakeButtonClickEventProperties,
+        is_redesigned: true,
+      };
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
+          .addProperties(withRedesignedPropEventProperties)
+          .build(),
+      );
+
+      return;
     }
+    navigation.navigate('StakeScreens', {
+      screen: Routes.STAKING.UNSTAKE_CONFIRMATION,
+      params: {
+        amountWei: amountWei.toString(),
+        amountFiat: fiatAmount,
+      },
+    });
+
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REVIEW_UNSTAKE_BUTTON_CLICKED)
-        .addProperties({
-          selected_provider: EVENT_PROVIDERS.CONSENSYS,
-          tokens_to_stake_native_value: amountEth,
-          tokens_to_stake_usd_value: fiatAmount,
-        })
+        .addProperties(unstakeButtonClickEventProperties)
         .build(),
     );
   }, [
@@ -132,7 +160,7 @@ const UnstakeInputView = () => {
     trackEvent,
     attemptUnstakeTransaction,
     activeAccount?.address,
-    confirmationRedesignFlags?.staking_transactions,
+    confirmationRedesignFlags?.staking_confirmations,
   ]);
 
   return (
@@ -186,7 +214,8 @@ const UnstakeInputView = () => {
           size={ButtonSize.Lg}
           labelTextVariant={TextVariant.BodyMDMedium}
           variant={ButtonVariants.Primary}
-          isDisabled={isOverMaximum || !isNonZeroAmount}
+          loading={isSubmittingStakeWithdrawalTransaction}
+          isDisabled={isOverMaximum || !isNonZeroAmount || isSubmittingStakeWithdrawalTransaction}
           width={ButtonWidthTypes.Full}
           onPress={handleUnstakePress}
         />

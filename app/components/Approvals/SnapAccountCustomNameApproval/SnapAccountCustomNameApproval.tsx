@@ -88,6 +88,7 @@ const SnapAccountCustomNameApproval = () => {
         approvalRequest?.type ===
         SNAP_MANAGE_ACCOUNTS_CONFIRMATION_TYPES.showNameSnapAccount
       }
+      avoidKeyboard
       onCancel={onReject}
     >
       <View testID={SNAP_ACCOUNT_CUSTOM_NAME_APPROVAL} style={styles.root}>

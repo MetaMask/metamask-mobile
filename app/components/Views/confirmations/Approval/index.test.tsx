@@ -22,6 +22,7 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
   selectUseTransactionSimulations: () => false,
+  selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
 }));
 
 jest.mock('../../../../util/dappTransactions', () => ({

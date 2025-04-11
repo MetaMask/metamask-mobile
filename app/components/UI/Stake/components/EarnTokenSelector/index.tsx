@@ -18,7 +18,9 @@ import NetworkAssetLogo from '../../../NetworkAssetLogo';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { useSelector } from 'react-redux';
 import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -68,6 +70,7 @@ const EarnTokenSelector = ({ token }: EarnTokenSelectorProps) => {
   const renderStartAccessory = () => (
     <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
         badgeElement={
           <Badge
             variant={BadgeVariant.Network}

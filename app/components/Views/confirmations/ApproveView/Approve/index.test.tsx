@@ -25,6 +25,7 @@ jest.mock('../../../../../selectors/preferencesController', () => ({
   selectSmartTransactionsBannerDismissed: () => false,
   selectSmartTransactionsMigrationApplied: () => false,
   selectSmartTransactionsOptInStatus: () => false,
+  selectIsTokenNetworkFilterEqualCurrentNetwork: () => true,
 }));
 
 jest.mock('../../../../../core/GasPolling/GasPolling', () => ({

@@ -31,26 +31,24 @@ const GasFeesDetails = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <InfoSection>
-        <InfoRow
-          label={strings('transactions.network_fee')}
-          tooltip={strings('transactions.network_fee_tooltip')}
-          onTooltipPress={handleNetworkFeeTooltipClickedEvent}
-        >
-          <View style={styles.valueContainer}>
-            {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
-              <Text style={styles.secondaryValue}>
-                {feeCalculations.estimatedFeeFiat}
-              </Text>
-            )}
-            <Text style={styles.primaryValue}>
-              {feeCalculations.estimatedFeeNative}
+    <InfoSection>
+      <InfoRow
+        label={strings('transactions.network_fee')}
+        tooltip={strings('transactions.network_fee_tooltip')}
+        onTooltipPress={handleNetworkFeeTooltipClickedEvent}
+      >
+        <View style={styles.valueContainer}>
+          {!hideFiatForTestnet && feeCalculations.estimatedFeeFiat && (
+            <Text style={styles.secondaryValue}>
+              {feeCalculations.estimatedFeeFiat}
             </Text>
-          </View>
-        </InfoRow>
-      </InfoSection>
-    </View>
+          )}
+          <Text style={styles.primaryValue}>
+            {feeCalculations.estimatedFeeNative}
+          </Text>
+        </View>
+      </InfoRow>
+    </InfoSection>
   );
 };
 
