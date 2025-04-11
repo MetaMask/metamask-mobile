@@ -127,12 +127,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ApprovalType,
-  ChainId,
-  handleFetch,
-  convertHexToDecimal,
-} from '@metamask/controller-utils';
+import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -1694,20 +1689,13 @@ export class Engine {
           selectedInternalAccountFormattedAddress
         ]
       ) {
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const balanceBN = hexToBN(
+        const balanceHex =
           accountsByChainId[toHexadecimal(chainId)][
             selectedInternalAccountFormattedAddress
-          ].balance,
-        );
+          ].balance;
 
-        totalNativeTokenBalance = renderFromWei(
-          convertHexToDecimal(
-            accountsByChainId[toHexadecimal(chainId)][
-              selectedInternalAccountFormattedAddress
-            ].balance,
-          ),
-        );
+        const balanceBN = hexToBN(balanceHex);
+        totalNativeTokenBalance = renderFromWei(balanceHex);
 
         // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const stakedBalanceBN = hexToBN(
