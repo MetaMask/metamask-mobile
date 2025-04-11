@@ -209,6 +209,7 @@ import {
 } from './controllers/network-controller/messenger-action-handlers';
 import { INFURA_PROJECT_ID } from '../../constants/network';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
+import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1095,6 +1096,7 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         CurrencyRateController: currencyRateControllerInit,
@@ -1259,6 +1261,7 @@ export class Engine {
         }),
         state: initialState.AddressBookController,
       }),
+      AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
@@ -2022,6 +2025,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -2070,6 +2074,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
