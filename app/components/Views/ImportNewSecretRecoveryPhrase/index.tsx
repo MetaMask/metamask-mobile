@@ -253,7 +253,11 @@ const ImportNewSecretRecoveryPhrase = () => {
         return state;
       };
 
-      if (newDraftSrp.filter((word) => word !== '').length === numberOfWords) {
+      const numberOfFilledWords = newDraftSrp.filter(
+        (word) => word !== '',
+      ).length;
+
+      if (numberOfFilledWords === 12 || numberOfFilledWords === 24) {
         const joinedDraftSrp = newDraftSrp.join(' ').trim();
         const invalidWords = Array(newDraftSrp.length).fill(false);
         let validationResult = validateSRP(newDraftSrp, invalidWords);
