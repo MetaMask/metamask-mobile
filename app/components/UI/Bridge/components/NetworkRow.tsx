@@ -6,7 +6,7 @@ import { useStyles } from '../../../../component-library/hooks';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 const createStyles = () => StyleSheet.create({
     wrapper: {
@@ -21,7 +21,7 @@ const createStyles = () => StyleSheet.create({
   });
 
 interface NetworkRowProps {
-  chainId: Hex;
+  chainId: Hex | CaipChainId;
   chainName: string;
   children?: React.ReactNode;
 }
