@@ -14,6 +14,11 @@ import { isSnapPreinstalled } from './utils/snaps';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 
 /**
  * Builder type for the Snap keyring.
@@ -155,6 +160,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           op: TraceOperation.AddSnapAccount,
           tags: getTraceTags(store.getState()),
         });
+
+        store.dispatch(
+          startPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
+
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -176,6 +188,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
             accountName,
           );
         }
+
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
+
         endTrace({
           name: TraceName.AddSnapAccount,
         });
