@@ -1637,6 +1637,7 @@ exports[`SnapUIRenderer supports fields with multiple components 1`] = `
                         },
                         {
                           "height": "100%",
+                          "justifyContent": "center",
                           "padding": 0,
                         },
                       ]

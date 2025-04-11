@@ -81,6 +81,7 @@ export const field: UIComponentFactory<FieldElement> = ({
               style: {
                 padding: 0,
                 height: '100%',
+                justifyContent: 'center',
               },
             },
           },
@@ -91,6 +92,7 @@ export const field: UIComponentFactory<FieldElement> = ({
               style: {
                 padding: 0,
                 height: '100%',
+                justifyContent: 'center',
               },
             },
           },
