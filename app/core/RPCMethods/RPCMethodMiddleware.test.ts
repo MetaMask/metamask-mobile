@@ -776,7 +776,6 @@ describe('getRpcMethodMiddleware', () => {
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
           /**
-           * // TODO: [ffmcgee] discuss with Jiexi / come back to this ?
            * `PermissionController.requestPermissions` response can return a valid `{@link Caip25EndowmentPermissionName}` permission object,
            * which does not match the explicit return type for the method implementation itself, so we typecast to prevent compile error.
            */

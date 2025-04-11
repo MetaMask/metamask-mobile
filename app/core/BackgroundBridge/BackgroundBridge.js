@@ -435,77 +435,66 @@ export class BackgroundBridge extends EventEmitter {
     // Handle unsupported RPC Methods
     engine.push(createUnsupportedMethodMiddleware());
 
-    // TODO: remove this try catch after we have things figured out
-    // TODO FIX: --> metamaskState() [jiexi] this isn't correctly shaped for these handlers
-    try {
-      engine.push(
-        createEip1193MethodMiddleware({
-          metamaskState: this.getState(),
-          // Permission-related
-          getAccounts: (...args) =>
-            getPermittedAccounts(
-              this.isMMSDK ? this.channelId : origin,
-              ...args,
-            ),
-          getCaip25PermissionFromLegacyPermissionsForOrigin: (
+    engine.push(
+      createEip1193MethodMiddleware({
+        metamaskState: this.getState(),
+        // Permission-related
+        getAccounts: (...args) =>
+          getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
+        getCaip25PermissionFromLegacyPermissionsForOrigin: (
+          requestedPermissions,
+        ) =>
+          Engine.getCaip25PermissionFromLegacyPermissions(
+            origin,
             requestedPermissions,
-          ) =>
-            Engine.getCaip25PermissionFromLegacyPermissions(
-              origin,
-              requestedPermissions,
-            ),
-          getPermissionsForOrigin: PermissionController.getPermissions.bind(
-            PermissionController,
-            origin,
           ),
-          requestPermissionsForOrigin: (requestedPermissions) =>
-            PermissionController.requestPermissions(
-              { origin },
-              requestedPermissions,
-            ),
-          revokePermissionsForOrigin: (permissionKeys) => {
-            try {
-              PermissionController.revokePermissions({
-                [origin]: permissionKeys,
-              });
-            } catch (e) {
-              // we dont want to handle errors here because
-              // the revokePermissions api method should just
-              // return `null` if the permissions were not
-              // successfully revoked or if the permissions
-              // for the origin do not exist
-            }
-          },
-          // network configuration-related
-          updateCaveat: PermissionController.updateCaveat.bind(
-            PermissionController,
-            origin,
+        getPermissionsForOrigin: PermissionController.getPermissions.bind(
+          PermissionController,
+          origin,
+        ),
+        requestPermissionsForOrigin: (requestedPermissions) =>
+          PermissionController.requestPermissions(
+            { origin },
+            requestedPermissions,
           ),
-          // TODO: [ffmcgee] should this logic below live in Engine ?
-          getUnlockPromise: () => {
-            if (KeyringController.isUnlocked()) {
-              return Promise.resolve();
-            }
-            return new Promise((resolve) => {
-              Engine.controllerMessenger.subscribeOnceIf(
-                'KeyringController:unlock',
-                resolve,
-                () => true,
-              );
+        revokePermissionsForOrigin: (permissionKeys) => {
+          try {
+            PermissionController.revokePermissions({
+              [origin]: permissionKeys,
             });
-          },
-        }),
-      );
-    } catch (err) {
-      console.error(err);
-    }
+          } catch (e) {
+            // we dont want to handle errors here because
+            // the revokePermissions api method should just
+            // return `null` if the permissions were not
+            // successfully revoked or if the permissions
+            // for the origin do not exist
+          }
+        },
+        // network configuration-related
+        updateCaveat: PermissionController.updateCaveat.bind(
+          PermissionController,
+          origin,
+        ),
+        getUnlockPromise: () => {
+          if (KeyringController.isUnlocked()) {
+            return Promise.resolve();
+          }
+          return new Promise((resolve) => {
+            Engine.controllerMessenger.subscribeOnceIf(
+              'KeyringController:unlock',
+              resolve,
+              () => true,
+            );
+          });
+        },
+      }),
+    );
 
     // Legacy RPC methods that need to be implemented ahead of the permission middleware
     engine.push(
       createEthAccountsMethodMiddleware({
         getAccounts: (...args) =>
           getPermittedAccounts(this.isMMSDK ? this.channelId : origin, ...args),
-        // TODO: [ffmcgee] verify with Arthur if this check should be done everywhere we are passing in the origin (this.isMMSDK ? ......)
       }),
     );
 

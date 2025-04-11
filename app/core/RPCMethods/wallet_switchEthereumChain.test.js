@@ -148,7 +148,6 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     }
   });
 
-  // TODO: [ffmcgee] come back to this. L#294 ethereum-chain-utils (should not grantPermissionIncremental ?)
   it('should should show a modal for user approval and not grant permissions', async () => {
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
     const spyOnGrantPermissionsIncremental = jest.spyOn(

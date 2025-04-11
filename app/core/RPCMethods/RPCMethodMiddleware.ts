@@ -410,7 +410,6 @@ export const getRpcMethodMiddleware = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return createAsyncMiddleware(async (req: any, res: any, next: any) => {
     // Used by eth_accounts and eth_coinbase RPCs.
-    // TODO: Check on this
     const getEthAccounts = async () => {
       const accounts = getPermittedAccounts(origin);
       res.result = accounts;
@@ -605,7 +604,6 @@ export const getRpcMethodMiddleware = ({
       eth_requestAccounts: async () => {
         const { params } = req;
 
-        // TODO: Investigate this later
         const permittedAccounts = getPermittedAccounts(origin);
 
         if (!params?.force && permittedAccounts.length) {

@@ -467,7 +467,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       .spyOn(Engine.context.NetworkController, 'updateNetwork')
       .mockReturnValue(networkConfigurationResult);
 
-    // TODO: [ffmcgee] this is passed to switchToNetwork utils function, under `controllers`. For some reason it's not detecting it's call, even though the flow goes to this edge case...
     const spyOnSetActiveNetwork = jest.spyOn(
       Engine.context.MultichainNetworkController,
       'setActiveNetwork',

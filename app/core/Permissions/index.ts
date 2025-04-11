@@ -375,7 +375,6 @@ export const getPermittedChains = async (
   );
 
   if (caveat) {
-    // TODO: [ffmcgee] Jiexi look into this, perhaps we can do it in a cleaner manner, but fixed this during merge conflict so just speed running it atm
     const chains = getPermittedEthChainIds(caveat.value).map(
       (chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`,
     );

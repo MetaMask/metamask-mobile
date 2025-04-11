@@ -28,7 +28,10 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { getDefaultCaip25CaveatValue } from '../../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
 
 export default class DeeplinkProtocolService {
   public connections: DappConnections = {};
@@ -565,18 +568,6 @@ export default class DeeplinkProtocolService {
   }
 
   public getSelectedAccounts() {
-    const permissionController = (
-      Engine.context as {
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        PermissionController: PermissionController<any, any>;
-      }
-    ).PermissionController;
-
-    const permissions = permissionController.getPermissions(
-      this.currentClientId ?? '',
-    );
-
     const accountsController = (
       Engine.context as {
         AccountsController: AccountsController;
@@ -587,9 +578,7 @@ export default class DeeplinkProtocolService {
       accountsController.getSelectedAccount().address,
     );
 
-    // TODO: [ffmcgee] address this, should be caip25 permission value extracted accounts now
-    let connectedAddresses = permissions?.eth_accounts?.caveats?.[0]
-      ?.value as string[];
+    let connectedAddresses = getPermittedAccounts(this.currentClientId ?? '');
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,
