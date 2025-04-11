@@ -7,6 +7,7 @@ import {
   MM_ETHERSCAN_URL,
   MM_BLOCKLIST_ISSUE_URL,
 } from '../../../../../constants/urls';
+import { HOMEPAGE_URL } from '../../constants';
 import Modal from 'react-native-modal';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './styles';
@@ -42,7 +43,6 @@ const PhishingModal = ({
     theme: { colors },
   } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
-
 
   useEffect(() => {
     if (showPhishingModal && blockedUrl) {
@@ -113,15 +113,13 @@ const PhishingModal = ({
    * Go back from phishing website alert
    */
   const goBackToSafety = () => {
-    urlBarRef.current?.setNativeProps({ text: activeUrl });
-
+    urlBarRef.current?.setNativeProps({ text: HOMEPAGE_URL });
     setTimeout(() => {
+      goToUrl(HOMEPAGE_URL);
       setShowPhishingModal(false);
       setBlockedUrl(undefined);
     }, 500);
   };
-
-  
 
   if (!showPhishingModal) return null;
 
