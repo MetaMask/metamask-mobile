@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+<<<<<<< HEAD
 - feat(ramp): Update ramp data flow to fetch cryptos before payment methods ([#14437](https://github.com/MetaMask/metamask-mobile/pull/14437))
+=======
+- feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
+>>>>>>> 59c9466d1536057c1d39d8353bef8c74ecf96d33
 
 ## [7.43.0]
 
