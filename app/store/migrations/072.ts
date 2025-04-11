@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
-import { 
+import {
   ChainId,
   BuiltInNetworkName,
   NetworkNickname,
@@ -62,7 +62,7 @@ const migration = (state: unknown): unknown => {
       // Regardless if the network already exists, we will overwrite it with our default MegaETH configuration.
       state.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
         megaethTestnetChainId
-      ] = megaethTestnetConfiguration
+      ] = megaethTestnetConfiguration;
     }
     return state;
   } catch (error) {

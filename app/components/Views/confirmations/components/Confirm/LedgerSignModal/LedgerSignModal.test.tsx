@@ -11,6 +11,17 @@ import * as ConfirmationActions from '../../../hooks/useConfirmActions';
 
 import LedgerSignModal from './LedgerSignModal';
 
+// Mock trace utility to avoid span.end is not a function error
+jest.mock('../../../../../../util/trace', () => ({
+  startNewSpan: jest.fn(() => ({
+    end: jest.fn(),
+    setTag: jest.fn(),
+    setData: jest.fn(),
+  })),
+  recordChildSpan: jest.fn(),
+  // Add any other trace functions that might be used
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({

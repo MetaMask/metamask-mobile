@@ -29,11 +29,13 @@ describe('updateTransactionToMaxValue', () => {
 
     // Calculate expected max transaction value
     const accountBalanceBN = new BN('2386f26fc10000', 16); // 0.1 ether in wei
-    const transactionFeeMax = new BN(toWei('0.01', 'ether'), 10);
-    const expectedMaxTransactionValueBN =
-      accountBalanceBN.sub(transactionFeeMax);
-    const expectedMaxTransactionValueHex =
-      '0x' + expectedMaxTransactionValueBN.toString(16);
+    const transactionFeeMax = toWei('0.01', 'ether');
+    const expectedMaxTransactionValueBN = accountBalanceBN.sub(
+      new BN(transactionFeeMax.toString()),
+    );
+    const expectedMaxTransactionValueHex = `0x${expectedMaxTransactionValueBN.toString(
+      16,
+    )}`;
 
     // Check if setTransactionValue was called with the correct value
     expect(setTransactionValue).toHaveBeenCalledWith(

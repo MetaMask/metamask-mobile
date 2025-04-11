@@ -6,7 +6,6 @@ import {
   TokensControllerState,
 } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-//@ts-expect-error - This error is expected, but ethereumjs-util exports this function
 import { isHexString } from 'ethereumjs-util';
 
 /**
