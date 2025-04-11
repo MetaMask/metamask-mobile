@@ -50,6 +50,7 @@ import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
 import { isSolanaChainId } from '@metamask/bridge-controller';
+import { useInitialSourceToken } from './hooks/useInitialSourceToken';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -127,12 +128,15 @@ const BridgeView = () => {
   const updateQuoteParams = useBridgeQuoteRequest();
   const destAddress = useSelector(selectDestAddress);
 
+  useInitialSourceToken();
+
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
+
 
   const hasInsufficientBalance = useMemo(() => {
     if (

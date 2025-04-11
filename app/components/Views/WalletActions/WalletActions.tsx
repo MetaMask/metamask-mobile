@@ -70,11 +70,7 @@ const WalletActions = () => {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: 'TabBar',
-    // No token selected on main page, so default to the native swaps token address for the chain
-    token: {
-      address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
-      chainId,
-    },
+    sourcePage: 'MainView',
   });
 
   const closeBottomSheetAndNavigate = useCallback(
