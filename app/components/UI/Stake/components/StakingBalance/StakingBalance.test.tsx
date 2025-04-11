@@ -18,7 +18,6 @@ import * as networks from '../../../../../util/networks';
 import { mockNetworkState } from '../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
-import { mockedEarnFeatureFlagState } from '../../../Earn/__mocks__/mockData';
 
 const MOCK_ADDRESS_1 = '0x0';
 
@@ -34,7 +33,10 @@ const mockInitialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagState,
+          earnPooledStakingEnabled: true,
+          earnPooledStakingServiceInterruptionBannerEnabled: false,
+          earnStablecoinLendingEnabled: false,
+          earnStablecoinLendingServiceInterruptionBannerEnabled: false,
         },
       },
     },
@@ -261,5 +263,36 @@ describe('StakingBalance', () => {
     expect(queryByText(strings('stake.stake_more'))).toBeTruthy();
     expect(queryByText(strings('stake.unstake'))).toBeTruthy();
     expect(queryByText(`${strings('stake.claim')} ETH`)).toBeTruthy();
+  });
+
+  // We don't want to prevent users from withdrawing their ETH regardless of feature flags.
+  it('should render unstake and claim buttons even if pooled-staking feature flag is disabled', () => {
+    const mockStatePooledStakingDisabled = {
+      settings: {},
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnPooledStakingEnabled: false,
+              earnStablecoinLendingEnabled: false,
+            },
+          },
+        },
+      },
+    };
+
+    const { getByText, getByTestId, queryByText } = renderWithProvider(
+      <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
+      { state: mockStatePooledStakingDisabled },
+    );
+
+    expect(queryByText(strings('stake.stake_more'))).toBeNull();
+    expect(queryByText(strings('stake.stake_eth_and_earn'))).toBeNull();
+
+    expect(getByTestId('staking-balance-container')).toBeDefined();
+    expect(getByText(strings('stake.unstake'))).toBeDefined();
+    expect(getByText(`${strings('stake.claim')} ETH`)).toBeDefined();
   });
 });

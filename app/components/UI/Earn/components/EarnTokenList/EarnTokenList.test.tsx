@@ -17,7 +17,7 @@ import * as tokenUtils from '../../../Earn/utils/token';
 import * as useStakingEligibilityHook from '../../../Stake/hooks/useStakingEligibility';
 import * as portfolioNetworkUtils from '../../../../../util/networks';
 import { act, fireEvent } from '@testing-library/react-native';
-import { mockedEarnFeatureFlagState } from '../../__mocks__/mockData';
+import { mockedEarnFeatureFlagsEnabledState } from '../../__mocks__/mockData';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -67,7 +67,7 @@ const initialState = {
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          ...mockedEarnFeatureFlagState,
+          ...mockedEarnFeatureFlagsEnabledState,
         },
       },
     },
@@ -184,7 +184,7 @@ describe('EarnTokenList', () => {
           AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
           RemoteFeatureFlagController: {
             remoteFeatureFlags: {
-              ...mockedEarnFeatureFlagState,
+              ...mockedEarnFeatureFlagsEnabledState,
               earnPooledStakingEnabled: false,
             },
           },
