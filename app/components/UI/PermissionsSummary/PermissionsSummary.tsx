@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import StyledButton from '../StyledButton';
 import {
   ImageSourcePropType,
@@ -80,10 +80,9 @@ const PermissionsSummary = ({
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectEvmChainId);
 
-  const hostname = useMemo(
-    () => new URL(currentPageInformation.url).hostname,
-    [currentPageInformation.url],
-  );
+  // get original page information, but do not allow changing it
+  const [originalPageInformation] = useState(currentPageInformation);
+  const hostname = new URL(originalPageInformation.url).hostname;
   const networkInfo = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -116,8 +115,7 @@ const PermissionsSummary = ({
   };
 
   const renderTopIcon = () => {
-    const { currentEnsName, icon } = currentPageInformation;
-    const url = currentPageInformation.url;
+    const { currentEnsName, icon, url } = currentPageInformation;
     const iconTitle = getHost(currentEnsName || url);
 
     return (
@@ -165,9 +163,7 @@ const PermissionsSummary = ({
                   params: {
                     hostInfo: {
                       metadata: {
-                        origin:
-                          currentPageInformation?.url &&
-                          new URL(currentPageInformation?.url).hostname,
+                        origin: hostname
                       },
                     },
                     connectionDateTime: new Date().getTime(),
@@ -200,7 +196,8 @@ const PermissionsSummary = ({
   );
 
   const onRevokeAllHandler = useCallback(async () => {
-    await Engine.context.PermissionController.revokeAllPermissions(hostname);
+    const hostnameToRevoke = hostname || ''; // should we allow empty hostname?
+    Engine.context.PermissionController.revokeAllPermissions(hostnameToRevoke);
     navigate('PermissionsManager');
   }, [hostname, navigate]);
 
@@ -210,7 +207,7 @@ const PermissionsSummary = ({
       params: {
         hostInfo: {
           metadata: {
-            origin: hostname,
+            origin: hostname || '', // should we allow empty hostname?
           },
         },
         onRevokeAll: !isRenderedAsBottomSheet && onRevokeAllHandler,
@@ -433,7 +430,7 @@ const PermissionsSummary = ({
               PermissionSummaryBottomSheetSelectorsIDs.NETWORK_PERMISSIONS_CONTAINER
             }
           >
-            <TextComponent variant={TextVariant.HeadingSM}>
+            <TextComponent variant={TextVariant.HeadingSM} style={styles.titleText}>
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
                 : !isAlreadyConnected || isNetworkSwitch

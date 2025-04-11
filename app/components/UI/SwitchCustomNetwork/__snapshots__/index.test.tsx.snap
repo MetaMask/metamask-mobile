@@ -131,6 +131,7 @@ exports[`SwitchCustomNetwork should render correctly 1`] = `
               "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
+              "textAlign": "center",
             }
           }
         >
