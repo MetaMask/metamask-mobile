@@ -31,7 +31,7 @@ const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
 export interface BridgeRouteParams {
   token: BridgeToken;
   sourcePage: string;
-  title: BridgeViewMode;
+  bridgeViewMode: BridgeViewMode;
 }
 
 export const useInitialSourceToken = () => {

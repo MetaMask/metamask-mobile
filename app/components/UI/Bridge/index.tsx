@@ -239,7 +239,7 @@ const BridgeView = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       params: {
-        bridgeViewMode: route.params.title,
+        bridgeViewMode: route.params.bridgeViewMode,
       },
     });
 

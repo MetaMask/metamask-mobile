@@ -2840,6 +2840,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Get the",
       "best_price": "best price",
@@ -3871,6 +3872,7 @@
     "quote_info_title": "Why we recommend this quote",
     "see_other_quotes": "See other quotes",
     "receive_at": "Receive at",
-    "bridge_to": "Bridge to"
+    "bridge_to": "Bridge to",
+    "title": "Bridge"
   }
 }

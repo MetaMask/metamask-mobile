@@ -50,13 +50,13 @@ export const useSwapBridgeNavigation = ({
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
   const goToNativeBridge = useCallback(
-    (title: BridgeViewMode) => {
+    (bridgeViewMode: BridgeViewMode) => {
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
           token,
           sourcePage,
-          title,
+          bridgeViewMode,
         } as BridgeRouteParams,
       });
     },
@@ -64,9 +64,9 @@ export const useSwapBridgeNavigation = ({
   );
 
   const goToBridge = useCallback(
-    (title: BridgeViewMode) => {
+    (bridgeViewMode: BridgeViewMode) => {
       if (isBridgeUiEnabled()) {
-        goToNativeBridge(title);
+        goToNativeBridge(bridgeViewMode);
       } else {
         goToPortfolioBridge();
       }
