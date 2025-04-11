@@ -287,10 +287,14 @@ const BridgeView = () => {
             amount={sourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
-            //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={getNetworkImageSource({
-              chainId: sourceToken?.chainId,
-            })}
+            networkImageSource={
+              sourceToken?.chainId
+                ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  getNetworkImageSource({
+                    chainId: sourceToken?.chainId,
+                  })
+                : undefined
+            }
             autoFocus
             isReadonly
             testID="source-token-area"
