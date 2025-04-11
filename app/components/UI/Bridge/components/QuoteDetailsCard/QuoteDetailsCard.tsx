@@ -94,11 +94,6 @@ const QuoteDetailsCard = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
 
-  // // Reset expanded state when dependencies change
-  // useEffect(() => {
-  //   setIsExpanded(false);
-  // }, [sourceToken, destToken]);
-
   const toggleAccordion = useCallback(() => {
     LayoutAnimation.configureNext(
       LayoutAnimation.create(
