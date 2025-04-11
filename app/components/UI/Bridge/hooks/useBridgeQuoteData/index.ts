@@ -96,13 +96,9 @@ export const useBridgeQuoteData = () => {
   ]);
 
   return {
-    sourceToken,
-    destToken,
     quoteFetchError,
     activeQuote,
-    sourceAmount,
     destTokenAmount: formattedDestTokenAmount,
-    slippage,
     isLoading: quotesLoadingStatus === RequestStatus.LOADING,
     formattedQuoteData,
   };

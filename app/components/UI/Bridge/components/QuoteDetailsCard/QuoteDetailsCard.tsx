@@ -40,6 +40,11 @@ import { AvatarSize } from '../../../../../component-library/components/Avatars/
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import {
+  selectSourceAmount,
+  selectDestToken,
+  selectSourceToken,
+} from '../../../../../core/redux/slices/bridge';
 
 const ANIMATION_DURATION_MS = 300;
 
@@ -84,8 +89,10 @@ const QuoteDetailsCard = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const rotationValue = useSharedValue(0);
 
-  const { sourceToken, destToken, formattedQuoteData, sourceAmount } =
-    useBridgeQuoteData();
+  const { formattedQuoteData } = useBridgeQuoteData();
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
+  const sourceAmount = useSelector(selectSourceAmount);
 
   // // Reset expanded state when dependencies change
   // useEffect(() => {
