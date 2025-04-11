@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestToken } from '../../../../../core/redux/slices/bridge';
@@ -15,6 +15,11 @@ import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import { BridgeViewMode } from '../../hooks/useInitialSourceToken';
+
+export interface BridgeDestTokenSelectorRouteParams {
+  bridgeViewMode: BridgeViewMode;
+}
 
 const createStyles = () => StyleSheet.create({
   infoButton: {
@@ -25,9 +30,10 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: BridgeDestTokenSelectorRouteParams }, 'params'>>();
+
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedDestToken = useSelector(selectDestToken);
-
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
   const { tokens: tokensList, pending } = useTokens({
@@ -83,7 +89,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
 
   return (
     <BridgeTokenSelectorBase
-      networksBar={<BridgeDestNetworksBar />}
+      networksBar={route.params.bridgeViewMode === BridgeViewMode.Bridge ? <BridgeDestNetworksBar /> : undefined}
       renderTokenItem={renderToken}
       tokensList={tokensList}
       pending={pending}

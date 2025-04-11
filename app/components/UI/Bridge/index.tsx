@@ -238,7 +238,9 @@ const BridgeView = () => {
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.title,
+      },
     });
 
   const renderBottomContent = () => {
