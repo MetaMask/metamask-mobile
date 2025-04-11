@@ -11,6 +11,7 @@ const CONSOLE_LOG_CONFIG = {
   showHeaders: false,
   showRequestBody: true,
   showResponseBody: false,
+  segmentTracking: true
 };
 
 /**
@@ -169,6 +170,25 @@ export const startApiMonitor = async (port) => {
           requestLog.body = '[Error reading body]';
         }
       }
+
+        if (CONSOLE_LOG_CONFIG.segmentTracking) {
+          await mockServer
+          .forPost('/track_test_mm')
+          .thenCallback(async (req) => {
+            let body;
+            try {
+              body = await req.body.getJson();
+              console.log('TRACK EVENT:', body);
+            } catch (e) {
+              console.log('TRACK EVENT error:', e);
+            }
+
+            return {
+              status: 200,
+              json: body
+            };
+          });
+        }
 
       // Console logging
 

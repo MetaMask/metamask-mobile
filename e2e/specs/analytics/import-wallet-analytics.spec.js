@@ -2,17 +2,27 @@
 import { SmokeAnalytics } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import SegmentHelper from './utils/SegmentHelper';
-import { startSegmentTracking } from './utils/segmentEventTracker';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { DEFAULT_MOCKSERVER_PORT } from '../../fixtures/utils';
+import SegmentTracker from './utils/SegmentTracker';
+import Assertions from '../../utils/Assertions';
 
 describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
   let mockServer;
+  let segmentTracker;
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    mockServer = await startSegmentTracking()
-    await TestHelpers.launchApp();
-    await SegmentHelper.clearEvents();
+    mockServer = await startMockServer({}, DEFAULT_MOCKSERVER_PORT);
+    const detoxTestId = 'import-wallet-analytics-test';
+    segmentTracker = new SegmentTracker(detoxTestId, mockServer);
+    await segmentTracker.startTracking();
+    await TestHelpers.launchApp({
+      newInstance: true,
+      launchArgs: {
+        detoxTestId,
+      }
+    });
   });
 
   afterAll(async () => {
@@ -20,7 +30,18 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
   });
 
   it('should track analytics events during wallet import', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP); 
-    await SegmentHelper.assertEventWithPropertiesExists('Wallet Setup Completed',  { wallet_setup_type: 'import', new_wallet: false} );
+    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+    const walletSetupEvent = await segmentTracker.getEventsByName('Wallet Setup Completed');
+    await Assertions.checkIfArrayHasLength(
+      walletSetupEvent,
+      1,
+    );
+    await Assertions.checkIfObjectsMatch(
+      walletSetupEvent,
+      {
+        wallet_setup_type: 'import',
+        new_wallet: true,
+      },
+    );
   });
 });

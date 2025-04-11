@@ -157,6 +157,56 @@ class Assertions {
       }
     }
   }
+
+  /**
+   * Check if two objects match exactly.
+   * @param {Object} actualObject - The actual object to check.
+   * @param {Object} expectedObject - The expected object to match against.
+   */
+  static async checkIfObjectsMatch(actualObject, expectedObject) {
+    try {
+      if (!actualObject || !expectedObject) {
+        throw new Error('Both actual and expected objects must be provided');
+      }
+
+      return expect(actualObject).toEqual(expectedObject);
+    } catch (error) {
+      if (JSON.stringify(actualObject) !== JSON.stringify(expectedObject)) {
+        throw new Error(
+          `Object matching failed.\nExpected: ${JSON.stringify(
+            expectedObject,
+            null,
+            2,
+          )}\nActual: ${JSON.stringify(actualObject, null, 2)}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Check if an array has the expected length.
+   * @param {Array} array - The array to check.
+   * @param {number} expectedLength - The expected length of the array.
+   */
+  static async checkIfArrayHasLength(array, expectedLength) {
+    try {
+      if (!Array.isArray(array)) {
+        throw new Error('The provided value is not an array');
+      }
+
+      if (typeof expectedLength !== 'number') {
+        throw new Error('Expected length must be a number');
+      }
+
+      return expect(array.length).toBe(expectedLength);
+    } catch (error) {
+      if (array.length !== expectedLength) {
+        throw new Error(
+          `Array length assertion failed.\nExpected length: ${expectedLength}\nActual length: ${array.length}`,
+        );
+      }
+    }
+  }
 }
 
 export default Assertions;

@@ -684,7 +684,7 @@ class MetaMetrics implements IMetaMetrics {
       return;
     }
 
-    if (isE2E && __DEV__) {
+    if (isE2E) {
       // In E2E mode, send the event to the test server
       MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
