@@ -12,7 +12,7 @@ export const useInitialDestToken = () => {
   const dispatch = useDispatch();
   const chainId = useSelector(selectChainId);
 
-  const isSwap = route.params.title === BridgeViewMode.Swap;
+  const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
 
   useEffect(() => {
     const defaultDestToken = DefaultSwapDestTokens[chainId];
