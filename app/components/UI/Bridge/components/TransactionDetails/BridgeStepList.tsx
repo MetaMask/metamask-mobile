@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
