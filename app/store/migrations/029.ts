@@ -466,8 +466,7 @@ export default async function migrate(stateAsync: unknown) {
     transactionControllerState.transactions.forEach(
       (transaction: TransactionParams, index: number) => {
         if (
-          transaction &&
-          transaction.chainId &&
+          transaction?.chainId &&
           !isHexString(transaction.chainId as string)
         ) {
           if (
