@@ -1,11 +1,11 @@
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { setSourceToken } from '../../../../core/redux/slices/bridge';
+import { setSourceToken } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { BridgeToken, BridgeViewMode } from '../types';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { useSwitchNetworks } from '../../../Views/NetworkSelector/useSwitchNetworks';
-import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
+import { BridgeToken, BridgeViewMode } from '../../types';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { constants } from 'ethers';

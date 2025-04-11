@@ -1,11 +1,11 @@
-import { setDestToken } from '../../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
-import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
-import { selectChainId } from '../../../../selectors/networkController';
+import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
+import { selectChainId } from '../../../../../selectors/networkController';
 import { RouteProp , useRoute } from '@react-navigation/native';
-import { BridgeRouteParams } from './useInitialSourceToken';
-import { BridgeViewMode } from '../types';
+import { BridgeRouteParams } from '../useInitialSourceToken';
+import { BridgeViewMode } from '../../types';
 
 export const useInitialDestToken = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
