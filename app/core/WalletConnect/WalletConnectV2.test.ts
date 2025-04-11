@@ -112,6 +112,7 @@ jest.mock('../Engine', () => ({
 }));
 
 jest.mock('../Permissions', () => ({
+  ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest
     .fn()
     .mockReturnValue(['0x1234567890abcdef1234567890abcdef12345678']),
