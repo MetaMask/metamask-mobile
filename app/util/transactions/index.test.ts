@@ -1183,8 +1183,8 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const validEthAddress = '0x1234567890123456789012345678901234567890';
   const chainId = '1';
-  it('returns `Confirm` review action key when no specific transaction action key exists', async () => {
-    const expectedReviewActionKey = 'Confirm';
+  it('returns `Unknown Method` review action key when no specific transaction action key exists', async () => {
+    const expectedReviewActionKey = 'Unknown Method';
     const result = await getTransactionReviewActionKey(
       { transaction: { to: validEthAddress } },
       chainId,
@@ -1195,12 +1195,7 @@ describe('Transactions utils :: getTransactionReviewActionKey', () => {
   it('returns correct review action key', async () => {
     const expectedReviewActionKey = 'Increase Allowance';
     const result = await getTransactionReviewActionKey(
-      {
-        transaction: {
-          to: validEthAddress,
-          data: INCREASE_ALLOWANCE_SIGNATURE,
-        },
-      },
+      { transaction: { ...transaction, data: INCREASE_ALLOWANCE_SIGNATURE } },
       chainId,
     );
     expect(result).toEqual(expectedReviewActionKey);
