@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute , RouteProp } from '@react-navigation/native';
 import { Box } from '../../../Box/Box';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
@@ -13,6 +13,11 @@ import { VerticalAlignment } from '../../../../../component-library/components/L
 import { Hex, CaipChainId } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
+import Routes from '../../../../../constants/navigation/Routes';
+
+export interface BridgeDestNetworkSelectorRouteParams {
+  shouldGoToTokens: boolean;
+}
 
 const createStyles = () => StyleSheet.create({
     listContent: {
@@ -23,13 +28,22 @@ const createStyles = () => StyleSheet.create({
 export const BridgeDestNetworkSelector: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<{ params: BridgeDestNetworkSelectorRouteParams }, 'params'>>();
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
 
   const handleChainSelect = useCallback((chainId: Hex | CaipChainId) => {
     dispatch(setSelectedDestChainId(chainId));
+
     navigation.goBack();
-  }, [dispatch, navigation]);
+
+    if (route.params.shouldGoToTokens) {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+        params: {},
+      });
+    }
+  }, [dispatch, navigation, route.params.shouldGoToTokens]);
 
   const renderDestChains = useCallback(() => (
     enabledDestChains.map((chain) => (

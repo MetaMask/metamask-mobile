@@ -16,8 +16,10 @@ import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { constants } from 'ethers';
 ///: END:ONLY_INCLUDE_IF
 
-interface BridgeRouteParams {
+export interface BridgeRouteParams {
   token: BridgeToken;
+  sourcePage: string;
+  title: string;
 }
 
 export const useInitialSourceToken = () => {

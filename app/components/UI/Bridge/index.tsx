@@ -35,7 +35,7 @@ import {
   selectDestAddress,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -50,7 +50,7 @@ import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
 import { isSolanaChainId } from '@metamask/bridge-controller';
-import { useInitialSourceToken } from './hooks/useInitialSourceToken';
+import { useInitialSourceToken, BridgeRouteParams } from './hooks/useInitialSourceToken';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -116,7 +116,7 @@ const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
 
