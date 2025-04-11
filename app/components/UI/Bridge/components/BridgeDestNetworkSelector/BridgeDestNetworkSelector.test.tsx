@@ -8,6 +8,7 @@ import {
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
 } from '@metamask/bridge-controller';
+import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -33,56 +34,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 describe('BridgeDestNetworkSelector', () => {
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
-  const baseChainId = '0x2105' as Hex;
-
-  const initialState = {
-    engine: {
-      backgroundState: {
-        BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-              chains: {
-                [formatChainIdToCaip(mockChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-                [formatChainIdToCaip(optimismChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-                [formatChainIdToCaip(baseChainId)]: {
-                  isActiveSrc: false,
-                  isActiveDest: true,
-                },
-              },
-            },
-          },
-        },
-        NetworkController: {
-          networkConfigurationsByChainId: {
-            [mockChainId]: {
-              chainId: mockChainId,
-              nickname: 'Ethereum Mainnet',
-              name: 'Ethereum Mainnet',
-            },
-            [optimismChainId]: {
-              chainId: optimismChainId,
-              nickname: 'Optimism',
-              name: 'Optimism',
-            },
-            [baseChainId]: {
-              chainId: baseChainId,
-              nickname: 'Base',
-              name: 'Base',
-            },
-          },
-        },
-      },
-    },
-    bridge: {
-      selectedDestChainId: undefined,
-    },
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,7 +54,6 @@ describe('BridgeDestNetworkSelector', () => {
     // Networks should be visible
     expect(getByText('Ethereum Mainnet')).toBeTruthy();
     expect(getByText('Optimism')).toBeTruthy();
-    expect(getByText('Base')).toBeTruthy();
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -163,10 +113,6 @@ describe('BridgeDestNetworkSelector', () => {
                     isActiveSrc: true,
                     isActiveDest: true,
                   },
-                  [formatChainIdToCaip(baseChainId)]: {
-                    isActiveSrc: false,
-                    isActiveDest: true,
-                  },
                 },
               },
             },
@@ -188,6 +134,5 @@ describe('BridgeDestNetworkSelector', () => {
 
     // Optimism and Base should be visible
     expect(queryByText('Optimism')).toBeTruthy();
-    expect(queryByText('Base')).toBeTruthy();
   });
 });

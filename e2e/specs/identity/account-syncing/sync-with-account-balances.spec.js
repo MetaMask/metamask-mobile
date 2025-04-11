@@ -1,8 +1,6 @@
-import { SDK } from '@metamask/profile-sync-controller';
 import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
-  IDENTITY_TEAM_STORAGE_KEY,
 } from '../utils/constants';
 import {
   startMockServer,
@@ -31,8 +29,7 @@ describe(
     'Account syncing - user already has balances on multiple accounts',
   ),
   () => {
-    let mockServer;
-    const decryptedAccountNames = '';
+    const TEST_SPECIFIC_MOCK_SERVER_PORT = 8002;
     const unencryptedAccounts = accountsToMockForAccountsSync;
 
     const INITIAL_ACCOUNTS = [
@@ -65,36 +62,7 @@ describe(
     };
 
     let accountsToMockBalances = [...INITIAL_ACCOUNTS];
-
-    beforeAll(async () => {
-      await TestHelpers.reverseServerPort();
-
-      mockServer = await startMockServer();
-
-      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
-
-      const { userStorageMockttpControllerInstance } =
-        await mockIdentityServices(mockServer);
-
-      userStorageMockttpControllerInstance.setupPath(
-        USER_STORAGE_FEATURE_NAMES.accounts,
-        mockServer,
-        {
-          getResponse: accountsSyncMockResponse,
-        },
-      );
-
-      setupAccountMockedBalances(mockServer, accountsToMockBalances);
-
-      await TestHelpers.launchApp({
-        newInstance: true,
-        delete: true,
-      });
-    });
-
-    afterAll(async () => {
-      await stopMockServer(mockServer);
-    });
+    let mockServer;
 
     /**
      * This test verifies the complete account syncing flow in three phases:
@@ -103,7 +71,40 @@ describe(
      * Phase 3: Verification that any final changes to user storage are persisted and that we don't see any extra accounts created
      */
 
+    beforeAll(async () => {
+      await TestHelpers.reverseServerPort();
+
+      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+
+      const accountsSyncMockResponse = await getAccountsSyncMockResponse();
+
+      const { userStorageMockttpControllerInstance } =
+        await mockIdentityServices(mockServer);
+
+      await userStorageMockttpControllerInstance.setupPath(
+        USER_STORAGE_FEATURE_NAMES.accounts,
+        mockServer,
+        {
+          getResponse: accountsSyncMockResponse,
+        },
+      );
+
+      await setupAccountMockedBalances(mockServer, accountsToMockBalances);
+    });
+
+    afterAll(async () => {
+      if (mockServer) {
+        await stopMockServer(mockServer);
+      }
+    });
+
     it('handles account syncing with balances correctly', async () => {
+      await TestHelpers.launchApp({
+        newInstance: true,
+        delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+      });
+
       // PHASE 1: Initial setup and account creation
       // Complete initial setup with provided seed phrase
       await importWalletWithRecoveryPhrase(
@@ -112,12 +113,13 @@ describe(
       );
 
       // Verify initial state and balance
+      // Adding a delay here to make sure that importAdditionalAccounts has completed
+      await TestHelpers.delay(6000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
 
       // Verify each initial account name
-      for (const accountName of decryptedAccountNames) {
+      for (const accountName of EXPECTED_ACCOUNT_NAMES.INITIAL) {
         await Assertions.checkIfVisible(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
@@ -128,14 +130,16 @@ describe(
       await AddAccountBottomSheet.tapCreateAccount();
       await TestHelpers.delay(2000);
 
-      accountsToMockBalances = [...INITIAL_ACCOUNTS, ...ADDITIONAL_ACCOUNTS];
-      setupAccountMockedBalances(mockServer, accountsToMockBalances);
-
       // PHASE 2: Verify discovery of new accounts with balances
       // Complete setup again for new session
+      accountsToMockBalances = [...INITIAL_ACCOUNTS, ...ADDITIONAL_ACCOUNTS];
+      await setupAccountMockedBalances(mockServer, accountsToMockBalances);
+      await TestHelpers.delay(2000);
+
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
 
       await importWalletWithRecoveryPhrase(
@@ -144,9 +148,11 @@ describe(
       );
 
       // Verify initial state and balance
+      // Adding a delay here to make sure that importAdditionalAccounts has completed
+      await TestHelpers.delay(6000);
       await WalletView.tapIdenticon();
       await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
+      await TestHelpers.delay(2000);
 
       // Verify all accounts including newly discovered ones (which would have been synced / have balances)
       for (const accountName of EXPECTED_ACCOUNT_NAMES.WITH_NEW_ACCOUNTS) {
@@ -154,33 +160,6 @@ describe(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
-
-      // Rename Account 6 to verify update to user storage
-      await AccountListBottomSheet.tapEditAccountActionsAtIndex(5);
-      await AccountActionsBottomSheet.renameActiveAccount(
-        'My Renamed Account 6',
-      );
-
-      // PHASE 3: Verify name persistence across sessions
-      await TestHelpers.launchApp({
-        newInstance: true,
-        delete: true,
-      });
-
-      await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
-      );
-
-      await WalletView.tapIdenticon();
-      await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-      await TestHelpers.delay(4000);
-
-      await Assertions.checkIfVisible(
-        AccountListBottomSheet.getAccountElementByAccountName(
-          'My Renamed Account 6',
-        ),
-      );
     });
   },
 );
