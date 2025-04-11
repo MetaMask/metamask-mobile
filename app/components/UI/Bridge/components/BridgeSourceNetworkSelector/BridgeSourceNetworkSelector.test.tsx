@@ -5,7 +5,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { Hex } from '@metamask/utils';
 import { setSelectedSourceChainIds } from '../../../../../core/redux/slices/bridge';
 import { BridgeSourceNetworkSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Bridge/BridgeSourceNetworkSelector.selectors';
-import { bridgeTestInitialState } from '../../_mocks_/bridgeInitialState';
+import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -50,7 +50,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Header should be visible
@@ -81,7 +81,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initially both networks should be selected
@@ -111,7 +111,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initially should show "Deselect all networks" since all networks are selected
@@ -156,7 +156,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Uncheck Ethereum network
@@ -183,7 +183,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-network-selector-close-button');
@@ -198,7 +198,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Deselect all networks
@@ -218,7 +218,7 @@ describe('BridgeSourceNetworkSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_NETWORK_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Get all network items

@@ -3,10 +3,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setDestToken } from '../../../../../core/redux/slices/bridge';
-import {
-  bridgeTestInitialState,
-  ethToken2Address,
-} from '../../_mocks_/bridgeInitialState';
+import { initialState, ethToken2Address } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -89,7 +86,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Header should be visible
@@ -109,7 +106,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -137,7 +134,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -177,7 +174,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-token-selector-close-button');
@@ -192,7 +189,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initially all tokens should be visible
@@ -224,7 +221,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const searchInput = getByTestId('bridge-token-search-input');
@@ -241,7 +238,7 @@ describe('BridgeDestTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const seeAllButton = getByText('See all');

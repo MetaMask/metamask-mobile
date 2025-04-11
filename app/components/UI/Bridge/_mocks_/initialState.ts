@@ -15,7 +15,7 @@ export const ethToken2Address =
 export const optimismToken1Address =
   '0x0000000000000000000000000000000000000003' as Hex;
 
-export const bridgeTestInitialState = {
+export const initialState = {
   engine: {
     backgroundState: {
       BridgeController: defaultBridgeControllerState,

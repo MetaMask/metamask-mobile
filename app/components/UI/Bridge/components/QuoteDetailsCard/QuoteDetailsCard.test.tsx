@@ -4,7 +4,7 @@ import QuoteDetailsCard from './QuoteDetailsCard';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import mockQuotes from '../../_mocks_/mock-quotes-native-erc20.json';
-import { bridgeTestInitialState } from '../../_mocks_/bridgeInitialState';
+import { initialState } from '../../_mocks_/initialState';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -55,7 +55,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
     expect(toJSON()).toMatchSnapshot();
   });
@@ -66,7 +66,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Expand the accordion
@@ -82,7 +82,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     expect(getByText('0.01')).toBeDefined();
@@ -94,7 +94,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     expect(getByText('1 min')).toBeDefined();
@@ -106,7 +106,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     expect(getByText('1 ETH = 24.4 USDC')).toBeDefined();
@@ -118,7 +118,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initially price impact should not be visible
@@ -145,7 +145,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Expand the accordion first
@@ -168,7 +168,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     expect(getByText('Ethereum Mainnet')).toBeDefined();
@@ -181,7 +181,7 @@ describe('QuoteDetailsCard', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Expand the accordion first

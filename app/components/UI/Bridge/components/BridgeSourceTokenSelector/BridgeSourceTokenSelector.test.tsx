@@ -3,7 +3,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeSourceTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
 import { setSourceToken } from '../../../../../core/redux/slices/bridge';
-import { bridgeTestInitialState } from '../../_mocks_/bridgeInitialState';
+import { initialState } from '../../_mocks_/initialState';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -86,7 +86,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Header should be visible
@@ -116,7 +116,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -144,7 +144,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const closeButton = getByTestId('bridge-token-selector-close-button');
@@ -159,7 +159,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initially all tokens should be visible
@@ -193,7 +193,7 @@ describe('BridgeSourceTokenSelector', () => {
       {
         name: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
       },
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     const searchInput = getByTestId('bridge-token-search-input');

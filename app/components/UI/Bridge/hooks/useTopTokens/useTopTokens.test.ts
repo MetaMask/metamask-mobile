@@ -8,7 +8,7 @@ import {
   fetchBridgeTokens,
 } from '@metamask/bridge-controller';
 import { handleFetch } from '@metamask/controller-utils';
-import { bridgeTestInitialState } from '../../_mocks_/bridgeInitialState';
+import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken } from '../../types';
 
 // Mock dependencies
@@ -43,7 +43,7 @@ describe('useTopTokens', () => {
 
   it('should return empty array when no chainId is provided', () => {
     const { result } = renderHookWithProvider(() => useTopTokens({}), {
-      state: bridgeTestInitialState,
+      state: initialState,
     });
 
     expect(result.current.topTokens).toEqual([]);
@@ -78,7 +78,7 @@ describe('useTopTokens', () => {
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     // Initial state should be pending
@@ -126,7 +126,7 @@ describe('useTopTokens', () => {
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     await waitFor(() => {
@@ -140,7 +140,7 @@ describe('useTopTokens', () => {
 
     const { result } = renderHookWithProvider(
       () => useTopTokens({ chainId: mockChainId }),
-      { state: bridgeTestInitialState },
+      { state: initialState },
     );
 
     await waitFor(() => {
