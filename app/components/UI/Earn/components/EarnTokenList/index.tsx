@@ -27,12 +27,13 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import UpsellBanner from '../../../Stake/components/UpsellBanner';
 import { UPSELL_BANNER_VARIANTS } from '../../../Stake/components/UpsellBanner/UpsellBanner.types';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import EarnTokenListItem from '../EarnTokenListItem';
 import Engine from '../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnInputView.types';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import useEarnTokens from '../../hooks/useEarnTokens';
+import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { useSelector } from 'react-redux';
 
 const isEmptyBalance = (token: { balanceFormatted: string }) =>
   parseFloat(token?.balanceFormatted) === 0;
@@ -171,7 +172,11 @@ const EarnTokenList = () => {
  * We can delete this wrapped once these feature flags are removed.
  */
 const EarnTokenListWrapper = () => {
-  if (isStablecoinLendingFeatureEnabled() && isPortfolioViewEnabled()) {
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+
+  if (isStablecoinLendingEnabled && isPortfolioViewEnabled()) {
     return <EarnTokenList />;
   }
 

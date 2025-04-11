@@ -13,10 +13,10 @@ import { selectNetworkConfigurations } from '../../../../selectors/networkContro
 import { selectTokensBalances } from '../../../../selectors/tokenBalancesController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { addCurrencySymbol } from '../../../../util/number';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import useBalance from '../../Stake/hooks/useBalance';
 import { TokenI } from '../../Tokens/types';
 import { deriveBalanceFromAssetMarketDetails } from '../../Tokens/util';
+import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
 
 // Mock APR values - will be replaced with real API data later
 const MOCK_APR_VALUES: { [symbol: string]: string } = {
@@ -44,6 +44,10 @@ export const useEarnTokenDetails = () => {
   );
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const currentCurrency = useSelector(selectCurrentCurrency);
+
+  const isStablecoinLendingFeatureEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
 
   const { balanceWei, balanceFiatNumber } = useBalance();
 
@@ -81,7 +85,7 @@ export const useEarnTokenDetails = () => {
 
       let estimatedAnnualRewardsFormatted = '';
       let apr = '0.0';
-      if (isStablecoinLendingFeatureEnabled()) {
+      if (isStablecoinLendingFeatureEnabled) {
         apr = MOCK_APR_VALUES[token.symbol] || apr;
         const rewardRateDecimal = new BigNumber(apr).dividedBy(100).toNumber();
         const estimatedAnnualRewardsDecimal = new BigNumber(
@@ -133,14 +137,15 @@ export const useEarnTokenDetails = () => {
       };
     },
     [
-      currentCurrency,
-      multiChainCurrencyRates,
-      multiChainMarketData,
-      multiChainTokenBalance,
       networkConfigurations,
-      selectedInternalAccountAddress,
       balanceWei,
+      multiChainTokenBalance,
+      selectedInternalAccountAddress,
+      multiChainMarketData,
+      multiChainCurrencyRates,
+      currentCurrency,
       balanceFiatNumber,
+      isStablecoinLendingFeatureEnabled,
     ],
   );
 

@@ -8,7 +8,8 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
 import CurrencyToggle from '../CurrencySwitch';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
+import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { useSelector } from 'react-redux';
 
 export interface InputDisplayProps {
   isOverMaximum: {
@@ -29,7 +30,10 @@ export interface InputDisplayProps {
 
 const { View: AnimatedView } = Animated;
 
-const createStyles = (colors: Colors) =>
+const createStyles = (
+  colors: Colors,
+  params: { isStablecoinLendingEnabled: boolean },
+) =>
   StyleSheet.create({
     inputContainer: {
       flex: 1,
@@ -44,7 +48,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       gap: 4,
     },
-    amountText: isStablecoinLendingFeatureEnabled()
+    amountText: params?.isStablecoinLendingEnabled
       ? {
           fontSize: 40,
           lineHeight: 50,
@@ -76,9 +80,11 @@ const InputDisplay = ({
   currencyToggleValue,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const isStablecoinLendingEnabled = useSelector(
+    selectStablecoinLendingEnabledFlag,
+  );
+  const styles = createStyles(colors, { isStablecoinLendingEnabled });
   const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-  const isStablecoinLendingEnabled = isStablecoinLendingFeatureEnabled();
 
   useEffect(() => {
     const blinkAnimation = Animated.loop(

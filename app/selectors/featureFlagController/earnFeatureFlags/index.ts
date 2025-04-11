@@ -7,7 +7,7 @@ export const selectPooledStakingEnabledFlag = createSelector(
     const localFlag = process.env.MM_POOLED_STAKING_ENABLED;
     const remoteFlag = remoteFeatureFlags?.earnPooledStakingEnabled;
     const result = localFlag ?? remoteFlag;
-    return result;
+    return result as boolean;
   },
 );
 
@@ -22,11 +22,11 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
 
 export const selectStablecoinLendingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
+  (remoteFeatureFlags): boolean => {
     const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED;
     const remoteFlag = remoteFeatureFlags?.earnStablecoinLendingEnabled;
     const result = localFlag ?? remoteFlag;
-    return result;
+    return result as boolean;
   },
 );
 

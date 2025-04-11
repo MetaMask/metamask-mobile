@@ -2,8 +2,8 @@ import { BNToHex } from '@metamask/controller-utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { fireEvent } from '@testing-library/react-native';
 import BigNumber from 'bignumber.js';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import { Contract } from 'ethers';
 import React from 'react';
@@ -12,7 +12,10 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetricsEventBuilder } from '../../../../../core/Analytics/MetricsEventBuilder';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { toWei, weiToFiatNumber } from '../../../../../util/number';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -31,13 +34,17 @@ import {
   MOCK_GET_VAULT_RESPONSE,
 } from '../../../Stake/__mocks__/mockData';
 import { MOCK_VAULT_APY_AVERAGES } from '../../../Stake/components/PoolStakingLearnMoreModal/mockVaultRewards';
-import { isStablecoinLendingFeatureEnabled } from '../../../Stake/constants';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
 // eslint-disable-next-line import/no-namespace
 import * as useBalance from '../../../Stake/hooks/useBalance';
 import usePoolStakedDeposit from '../../../Stake/hooks/usePoolStakedDeposit';
 // eslint-disable-next-line import/no-namespace
 import * as useStakingGasFee from '../../../Stake/hooks/useStakingGasFee';
+import {
+  EARN_INPUT_VIEW_ACTIONS,
+  EarnInputViewProps,
+} from './EarnInputView.types';
+// eslint-disable-next-line import/no-namespace
 import { Stake } from '../../../Stake/sdk/stakeSdkProvider';
 import {
   createMockToken,
@@ -45,10 +52,7 @@ import {
 } from '../../../Stake/testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 import EarnInputView from './EarnInputView';
-import {
-  EARN_INPUT_VIEW_ACTIONS,
-  EarnInputViewProps,
-} from './EarnInputView.types';
+import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 
 const MOCK_USDC_MAINNET_ASSET = createMockToken({
   ...getCreateMockTokenOptions(
@@ -56,6 +60,7 @@ const MOCK_USDC_MAINNET_ASSET = createMockToken({
     TOKENS_WITH_DEFAULT_OPTIONS.USDC,
   ),
   address: '0x123232',
+  balanceFiat: '$33.23',
 });
 
 const mockSetOptions = jest.fn();
@@ -68,10 +73,6 @@ jest.mock('../../../../hooks/useMetrics/useMetrics');
 
 jest.mock('../../../Navbar', () => ({
   getStakingNavbar: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('../../../Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -139,6 +140,14 @@ const mockPooledStakingContractService: PooledStakingContract = {
   estimateMulticallGas: jest.fn(),
   getShares: jest.fn(),
 };
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/earnFeatureFlags',
+  () => ({
+    selectPooledStakingEnabledFlag: jest.fn(),
+    selectStablecoinLendingEnabledFlag: jest.fn(),
+  }),
+);
 
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {
@@ -237,16 +246,27 @@ const mockInitialState: DeepPartial<RootState> = {
           },
         },
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          earnStablecoinLendingEnabled: false,
+        },
+      },
     },
   },
 };
 
-describe('StakeInputView', () => {
+describe('EarnInputView', () => {
   const usePoolStakedDepositMock = jest.mocked(usePoolStakedDeposit);
-  const selectConfirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags)
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
+  const selectStablecoinLendingEnabledFlagMock = jest.mocked(
+    selectStablecoinLendingEnabledFlag,
+  );
+
   const baseProps: EarnInputViewProps = {
     route: {
       params: {
@@ -260,14 +280,10 @@ describe('StakeInputView', () => {
   const mockTrackEvent = jest.fn();
   const useMetricsMock = jest.mocked(useMetrics);
   const mockGetStakingNavbar = jest.mocked(getStakingNavbar);
-  const mockIsStablecoinLendingFeatureEnabled = jest.mocked(
-    isStablecoinLendingFeatureEnabled,
-  );
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    mockIsStablecoinLendingFeatureEnabled.mockReturnValue(false);
     selectSelectedInternalAccountMock.mockImplementation(
       () =>
         ({
@@ -276,7 +292,7 @@ describe('StakeInputView', () => {
     );
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags) ;
+    } as unknown as ConfirmationRedesignRemoteFlags);
     usePoolStakedDepositMock.mockReturnValue({
       attemptDepositTransaction: jest.fn(),
     });
@@ -284,6 +300,8 @@ describe('StakeInputView', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useMetrics>);
+
+    selectStablecoinLendingEnabledFlagMock.mockImplementation(() => false);
   });
 
   function render(
@@ -311,9 +329,10 @@ describe('StakeInputView', () => {
   });
 
   describe('when erc20 token is selected', () => {
-    it('renders the correct USDC token', () => {
-      mockIsStablecoinLendingFeatureEnabled.mockReturnValue(true);
-      const { getByText } = render(EarnInputView, {
+    it('renders the correct USDC token', async () => {
+      selectStablecoinLendingEnabledFlagMock.mockImplementation(() => true);
+
+      const { getByText, getAllByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
           action: EARN_INPUT_VIEW_ACTIONS.LEND,
@@ -323,6 +342,8 @@ describe('StakeInputView', () => {
         name: 'params',
       });
 
+      screen.debug();
+
       expect(mockGetStakingNavbar).toHaveBeenCalledWith(
         'Deposit',
         expect.anything(),
@@ -330,36 +351,54 @@ describe('StakeInputView', () => {
         expect.anything(),
         expect.anything(),
       );
-      expect(getByText('1 USDC')).toBeTruthy();
-      expect(getByText('$0')).toBeTruthy();
 
-      fireEvent.press(getByText('1'));
+      // "0" in the input display and on the keypad
+      expect(getAllByText('0').length).toBe(2);
+      // "USDC" in the input display and in the token selector
+      expect(getAllByText('USDC').length).toBe(2);
+      expect(getByText('$0')).toBeDefined();
+
+      // Token Selector should display USDC as selected token
+      expect(getByText('4.5% APR')).toBeDefined();
+      expect(getByText('1 USDC')).toBeDefined();
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
       expect(getByText('$1')).toBeTruthy();
 
-      fireEvent.press(getByText('Max'));
+      await act(async () => {
+        fireEvent.press(getByText('Max'));
+      });
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
   describe('when values are entered in the keypad', () => {
-    it('updates ETH and fiat values', () => {
+    it('updates ETH and fiat values', async () => {
       const { toJSON, getByText } = renderComponent();
 
       expect(toJSON()).toMatchSnapshot();
 
-      fireEvent.press(getByText('2'));
+      await act(async () => {
+        fireEvent.press(getByText('2'));
+      });
 
       expect(getByText('4000 USD')).toBeTruthy();
     });
   });
 
   describe('currency toggle functionality', () => {
-    it('switches between ETH and fiat correctly', () => {
+    it('switches between ETH and fiat correctly', async () => {
       const { getByText } = renderComponent();
 
       expect(getByText('ETH')).toBeTruthy();
-      fireEvent.press(getByText('0 USD'));
+
+      await act(async () => {
+        fireEvent.press(getByText('0 USD'));
+      });
 
       expect(getByText('USD')).toBeTruthy();
     });
@@ -462,7 +501,7 @@ describe('StakeInputView', () => {
         // Override the mock value for this specific test
         selectConfirmationRedesignFlagsMock.mockReturnValue({
           staking_confirmations: true,
-        } as unknown as ConfirmationRedesignRemoteFlags) ;
+        } as unknown as ConfirmationRedesignRemoteFlags);
 
         usePoolStakedDepositMock.mockReturnValue({
           attemptDepositTransaction: attemptDepositTransactionMock,

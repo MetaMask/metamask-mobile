@@ -1,12 +1,21 @@
 import { fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
 import CurrencyToggle from './CurrencySwitch';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 
-jest.mock('../../Stake/constants', () => ({
-  isStablecoinLendingFeatureEnabled: jest.fn(),
-}));
+const mockInitialState = {
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          earnStablecoinLendingEnabled: false,
+        },
+      },
+    },
+  },
+};
 
 describe('CurrencyToggle', () => {
   const mockProps = {
@@ -18,22 +27,34 @@ describe('CurrencyToggle', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly when stablecoin lending is disabled', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(false);
+  const renderComponent = (state = mockInitialState, props = mockProps) =>
+    renderWithProvider(<CurrencyToggle {...props} />, {
+      state,
+    });
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <CurrencyToggle {...mockProps} />,
-    );
+  it('renders correctly when stablecoin lending is disabled', () => {
+    const { getByTestId, getByText } = renderComponent();
 
     expect(getByTestId('currency-toggle')).toBeTruthy();
     expect(getByText('200.00')).toBeTruthy();
   });
 
   it('renders correctly when stablecoin lending is enabled and usd is currency', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(true);
+    const mockStateWithStablecoinLendingEnabled = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              earnStablecoinLendingEnabled: true,
+            },
+          },
+        },
+      },
+    };
 
-    const { getByTestId, getByText } = renderWithProvider(
-      <CurrencyToggle {...mockProps} />,
+    const { getByTestId, getByText } = renderComponent(
+      mockStateWithStablecoinLendingEnabled,
     );
 
     expect(getByTestId('currency-toggle')).toBeTruthy();
@@ -41,22 +62,14 @@ describe('CurrencyToggle', () => {
   });
 
   it('calls onPress when button is pressed', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(false);
-
-    const { getByTestId } = renderWithProvider(
-      <CurrencyToggle {...mockProps} />,
-    );
+    const { getByTestId } = renderComponent();
 
     fireEvent.press(getByTestId('currency-toggle'));
     expect(mockProps.onPress).toHaveBeenCalledTimes(1);
   });
 
   it('renders with correct styles', () => {
-    (isStablecoinLendingFeatureEnabled as jest.Mock).mockReturnValue(false);
-
-    const { getByTestId } = renderWithProvider(
-      <CurrencyToggle {...mockProps} />,
-    );
+    const { getByTestId } = renderComponent();
 
     const button = getByTestId('currency-toggle');
     expect(button.props.style).toMatchObject({

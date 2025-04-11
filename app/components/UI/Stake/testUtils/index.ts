@@ -30,6 +30,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     decimals = 0,
     isStaked = false,
     ticker = '',
+    balanceFiat = '',
   } = options;
 
   const isETH = symbol === 'ETH' || symbol === 'Ethereum';
@@ -45,7 +46,7 @@ export const createMockToken = (options: CreateMockTokenOptions) => {
     address,
     aggregators: [],
     balance: '',
-    balanceFiat: '',
+    balanceFiat,
     chainId,
     decimals: decimals ?? 0,
     image: '',
