@@ -5,8 +5,8 @@ import {
   View,
   StyleSheet,
   InteractionManager,
-  Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 import Engine from '../../../core/Engine';
@@ -26,6 +26,7 @@ import { regex } from '../../../../app/util/regex';
 import {
   getBlockExplorerAddressUrl,
   getDecimalChainId,
+  getNetworkImageSource,
 } from '../../../util/networks';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { formatIconUrlWithProxy } from '@metamask/assets-controllers';
@@ -34,6 +35,7 @@ import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
@@ -43,12 +45,24 @@ import Banner, {
 } from '../../../component-library/components/Banners/Banner';
 import CLText from '../../../component-library/components/Texts/Text/Text';
 import Logger from '../../../util/Logger';
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar';
+import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    overlappingAvatarsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      position: 'absolute',
+      paddingHorizontal: 16,
+      right: 0,
     },
     addressWrapper: {
       paddingHorizontal: 16,
@@ -116,6 +130,21 @@ const createStyles = (colors) =>
     textWrapper: {
       padding: 0,
     },
+    networkSelectorContainer: {
+      borderWidth: 1,
+      marginBottom: 16,
+      marginTop: 4,
+      borderColor: colors.border.default,
+      borderRadius: 2,
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+    },
+    networkSelectorText: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      fontSize: 16,
+    },
   });
 
 /**
@@ -164,6 +193,21 @@ class AddCustomToken extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+
+    /**
+     * Function to set the open network selector
+     */
+    setOpenNetworkSelector: PropTypes.func,
+
+    /**
+     * The selected network
+     */
+    selectedNetwork: PropTypes.string,
+
+    /**
+     * The network client ID
+     */
+    networkClientId: PropTypes.string,
   };
 
   getTokenAddedAnalyticsParams = () => {
@@ -186,7 +230,16 @@ class AddCustomToken extends PureComponent {
     if (!(await this.validateCustomToken())) return;
     const { TokensController } = Engine.context;
     const { address, symbol, decimals, name } = this.state;
-    await TokensController.addToken({ address, symbol, decimals, name });
+    const { chainId } = this.props;
+    const networkClientId = this.props.networkClientId;
+    await TokensController.addToken({
+      address,
+      symbol,
+      decimals,
+      name,
+      chainId,
+      networkClientId,
+    });
 
     const analyticsParams = this.getTokenAddedAnalyticsParams();
 
@@ -228,6 +281,18 @@ class AddCustomToken extends PureComponent {
     this.props.navigation.goBack();
   };
 
+  componentDidUpdate(prevProps) {
+    if (prevProps.networkClientId !== this.props.networkClientId) {
+      this.setState({
+        address: '',
+        symbol: '',
+        decimals: '',
+        name: '',
+        warningAddress: '',
+      });
+    }
+  }
+
   onAddressChange = async (address) => {
     this.setState({ address });
     if (address.length === 42) {
@@ -239,9 +304,18 @@ class AddCustomToken extends PureComponent {
         if (validated) {
           const { AssetsContractController } = Engine.context;
           const [decimals, symbol, name] = await Promise.all([
-            AssetsContractController.getERC20TokenDecimals(address),
-            AssetsContractController.getERC721AssetSymbol(address),
-            AssetsContractController.getERC20TokenName(address),
+            AssetsContractController.getERC20TokenDecimals(
+              address,
+              this.props.networkClientId,
+            ),
+            AssetsContractController.getERC721AssetSymbol(
+              address,
+              this.props.networkClientId,
+            ),
+            AssetsContractController.getERC20TokenName(
+              address,
+              this.props.networkClientId,
+            ),
           ]);
 
           this.setState({
@@ -463,6 +537,7 @@ class AddCustomToken extends PureComponent {
         }),
         name,
         decimals,
+        chainId,
       },
     ];
 
@@ -494,7 +569,7 @@ class AddCustomToken extends PureComponent {
     const colors = this.context.colors || mockTheme.colors;
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
-    const isDisabled = !symbol || !decimals;
+    const isDisabled = !symbol || !decimals || !this.props.selectedNetwork;
 
     const addressInputStyle = onFocusAddress
       ? { ...styles.textInput, ...styles.textInputFocus }
@@ -524,6 +599,39 @@ class AddCustomToken extends PureComponent {
         <ScrollView>
           {this.renderBanner()}
           <View style={styles.addressWrapper}>
+            <TouchableOpacity
+              style={styles.networkSelectorContainer}
+              onPress={() => this.props.setOpenNetworkSelector(true)}
+              onLongPress={() => this.props.setOpenNetworkSelector(true)}
+            >
+              <Text style={styles.networkSelectorText}>
+                {this.props.selectedNetwork ||
+                  strings('networks.select_network')}
+              </Text>
+              <View style={styles.overlappingAvatarsContainer}>
+                {this.props.selectedNetwork ? (
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Sm}
+                    name={this.props.selectedNetwork}
+                    imageSource={getNetworkImageSource({
+                      networkType: 'evm',
+                      chainId: this.props.chainId,
+                    })}
+                    testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                  />
+                ) : null}
+
+                <ButtonIcon
+                  iconName={IconName.ArrowDown}
+                  iconColor={IconColor.Default}
+                  testID={ImportTokenViewSelectorsIDs.SELECT_NETWORK_BUTTON}
+                  onPress={() => this.props.setOpenNetworkSelector(true)}
+                  accessibilityRole="button"
+                  style={styles.buttonIcon}
+                />
+              </View>
+            </TouchableOpacity>
             <Text style={styles.inputLabel}>
               {strings('asset_details.address')}
             </Text>
