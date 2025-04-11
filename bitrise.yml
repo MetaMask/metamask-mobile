@@ -1846,7 +1846,7 @@ workflows:
           is_always_run: false
           is_skippable: true
           inputs:
-            - deploy_path: $BINARY_DEPLOY_PATH
+            - deploy_path: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
             - is_compress: true
           title: Deploy iOS Binary
       - deploy-to-bitrise-io@2.2.3:
