@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(bridge): hide staked native assets from token selectors ([#14457](https://github.com/MetaMask/metamask-mobile/pull/14457))
 
+### Changed
+
+- chore(bridge): use short names for bridge networks ([#14458](https://github.com/MetaMask/metamask-mobile/pull/14458))
+
 ## [7.43.0]
 
 ### Added
