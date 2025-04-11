@@ -158,3 +158,11 @@ export interface IDeleteRegulationStatus {
   hasCollectedDataSinceDeletionRequest: boolean;
   dataDeletionRequestStatus: DataDeleteStatus;
 }
+
+export interface TransactionEventProperties extends JsonMap {
+  transaction_hash?: string;
+  user_id?: string;
+  chain_id?: string;
+  transaction_type?: string;
+  dapp_url?: string;
+}

@@ -47,3 +47,7 @@ export const selectConfirmationRedesignFlags = createSelector(
   },
 );
 
+export const selectTransactionsTxHashInAnalyticsEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => Boolean(remoteFeatureFlags?.transactionsTxHashInAnalytics),
+);

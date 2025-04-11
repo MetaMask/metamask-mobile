@@ -161,6 +161,10 @@ class OptinMetrics extends PureComponent {
      * Metrics injected by withMetricsAwareness HOC
      */
     metrics: PropTypes.object,
+    /**
+     * Flag indicating if the privacy policy date has passed
+     */
+    isPastPrivacyPolicyDate: PropTypes.bool,
   };
 
   state = {
@@ -186,7 +190,7 @@ class OptinMetrics extends PureComponent {
     return createStyles({ colors, typography });
   };
 
-  actionsList = isPastPrivacyPolicyDate
+  actionsList = this.props.isPastPrivacyPolicyDate
     ? [1, 2, 3].map((value) => ({
         action: value,
         prefix: strings(`privacy_policy.action_description_${value}_prefix`),
@@ -442,7 +446,7 @@ class OptinMetrics extends PureComponent {
   renderPrivacyPolicy = () => {
     const styles = this.getStyles();
 
-    if (isPastPrivacyPolicyDate) {
+    if (this.props.isPastPrivacyPolicyDate) {
       return (
         <View>
           <Text style={styles.privacyPolicy}>
@@ -600,34 +604,19 @@ class OptinMetrics extends PureComponent {
             >
               {strings('privacy_policy.description_title')}
             </Text>
-            <Text
-              style={styles.content}
-              testID={
-                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID
-              }
-            >
-              {strings(
-                isPastPrivacyPolicyDate
-                  ? 'privacy_policy.description_content_1'
-                  : 'privacy_policy.description_content_1_legacy',
-              )}
-            </Text>
-            <Text style={styles.linkText} onPress={this.handleLink}>
-              {strings('privacy_policy.description_content_3')}
-            </Text>
             <Text style={styles.content}>
               {strings(
-                isPastPrivacyPolicyDate
+                this.props.isPastPrivacyPolicyDate
                   ? 'privacy_policy.description_content_2'
                   : 'privacy_policy.description_content_2_legacy',
               )}
             </Text>
             {this.actionsList.map((action, i) =>
-              isPastPrivacyPolicyDate
+              this.props.isPastPrivacyPolicyDate
                 ? this.renderAction(action, i)
                 : this.renderLegacyAction(action, i),
             )}
-            {isPastPrivacyPolicyDate ? (
+            {this.props.isPastPrivacyPolicyDate ? (
               <TouchableOpacity
                 style={styles.checkbox}
                 onPress={() =>
@@ -665,8 +654,8 @@ OptinMetrics.contextType = ThemeContext;
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
-  isDataCollectionForMarketingEnabled:
-    state.security.dataCollectionForMarketing,
+  isDataCollectionForMarketingEnabled: state.security.dataCollectionForMarketing,
+  isPastPrivacyPolicyDate: isPastPrivacyPolicyDate(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
