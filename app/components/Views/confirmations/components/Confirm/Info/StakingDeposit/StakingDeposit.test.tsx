@@ -10,7 +10,7 @@ import { getNavbar } from '../../Navbar/Navbar';
 import StakingDeposit from './StakingDeposit';
 
 jest.mock('../../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
