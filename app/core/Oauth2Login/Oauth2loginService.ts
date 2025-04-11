@@ -9,36 +9,44 @@ import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
 import { handleAndroidAppleLogin } from './android/apple';
 import { handleAndroidGoogleLogin } from './android/google';
-import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork } from './Oauth2loginInterface';
+import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork } from './Oauth2loginInterface';
 import { handleIosGoogleLogin } from './ios/google';
 import { handleIosAppleLogin } from './ios/apple';
 
 export class Oauth2LoginService {
     public localState: {
+        loginInProgress: boolean;
         verifier: OAuthVerifier | null;
         verifierID: string | null;
     };
 
-    constructor() {
+    public config : {
+        web3AuthNetwork: Web3AuthNetwork;
+    };
+
+    constructor(config: {web3AuthNetwork: Web3AuthNetwork}) {
         this.localState = {
+            loginInProgress: false,
             verifier: null,
             verifierID: null,
+        };
+        this.config = {
+            web3AuthNetwork: config.web3AuthNetwork,
         };
     }
 
     #dispatchLogin = () =>{
+        this.updateLocalState({loginInProgress: true});
         ReduxService.store.dispatch({
             type: UserActionType.LOADING_SET,
             payload: {
                 loadingMsg: 'Logging in...',
             },
         });
-        ReduxService.store.dispatch({
-            type: UserActionType.OAUTH2_LOGIN,
-        });
     };
 
     #dispatchPostLogin = (result: HandleOauth2LoginResult) => {
+        this.updateLocalState({loginInProgress: false});
         if (result.type === 'success') {
             ReduxService.store.dispatch({
                 type: UserActionType.OAUTH2_LOGIN_SUCCESS,
@@ -87,7 +95,7 @@ export class Oauth2LoginService {
 
     };
 
-    handleCodeFlow = async (params : HandleFlowParams) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean}> => {
+    handleCodeFlow = async (params : HandleFlowParams & {web3AuthNetwork: Web3AuthNetwork}) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean}> => {
         const {code, idToken, provider, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
 
         const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
@@ -95,14 +103,14 @@ export class Oauth2LoginService {
             code,
             client_id: clientId,
             login_provider: provider,
-            network: web3AuthNetwork ?? Web3AuthNetwork,
+            network: web3AuthNetwork,
             redirect_uri: redirectUri,
             code_verifier: codeVerifier,
         } : {
             id_token: idToken,
             client_id: clientId,
             login_provider: provider,
-            network: web3AuthNetwork ?? Web3AuthNetwork,
+            network: web3AuthNetwork,
         };
 
         Logger.log('handleCodeFlow: body', body);
@@ -118,8 +126,10 @@ export class Oauth2LoginService {
             const data = await res.json() as ByoaResponse;
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
-                this.localState.verifier = data.verifier as OAuthVerifier;
-                this.localState.verifierID = data.verifier_id;
+                this.updateLocalState({
+                    verifier: data.verifier as OAuthVerifier,
+                    verifierID: data.verifier_id,
+                });
 
                 const result = await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
                     idTokens: Object.values(data.jwt_tokens),
@@ -141,8 +151,9 @@ export class Oauth2LoginService {
     };
 
     handleOauth2Login = async (provider: LoginProvider, mode: LoginMode) : Promise<HandleOauth2LoginResult> => {
-        const state = ReduxService.store.getState();
-        if (state.user.oauth2LoginInProgress) {
+        const web3AuthNetwork = this.config.web3AuthNetwork;
+
+        if (this.localState.loginInProgress) {
             throw new Error('Login already in progress');
         }
         this.#dispatchLogin();
@@ -158,7 +169,7 @@ export class Oauth2LoginService {
             }
 
             if (result) {
-                const handleCodeFlowResult = await this.handleCodeFlow(result);
+                const handleCodeFlowResult = await this.handleCodeFlow({...result , web3AuthNetwork});
                 this.#dispatchPostLogin(handleCodeFlowResult);
                 return handleCodeFlowResult;
             }
@@ -173,6 +184,13 @@ export class Oauth2LoginService {
         }
     };
 
+    updateLocalState = (newState: Partial<Oauth2LoginService['localState']>) => {
+        this.localState = {
+            ...this.localState,
+            ...newState,
+        };
+    };
+
     getVerifierDetails = () => ({
         verifier: this.localState.verifier,
         verifierID: this.localState.verifierID,
@@ -184,4 +202,4 @@ export class Oauth2LoginService {
     };
 }
 
-export default new Oauth2LoginService();
+export default new Oauth2LoginService({web3AuthNetwork: DefaultWeb3AuthNetwork});
