@@ -68,9 +68,18 @@ const PopularNetworksList = {
       ticker: 'PALM',
     },
   },
+  Solana: {
+    providerConfig: {
+      type: 'rpc',
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      rpcUrl: `https://solana-mainnet.infura.io/v3/5b98a22672004ef1bf40a80123c5c48d`,
+      nickname: 'Solana',
+      ticker: 'SOL',
+    },
+  },
 };
 
-const CustomNetworks = {
+const   CustomNetworks = {
   EthereumMainCustom: {
     providerConfig: {
       type: 'rpc',

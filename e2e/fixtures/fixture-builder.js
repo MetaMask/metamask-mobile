@@ -9,6 +9,8 @@ import { SolScope } from '@metamask/keyring-api';
 export const DEFAULT_FIXTURE_ACCOUNT =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
+export const DEFAULT_FIXTURE_SOLANA_ACCOUNT = 'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd'
+export const DEFAULT_FIXTURE_SOLANA_ASSET = 'token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
 const DAPP_URL = 'localhost';
 
 /**
@@ -76,6 +78,11 @@ class FixtureBuilder {
                   },
                 },
                 1: {
+                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                    balance: '0x0',
+                  },
+                },
+                [SolScope.Mainnet]: {
                   [DEFAULT_FIXTURE_ACCOUNT]: {
                     balance: '0x0',
                   },
@@ -223,6 +230,22 @@ class FixtureBuilder {
                     },
                   ],
                 },
+                /*'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  rpcEndpoints: [
+                    {
+                      networkClientId: 'solana-mainnet',
+                      url: 'https://solana-mainnet.infura.io/v3/{infuraProjectId}',
+                      type: 'custom',
+                      name: 'Solana',
+                    },
+                  ],
+                  defaultRpcEndpointIndex: 0,
+                  blockExplorerUrls: ['https://solscan.io'],
+                  defaultBlockExplorerUrlIndex: 0,
+                  name: 'Solana',
+                  nativeCurrency: 'SOL',
+                },*/
               },
             },
             PhishingController: {
@@ -334,6 +357,7 @@ class FixtureBuilder {
                   '0x507': true,
                   '0x505': true,
                   '0x64': true,
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
                 },
               },
               _X: null,
@@ -408,6 +432,13 @@ class FixtureBuilder {
                   topAssetsLastFetched: 0,
                   tokensLastFetched: 0,
                 },
+                'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+                  aggregatorMetadata: null,
+                  tokens: null,
+                  topAssets: null,
+                  aggregatorMetadataLastFetched: 0,
+                  topAssetsLastFetched: 0,
+                },
               },
             },
             GasFeeController: {
@@ -438,17 +469,15 @@ class FixtureBuilder {
               isUpdatingMetamaskNotificationsAccount: [],
               isCheckingAccountsPresence: false,
             },
-            MultichainNetworkController: {
-              selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
-              isEvmSelected: true,
-            },
+            MultichainNetworkController: {},
             MultichainAssetsController: {
               accountsAssets: {},
               assetsMetadata: {},
             },
             MultichainAssetsRatesController: {
               conversionRates: {},
+            },
+            MultichainBalancesController: {
             },
             CronJobController: {
               jobs: {},
@@ -756,6 +785,42 @@ class FixtureBuilder {
   }
 
   /**
+ * Adds Solana network configuration to the fixture state
+ * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining
+ */
+  withSolanaNetwork() {
+    const solanaConfig = {
+      selectedMultichainNetworkChainId: SolScope.Mainnet,
+      multichainNetworkConfigurationsByChainId: {
+        [SolScope.Mainnet]: {
+          chainId: SolScope.Mainnet,
+          name: 'Solana Mainnet',
+          nativeCurrency: `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/${DEFAULT_FIXTURE_SOLANA_ASSET}`, 
+          isEvm: false,
+        },
+      },
+      isEvmSelected: false,
+    };
+
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = solanaConfig;
+
+    multichainBalanceConfig = {
+      balances: {
+        DEFAULT_FIXTURE_SOLANA_ACCOUNT: {
+          DEFAULT_FIXTURE_SOLANA_ASSET: {
+            amount: '10',
+            unit: 'SOL',
+          },
+        },
+      },
+    }
+
+    this.fixture.state.engine.backgroundState.MultichainBalancesController = multichainBalanceConfig;
+
+    return this;
+  }
+
+  /**
    * Private helper method to create permission controller configuration
    * @private
    * @param {Object} additionalPermissions - Additional permissions to merge with eth_accounts
@@ -933,6 +998,50 @@ class FixtureBuilder {
     // Update selectedNetworkClientId to the new network client ID
     fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
 
+    // Set isCustomNetwork to true (if this property still exists in the new state)
+    fixtures.NetworkController.isCustomNetwork = true;
+
+    return this;
+  }
+
+  withSolanaMainnetNetwork() {
+    console.log('withSolanaMainnetNetwork');
+    const fixtures = this.fixture.state.engine.backgroundState;
+
+    // Extract Solana network configuration from CustomNetworks
+    const solanaMainnetConfig = PopularNetworksList.Solana.providerConfig;
+
+    // Generate a unique key for the new network client ID
+    const newNetworkClientId = `networkClientId${
+      Object.keys(fixtures.NetworkController.networkConfigurationsByChainId)
+        .length + 1
+    }`;
+    console.log('newNetworkClientId', newNetworkClientId);
+    // Define the Solana mainnet network configuration
+    const solanaMainnetNetworkConfig = {
+      chainId: solanaMainnetConfig.chainId,
+      rpcEndpoints: [
+        {
+          networkClientId: newNetworkClientId,
+          url: solanaMainnetConfig.rpcTarget,
+          type: 'custom',
+          name: solanaMainnetConfig.nickname,
+        },
+      ],
+      defaultRpcEndpointIndex: 0,
+      blockExplorerUrls: [],
+      name: solanaMainnetConfig.nickname,
+      nativeCurrency: solanaMainnetConfig.ticker,
+    };
+
+    // Add the new Solana Mainnet network configuration
+    fixtures.NetworkController.networkConfigurationsByChainId[
+      solanaMainnetConfig.chainId
+    ] = solanaMainnetNetworkConfig;
+
+    // Update selectedNetworkClientId to the new network client ID
+    fixtures.NetworkController.selectedNetworkClientId = newNetworkClientId;
+    console.log('fixtures.NetworkController.selectedNetworkClientId', fixtures.NetworkController.selectedNetworkClientId);
     // Set isCustomNetwork to true (if this property still exists in the new state)
     fixtures.NetworkController.isCustomNetwork = true;
 
