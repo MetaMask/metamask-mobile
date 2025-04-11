@@ -15,7 +15,10 @@ import {
 } from '@metamask/chain-agnostic-permission';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { getPermittedAccounts } from '../../Permissions';
+import {
+  getDefaultCaip25CaveatValue,
+  getPermittedAccounts,
+} from '../../Permissions';
 import Engine from '../../Engine';
 
 const EVM_NATIVE_TOKEN_DECIMALS = 18;
@@ -296,19 +299,22 @@ export async function switchToNetwork({
       type: 'SWITCH_ETHEREUM_CHAIN',
       requestData: { ...requestData, type: requestModalType },
     });
-    await PermissionController.grantPermissionsIncremental({
-      subject: { origin },
-      approvedPermissions: {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: setPermittedEthChainIds(caip25Caveat.value, [chainId]),
-            },
-          ],
+
+    if (caip25Caveat) {
+      await PermissionController.grantPermissionsIncremental({
+        subject: { origin },
+        approvedPermissions: {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: setPermittedEthChainIds(caip25Caveat.value, [chainId]),
+              },
+            ],
+          },
         },
-      },
-    });
+      });
+    }
   }
 
   if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {

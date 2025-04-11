@@ -525,7 +525,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       jest
         .spyOn(Engine.context.NetworkController, 'addNetwork')
         .mockReturnValue(networkConfigurationResult);
-
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: {},
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
       const spyOnGrantPermissionsIncremental = jest.spyOn(
         otherOptions.hooks,
         'requestPermittedChainsPermissionIncrementalForOrigin',
@@ -555,9 +562,14 @@ describe('RPC Method - wallet_addEthereumChain', () => {
         Engine.context.PermissionController,
         'grantPermissionsIncremental',
       );
-      jest
-        .spyOn(Engine.context.PermissionController, 'getCaveat')
-        .mockReturnValue({ value: ['0x64'] });
+      jest.spyOn(otherOptions.hooks, 'getCaveat').mockReturnValue({
+        value: {
+          optionalScopes: { 'eip155:100': { accounts: [] } },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      });
       await wallet_addEthereumChain({
         req: {
           params: [correctParams],

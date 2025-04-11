@@ -1,7 +1,10 @@
 import { wallet_switchEthereumChain } from './wallet_switchEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
-import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 const existingNetworkConfiguration = {
   id: 'test-network-configuration-id',
@@ -145,20 +148,8 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     }
   });
 
+  // TODO: [ffmcgee] come back to this. L#294 ethereum-chain-utils (should not grantPermissionIncremental ?)
   it('should should show a modal for user approval and not grant permissions', async () => {
-    otherOptions.hooks.getCaveat.mockReturnValue({
-      type: Caip25CaveatType,
-      value: {
-        requiredScopes: {},
-        optionalScopes: {
-          'eip155:100': {
-            accounts: [],
-          },
-        },
-        isMultichainOrigin: false,
-        sessionProperties: {},
-      },
-    });
     otherOptions.hooks.hasApprovalRequestsForOrigin.mockReturnValue(true);
     const spyOnGrantPermissionsIncremental = jest.spyOn(
       Engine.context.PermissionController,
@@ -244,9 +235,10 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
     });
 
     it('should add network permission and should switch with user approval when requested chain is not permitted', async () => {
+      const origin = 'https://test.com';
       const spyOnGrantPermissionsIncremental = jest.spyOn(
-        otherOptions.hooks,
-        'requestPermittedChainsPermissionIncrementalForOrigin',
+        Engine.context.PermissionController,
+        'grantPermissionsIncremental',
       );
       jest
         .spyOn(
@@ -274,15 +266,35 @@ describe('RPC Method - wallet_switchEthereumChain', () => {
       await wallet_switchEthereumChain({
         req: {
           params: [{ chainId: '0x64' }],
-          origin: 'https://test.com',
+          origin,
         },
         ...otherOptions,
       });
       expect(otherOptions.requestUserApproval).toHaveBeenCalled();
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledTimes(1);
       expect(spyOnGrantPermissionsIncremental).toHaveBeenCalledWith({
-        autoApprove: false,
-        chainId: '0x64',
+        approvedPermissions: {
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: {
+                  isMultichainOrigin: false,
+                  optionalScopes: {
+                    'eip155:100': {
+                      accounts: [],
+                    },
+                  },
+                  requiredScopes: {},
+                  sessionProperties: {},
+                },
+              },
+            ],
+          },
+        },
+        subject: {
+          origin,
+        },
       });
       expect(spyOnSetActiveNetwork).toHaveBeenCalledWith(
         'test-network-configuration-id',
