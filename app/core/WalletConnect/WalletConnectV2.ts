@@ -15,7 +15,7 @@ import StorageWrapper from '../../store/storage-wrapper';
 import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
-import { getPermittedAccounts } from '../Permissions';
+import { getDefaultCaip25CaveatValue, getPermittedAccounts } from '../Permissions';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import getAllUrlParams from '../SDKConnect/utils/getAllUrlParams.util';
 import { wait, waitForKeychainUnlocked } from '../SDKConnect/utils/wait.util';
@@ -31,6 +31,7 @@ import {
 } from './wc-utils';
 
 import WalletConnect2Session from './WalletConnect2Session';
+import { Caip25CaveatType, Caip25EndowmentPermissionName } from '@metamask/chain-agnostic-permission';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -142,8 +143,8 @@ export class WC2Manager {
             JSON.stringify(accountPermission, null, 2),
           );
           let approvedAccounts =
-            (await getPermittedAccounts((session.peer.metadata.url))) ?? [];
-          const fromOrigin = await getPermittedAccounts(
+            (getPermittedAccounts((session.peer.metadata.url))) ?? [];
+          const fromOrigin = getPermittedAccounts(
             (session.peer.metadata.url),
           );
 
@@ -162,7 +163,7 @@ export class WC2Manager {
               `WC2::init fallback to metadata url ${session.peer.metadata.url}`,
             );
             approvedAccounts =
-              (await getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
+              (getPermittedAccounts(getHostname(session.peer.metadata.url))) ?? [];
           }
 
           if (approvedAccounts?.length === 0) {
@@ -437,7 +438,14 @@ export class WC2Manager {
       await permissionsController.requestPermissions(
         { origin: url },
         {
-          eth_accounts: {},
+          [Caip25EndowmentPermissionName]: {
+            caveats: [
+              {
+                type: Caip25CaveatType,
+                value: getDefaultCaip25CaveatValue(),
+              },
+            ],
+          },
         },
       );
     } catch (err) {
@@ -449,7 +457,7 @@ export class WC2Manager {
     }
 
     try {
-      const approvedAccounts = await getPermittedAccounts(origin);
+      const approvedAccounts = getPermittedAccounts(origin);
       const walletChainIdHex = selectEvmChainId(store.getState());
       const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
 

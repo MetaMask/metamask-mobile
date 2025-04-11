@@ -10,6 +10,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../../selectors/networkController';
+import { addPermittedChains } from '../../../../core/Permissions';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -33,6 +34,13 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
+
+jest.mock('../../../../core/Permissions', () => ({
+  ...jest.requireActual('../../../../core/Permissions'),
+  addPermittedChains: jest.fn(),
+}));
+
+const mockAddPermittedChains = addPermittedChains as jest.Mock;
 
 // Add mock for react-redux
 jest.mock('react-redux', () => ({
@@ -132,9 +140,10 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('handles update permissions when networks are selected', async () => {
-    (
-      Engine.context.PermissionController.hasCaveat as jest.Mock
-    ).mockReturnValue(true);
+    mockAddPermittedChains.mockReturnValue(['0x1']);
+    const mockNetworkConfigurationId = Object.keys(
+      mockNetworkConfigurations,
+    )[0];
 
     const { getByText, getByTestId } = renderWithProvider(
       <NetworkConnectMultiSelector {...defaultProps} />,
@@ -150,7 +159,9 @@ describe('NetworkConnectMultiSelector', () => {
     );
     fireEvent.press(updateButton);
 
-    expect(Engine.context.PermissionController.updateCaveat).toHaveBeenCalled();
+    expect(addPermittedChains).toHaveBeenCalledWith(defaultProps.hostname, [
+      mockNetworkConfigurationId,
+    ]);
     expect(defaultProps.onUserAction).toHaveBeenCalled();
   });
 

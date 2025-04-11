@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty, isObject } from '@metamask/utils';
 import { type NetworkConfiguration, RpcEndpointType } from '@metamask/network-controller';
-import { 
+import {
   ChainId,
   BuiltInNetworkName,
   NetworkNickname,

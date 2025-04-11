@@ -94,10 +94,7 @@ export const SDKSessionItem = ({
       setIcon(_icon);
     }
 
-    getPermittedAccounts(connection.id).then((_accounts) => {
-      setPermittedAccountsAddresses(_accounts);
-    });
-
+    setPermittedAccountsAddresses(getPermittedAccounts(connection.id));
     setSessionName(_sessionName);
   }, [connection, trigger]);
 

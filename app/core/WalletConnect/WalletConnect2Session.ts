@@ -387,7 +387,7 @@ class WalletConnect2Session {
       );
 
       if (accounts.length === 0) {
-        const approvedAccounts = await getPermittedAccounts(getHostname(origin));
+        const approvedAccounts = getPermittedAccounts(getHostname(origin));
         if (approvedAccounts.length > 0) {
           DevLogger.log(
             `WC2::updateSession found approved accounts`,

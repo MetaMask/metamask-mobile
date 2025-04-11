@@ -38,6 +38,7 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/n
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { RootState } from '../../../../reducers';
+import { Hex } from '@metamask/utils';
 
 const AccountPermissionsRevoke = ({
   ensByAccountAddress,
@@ -162,7 +163,7 @@ const AccountPermissionsRevoke = ({
                     accounts,
                     ensByAccountAddress,
                   });
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(hostname, [address as Hex]);
                   labelOptions.push(
                     {
                       label: `\n${newActiveAccountName} `,
@@ -179,7 +180,7 @@ const AccountPermissionsRevoke = ({
                   });
                 } else {
                   // Just disconnect
-                  removePermittedAccounts(hostname, [address]);
+                  removePermittedAccounts(hostname, [address as Hex]);
                   toastRef?.current?.showToast({
                     variant: ToastVariants.Plain,
                     labelOptions,
