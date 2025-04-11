@@ -141,6 +141,7 @@ import NavigationService from '../../../core/NavigationService';
 import { BridgeTokenSelector } from '../../UI/Bridge/BridgeTokenSelector';
 import { BridgeNetworkSelector } from '../../UI/Bridge/BridgeNetworkSelector';
 import { SlippageModal } from '../../UI/Bridge/components/SlippageModal';
+import AccountStatus from '../../Views/AccountStatus';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -236,6 +237,7 @@ const OnboardingNav = () => (
       component={ImportFromSecretRecoveryPhrase}
     />
     <Stack.Screen name="OptinMetrics" component={OptinMetrics} />
+    <Stack.Screen name="AccountStatus" component={AccountStatus} />
   </Stack.Navigator>
 );
 

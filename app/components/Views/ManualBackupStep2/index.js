@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   InteractionManager,
   Alert,
-  Text,
   TouchableOpacity,
   View,
   SafeAreaView,
@@ -33,6 +32,10 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const { colors } = useTheme();
@@ -74,7 +77,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             navigation.navigate('OnboardingSuccess', {
               params: {
                 showRecoveryHint: true,
-                hello: 'world',
               },
             });
           },
@@ -279,7 +281,9 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   return (
     <SafeAreaView style={styles.mainWrapper}>
       <View style={styles.container}>
-        <Text style={styles.step}>Step 3 of 3</Text>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          Step 3 of 3
+        </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.complete')}
@@ -293,18 +297,21 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
             style={styles.wrapper}
             testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
           >
-            <Text style={styles.action}>
-              {strings('manual_backup_step_2.action')}
-            </Text>
-            <View style={styles.infoWrapper}>
-              <Text style={styles.info}>
+            <View style={styles.content}>
+              <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+                {strings('manual_backup_step_2.action')}
+              </Text>
+
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('manual_backup_step_2.info')}
               </Text>
+
+              <View style={styles.gridContainer}>
+                {renderGrid()}
+                {renderMissingWords()}
+              </View>
             </View>
-            <View style={styles.gridContainer}>
-              {renderGrid()}
-              {renderMissingWords()}
-            </View>
+
             <Button
               variant={ButtonVariants.Primary}
               label={strings('manual_backup_step_2.continue')}

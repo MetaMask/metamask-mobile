@@ -10,7 +10,7 @@ import {
   // ActivityIndicator,
   Alert,
   // TouchableOpacity,
-  Text,
+  // Text,
   View,
   TextInput,
   SafeAreaView,
@@ -91,7 +91,10 @@ import { ToastVariants } from '../../../component-library/components/Toast/Toast
 import { validateMnemonic } from '@metamask/scure-bip39';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
-import { TextVariant } from '../../../component-library/components/Texts/Text/Text.types';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
@@ -125,7 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
   const [secureTextEntry, setSecureTextEntry] = useState(true);
-  const [biometryChoice, setBiometryChoice] = useState(false);
+  const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   // const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
@@ -627,17 +630,23 @@ const ImportFromSecretRecoveryPhrase = ({
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
         <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
-          <Text style={styles.step}>Step {currentStep + 1} of 2</Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            Step {currentStep + 1} of 2
+          </Text>
           {currentStep === 0 && (
             <View>
               <Text
-                style={styles.title}
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
                 {strings('import_from_seed.title')}
               </Text>
               <View style={styles.seedPhraseRootContainer}>
-                <Text style={styles.seedPhraseLabel}>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
                   {strings(
                     'import_from_seed.enter_your_secret_recovery_phrase',
                   )}
@@ -761,7 +770,8 @@ const ImportFromSecretRecoveryPhrase = ({
           {currentStep === 1 && (
             <View style={styles.passwordContainer}>
               <Text
-                style={styles.title}
+                variant={TextVariant.DisplayMD}
+                color={TextColor.Default}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
                 {strings('import_from_seed.create_password')}
@@ -769,7 +779,7 @@ const ImportFromSecretRecoveryPhrase = ({
 
               <View style={styles.passwordContainer}>
                 <View style={styles.field}>
-                  <Label variant={TextVariant.BodyMDMedium}>
+                  <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {strings('import_from_seed.new_password')}
                   </Label>
                   <TextField
@@ -787,13 +797,13 @@ const ImportFromSecretRecoveryPhrase = ({
                     endAccessory={
                       <Icon
                         name={
-                          showPasswordIndex.includes(1)
+                          showPasswordIndex.includes(0)
                             ? IconName.EyeSolid
                             : IconName.EyeSlashSolid
                         }
                         size={IconSize.Md}
                         color={colors.icon.muted}
-                        onPress={() => toggleShowPassword(1)}
+                        onPress={() => toggleShowPassword(0)}
                       />
                     }
                     testID={
@@ -817,7 +827,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 </View>
 
                 <View style={styles.field}>
-                  <Label variant={TextVariant.BodyMDMedium}>
+                  <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                     {strings('import_from_seed.confirm_password')}
                   </Label>
                   <TextField
@@ -833,12 +843,18 @@ const ImportFromSecretRecoveryPhrase = ({
                     endAccessory={
                       <Icon
                         name={
-                          showPasswordIndex.includes(1)
+                          password !== '' && password === confirmPassword
+                            ? IconName.Check
+                            : showPasswordIndex.includes(1)
                             ? IconName.EyeSolid
                             : IconName.EyeSlashSolid
                         }
                         size={IconSize.Md}
-                        color={colors.icon.muted}
+                        color={
+                          password === confirmPassword
+                            ? colors.success.default
+                            : colors.icon.muted
+                        }
                         onPress={() => toggleShowPassword(1)}
                       />
                     }
@@ -864,24 +880,29 @@ const ImportFromSecretRecoveryPhrase = ({
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
                 />
-                <Text style={styles.learnMoreText}>
-                  {strings('import_from_seed.learn_more')}
-                </Text>
-                <Button
-                  variant={ButtonVariants.Link}
-                  onPress={() => setLearnMore(!learnMore)}
-                  label={strings('reset_password.learn_more')}
-                />
+                <View style={styles.learnMoreTextContainer}>
+                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                    {strings('import_from_seed.learn_more')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    color={TextColor.Primary}
+                    onPress={() => setLearnMore(!learnMore)}
+                  >
+                    {strings('import_from_seed.learn_more_link')}
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.seedPhraseContinueCta}>
                 <Button
                   width={ButtonWidthTypes.Full}
                   variant={ButtonVariants.Primary}
-                  label="Confirm"
+                  label={strings('import_from_seed.confirm')}
                   onPress={onPasswordConfirm}
                   disabled={isContinueButtonDisabled()}
                   size={ButtonSize.Lg}
+                  isDisabled={isContinueButtonDisabled()}
                 />
               </View>
             </View>

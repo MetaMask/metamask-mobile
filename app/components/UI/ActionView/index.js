@@ -22,21 +22,25 @@ export const ConfirmButtonState = {
 const getStyles = (colors) =>
   StyleSheet.create({
     actionView: {
+      flexDirection: 'column',
+      flex: 1,
+      height: '100%',
+    },
+    container: {
       flex: 1,
       flexDirection: 'column',
-      height: '100%',
+      justifyContent: 'space-between',
     },
     actionContainer: {
       width: '100%',
       paddingVertical: 16,
-      marginTop: 'auto',
       flexDirection: 'column',
-      flex: 1,
-      height: '100%',
+      justifyContent: 'flex-end',
     },
     button: {
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
       flex: 1,
-      marginTop: 'auto',
     },
     cancel: {
       marginRight: 8,
@@ -92,58 +96,60 @@ export default function ActionView({
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
       >
-        <TouchableWithoutFeedback
-          style={[baseStyles.flexGrow, styles.actionView]}
-          // eslint-disable-next-line react/jsx-no-bind
-          onPress={() => {
-            if (keyboardShouldPersistTaps === 'handled') {
-              Keyboard.dismiss();
-            }
-            onTouchablePress && onTouchablePress();
-          }}
-        >
-          {children}
-        </TouchableWithoutFeedback>
+        <View style={styles.container}>
+          <TouchableWithoutFeedback
+            style={[baseStyles.flexGrow, styles.actionView]}
+            // eslint-disable-next-line react/jsx-no-bind
+            onPress={() => {
+              if (keyboardShouldPersistTaps === 'handled') {
+                Keyboard.dismiss();
+              }
+              onTouchablePress && onTouchablePress();
+            }}
+          >
+            {children}
+          </TouchableWithoutFeedback>
 
-        <View style={styles.actionContainer}>
-          {showCancelButton && (
-            <StyledButton
-              testID={cancelTestID}
-              type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
-              onPress={onCancelPress}
-              containerStyle={[styles.button, styles.cancel]}
-              disabled={confirmed}
-            >
-              {cancelText}
-            </StyledButton>
-          )}
-          {showConfirmButton && (
-            <StyledButton
-              testID={confirmTestID}
-              type={confirmButtonMode}
-              onPress={onConfirmPress}
-              containerStyle={[
-                styles.button,
-                styles.confirm,
-                confirmButtonState === ConfirmButtonState.Error
-                  ? styles.confirmButtonError
-                  : {},
-                confirmButtonState === ConfirmButtonState.Warning
-                  ? styles.confirmButtonWarning
-                  : {},
-              ]}
-              disabled={confirmed || confirmDisabled || loading}
-            >
-              {confirmed || loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.default}
-                />
-              ) : (
-                confirmText
-              )}
-            </StyledButton>
-          )}
+          <View style={styles.actionContainer}>
+            {showCancelButton && (
+              <StyledButton
+                testID={cancelTestID}
+                type={confirmButtonMode === 'sign' ? 'signingCancel' : 'cancel'}
+                onPress={onCancelPress}
+                containerStyle={[styles.button, styles.cancel]}
+                disabled={confirmed}
+              >
+                {cancelText}
+              </StyledButton>
+            )}
+            {showConfirmButton && (
+              <StyledButton
+                testID={confirmTestID}
+                type={confirmButtonMode}
+                onPress={onConfirmPress}
+                containerStyle={[
+                  styles.button,
+                  styles.confirm,
+                  confirmButtonState === ConfirmButtonState.Error
+                    ? styles.confirmButtonError
+                    : {},
+                  confirmButtonState === ConfirmButtonState.Warning
+                    ? styles.confirmButtonWarning
+                    : {},
+                ]}
+                disabled={confirmed || confirmDisabled || loading}
+              >
+                {confirmed || loading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary.default}
+                  />
+                ) : (
+                  confirmText
+                )}
+              </StyledButton>
+            )}
+          </View>
         </View>
       </KeyboardAwareScrollView>
     </View>

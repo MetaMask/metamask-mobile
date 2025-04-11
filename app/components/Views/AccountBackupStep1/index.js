@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   ScrollView,
-  TouchableOpacity,
-  Text,
   View,
   SafeAreaView,
   StyleSheet,
@@ -39,6 +37,10 @@ import Button, {
   ButtonWidthTypes,
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -63,13 +65,9 @@ const createStyles = (colors) =>
       marginBottom: 10,
     },
     title: {
-      fontSize: 32,
-      marginBottom: 8,
-      marginTop: 0,
-      color: colors.text.default,
       textAlign: 'left',
-      ...fontStyles.bold,
       alignSelf: 'flex-start',
+      marginBottom: 16,
     },
     text: {
       marginTop: 32,
@@ -245,25 +243,33 @@ const AccountBackupStep1 = (props) => {
         testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
       >
         <View style={styles.wrapper}>
-          <Text style={styles.step}>Step 2 of 3</Text>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            Step 2 of 3
+          </Text>
           {/* <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} /> */}
           <View style={styles.content}>
-            <Text style={styles.title}>
+            <Text
+              variant={TextVariant.DisplayMD}
+              color={TextColor.Default}
+              style={styles.title}
+            >
               {strings('account_backup_step_1.title')}
             </Text>
             <Image source={SRPDesign} style={styles.srpDesign} />
             <View style={styles.text}>
-              <Text style={styles.label}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('account_backup_step_1.info_text_1_1')}{' '}
-                <Button
-                  variant={ButtonVariants.Link}
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Primary}
                   onPress={showWhatIsSeedphrase}
-                  label={strings('account_backup_step_1.info_text_1_2')}
-                />{' '}
+                >
+                  {strings('account_backup_step_1.info_text_1_2')}
+                </Text>{' '}
                 {strings('account_backup_step_1.info_text_1_3')}{' '}
               </Text>
 
-              <Text style={styles.label}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('account_backup_step_1.info_text_1_4')}
               </Text>
             </View>

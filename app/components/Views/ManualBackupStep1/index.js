@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  Text,
   View,
   SafeAreaView,
   ActivityIndicator,
@@ -21,8 +20,10 @@ import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import ActionView from '../../UI/ActionView';
 import Engine from '../../../core/Engine';
@@ -49,9 +50,9 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Label from '../../../component-library/components/Form/Label';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
+
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -183,23 +184,29 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
 
     return (
       <View style={styles.seedPhraseConcealerContainer}>
-        <TouchableOpacity onPress={revealSeedPhrase} style={styles.blurView}>
+        <TouchableOpacity
+          onPress={revealSeedPhrase}
+          style={styles.blurContainer}
+        >
           <BlurView
             blurType={blurType}
-            blurAmount={1}
+            blurAmount={3}
+            blurRadius={5}
             style={styles.blurView}
             onPress={revealSeedPhrase}
+            reducedTransparencyFallbackColor="white"
           />
+          {/* <View style={styles.blurView} onPress={revealSeedPhrase} /> */}
           <View style={styles.seedPhraseConcealer}>
             <Icon
               name={IconName.EyeSlashSolid}
               size={IconSize.Xl}
               style={styles.icon}
             />
-            <Text style={styles.reveal}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {strings('manual_backup_step_1.reveal')}
             </Text>
-            <Text style={styles.watching}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Default}>
               {strings('manual_backup_step_1.watching')}
             </Text>
           </View>
@@ -216,11 +223,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
       <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
-            <Text style={styles.title}>
+            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
               {strings('manual_backup_step_1.confirm_password')}
             </Text>
             <View style={styles.text}>
-              <Label variant={TextVariant.BodyMDMedium}>
+              <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
             </View>
@@ -252,6 +259,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
               testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
               width={ButtonWidthTypes.Full}
               size={ButtonSize.Lg}
+              isDisabled={!password}
             />
           </View>
         </View>
@@ -276,22 +284,24 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           style={styles.wrapper}
           testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
         >
-          <Text style={styles.action}>
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
             {strings('manual_backup_step_1.action')}
           </Text>
           <View style={styles.infoWrapper}>
-            <Text style={styles.info}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('manual_backup_step_1.info-1')}{' '}
-              <Text style={styles.infoLink}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
                 {strings('manual_backup_step_1.info-2')}{' '}
               </Text>
               {strings('manual_backup_step_1.info-3')}{' '}
-              <Text style={styles.infoBold}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
+              >
                 {strings('manual_backup_step_1.info-4')}
               </Text>
             </Text>
           </View>
-
           {seedPhraseHidden ? (
             <View style={styles.seedPhraseWrapper}>
               {renderSeedPhraseConcealer()}
@@ -329,7 +339,9 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
       <View style={styles.container}>
-        <Text style={styles.step}>Step 2 of 3</Text>
+        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          Step 2 of 3
+        </Text>
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

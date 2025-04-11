@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
@@ -21,7 +22,7 @@ import {
   colors as importedColors,
 } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import Button from '@metamask/react-native-button';
+import ButtonRN from '@metamask/react-native-button';
 import { connect } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import {
@@ -54,7 +55,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import ButtonComp, {
+import Button, {
   ButtonVariants,
   ButtonWidthTypes,
   ButtonSize,
@@ -87,15 +88,12 @@ const createStyles = (colors) =>
       marginVertical: 60,
     },
     foxImage: {
-      width: 125,
-      height: 125,
+      width: 145,
+      height: 145,
       resizeMode: 'contain',
     },
     title: {
       textAlign: 'center',
-      fontSize: 32,
-      fontWeight: '700',
-      lineHeight: 38,
     },
     ctas: {
       flex: 1,
@@ -518,15 +516,17 @@ class Onboarding extends PureComponent {
           />
         </View>
         <Text
-          variant={TextVariant.HeadingMD}
-          style={styles.title}
+          variant={TextVariant.DisplayMD}
+          color={TextColor.Default}
           testID={OnboardingSelectorIDs.SCREEN_TITLE}
+          style={styles.title}
         >
           {strings('onboarding.title')}
         </Text>
+
         <View style={styles.createWrapper}>
           <View style={styles.buttonWrapper}>
-            <ButtonComp
+            <Button
               variant={ButtonVariants.Primary}
               onPress={() => this.handleCtaActions('create')}
               testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
@@ -534,7 +534,7 @@ class Onboarding extends PureComponent {
               width={ButtonWidthTypes.Full}
               size={ButtonSize.Lg}
             />
-            <ButtonComp
+            <Button
               variant={ButtonVariants.Secondary}
               onPress={() => this.handleCtaActions('existing')}
               testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
@@ -544,6 +544,7 @@ class Onboarding extends PureComponent {
             />
           </View>
         </View>
+
         {this.state.bottomSheetVisible && (
           <BottomSheet
             shouldNavigateBack={false}
@@ -556,18 +557,23 @@ class Onboarding extends PureComponent {
             }
           >
             <View style={styles.bottomSheetContainer}>
-              <Text variant={TextVariant.HeadingMD}>
+              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
                 {strings('onboarding.bottom_sheet_title')}
               </Text>
               <View style={styles.buttonWrapper}>
-                <ButtonComp
+                <Button
                   variant={ButtonVariants.Secondary}
                   onPress={this.onPressContinueWithGoogle}
                   testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
                   label={
-                    this.state.createWallet
-                      ? strings('onboarding.continue_with_google')
-                      : strings('onboarding.sign_in_with_google')
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
+                      {this.state.createWallet
+                        ? strings('onboarding.continue_with_google')
+                        : strings('onboarding.sign_in_with_google')}
+                    </Text>
                   }
                   startIconName={IconName.Google}
                   startIconSize={IconSize.XXL}
@@ -575,14 +581,19 @@ class Onboarding extends PureComponent {
                   size={ButtonSize.Lg}
                   style={styles.socialBtn}
                 />
-                <ButtonComp
+                <Button
                   variant={ButtonVariants.Secondary}
                   onPress={this.onPressContinueWithApple}
                   testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
                   label={
-                    this.state.createWallet
-                      ? strings('onboarding.continue_with_apple')
-                      : strings('onboarding.sign_in_with_apple')
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
+                      {this.state.createWallet
+                        ? strings('onboarding.continue_with_apple')
+                        : strings('onboarding.sign_in_with_apple')}
+                    </Text>
                   }
                   startIconName={IconName.Apple}
                   startIconSize={IconSize.Xl}
@@ -599,7 +610,7 @@ class Onboarding extends PureComponent {
                 <View style={styles.dividerLine} />
               </View>
               <View style={styles.buttonWrapper}>
-                <ButtonComp
+                <Button
                   variant={ButtonVariants.Secondary}
                   onPress={
                     this.state.createWallet
@@ -678,9 +689,9 @@ class Onboarding extends PureComponent {
           </View>
           {existingUser && !loading && (
             <View style={styles.footer}>
-              <Button style={styles.login} onPress={this.onLogin}>
+              <ButtonRN style={styles.login} onPress={this.onLogin}>
                 {strings('onboarding.unlock')}
-              </Button>
+              </ButtonRN>
             </View>
           )}
         </ScrollView>

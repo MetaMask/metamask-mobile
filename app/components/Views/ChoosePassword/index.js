@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  TextInput,
   SafeAreaView,
   StyleSheet,
   Image,
@@ -88,7 +87,6 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-      // marginBottom: 10,
       marginTop: 16,
     },
     scrollableWrapper: {
@@ -267,6 +265,12 @@ const createStyles = (colors) =>
       gap: 8,
       marginTop: 8,
     },
+    learnMoreTextContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: 1,
+    },
     learnMoreCheckbox: {
       backgroundColor: importedColors.primaryDefault,
     },
@@ -331,7 +335,7 @@ class ChoosePassword extends PureComponent {
     confirmPassword: '',
     secureTextEntry: true,
     biometryType: null,
-    biometryChoice: false,
+    biometryChoice: true,
     rememberMe: false,
     loading: false,
     error: null,
@@ -714,17 +718,23 @@ class ChoosePassword extends PureComponent {
               resetScrollToCoords={{ x: 0, y: 0 }}
             >
               <View testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}>
-                <Text style={styles.step}>Step 1 of 3</Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  Step 1 of 3
+                </Text>
 
-                <View style={styles.content}>
-                  <Text variant={TextVariant.HeadingLG} style={styles.title}>
-                    {strings('choose_password.title')}
-                  </Text>
-                </View>
+                <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+                  {strings('choose_password.title')}
+                </Text>
 
                 <View style={styles.passwordContainer}>
                   <View style={styles.field}>
-                    <Label variant={TextVariant.BodyMDMedium}>
+                    <Label
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
                       {strings('choose_password.password')}
                     </Label>
                     <TextField
@@ -772,7 +782,10 @@ class ChoosePassword extends PureComponent {
                   </View>
 
                   <View style={styles.field}>
-                    <Label variant={TextVariant.BodyMDMedium}>
+                    <Label
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                    >
                       {strings('choose_password.confirm_password')}
                     </Label>
                     <TextField
@@ -834,15 +847,21 @@ class ChoosePassword extends PureComponent {
                       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
                     }
                   />
-
-                  <Text style={styles.learnMoreText}>
-                    {strings('import_from_seed.learn_more')}
-                  </Text>
-                  <Button
-                    variant={ButtonVariants.Link}
-                    onPress={this.learnMore}
-                    label={strings('reset_password.learn_more')}
-                  />
+                  <View style={styles.learnMoreTextContainer}>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Default}
+                    >
+                      {strings('import_from_seed.learn_more')}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Primary}
+                      onPress={this.learnMore}
+                    >
+                      {' ' + strings('reset_password.learn_more')}
+                    </Text>
+                  </View>
                 </View>
 
                 <View>{this.renderSwitch()}</View>
@@ -858,6 +877,7 @@ class ChoosePassword extends PureComponent {
                   disabled={!canSubmit}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
+                  isDisabled={!canSubmit}
                 />
               </View>
             </KeyboardAwareScrollView>

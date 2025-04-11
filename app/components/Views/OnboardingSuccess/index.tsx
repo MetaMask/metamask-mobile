@@ -13,7 +13,10 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import Text from '../../../component-library/components/Texts/Text';
-import { TextColor } from '../../../component-library/components/Texts/Text/Text.types';
+import {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text/Text.types';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -91,13 +94,15 @@ const OnboardingSuccess = ({
       );
     }
     toastRef?.current?.showToast({
-      variant: ToastVariants.Plain,
+      variant: ToastVariants.Icon,
       labelOptions: [
         {
           label: strings('onboarding_success.hint_saved_toast'),
           isBold: true,
         },
       ],
+      iconName: IconName.CheckBold,
+      iconColor: IconColor.Success,
       hasNoTimeout: false,
     });
   };
@@ -172,8 +177,7 @@ const OnboardingSuccess = ({
     }
     return (
       <>
-        {/* <RNText style={styles.emoji}>🎉</RNText> */}
-        <Text style={styles.title}>
+        <Text variant={TextVariant.DisplayMD}>
           {strings('onboarding_success.import_title')}
         </Text>
         <Image
@@ -182,11 +186,11 @@ const OnboardingSuccess = ({
           style={styles.walletReadyImage}
         />
         <View style={styles.descriptionWrapper}>
-          <Text style={styles.description}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings('onboarding_success.import_description')}
           </Text>
 
-          <Text style={styles.description}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             <Text color={TextColor.Link} onPress={handleLink}>
               {strings('onboarding_success.learn_how')}{' '}
             </Text>
@@ -281,14 +285,14 @@ const OnboardingSuccess = ({
         </View>
       ) : (
         <View style={styles.hintWrapper}>
-          <Text style={styles.hintTitle}>
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
             {strings('onboarding_success.hint_title')}
           </Text>
           <View style={styles.hintDescriptionWrapper}>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('onboarding_success.hint_description')}
             </Text>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('onboarding_success.hint_description2')}
             </Text>
           </View>
@@ -306,6 +310,7 @@ const OnboardingSuccess = ({
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
             onPress={saveHint}
+            isDisabled={!hintText}
           />
         </View>
       )}

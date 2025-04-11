@@ -120,7 +120,7 @@
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
-    "continue_with_srp": "Continue with Secret Recovery Phrase",
+    "continue_with_srp": "Continue with manual setup",
     "have_existing_wallet": "I have an existing wallet",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
@@ -139,14 +139,14 @@
     "default_settings_footer": "Settings are optimized for ease of use and security.\nChange these at any time.",
     "no_srp_title": "Reminder set!",
     "no_srp_description": "If you get locked out of the app or get a new device, you will lose your funds. Be sure to back up your Secret Recovery Phrase in",
-    "import_title": "Your Wallet is ready",
+    "import_title": "Your Wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Done",
     "create_hint": "Create a Secret Recovery Phrase hint",
-    "hint_title": "Secret Recovery Phrase hint",
+    "hint_title": "Password hint",
     "hint_description": "Leave yourself a hint to help remember where your Secret Recovery Phrase is stored. This hint is stored on your device, and won’t be shared. ",
-    "hint_description2": "If you lose this phrase, you won’t be able to use your wallet.",
+    "hint_description2": "Remember: If you lose this phrase, you won’t be able to use your wallet.",
     "hint_button": "Create hint",
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
@@ -371,7 +371,9 @@
     "paste": "Paste",
     "hide_all": "Hide all",
     "srp": "Secret Recovery Phrase",
-    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀"
+    "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
+    "learn_more_link": "Learn more",
+    "confirm": "Confirm"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -2235,7 +2237,7 @@
     "view": "View",
     "confirm_password": "Confirm your password",
     "before_continiuing": "Before continuing we need you to confirm your password",
-    "confirm": "CONFIRM",
+    "confirm": "Confirm",
     "got_it": "Got it",
     "learn_more": "Learn More"
   },
@@ -3868,5 +3870,13 @@
     "slippage": "Slippage",
     "apply": "Apply",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here."
+  },
+  "account_status": {
+    "account_already_exists": "Account already exists ",
+    "account_already_exists_description": "An account with {{accountName}} already exists. Do you want to try logging in instead?",
+    "log_in": "Log in",
+    "account_not_found": "Account not found",
+    "account_not_found_description": "No existing wallet found for {{accountName}}. Want to create one now with this social login?",
+    "create_new_wallet": "Yes, create a new wallet"
   }
 }

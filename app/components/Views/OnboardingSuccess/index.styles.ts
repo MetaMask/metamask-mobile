@@ -10,11 +10,11 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     flexDirection: 'column',
+    justifyContent: 'space-between',
     height: '100%',
   },
   contentWrapper: {
     flex: 1,
-    paddingTop: 24,
     padding: 24,
     height: '100%',
   },
@@ -22,6 +22,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginTop: 'auto',
     flex: 1,
+    justifyContent: 'flex-end',
+    height: '100%',
   },
   emoji: {
     textAlign: 'center',
@@ -76,6 +78,8 @@ const styles = StyleSheet.create({
   },
   descriptionWrapper: {
     width: '90%',
+    flexDirection: 'column',
+    rowGap: 16,
   },
   button: {
     marginBottom: 16,
