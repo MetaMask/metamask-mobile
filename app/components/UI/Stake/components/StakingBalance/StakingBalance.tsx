@@ -51,6 +51,7 @@ import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
 import { selectPooledStakingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { EarnServiceInterruptionBanner } from '../../../Earn/components/EarnServiceInterruptionBanner';
 
 export interface StakingBalanceProps {
   asset: TokenI;
@@ -160,6 +161,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
 
     return (
       <>
+        <EarnServiceInterruptionBanner />
         {unstakingRequests.map(
           ({ positionTicket, withdrawalTimestamp, assetsToDisplay }) =>
             assetsToDisplay && (
