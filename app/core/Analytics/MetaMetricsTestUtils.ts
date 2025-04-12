@@ -1,5 +1,6 @@
 import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
+import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 
 class MetaMetricsTestUtils {
   private static instance: MetaMetricsTestUtils;
@@ -40,7 +41,7 @@ class MetaMetricsTestUtils {
     }
 
     try {
-      await fetch('https://metametrics.test/track-event', {
+      await fetch(E2E_METAMETRICS_TRACK_URL, {
         method: 'POST',
         body: JSON.stringify({
           event: event.name,
