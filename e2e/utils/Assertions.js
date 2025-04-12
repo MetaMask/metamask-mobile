@@ -207,6 +207,17 @@ class Assertions {
       }
     }
   }
+
+  /**
+   * Check if a value is present (not null, not undefined, not an empty string).
+   * @param {*} value - The value to check.
+   */
+  static async checkIfValueIsPresent(value) {
+    if (value === null || value === undefined || value === '') {
+      throw new Error('Value is not present (null, undefined, or empty string)');
+    }
+    return true;
+  }
 }
 
 export default Assertions;
