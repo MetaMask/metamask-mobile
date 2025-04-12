@@ -3,7 +3,7 @@ import { ITrackingEvent } from './MetaMetrics.types';
 
 class MetaMetricsTestUtils {
   private static instance: MetaMetricsTestUtils;
-  private detoxTestId: string | null = null;
+  private sendMetaMetricsEventsinTest = false
 
   public static getInstance(): MetaMetricsTestUtils {
     if (!MetaMetricsTestUtils.instance) {
@@ -14,52 +14,44 @@ class MetaMetricsTestUtils {
 
   private constructor() {
     /**
-     * This class is used to send test events to the detox test server.
-     * It is initialized with the `detoxTestId` from the launch arguments.
-     * To add a `detoxTestId`, ensure you launch the app with the appropriate
+     * This class is used to send test events to the E2E test mock server.
+     * It is initialized with the `sendMetaMetricsinE2E` flag from the launch arguments.
+     * To enable sending events, ensure you launch the app with the appropriate
+     * You should also ensure you have the IS_TEST test env variable set to `true`.
      * launch arguments, as shown below:
      *
      * ```typescript
      * await TestHelpers.launchApp({
-     *   newInstance: true,
      *   launchArgs: {
-     *     detoxTestId,
+     *     sendMetaMetricsinE2E: true,
      *   }
      * });
      * ```
      */
-    this.detoxTestId =
-      LaunchArguments.value<{ detoxTestId?: string }>().detoxTestId || null;
+    this.sendMetaMetricsEventsinTest = LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>().sendMetaMetricsinE2E ?? false;
   }
 
   /**
    * Sends an event to the test server
    */
   public async trackEvent(event: ITrackingEvent): Promise<void> {
-    if (!this.detoxTestId) {
+    if (!this.sendMetaMetricsEventsinTest) {
       return;
     }
 
     try {
       await fetch('https://metametrics.test/track-event', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: JSON.stringify({
           event: event.name,
           properties: {
             ...event.properties,
             ...event.sensitiveProperties,
           },
-        })
+})
       });
     } catch (error) {
-      if (error instanceof TypeError && error.message.includes('Network request failed')) {
-        // Ignore network errors, as they are expected when the test server is not running
-      } else {
-        // Log other errors
-        // eslint-disable-next-line no-console
+      if (!(error instanceof TypeError && error.message.includes('Network request failed'))) {
         console.error('Error sending event to test server:', error);
       }
     }
