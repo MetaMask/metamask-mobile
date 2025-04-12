@@ -71,9 +71,6 @@ const MatchedAccountInfo = ({
     outerTextContainer: {
       flex: 1,
     },
-    text: {
-      fontWeight: '500',
-    },
     icon: {
       flexShrink: 0,
     },
@@ -95,7 +92,7 @@ const MatchedAccountInfo = ({
           flexDirection={FlexDirection.Column}
           style={styles.outerTextContainer}
         >
-          <Text style={styles.text}>{displayName}</Text>
+          <Text variant={TextVariant.BodyMDMedium}>{displayName}</Text>
           <Text variant={TextVariant.BodyXS} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
         </Box>
         <ButtonIcon
@@ -141,12 +138,6 @@ export const SnapUIAddressInput = ({
       reference,
     },
     chainId,
-  });
-
-  const textFieldStyle = StyleSheet.create({
-    textField: {
-      borderRadius: 8,
-    },
   });
 
   /*
@@ -199,7 +190,6 @@ export const SnapUIAddressInput = ({
         value={value}
         isDisabled={disabled}
         onChangeText={handleChange}
-        style={textFieldStyle.textField}
         startAccessory={
           displayAvatar && value ? (
             <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
