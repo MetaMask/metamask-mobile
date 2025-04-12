@@ -18,11 +18,13 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
     mockServer = await startMockServer({}, DEFAULT_MOCKSERVER_PORT);
     const detoxTestId = 'import-wallet-analytics-test';
     segmentTracker = new SegmentTracker(detoxTestId, mockServer);
-    await segmentTracker.startTracking();
+    await segmentTracker.start();
     await TestHelpers.launchApp({
       newInstance: true,
       launchArgs: {
         detoxTestId,
+        mockServerPort: String(DEFAULT_MOCKSERVER_PORT),
+        enableSegment: true,
       }
     });
   });
