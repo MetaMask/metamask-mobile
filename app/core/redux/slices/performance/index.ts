@@ -31,7 +31,7 @@ export interface PerformanceState {
   isInitialized: boolean;
 }
 
-const initialState: PerformanceState = {
+export const initialState: PerformanceState = {
   sessionId: '',
   startTime: 0,
   metrics: [],
