@@ -12,14 +12,11 @@ export const solanaAccountId = 'solanaAccountId';
 export const solanaAccountAddress = 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61';
 
 // Ethereum tokens
-export const ethToken1Address =
-  '0x0000000000000000000000000000000000000001' as Hex;
-export const ethToken2Address =
-  '0x0000000000000000000000000000000000000002' as Hex;
+export const ethToken1Address = '0x0000000000000000000000000000000000000001' as Hex;
+export const ethToken2Address = '0x0000000000000000000000000000000000000002' as Hex;
 
 // Optimism tokens
-export const optimismToken1Address =
-  '0x0000000000000000000000000000000000000003' as Hex;
+export const optimismToken1Address = '0x0000000000000000000000000000000000000003' as Hex;
 
 // Solana tokens
 export const solanaNativeTokenAddress = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501' as CaipAssetId;
@@ -32,14 +29,8 @@ export const initialState = {
         bridgeFeatureFlags: {
           [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
             chains: {
-              [formatChainIdToCaip(ethChainId)]: {
-                isActiveSrc: true,
-                isActiveDest: true,
-              },
-              [formatChainIdToCaip(optimismChainId)]: {
-                isActiveSrc: true,
-                isActiveDest: true,
-              },
+              [formatChainIdToCaip(ethChainId)]: { isActiveSrc: true, isActiveDest: true },
+              [formatChainIdToCaip(optimismChainId)]: { isActiveSrc: true, isActiveDest: true },
             },
           },
         },

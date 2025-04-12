@@ -16,14 +16,8 @@ interface UseTopTokensProps {
   chainId?: Hex | CaipChainId;
 }
 
-export const useTopTokens = ({
-  chainId,
-}: UseTopTokensProps): {
-  topTokens: BridgeToken[] | undefined;
-  pending: boolean;
-} => {
-  const swapsChainCache: SwapsControllerState['chainCache'] =
-    useSelector(selectChainCache);
+export const useTopTokens = ({ chainId }: UseTopTokensProps): { topTokens: BridgeToken[] | undefined, pending: boolean } => {
+  const swapsChainCache: SwapsControllerState['chainCache'] = useSelector(selectChainCache);
   const swapsTopAssets = useMemo(
     () => (chainId ? swapsChainCache[chainId]?.topAssets : null),
     [chainId, swapsChainCache],
@@ -37,9 +31,7 @@ export const useTopTokens = ({
     (state: RootState) => selectTopAssetsFromFeatureFlags(state, chainId),
   );
 
-  const cachedBridgeTokens = useRef<
-    Record<string, Record<string, BridgeToken>>
-  >({});
+  const cachedBridgeTokens = useRef<Record<string, Record<string, BridgeToken>>>({});
 
   // Get the top assets from the Swaps API
   useEffect(() => {
@@ -53,7 +45,10 @@ export const useTopTokens = ({
           });
         }
       } catch (error: unknown) {
-        Logger.error(error as Error, 'Swaps: Error while fetching top assets');
+        Logger.error(
+          error as Error,
+          'Swaps: Error while fetching top assets',
+        );
       }
     })();
   }, [chainId]);
@@ -68,16 +63,16 @@ export const useTopTokens = ({
       return {};
     }
 
-      if (cachedBridgeTokens.current[chainId]) {
-        return cachedBridgeTokens.current[chainId];
-      }
+    if (cachedBridgeTokens.current[chainId]) {
+      return cachedBridgeTokens.current[chainId];
+    }
 
-      const rawBridgeAssets = await fetchBridgeTokens(
-        chainId,
-        BridgeClientId.MOBILE,
-        handleFetch,
-        BRIDGE_PROD_API_BASE_URL,
-      );
+    const rawBridgeAssets = await fetchBridgeTokens(
+      chainId,
+      BridgeClientId.MOBILE,
+      handleFetch,
+      BRIDGE_PROD_API_BASE_URL,
+    );
 
     // Convert from BridgeAsset type to BridgeToken type
     const bridgeTokenObj: Record<string, BridgeToken> = {};
@@ -95,9 +90,15 @@ export const useTopTokens = ({
         decimals: bridgeAsset.decimals,
         chainId: caipChainId === SolScope.Mainnet ? caipChainId : hexChainId,
       };
+    });
 
-      return bridgeTokenObj;
-    }, [chainId]);
+    cachedBridgeTokens.current = {
+      ...cachedBridgeTokens.current,
+      [chainId]: bridgeTokenObj,
+    };
+
+    return bridgeTokenObj;
+  }, [chainId]);
 
   // Merge the top assets from the Swaps API with the token data from the bridge API
   const topTokens = useMemo(() => {
@@ -117,9 +118,9 @@ export const useTopTokens = ({
         || bridgeTokens[topAssetAddr.toLowerCase()]
         || bridgeTokens[toChecksumHexAddress(topAssetAddr)];
 
-        return candidateBridgeToken;
-      })
-      .filter(Boolean) as BridgeToken[];
+      return candidateBridgeToken;
+    })
+    .filter(Boolean) as BridgeToken[];
 
     // Create a Set of normalized addresses for O(1) lookups
     const topTokenAddresses = new Set(
@@ -150,8 +151,5 @@ export const useTopTokens = ({
     return top;
   }, [bridgeTokens, swapsTopAssets, topAssetsFromFeatureFlags]);
 
-  return {
-    topTokens,
-    pending: chainId ? bridgeTokensPending || swapsTopAssetsPending : false,
-  };
+  return { topTokens, pending: chainId ? (bridgeTokensPending || swapsTopAssetsPending) : false };
 };
