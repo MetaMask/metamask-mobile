@@ -4,15 +4,16 @@ import { SnapUIAddressInput } from './SnapUIAddressInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
 import { INPUT_TEST_ID } from '../../../component-library/components/Form/TextField/foundation/Input/Input.constants';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+
+const mockInitialState = {
+  settings: {
+    useBlockieIcon: false,
+  },
+};
 
 jest.mock('../SnapInterfaceContext');
 jest.mock('../SnapUIAddress/useDisplayName');
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn().mockImplementation((selector) =>
-    // Mock settings to use Jazzicon for consistent testing
-    selector({ settings: { useBlockieIcon: false } })
-  ),
-}));
 
 describe('SnapUIAddressInput', () => {
   const mockHandleInputChange = jest.fn();
@@ -47,8 +48,9 @@ describe('SnapUIAddressInput', () => {
   it('supports existing state', () => {
     mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
 
-    const { getByDisplayValue } = render(
+    const { getByDisplayValue } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} />,
+      { state: mockInitialState },
     );
 
     expect(getByDisplayValue(testAddress)).toBeTruthy();
@@ -56,12 +58,13 @@ describe('SnapUIAddressInput', () => {
 
   it('supports a placeholder', () => {
     const placeholder = 'Enter ETH address';
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
         placeholder={placeholder}
       />,
+      { state: mockInitialState },
     );
 
     const textfield = getByTestId(INPUT_TEST_ID);
@@ -69,12 +72,13 @@ describe('SnapUIAddressInput', () => {
   });
 
   it('supports the disabled prop', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
         disabled
       />,
+      { state: mockInitialState },
     );
 
     const textfield = getByTestId(INPUT_TEST_ID);
@@ -83,12 +87,13 @@ describe('SnapUIAddressInput', () => {
 
   it('will render within a field', () => {
     const label = 'Address Field';
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
         label={label}
       />,
+      { state: mockInitialState },
     );
 
     expect(getByText(label)).toBeTruthy();
@@ -99,8 +104,9 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { getByText } = render(
+    const { getByText } = renderWithProvider(
       <SnapUIAddressInput name="testAddress" chainId={testChainId} />,
+      { state: mockInitialState },
     );
 
     expect(getByText(displayName)).toBeTruthy();
@@ -112,12 +118,13 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { toJSON } = render(
+    const { toJSON } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
         displayAvatar
       />,
+      { state: mockInitialState },
     );
 
 
@@ -130,12 +137,13 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { toJSON } = render(
+    const { toJSON } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
         displayAvatar={false}
       />,
+      { state: mockInitialState },
     );
 
     const tree = JSON.stringify(toJSON());
