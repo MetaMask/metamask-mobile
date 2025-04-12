@@ -1,51 +1,45 @@
-// @ts-check
+'use strict';
 import { SmokeAnalytics } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { DEFAULT_MOCKSERVER_PORT } from '../../fixtures/utils';
-import SegmentTracker from './utils/SegmentTracker';
 import Assertions from '../../utils/Assertions';
+import { withFixtures } from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import { E2E_SEGEMENT_TRACK_URL, getEventsPayloads, getSeenRequestsPayloads } from './helpers';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
+
+
 
 describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
-  /** @type {import('mockttp').Mockttp} */
-  let mockServer;
-  /** @type {SegmentTracker} */
-  let segmentTracker;
+  const testSpecificMock = {
+    POST: [mockEvents.POST.segmentTrack],
+  };
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
-    mockServer = await startMockServer({}, DEFAULT_MOCKSERVER_PORT);
-    const detoxTestId = 'import-wallet-analytics-test';
-    segmentTracker = new SegmentTracker(detoxTestId, mockServer);
-    await segmentTracker.start();
-    await TestHelpers.launchApp({
-      newInstance: true,
-      launchArgs: {
-        detoxTestId,
-        mockServerPort: String(DEFAULT_MOCKSERVER_PORT),
-        enableSegment: true,
-      }
-    });
   });
 
-  afterAll(async () => {
-    await mockServer.stop();
-  });
 
   it('should track analytics events during wallet import', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
-    const walletSetupEvent = await segmentTracker.getEventsByName('Wallet Setup Completed');
-    await Assertions.checkIfArrayHasLength(
-      walletSetupEvent,
-      1,
-    );
-    await Assertions.checkIfObjectsMatch(
-      walletSetupEvent[0].properties,
-      {
-        wallet_setup_type: 'import',
-        new_wallet: false,
-      },
-    );
+    await withFixtures({fixture: new FixtureBuilder().withOnboardingFixture().build(), restartDevice: true, testSpecificMock, launchArgs: {
+      sendMetaMetricsinE2E: true,
+    }}, async ({ mockServer }) => {
+      await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+
+      const events = await getEventsPayloads(mockServer, ['Wallet Setup Completed']);
+
+      await Assertions.checkIfArrayHasLength(
+        events,
+        1,
+      );
+
+      await Assertions.checkIfObjectsMatch(
+        events[0].properties,
+        {
+          wallet_setup_type: 'import',
+          new_wallet: false,
+        },
+      );
+    });
   });
 });
