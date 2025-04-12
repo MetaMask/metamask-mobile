@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { SnapUIAddressInput } from './SnapUIAddressInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
@@ -55,6 +55,21 @@ describe('SnapUIAddressInput', () => {
 
     expect(getByDisplayValue(testAddress)).toBeTruthy();
   });
+
+  it('can accept input', () => {
+    const { getByTestId } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} />,
+      { state: mockInitialState },
+    );
+
+    const textfield = getByTestId(INPUT_TEST_ID);
+    fireEvent.changeText(textfield, '0x');
+    expect(mockHandleInputChange).toHaveBeenCalledWith(
+      'testAddress',
+      `${testChainId}:0x`,
+      undefined,
+    );
+  })
 
   it('supports a placeholder', () => {
     const placeholder = 'Enter ETH address';
