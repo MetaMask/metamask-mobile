@@ -1,6 +1,5 @@
 import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
-import axios, { isAxiosError } from 'axios';
 
 class MetaMetricsTestUtils {
   private static instance: MetaMetricsTestUtils;
@@ -42,25 +41,26 @@ class MetaMetricsTestUtils {
     }
 
     try {
-      await axios.post(
-        `http://localhost:8000/mm_test_track`,
-        {
+      await fetch('https://metametrics.test/track-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           event: event.name,
           properties: {
             ...event.properties,
             ...event.sensitiveProperties,
           },
-        },
-        {
-          headers: {
-            'X-Detox-Test-Id': this.detoxTestId,
-          },
-        },
-      );
+        })
+      });
     } catch (error) {
-      if (isAxiosError(error) && error.message === 'Network Error') {
+      if (error instanceof TypeError && error.message.includes('Network request failed')) {
         // Ignore network errors, as they are expected when the test server is not running
-        return;
+      } else {
+        // Log other errors
+        // eslint-disable-next-line no-console
+        console.error('Error sending event to test server:', error);
       }
     }
   }

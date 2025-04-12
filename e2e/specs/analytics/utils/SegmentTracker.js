@@ -36,9 +36,9 @@ export default class SegmentTracker {
    * Begins tracking segment events by setting up the server endpoint.
    * @returns {Promise<void>} A promise that resolves when tracking setup is complete.
    */
-  async startTracking() {
+  async start() {
     await this.server
-      .forPost('/mm_test_track')
+      .forPost('https://metametrics.test/track-event')
       .withHeaders({
         'X-Detox-Test-Id': this.detoxTestId,
       })
@@ -58,12 +58,15 @@ export default class SegmentTracker {
       });
   }
 
+
   /**
    * Handles and stores a new segment event.
    * @param {EventData} eventData - The data of the event to be tracked.
    * @private
    */
   handleTrackEvent(eventData) {
+    // eslint-disable-next-line no-console
+    console.log(`\nTEST_ID:${this.detoxTestId}\nTRACK EVENT: ${eventData.event}`);
     this.events.push(eventData);
   }
 
