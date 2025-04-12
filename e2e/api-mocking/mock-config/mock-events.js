@@ -2,6 +2,7 @@
  * Mock events for gas fee API responses.
  */
 
+import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 import {
   suggestedGasApiResponses,
   suggestedGasFeesApiGanache,
@@ -110,5 +111,10 @@ export const mockEvents = {
       },
       responseCode: 201,
     },
+
+    segmentTrack: {
+      urlEndpoint: E2E_METAMETRICS_TRACK_URL,
+      responseCode: 200,
+    }
   },
 };
