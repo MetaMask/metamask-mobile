@@ -10,7 +10,7 @@ import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
 import { initialOnboardingState } from '../../reducers/onboarding';
-
+import { initialState as initialPerformanceState } from '../../core/redux/slices/performance';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -54,6 +54,7 @@ const initialRootState: RootState = {
   banners: {
     dismissedBanners: [],
   },
+  performance: initialPerformanceState,
 };
 
 export default initialRootState;
