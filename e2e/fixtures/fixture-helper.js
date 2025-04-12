@@ -86,6 +86,7 @@ export const stopFixtureServer = async (fixtureServer) => {
  * @param {Object} options - An object containing configuration options.
  * @param {Object} options.fixture - The fixture to load.
  * @param {boolean} [options.restartDevice=false] - If true, restarts the app to apply the loaded fixture.
+ * @param {Object} [options.launchArgs] - Additional launch arguments for the app.
  * @param {Function} testSuite - The test suite function to execute after setting up the fixture.
  * @returns {Promise<void>} - A promise that resolves once the test suite completes.
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
@@ -102,6 +103,7 @@ export async function withFixtures(options, testSuite) {
     dappPath = undefined,
     dappPaths,
     testSpecificMock,
+    launchArgs
   } = options;
 
   const fixtureServer = new FixtureServer();
@@ -176,11 +178,12 @@ export async function withFixtures(options, testSuite) {
           fixtureServerPort: `${getFixturesServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
           mockServerPort: `${mockServerPort}`,
+          ...launchArgs ?? {},
         },
       });
     }
 
-    await testSuite({ contractRegistry });
+    await testSuite({ contractRegistry, mockServer });
   } catch (error) {
     console.error(error);
     throw error;
