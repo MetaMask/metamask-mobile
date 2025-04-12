@@ -25,11 +25,16 @@ describe('Performance Slice', () => {
   let store: ReturnType<typeof configureStore<MockRootState>>;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     store = configureStore({
       reducer: {
         performance: performanceReducer,
       },
     });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   describe('Initial State', () => {
@@ -117,6 +122,9 @@ describe('Performance Slice', () => {
 
   describe('endPerformanceTrace', () => {
     it('end a trace and add it to metrics', () => {
+      const startTime = Date.now();
+      jest.setSystemTime(startTime);
+
       store.dispatch(
         startPerformanceTrace({
           eventName: 'test_trace',
@@ -124,25 +132,25 @@ describe('Performance Slice', () => {
         }),
       );
 
-      // Wait a bit to ensure duration is captured
-      setTimeout(() => {
-        store.dispatch(
-          endPerformanceTrace({
-            eventName: 'test_trace',
-            additionalMetadata: { additional: 'data' },
-          }),
-        );
+      // Advance time by 100ms
+      jest.advanceTimersByTime(100);
 
-        const state = store.getState().performance;
-        expect(state.activeTraces.test_trace).toBeUndefined();
-        expect(state.metrics).toHaveLength(1);
-        expect(state.metrics[0].eventName).toBe('test_trace');
-        expect(state.metrics[0].duration).toBeGreaterThan(0);
-        expect(state.metrics[0].metadata).toEqual({
-          initial: 'data',
-          additional: 'data',
-        });
-      }, 10);
+      store.dispatch(
+        endPerformanceTrace({
+          eventName: 'test_trace',
+          additionalMetadata: { additional: 'data' },
+        }),
+      );
+
+      const state = store.getState().performance;
+      expect(state.activeTraces.test_trace).toBeUndefined();
+      expect(state.metrics).toHaveLength(1);
+      expect(state.metrics[0].eventName).toBe('test_trace');
+      expect(state.metrics[0].duration).toBe(100);
+      expect(state.metrics[0].metadata).toEqual({
+        initial: 'data',
+        additional: 'data',
+      });
     });
 
     it('not add metric if trace does not exist', () => {
@@ -180,24 +188,27 @@ describe('Performance Slice', () => {
     });
 
     it('selectPerformanceMetrics return only metrics', () => {
+      const startTime = Date.now();
+      jest.setSystemTime(startTime);
+
       store.dispatch(
         startPerformanceTrace({
           eventName: 'test_trace',
         }),
       );
 
-      setTimeout(() => {
-        store.dispatch(
-          endPerformanceTrace({
-            eventName: 'test_trace',
-          }),
-        );
+      jest.advanceTimersByTime(100);
 
-        const state = store.getState();
-        expect(mockSelectPerformanceMetrics(state)).toEqual(
-          state.performance.metrics,
-        );
-      }, 10);
+      store.dispatch(
+        endPerformanceTrace({
+          eventName: 'test_trace',
+        }),
+      );
+
+      const state = store.getState();
+      expect(mockSelectPerformanceMetrics(state)).toEqual(
+        state.performance.metrics,
+      );
     });
 
     it('selectPerformanceSession return session information', () => {
