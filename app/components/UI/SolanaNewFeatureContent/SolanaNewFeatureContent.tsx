@@ -42,9 +42,19 @@ const SolanaNewFeatureContent = () => {
     checkModalStatus();
   }, []);
 
-  const handleClose = async () => {
+  /**
+   * Sheet close functionality (does not fire ref close to prevent infinite recursion)
+   */
+  const handleSheetClose = async () => {
     await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     setIsVisible(false);
+  };
+
+  /**
+   * Close Button, invokes both sheet closing and ref closing
+   */
+  const handleClose = async () => {
+    await handleSheetClose();
     sheetRef.current?.onCloseBottomSheet();
   };
 
@@ -82,7 +92,7 @@ const SolanaNewFeatureContent = () => {
   return (
     <BottomSheet
       ref={sheetRef}
-      onClose={handleClose}
+      onClose={handleSheetClose}
       shouldNavigateBack={false}
     >
       <View style={styles.wrapper}>

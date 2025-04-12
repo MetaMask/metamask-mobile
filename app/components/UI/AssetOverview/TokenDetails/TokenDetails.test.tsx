@@ -20,7 +20,7 @@ import * as reactRedux from 'react-redux';
 import * as StakeConstants from '../../Stake/constants';
 import { strings } from '../../../../../locales/i18n';
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: jest.fn(),
+  getTotalEvmFiatAccountBalance: jest.fn(),
   context: {
     TokensController: {},
   },

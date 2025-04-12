@@ -165,6 +165,7 @@ describe('Footer', () => {
       unconfirmedFieldDangerAlerts: [],
       hasUnconfirmedDangerAlerts: false,
       hasUnconfirmedFieldDangerAlerts: false,
+      generalAlerts: [],
     };
 
     beforeEach(() => {
