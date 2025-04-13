@@ -116,7 +116,7 @@
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
-    "continue_with_srp": "Continue with manual setup",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
     "have_existing_wallet": "I have an existing wallet",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",

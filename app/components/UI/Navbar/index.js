@@ -780,8 +780,9 @@ export function getTransparentBackOnboardingNavbarOptions(themeColors) {
         />
       </View>
     ),
-    headerBackTitle: strings('navigation.back'),
     headerRight: () => <View />,
+    headerBackTitle: strings('navigation.back'),
+    headerLeft: () => <View />,
     headerStyle: innerStyles.headerStyle,
     headerTintColor: themeColors.primary.default,
   };
