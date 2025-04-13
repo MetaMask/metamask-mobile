@@ -54,12 +54,6 @@ const createStyles = ({ colors }) =>
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
     },
-    checkIcon: {
-      color: colors.success.default,
-    },
-    crossIcon: {
-      color: colors.error.default,
-    },
     checkbox: {
       display: 'flex',
       flexDirection: 'row',
@@ -67,46 +61,14 @@ const createStyles = ({ colors }) =>
       gap: 16,
       marginRight: 25,
     },
-    icon: {
-      marginRight: 5,
-    },
     action: {
       flex: 0,
       flexDirection: 'row',
-      // paddingVertical: 10,
       alignItems: 'flex-start',
       gap: 16,
     },
-    title: {
-      ...fontStyles.bold,
-      color: colors.text.default,
-      fontSize: 32,
-    },
     description: {
-      ...fontStyles.normal,
-      color: colors.text.default,
       flex: 1,
-    },
-    descriptionBold: {
-      ...fontStyles.bold,
-    },
-    content: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.text.default,
-      marginVertical: 16,
-      // paddingVertical: 16,
-    },
-    policyCheckboxContent: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.text.default,
-    },
-    linkText: {
-      ...fontStyles.normal,
-      fontSize: 14,
-      color: colors.info.default,
-      paddingVertical: 10,
     },
     wrapper: {
       marginTop: 10,
@@ -119,15 +81,6 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.text.muted,
-    },
-    privacyPolicyButton: {
-      ...fontStyles.normal,
-      fontSize: 12,
-      padding: 0,
-      color: colors.text.primary,
-    },
-    link: {
-      textDecorationLine: 'underline',
     },
     actionContainer: {
       flexDirection: 'row',
@@ -234,7 +187,7 @@ class OptinMetrics extends PureComponent {
   updateNavBar = () => {
     const { navigation } = this.props;
     const colors = this.context.colors;
-    navigation.setOptions(getOptinMetricsNavbarOptions(colors));
+    navigation.setOptions(getOptinMetricsNavbarOptions(colors, false));
   };
 
   componentDidMount() {

@@ -13,14 +13,13 @@ import {
   SafeAreaView,
   Platform,
   FlatList,
-  Dimensions,
+  TouchableOpacity,
   Keyboard,
 } from 'react-native';
 import { connect } from 'react-redux';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import zxcvbn from 'zxcvbn';
-import { OutlinedTextField } from 'react-native-material-textfield';
 import Clipboard from '@react-native-clipboard/clipboard';
 import AppConstants from '../../../core/AppConstants';
 import Device from '../../../util/device';
@@ -45,7 +44,6 @@ import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
-import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -92,6 +90,8 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
+import { isTest } from '../../../util/test/utils';
+import SeedphraseModal from '../../UI/SeedphraseModal';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -112,10 +112,16 @@ const ImportFromSecretRecoveryPhrase = ({
   setOnboardingWizardStep,
   route,
 }) => {
+  const { enableProfileSyncing } = useProfileSyncing();
+
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
+
   const seedPhraseInputRefs = useRef([]);
   const { toastRef } = useContext(ToastContext);
+
+  const passwordInput = React.createRef();
+  const confirmPasswordInput = React.createRef();
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -123,34 +129,29 @@ const ImportFromSecretRecoveryPhrase = ({
   const [seed, setSeed] = useState('');
   const [biometryType, setBiometryType] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
-  const [secureTextEntry, setSecureTextEntry] = useState(true);
   const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // const [seedphraseInputFocused, setSeedphraseInputFocused] = useState(false);
-  const [inputWidth, setInputWidth] = useState({ width: '99%' });
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
     useState(-1);
   const [showAllSeedPhrase, setShowAllSeedPhrase] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [
-    passwordInputContainerFocusedIndex,
-    setPasswordInputContainerFocusedIndex,
-  ] = useState(0);
   const [learnMore, setLearnMore] = useState(false);
   const [showPasswordIndex, setShowPasswordIndex] = useState([0, 1]);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [showWhatIsSeedPhraseModal, setWhatIsSeedPhraseModal] = useState(false);
+
+  const inputPadding = 4;
+  const numColumns = 3; // Number of columns
+
+  const isSRPContinueButtonDisabled = () => seedPhrase.length === 0;
+  const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
 
   const handleLayout = (event) => {
     setContainerWidth(event.nativeEvent.layout.width);
   };
-
-  const { enableProfileSyncing } = useProfileSyncing();
-
-  const passwordInput = React.createRef();
-  const confirmPasswordInput = React.createRef();
 
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
@@ -158,13 +159,69 @@ const ImportFromSecretRecoveryPhrase = ({
     trackOnboarding(eventBuilder.build());
   };
 
+  const onQrCodePress = useCallback(() => {
+    let shouldHideSRP = true;
+    if (!hideSeedPhraseInput) {
+      shouldHideSRP = false;
+    }
+
+    setHideSeedPhraseInput(false);
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
+      onScanSuccess: ({ seed = undefined }) => {
+        if (seed) {
+          setSeedPhrase(seed);
+        } else {
+          Alert.alert(
+            strings('import_from_seed.invalid_qr_code_title'),
+            strings('import_from_seed.invalid_qr_code_message'),
+          );
+        }
+        setHideSeedPhraseInput(shouldHideSRP);
+      },
+      onScanError: (error) => {
+        setHideSeedPhraseInput(shouldHideSRP);
+      },
+    });
+  }, [hideSeedPhraseInput, navigation]);
+
   const updateNavBar = () => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={24}
+                color={colors.text.default}
+                onPress={() => navigation.goBack()}
+                style={styles.headerLeft}
+              />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity onPress={onQrCodePress}>
+              <Icon
+                name={IconName.Scan}
+                size={24}
+                color={colors.text.default}
+                onPress={onQrCodePress}
+                style={styles.headerRight}
+              />
+            </TouchableOpacity>
+          ),
+        },
+        colors,
+        false,
+      ),
+    );
   };
 
   useEffect(() => {
     updateNavBar();
-
     const setBiometricsOption = async () => {
       const authData = await Authentication.getType();
       const previouslyDisabled = await StorageWrapper.getItem(
@@ -186,9 +243,9 @@ const ImportFromSecretRecoveryPhrase = ({
 
     setBiometricsOption();
     // Workaround https://github.com/facebook/react-native/issues/9958
-    setTimeout(() => {
-      setInputWidth({ width: '100%' });
-    }, 100);
+    // setTimeout(() => {
+    //   setInputWidth({ width: '100%' });
+    // }, 100);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -292,44 +349,10 @@ const ImportFromSecretRecoveryPhrase = ({
     );
   };
 
-  const toggleShowHide = () => {
-    setSecureTextEntry(!secureTextEntry);
-  };
-
-  const toggleHideSeedPhraseInput = useCallback(() => {
-    setHideSeedPhraseInput(!hideSeedPhraseInput);
-  }, [hideSeedPhraseInput]);
-
-  const onQrCodePress = useCallback(() => {
-    let shouldHideSRP = true;
-    if (!hideSeedPhraseInput) {
-      shouldHideSRP = false;
-    }
-
-    setHideSeedPhraseInput(false);
-    navigation.navigate(Routes.QR_TAB_SWITCHER, {
-      initialScreen: QRTabSwitcherScreens.Scanner,
-      disableTabber: true,
-      onScanSuccess: ({ seed = undefined }) => {
-        if (seed) {
-          setSeed(seed);
-        } else {
-          Alert.alert(
-            strings('import_from_seed.invalid_qr_code_title'),
-            strings('import_from_seed.invalid_qr_code_message'),
-          );
-        }
-        setHideSeedPhraseInput(shouldHideSRP);
-      },
-      onScanError: (error) => {
-        setHideSeedPhraseInput(shouldHideSRP);
-      },
-    });
-  }, [hideSeedPhraseInput, navigation]);
-
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handleSeedPhraseChange = (text, index) => {
+    setError(false);
     setSeedPhrase((prev) => {
       const newSeedPhrase = [...prev];
       newSeedPhrase[index] = text.trim();
@@ -338,6 +361,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handleKeyPress = (e, index) => {
+    setError(false);
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (index === 0 && seedPhrase.length === 1) {
@@ -375,16 +399,13 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handlePaste = async () => {
-    // TODO: Remove this once we have the clipboard functionality
-    // const text = await Clipboard.getString(); // Get copied text
-    const text =
-      'One two three four five six seven eight nine ten eleven twelve';
+    setError(false);
+    const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
       const pastedData = text.split(' '); // Split by spaces
       setSeedPhrase([...pastedData].filter((item) => item !== ''));
-
       Keyboard.dismiss();
-      seedPhraseInputRefs.current[seedPhrase.length - 1]?.focus();
+      seedPhraseInputRefs.current[seedPhrase.length]?.focus();
     }
   };
 
@@ -392,11 +413,10 @@ const ImportFromSecretRecoveryPhrase = ({
     setShowAllSeedPhrase((prev) => !prev);
   };
 
-  const numColumns = 3; // Number of columns
-
   const handleClear = () => {
-    setSeedPhrase(['']);
+    setSeedPhrase([]);
     setShowAllSeedPhrase(false);
+    setError(false);
   };
 
   const validateSeedPhrase = () => {
@@ -421,23 +441,15 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
-    // if (!validateMnemonic(phrase)) {
-    //   toastRef?.current?.showToast({
-    //     variant: ToastVariants.Icon,
-    //     labelOptions: [
-    //       { label: strings('import_from_seed.invalid_seed_phrase') },
-    //     ],
-    //     hasNoTimeout: false,
-    //     iconName: IconName.DangerSolid,
-    //     iconColor: IconColor.Error,
-    //   });
-    //   return false;
-    // }
+    if (!validateMnemonic(phrase)) {
+      setError(true);
+      return false;
+    }
     return true;
   };
 
-  const handleContinueImportFlow = () => {
-    if (!validateSeedPhrase()) {
+  const handleContinueImportFlow = (passFlow = false) => {
+    if (!validateSeedPhrase() && !passFlow) {
       return;
     }
     if (seedPhrase.length === 0) {
@@ -583,17 +595,20 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   return (
-    <SafeAreaView style={styles.mainWrapper}>
+    <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
         style={styles.wrapper}
         resetScrollToCoords={{ x: 0, y: 0 }}
       >
         <View testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            Step {currentStep + 1} of 2
+            {strings('import_from_seed.step', {
+              currentStep: currentStep + 1,
+              totalSteps: 2,
+            })}
           </Text>
           {currentStep === 0 && (
-            <View>
+            <>
               <Text
                 variant={TextVariant.DisplayMD}
                 color={TextColor.Default}
@@ -601,129 +616,173 @@ const ImportFromSecretRecoveryPhrase = ({
               >
                 {strings('import_from_seed.title')}
               </Text>
-              <View style={styles.seedPhraseRootContainer}>
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {strings(
-                    'import_from_seed.enter_your_secret_recovery_phrase',
-                  )}
-                </Text>
-                <View style={styles.seedPhraseContainer}>
-                  <View style={styles.seedPhraseInnerContainer}>
-                    {seedPhrase.length <= 1 ? (
-                      <TextInput
-                        label={strings('import_from_seed.srp')}
-                        placeholder={strings(
-                          'import_from_seed.srp_placeholder',
-                        )}
-                        value={seedPhrase?.[0] || ''}
-                        onChangeText={(text) => handleSeedPhraseChange(text, 0)}
-                        style={styles.seedPhraseDefaultInput}
-                        placeholderTextColor={colors.text.muted}
-                        multiline
-                        autoFocus
-                        onKeyPress={(e) => handleKeyPress(e, 0)}
-                      />
-                    ) : (
-                      <View
-                        style={[styles.seedPhraseInputContainer]}
-                        onLayout={handleLayout}
-                      >
-                        <FlatList
-                          data={seedPhrase}
-                          numColumns={numColumns}
-                          keyExtractor={(_, index) => index.toString()}
-                          renderItem={({ item, index }) => (
-                            <View
-                              style={[
-                                { width: containerWidth / (numColumns + 0.2) },
-                                styles.seedPhraseInput,
-                              ]}
-                            >
-                              <TextField
-                                startAccessory={
-                                  <Text style={styles.inputNumber}>
-                                    {index + 1}.
-                                  </Text>
-                                }
-                                value={
-                                  item &&
-                                  (showAllSeedPhrase
-                                    ? false
-                                    : seedPhraseInputFocusedIndex !== index)
-                                    ? '***'
-                                    : item
-                                }
-                                secureTextEntry={
-                                  showAllSeedPhrase
-                                    ? false
-                                    : seedPhraseInputFocusedIndex !== index
-                                }
-                                onFocus={() =>
-                                  setSeedPhraseInputFocusedIndex(index)
-                                }
-                                onChangeText={(text) =>
-                                  handleSeedPhraseChange(text, index)
-                                }
-                                placeholderTextColor={colors.text.muted}
-                                autoFocus={
-                                  showAllSeedPhrase
-                                    ? false
-                                    : index === seedPhrase.length - 1
-                                }
-                                onKeyPress={(e) => handleKeyPress(e, index)}
-                                size={TextFieldSize.Md}
-                              />
-                            </View>
-                          )}
-                        />
-                      </View>
+              <View style={styles.container}>
+                <View style={styles.description}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Alternative}
+                  >
+                    {strings(
+                      'import_from_seed.enter_your_secret_recovery_phrase',
                     )}
-                  </View>
-                  <View style={styles.seedPhraseContainerCta}>
-                    <Button
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={toggleShowAllSeedPhrase}
-                      label={
-                        showAllSeedPhrase
-                          ? strings('import_from_seed.hide_all')
-                          : strings('import_from_seed.show_all')
-                      }
-                      width={ButtonWidthTypes.Full}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setWhatIsSeedPhraseModal(true)}
+                  >
+                    <Icon
+                      name={IconName.Info}
+                      size={IconSize.Md}
+                      color={colors.icon.alternative}
                     />
-                    <Button
-                      label={
-                        seedPhrase.length > 1
-                          ? strings('import_from_seed.clear_all')
-                          : strings('import_from_seed.paste')
-                      }
-                      variant={ButtonVariants.Link}
-                      style={styles.pasteButton}
-                      onPress={() => {
-                        if (seedPhrase.length > 1) {
-                          handleClear();
-                        } else {
-                          handlePaste();
-                        }
-                      }}
-                      width={ButtonWidthTypes.Full}
-                    />
-                  </View>
+                  </TouchableOpacity>
                 </View>
-                <View style={styles.seedPhraseContinueCta}>
+                <View style={styles.seedPhraseRoot}>
+                  <View style={styles.seedPhraseContainer}>
+                    <View style={styles.seedPhraseInnerContainer}>
+                      {seedPhrase.length <= 1 ? (
+                        <TextInput
+                          label={strings('import_from_seed.srp')}
+                          placeholder={strings(
+                            'import_from_seed.srp_placeholder',
+                          )}
+                          value={seedPhrase?.[0] || ''}
+                          onChangeText={(text) =>
+                            handleSeedPhraseChange(text, 0)
+                          }
+                          style={styles.seedPhraseDefaultInput}
+                          placeholderTextColor={colors.text.alternative}
+                          placeholderStyle={
+                            styles.seedPhraseDefaultInputPlaceholder
+                          }
+                          multiline
+                          autoFocus
+                          onKeyPress={(e) => handleKeyPress(e, 0)}
+                        />
+                      ) : (
+                        <View
+                          style={[styles.seedPhraseInputContainer]}
+                          onLayout={handleLayout}
+                        >
+                          <FlatList
+                            data={seedPhrase}
+                            numColumns={numColumns}
+                            keyExtractor={(_, index) => index.toString()}
+                            renderItem={({ item, index }) => (
+                              <View
+                                style={[
+                                  {
+                                    width: containerWidth / 3,
+                                    padding: inputPadding,
+                                  },
+                                ]}
+                              >
+                                <TextField
+                                  startAccessory={
+                                    <Text
+                                      variant={TextVariant.BodyMD}
+                                      color={TextColor.Alternative}
+                                    >
+                                      {index + 1}.
+                                    </Text>
+                                  }
+                                  value={
+                                    item &&
+                                    (showAllSeedPhrase
+                                      ? false
+                                      : seedPhraseInputFocusedIndex !== index)
+                                      ? '***'
+                                      : item
+                                  }
+                                  secureTextEntry={
+                                    showAllSeedPhrase
+                                      ? false
+                                      : seedPhraseInputFocusedIndex !== index
+                                  }
+                                  onFocus={() =>
+                                    setSeedPhraseInputFocusedIndex(index)
+                                  }
+                                  onChangeText={(text) =>
+                                    handleSeedPhraseChange(text, index)
+                                  }
+                                  placeholderTextColor={colors.text.muted}
+                                  autoFocus={
+                                    showAllSeedPhrase
+                                      ? false
+                                      : index === seedPhrase.length - 1
+                                  }
+                                  onKeyPress={(e) => handleKeyPress(e, index)}
+                                  size={TextFieldSize.Md}
+                                  style={styles.input}
+                                />
+                              </View>
+                            )}
+                          />
+                        </View>
+                      )}
+                    </View>
+                    <View style={styles.seedPhraseContainerCta}>
+                      <Button
+                        variant={ButtonVariants.Link}
+                        style={styles.pasteButton}
+                        onPress={toggleShowAllSeedPhrase}
+                        label={
+                          showAllSeedPhrase
+                            ? strings('import_from_seed.hide_all')
+                            : strings('import_from_seed.show_all')
+                        }
+                        width={ButtonWidthTypes.Full}
+                      />
+                      <Button
+                        label={
+                          seedPhrase.length > 1
+                            ? strings('import_from_seed.clear_all')
+                            : strings('import_from_seed.paste')
+                        }
+                        variant={ButtonVariants.Link}
+                        style={styles.pasteButton}
+                        onPress={() => {
+                          if (seedPhrase.length > 1) {
+                            handleClear();
+                          } else {
+                            handlePaste();
+                          }
+                        }}
+                        width={ButtonWidthTypes.Full}
+                      />
+                    </View>
+                  </View>
+                  {error && (
+                    <Text
+                      variant={TextVariant.BodySMMedium}
+                      color={TextColor.Error}
+                    >
+                      {strings('import_from_seed.invalid_seed_phrase')}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.seedPhraseCtaContainer}>
                   <Button
                     variant={ButtonVariants.Primary}
                     label={strings('import_from_seed.continue')}
-                    onPress={handleContinueImportFlow}
+                    onPress={() => handleContinueImportFlow(false)}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
+                    isDisabled={isSRPContinueButtonDisabled()}
                   />
+                  {isTest && (
+                    <Button
+                      variant={ButtonVariants.Secondary}
+                      label={strings('import_from_seed.pass_flow')}
+                      onPress={() => {
+                        handleContinueImportFlow(true);
+                      }}
+                      width={ButtonWidthTypes.Full}
+                      size={ButtonSize.Lg}
+                    />
+                  )}
                 </View>
               </View>
-            </View>
+            </>
           )}
 
           {currentStep === 1 && (
@@ -852,7 +911,7 @@ const ImportFromSecretRecoveryPhrase = ({
                 </View>
               </View>
 
-              <View style={styles.seedPhraseContinueCta}>
+              <View style={styles.seedPhraseCtaContainer}>
                 <Button
                   width={ButtonWidthTypes.Full}
                   variant={ButtonVariants.Primary}
@@ -865,192 +924,12 @@ const ImportFromSecretRecoveryPhrase = ({
               </View>
             </View>
           )}
-
-          {/* <View style={styles.fieldRow}>
-            <View style={styles.fieldCol}>
-              <Text style={styles.label}>
-                {strings('choose_password.seed_phrase')}
-              </Text>
-            </View>
-            <View style={[styles.fieldCol, styles.fieldColRight]}>
-              <TouchableOpacity onPress={toggleHideSeedPhraseInput}>
-                <Text style={styles.label}>
-                  {strings(
-                    `choose_password.${hideSeedPhraseInput ? 'show' : 'hide'}`,
-                  )}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View> */}
-          {/* {hideSeedPhraseInput ? (
-            hiddenSRPInput()
-          ) : (
-            <TextInput
-              value={seed}
-              numberOfLines={3}
-              style={[
-                styles.seedPhrase,
-                inputWidth,
-                seedphraseInputFocused && styles.inputFocused,
-              ]}
-              secureTextEntry
-              multiline={!hideSeedPhraseInput}
-              placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-              placeholderTextColor={colors.text.muted}
-              onChangeText={onSeedWordsChange}
-              blurOnSubmit
-              onSubmitEditing={jumpToPassword}
-              returnKeyType="next"
-              keyboardType={
-                (!hideSeedPhraseInput &&
-                  Device.isAndroid() &&
-                  'visible-password') ||
-                'default'
-              }
-              autoCapitalize="none"
-              autoCorrect={false}
-              onFocus={
-                (() =>
-                  !hideSeedPhraseInput &&
-                  setSeedphraseInputFocused(!seedphraseInputFocused)) || null
-              }
-              onBlur={
-                (() =>
-                  !hideSeedPhraseInput &&
-                  setSeedphraseInputFocused(!seedphraseInputFocused)) || null
-              }
-              keyboardAppearance={themeAppearance || 'light'}
-            />
-          )} */}
-          {/* <TouchableOpacity style={styles.qrCode} onPress={onQrCodePress}>
-            <Icon name="qrcode" size={20} color={colors.icon.default} />
-          </TouchableOpacity> */}
-          {/* <View style={styles.field}>
-            <View style={styles.fieldRow}>
-              <View style={styles.fieldCol}>
-                <Text style={styles.label}>
-                  {strings('import_from_seed.new_password')}
-                </Text>
-              </View>
-              <View style={[styles.fieldCol, styles.fieldColRight]}>
-                <TouchableOpacity onPress={toggleShowHide}>
-                  <Text style={styles.label}>
-                    {strings(
-                      `choose_password.${secureTextEntry ? 'show' : 'hide'}`,
-                    )}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <OutlinedTextField
-              style={styles.input}
-              containerStyle={inputWidth}
-              testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
-              placeholder={strings('import_from_seed.new_password')}
-              placeholderTextColor={colors.text.muted}
-              returnKeyType={'next'}
-              autoCapitalize="none"
-              secureTextEntry={secureTextEntry}
-              onChangeText={onPasswordChange}
-              value={password}
-              baseColor={colors.border.default}
-              tintColor={colors.primary.default}
-              onSubmitEditing={jumpToConfirmPassword}
-              keyboardAppearance={themeAppearance || 'light'}
-            />
-
-            {(password !== '' && (
-              <Text
-                style={styles.passwordStrengthLabel}
-                testID={ImportFromSeedSelectorsIDs.PASSWORD_STRENGTH_ID}
-              >
-                {strings('choose_password.password_strength')}
-                <Text style={styles[`strength_${passwordStrengthWord}`]}>
-                  {' '}
-                  {strings(`choose_password.strength_${passwordStrengthWord}`)}
-                </Text>
-              </Text>
-            )) || <Text style={styles.passwordStrengthLabel} />}
-          </View> */}
-
-          {/* <View style={styles.field}>
-            <Text style={styles.label}>
-              {strings('import_from_seed.confirm_password')}
-            </Text>
-            <OutlinedTextField
-              style={styles.input}
-              containerStyle={inputWidth}
-              testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
-              onChangeText={onPasswordConfirmChange}
-              returnKeyType={'next'}
-              autoCapitalize="none"
-              secureTextEntry={secureTextEntry}
-              placeholder={strings('import_from_seed.confirm_password')}
-              value={confirmPassword}
-              baseColor={colors.border.default}
-              tintColor={colors.primary.default}
-              onSubmitEditing={onPressImport}
-              placeholderTextColor={colors.text.muted}
-              keyboardAppearance={themeAppearance || 'light'}
-            />
-
-            <View style={styles.showMatchingPasswords}>
-              {password !== '' && password === confirmPassword ? (
-                <Icon
-                  name="check"
-                  size={12}
-                  color={colors.success.default}
-                  testID={
-                    ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_CHECK_ICON_ID
-                  }
-                />
-              ) : null}
-            </View>
-            <Text style={styles.passwordStrengthLabel}>
-              {strings('choose_password.must_be_at_least', {
-                number: MIN_PASSWORD_LENGTH,
-              })}
-            </Text>
-          </View> */}
-
-          {/* {renderSwitch()}
-
-          {!!error && (
-            <Text
-              style={styles.errorMsg}
-              testID={
-                ImportFromSeedSelectorsIDs.INVALID_SEED_PHRASE_PLACE_HOLDER_TEXT
-              }
-            >
-              {error}
-            </Text>
-          )}
-
-          <View style={styles.ctaWrapper}>
-            <StyledButton
-              type={'blue'}
-              onPress={onPressImport}
-              testID={ImportFromSeedSelectorsIDs.SUBMIT_BUTTON_ID}
-              disabled={!(password !== '' && password === confirmPassword)}
-            >
-              {loading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={colors.primary.inverse}
-                />
-              ) : (
-                strings('import_from_seed.import_button')
-              )}
-            </StyledButton>
-          </View> */}
         </View>
       </KeyboardAwareScrollView>
-      {/* <View style={styles.termsAndConditions}>
-        <TermsAndConditions
-          navigation={navigation}
-          action={strings('import_from_seed.import_button')}
-        />
-      </View> */}
+      <SeedphraseModal
+        showWhatIsSeedphraseModal={showWhatIsSeedPhraseModal}
+        hideWhatIsSeedphrase={hideWhatIsSeedPhrase}
+      />
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

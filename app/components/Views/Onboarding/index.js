@@ -164,11 +164,6 @@ const createStyles = (colors) =>
       height: 1,
       backgroundColor: colors.border.muted,
     },
-    dividerText: {
-      color: colors.text.muted,
-      fontSize: 16,
-      fontWeight: '500',
-    },
     bottomSheetContainer: {
       padding: 16,
       flexDirection: 'column',
@@ -530,7 +525,10 @@ class Onboarding extends PureComponent {
               </View>
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={TextColor.Muted}
+                >
                   {strings('onboarding.or')}
                 </Text>
                 <View style={styles.dividerLine} />

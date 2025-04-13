@@ -33,7 +33,7 @@ import Icon, {
 import AppConstants from '../../../core/AppConstants';
 import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
-import styles from './index.styles';
+import createStyles from './index.styles';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField, {
@@ -54,11 +54,14 @@ const OnboardingSuccess = ({
   noSRP,
 }: OnboardingSuccessProps) => {
   const navigation = useNavigation();
-  const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
 
   const [showHint, setShowHint] = useState(false);
   const [hintText, setHintText] = useState('');
+
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   const params = useRoute()?.params as {
     params: {
       showRecoveryHint?: boolean;
@@ -67,7 +70,7 @@ const OnboardingSuccess = ({
   };
 
   useLayoutEffect(() => {
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
+    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors, false));
   }, [navigation, colors]);
 
   const goToDefaultSettings = () => {
@@ -262,7 +265,7 @@ const OnboardingSuccess = ({
 
   return (
     <ScrollView
-      style={styles.root}
+      contentContainerStyle={styles.root}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       {!showHint ? (
@@ -279,7 +282,6 @@ const OnboardingSuccess = ({
               onPress={onDone}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
-              style={styles.doneButton}
             />
           </View>
         </View>

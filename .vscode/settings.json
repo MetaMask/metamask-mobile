@@ -8,5 +8,6 @@
   "cucumberautocomplete.strictGherkinCompletion": true,
   "typescript.tsdk": "node_modules/typescript/lib",
   "javascript.preferences.importModuleSpecifier": "relative",
-  "typescript.preferences.importModuleSpecifier": "relative"
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "cSpell.words": ["Seedphrase"]
 }

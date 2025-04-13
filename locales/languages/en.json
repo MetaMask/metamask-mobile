@@ -346,7 +346,7 @@
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
     "seed_phrase_requirements": "Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words",
-    "invalid_seed_phrase": "Invalid Secret Recovery Phrase",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "Error",
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
@@ -366,7 +366,9 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
     "learn_more_link": "Learn more",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "step": "Step {{currentStep}} of {{totalSteps}}"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
