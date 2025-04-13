@@ -17,6 +17,9 @@ import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
+import { getEventsPayloads } from '../../analytics/helpers';
+import { MetaMetricsEvents } from '../../../../app/core/Analytics/MetaMetrics.events';
 
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
@@ -25,7 +28,12 @@ describe(
     let mockServer;
 
     beforeAll(async () => {
-      mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
+        const segmentMock = {
+          POST: [mockEvents.POST.segmentTrack],
+        };
+
+
+      mockServer = await startMockServer(segmentMock, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
@@ -45,7 +53,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), sendMetaMetricsinE2E: true },
       });
     });
 
@@ -69,8 +77,10 @@ describe(
       );
 
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        },
       );
 
       await WalletView.tapIdenticon();
@@ -82,6 +92,42 @@ describe(
           AccountListBottomSheet.getAccountElementByAccountName(accountName),
         );
       }
+
+      /**
+       * TEST SEGMENT/METAMETRICS EVENTS
+       */
+      const events = await getEventsPayloads(
+        mockServer,
+        [
+          MetaMetricsEvents.ACCOUNTS_SYNC_ADDED.category,
+          MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED.category,
+        ],
+      );
+
+      // There should be 3 events:
+      // 1 for adding the account (Since every wallet always adds the first account) and 2 for updating the names (from user storage)
+      const addedAccountEvent = events.find(
+        (event) => event.event === MetaMetricsEvents.ACCOUNTS_SYNC_ADDED.category,
+      );
+      const updatedAccountEvents = events.filter(
+        (event) => event.event === MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED.category,
+      );
+      await Assertions.checkIfArrayHasLength(
+        addedAccountEvent,
+        1,
+      );
+      await Assertions.checkIfArrayHasLength(
+        updatedAccountEvents,
+        2,
+      );
+
+      for (const event of events) {
+        await Assertions.checkIfValueIsPresent(
+          event.properties,
+          'profile_id',
+        );
+      }
+
     });
   },
 );

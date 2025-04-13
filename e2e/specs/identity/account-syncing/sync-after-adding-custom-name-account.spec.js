@@ -73,8 +73,10 @@ describe(
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();

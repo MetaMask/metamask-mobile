@@ -16,7 +16,6 @@ import WalletView from '../../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
 import Assertions from '../../../utils/Assertions';
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBottomSheet';
 import {
   mockIdentityServices,
   setupAccountMockedBalances,
@@ -108,8 +107,10 @@ describe(
       // PHASE 1: Initial setup and account creation
       // Complete initial setup with provided seed phrase
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       // Verify initial state and balance
@@ -143,8 +144,10 @@ describe(
       });
 
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       // Verify initial state and balance
