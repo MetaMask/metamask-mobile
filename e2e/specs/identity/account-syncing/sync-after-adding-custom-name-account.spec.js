@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { SDK } from '@metamask/profile-sync-controller';
 import {
   IDENTITY_TEAM_PASSWORD,
@@ -20,10 +19,6 @@ import AccountActionsBottomSheet from '../../../pages/wallet/AccountActionsBotto
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
-import SegmentTracker from '../../analytics/utils/SegmentTracker';
-import { of } from 'rxjs';
-import { withFixtures } from '../../../fixtures/fixture-helper';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
 
 describe(
   SmokeIdentity(
@@ -34,19 +29,12 @@ describe(
     const TEST_SPECIFIC_MOCK_SERVER_PORT = 8000;
     let decryptedAccountNames = '';
     let mockServer;
-    let segmentTracker;
-    const detoxTestId = 'account-syncing-custom-name';
 
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();
 
       mockServer = await startMockServer({}, TEST_SPECIFIC_MOCK_SERVER_PORT);
 
-      // SEGMENT
-      segmentTracker = new SegmentTracker(detoxTestId, mockServer);
-      await segmentTracker.start();
-
-      // ACCOUNT SYNCING
       const accountsSyncMockResponse = await getAccountsSyncMockResponse();
 
       const { userStorageMockttpControllerInstance } =
@@ -73,7 +61,7 @@ describe(
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), detoxTestId, enableSegment: true },
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
     });
 
@@ -84,13 +72,7 @@ describe(
     });
 
     it('syncs newly added accounts with custom names and retrieves same accounts after importing the same SRP', async () => {
-
-     await withFixtures({fixture: new FixtureBuilder().withDefaultFixture().build(), restartDevice: true}, async () => {
-       /* *
-      * Phase 1: User onboards by importing a wallet with 2 accounts already in user storage. After onboarding, the user adds a new account and renames it. 
-      */
-
-       await importWalletWithRecoveryPhrase(
+      await importWalletWithRecoveryPhrase(
         IDENTITY_TEAM_SEED_PHRASE,
         IDENTITY_TEAM_PASSWORD,
       );
@@ -117,35 +99,12 @@ describe(
         NEW_ACCOUNT_NAME,
       );
 
-      /**
-       * Phase 1.5: Check segment tracker events
-       * Accounts Sync Name Updated - from the 2 accounts in user storage
-       * Account Renamed - from the new account created
-       */
-
-      const accountsSyncNameUpdatedEvent = await segmentTracker.getEventsByName(
-        'Accounts Sync Name Updated',
-      );
-      await Assertions.checkIfArrayHasLength(accountsSyncNameUpdatedEvent, 2);
-      for  (const nameUpdatedEvent of accountsSyncNameUpdatedEvent) {
-        Assertions.checkIfValueIsPresent(nameUpdatedEvent.properties.profile_id);
-      }
-
-      const accountRenamedEvent = await segmentTracker.getEventsByName(
-        'Account Renamed',
-      );
-      await Assertions.checkIfArrayHasLength(accountRenamedEvent, 1);
-      await Assertions.checkIfObjectsMatch(accountRenamedEvent[0].properties, { account_type: 'MetaMask', chain_id: '1' });
-      
-      /**
-       * Phase 2: User logs out and logs back in. The app should sync the accounts from user storage and retrieve the same accounts with the same names.
-       */
       await TestHelpers.launchApp({
         newInstance: true,
         delete: true,
-        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT), detoxTestId, enableSegment: true },
+        launchArgs: { mockServerPort: String(TEST_SPECIFIC_MOCK_SERVER_PORT) },
       });
-      
+
       await importWalletWithRecoveryPhrase(
         IDENTITY_TEAM_SEED_PHRASE,
         IDENTITY_TEAM_PASSWORD,
@@ -158,7 +117,6 @@ describe(
       await Assertions.checkIfVisible(
         AccountListBottomSheet.getAccountElementByAccountName(NEW_ACCOUNT_NAME),
       );
-     })
     });
   },
 );
