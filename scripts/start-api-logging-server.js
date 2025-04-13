@@ -9,16 +9,16 @@ import { defaultMockPort } from '../e2e/api-mocking/mock-config/mockUrlCollectio
 const startApiLoggingServer = async () => {
   console.log('Starting API Logging Server...');
   console.log(`Using port: ${defaultMockPort}`);
-
+  
   try {
     const monitor = await startApiMonitor(defaultMockPort);
-
+    
     console.log('\n===========================================');
     console.log('✅ API Logging Server started successfully');
     console.log(`Server is running at http://localhost:${defaultMockPort}`);
     console.log('API calls will be logged to the console');
     console.log('===========================================\n');
-
+    
     process.on('SIGINT', async () => {
       console.log('\nShutting down API Logging Server...');
       await stopApiMonitor(monitor);
@@ -36,4 +36,4 @@ const startApiLoggingServer = async () => {
   }
 };
 
-startApiLoggingServer();
+startApiLoggingServer(); 

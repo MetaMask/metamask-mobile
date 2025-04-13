@@ -171,7 +171,6 @@ export async function withFixtures(options, testSuite) {
     );
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
-    if (restartDevice) {
       if (restartDevice) {
         await TestHelpers.launchApp({
           delete: true,
@@ -179,10 +178,9 @@ export async function withFixtures(options, testSuite) {
             fixtureServerPort: `${getFixturesServerPort()}`,
             detoxURLBlacklistRegex: Utilities.BlacklistURLs,
             mockServerPort: `${mockServerPort}`,
-            ...launchArgs,
+            ...(launchArgs || {}),
           },
         });
-      }
     }
 
     await testSuite({ contractRegistry, mockServer });
