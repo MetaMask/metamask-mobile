@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
-  // ActivityIndicator,
   Alert,
-  // TouchableOpacity,
-  // Text,
   View,
   TextInput,
   SafeAreaView,
@@ -50,7 +47,6 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { strings } from '../../../../locales/i18n';
 import TermsAndConditions from '../TermsAndConditions';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
-import StyledButton from '../../UI/StyledButton';
 import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
@@ -333,41 +329,6 @@ const ImportFromSecretRecoveryPhrase = ({
 
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
-  const hiddenSRPInput = useCallback(
-    () => (
-      <OutlinedTextField
-        style={styles.input}
-        containerStyle={inputWidth}
-        inputContainerStyle={styles.padding}
-        placeholder={strings('import_from_seed.seed_phrase_placeholder')}
-        testID={ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}
-        placeholderTextColor={colors.text.muted}
-        returnKeyType="next"
-        autoCapitalize="none"
-        secureTextEntry={hideSeedPhraseInput}
-        onChangeText={onSeedWordsChange}
-        value={seed}
-        baseColor={colors.border.default}
-        tintColor={colors.primary.default}
-        onSubmitEditing={jumpToPassword}
-        keyboardAppearance={themeAppearance || 'light'}
-      />
-    ),
-    [
-      colors.border.default,
-      colors.primary.default,
-      colors.text.muted,
-      hideSeedPhraseInput,
-      inputWidth,
-      jumpToPassword,
-      onSeedWordsChange,
-      seed,
-      styles.input,
-      styles.padding,
-      themeAppearance,
-    ],
-  );
-
   const handleSeedPhraseChange = (text, index) => {
     setSeedPhrase((prev) => {
       const newSeedPhrase = [...prev];
@@ -414,6 +375,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handlePaste = async () => {
+    // TODO: Remove this once we have the clipboard functionality
     // const text = await Clipboard.getString(); // Get copied text
     const text =
       'One two three four five six seven eight nine ten eleven twelve';
@@ -431,7 +393,6 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const numColumns = 3; // Number of columns
-  const screenWidth = Dimensions.get('window').width; // Get screen width
 
   const handleClear = () => {
     setSeedPhrase(['']);
@@ -479,8 +440,6 @@ const ImportFromSecretRecoveryPhrase = ({
     if (!validateSeedPhrase()) {
       return;
     }
-    // eslint-disable-next-line no-console
-    console.log('Key', seedPhrase.length);
     if (seedPhrase.length === 0) {
       Alert.alert(
         strings('import_from_seed.error'),
@@ -489,8 +448,6 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     const seedPhraseString = seedPhrase.join(' ');
-    // eslint-disable-next-line no-console
-    console.log('Key', seedPhraseString);
     setCurrentStep(currentStep + 1);
   };
 
@@ -796,6 +753,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance || 'light'}
                     placeholderTextColor={colors.text.muted}
+                    onSubmitEditing={jumpToConfirmPassword}
                     endAccessory={
                       <Icon
                         name={
@@ -808,9 +766,7 @@ const ImportFromSecretRecoveryPhrase = ({
                         onPress={() => toggleShowPassword(0)}
                       />
                     }
-                    testID={
-                      ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
-                    }
+                    testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                   />
                   {password !== '' && (
                     <Text

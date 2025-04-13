@@ -62,7 +62,6 @@ const createStyles = (colors: any) =>
       marginTop: 'auto',
       borderTopWidth: 1,
       borderTopColor: colors.background.default,
-      paddingHorizontal: 16,
     },
     seedPhraseDefaultInput: {
       fontSize: 14,
@@ -113,6 +112,8 @@ const createStyles = (colors: any) =>
     pasteButton: {
       paddingHorizontal: 16,
       paddingVertical: 16,
+      flex: 1,
+      textAlign: 'center',
     },
     seedPhraseInputFocused: {
       borderColor: colors.primary.default,
