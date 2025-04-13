@@ -3,10 +3,10 @@ import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 /**
  * Retrieves payloads of requests matching specified metametrics events.
  * @param {Object} mockServer - The mock server instance.
- * @param {Array<string>} events - Event names to filter payloads.
+ * @param {Array<string>} [events] - Event names to filter payloads. If not provided, all events are returned.
  * @returns {Promise<Array>} Filtered request payloads.
  */
-export const getEventsPayloads = async (mockServer, events) => {
+export const getEventsPayloads = async (mockServer, events = []) => {
 
     const waitForPendingEndpoints = async () => {
         const mockedEndpoints = await mockServer.getMockedEndpoints();
@@ -28,7 +28,6 @@ export const getEventsPayloads = async (mockServer, events) => {
         await Promise.all(mockedEndpoints.map(endpoint => endpoint.getSeenRequests()))
     ).flat();
 
-
     const metametricsUrl = E2E_METAMETRICS_TRACK_URL;
 
     const matchingRequests = requests.filter(request => {
@@ -42,6 +41,6 @@ export const getEventsPayloads = async (mockServer, events) => {
     ).filter(Boolean);
 
     return payloads
-        .filter(payload => events.includes(payload.event))
+        .filter(payload => events.length === 0 || events.includes(payload.event))
         .map(({ event, properties }) => ({ event, properties }));
 };
