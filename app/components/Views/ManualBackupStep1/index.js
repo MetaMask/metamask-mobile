@@ -7,6 +7,7 @@ import {
   Appearance,
   FlatList,
   TouchableOpacity,
+  ImageBackground,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -15,7 +16,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { BlurView } from '@react-native-community/blur';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
 import { baseStyles } from '../../../styles/common';
@@ -201,13 +201,10 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           onPress={revealSeedPhrase}
           style={styles.blurContainer}
         >
-          <BlurView
-            blurType={blurType}
-            blurAmount={3}
-            blurRadius={5}
+          <ImageBackground
+            source={require('../../../images/blur.png')}
             style={styles.blurView}
-            onPress={revealSeedPhrase}
-            reducedTransparencyFallbackColor="white"
+            resizeMode="cover"
           />
           <View style={styles.seedPhraseConcealer}>
             <Icon

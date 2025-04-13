@@ -9,8 +9,7 @@ const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 16,
-      paddingTop: 0,
+      paddingHorizontal: 16,
     },
     mainWrapper: {
       backgroundColor: colors.background.default,

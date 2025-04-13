@@ -12,7 +12,7 @@ const createStyles = (colors: any) =>
       flexGrow: 1,
       justifyContent: 'space-between',
       rowGap: 16,
-      marginVertical: 16,
+      marginTop: 16,
     },
     contentWrapper: {
       flex: 1,
@@ -42,7 +42,7 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       rowGap: 16,
       paddingHorizontal: 24,
-      marginVertical: 16,
+      marginTop: 16,
     },
     hintContent: {
       flexDirection: 'column',

@@ -8,8 +8,7 @@ export const createStyles = (colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 16,
-      paddingTop: 0,
+      paddingHorizontal: 16,
     },
     mainWrapper: {
       backgroundColor: colors.background.default,
@@ -66,7 +65,6 @@ export const createStyles = (colors: any) =>
       borderRadius: 8,
       flex: 1,
       opacity: 0.5,
-      backgroundColor: colors.overlay.alternative,
     },
     seedPhraseWrapper: {
       backgroundColor: colors.background.default,
