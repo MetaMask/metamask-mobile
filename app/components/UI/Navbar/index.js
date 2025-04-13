@@ -644,12 +644,12 @@ export function getModalNavbarOptions(title) {
  */
 export function getOnboardingNavbarOptions(
   route,
-  { headerLeft, headerRight } = {},
+  { headerLeft, headerRight },
   themeColors,
   showLogo = true,
 ) {
-  const headerLeftHide = headerLeft || route.params?.headerLeft;
-  const headerRightHide = headerRight || <View />;
+  const headerLeftHide = headerLeft || route.params?.headerLeft || <View />;
+  const headerRightHide = headerRight;
   const innerStyles = StyleSheet.create({
     headerStyle: {
       backgroundColor: themeColors.background.default,

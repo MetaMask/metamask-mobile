@@ -43,11 +43,10 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+// import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Icon, {
   IconName,
@@ -480,7 +479,7 @@ class Onboarding extends PureComponent {
                     <View style={styles.buttonLabel}>
                       <Icon
                         name={IconName.Google}
-                        size={24}
+                        size={IconSize.Lg}
                         color={TextColor.Default}
                       />
                       <Text
@@ -505,7 +504,7 @@ class Onboarding extends PureComponent {
                     <View style={styles.buttonLabel}>
                       <Icon
                         name={IconName.Apple}
-                        size={24}
+                        size={IconSize.Lg}
                         color={TextColor.Default}
                       />
                       <Text

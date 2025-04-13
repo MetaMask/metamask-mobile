@@ -906,7 +906,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     color={TextColor.Primary}
                     onPress={() => setLearnMore(!learnMore)}
                   >
-                    {strings('import_from_seed.learn_more_link')}
+                    {' ' + strings('import_from_seed.learn_more_link')}
                   </Text>
                 </View>
               </View>

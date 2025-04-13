@@ -4,19 +4,19 @@ import { StyleSheet } from 'react-native';
 const createStyles = (colors: any) =>
   StyleSheet.create({
     root: {
-      flex: 1,
+      flexGrow: 1,
       paddingBottom: 32,
     },
     contentContainer: {
-      flex: 1,
       flexDirection: 'column',
+      flexGrow: 1,
       justifyContent: 'space-between',
-      height: '100%',
+      rowGap: 16,
+      marginVertical: 16,
     },
     contentWrapper: {
       flex: 1,
-      padding: 24,
-      height: '100%',
+      paddingHorizontal: 16,
     },
     buttonWrapper: {
       paddingHorizontal: 24,
@@ -38,17 +38,21 @@ const createStyles = (colors: any) =>
     },
     hintWrapper: {
       flexDirection: 'column',
+      flexGrow: 1,
+      justifyContent: 'space-between',
       rowGap: 16,
-      paddingTop: 24,
-      padding: 24,
+      paddingHorizontal: 24,
+      marginVertical: 16,
+    },
+    hintContent: {
+      flexDirection: 'column',
+      gap: 16,
     },
     hintDescriptionWrapper: {
       flexDirection: 'column',
       rowGap: 20,
     },
     hintInput: {
-      borderWidth: 1,
-      borderColor: colors.border.default,
       borderRadius: 8,
       padding: 16,
     },
@@ -85,17 +89,24 @@ const createStyles = (colors: any) =>
       paddingVertical: 16,
       borderRadius: 8,
     },
-    iconWrapper: {
-      marginRight: 6,
-    },
     row: {
       flexDirection: 'row',
       alignItems: 'center',
+      columnGap: 12,
     },
     linkWrapper: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      columnGap: 12,
+    },
+    headerLeft: {
+      marginLeft: 16,
+    },
+    hintTextWrapper: {
+      flexDirection: 'column',
+      rowGap: 0,
+      justifyContent: 'flex-start',
     },
   });
 

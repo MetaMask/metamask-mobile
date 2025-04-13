@@ -15,6 +15,7 @@ const createStyles = (colors: any) =>
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
+      marginTop: 16,
     },
     container: {
       marginTop: 6,

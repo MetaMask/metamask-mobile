@@ -1,9 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet, Dimensions } from 'react-native';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
-import Device from '../../../util/device';
-
-const { height } = Dimensions.get('window');
+import { StyleSheet } from 'react-native';
+import { fontStyles } from '../../../styles/common';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,12 +11,6 @@ export const createStyles = (colors: any) =>
       padding: 16,
       paddingTop: 0,
     },
-    step: {
-      fontSize: 14,
-      color: importedColors.textAlternative,
-      ...fontStyles.normal,
-      marginBottom: 6,
-    },
     mainWrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
@@ -29,10 +20,6 @@ export const createStyles = (colors: any) =>
       flex: 1,
       flexDirection: 'column',
       gap: 16,
-      height: height - 290,
-    },
-    onBoardingWrapper: {
-      paddingHorizontal: 20,
     },
     loader: {
       backgroundColor: colors.background.default,
@@ -41,30 +28,8 @@ export const createStyles = (colors: any) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
-    action: {
-      fontSize: 32,
-      color: colors.text.default,
-      justifyContent: 'flex-start',
-      textAlign: 'left',
-      ...fontStyles.bold,
-      alignSelf: 'flex-start',
-    },
     infoWrapper: {
       justifyContent: 'flex-start',
-    },
-    info: {
-      fontSize: 14,
-      color: colors.text.default,
-      textAlign: 'left',
-      ...fontStyles.normal,
-      marginVertical: 16,
-      // paddingHorizontal: 6,
-    },
-    infoLink: {
-      color: colors.primary.default,
-    },
-    infoBold: {
-      ...fontStyles.bold,
     },
     seedPhraseConcealerContainer: {
       flex: 1,
@@ -103,76 +68,19 @@ export const createStyles = (colors: any) =>
       opacity: 0.5,
       backgroundColor: colors.overlay.alternative,
     },
-    icon: {
-      color: colors.overlay.inverse,
-      textAlign: 'center',
-    },
-    reveal: {
-      fontSize: Device.isMediumDevice() ? 13 : 16,
-      ...fontStyles.bold,
-      color: colors.overlay.inverse,
-      lineHeight: 22,
-      textAlign: 'center',
-    },
-    watching: {
-      fontSize: Device.isMediumDevice() ? 10 : 12,
-      color: colors.overlay.inverse,
-      lineHeight: 17,
-      textAlign: 'center',
-    },
-    viewButtonContainer: {
-      width: 155,
-      padding: 12,
-    },
     seedPhraseWrapper: {
       backgroundColor: colors.background.default,
       borderRadius: 8,
       flexDirection: 'row',
       borderColor: colors.border.default,
       borderWidth: 1,
-      marginBottom: 64,
-      minHeight: 275,
-    },
-    seedPhraseContainerText: {
-      fontSize: 14,
-      color: importedColors.textAlternative,
-      ...fontStyles.normal,
+      minHeight: 230,
     },
     seedPhraseContainer: {
-      paddingTop: 16,
+      padding: 16,
       backgroundColor: colors.background.muted,
       borderRadius: 10,
-      flexDirection: 'column',
-      minHeight: 230,
-      marginBottom: 64,
-    },
-    seedPhraseInnerContainer: {
-      paddingBottom: 16,
-    },
-    seedPhraseContainerCta: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      marginTop: 'auto',
-      borderTopWidth: 1,
-      borderTopColor: colors.background.default,
-      paddingHorizontal: 16,
-    },
-    seedPhraseDefaultInput: {
-      fontSize: 14,
-      color: importedColors.textAlternative,
-      borderWidth: 0,
-      outlineWidth: 0,
-      ...fontStyles.normal,
-      backgroundColor: colors.background.muted,
-      paddingHorizontal: 0,
-      height: 44,
-    },
-    seedPhraseInputContainer: {
-      flexDirection: 'row',
-      flexWrap: 'wrap', // Allows wrapping to new lines
-      justifyContent: 'center',
-      paddingHorizontal: 16,
+      minHeight: 232,
     },
     inputContainer: {
       flexDirection: 'row',
@@ -185,50 +93,11 @@ export const createStyles = (colors: any) =>
       paddingVertical: 4,
       backgroundColor: colors.background.default,
       flex: 1,
-      margin: 5,
-      columnGap: 8,
-    },
-    inputNumber: {
-      color: colors.text.muted,
-      fontSize: 14,
-      ...fontStyles.medium,
-    },
-    seedPhraseInput: {
-      color: colors.text.default,
-      fontSize: 14,
-      fontWeight: '500',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flex: 1,
-    },
-    wordColumn: {
-      flex: 1,
-      alignItems: 'center',
-      paddingHorizontal: Device.isMediumDevice() ? 18 : 24,
-      paddingVertical: 18,
-      justifyContent: 'space-between',
-    },
-    wordWrapper: {
-      flexDirection: 'row',
-    },
-    word: {
-      paddingHorizontal: 8,
-      paddingVertical: 6,
-      fontSize: 14,
-      color: colors.text.default,
-      backgroundColor: colors.background.default,
-      borderColor: colors.primary.default,
-      borderWidth: 1,
-      borderRadius: 13,
-      textAlign: 'center',
-      textAlignVertical: 'center',
-      lineHeight: 14,
-      flex: 1,
+      margin: 4,
+      columnGap: 6,
     },
     confirmPasswordWrapper: {
       flex: 1,
-      // padding: 30,
-      // paddingTop: 0,
     },
     passwordRequiredContent: {
       marginBottom: 20,
@@ -236,43 +105,17 @@ export const createStyles = (colors: any) =>
     content: {
       alignItems: 'flex-start',
     },
-    title: {
-      fontSize: 32,
-      // marginTop: 20,
-      marginBottom: 8,
-      color: colors.text.default,
-      justifyContent: 'center',
-      textAlign: 'left',
-      ...fontStyles.normal,
-    },
     text: {
       marginBottom: 10,
       marginTop: 20,
       justifyContent: 'center',
-    },
-    label: {
-      fontSize: 16,
-      lineHeight: 23,
-      color: colors.text.default,
-      textAlign: 'left',
-      ...fontStyles.normal,
     },
     buttonWrapper: {
       flex: 1,
       marginTop: 0,
       justifyContent: 'flex-end',
     },
-    input: {
-      borderWidth: 2,
-      borderRadius: 5,
-      width: '100%',
-      borderColor: colors.border.default,
-      padding: 10,
-      height: 40,
-      color: colors.text.default,
-    },
     warningMessageText: {
-      paddingVertical: 10,
       color: colors.error.default,
       ...fontStyles.normal,
     },
@@ -281,47 +124,13 @@ export const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignSelf: 'center',
     },
-    passwordContainer: {
-      flexDirection: 'column',
-      gap: 16,
-      marginVertical: 16,
-    },
-    passwordInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      height: 48,
-    },
-    passwordInputContainerFocused: {
-      borderColor: colors.primary.default,
-      borderWidth: 2,
-    },
-    passwordInput: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text.default,
-      fontWeight: '500',
-    },
     field: {
       position: 'relative',
       flexDirection: 'column',
-      gap: 8,
+      gap: 2,
       width: '100%',
     },
-    button: {
-      backgroundColor: importedColors.primaryDefault,
-    },
-    ctaContainer: {
-      flexDirection: 'column',
-      marginTop: 'auto',
-      width: '100%',
-    },
-    continueButton: {
-      marginTop: 'auto',
+    headerLeft: {
+      marginLeft: 16,
     },
   });

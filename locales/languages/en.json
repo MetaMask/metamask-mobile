@@ -146,7 +146,7 @@
     "hint_button": "Create hint",
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
-    "hint_saved_toast": "Secret Recovery Phrase hint saved"
+    "hint_saved_toast": "Password hint saved"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -307,7 +307,8 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
+    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
+    "confirm_cta": "Confirm"
   },
   "reset_password": {
     "title": "Change password",

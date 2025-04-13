@@ -49,8 +49,26 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
   const [selectedSlot, setSelectedSlot] = useState(null);
 
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  }, [colors, navigation, route]);
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={colors.text.default}
+                style={styles.headerLeft}
+              />
+            </TouchableOpacity>
+          ),
+        },
+        colors,
+        false,
+      ),
+    );
+  }, [colors, navigation, route, styles.headerLeft]);
 
   useEffect(() => {
     updateNavBar();
@@ -286,12 +304,11 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
         </Text>
         <ActionView
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-          confirmText={strings('manual_backup_step_2.complete')}
-          onConfirmPress={goNext}
+          confirmText={strings('manual_backup_step_2.continue')}
+          onConfirmPress={() => setShowStatusBottomSheet(true)}
           confirmDisabled={!validateWords()}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
-          showConfirmButton={false}
         >
           <View
             style={styles.wrapper}
@@ -311,17 +328,6 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 {renderMissingWords()}
               </View>
             </View>
-
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('manual_backup_step_2.continue')}
-              widthType={ButtonWidthTypes.Full}
-              style={styles.continueButton}
-              onPress={() => {
-                setShowStatusBottomSheet(true);
-              }}
-              size={ButtonSize.Lg}
-            />
           </View>
         </ActionView>
       </View>
@@ -338,12 +344,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
                 validateWords() ? colors.success.default : colors.error.default
               }
             />
-            <Text style={styles.statusTitle}>
+            <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
               {validateWords()
                 ? strings('manual_backup_step_2.success-title')
                 : strings('manual_backup_step_2.error-title')}
             </Text>
-            <Text style={styles.statusDescription}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {validateWords()
                 ? strings('manual_backup_step_2.success-description')
                 : strings('manual_backup_step_2.error-description')}

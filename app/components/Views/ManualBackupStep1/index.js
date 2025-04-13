@@ -3,7 +3,6 @@ import {
   View,
   SafeAreaView,
   ActivityIndicator,
-  TextInput,
   KeyboardAvoidingView,
   Appearance,
   FlatList,
@@ -38,7 +37,6 @@ import {
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { createStyles } from './styles';
-
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
@@ -52,6 +50,7 @@ import Button, {
 import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
+import SeedphraseModal from '../../UI/SeedphraseModal';
 
 /**
  * View that's shown during the second step of
@@ -59,28 +58,42 @@ import TextField from '../../../component-library/components/Form/TextField/Text
  */
 const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-
   const [password, setPassword] = useState(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] =
     useState(undefined);
   const [ready, setReady] = useState(false);
   const [view, setView] = useState(SEED_PHRASE);
   const [words, setWords] = useState([]);
-  const [showPassword, setShowPassword] = useState(false);
-  const [
-    passwordInputContainerFocusedIndex,
-    setPasswordInputContainerFocusedIndex,
-  ] = useState(true);
+  const [showWhatIsSeedphraseModal, setWhatIsSeedphraseModal] = useState(false);
 
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
 
-  const currentStep = 1;
   const steps = MANUAL_BACKUP_STEPS;
 
+  const hideWhatIsSeedphrase = () => setWhatIsSeedphraseModal(false);
+
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  }, [colors, navigation, route]);
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={colors.text.default}
+                style={styles.headerLeft}
+              />
+            </TouchableOpacity>
+          ),
+        },
+        colors,
+        false,
+      ),
+    );
+  }, [colors, navigation, route, styles.headerLeft]);
 
   const tryExportSeedPhrase = async (password) => {
     const { KeyringController } = Engine.context;
@@ -196,12 +209,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             onPress={revealSeedPhrase}
             reducedTransparencyFallbackColor="white"
           />
-          {/* <View style={styles.blurView} onPress={revealSeedPhrase} /> */}
           <View style={styles.seedPhraseConcealer}>
             <Icon
               name={IconName.EyeSlashSolid}
               size={IconSize.Xl}
-              style={styles.icon}
+              color={colors.overlay.inverse}
             />
             <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {strings('manual_backup_step_1.reveal')}
@@ -243,6 +255,7 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
                 keyboardAppearance={themeAppearance}
                 autoCapitalize="none"
                 size={TextFieldSize.Lg}
+                autoFocus
               />
               {warningIncorrectPassword && (
                 <Text style={styles.warningMessageText}>
@@ -267,74 +280,76 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
     </KeyboardAvoidingView>
   );
 
-  const renderSeedphraseView = () => {
-    const wordLength = words.length;
-    const half = wordLength / 2 || 6;
-
-    return (
-      <ActionView
-        confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        confirmText={strings('manual_backup_step_1.continue')}
-        onConfirmPress={goNext}
-        confirmDisabled={seedPhraseHidden}
-        showCancelButton={false}
-        confirmButtonMode={'confirm'}
+  const renderSeedphraseView = () => (
+    <ActionView
+      confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
+      confirmText={strings('manual_backup_step_1.continue')}
+      onConfirmPress={goNext}
+      confirmDisabled={seedPhraseHidden}
+      showCancelButton={false}
+      confirmButtonMode={'confirm'}
+    >
+      <View
+        style={styles.wrapper}
+        testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <View
-          style={styles.wrapper}
-          testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
-        >
-          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-            {strings('manual_backup_step_1.action')}
-          </Text>
-          <View style={styles.infoWrapper}>
-            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {strings('manual_backup_step_1.info-1')}{' '}
-              <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
-                {strings('manual_backup_step_1.info-2')}{' '}
-              </Text>
-              {strings('manual_backup_step_1.info-3')}{' '}
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {strings('manual_backup_step_1.info-4')}
-              </Text>
+        <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
+          {strings('manual_backup_step_1.action')}
+        </Text>
+        <View style={styles.infoWrapper}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('manual_backup_step_1.info-1')}{' '}
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Primary}
+              onPress={() => setWhatIsSeedphraseModal(true)}
+            >
+              {strings('manual_backup_step_1.info-2')}{' '}
             </Text>
-          </View>
-          {seedPhraseHidden ? (
-            <View style={styles.seedPhraseWrapper}>
-              {renderSeedPhraseConcealer()}
-            </View>
-          ) : (
-            <View style={styles.seedPhraseContainer}>
-              <View style={styles.seedPhraseInnerContainer}>
-                <View style={styles.seedPhraseInputContainer}>
-                  <FlatList
-                    data={words}
-                    numColumns={3}
-                    keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item, index }) => (
-                      <View style={[styles.inputContainer]}>
-                        <Text style={styles.inputNumber}>{index + 1}.</Text>
-                        <TextInput
-                          editable={false}
-                          key={index}
-                          value={item}
-                          style={[styles.seedPhraseInput]}
-                          placeholderTextColor={colors.text.muted}
-                        />
-                      </View>
-                    )}
-                  />
-                </View>
-              </View>
-            </View>
-          )}
+            {strings('manual_backup_step_1.info-3')}{' '}
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Alternative}
+            >
+              {strings('manual_backup_step_1.info-4')}
+            </Text>
+          </Text>
         </View>
-      </ActionView>
-    );
-  };
+        {seedPhraseHidden ? (
+          <View style={styles.seedPhraseWrapper}>
+            {renderSeedPhraseConcealer()}
+          </View>
+        ) : (
+          <View style={styles.seedPhraseContainer}>
+            <View style={styles.seedPhraseInputContainer}>
+              <FlatList
+                data={words}
+                numColumns={3}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <View style={[styles.inputContainer]}>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
+                    >
+                      {index + 1}.
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                      key={index}
+                    >
+                      {item}
+                    </Text>
+                  </View>
+                )}
+              />
+            </View>
+          </View>
+        )}
+      </View>
+    </ActionView>
+  );
 
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
@@ -346,6 +361,11 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
           ? renderSeedphraseView()
           : renderConfirmPassword()}
       </View>
+      <SeedphraseModal
+        showWhatIsSeedphraseModal={showWhatIsSeedphraseModal}
+        hideWhatIsSeedphrase={hideWhatIsSeedphrase}
+      />
+      <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   ) : (
     <View style={styles.loader}>

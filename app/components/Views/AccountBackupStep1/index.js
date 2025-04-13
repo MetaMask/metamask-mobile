@@ -6,11 +6,10 @@ import {
   StyleSheet,
   BackHandler,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles, colors as importedColors } from '../../../styles/common';
-import StyledButton from '../../UI/StyledButton';
-import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
@@ -19,12 +18,10 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import scaling from '../../../util/scaling';
 import Engine from '../../../core/Engine';
 import { ONBOARDING_WIZARD } from '../../../constants/storage';
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import { connect } from 'react-redux';
 import setOnboardingWizardStep from '../../../actions/wizard';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
@@ -41,6 +38,10 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../component-library/components/Icons/Icon';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -53,10 +54,8 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-      padding: 20,
-      paddingTop: 0,
-      paddingBottom: 0,
-      // marginTop: 16,
+      paddingHorizontal: 16,
+      marginTop: 16,
     },
     content: {
       alignItems: 'center',
@@ -89,58 +88,13 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       rowGap: 16,
     },
-    bold: {
-      ...fontStyles.bold,
-    },
-    blue: {
-      color: importedColors.primaryDefault,
-    },
-    remindLaterText: {
-      textAlign: 'center',
-      fontSize: 15,
-      lineHeight: 20,
-      color: colors.primary.default,
-      ...fontStyles.normal,
-    },
-    remindLaterSubText: {
-      textAlign: 'center',
-      fontSize: 11,
-      lineHeight: 20,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-    startSubText: {
-      textAlign: 'center',
-      fontSize: 11,
-      marginTop: 12,
-      color: colors.text.alternative,
-      ...fontStyles.normal,
-    },
-    remindLaterContainer: {
-      marginBottom: 34,
-    },
-    remindLaterButton: {
-      elevation: 10,
-      zIndex: 10,
-    },
-    ctaContainer: {
-      marginBottom: 30,
-    },
     srpDesign: {
       width: 200,
       height: 225,
       marginHorizontal: 'auto',
     },
-    button: {
-      width: '100%',
-      backgroundColor: importedColors.primaryDefault,
-    },
-    step: {
-      fontSize: 14,
-      color: importedColors.textAlternative,
-      ...fontStyles.normal,
-      marginTop: 16,
-      marginBottom: 6,
+    headerLeft: {
+      marginLeft: 16,
     },
   });
 
@@ -167,13 +121,24 @@ const AccountBackupStep1 = (props) => {
     navigation.setOptions({
       ...getOnboardingNavbarOptions(
         route,
-        // eslint-disable-next-line react/display-name
-        { headerLeft: () => <View /> },
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={colors.text.default}
+                style={styles.headerLeft}
+              />
+            </TouchableOpacity>
+          ),
+        },
         colors,
+        false,
       ),
       gesturesEnabled: false,
     });
-  }, [navigation, route, colors]);
+  }, [navigation, route, colors, styles.headerLeft]);
 
   useEffect(
     () => {
@@ -295,18 +260,6 @@ const AccountBackupStep1 = (props) => {
                   size={ButtonSize.Lg}
                 />
               </View>
-              // <View style={styles.remindLaterContainer}>
-              //   <StyledButton
-              //     style={styles.remindLaterButton}
-              //     onPress={showRemindLater}
-              //     hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
-              //   >
-              //     {strings('account_backup_step_1.remind_me_later')}
-              //   </StyledButton>
-              //   {/* <Text style={styles.remindLaterSubText}>
-              //         {strings('account_backup_step_1.remind_me_later_subtext')}
-              //       </Text> */}
-              // </View>
             )}
           </View>
         </View>

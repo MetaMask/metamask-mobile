@@ -208,8 +208,16 @@ const AccountBackupStep1B = (props) => {
   const styles = createStyles(colors);
 
   useEffect(() => {
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
-  }, [navigation, route, colors]);
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => <View />,
+        },
+        colors,
+      ),
+    );
+  }, [navigation, route, colors, styles.headerLeft]);
 
   const goNext = () => {
     props.navigation.navigate('ManualBackupStep1', { ...props.route.params });
