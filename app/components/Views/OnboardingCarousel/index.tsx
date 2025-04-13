@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, useCallback } from 'react';
 import {
-  Text,
   View,
   ScrollView,
   StyleSheet,
@@ -19,7 +18,6 @@ import Button, {
   ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import {
-  fontStyles,
   baseStyles,
   onboardingCarouselColors,
   colors as constColors,
@@ -27,7 +25,7 @@ import {
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
+import { getOnboardingCarouselNavbarOptions } from '../../UI/Navbar';
 import OnboardingScreenWithBg from '../../UI/OnboardingScreenWithBg';
 import Device from '../../../util/device';
 import { connect } from 'react-redux';
@@ -45,6 +43,10 @@ import {
 } from '../../../actions/onboarding';
 import navigateTermsOfUse from '../../../util/termsOfUse/termsOfUse';
 import { USE_TERMS } from '../../../constants/storage';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../component-library/components/Texts/Text';
 
 const IMAGE_RATIO = 250 / 200;
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -63,37 +65,25 @@ const createStyles = (colors: ThemeColors) =>
       flexGrow: 1,
     },
     wrapper: {
-      paddingVertical: 30,
+      paddingTop: 30,
+      paddingBottom: 24,
       flex: 1,
     },
     title: {
       fontSize: 40,
-      marginBottom: 12,
-      // color: colors.text.default,
+      marginBottom: 28,
       justifyContent: 'center',
       textAlign: 'center',
-      letterSpacing: -0.26,
-      lineHeight: 38,
-      ...fontStyles.normal,
       paddingHorizontal: 60,
     },
     subtitle: {
-      fontSize: 14,
-      lineHeight: 19,
-      marginTop: 12,
-      // color: colors.text.alternative,
-      justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: 20,
-      ...fontStyles.normal,
+      paddingHorizontal: 16,
     },
     ctas: {
-      paddingHorizontal: 40,
+      paddingHorizontal: 16,
       paddingBottom: Device.isIphoneX() ? 40 : 20,
       flexDirection: 'column',
-    },
-    ctaWrapper: {
-      justifyContent: 'flex-end',
     },
     carouselImage: {},
     carouselImage1: {
@@ -111,38 +101,30 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    circle: {
+    bar: {
       width: 10,
       height: 2,
-      // borderRadius: 8 / 2,
       backgroundColor: colors.icon.default,
       opacity: 0.4,
       marginHorizontal: 2,
     },
-    solidCircle: {
+    solidBar: {
       opacity: 1,
     },
     progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
-      marginTop: 60,
-      marginBottom: 24,
+      marginTop: 47,
+      padding: 10,
     },
     tab: {
       marginHorizontal: 30,
     },
-    metricsWrapper: {
-      flex: 1,
-      marginTop: 12,
-      marginBottom: 25,
-    },
     metricsData: {
-      fontSize: 10,
-      color: colors.text.alternative,
       textAlign: 'center',
     },
     gettingStartedButton: {
-      borderRadius: 10,
+      borderRadius: 12,
       color: constColors.whiteTransparent,
       backgroundColor: constColors.btnBlack,
     },
@@ -221,9 +203,19 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
     );
   };
 
+  const getCurrentTabKey = useCallback(
+    () => (currentTab === 1 ? 'one' : currentTab === 2 ? 'two' : 'three'),
+    [currentTab],
+  );
+
   const updateNavBar = useCallback(() => {
-    navigation.setOptions(getTransparentOnboardingNavbarOptions(colors));
-  }, [navigation, colors]);
+    navigation.setOptions(
+      getOnboardingCarouselNavbarOptions(
+        colors,
+        onboardingCarouselColors[getCurrentTabKey()].background,
+      ),
+    );
+  }, [navigation, colors, getCurrentTabKey]);
 
   const initialize = useCallback(async () => {
     updateNavBar();
@@ -287,6 +279,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
                         <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Alternative}
                           style={styles.metricsData}
                           testID={
                             OnboardingCarouselSelectorIDs.APP_START_TIME_ID
@@ -305,20 +299,16 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       />
                     </View>
                     <Text
-                      style={[
-                        styles.title,
-                        {
-                          color: onboardingCarouselColors[value].color,
-                        },
-                      ]}
+                      variant={TextVariant.DisplayMD}
+                      style={styles.title}
+                      color={onboardingCarouselColors[value].color}
                     >
                       {strings(`onboarding_carousel.title${key}`)}
                     </Text>
                     <Text
-                      style={[
-                        styles.subtitle,
-                        { color: onboardingCarouselColors[value].color },
-                      ]}
+                      variant={TextVariant.BodyMD}
+                      color={onboardingCarouselColors[value].color}
+                      style={styles.subtitle}
                     >
                       {strings(`onboarding_carousel.subtitle${key}`)}
                     </Text>
@@ -330,10 +320,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
               {[1, 2, 3].map((i) => (
                 <View
                   key={i}
-                  style={[
-                    styles.circle,
-                    currentTab === i ? styles.solidCircle : {},
-                  ]}
+                  style={[styles.bar, currentTab === i ? styles.solidBar : {}]}
                 />
               ))}
             </View>
@@ -343,16 +330,14 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
           style={styles.ctas}
           testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
         >
-          <View style={styles.ctaWrapper}>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={strings('onboarding_carousel.get_started')}
-              onPress={onPressGetStarted}
-              style={styles.gettingStartedButton}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-            />
-          </View>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={strings('onboarding_carousel.get_started')}
+            onPress={onPressGetStarted}
+            style={styles.gettingStartedButton}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+          />
         </View>
       </OnboardingScreenWithBg>
       <FadeOutOverlay />

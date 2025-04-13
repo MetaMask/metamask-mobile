@@ -58,7 +58,7 @@ export default async function navigateTermsOfUse(
       params: {
         containerTestId: TermsOfUseModalSelectorsIDs.CONTAINER,
         buttonTestId: TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON,
-        buttonText: strings('terms_of_use_modal.accept_cta'),
+        buttonText: strings('terms_of_use_modal.agree_cta'),
         checkboxText: strings(
           'terms_of_use_modal.terms_of_use_check_description',
         ),
