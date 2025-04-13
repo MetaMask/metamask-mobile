@@ -562,12 +562,7 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
-      // Only add plugin if we have a segmentClient
-      if (this.segmentClient) {
-        this.segmentClient.add({
-          plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId),
-        });
-      }
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       this.#isConfigured = true;
 
@@ -685,7 +680,6 @@ class MetaMetrics implements IMetaMetrics {
     }
 
     if (isE2E) {
-      // In E2E mode, send the event to the test server
       MetaMetricsTestUtils.getInstance().trackEvent(event);
       return;
     }

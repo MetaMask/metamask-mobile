@@ -11,8 +11,7 @@ const CONSOLE_LOG_CONFIG = {
   showHeaders: false,
   showRequestBody: true,
   showResponseBody: false,
-  segmentTracking: true
-};
+}
 
 /**
  * Checks if a directory exists at the specified path.
@@ -28,7 +27,7 @@ const dirExists = async (dir) => {
   catch (error) {
     return false;
   }
-};
+}
 
 /**
  * Creates a new log file name with timestamp
@@ -143,7 +142,6 @@ export const startApiMonitor = async (port) => {
     .forGet('/health-check')
     .thenReply(200, 'API Monitor is running');
 
-
   await mockServer.forUnmatchedRequest().thenPassThrough({
     beforeRequest: async ({ url, method, rawHeaders, requestBody }) => {
       const returnUrl = new URL(url).searchParams.get('url') || url;
@@ -171,28 +169,9 @@ export const startApiMonitor = async (port) => {
         }
       }
 
-        if (CONSOLE_LOG_CONFIG.segmentTracking) {
-          await mockServer
-          .forPost('/track_test_mm')
-          .thenCallback(async (req) => {
-            let body;
-            try {
-              body = await req.body.getJson();
-              console.log('TRACK EVENT:', body);
-            } catch (e) {
-              console.log('TRACK EVENT error:', e);
-            }
-
-            return {
-              status: 200,
-              json: body
-            };
-          });
-        }
-
       // Console logging
 
-      console.log(`\n📡 ${method} ${returnUrl}`);
+      console.log(`\n📡 ${method} ${returnUrl}`)
       console.log('----------------------------------------');
 
       if (CONSOLE_LOG_CONFIG.showHeaders) {
