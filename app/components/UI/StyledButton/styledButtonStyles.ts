@@ -15,7 +15,7 @@ const createStyles = (colors: Theme['colors']) =>
       ...fontStyles.bold,
     },
     blue: {
-      backgroundColor: importedColors.primaryDefault,
+      backgroundColor: colors.primary.default,
     },
     blueText: {
       color: colors.primary.inverse,
@@ -49,10 +49,10 @@ const createStyles = (colors: Theme['colors']) =>
     normal: {
       backgroundColor: importedColors.transparent,
       borderWidth: 1,
-      borderColor: importedColors.primaryDefault,
+      borderColor: colors.primary.default,
     },
     normalText: {
-      color: importedColors.primaryDefault,
+      color: colors.primary.default,
     },
     transparent: {
       backgroundColor: importedColors.transparent,

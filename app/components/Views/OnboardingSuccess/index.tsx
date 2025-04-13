@@ -258,7 +258,7 @@ const OnboardingSuccess = ({
           </Text>
 
           <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-            <Text color={TextColor.Link} onPress={handleLink}>
+            <Text color={TextColor.Primary} onPress={handleLink}>
               {strings('onboarding_success.learn_how')}{' '}
             </Text>
             {strings('onboarding_success.import_description2')}
