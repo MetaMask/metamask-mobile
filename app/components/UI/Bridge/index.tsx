@@ -32,6 +32,7 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
+  selectDestAddress,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -48,6 +49,8 @@ import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
+import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -123,6 +126,7 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const { activeQuote, isLoading, destTokenAmount } = useBridgeQuoteData();
   const updateQuoteParams = useBridgeQuoteRequest();
+  const destAddress = useSelector(selectDestAddress);
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -315,9 +319,18 @@ const BridgeView = () => {
             onTokenPress={handleDestTokenPress}
             isLoading={isLoading}
           />
-          <Box style={styles.quoteContainer}>
-            {activeQuote && !isLoading && <QuoteDetailsCard />}
-          </Box>
+
+          { destToken?.chainId && isSolanaChainId(destToken?.chainId as Hex) && (
+            <Box>
+              <DestinationAccountSelector />
+            </Box>
+          )}
+
+          { ((destToken?.chainId && !isSolanaChainId(destToken?.chainId as Hex)) || destAddress) && (
+            <Box style={styles.quoteContainer}>
+              {activeQuote && !isLoading && <QuoteDetailsCard />}
+            </Box>
+          )}
         </Box>
 
         <Box style={styles.bottomSection}>
