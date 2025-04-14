@@ -427,7 +427,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 }
                               }
                             >
-                              Ethereum
+                              Ethereum Mainnet
                             </Text>
                           </View>
                           <SvgMock
@@ -511,7 +511,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 }
                               }
                             >
-                              Linea
+                              Optimism
                             </Text>
                           </View>
                         </View>
@@ -655,7 +655,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                 }
                                 testID="label"
                               >
-                                $0.01
+                                0.01
                               </Text>
                             </View>
                           </View>
@@ -904,7 +904,7 @@ exports[`QuoteDetailsCard renders expanded state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  1 ETH = 0.0 USDC
+                                  1 ETH = 24.4 USDC
                                 </Text>
                               </View>
                             </View>
@@ -1604,7 +1604,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 }
                               }
                             >
-                              Ethereum
+                              Ethereum Mainnet
                             </Text>
                           </View>
                           <SvgMock
@@ -1688,7 +1688,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 }
                               }
                             >
-                              Linea
+                              Optimism
                             </Text>
                           </View>
                         </View>
@@ -1832,7 +1832,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                 }
                                 testID="label"
                               >
-                                $0.01
+                                0.01
                               </Text>
                             </View>
                           </View>
@@ -2081,7 +2081,7 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                                   }
                                   testID="label"
                                 >
-                                  1 ETH = 0.0 USDC
+                                  1 ETH = 24.4 USDC
                                 </Text>
                               </View>
                             </View>

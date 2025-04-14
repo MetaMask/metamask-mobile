@@ -22,6 +22,7 @@ import { selectNetworkConfigurations } from '../../../../../selectors/networkCon
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -114,6 +115,7 @@ interface TokenInputAreaProps {
   testID?: string;
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
+  isLoading?: boolean;
 }
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
@@ -127,6 +129,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   testID,
   tokenType,
   onTokenPress,
+  isLoading = false,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -167,14 +170,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
       <Box style={styles.content} gap={4}>
         <Box style={styles.row}>
           <Box style={styles.amountContainer}>
-            <Input
-              value={amount}
-              style={styles.input}
-              isReadonly={isReadonly}
-              autoFocus={autoFocus}
-              placeholder="0"
-              testID={`${testID}-input`}
-            />
+            {isLoading ? (
+              <Skeleton width={100} height={40} style={styles.input} />
+            ) : (
+              <Input
+                value={amount}
+                style={styles.input}
+                isReadonly={isReadonly}
+                autoFocus={autoFocus}
+                placeholder="0"
+                testID={`${testID}-input`}
+              />
+            )}
           </Box>
           <TokenButton
             symbol={token?.symbol}
@@ -186,12 +193,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           />
         </Box>
         <Box style={styles.row}>
-          {fiatValue ? (
-            <Text color={TextColor.Alternative}>{fiatValue}</Text>
-          ) : null}
-          {subtitle ? (
-            <Text color={TextColor.Alternative}>{subtitle}</Text>
-          ) : null}
+          {isLoading ? (
+            <Skeleton width={100} height={10} />
+          ) : (
+            <>
+              {fiatValue ? (
+                <Text color={TextColor.Alternative}>{fiatValue}</Text>
+              ) : null}
+              {subtitle ? (
+                <Text color={TextColor.Alternative}>{subtitle}</Text>
+              ) : null}
+            </>
+          )}
         </Box>
       </Box>
     </Box>
