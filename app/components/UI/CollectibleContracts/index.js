@@ -389,7 +389,6 @@ const CollectibleContracts = ({
   }, []);
 
   const onRefresh = useCallback(async () => {
-    console.log('onRefresh');
     requestAnimationFrame(async () => {
       // Get initial state of NFTs before refresh
       const { NftDetectionController, NftController } = Engine.context;
