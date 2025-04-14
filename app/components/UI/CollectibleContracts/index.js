@@ -53,6 +53,8 @@ import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+import { compareNftStates } from '../../../util/assets';
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -371,34 +373,10 @@ const CollectibleContracts = ({
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
 
-  const compareNftStates = useCallback((previousState, newState) => {
-    const newlyDetected = [];
-
-    // Iterate through chains in new state
-    Object.entries(newState).forEach(([chainId, newChainNfts]) => {
-      const previousChainNfts = previousState[chainId] || [];
-
-      // Find NFTs that exist in new state but not in previous state
-      newChainNfts.forEach((newNft) => {
-        const existsInPrevious = previousChainNfts.some(
-          (prevNft) =>
-            prevNft.address === newNft.address &&
-            prevNft.tokenId === newNft.tokenId,
-        );
-
-        if (!existsInPrevious) {
-          newlyDetected.push({ ...newNft, chainId });
-        }
-      });
-    });
-
-    return newlyDetected;
-  }, []);
-
-  const getNftDetectionAnalyticsParams = useCallback((chainId) => {
+  const getNftDetectionAnalyticsParams = useCallback((nft) => {
     try {
       return {
-        chain_id: getDecimalChainId(chainId),
+        chain_id: getDecimalChainId(nft.chainId),
         source: 'detected',
       };
     } catch (error) {
@@ -414,7 +392,9 @@ const CollectibleContracts = ({
     requestAnimationFrame(async () => {
       // Get initial state of NFTs before refresh
       const { NftDetectionController, NftController } = Engine.context;
-      const previousNfts = cloneDeep(NftController.state.allNfts);
+      const previousNfts = cloneDeep(
+        NftController.state.allNfts[selectedAddress],
+      );
 
       setRefreshing(true);
 
@@ -426,12 +406,12 @@ const CollectibleContracts = ({
       setRefreshing(false);
 
       // Get updated state after refresh
-      const newNfts = cloneDeep(NftController.state.allNfts);
+      const newNfts = cloneDeep(NftController.state.allNfts[selectedAddress]);
       // Compare states to find newly detected NFTs
       if (!isEqual(previousNfts, newNfts)) {
         const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
         newlyDetectedNfts.forEach((nft) => {
-          const params = getNftDetectionAnalyticsParams(nft.chainId);
+          const params = getNftDetectionAnalyticsParams(nft);
           if (params) {
             trackEvent(
               createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
@@ -444,9 +424,9 @@ const CollectibleContracts = ({
     });
   }, [
     chainIdsToDetectNftsFor,
-    compareNftStates,
     createEventBuilder,
     getNftDetectionAnalyticsParams,
+    selectedAddress,
     trackEvent,
   ]);
 
