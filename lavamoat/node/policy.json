@@ -500,7 +500,7 @@
       },
       "packages": {
         "rimraf>glob>once": true,
-        "rimraf>glob>inflight>wrappy": true
+        "rimraf>glob>once>wrappy": true
       }
     },
     "image-size>queue>inherits": {
@@ -942,7 +942,7 @@
     },
     "rimraf>glob>once": {
       "packages": {
-        "rimraf>glob>inflight>wrappy": true
+        "rimraf>glob>once>wrappy": true
       }
     },
     "metro-config>cosmiconfig>parse-json": {
