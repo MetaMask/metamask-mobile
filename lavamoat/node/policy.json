@@ -57,11 +57,11 @@
     "@babel/generator>@jridgewell/gen-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/gen-mapping>@jridgewell/set-array": true,
-        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true,
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true,
         "@babel/generator>@jridgewell/trace-mapping": true
       }
     },
-    "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": {
+    "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": {
       "globals": {
         "Buffer": true,
         "TextDecoder": true
@@ -70,7 +70,7 @@
     "@babel/generator>@jridgewell/trace-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/trace-mapping>@jridgewell/resolve-uri": true,
-        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true
       }
     },
     "accepts": {
@@ -462,7 +462,7 @@
         "setTimeout": true
       }
     },
-    "chalk>supports-color>has-flag": {
+    "jest-worker>supports-color>has-flag": {
       "globals": {
         "process.argv": true
       }
@@ -500,7 +500,7 @@
       },
       "packages": {
         "rimraf>glob>once": true,
-        "rimraf>glob>inflight>wrappy": true
+        "rimraf>glob>once>wrappy": true
       }
     },
     "image-size>queue>inherits": {
@@ -942,7 +942,7 @@
     },
     "rimraf>glob>once": {
       "packages": {
-        "rimraf>glob>inflight>wrappy": true
+        "rimraf>glob>once>wrappy": true
       }
     },
     "metro-config>cosmiconfig>parse-json": {
@@ -1043,7 +1043,7 @@
         "process.platform": true
       },
       "packages": {
-        "chalk>supports-color>has-flag": true
+        "jest-worker>supports-color>has-flag": true
       }
     },
     "jest-worker>supports-color": {
@@ -1056,7 +1056,7 @@
         "process.platform": true
       },
       "packages": {
-        "chalk>supports-color>has-flag": true
+        "jest-worker>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
