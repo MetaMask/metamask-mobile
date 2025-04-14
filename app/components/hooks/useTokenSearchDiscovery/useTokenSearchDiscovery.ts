@@ -81,7 +81,7 @@ export const useTokenSearchDiscovery = () => {
           }
         }
       }, SEARCH_DEBOUNCE_DELAY),
-    [],
+    [tokenSearchEnabled],
   );
 
   const reset = useCallback(() => {
