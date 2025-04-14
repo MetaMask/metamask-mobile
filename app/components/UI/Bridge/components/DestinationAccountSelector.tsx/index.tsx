@@ -15,6 +15,7 @@ import ButtonIcon from '../../../../../component-library/components/Buttons/Butt
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
+import { strings } from '../../../../../../locales/i18n';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -31,6 +32,10 @@ const createStyles = ({ colors }: Theme) =>
     closeButtonContainer: {
       flex: 1,
       justifyContent: 'center'
+    },
+    avatarStyle: {
+      alignSelf: 'center',
+      marginRight: 10
     }
   });
 
@@ -74,14 +79,14 @@ const DestinationAccountSelector = () => {
           <Cell
             key={destAddress}
             variant={CellVariant.Select}
-            title={'Receive at'}
+            title={strings('bridge.receive_at')}
             secondaryText={formatAddress(destAddress, 'short')}
             showSecondaryTextIcon={false}
             avatarProps={{
               variant: AvatarVariant.Account,
               type: accountAvatarType,
               accountAddress: destAddress,
-              style: { alignSelf: 'center', marginRight: 10 }
+              style: styles.avatarStyle
             }}
           >
             <View style={styles.closeButtonContainer}>
