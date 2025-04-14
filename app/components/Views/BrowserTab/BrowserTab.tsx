@@ -323,7 +323,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (
       resolvedUrlOrigin !== urlOrigin &&
       loadingUrlOrigin !== urlOrigin &&
-      loadingUrlOrigin != null &&
+      loadingUrlOrigin !== 'null' &&
       isProductSafetyDappScanningEnabled()
     ) {
       return;
