@@ -40,7 +40,7 @@ export const useSwapBridgeNavigation = ({
     address: nativeSourceToken.address,
     name: nativeSourceToken.name ?? '',
     symbol: nativeSourceToken.symbol,
-    image: 'iconUrl' in nativeSourceToken ? nativeSourceToken.iconUrl : '',
+    image: nativeSourceToken.iconUrl ?? '',
     decimals: nativeSourceToken.decimals,
     chainId: selectedChainId,
   };
