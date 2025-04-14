@@ -785,7 +785,14 @@
     "add_new_hd_account_helper_text": "The Secret Recovery Phrase your new account will be generated from",
     "accounts": "accounts",
     "show_accounts": "Show",
-    "hide_accounts": "Hide"
+    "hide_accounts": "Hide",
+    "labels": {
+      "bitcoin_testnet_account_name": "Bitcoin Testnet account",
+      "bitcoin_account_name": "Bitcoin account",
+      "solana_devnet_account_name": "Solana Devnet account",
+      "solana_testnet_account_name": "Solana Testnet account",
+      "solana_account_name": "Solana account"
+    }
   },
   "toast": {
     "connected_and_active": "connected and active.",
