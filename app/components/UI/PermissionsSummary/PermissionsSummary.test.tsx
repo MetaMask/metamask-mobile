@@ -6,6 +6,46 @@ import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsContr
 
 const mockedNavigate = jest.fn();
 
+// Mock useSelectedAccount hook
+jest.mock('../Tabs/TabThumbnail/useSelectedAccount', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({
+    name: 'Account 2',
+    address: '0x0',
+    isSelected: true,
+    assets: {
+      fiatBalance: '$3200',
+    },
+  }),
+}));
+
+// Mock useAccounts hook
+jest.mock('../../../components/hooks/useAccounts', () => ({
+  useAccounts: jest.fn().mockReturnValue({
+    accounts: [
+      {
+        name: 'Account 2',
+        address: '0x0',
+        isSelected: true,
+        assets: {
+          fiatBalance: '$3200',
+        },
+      },
+    ],
+    evmAccounts: [
+      {
+        name: 'Account 2',
+        address: '0x0',
+        isSelected: true,
+        assets: {
+          fiatBalance: '$3200',
+        },
+      },
+    ],
+    ensByAccountAddress: {},
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
