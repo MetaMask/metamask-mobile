@@ -133,7 +133,6 @@ export enum IconName {
   FlashSlash = 'FlashSlash',
   Flash = 'Flash',
   Flask = 'Flask',
-  FilledCircle = 'FilledCircle',
   FullCircle = 'FullCircle',
   Gas = 'Gas',
   GlobalSearch = 'GlobalSearch',

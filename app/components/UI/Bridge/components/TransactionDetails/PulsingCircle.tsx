@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
-import HollowCircle from './HollowCircle';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
+import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
 import { useTheme } from '../../../../../util/theme';
 import { ThemeColors } from '@metamask/design-tokens';
@@ -67,7 +66,7 @@ export default function PulsingCircle({ color }: { color: IconColor }) {
         style={[styles.pulsingAura, { transform: [{ scale: pulseAnim }] }]}
       />
       <Box style={styles.hollowCircleContainer}>
-        <HollowCircle color={color} />
+        <Icon name={IconName.FullCircle} color={color} size={IconSize.Xs} />
       </Box>
     </Box>
   );

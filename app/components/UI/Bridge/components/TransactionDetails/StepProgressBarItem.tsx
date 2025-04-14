@@ -5,7 +5,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import HollowCircle from './HollowCircle';
 import PulsingCircle from './PulsingCircle';
 import { StatusTypes } from '@metamask/bridge-status-controller';
 import { useTheme } from '../../../../../util/theme';
@@ -30,6 +29,13 @@ const createStyles = (colors: ThemeColors, color?: IconColor) => {
       width: 1,
       backgroundColor: lineColor,
       zIndex: 0.1,
+    },
+    filledCircle: {
+      marginLeft: 1,
+      width: Number(ICON_SIZE) - 2,
+      height: Number(ICON_SIZE) - 2,
+      backgroundColor: colors.primary.default,
+      borderRadius: (Number(ICON_SIZE) - 2)/2,
     },
   });
 };
@@ -63,6 +69,9 @@ export default function StepProgressBarItem({
   isEdgeComplete,
   children,
 }: StepsProgressBarItemProps) {
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
+
   return (
     <>
       <Box
@@ -72,17 +81,17 @@ export default function StepProgressBarItem({
       >
         {/* Indicator dots */}
         {(stepStatus === null || stepStatus === StatusTypes.UNKNOWN) && (
-          <HollowCircle color={IconColor.Muted} />
+          <Icon
+            name={IconName.FullCircle}
+            color={IconColor.Muted}
+            size={ICON_SIZE}
+          />
         )}
         {stepStatus === StatusTypes.PENDING && (
           <PulsingCircle color={IconColor.Primary} />
         )}
         {stepStatus === StatusTypes.COMPLETE && (
-          <Icon
-            name={IconName.FilledCircle}
-            color={IconColor.Primary}
-            size={ICON_SIZE}
-          />
+          <View style={styles.filledCircle} />
         )}
 
         {/* Description */}
