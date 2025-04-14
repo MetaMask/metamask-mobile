@@ -57,11 +57,11 @@
     "@babel/generator>@jridgewell/gen-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/gen-mapping>@jridgewell/set-array": true,
-        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true,
+        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true,
         "@babel/generator>@jridgewell/trace-mapping": true
       }
     },
-    "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": {
+    "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": {
       "globals": {
         "Buffer": true,
         "TextDecoder": true
@@ -70,7 +70,7 @@
     "@babel/generator>@jridgewell/trace-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/trace-mapping>@jridgewell/resolve-uri": true,
-        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true
+        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true
       }
     },
     "accepts": {
@@ -623,11 +623,7 @@
         "URL": true,
         "clearTimeout": true,
         "console": true,
-        "process.env": true,
-        "process.exitCode": "write",
-        "process.hrtime": true,
-        "process.nextTick": true,
-        "process.stdout": true,
+        "process": true,
         "setImmediate": true,
         "setTimeout": true
       },
@@ -1051,8 +1047,16 @@
       }
     },
     "jest-worker>supports-color": {
+      "builtin": {
+        "os.release": true,
+        "tty.isatty": true
+      },
       "globals": {
-        "navigator.userAgent": true
+        "process.env": true,
+        "process.platform": true
+      },
+      "packages": {
+        "chalk>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
