@@ -2,6 +2,7 @@ import {
   PhishingDetectorResult,
   PhishingDetectorResultType,
   PhishingController as PhishingControllerClass,
+  RecommendedAction,
 } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
