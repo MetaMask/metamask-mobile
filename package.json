@@ -357,7 +357,7 @@
     "@babel/eslint-parser": "^7.25.1",
     "@babel/preset-env": "^7.24.5",
     "@babel/register": "^7.24.6",
-    "@babel/runtime": "^7.26.0",
+    "@babel/runtime": "^7.27.0",
     "@cucumber/message-streams": "^4.0.1",
     "@cucumber/messages": "^22.0.0",
     "@ethersproject/contracts": "^5.7.0",
