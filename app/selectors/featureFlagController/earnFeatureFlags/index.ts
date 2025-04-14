@@ -8,6 +8,7 @@ const prioritizeFlagsByEnv = (localFlag: boolean, remoteFlag: boolean) => {
   if (isDev) return ((localFlag ?? remoteFlag) as boolean) ?? false;
 
   // Prioritize remote flag in production
+  // To be safe, default to false if remote and local flags are null or undefined.
   return ((remoteFlag ?? localFlag) as boolean) ?? false;
 };
 
