@@ -6,13 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-- feat: real time dapp scanning BrowserTab ([#14515](https://github.com/MetaMask/metamask-mobile/pull/14515))
 
 ### Added
 
 - feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
 - feat: add AppMetadataController controller ([#14513](https://github.com/MetaMask/metamask-mobile/pull/14513))
 - feat(bridge): implement bridge quote fetching ([#14413](https://github.com/MetaMask/metamask-mobile/pull/14413))
+- feat: real time dapp scanning BrowserTab ([#14515](https://github.com/MetaMask/metamask-mobile/pull/14515))
 
 ## [7.44.0]
 
