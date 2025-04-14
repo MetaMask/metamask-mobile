@@ -66,6 +66,8 @@ import { selectAddressBook } from '../../../../../selectors/addressBookControlle
 import { selectSendFlowContextualChainId } from '../../../../../selectors/transaction';
 import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
 import { store } from '../../../../../store';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { toHexadecimal } from '../../../../../util/number';
 
 const dummy = () => true;
 
@@ -182,6 +184,7 @@ class SendFlow extends PureComponent {
         null,
         false,
         true,
+        this.props.sendFlowContextualNetworkConfiguration?.name || '',
       ),
     );
   };
@@ -753,6 +756,10 @@ const mapStateToProps = (state) => {
     ),
     ambiguousAddressEntries: state.user.ambiguousAddressEntries,
     sendFlowContextualChainId: selectSendFlowContextualChainId(state),
+    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(selectSendFlowContextualChainId(state)),
+    ),
   };
 };
 
