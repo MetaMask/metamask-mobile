@@ -13,6 +13,10 @@ export default class MetaMetricsTestUtils {
     return MetaMetricsTestUtils.instance;
   }
 
+  /**
+   * Resets the singleton instance.
+   * This is used for testing purposes to ensure a fresh instance is created.
+   */
   public static resetInstance(): void {
     MetaMetricsTestUtils.instance = undefined;
   }
