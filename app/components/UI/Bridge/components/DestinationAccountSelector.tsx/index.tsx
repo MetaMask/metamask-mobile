@@ -1,21 +1,20 @@
-import { useSelector } from "react-redux";
-import { useAccounts } from "../../../../hooks/useAccounts";
-import AccountSelectorList from "../../../AccountSelectorList";
-import { selectPrivacyMode } from "../../../../../selectors/preferencesController";
+import React, { useEffect, useMemo, useCallback, useRef } from 'react';
+import { useSelector , useDispatch } from 'react-redux';
+import { useAccounts } from '../../../../hooks/useAccounts';
+import AccountSelectorList from '../../../AccountSelectorList';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
-import { useDispatch } from "react-redux";
-import { selectDestAddress, setDestAddress } from "../../../../../core/redux/slices/bridge";
-import { Box } from "../../../Box/Box";
-import Cell, { CellVariant } from "../../../../../component-library/components/Cells/Cell";
-import { AvatarAccountType, AvatarVariant } from "../../../../../component-library/components/Avatars/Avatar";
-import { RootState } from "../../../../../reducers";
-import { formatAddress } from "../../../../../util/address";
-import { View, StyleSheet } from "react-native";
-import ButtonIcon from "../../../../../component-library/components/Buttons/ButtonIcon";
-import { IconName } from "../../../../../component-library/components/Icons/Icon";
-import { useEffect, useMemo, useCallback } from "react";
-import { useTheme } from "../../../../../util/theme";
-import { Theme } from "../../../../../util/theme/models";
+import { selectDestAddress, setDestAddress } from '../../../../../core/redux/slices/bridge';
+import { Box } from '../../../Box/Box';
+import Cell, { CellVariant } from '../../../../../component-library/components/Cells/Cell';
+import { AvatarAccountType, AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
+import { RootState } from '../../../../../reducers';
+import { formatAddress } from '../../../../../util/address';
+import { View, StyleSheet } from 'react-native';
+import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
+import { Theme } from '../../../../../util/theme/models';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -40,6 +39,7 @@ const DestinationAccountSelector = () => {
   const { accounts, ensByAccountAddress } = useAccounts();
   const theme = useTheme();
   const styles = createStyles(theme);
+  const hasInitialized = useRef(false);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
@@ -49,7 +49,7 @@ const DestinationAccountSelector = () => {
       : AvatarAccountType.JazzIcon,
   );
 
-  const filteredAccounts = useMemo(() => 
+  const filteredAccounts = useMemo(() =>
     accounts.filter((account) => isSolanaAddress(account.address)),
     [accounts]
   );
@@ -61,10 +61,11 @@ const DestinationAccountSelector = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (filteredAccounts.length > 0 && !destAddress) {
+    if (!hasInitialized.current && filteredAccounts.length > 0 && !destAddress) {
       handleSelectAccount(filteredAccounts[0].address);
+      hasInitialized.current = true;
     }
-  }, [filteredAccounts, handleSelectAccount]);
+  }, [filteredAccounts, destAddress, handleSelectAccount]);
 
   return (
     <Box style={styles.container}>

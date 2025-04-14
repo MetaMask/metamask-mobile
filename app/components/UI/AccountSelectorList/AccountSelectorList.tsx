@@ -275,6 +275,7 @@ const AccountSelectorList = ({
       isLoading,
       selectedAddresses,
       isMultiSelect,
+      isSelectWithoutMenu,
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,
