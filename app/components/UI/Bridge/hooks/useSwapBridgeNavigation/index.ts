@@ -14,6 +14,7 @@ import { BridgeRouteParams } from '../useInitialSourceToken';
 import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import isBridgeAllowed from '../../utils/isBridgeAllowed';
+import { ethers } from 'ethers';
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
@@ -34,48 +35,48 @@ export const useSwapBridgeNavigation = ({
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
 
-  const bridgeAllowed = isBridgeAllowed(selectedChainId);
-
-  let sourceNativeAsset;
-  try {
-    if (!tokenBase) {
-      sourceNativeAsset = getNativeAssetForChainId(selectedChainId);
-    }
-  } catch (error) {
-    // Suppress error as it's expected when the chain is not supported
-  }
-
-  const nativeSourceTokenFormatted: BridgeToken | undefined = sourceNativeAsset
-    ? {
-        address: sourceNativeAsset.address,
-        name: sourceNativeAsset.name ?? '',
-        symbol: sourceNativeAsset.symbol,
-        image: sourceNativeAsset.iconUrl ?? '',
-        decimals: sourceNativeAsset.decimals,
-        chainId: selectedChainId,
-      }
-    : undefined;
-
-  const candidateToken = tokenBase ?? nativeSourceTokenFormatted;
-  const token = bridgeAllowed ? candidateToken : undefined;
-
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
   const goToNativeBridge = useCallback(
     (bridgeViewMode: BridgeViewMode) => {
-      if (!token) {
+      let bridgeSourceNativeAsset;
+      try {
+        if (!tokenBase) {
+          bridgeSourceNativeAsset = getNativeAssetForChainId(selectedChainId);
+        }
+      } catch (error) {
+        // Suppress error as it's expected when the chain is not supported
+      }
+
+      const bridgeNativeSourceTokenFormatted: BridgeToken | undefined =
+        bridgeSourceNativeAsset
+          ? {
+              address: bridgeSourceNativeAsset.address,
+              name: bridgeSourceNativeAsset.name ?? '',
+              symbol: bridgeSourceNativeAsset.symbol,
+              image: bridgeSourceNativeAsset.iconUrl ?? '',
+              decimals: bridgeSourceNativeAsset.decimals,
+              chainId: selectedChainId,
+            }
+          : undefined;
+
+      const candidateBridgeToken =
+        tokenBase ?? bridgeNativeSourceTokenFormatted;
+      const bridgeToken = isBridgeAllowed(selectedChainId) ? candidateBridgeToken : undefined;
+
+      if (!bridgeToken) {
         return;
       }
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
-          token,
+          token: bridgeToken,
           sourcePage,
           bridgeViewMode,
         } as BridgeRouteParams,
       });
     },
-    [navigation, token, sourcePage],
+    [navigation, selectedChainId, tokenBase, sourcePage],
   );
 
   const goToBridge = useCallback(
@@ -91,21 +92,24 @@ export const useSwapBridgeNavigation = ({
 
   // Swaps
   const handleSwapsNavigation = useCallback(async () => {
-    if (!token) {
-      return;
-    }
-
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {
         screen: Routes.WALLET_VIEW,
       },
     });
-    if (token.chainId !== selectedChainId) {
+
+    const swapToken = tokenBase ?? {
+      // For EVM chains, default swap token addr is zero address
+      address: ethers.constants.AddressZero,
+      chainId: selectedChainId,
+    };
+
+    if (swapToken?.chainId !== selectedChainId) {
       const { NetworkController, MultichainNetworkController } = Engine.context;
       const networkConfiguration =
         NetworkController.getNetworkConfigurationByChainId(
-          token.chainId as Hex,
+          tokenBase?.chainId as Hex,
         );
 
       const networkClientId =
@@ -121,17 +125,17 @@ export const useSwapBridgeNavigation = ({
     navigation.navigate('Swaps', {
       screen: 'SwapsAmountView',
       params: {
-        sourceToken: token.address,
-        chainId: token.chainId,
+        sourceToken: swapToken?.address,
+        chainId: swapToken?.chainId,
         sourcePage,
       },
     });
-  }, [navigation, token, selectedChainId, sourcePage]);
+  }, [navigation, tokenBase, selectedChainId, sourcePage]);
 
   const goToSwaps = useCallback(() => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (
-      token?.chainId === SolScope.Mainnet ||
+      tokenBase?.chainId === SolScope.Mainnet ||
       selectedChainId === SolScope.Mainnet
     ) {
       goToBridge(BridgeViewMode.Swap);
@@ -142,7 +146,7 @@ export const useSwapBridgeNavigation = ({
     handleSwapsNavigation();
   }, [
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    token?.chainId,
+    tokenBase?.chainId,
     selectedChainId,
     goToBridge,
     ///: END:ONLY_INCLUDE_IF
