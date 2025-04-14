@@ -65,6 +65,10 @@ const DestinationAccountSelector = () => {
     }
   }, [dispatch]);
 
+  const handleClearDestAddress = useCallback(() => {
+    handleSelectAccount(undefined);
+  }, [handleSelectAccount]);
+
   useEffect(() => {
     if (!hasInitialized.current && filteredAccounts.length > 0 && !destAddress) {
       handleSelectAccount(filteredAccounts[0].address);
@@ -91,7 +95,7 @@ const DestinationAccountSelector = () => {
           >
             <View style={styles.closeButtonContainer}>
               <ButtonIcon
-                onPress={() => handleSelectAccount(undefined)}
+                onPress={handleClearDestAddress}
                 iconName={IconName.Close}
               />
             </View>
