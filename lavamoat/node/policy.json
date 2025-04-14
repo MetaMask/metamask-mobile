@@ -6,7 +6,7 @@
         "process": true
       },
       "packages": {
-        "@babel/types>@babel/helper-validator-identifier": true,
+        "@babel/code-frame>@babel/helper-validator-identifier": true,
         "@babel/code-frame>js-tokens": true,
         "@babel/code-frame>picocolors": true
       }
@@ -51,17 +51,17 @@
       },
       "packages": {
         "@babel/types>@babel/helper-string-parser": true,
-        "@babel/types>@babel/helper-validator-identifier": true
+        "@babel/code-frame>@babel/helper-validator-identifier": true
       }
     },
     "@babel/generator>@jridgewell/gen-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/gen-mapping>@jridgewell/set-array": true,
-        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true,
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true,
         "@babel/generator>@jridgewell/trace-mapping": true
       }
     },
-    "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": {
+    "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": {
       "globals": {
         "Buffer": true,
         "TextDecoder": true
@@ -70,7 +70,7 @@
     "@babel/generator>@jridgewell/trace-mapping": {
       "packages": {
         "@babel/generator>@jridgewell/trace-mapping>@jridgewell/resolve-uri": true,
-        "@babel/generator>@jridgewell/gen-mapping>@jridgewell/sourcemap-codec": true
+        "@babel/generator>@jridgewell/trace-mapping>@jridgewell/sourcemap-codec": true
       }
     },
     "accepts": {
@@ -462,7 +462,7 @@
         "setTimeout": true
       }
     },
-    "jest-worker>supports-color>has-flag": {
+    "chalk>supports-color>has-flag": {
       "globals": {
         "process.argv": true
       }
@@ -826,7 +826,7 @@
         "metro-source-map>ob1": true,
         "source-map": true,
         "metro-source-map>source-map": true,
-        "metro-symbolicate>vlq": true
+        "metro-source-map>vlq": true
       }
     },
     "metro-symbolicate": {
@@ -842,7 +842,7 @@
         "invariant": true,
         "metro-source-map": true,
         "nullthrows": true,
-        "metro-symbolicate>vlq": true
+        "metro-source-map>vlq": true
       }
     },
     "metro-transform-plugins": {
@@ -1043,7 +1043,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "jest-worker>supports-color": {
@@ -1056,7 +1056,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
