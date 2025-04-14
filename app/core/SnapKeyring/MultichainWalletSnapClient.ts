@@ -70,16 +70,17 @@ export class MultichainWalletSnapClient {
     const account = await controllerMessenger.call(
       'KeyringController:withKeyring',
       { type: KeyringTypes.snap },
-      async ({ keyring }) =>
+      async ({ keyring }) => {
         (keyring as unknown as SnapKeyring).createAccount(
           this.#snapId,
           options as unknown as Record<string, Json>,
           {
             displayConfirmation: false,
-            displayAccountNameSuggestion: true,
+            displayAccountNameSuggestion: false,
             setSelectedAccount: true,
           },
-        ),
+        );
+      },
     );
 
     return account;

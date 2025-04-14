@@ -561,11 +561,6 @@ export class Engine {
       cacheEncryptionKey: true,
     });
 
-    Logger.log(
-      'keyring controller keyrings',
-      this.keyringController.state.keyrings,
-    );
-
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     /**
      * Gets the mnemonic of the user's primary keyring.

@@ -99,10 +99,9 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
 
   const createNewAccount = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    const hasMultipleHdKeyrings = hdKeyrings.length > 1;
 
-    if (hasMultipleHdKeyrings) {
-      onAddHdAccount?.();
+    if (useCreateAccountWithSrps) {
+      navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
     }
     ///: END:ONLY_INCLUDE_IF

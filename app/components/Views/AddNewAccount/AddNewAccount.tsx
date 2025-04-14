@@ -43,9 +43,8 @@ import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
-  Logger.log(111, route.params);
   const { navigate } = useNavigation();
-  const { scope, clientType } = route.params || {};
+  const { scope, clientType } = route?.params || {};
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
@@ -59,6 +58,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   );
   const hdKeyrings = useSelector(selectHDKeyrings);
   const [showSRPList, setShowSRPList] = useState(false);
+  const [error, setError] = useState<string>('');
 
   const onBack = () => {
     navigate(Routes.SHEET.ACCOUNT_SELECTOR);
@@ -72,7 +72,6 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     setIsLoading(true);
     try {
       if (clientType && scope) {
-        Logger.log('using multichain wallet snap client', clientType, scope);
         const multichainWalletSnapClient = new MultichainWalletSnapClient(
           clientType,
         );
@@ -85,7 +84,8 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
         await addNewHdAccount(keyringId, accountName);
       }
       navigate(Routes.WALLET.HOME);
-    } catch (e) {
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Unknown error');
       Logger.error(e as Error, 'ADD_NEW_HD_ACCOUNT_ERROR');
     } finally {
       setIsLoading(false);
@@ -104,12 +104,12 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
       case WalletClientType.Bitcoin: {
         if (scope === MultichainNetwork.BitcoinTestnet) {
           accountNameToUse = `${strings(
-            'accounts.bitcoin_testnet_account_name',
+            'accounts.labels.bitcoin_testnet_account_name',
           )} ${accountNumber}`;
           break;
         }
         accountNameToUse = `${strings(
-          'accounts.bitcoin_account_name',
+          'accounts.labels.bitcoin_account_name',
         )} ${accountNumber}`;
         break;
       }
@@ -117,17 +117,17 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
         switch (scope) {
           case MultichainNetwork.SolanaDevnet:
             accountNameToUse = `${strings(
-              'accounts.solana_devnet_account_name',
+              'accounts.labels.solana_devnet_account_name',
             )} ${accountNumber}`;
             break;
           case MultichainNetwork.SolanaTestnet:
             accountNameToUse = `${strings(
-              'accounts.solana_testnet_account_name',
+              'accounts.labels.solana_testnet_account_name',
             )} ${accountNumber}`;
             break;
           default:
             accountNameToUse = `${strings(
-              'accounts.solana_account_name',
+              'accounts.labels.solana_account_name',
             )} ${accountNumber}`;
             break;
         }
@@ -245,6 +245,11 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     label={strings('accounts.add')}
                   />
                 </View>
+                {error && (
+                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                    {error}
+                  </Text>
+                )}
               </Fragment>
             </View>
           )}
