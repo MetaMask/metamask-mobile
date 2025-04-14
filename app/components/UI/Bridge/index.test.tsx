@@ -113,8 +113,8 @@ describe('BridgeView', () => {
     });
   });
 
-  it('should open BridgeTokenSelector when clicking destination token area', async () => {
-    const { getByTestId } = renderScreen(
+  it('should open BridgeDestNetworkSelector when clicking destination token area', async () => {
+    const { getByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -123,19 +123,21 @@ describe('BridgeView', () => {
     );
 
     // Find and click the destination token area
-    const destTokenArea = getByTestId('dest-token-area');
+    const destTokenArea = getByText('Bridge to');
     expect(destTokenArea).toBeTruthy();
 
     fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {},
+      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+      params: {
+        shouldGoToTokens: true,
+      },
     });
   });
 
-  it('should update source token amount when typing', () => {
+  it('should update source token amount when typing', async () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
@@ -151,7 +153,9 @@ describe('BridgeView', () => {
 
     // Verify the input value is updated
     const input = getByTestId('source-token-area-input');
-    expect(input.props.value).toBe('9.5');
+    await waitFor(() => {
+      expect(input.props.value).toBe('9.5');
+    });
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19000')).toBeTruthy();
@@ -197,20 +201,14 @@ describe('BridgeView', () => {
         ...initialState.bridge,
         sourceToken: {
           address: '0x0000000000000000000000000000000000000000',
-          aggregators: [],
-          balance: '0.31281',
-          balanceFiat: '930.56676 cad',
           chainId: '0x1' as Hex,
           decimals: 18,
           image: '',
-          name: 'Ethereum',
+          name: 'Ether',
           symbol: 'ETH',
         },
         destToken: {
           address: token2Address,
-          aggregators: [],
-          balance: '7.75388',
-          balanceFiat: '11.07915 cad',
           chainId: '0x1' as Hex,
           decimals: 6,
           image:
