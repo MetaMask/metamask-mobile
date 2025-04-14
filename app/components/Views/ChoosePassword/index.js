@@ -543,6 +543,13 @@ class ChoosePassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
+  isError = () => {
+    const { password, confirmPassword } = this.state;
+    return (
+      password !== '' && confirmPassword !== '' && password !== confirmPassword
+    );
+  };
+
   render() {
     const {
       isSelected,
@@ -643,7 +650,6 @@ class ChoosePassword extends PureComponent {
                         />
                       }
                     />
-
                     {password !== '' && (
                       <Text variant={TextVariant.BodySM}>
                         {strings('choose_password.password_strength')}
@@ -689,22 +695,33 @@ class ChoosePassword extends PureComponent {
                       endAccessory={
                         <Icon
                           name={
-                            passwordsMatch
-                              ? IconName.CheckBold
-                              : this.state.showPasswordIndex.includes(1)
+                            this.state.showPasswordIndex.includes(1)
                               ? IconName.EyeSolid
                               : IconName.EyeSlashSolid
                           }
-                          size={IconSize.Md}
-                          color={
-                            passwordsMatch
-                              ? colors.success.default
-                              : colors.icon.muted
-                          }
+                          size={IconSize.Lg}
+                          color={colors.icon.muted}
                           onPress={() => this.toggleShowPassword(1)}
                         />
                       }
                     />
+                    {!this.isError() ? (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Alternative}
+                      >
+                        {strings('choose_password.must_be_at_least', {
+                          number: MIN_PASSWORD_LENGTH,
+                        })}
+                      </Text>
+                    ) : (
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Error}
+                      >
+                        {strings('choose_password.password_error')}
+                      </Text>
+                    )}
                   </View>
 
                   <SecurityOptionToggle

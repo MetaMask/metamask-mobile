@@ -139,10 +139,10 @@
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
     "done": "Done",
-    "create_hint": "Create a Secret Recovery Phrase hint",
+    "create_hint": "Create a password hint",
     "hint_title": "Password hint",
-    "hint_description": "Leave yourself a hint to help remember where your Secret Recovery Phrase is stored. This hint is stored on your device, and won’t be shared. ",
-    "hint_description2": "Remember: If you lose this phrase, you won’t be able to use your wallet.",
+    "hint_description": "Leave yourself a hint to help remember your password. This hint is stored on your device, and won’t be shared.",
+    "hint_description2": "Remember: If you lose your password, you won’t be able to use your wallet.",
     "hint_button": "Create hint",
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
@@ -308,7 +308,8 @@
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
     "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
-    "confirm_cta": "Confirm"
+    "confirm_cta": "Confirm",
+    "password_error": "Passwords don’t match. Try again."
   },
   "reset_password": {
     "title": "Change password",
@@ -369,7 +370,8 @@
     "learn_more_link": "Learn more",
     "confirm": "Confirm",
     "pass_flow": "Continue with Flow",
-    "step": "Step {{currentStep}} of {{totalSteps}}"
+    "step": "Step {{currentStep}} of {{totalSteps}}",
+    "password_error": "Passwords don’t match. Try again."
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
