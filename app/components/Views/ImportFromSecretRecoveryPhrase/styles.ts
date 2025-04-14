@@ -61,7 +61,7 @@ const createStyles = (colors: any) =>
       ...fontStyles.normal,
       backgroundColor: colors.background.muted,
       paddingHorizontal: 0,
-      height: 44,
+      height: 66,
     },
     seedPhraseInputContainer: {
       flexDirection: 'row',
