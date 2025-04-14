@@ -35,8 +35,7 @@ import ShowWarningBanner from './showWarningBanner';
 import createStyles from './styles';
 import { SourceType } from '../../hooks/useMetrics/useMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import { isAllowedOrigin } from '../../../util/phishingDetection';
-
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 /**
  * Account access approval component
  */
@@ -292,10 +291,10 @@ class AccountApproval extends PureComponent {
   };
 
   checkUrlFlaggedAsPhishing = async (hostname) => {
-    const result = await isAllowedOrigin(hostname);
+    const scanResult = await getPhishingTestResultAsync(hostname);
     if (this._isMounted) {
       this.setState({
-        isUrlFlaggedAsPhishing: !result,
+        isUrlFlaggedAsPhishing: !scanResult.result,
       });
     }
   };

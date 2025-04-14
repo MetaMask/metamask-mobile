@@ -83,8 +83,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -296,8 +296,8 @@ const AccountConnect = (props: AccountConnectProps) => {
     const url = dappUrl || channelIdOrHostname || '';
 
     const checkOrigin = async () => {
-      const isAllowed = await isAllowedOrigin(url);
-      if (!isAllowed) {
+      const scanResult = await getPhishingTestResultAsync(url);
+      if (!scanResult.result) {
         setBlockedUrl(dappUrl);
         setShowPhishingModal(true);
       }
