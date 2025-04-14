@@ -17,12 +17,30 @@ import {
 } from './MetaMetrics.types';
 import { MetricsEventBuilder } from './MetricsEventBuilder';
 
+
 jest.mock('../../store/storage-wrapper');
 const mockGet = jest.fn();
 const mockSet = jest.fn();
 const mockClear = jest.fn();
 
+
 jest.mock('axios');
+
+// Mock MetaMetricsTestUtils
+const mockTrackE2EEvent = jest.fn();
+const mockInstance = {
+  trackEvent: mockTrackE2EEvent,
+};
+
+jest.mock('./MetaMetricsTestUtils', () => ({
+  __esModule: true,
+  default: {
+    getInstance: jest.fn().mockImplementation(() => {
+      return mockInstance;
+    }),
+  },
+}));
+
 
 /**
  * Extend MetaMetrics to allow reset of the singleton instance
@@ -731,6 +749,42 @@ describe('MetaMetrics', () => {
         expect(dataDeletionRequestStatus).toEqual(DataDeleteStatus.unknown);
         expect(deletionRequestDate).toBeUndefined();
       });
+    });
+  });
+
+  describe('E2E Mode', () => {
+
+    beforeEach(() => {
+      mockTrackE2EEvent.mockClear();
+    });
+
+    const testE2EMode = async (isE2E: boolean) => {
+      const utils = require('../../util/test/utils');
+      utils.isE2E = isE2E;
+
+      const metaMetrics = MetaMetrics.getInstance();
+      await metaMetrics.configure();
+      await metaMetrics.enable();
+
+      const event = MetricsEventBuilder.createEventBuilder({
+        category: 'test event',
+      }).build();
+
+      metaMetrics.trackEvent(event);
+
+      if (isE2E) {
+        expect(mockTrackE2EEvent).toHaveBeenCalledWith(event);
+      } else {
+        expect(mockTrackE2EEvent).not.toHaveBeenCalled();
+      }
+    };
+
+    it('calls MetaMetricsTestUtils.trackEvent when isE2E is true', async () => {
+      await testE2EMode(true);
+    });
+
+    it('does not call MetaMetricsTestUtils.trackEvent when isE2E is false', async () => {
+      await testE2EMode(false);
     });
   });
 });

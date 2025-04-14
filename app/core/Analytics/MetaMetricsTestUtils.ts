@@ -2,9 +2,9 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
 import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 
-class MetaMetricsTestUtils {
-  private static instance: MetaMetricsTestUtils;
-  private sendMetaMetricsEventsinTest = false
+export default class MetaMetricsTestUtils {
+  private static instance: MetaMetricsTestUtils | undefined;
+  private readonly sendMetaMetricsinE2E: boolean;
 
   public static getInstance(): MetaMetricsTestUtils {
     if (!MetaMetricsTestUtils.instance) {
@@ -13,8 +13,12 @@ class MetaMetricsTestUtils {
     return MetaMetricsTestUtils.instance;
   }
 
-  private constructor() {
-    /**
+  public static resetInstance(): void {
+    MetaMetricsTestUtils.instance = undefined;
+  }
+
+  constructor() {
+     /**
      * This class is used to send test events to the E2E test mock server.
      * It is initialized with the `sendMetaMetricsinE2E` flag from the launch arguments.
      * To enable sending events, ensure you launch the app with the appropriate
@@ -29,14 +33,14 @@ class MetaMetricsTestUtils {
      * });
      * ```
      */
-    this.sendMetaMetricsEventsinTest = LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>().sendMetaMetricsinE2E ?? false;
+    this.sendMetaMetricsinE2E = LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>().sendMetaMetricsinE2E ?? false;
   }
 
   /**
    * Sends an event to the test server
    */
   public async trackEvent(event: ITrackingEvent): Promise<void> {
-    if (!this.sendMetaMetricsEventsinTest) {
+    if (!this.sendMetaMetricsinE2E) {
       return;
     }
 
@@ -49,7 +53,7 @@ class MetaMetricsTestUtils {
             ...event.properties,
             ...event.sensitiveProperties,
           },
-})
+        }),
       });
     } catch (error) {
       if (!(error instanceof TypeError && error.message.includes('Network request failed'))) {
@@ -58,5 +62,3 @@ class MetaMetricsTestUtils {
     }
   }
 }
-
-export default MetaMetricsTestUtils;
