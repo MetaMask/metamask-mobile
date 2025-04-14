@@ -19,8 +19,6 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Gestures from '../../utils/Gestures';
-// import CreateAccountView from '../../pages/wallet/CreateAccountView';
-//import AccountOverviewScreen from '../../pages/wallet/AccountOverviewScreen';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
@@ -94,6 +92,7 @@ describe.only(SmokeConfirmations('Create Solana account'), () => {
     await RevealPrivateKey.tapToReveal();
   });
 
+  //TODO: Waiting for removal feature to be implemented
   it.skip('should remove a solana account after creation', async () => {
     await withFixtures(
       {
