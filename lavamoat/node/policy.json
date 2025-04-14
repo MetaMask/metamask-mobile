@@ -126,7 +126,7 @@
         "__dirname": true
       },
       "packages": {
-        "ws>bufferutil>node-gyp-build": true
+        "ws>utf-8-validate>node-gyp-build": true
       }
     },
     "metro-config>cosmiconfig>import-fresh>caller-path>caller-callsite": {
@@ -910,7 +910,7 @@
         "node-fetch>whatwg-url": true
       }
     },
-    "ws>bufferutil>node-gyp-build": {
+    "ws>utf-8-validate>node-gyp-build": {
       "builtin": {
         "fs.existsSync": true,
         "fs.readdirSync": true,
@@ -1075,7 +1075,7 @@
         "__dirname": true
       },
       "packages": {
-        "ws>bufferutil>node-gyp-build": true
+        "ws>utf-8-validate>node-gyp-build": true
       }
     },
     "metro-file-map>walker": {
