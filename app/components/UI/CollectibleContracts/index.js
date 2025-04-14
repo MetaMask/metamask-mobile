@@ -389,11 +389,12 @@ const CollectibleContracts = ({
   }, []);
 
   const onRefresh = useCallback(async () => {
+    console.log('onRefresh');
     requestAnimationFrame(async () => {
       // Get initial state of NFTs before refresh
       const { NftDetectionController, NftController } = Engine.context;
       const previousNfts = cloneDeep(
-        NftController.state.allNfts[selectedAddress],
+        NftController.state.allNfts[selectedAddress.toLowerCase()],
       );
 
       setRefreshing(true);
@@ -406,7 +407,9 @@ const CollectibleContracts = ({
       setRefreshing(false);
 
       // Get updated state after refresh
-      const newNfts = cloneDeep(NftController.state.allNfts[selectedAddress]);
+      const newNfts = cloneDeep(
+        NftController.state.allNfts[selectedAddress.toLowerCase()],
+      );
       // Compare states to find newly detected NFTs
       if (!isEqual(previousNfts, newNfts)) {
         const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);

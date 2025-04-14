@@ -33,14 +33,22 @@ const isMatchingNft = (nft1: Nft, nft2: Nft) =>
  * @returns Array of newly detected NFTs with their respective chainIds
  */
 export const compareNftStates = (
-  previousState: AccountNfts,
-  newState: AccountNfts,
-): Nft[] =>
-  getChainEntries(newState).flatMap(([chainId, newChainNfts]) => {
-    const previousChainNfts = previousState[chainId] || [];
+  previousState?: AccountNfts,
+  newState?: AccountNfts,
+): Nft[] => {
+  console.log('compareNftStates');
+  // Return empty array if newState is missing (nothing new to compare)
+  if (!newState) return [];
+
+  // Treat undefined/null previousState as empty object (all NFTs will be considered new)
+  const prevState = previousState || {};
+
+  return getChainEntries(newState).flatMap(([chainId, newChainNfts]) => {
+    const previousChainNfts = prevState[chainId] || [];
 
     return newChainNfts.filter(
       (newNft) =>
         !previousChainNfts.some((prevNft) => isMatchingNft(prevNft, newNft)),
     );
   });
+};

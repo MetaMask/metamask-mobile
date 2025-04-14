@@ -644,14 +644,17 @@ const Wallet = ({
       if (obj.ref.props.tabLabel === strings('wallet.tokens')) {
         trackEvent(createEventBuilder(MetaMetricsEvents.WALLET_TOKENS).build());
       } else {
+        // Return early if no address selected
+        if (!selectedAddress) return;
+
         trackEvent(
           createEventBuilder(MetaMetricsEvents.WALLET_COLLECTIBLES).build(),
         );
         // Call detect nfts
         const { NftDetectionController, NftController } = Engine.context;
-        const previousNfts =
-          selectedAddress &&
-          cloneDeep(NftController.state.allNfts[selectedAddress]);
+        const previousNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
 
         try {
           showNftFetchingLoadingIndicator();
@@ -660,10 +663,11 @@ const Wallet = ({
           hideNftFetchingLoadingIndicator();
         }
 
-        const newNfts =
-          selectedAddress &&
-          cloneDeep(NftController.state.allNfts[selectedAddress]);
-        if (previousNfts && newNfts && !isEqual(previousNfts, newNfts)) {
+        const newNfts = cloneDeep(
+          NftController.state.allNfts[selectedAddress.toLowerCase()],
+        );
+
+        if (!isEqual(previousNfts, newNfts)) {
           const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
           newlyDetectedNfts.forEach((nft) => {
             const params = getNftDetectionAnalyticsParams(nft);
