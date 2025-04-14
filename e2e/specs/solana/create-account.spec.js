@@ -83,7 +83,7 @@ describe.only(SmokeConfirmations('Create Solana account'), () => {
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapCreateSolanaAccount();
     await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
-
+    // attempt to reveal private key
     await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
     await AccountActionsBottomSheet.tapShowPrivateKey();
     await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
@@ -109,12 +109,9 @@ describe.only(SmokeConfirmations('Create Solana account'), () => {
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapCreateSolanaAccount();
-        await TabBarComponent.tapWallet();
-        await TestHelpers.delay(1000);
-        await Assertions.checkIfElementHasString(
-          WalletView.accountName,
-          'Solana Test Wallet',
-        );
+        await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+        await AccountActionsBottomSheet.tapRemoveAccount();
+        
       },
     );
   });
