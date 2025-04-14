@@ -27,6 +27,9 @@ import StakingEarningsHistoryButton from './StakingEarningsHistoryButton/Staking
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { EVENT_LOCATIONS } from '../../constants/events';
+import EarnServiceInterruptionBanner from '../../../Earn/components/EarnServiceInterruptionBanner';
+import { useSelector } from 'react-redux';
+import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -34,6 +37,10 @@ export interface StakingEarningsProps {
 
 const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
   const { styles } = useStyles(styleSheet, {});
+
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
 
   const { navigate } = useNavigation();
 
@@ -64,6 +71,9 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
         {strings('stake.your_earnings')}
       </Text>
       <View>
+        {isPooledStakingServiceInterruptionBannerEnabled && (
+          <EarnServiceInterruptionBanner />
+        )}
         {/* Annual Rate */}
         <View style={styles.keyValueRow}>
           <View style={styles.keyValuePrimaryTextWrapper}>
