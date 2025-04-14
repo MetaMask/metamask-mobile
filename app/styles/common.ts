@@ -19,10 +19,6 @@ export const colors = {
   applePayBlack: '#000000',
   applePayWhite: '#FFFFFF',
   btnBlack: '#1C1E21',
-  primaryDefault: '#4459FF',
-  textAlternative: '#686E7D',
-  backgroundMuted: '#F3F5F9',
-  blurOverlay: 'rgba(150, 150, 150, 0.4)',
 };
 
 export const onboardingCarouselColors: Record<

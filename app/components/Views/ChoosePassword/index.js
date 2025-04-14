@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   StyleSheet,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
@@ -21,7 +22,6 @@ import {
   seedphraseNotBackedUp,
 } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
-import StyledButton from '../../UI/StyledButton';
 import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import {
@@ -32,7 +32,6 @@ import { fontStyles, colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
-import OnboardingProgress from '../../UI/OnboardingProgress';
 import zxcvbn from 'zxcvbn';
 import Logger from '../../../util/Logger';
 import {
@@ -52,7 +51,6 @@ import {
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 
-import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -91,7 +89,7 @@ const createStyles = (colors) =>
     },
     scrollableWrapper: {
       flex: 1,
-      paddingHorizontal: 32,
+      paddingHorizontal: 16,
     },
     keyboardScrollableWrapper: {
       flexGrow: 1,
@@ -113,20 +111,7 @@ const createStyles = (colors) =>
       width: 80,
       height: 80,
     },
-    step: {
-      fontSize: 14,
-      color: importedColors.textAlternative,
-      ...fontStyles.normal,
-      marginTop: 16,
-      marginBottom: 6,
-    },
-    content: {
-      textAlign: 'flex-start',
-      alignItems: 'flex-start',
-    },
     title: {
-      // marginTop: 20,
-      // marginBottom: 20,
       justifyContent: 'flex-start',
       textAlign: 'flex-start',
       fontSize: 32,
@@ -134,76 +119,15 @@ const createStyles = (colors) =>
     subtitle: {
       textAlign: 'center',
     },
-    text: {
-      marginBottom: 10,
-      justifyContent: 'center',
-      ...fontStyles.normal,
-    },
-    checkboxContainer: {
-      flex: 1,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    checkbox: {
-      width: 18,
-      height: 18,
-      // margin: 10,
-      // marginTop: -5,
-    },
-    label: {
-      color: colors.text.default,
-      fontSize: 14,
-      ...fontStyles.medium,
-      fontWeight: '500',
-    },
-    learnMore: {
-      textDecorationLine: 'underline',
-      textDecorationColor: colors.primary.default,
-    },
     field: {
       position: 'relative',
       flexDirection: 'column',
       gap: 8,
     },
-    // input: {
-    //   borderWidth: 1,
-    //   borderColor: colors.border.default,
-    //   padding: 10,
-    //   borderRadius: 6,
-    //   fontSize: 14,
-    //   height: 50,
-    //   ...fontStyles.normal,
-    //   color: colors.text.default,
-    // },
     ctaWrapper: {
       flex: 1,
       marginTop: 20,
       width: '100%',
-    },
-    biometrics: {
-      position: 'relative',
-      marginTop: 20,
-      marginBottom: 30,
-    },
-    biometryLabel: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text.default,
-      ...fontStyles.normal,
-    },
-    biometrySwitch: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
-    },
-    passwordStrengthLabel: {
-      marginTop: 10,
-    },
-    showPassword: {
-      position: 'absolute',
-      top: 0,
-      right: 0,
     },
     // eslint-disable-next-line react-native/no-unused-styles
     strength_weak: {
@@ -216,47 +140,6 @@ const createStyles = (colors) =>
     // eslint-disable-next-line react-native/no-unused-styles
     strength_strong: {
       color: colors.success.default,
-    },
-    showMatchingPasswords: {
-      position: 'absolute',
-      top: 36,
-      right: 10,
-      alignSelf: 'flex-end',
-    },
-    passwordInput: {
-      flex: 1,
-      fontSize: 16,
-      color: colors.text.default,
-      fontWeight: '500',
-    },
-    inputFocused: {
-      borderColor: colors.primary.default,
-      borderWidth: 2,
-    },
-    input: {
-      ...fontStyles.normal,
-      fontSize: 16,
-      color: colors.text.default,
-    },
-    passwordContainer: {
-      flexDirection: 'column',
-      gap: 16,
-      marginVertical: 16,
-    },
-    passwordInputContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      borderRadius: 8,
-      height: 48,
-    },
-    passwordInputContainerFocused: {
-      borderColor: colors.primary.default,
-      borderWidth: 2,
     },
     learnMoreContainer: {
       flexDirection: 'row',
@@ -271,21 +154,16 @@ const createStyles = (colors) =>
       justifyContent: 'flex-start',
       gap: 1,
     },
-    learnMoreCheckbox: {
-      backgroundColor: importedColors.primaryDefault,
+    headerLeft: {
+      marginLeft: 16,
     },
-    learnMoreText: {
-      color: colors.text.default,
-      fontSize: 12,
-      ...fontStyles.normal,
+    headerRight: {
+      marginRight: 16,
     },
-    learnMoreTextLink: {
-      color: importedColors.primaryDefault,
-      fontSize: 12,
-      ...fontStyles.normal,
-    },
-    securityOptionToggle: {
-      backgroundColor: importedColors.primaryDefault,
+    passwordContainer: {
+      flexDirection: 'column',
+      gap: 16,
+      marginVertical: 16,
     },
   });
 
@@ -360,7 +238,26 @@ class ChoosePassword extends PureComponent {
   updateNavBar = () => {
     const { route, navigation } = this.props;
     const colors = this.context.colors || mockTheme.colors;
-    navigation.setOptions(getOnboardingNavbarOptions(route, {}, colors));
+    const marginLeft = 16;
+    navigation.setOptions(
+      getOnboardingNavbarOptions(
+        route,
+        {
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Icon
+                name={IconName.ArrowLeft}
+                size={IconSize.Lg}
+                color={colors.text.default}
+                style={{ marginLeft }}
+              />
+            </TouchableOpacity>
+          ),
+        },
+        colors,
+        false,
+      ),
+    );
   };
 
   termsOfUse = async () => {
@@ -832,7 +729,6 @@ class ChoosePassword extends PureComponent {
                     title={strings('import_from_seed.unlock_with_face_id')}
                     value={this.state.biometryChoice}
                     onOptionUpdated={this.updateBiometryChoice}
-                    style={styles.securityOptionToggle}
                   />
                 </View>
 
@@ -873,7 +769,7 @@ class ChoosePassword extends PureComponent {
                 <Button
                   variant={ButtonVariants.Primary}
                   onPress={this.onPressCreate}
-                  label={strings('choose_password.create_button')}
+                  label={strings('choose_password.confirm_cta')}
                   disabled={!canSubmit}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}

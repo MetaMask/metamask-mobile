@@ -43,11 +43,10 @@ import { withMetricsAwareness } from '../../hooks/useMetrics';
 import { Authentication } from '../../../core';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { OnboardingSelectorIDs } from '../../../../e2e/selectors/Onboarding/Onboarding.selectors';
-
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccounts } from '../../../selectors/accountTrackerController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { trace, TraceName, TraceOperation } from '../../../util/trace';
+// import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Oauth2LoginComponent from '../../Oauth2Login/Oauth2LoginComponent';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
@@ -121,13 +120,18 @@ const createStyles = (colors) =>
       flex: 1,
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      gap: 16,
+      rowGap: 16,
     },
     buttonWrapper: {
       flexDirection: 'column',
       justifyContent: 'flex-end',
       gap: 16,
       width: '100%',
+    },
+    buttonLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      columnGap: 8,
     },
     loader: {
       marginTop: 180,
@@ -161,11 +165,6 @@ const createStyles = (colors) =>
       flex: 1,
       height: 1,
       backgroundColor: colors.border.muted,
-    },
-    dividerText: {
-      color: colors.text.muted,
-      fontSize: 16,
-      fontWeight: '500',
     },
     bottomSheetContainer: {
       padding: 16,
@@ -526,24 +525,22 @@ class Onboarding extends PureComponent {
         </Text>
 
         <View style={styles.createWrapper}>
-          <View style={styles.buttonWrapper}>
-            <Button
-              variant={ButtonVariants.Primary}
-              onPress={() => this.handleCtaActions('create')}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              label={strings('onboarding.start_exploring_now')}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              onPress={() => this.handleCtaActions('existing')}
-              testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
-              label={strings('onboarding.have_existing_wallet')}
-              width={ButtonWidthTypes.Full}
-              size={ButtonSize.Lg}
-            />
-          </View>
+          <Button
+            variant={ButtonVariants.Primary}
+            onPress={() => this.handleCtaActions('create')}
+            testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
+            label={strings('onboarding.start_exploring_now')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+          />
+          <Button
+            variant={ButtonVariants.Secondary}
+            onPress={() => this.handleCtaActions('existing')}
+            testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
+            label={strings('onboarding.have_existing_wallet')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
+          />
         </View>
 
         {this.state.bottomSheetVisible && (
@@ -567,17 +564,22 @@ class Onboarding extends PureComponent {
                   onPress={this.onPressContinueWithGoogle}
                   testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
                   label={
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
-                    >
-                      {this.state.createWallet
-                        ? strings('onboarding.continue_with_google')
-                        : strings('onboarding.sign_in_with_google')}
-                    </Text>
+                    <View style={styles.buttonLabel}>
+                      <Icon
+                        name={IconName.Google}
+                        size={IconSize.Lg}
+                        color={TextColor.Default}
+                      />
+                      <Text
+                        variant={TextVariant.BodyMDMedium}
+                        color={TextColor.Default}
+                      >
+                        {this.state.createWallet
+                          ? strings('onboarding.continue_with_google')
+                          : strings('onboarding.sign_in_with_google')}
+                      </Text>
+                    </View>
                   }
-                  startIconName={IconName.Google}
-                  startIconSize={IconSize.XXL}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
                   style={styles.socialBtn}
@@ -587,17 +589,22 @@ class Onboarding extends PureComponent {
                   onPress={this.onPressContinueWithApple}
                   testID={OnboardingSelectorIDs.IMPORT_SEED_BUTTON}
                   label={
-                    <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
-                    >
-                      {this.state.createWallet
-                        ? strings('onboarding.continue_with_apple')
-                        : strings('onboarding.sign_in_with_apple')}
-                    </Text>
+                    <View style={styles.buttonLabel}>
+                      <Icon
+                        name={IconName.Apple}
+                        size={IconSize.Lg}
+                        color={TextColor.Default}
+                      />
+                      <Text
+                        variant={TextVariant.BodyMDMedium}
+                        color={TextColor.Default}
+                      >
+                        {this.state.createWallet
+                          ? strings('onboarding.continue_with_apple')
+                          : strings('onboarding.sign_in_with_apple')}
+                      </Text>
+                    </View>
                   }
-                  startIconName={IconName.Apple}
-                  startIconSize={IconSize.Xl}
                   width={ButtonWidthTypes.Full}
                   size={ButtonSize.Lg}
                   style={styles.socialBtn}
@@ -605,7 +612,10 @@ class Onboarding extends PureComponent {
               </View>
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>
+                <Text
+                  variant={TextVariant.BodyLGMedium}
+                  color={TextColor.Muted}
+                >
                   {strings('onboarding.or')}
                 </Text>
                 <View style={styles.dividerLine} />

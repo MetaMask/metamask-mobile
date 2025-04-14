@@ -120,7 +120,7 @@
     "or": "OR",
     "import_existing_wallet": "Import existing wallet",
     "bottom_sheet_title": "Choose an option to continue",
-    "continue_with_srp": "Continue with manual setup",
+    "continue_with_srp": "Continue with Secret Recovery Phrase",
     "have_existing_wallet": "I have an existing wallet",
     "import_srp": "Import using Secret Recovery Phrase",
     "sign_in_with_google": "Sign in with Google",
@@ -150,7 +150,7 @@
     "hint_button": "Create hint",
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
-    "hint_saved_toast": "Secret Recovery Phrase hint saved"
+    "hint_saved_toast": "Password hint saved"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",
@@ -314,7 +314,8 @@
     "learn_more": "Learn more.",
     "secure": "Secure wallet",
     "confirm": "Confirm Secret Recovery Phrase",
-    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again."
+    "disable_biometric_error": "You have disabled biometrics for the app. Update Remember Me settings and try again.",
+    "confirm_cta": "Confirm"
   },
   "reset_password": {
     "title": "Change password",
@@ -353,7 +354,7 @@
     "password_length_error": "The password needs to be at least 8 characters long",
     "password_dont_match": "Passwords don't match",
     "seed_phrase_requirements": "Secret Recovery Phrases contain 12, 15, 18, 21, or 24 words",
-    "invalid_seed_phrase": "Invalid Secret Recovery Phrase",
+    "invalid_seed_phrase": "Secret Recovery Phrase not found.",
     "error": "Error",
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
@@ -373,7 +374,9 @@
     "srp": "Secret Recovery Phrase",
     "srp_placeholder": "Add a space between each word and make sure no one is watching 👀",
     "learn_more_link": "Learn more",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "pass_flow": "Continue with Flow",
+    "step": "Step {{currentStep}} of {{totalSteps}}"
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",
@@ -3328,7 +3331,8 @@
     "title": "Review our Terms of Use",
     "terms_of_use_check_description": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
     "accept_cta": "Accept",
-    "accept_helper_description": "Please scroll to read all sections"
+    "accept_helper_description": "Please scroll to read all sections",
+    "agree_cta": "Agree"
   },
   "update_needed": {
     "title": "Updates needed",

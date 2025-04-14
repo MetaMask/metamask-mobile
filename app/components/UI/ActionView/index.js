@@ -21,6 +21,9 @@ export const ConfirmButtonState = {
 
 const getStyles = (colors) =>
   StyleSheet.create({
+    root: {
+      flex: 1,
+    },
     actionView: {
       flexDirection: 'column',
       flex: 1,
@@ -33,7 +36,6 @@ const getStyles = (colors) =>
     },
     actionContainer: {
       width: '100%',
-      paddingVertical: 16,
       flexDirection: 'column',
       justifyContent: 'flex-end',
     },
@@ -91,6 +93,7 @@ export default function ActionView({
   return (
     <View style={[baseStyles.flexGrow, styles.actionView]}>
       <KeyboardAwareScrollView
+        contentContainerStyle={styles.root}
         style={[baseStyles.flexGrow, style, styles.actionView]}
         resetScrollToCoords={{ x: 0, y: 0 }}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
