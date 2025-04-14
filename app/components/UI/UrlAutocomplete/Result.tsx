@@ -57,7 +57,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
               badgeElement={(
                 <Badge
                   variant={BadgeVariant.Network}
-                  imageSource={NetworkBadgeSource(result.chainId, '')}
+                  imageSource={NetworkBadgeSource(result.chainId)}
                 />
               )}
             >

@@ -23,6 +23,7 @@ describe('useAddNetwork', () => {
             imageUrl: 'https://etherscan.io/images/svg/brands/eth.svg',
             imageSource: 'https://etherscan.io/images/svg/brands/eth.svg',
         },
+        failoverRpcUrls: [],
       });
     });
     expect(result.current.networkModal).toBeDefined();
