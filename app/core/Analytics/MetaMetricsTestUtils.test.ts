@@ -4,7 +4,7 @@ import { ITrackingEvent } from './MetaMetrics.types';
 
 jest.unmock('./MetaMetricsTestUtils');
 
-import { MetaMetricsTestUtils } from './MetaMetricsTestUtils';
+import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 
 jest.mock('react-native-launch-arguments', () => ({
   LaunchArguments: {

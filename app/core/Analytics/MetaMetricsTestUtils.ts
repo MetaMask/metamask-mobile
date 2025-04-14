@@ -2,7 +2,7 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
 import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 
-export class MetaMetricsTestUtils {
+export default class MetaMetricsTestUtils {
   public static instance: MetaMetricsTestUtils | null = null;
   private readonly sendMetaMetricsinE2E: boolean;
 
