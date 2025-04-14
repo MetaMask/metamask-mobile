@@ -11,11 +11,6 @@ jest.mock('../../../core/Engine', () => ({
     TokenSearchDiscoveryDataController: {
       fetchSwapsTokens: jest.fn(),
     },
-    RemoteFeatureFlagController: {
-      remoteFeatureFlags: {
-        tokenSearchDiscoveryEnabled: true,
-      },
-    },
   },
 }));
 
@@ -33,6 +28,11 @@ const mockInitialState = {
           },
         },
         tokenDisplayData: [],
+      },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          tokenSearchDiscoveryEnabled: true,
+        },
       },
     },
   },
