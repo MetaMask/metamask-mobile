@@ -53,6 +53,7 @@ jest.mock('../../../core/Engine', () => ({
 jest.mock('@metamask/bridge-controller', () => {
   const actual = jest.requireActual('@metamask/bridge-controller');
   return {
+    ...actual,
     getNativeAssetForChainId: jest.fn((chainId) => {
       if (chainId === 'solana:mainnet') {
         return actual.getNativeAssetForChainId('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp');
@@ -328,6 +329,9 @@ describe('WalletActions', () => {
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(true);
+    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1');
+    (isBridgeAllowed as jest.Mock).mockReturnValue(true);
+
     const { getByTestId } = renderWithProvider(<WalletActions />, {
       state: mockInitialState,
     });
