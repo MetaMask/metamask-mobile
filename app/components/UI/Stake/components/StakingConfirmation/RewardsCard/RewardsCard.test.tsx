@@ -48,15 +48,14 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const { getByLabelText } = renderWithProvider(
+    const { toJSON, getByLabelText } = renderWithProvider(
       <RewardsCard {...props} />,
     );
 
-    // Get tooltip element and press it
-    const tooltipElement = getByLabelText(`${strings('tooltip_modal.reward_rate.title')} tooltip`);
-    fireEvent.press(tooltipElement);
+    fireEvent.press(
+      getByLabelText(`${strings('tooltip_modal.reward_rate.title')} tooltip`),
+    );
 
-    // Verify navigation was called correctly
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
       params: {
@@ -65,6 +64,8 @@ describe('RewardsCard', () => {
       },
       screen: 'tooltipModal',
     });
+
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward frequency tooltip displayed when pressed', () => {

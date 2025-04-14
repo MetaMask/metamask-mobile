@@ -114,7 +114,7 @@ export const fillGapsInEarningsHistory = (
 export const formatRewardsWei = (
   rewardsValue: number | string | BN,
   asset: TokenI,
-  isRemoveSpecialCharacters = false,
+  isRemoveSpecialCharacters: boolean = false,
 ): string => {
   if (!isRemoveSpecialCharacters) {
     // return a string with possible special characters in display formatting
@@ -162,7 +162,7 @@ export const formatRewardsFiat = (
   asset: TokenI,
   currency: string,
   conversionRate: number,
-  exchangeRate = 0,
+  exchangeRate: number = 0,
 ): string => {
   if (asset.isETH) {
     const weiFiatNumber = weiToFiatNumber(

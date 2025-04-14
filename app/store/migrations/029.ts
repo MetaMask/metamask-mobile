@@ -465,10 +465,7 @@ export default async function migrate(stateAsync: unknown) {
   if (Array.isArray(transactionControllerState.transactions)) {
     transactionControllerState.transactions.forEach(
       (transaction: TransactionParams, index: number) => {
-        if (
-          transaction?.chainId &&
-          !isHexString(transaction.chainId as string)
-        ) {
+        if (transaction && !isHexString(transaction.chainId as string)) {
           if (
             Array.isArray(transactionControllerState.transactions) &&
             isObject(transactionControllerState.transactions[index])

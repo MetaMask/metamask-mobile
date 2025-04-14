@@ -1183,7 +1183,7 @@ describe('Transactions utils :: isApprovalTransaction', () => {
 describe('Transactions utils :: getTransactionReviewActionKey', () => {
   const transaction = { to: '0x1234567890123456789012345678901234567890' };
   const chainId = '1';
-  it('returns `Unknown Method` review action key when no specific transaction action key exists', async () => {
+  it('returns `Unknown Method` review action key when transaction action key exists', async () => {
     const expectedReviewActionKey = 'Unknown Method';
     const result = await getTransactionReviewActionKey(
       { transaction },
