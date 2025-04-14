@@ -1,12 +1,12 @@
 import {
-  PhishingController as PhishingControllerClass,
   PhishingDetectorResult,
   PhishingDetectorResultType,
-  RecommendedAction,
+  PhishingController as PhishingControllerClass,
 } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { store } from '../store';
-import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlagController';
+import { selectProductSafetyDappScanningEnabled } from '../selectors/featureFlagController/productSafetyDappScanning';
+
 /**
  * Checks if product safety dapp scanning is enabled
  * @returns {boolean} Whether product safety dapp scanning is enabled
@@ -18,6 +18,7 @@ export const isProductSafetyDappScanningEnabled = (): boolean =>
  * Gets detailed phishing test results for an origin
  * @param {string} origin - URL origin or hostname to check
  * @returns {PhishingDetectorResult} Phishing test result object or null if protection is disabled
+ * @deprecated Use getPhishingTestResultAsync instead. This function will be removed in a future release.
  */
 export const getPhishingTestResult = (
   origin: string,
@@ -37,21 +38,32 @@ export const getPhishingTestResult = (
 };
 
 /**
- * Checks if an origin is allowed i.e. not blocked or warned by the phishing controller
+ * Gets detailed phishing test results for an origin
  * @param {string} origin - URL origin or hostname to check
- * @returns {boolean} Whether the origin is allowed
+ * @returns {PhishingDetectorResult} Phishing test result object or null if protection is disabled
  */
-export const isAllowedOrigin = async (origin: string): Promise<boolean> => {
+export const getPhishingTestResultAsync = async (
+  origin: string,
+): Promise<PhishingDetectorResult> => {
   const { PhishingController } = Engine.context as {
     PhishingController: PhishingControllerClass;
   };
+
   if (isProductSafetyDappScanningEnabled()) {
-    const result = await PhishingController.scanUrl(origin);
-    return !(
-      result.recommendedAction === RecommendedAction.Warn ||
-      result.recommendedAction === RecommendedAction.Block
-    );
+    const scanResult = await PhishingController.scanUrl(origin);
+    return {
+      result:
+        scanResult.recommendedAction === RecommendedAction.None ||
+        scanResult.recommendedAction === RecommendedAction.Warn,
+      name: 'Product safety dapp scanning is enabled',
+      type: 'DAPP_SCANNING' as PhishingDetectorResultType,
+    };
   }
-  const phishingResult = PhishingController.test(origin);
-  return !phishingResult?.result;
+  PhishingController.maybeUpdateState();
+  const result = PhishingController.test(origin);
+  // PhishingDetectorResult.result docs says it is true if the domain is allowed.
+  // This is the opposite of what happens and instead it returns false if it is allowed.
+  // Hence, we negate the result to assume consistency with dev impression of the doc.
+  result.result = !result?.result;
+  return result;
 };

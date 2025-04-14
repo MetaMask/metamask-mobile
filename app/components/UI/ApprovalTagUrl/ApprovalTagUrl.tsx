@@ -58,6 +58,8 @@ const ApprovalTagUrl = ({
       title = prefixUrlWithProtocol(origin);
     } else if (url) {
       title = prefixUrlWithProtocol(getHost(url));
+    } else if (origin) {
+      title = prefixUrlWithProtocol(getHost(origin));
     } else {
       title = '';
     }

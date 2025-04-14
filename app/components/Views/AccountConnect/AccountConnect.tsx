@@ -28,6 +28,7 @@ import Engine from '../../../core/Engine';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectInternalAccounts,
+  selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountFormattedAddress,
 } from '../../../selectors/accountsController';
 import { isDefaultAccountName } from '../../../util/ENSUtils';
@@ -82,7 +83,8 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isAllowedOrigin } from '../../../util/phishingDetection';
+import { getPhishingTestResult } from '../../../util/phishingDetection';
+import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -105,10 +107,21 @@ const AccountConnect = (props: AccountConnectProps) => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const previouslySelectedEvmAccount = useSelector(
+    selectPreviouslySelectedEvmAccount,
+  );
 
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>(
-    selectedWalletAddress && isEvmSelected ? [selectedWalletAddress] : [],
+    selectedWalletAddress && isEvmSelected
+      ? [selectedWalletAddress]
+      : [
+          previouslySelectedEvmAccount
+            ? getFormattedAddressFromInternalAccount(
+                previouslySelectedEvmAccount,
+              )
+            : '',
+        ],
   );
   const [confirmedAddresses, setConfirmedAddresses] =
     useState<string[]>(selectedAddresses);

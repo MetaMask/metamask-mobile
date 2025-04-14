@@ -8,6 +8,11 @@ import { RootState } from '../../../reducers';
 import { act, fireEvent } from '@testing-library/react-native';
 import AccountConnectMultiSelector from './AccountConnectMultiSelector/AccountConnectMultiSelector';
 import Engine from '../../../core/Engine';
+import {
+  createMockAccountsControllerState as createMockAccountsControllerStateUtil,
+  MOCK_ADDRESS_1 as mockAddress1,
+  MOCK_ADDRESS_2 as mockAddress2,
+} from '../../../util/test/accountsControllerTestUtils';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -54,24 +59,36 @@ jest.mock('react-native-safe-area-context', () => {
   };
 });
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PhishingController: {
-      maybeUpdateState: jest.fn(),
-      test: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { result: true };
-        return { result: false };
-      }),
-      scanUrl: jest.fn((url: string) => {
-        if (url === 'phishing.com') return { recommendedAction: 'BLOCK' };
-        return { recommendedAction: 'NONE' };
-      }),
+jest.mock('../../../core/Engine', () => {
+  const {
+    createMockAccountsControllerState,
+    MOCK_ADDRESS_1,
+    MOCK_ADDRESS_2,
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  } = require('../../../util/test/accountsControllerTestUtils');
+  const mockAccountsState = createMockAccountsControllerState(
+    [MOCK_ADDRESS_1, MOCK_ADDRESS_2],
+    MOCK_ADDRESS_1,
+  );
+
+  return {
+    context: {
+      PhishingController: {
+        maybeUpdateState: jest.fn(),
+        test: jest.fn((url: string) => {
+          if (url === 'phishing.com') return { result: true };
+          return { result: false };
+        }),
+      },
+      PermissionController: {
+        rejectPermissionsRequest: jest.fn(),
+      },
+      AccountsController: {
+        state: mockAccountsState,
+      },
     },
-    PermissionController: {
-      rejectPermissionsRequest: jest.fn(),
-    },
-  },
-}));
+  };
+});
 
 const mockRemoveChannel = jest.fn();
 
@@ -88,11 +105,45 @@ jest.mock('../../../core/SDKConnect/utils/isUUID', () => ({
   isUUID: () => false,
 }));
 
+// Mock useAccounts to return test accounts
+jest.mock('../../hooks/useAccounts', () => ({
+  useAccounts: jest.fn(() => ({
+    evmAccounts: [
+      {
+        address: mockAddress1,
+        name: 'Account 1',
+      },
+      {
+        address: mockAddress2,
+        name: 'Account 2',
+      },
+    ],
+    ensByAccountAddress: {},
+  })),
+}));
+
+// Setup test state with proper account data
 const mockInitialState: DeepPartial<RootState> = {
   settings: {},
   engine: {
     backgroundState: {
       ...backgroundState,
+      AccountsController: createMockAccountsControllerStateUtil(
+        [mockAddress2, mockAddress2],
+        mockAddress1,
+      ),
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0x1': {
+            chainId: '0x1',
+            name: 'Ethereum',
+            rpcEndpoints: [{ url: 'https://mainnet.infura.io/v3/test' }],
+            blockExplorerUrls: ['https://etherscan.io'],
+            nativeCurrency: 'ETH',
+          },
+        },
+        selectedNetworkClientId: '1',
+      },
     },
   },
 };
@@ -121,6 +172,7 @@ describe('AccountConnect', () => {
       { state: mockInitialState },
     );
 
+    // Create a new snapshot since the component UI has changed
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -185,30 +237,31 @@ describe('AccountConnect', () => {
   });
 
   describe('AccountConnectMultiSelector handlers', () => {
-    it('should handle onPrimaryActionButtonPress correctly', async () => {
+    it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
       // Render the container component with necessary props
-      const { getByTestId, UNSAFE_getByType } = renderWithProvider(
-        <AccountConnect
-          route={{
-            params: {
-              hostInfo: {
-                metadata: {
-                  id: 'mockId',
-                  // Using a valid URL format to ensure PermissionsSummary renders first
-                  origin: 'https://example.com',
-                },
-                permissions: {
-                  eth_accounts: {
-                    parentCapability: 'eth_accounts',
+      const { getByTestId, UNSAFE_getByType, findByTestId } =
+        renderWithProvider(
+          <AccountConnect
+            route={{
+              params: {
+                hostInfo: {
+                  metadata: {
+                    id: 'mockId',
+                    // Using a valid URL format to ensure PermissionsSummary renders first
+                    origin: 'https://example.com',
+                  },
+                  permissions: {
+                    eth_accounts: {
+                      parentCapability: 'eth_accounts',
+                    },
                   },
                 },
+                permissionRequestId: 'test',
               },
-              permissionRequestId: 'test',
-            },
-          }}
-        />,
-        { state: mockInitialState },
-      );
+            }}
+          />,
+          { state: mockInitialState },
+        );
 
       // First find and click the edit button on PermissionsSummary to show MultiSelector
       const editButton = getByTestId('permission-summary-container');
@@ -222,7 +275,9 @@ describe('AccountConnect', () => {
         multiSelector.props.onPrimaryActionButtonPress();
       });
       // Verify that the screen changed back to PermissionsSummary
-      expect(getByTestId('permission-summary-container')).toBeDefined();
+      expect(
+        await findByTestId('permission-summary-container'),
+      ).toBeOnTheScreen();
     });
   });
 

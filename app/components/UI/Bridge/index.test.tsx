@@ -16,6 +16,7 @@ import { Hex } from '@metamask/utils';
 import {
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  RequestStatus,
 } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
@@ -121,6 +122,13 @@ describe('BridgeView', () => {
               },
             },
           },
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotesLastFetched: null,
+          quotes: [],
+          quotesRefreshCount: 0,
         },
         TokenBalancesController: {
           tokenBalances: {
@@ -395,6 +403,7 @@ describe('BridgeView', () => {
       destAmount: undefined,
       selectedDestChainId: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
+      slippage: '0.5',
     } as BridgeState,
   };
 
@@ -521,29 +530,21 @@ describe('BridgeView', () => {
           aggregators: [],
           balance: '0.31281',
           balanceFiat: '930.56676 cad',
-          chainId: '0x1',
+          chainId: '0x1' as Hex,
           decimals: 18,
           image: '',
-          isETH: true,
-          isNative: true,
-          isStaked: false,
-          logo: '../images/eth-logo-new.png',
           name: 'Ethereum',
           symbol: 'ETH',
-          ticker: 'ETH',
         },
         destToken: {
           address: token2Address,
           aggregators: [],
           balance: '7.75388',
           balanceFiat: '11.07915 cad',
-          chainId: '0x1',
+          chainId: '0x1' as Hex,
           decimals: 6,
           image:
             'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-          isETH: false,
-          isNative: false,
-          isStaked: false,
           symbol: 'USDC',
         },
       },
@@ -659,7 +660,6 @@ describe('BridgeView', () => {
                 symbol: 'TOKEN2',
                 decimals: 18,
                 image: 'https://token2.com/logo.png',
-                name: 'Token Two',
                 chainId: optimismChainId,
               },
               selectedDestChainId: optimismChainId,

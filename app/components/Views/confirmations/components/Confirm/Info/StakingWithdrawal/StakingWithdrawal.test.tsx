@@ -8,7 +8,7 @@ import { getNavbar } from '../../Navbar/Navbar';
 import StakingWithdrawal from './StakingWithdrawal';
 
 jest.mock('../../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
@@ -102,6 +102,7 @@ describe('StakingWithdrawal', () => {
       title: 'Unstake',
       onReject: mockOnReject,
       addBackButton: true,
+      theme: expect.any(Object),
     });
   });
 

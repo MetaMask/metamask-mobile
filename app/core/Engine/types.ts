@@ -257,6 +257,12 @@ import { Hex } from '@metamask/utils';
 
 import { CONTROLLER_MESSENGERS } from './messengers';
 import type { RootState } from '../../reducers';
+import {
+  AppMetadataController,
+  AppMetadataControllerActions,
+  AppMetadataControllerEvents,
+  AppMetadataControllerState,
+} from '@metamask/app-metadata-controller';
 
 /**
  * Controllers that area always instantiated
@@ -340,7 +346,8 @@ type GlobalActions =
   | MultichainNetworkControllerActions
   | BridgeControllerActions
   | BridgeStatusControllerActions
-  | EarnControllerActions;
+  | EarnControllerActions
+  | AppMetadataControllerActions;
 
 type GlobalEvents =
   | ComposableControllerEvents<EngineState>
@@ -389,7 +396,8 @@ type GlobalEvents =
   | MultichainNetworkControllerEvents
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
-  | EarnControllerEvents;
+  | EarnControllerEvents
+  | AppMetadataControllerEvents;
 
 /**
  * Type definition for the controller messenger used in the Engine.
@@ -410,6 +418,7 @@ export type Controllers = {
   AccountsController: AccountsController;
   AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
+  AppMetadataController: AppMetadataController;
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   CurrencyRateController: CurrencyRateController;
@@ -477,6 +486,7 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 export type EngineState = {
   AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
+  AppMetadataController: AppMetadataControllerState;
   NftController: NftControllerState;
   TokenListController: TokenListState;
   CurrencyRateController: CurrencyRateState;
@@ -560,6 +570,7 @@ export type ControllersToInitialize =
   | 'SnapsRegistry'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
+  | 'AppMetadataController'
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   | 'MultichainAssetsController'
@@ -570,7 +581,8 @@ export type ControllersToInitialize =
   | 'CurrencyRateController'
   | 'AccountsController'
   | 'MultichainNetworkController'
-  | 'TransactionController';
+  | 'TransactionController'
+  | 'GasFeeController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -667,7 +679,6 @@ export type ControllerInitFunction<
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;

@@ -24,8 +24,8 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import {
+  getDefaultNetworkControllerState,
   NetworkController,
-  NetworkControllerMessenger,
   NetworkState,
   NetworkStatus,
 } from '@metamask/network-controller';
@@ -68,11 +68,7 @@ import {
   LedgerTransportMiddleware,
 } from '@metamask/eth-ledger-bridge-keyring';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS, pbkdf2 } from '../Encryptor';
-import {
-  isMainnetByChainId,
-  isTestNet,
-  getDecimalChainId,
-} from '../../util/networks';
+import { getDecimalChainId, isTestNet } from '../../util/networks';
 import {
   fetchEstimatedMultiLayerL1Fee,
   deprecatedGetNetworkId,
@@ -84,8 +80,8 @@ import {
   balanceToFiatNumber,
   weiToFiatNumber,
   toHexadecimal,
-  addHexPrefix,
   hexToBN,
+  renderFromWei,
 } from '../../util/number';
 import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
@@ -131,12 +127,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import {
-  ApprovalType,
-  handleFetch,
-  toChecksumHexAddress,
-  type ChainId,
-} from '@metamask/controller-utils';
+import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -203,9 +194,20 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
 import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection';
+import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
+import {
+  onRpcEndpointDegraded,
+  onRpcEndpointUnavailable,
+} from './controllers/network-controller/messenger-action-handlers';
+import { INFURA_PROJECT_ID } from '../../constants/network';
+import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
+import { appMetadataControllerInit } from './controllers/app-metadata-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { toFormattedAddress } from '../../util/address';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -251,10 +253,10 @@ export class Engine {
   ///: END:ONLY_INCLUDE_IF
 
   accountsController: AccountsController;
-  transactionController: TransactionController;
-  smartTransactionsController: SmartTransactionsController;
-
+  gasFeeController: GasFeeController;
   keyringController: KeyringController;
+  smartTransactionsController: SmartTransactionsController;
+  transactionController: TransactionController;
 
   /**
    * Creates a CoreController instance
@@ -308,21 +310,100 @@ export class Engine {
       },
     });
 
+    const networkControllerMessenger = this.controllerMessenger.getRestricted({
+      name: 'NetworkController',
+      allowedEvents: [],
+      allowedActions: [],
+    });
+
+    const additionalDefaultNetworks = [ChainId['megaeth-testnet']];
+
+    let initialNetworkControllerState = initialState.NetworkController;
+    if (!initialNetworkControllerState) {
+      initialNetworkControllerState = getDefaultNetworkControllerState(
+        additionalDefaultNetworks,
+      );
+
+      // Add failovers for default Infura RPC endpoints
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId.mainnet
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('ethereum-mainnet');
+      initialNetworkControllerState.networkConfigurationsByChainId[
+        ChainId['linea-mainnet']
+      ].rpcEndpoints[0].failoverUrls =
+        getFailoverUrlsForInfuraNetwork('linea-mainnet');
+    }
+
+    const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
     const networkControllerOpts = {
-      infuraProjectId: process.env.MM_INFURA_PROJECT_ID || NON_EMPTY,
-      state: initialState.NetworkController,
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'NetworkController',
-        allowedEvents: [],
-        allowedActions: [],
-      }) as unknown as NetworkControllerMessenger,
-      getRpcServiceOptions: () => ({
-        fetch,
-        btoa,
-      }),
+      infuraProjectId,
+      state: initialNetworkControllerState,
+      messenger: networkControllerMessenger,
+      getRpcServiceOptions: (rpcEndpointUrl: string) => {
+        const commonOptions = {
+          fetch: globalThis.fetch.bind(globalThis),
+          btoa: globalThis.btoa.bind(globalThis),
+        };
+
+        if (getIsQuicknodeEndpointUrl(rpcEndpointUrl)) {
+          return {
+            ...commonOptions,
+            policyOptions: {
+              // There is currently a bug in the block tracker (and probably
+              // also the middleware layers) that result in a flurry of retries
+              // when an RPC endpoint goes down, causing us to pretty
+              // immediately enter a 30-minute cooldown period during which all
+              // requests will be dropped. This isn't a problem for Infura, as
+              // we need a long cooldown anyway to prevent spamming it while it
+              // is down. But Quicknode is a different story. When we fail over
+              // to it, we expect it to be down at first while it is being
+              // automatically activated. So dropping requests for a lengthy
+              // period would defeat the point. Shortening the cooldown period
+              // mitigates this problem.
+              circuitBreakDuration: 5000,
+            },
+          };
+        }
+
+        return commonOptions;
+      },
+      additionalDefaultNetworks,
     };
     const networkController = new NetworkController(networkControllerOpts);
-
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointUnavailable',
+      async ({ chainId, endpointUrl, error }) => {
+        onRpcEndpointUnavailable({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          error,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+        });
+      },
+    );
+    networkControllerMessenger.subscribe(
+      'NetworkController:rpcEndpointDegraded',
+      async ({ chainId, endpointUrl }) => {
+        onRpcEndpointDegraded({
+          chainId,
+          endpointUrl,
+          infuraProjectId,
+          trackEvent: ({ event, properties }) => {
+            const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
+              .addProperties(properties)
+              .build();
+            MetaMetrics.getInstance().trackEvent(metricsEvent);
+          },
+        });
+      },
+    );
     networkController.initializeProvider();
 
     const assetsContractController = new AssetsContractController({
@@ -367,36 +448,6 @@ export class Engine {
         allowedEvents: [`${networkController.name}:stateChange`],
       }),
     });
-    const gasFeeController = new GasFeeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'GasFeeController',
-        allowedActions: [
-          `${networkController.name}:getNetworkClientById`,
-          `${networkController.name}:getEIP1559Compatibility`,
-          `${networkController.name}:getState`,
-        ],
-        allowedEvents: [AppConstants.NETWORK_DID_CHANGE_EVENT],
-      }),
-      getProvider: () =>
-        // @ts-expect-error at this point in time the provider will be defined by the `networkController.initializeProvider`
-        networkController.getProviderAndBlockTracker().provider,
-      getCurrentNetworkEIP1559Compatibility: async () =>
-        (await networkController.getEIP1559Compatibility()) ?? false,
-      getCurrentNetworkLegacyGasAPICompatibility: () => {
-        const chainId = getGlobalChainId(networkController);
-        return (
-          isMainnetByChainId(chainId) ||
-          chainId === addHexPrefix(swapsUtils.BSC_CHAIN_ID) ||
-          chainId === addHexPrefix(swapsUtils.POLYGON_CHAIN_ID)
-        );
-      },
-      clientId: AppConstants.SWAPS.CLIENT_ID,
-      legacyAPIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/gasPrices',
-      EIP1559APIEndpoint:
-        'https://gas.api.cx.metamask.io/networks/<chain_id>/suggestedGasFees',
-    });
-
     const remoteFeatureFlagController = createRemoteFeatureFlagController({
       state: initialState.RemoteFeatureFlagController,
       messenger: this.controllerMessenger.getRestricted({
@@ -881,8 +932,45 @@ export class Engine {
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
       env: {
-        // IMPORTANT! Do not enable account syncing while peer depts are not aligned
-        isAccountSyncingEnabled: false,
+        isAccountSyncingEnabled: true,
+      },
+      config: {
+        accountSyncing: {
+          onAccountAdded: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ADDED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountNameUpdated: (profileId) => {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                })
+                .build(),
+            );
+          },
+          onAccountSyncErroneousSituation(profileId, situationMessage) {
+            MetaMetrics.getInstance().trackEvent(
+              MetricsEventBuilder.createEventBuilder(
+                MetaMetricsEvents.ACCOUNTS_SYNC_ERRONEOUS_SITUATION,
+              )
+                .addProperties({
+                  profile_id: profileId,
+                  situation_message: situationMessage,
+                })
+                .build(),
+            );
+          },
+        },
       },
     });
     ///: END:ONLY_INCLUDE_IF
@@ -947,7 +1035,8 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
+          'SnapController:handleRequest',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
@@ -992,7 +1081,6 @@ export class Engine {
 
     const existingControllersByName = {
       ApprovalController: approvalController,
-      GasFeeController: gasFeeController,
       KeyringController: this.keyringController,
       NetworkController: networkController,
       PreferencesController: preferencesController,
@@ -1007,6 +1095,8 @@ export class Engine {
     const { controllersByName } = initModularizedControllers({
       controllerInitFunctions: {
         AccountsController: accountsControllerInit,
+        AppMetadataController: appMetadataControllerInit,
+        GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
@@ -1035,9 +1125,11 @@ export class Engine {
 
     const accountsController = controllersByName.AccountsController;
     const transactionController = controllersByName.TransactionController;
+    const gasFeeController = controllersByName.GasFeeController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
+    this.gasFeeController = gasFeeController;
     this.transactionController = transactionController;
 
     const multichainNetworkController =
@@ -1147,6 +1239,7 @@ export class Engine {
         allowedEvents: [
           'AccountsController:selectedAccountChange',
           'NetworkController:stateChange',
+          'TransactionController:transactionConfirmed',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
@@ -1167,6 +1260,7 @@ export class Engine {
         }),
         state: initialState.AddressBookController,
       }),
+      AppMetadataController: controllersByName.AppMetadataController,
       AssetsContractController: assetsContractController,
       NftController: nftController,
       TokensController: tokensController,
@@ -1314,10 +1408,11 @@ export class Engine {
         }),
         pollCountLimit: AppConstants.SWAPS.POLL_COUNT_LIMIT,
         // TODO: Remove once GasFeeController exports this action type
-        fetchGasFeeEstimates: () => gasFeeController.fetchGasFeeEstimates(),
+        fetchGasFeeEstimates: () =>
+          this.gasFeeController.fetchGasFeeEstimates(),
         fetchEstimatedMultiLayerL1Fee,
       }),
-      GasFeeController: gasFeeController,
+      GasFeeController: this.gasFeeController,
       ApprovalController: approvalController,
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
@@ -1502,23 +1597,12 @@ export class Engine {
   }
 
   startPolling() {
-    const { NetworkController, TransactionController, PreferencesController } =
-      this.context;
-
-    const chainIds = Object.keys(
-      NetworkController.state.networkConfigurationsByChainId,
-    );
-    const filteredChainIds = chainIds.filter(
-      (id) =>
-        PreferencesController.state.showIncomingTransactions[
-          id as keyof typeof PreferencesController.state.showIncomingTransactions
-        ],
-    ) as Hex[];
+    const { TransactionController } = this.context;
 
     TransactionController.stopIncomingTransactionPolling();
 
     // leaving the reference of TransactionController here, rather than importing it from utils to avoid circular dependency
-    TransactionController.startIncomingTransactionPolling(filteredChainIds);
+    TransactionController.startIncomingTransactionPolling();
 
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     this.context.RatesController.start();
@@ -1538,11 +1622,15 @@ export class Engine {
     AccountTrackerController.refresh();
   }
 
-  getTotalFiatAccountBalance = (): {
+  getTotalEvmFiatAccountBalance = (
+    account?: InternalAccount,
+  ): {
     ethFiat: number;
     tokenFiat: number;
     tokenFiat1dAgo: number;
     ethFiat1dAgo: number;
+    totalNativeTokenBalance: string;
+    ticker: string;
   } => {
     const {
       CurrencyRateController,
@@ -1554,13 +1642,16 @@ export class Engine {
       NetworkController,
     } = this.context;
 
-    const selectedInternalAccount = AccountsController.getAccount(
-      AccountsController.state.internalAccounts.selectedAccount,
-    );
+    const selectedInternalAccount =
+      account ??
+      AccountsController.getAccount(
+        AccountsController.state.internalAccounts.selectedAccount,
+      );
 
     if (selectedInternalAccount) {
-      const selectSelectedInternalAccountFormattedAddress =
-        toChecksumHexAddress(selectedInternalAccount.address);
+      const selectedInternalAccountFormattedAddress = toFormattedAddress(
+        selectedInternalAccount.address,
+      );
       const { currentCurrency } = CurrencyRateController.state;
       const { chainId, ticker } = NetworkController.getNetworkClientById(
         getGlobalNetworkClientId(NetworkController),
@@ -1568,7 +1659,14 @@ export class Engine {
       const { settings: { showFiatOnTestnets } = {} } = store.getState();
 
       if (isTestNet(chainId) && !showFiatOnTestnets) {
-        return { ethFiat: 0, tokenFiat: 0, ethFiat1dAgo: 0, tokenFiat1dAgo: 0 };
+        return {
+          ethFiat: 0,
+          tokenFiat: 0,
+          ethFiat1dAgo: 0,
+          tokenFiat1dAgo: 0,
+          totalNativeTokenBalance: '0',
+          ticker: '',
+        };
       }
 
       const conversionRate =
@@ -1576,7 +1674,11 @@ export class Engine {
         0;
 
       const { accountsByChainId } = AccountTrackerController.state;
-      const { tokens } = TokensController.state;
+      const chainIdHex = toHexadecimal(chainId);
+      const tokens =
+        TokensController.state.allTokens?.[chainIdHex]?.[
+          selectedInternalAccount.address
+        ] || [];
       const { marketData } = TokenRatesController.state;
       const tokenExchangeRates = marketData?.[toHexadecimal(chainId)];
 
@@ -1584,22 +1686,25 @@ export class Engine {
       let ethFiat1dAgo = 0;
       let tokenFiat = 0;
       let tokenFiat1dAgo = 0;
+      let totalNativeTokenBalance = '0';
       const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
       if (
         accountsByChainId?.[toHexadecimal(chainId)]?.[
-          selectSelectedInternalAccountFormattedAddress
+          selectedInternalAccountFormattedAddress
         ]
       ) {
-        // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
-        const balanceBN = hexToBN(
+        const balanceHex =
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountFormattedAddress
-          ].balance,
-        );
+            selectedInternalAccountFormattedAddress
+          ].balance;
+
+        const balanceBN = hexToBN(balanceHex);
+        totalNativeTokenBalance = renderFromWei(balanceHex);
+
         // TODO - Non EVM accounts like BTC do not use hex formatted balances. We will need to modify this to use CAIP-2 identifiers in the future.
         const stakedBalanceBN = hexToBN(
           accountsByChainId[toHexadecimal(chainId)][
-            selectSelectedInternalAccountFormattedAddress
+            selectedInternalAccountFormattedAddress
           ].stakedBalance || '0x00',
         );
         const totalAccountBalance = balanceBN
@@ -1669,6 +1774,8 @@ export class Engine {
         ethFiat1dAgo: ethFiat1dAgo ?? 0,
         tokenFiat: tokenFiat ?? 0,
         tokenFiat1dAgo: tokenFiat1dAgo ?? 0,
+        totalNativeTokenBalance: totalNativeTokenBalance ?? '0',
+        ticker,
       };
     }
     // if selectedInternalAccount is undefined, return default 0 value.
@@ -1677,6 +1784,8 @@ export class Engine {
       tokenFiat: 0,
       ethFiat1dAgo: 0,
       tokenFiat1dAgo: 0,
+      totalNativeTokenBalance: '0',
+      ticker: '',
     };
   };
 
@@ -1760,7 +1869,7 @@ export class Engine {
         }
       }
 
-      const fiatBalance = this.getTotalFiatAccountBalance() || 0;
+      const fiatBalance = this.getTotalEvmFiatAccountBalance() || 0;
       const totalFiatBalance = fiatBalance.ethFiat + fiatBalance.ethFiat;
 
       return totalFiatBalance > 0 || tokenFound || nfts.length > 0;
@@ -1940,6 +2049,7 @@ export default {
     const {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -1988,6 +2098,7 @@ export default {
     return {
       AccountTrackerController,
       AddressBookController,
+      AppMetadataController,
       SnapInterfaceController,
       NftController,
       TokenListController,
@@ -2039,9 +2150,9 @@ export default {
     return instance.datamodel;
   },
 
-  getTotalFiatAccountBalance() {
+  getTotalEvmFiatAccountBalance(account?: InternalAccount) {
     assertEngineExists(instance);
-    return instance.getTotalFiatAccountBalance();
+    return instance.getTotalEvmFiatAccountBalance(account);
   },
 
   hasFunds() {

@@ -109,7 +109,10 @@ import Options from './components/Options';
 import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
-import { getPhishingTestResult } from '../../../util/phishingDetection';
+import {
+  getPhishingTestResultAsync,
+  isProductSafetyDappScanningEnabled,
+} from '../../../util/phishingDetection';
 
 /**
  * Tab component for the in-app browser
@@ -138,7 +141,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const [backEnabled, setBackEnabled] = useState(false);
   const [forwardEnabled, setForwardEnabled] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [allowedInitialUrl, setAllowedInitialUrl] = useState('');
   const [firstUrlLoaded, setFirstUrlLoaded] = useState(false);
   const [error, setError] = useState<boolean | WebViewError>(false);
   const [showOptions, setShowOptions] = useState(false);
@@ -165,6 +167,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   );
   //const [resolvedUrl, setResolvedUrl] = useState('');
   const resolvedUrlRef = useRef('');
+  // Tracks currently loading URL to prevent phishing alerts when user navigates away from malicious sites before detection completes
+  const loadingUrlRef = useRef('');
   const submittedUrlRef = useRef('');
   const titleRef = useRef<string>('');
   const iconRef = useRef<ImageSourcePropType | undefined>();
@@ -294,18 +298,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Check if an origin is allowed
    */
   const isAllowedOrigin = useCallback(
-    (urlOrigin: string) => {
+    async (urlOrigin: string): Promise<boolean> => {
       if (whitelist?.includes(urlOrigin)) {
         return true;
       }
-      const phishingResult = getPhishingTestResult(urlOrigin);
-      // Is safe if no phishing result or if phishing result is false
-      const isSafe = !phishingResult?.result;
-      if (phishingResult && !isSafe && phishingResult.name) {
-        blockListType.current = phishingResult.name;
-      }
 
-      return isSafe;
+      const testResult = await getPhishingTestResultAsync(urlOrigin);
+      if (!testResult?.result && testResult.name) {
+        blockListType.current = testResult.name;
+      }
+      return testResult?.result;
     },
     [whitelist],
   );
@@ -314,6 +316,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    * Show a phishing modal when a url is not allowed
    */
   const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
+    const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+    const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
+    // If the resolved URL and the loading URL are different from the phishing URL
+    // and dapp scanning is enabled, don't show the phishing modal
+    if (
+      resolvedUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin !== urlOrigin &&
+      loadingUrlOrigin !== 'null' &&
+      isProductSafetyDappScanningEnabled()
+    ) {
+      return;
+    }
+
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   }, []);
@@ -440,19 +455,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   const handleFirstUrl = useCallback(async () => {
     setIsResolvedIpfsUrl(false);
-    const prefixedUrl = prefixUrlWithProtocol(initialUrl);
-    const { origin: urlOrigin } = new URLParse(prefixedUrl);
-
-    if (isAllowedOrigin(urlOrigin)) {
-      setAllowedInitialUrl(prefixedUrl);
-      setFirstUrlLoaded(true);
-      setProgress(0);
-      return;
-    }
-
-    handleNotAllowedUrl(prefixedUrl);
+    setFirstUrlLoaded(true);
+    setProgress(0);
     return;
-  }, [initialUrl, handleNotAllowedUrl, isAllowedOrigin]);
+  }, []);
 
   /**
    * Set initial url, dapp scripts and engine. Similar to componentDidMount
@@ -582,8 +588,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           ),
         });
 
-      // Used to render tab title in tab selection
-      updateTabInfo(tabId, { url: `Can't Open Page` });
       Logger.log(webViewError);
     },
     [
@@ -594,8 +598,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       setProgress,
       isUrlBarFocused,
       isTabActive,
-      tabId,
-      updateTabInfo,
       navigation,
     ],
   );
@@ -684,12 +686,9 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(
-        tabId,
-        {
-          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-        },
-      );
+      updateTabInfo(tabId, {
+        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+      });
 
       addToBrowserHistory({
         name: siteInfo.title,
@@ -719,18 +718,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   }: {
     url: string;
   }) => {
-    const { origin: urlOrigin } = new URLParse(urlToLoad);
-
     webStates.current[urlToLoad] = {
       ...webStates.current[urlToLoad],
       requested: true,
     };
-
-    // Cancel loading the page if we detect its a phishing page
-    if (!isAllowedOrigin(urlOrigin)) {
-      handleNotAllowedUrl(urlOrigin);
-      return false;
-    }
 
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
@@ -802,6 +793,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
       // Handle navigation event
       const { url, title, canGoBack, canGoForward } = nativeEvent;
+      loadingUrlRef.current = '';
       // Do not update URL unless website has successfully completed loading.
       webStates.current[url] = { ...webStates.current[url], ended: true };
       const { started, ended } = webStates.current[url];
@@ -921,6 +913,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const onLoadStart = useCallback(
     async ({ nativeEvent }: WebViewNavigationEvent) => {
+      loadingUrlRef.current = nativeEvent.url;
+
       // Use URL to produce real url. This should be the actual website that the user is viewing.
       const { origin: urlOrigin } = new URLParse(nativeEvent.url);
 
@@ -930,7 +924,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       };
 
       // Cancel loading the page if we detect its a phishing page
-      if (!isAllowedOrigin(urlOrigin)) {
+      const isAllowed = await isAllowedOrigin(urlOrigin);
+      if (!isAllowed) {
         handleNotAllowedUrl(urlOrigin); // should this be activeUrl.current instead of url?
         return false;
       }
@@ -1346,7 +1341,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
                       />
                     )}
                     source={{
-                      uri: allowedInitialUrl,
+                      uri: prefixUrlWithProtocol(initialUrl),
                       ...(isExternalLink ? { headers: { Cookie: '' } } : null),
                     }}
                     injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}

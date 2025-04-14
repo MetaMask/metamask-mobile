@@ -1,5 +1,5 @@
 import mockedEngine from '../../core/__mocks__/MockedEngine';
-import { selectProductSafetyDappScanningEnabled, selectRemoteFeatureFlagControllerState } from '.';
+import { selectRemoteFeatureFlagControllerState } from '.';
 import { mockedEmptyFlagsState, mockedState, mockedUndefinedFlagsState } from './mocks';
 
 jest.mock('../../core/Engine', () => ({
@@ -24,13 +24,5 @@ describe('featureFlagController selector', () => {
   it('returns feature flag undefined state', () => {
     const result = selectRemoteFeatureFlagControllerState(mockedUndefinedFlagsState);
     expect(result).toBeUndefined();
-  });
-});
-
-
-describe('selectProductSafetyDappScanningEnabled', () => {
-  it('returns true if product safety dapp scanning is enabled', () => {
-    const result = selectProductSafetyDappScanningEnabled(mockedState);
-    expect(result).toBe(true);
   });
 });
