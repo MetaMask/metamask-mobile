@@ -76,8 +76,12 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
 
   const validateWords = useCallback(() => {
     const validWords = route.params?.words ?? [];
-
     return compareMnemonics(validWords, gridWords);
+  }, [route.params?.words, gridWords]);
+
+  const isAllWordsPlaced = useCallback(() => {
+    const validWords = route.params?.words ?? [];
+    return gridWords.filter((word) => word !== '').length === validWords.length;
   }, [route.params?.words, gridWords]);
 
   const goNext = () => {
@@ -306,7 +310,7 @@ const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
           confirmTestID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
           confirmText={strings('manual_backup_step_2.continue')}
           onConfirmPress={() => setShowStatusBottomSheet(true)}
-          confirmDisabled={!validateWords()}
+          confirmDisabled={!isAllWordsPlaced()}
           showCancelButton={false}
           confirmButtonMode={'confirm'}
         >
