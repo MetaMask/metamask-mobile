@@ -262,6 +262,13 @@ describe('BridgeDestTokenSelector', () => {
 
     const seeAllButton = queryByText('See all');
     expect(seeAllButton).toBeNull();
+
+    // Restore the original mock
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: 'Bridge',
+      },
+    });
   });
 
   it('shows destination network bar when mode is Bridge', async () => {
