@@ -12,7 +12,7 @@ import Engine from '../../../core/Engine';
 
 // Internal dependencies
 import { AddNewAccountProps } from './AddNewAccount.types';
-import { AddNewHdAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
 import { addNewHdAccount } from '../../../actions/multiSrp';
 import Text, {
   TextColor,
@@ -157,7 +157,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <SafeAreaView testID={AddNewHdAccountIds.CONTAINER}>
+      <SafeAreaView testID={AddNewAccountIds.CONTAINER}>
         <Fragment>
           <SheetHeader
             title={
@@ -180,7 +180,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
               <Fragment>
                 <View style={styles.accountInputContainer}>
                   <Input
-                    testID={AddNewHdAccountIds.NAME_INPUT}
+                    testID={AddNewAccountIds.NAME_INPUT}
                     textVariant={TextVariant.BodyMDMedium}
                     style={styles.accountInput}
                     value={accountName}
@@ -199,7 +199,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   <TouchableOpacity
                     style={styles.srpSelector}
                     onPress={() => setShowSRPList(true)}
-                    testID={AddNewHdAccountIds.SRP_SELECTOR}
+                    testID={AddNewAccountIds.SRP_SELECTOR}
                   >
                     <View style={styles.srp}>
                       <View>
@@ -226,7 +226,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                 </View>
                 <View style={styles.footerContainer}>
                   <Button
-                    testID={AddNewHdAccountIds.CANCEL}
+                    testID={AddNewAccountIds.CANCEL}
                     loading={isLoading}
                     style={styles.footerContainer.button}
                     variant={ButtonVariants.Secondary}
@@ -235,7 +235,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     label={strings('accounts.cancel')}
                   />
                   <Button
-                    testID={AddNewHdAccountIds.CONFIRM}
+                    testID={AddNewAccountIds.CONFIRM}
                     loading={isLoading}
                     disabled={isLoading}
                     style={styles.footerContainer.button}
