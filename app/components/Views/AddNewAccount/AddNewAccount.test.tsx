@@ -11,9 +11,36 @@ import {
 } from '../../../util/test/accountsControllerTestUtils';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Engine from '../../../core/Engine';
+import { AddNewAccountProps } from './AddNewAccount.types';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
+import { RootState } from '../../../reducers';
+import { KeyringTypes } from '@metamask/keyring-controller';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
-const mockOnBack = jest.fn();
+const mockNavigate = jest.fn();
+
+jest.mock('react-native-safe-area-context', () => {
+  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
+  const frame = { width: 0, height: 0, x: 0, y: 0 };
+  return {
+    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
+    SafeAreaConsumer: jest
+      .fn()
+      .mockImplementation(({ children }) => children(inset)),
+    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
+    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
+  };
+});
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+  }),
+}));
+
 jest.mock('../../../actions/multiSrp', () => ({
   addNewHdAccount: (keyringId?: string, name?: string) =>
     mockAddNewHdAccount(keyringId, name),
@@ -54,7 +81,20 @@ const initialState = {
       },
     },
   },
-};
+} as unknown as RootState;
+
+const mockGetNextAvailableAccountName = jest
+  .fn()
+  .mockImplementation((keyringType: KeyringTypes) => {
+    switch (keyringType) {
+      case KeyringTypes.snap:
+        return 'Snap Account 1';
+      case KeyringTypes.hd:
+        return mockNextAccountName;
+      default:
+        return mockNextAccountName;
+    }
+  });
 
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
@@ -63,8 +103,8 @@ jest.mock('../../../core/Engine', () => {
     context: {
       AccountsController: {
         state: mockAccountsControllerState,
-        getNextAvailableAccountName: () =>
-          jest.fn().mockReturnValue(mockNextAccountName),
+        getNextAvailableAccountName: (keyringType: KeyringTypes) =>
+          mockGetNextAvailableAccountName(keyringType),
       },
     },
   };
@@ -72,28 +112,30 @@ jest.mock('../../../core/Engine', () => {
 
 jest.mocked(Engine);
 
+const render = (
+  state: RootState,
+  route: AddNewAccountProps['route'] = {},
+): ReturnType<typeof renderWithProvider> =>
+  renderWithProvider(
+    <SafeAreaProvider>
+      <AddNewAccount route={route} />
+    </SafeAreaProvider>,
+    { state },
+  );
+
 describe('AddNewAccount', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('shows next available account name as placeholder', () => {
-    const { getByPlaceholderText } = renderWithProvider(
-      <AddNewAccount route={{}} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByPlaceholderText } = render(initialState, {});
+
     expect(getByPlaceholderText(mockNextAccountName)).toBeDefined();
   });
 
   it('handles account name input', () => {
-    const { getByPlaceholderText } = renderWithProvider(
-      <AddNewAccount route={{}} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByPlaceholderText } = render(initialState, {});
 
     const input = getByPlaceholderText(mockNextAccountName);
     fireEvent.changeText(input, 'My New Account');
@@ -101,9 +143,7 @@ describe('AddNewAccount', () => {
   });
 
   it('shows SRP list when selector is clicked', () => {
-    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
-      state: initialState,
-    });
+    const { getByText } = render(initialState, {});
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -116,12 +156,7 @@ describe('AddNewAccount', () => {
   });
 
   it('handles SRP selection', async () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <AddNewAccount route={{}} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText, queryByText } = render(initialState, {});
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -141,9 +176,7 @@ describe('AddNewAccount', () => {
   });
 
   it('handles account creation', async () => {
-    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
-      state: initialState,
-    });
+    const { getByText } = render(initialState, {});
 
     const addButton = getByText(strings('accounts.add'));
     fireEvent.press(addButton);
@@ -155,12 +188,7 @@ describe('AddNewAccount', () => {
   });
 
   it('handles account creation with custom name', async () => {
-    const { getByText, getByPlaceholderText } = renderWithProvider(
-      <AddNewAccount route={{}} />,
-      {
-        state: initialState,
-      },
-    );
+    const { getByText, getByPlaceholderText } = render(initialState, {});
 
     const input = getByPlaceholderText(mockNextAccountName);
     fireEvent.changeText(input, 'My Custom Account');
@@ -175,20 +203,16 @@ describe('AddNewAccount', () => {
   });
 
   it('handles cancellation', () => {
-    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
-      state: initialState,
-    });
+    const { getByText } = render(initialState, {});
 
     const cancelButton = getByText(strings('accounts.cancel'));
     fireEvent.press(cancelButton);
 
-    expect(mockOnBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('handles back navigation from SRP list', () => {
-    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
-      state: initialState,
-    });
+    const { getByText } = render(initialState, {});
 
     const srpSelector = getByText(
       strings('accounts.select_secret_recovery_phrase'),
@@ -207,13 +231,55 @@ describe('AddNewAccount', () => {
     const mockError = new Error('Failed to create account');
     mockAddNewHdAccount.mockRejectedValueOnce(mockError);
 
-    const { getByText } = renderWithProvider(<AddNewAccount route={{}} />, {
-      state: initialState,
-    });
+    const { getByText } = render(initialState, {});
 
     const addButton = getByText(strings('accounts.add'));
     await fireEvent.press(addButton);
 
-    expect(mockOnBack).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  describe('multichain', () => {
+    it.each([
+      {
+        scope: MultichainNetwork.BitcoinTestnet,
+        clientType: WalletClientType.Bitcoin,
+        expectedName: 'Bitcoin Testnet Account 1',
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+        expectedName: 'Bitcoin Account 1',
+      },
+      {
+        scope: MultichainNetwork.SolanaDevnet,
+        clientType: WalletClientType.Solana,
+        expectedName: 'Solana Devnet Account 1',
+      },
+      {
+        scope: MultichainNetwork.SolanaTestnet,
+        clientType: WalletClientType.Solana,
+        expectedName: 'Solana Testnet Account 1',
+      },
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+        expectedName: 'Solana Account 1',
+      },
+    ])(
+      'suggested name is $expectedName for scope: $scope',
+      async ({ scope, clientType, expectedName }) => {
+        const { getByPlaceholderText } = render(initialState, {
+          params: {
+            scope,
+            clientType,
+          },
+        });
+
+        const namePlaceholder = getByPlaceholderText(expectedName);
+
+        expect(namePlaceholder).toBeDefined();
+      },
+    );
   });
 });
