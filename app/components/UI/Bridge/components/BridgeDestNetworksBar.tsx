@@ -11,12 +11,15 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectEnabledDestChains, selectSelectedDestChainId, setSelectedDestChainId } from '../../../../core/redux/slices/bridge';
 import { ETH_CHAIN_ID, BASE_CHAIN_ID, BSC_CHAIN_ID, LINEA_CHAIN_ID, AVALANCHE_CHAIN_ID, OPTIMISM_CHAIN_ID, POLYGON_CHAIN_ID, ARBITRUM_CHAIN_ID, ZKSYNC_ERA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { AlignItems, FlexDirection } from '../../Box/box.types';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import { SolScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -45,9 +48,11 @@ const createStyles = (params: { theme: Theme }) => {
  * 1 = most popular
  * Infinity = least popular
  */
-const ChainPopularity: Record<Hex, number> = {
+const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [ETH_CHAIN_ID]: 1,
-  // TODO add solana as 2nd
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  [SolScope.Mainnet]: 2,
+  ///: END:ONLY_INCLUDE_IF
   [BASE_CHAIN_ID]: 3,
   [BSC_CHAIN_ID]: 4,
   [LINEA_CHAIN_ID]: 5,
@@ -58,7 +63,7 @@ const ChainPopularity: Record<Hex, number> = {
   [ZKSYNC_ERA_CHAIN_ID]: 10,
 };
 
-const ShortChainNames: Record<Hex, string> = {
+const ShortChainNames: Record<Hex | CaipChainId, string> = {
   [ETH_CHAIN_ID]: 'Ethereum',
 };
 
@@ -87,7 +92,7 @@ export const BridgeDestNetworksBar = () => {
       // @ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
       const networkImage = getNetworkImageSource({ chainId: chain.chainId});
 
-      const handleSelectNetwork = (chainId: Hex) => dispatch(setSelectedDestChainId(chainId));
+      const handleSelectNetwork = (chainId: Hex | CaipChainId) => dispatch(setSelectedDestChainId(chainId));
 
       return (
         <Button

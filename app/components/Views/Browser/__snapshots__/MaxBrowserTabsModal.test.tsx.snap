@@ -185,6 +185,7 @@ exports[`MaxBrowserTabsModal should render correctly 1`] = `
       <View
         style={
           {
+            "paddingBottom": 20,
             "paddingHorizontal": 20,
           }
         }

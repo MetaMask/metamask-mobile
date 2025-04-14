@@ -4,7 +4,7 @@ import { Box } from '../../Box/Box';
 import Text, { TextColor, TextVariant } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
 import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
@@ -41,9 +41,9 @@ const createStyles = (params: { theme: Theme }) => {
 export const MAX_NETWORK_ICONS = 3;
 
 interface SourceNetworksButtonProps {
-  networksToShow: { chainId: Hex }[];
+  networksToShow: { chainId: Hex | CaipChainId }[];
   networkConfigurations: ReturnType<typeof selectNetworkConfigurations>;
-  selectedSourceChainIds: Hex[];
+  selectedSourceChainIds: (Hex | CaipChainId)[];
   enabledSourceChains: ReturnType<typeof selectEnabledSourceChains>;
 }
 

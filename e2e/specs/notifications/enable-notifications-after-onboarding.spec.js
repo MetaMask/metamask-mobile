@@ -18,14 +18,18 @@ import {
   mockNotificationServices,
 } from './utils/mocks';
 
-/** @type {import('detox/detox').DeviceLaunchAppConfig} */
-const launchAppSettings = {
+/**
+ * @param {number} port
+ * @returns {import('detox/detox').DeviceLaunchAppConfig}
+ */
+const launchAppSettings = (port) => ({
   newInstance: true,
   delete: true,
   permissions: {
     notifications: 'YES',
   },
-};
+  launchArgs: { mockServerPort: port },
+});
 
 describe(SmokeNotifications('Notification Onboarding'), () => {
   /** @type {import('mockttp').Mockttp} */
@@ -40,7 +44,7 @@ describe(SmokeNotifications('Notification Onboarding'), () => {
     await mockNotificationServices(mockServer);
 
     // Launch App
-    await TestHelpers.launchApp(launchAppSettings);
+    await TestHelpers.launchApp(launchAppSettings(mockServer.port));
   });
 
   afterAll(async () => {
