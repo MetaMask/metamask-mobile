@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`EarnServiceInterruptionBanner renders banner and maintenance message 1`] = `
+exports[`EarnMaintenanceBanner renders banner and maintenance message 1`] = `
 <View
   style={
     {

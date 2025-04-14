@@ -1,10 +1,10 @@
 import React from 'react';
-import EarnServiceInterruptionBanner from '.';
+import EarnMaintenanceBanner from '.';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../../util/test/accountsControllerTestUtils';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
-describe('EarnServiceInterruptionBanner', () => {
+describe('EarnMaintenanceBanner', () => {
   const renderBanner = ({
     isPooledStakingBannerEnabled = true,
     isStablecoinLendingBannerEnabled = true,
@@ -12,7 +12,7 @@ describe('EarnServiceInterruptionBanner', () => {
     isPooledStakingBannerEnabled: boolean;
     isStablecoinLendingBannerEnabled: boolean;
   }> = {}) =>
-    renderWithProvider(<EarnServiceInterruptionBanner />, {
+    renderWithProvider(<EarnMaintenanceBanner />, {
       state: {
         ...initialRootState,
         engine: {
