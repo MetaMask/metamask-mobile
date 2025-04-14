@@ -12,6 +12,7 @@ import { handleAndroidGoogleLogin } from './android/google';
 import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork } from './Oauth2loginInterface';
 import { handleIosGoogleLogin } from './ios/google';
 import { handleIosAppleLogin } from './ios/apple';
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 export class Oauth2LoginService {
     public localState: {
@@ -95,7 +96,7 @@ export class Oauth2LoginService {
 
     };
 
-    handleCodeFlow = async (params : HandleFlowParams & {web3AuthNetwork: Web3AuthNetwork}) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean}> => {
+    handleCodeFlow = async (params : HandleFlowParams & {web3AuthNetwork: Web3AuthNetwork}) : Promise<{type: 'success' | 'error', error?: string, existingUser : boolean, accountName?: string}> => {
         const {code, idToken, provider, clientId, redirectUri, codeVerifier, web3AuthNetwork} = params;
 
         const pathname = code ? 'api/v1/oauth/token' : 'api/v1/oauth/id_token';
@@ -139,7 +140,11 @@ export class Oauth2LoginService {
                     endpoints: Object.values(data.endpoints),
                 });
                 Logger.log('handleCodeFlow: result', result);
-                return {type: 'success', existingUser: result.hasValidEncKey};
+
+                const jwtPayload = jwtDecode(data.id_token) as JwtPayload & {email: string};
+                const accountName = jwtPayload.email ?? '';
+
+                return {type: 'success', existingUser: result.hasValidEncKey, accountName};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
         } catch (error) {
@@ -168,6 +173,7 @@ export class Oauth2LoginService {
                 throw new Error('Invalid platform');
             }
 
+            Logger.log('handleOauth2Login: result', result);
             if (result) {
                 const handleCodeFlowResult = await this.handleCodeFlow({...result , web3AuthNetwork});
                 this.#dispatchPostLogin(handleCodeFlowResult);
