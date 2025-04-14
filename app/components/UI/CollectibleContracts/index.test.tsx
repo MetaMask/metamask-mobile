@@ -689,6 +689,7 @@ describe('CollectibleContracts', () => {
                 '0x1': [],
               },
             },
+            ignoredNfts: [],
           },
         },
       },
@@ -746,7 +747,15 @@ describe('CollectibleContracts', () => {
     };
 
     // Set up controller mocks
-    Engine.context.NftController.state = { allNfts: initialNfts };
+    Engine.context.NftController.state = {
+      allNfts: initialNfts,
+      allNftContracts: {
+        [MOCK_ADDRESS]: {
+          '0x1': [],
+        },
+      },
+      ignoredNfts: [],
+    };
 
     jest
       .spyOn(Engine.context.NftDetectionController, 'detectNfts')
