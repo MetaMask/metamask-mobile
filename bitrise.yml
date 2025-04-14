@@ -184,8 +184,8 @@ stages:
       #- run_ios_api_specs: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       - run_tag_smoke_confirmations_ios: {}
@@ -222,8 +222,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       - run_tag_smoke_ramps_android: {}
       - run_tag_smoke_ramps_ios: {}
-      # - run_tag_smoke_identity_ios: {}
-      # - run_tag_smoke_identity_android: {}
+      - run_tag_smoke_identity_ios: {}
+      - run_tag_smoke_identity_android: {}
       # - run_tag_smoke_assets_ios: {}
       - run_tag_smoke_assets_android: {}
       # - run_tag_smoke_swaps_ios: {}
@@ -1234,6 +1234,13 @@ workflows:
                 brew tap wix/brew
           title: Set Env Path for caching deps
       - script@1:
+          title: Boot up simulator
+          inputs:
+            - content: |-
+                #!/usr/bin/env bash
+                xcrun simctl boot "iPhone 15 Pro" || true
+                xcrun simctl list | grep Booted
+      - script@1:
           title: Run detox test
           timeout: 1200
           is_always_run: false
@@ -1817,12 +1824,12 @@ workflows:
 
                 # Generate new name based on build type and version
                 NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
-                
+
                 # Rename binary
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
                 mv "$OLD_BINARY" "$NEW_BINARY"
-                
+
                 # Rename xcarchive (only for non-simulator builds)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
                   ARCHIVE_DIR="ios/build"
@@ -1830,15 +1837,15 @@ workflows:
                   NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
                   mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
                 fi
-                
+
                 # Export new names as environment variables
-                envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
                 envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: $BINARY_DEPLOY_PATH
             - is_compress: true
           title: Deploy iOS Binary
@@ -2178,7 +2185,7 @@ app:
   envs:
     - opts:
         is_expand: false
-      MM_NOTIFICATIONS_UI_ENABLED: false
+      MM_NOTIFICATIONS_UI_ENABLED: true
     - opts:
         is_expand: false
       MM_NETWORK_UI_REDESIGN_ENABLED: false
@@ -2232,16 +2239,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.43.0
+      VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1656
+      VERSION_NUMBER: 1685
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.43.0
+      FLASK_VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1656
+      FLASK_VERSION_NUMBER: 1685
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
