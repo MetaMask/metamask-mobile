@@ -21,13 +21,16 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import Gestures from '../../utils/Gestures';
 // import CreateAccountView from '../../pages/wallet/CreateAccountView';
 //import AccountOverviewScreen from '../../pages/wallet/AccountOverviewScreen';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
+import RevealSecretRecoveryPhrase from '../../pages/Settings/SecurityAndPrivacy/RevealSecretRecoveryPhrase';
+import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView.js';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const ACCOUNT_TWO_TEXT = 'Solana Account 2';
+const PASSWORD = '123123123';
 
-
-describe(SmokeConfirmations('Create Solana account'), () => {
+describe.only(SmokeConfirmations('Create Solana account'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     await TestHelpers.reverseServerPort();
@@ -73,38 +76,47 @@ describe(SmokeConfirmations('Create Solana account'), () => {
     );
   });
 
-  //   it('should remove a solana account after creation', async () => {
+  // TODO: This test is failing because the private key is not being revealed and feature is not implemented
+  it.skip('should be able to reveal private key of created solana account', async () => {
+    await loginToApp();
+    await Assertions.checkIfVisible(WalletView.container);
+    await WalletView.tapIdenticon();
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+    await AccountListBottomSheet.tapAddAccountButton();
+    await AddAccountBottomSheet.tapCreateSolanaAccount();
+    await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
 
-  //     await withFixtures(
-  //       {
-  //         fixture: new FixtureBuilder().withGanacheNetwork().build(),
-  //         restartDevice: true,
-  //         ganacheOptions: defaultGanacheOptions,
-  //       },
-  //       async () => {
-  //         await loginToApp();
+    await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
+    await AccountActionsBottomSheet.tapShowPrivateKey();
+    await RevealSecretRecoveryPhrase.enterPasswordToRevealSecretCredential(
+      PASSWORD,
+    );
+    await RevealPrivateKey.tapToReveal();
+  });
 
-  //         // Check that we are on the wallet screen
-  //         await Assertions.checkIfVisible(WalletView.container);
-  //         await WalletView.tapIdenticon();
-  //         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
-  //         await AccountListBottomSheet.tapAddAccountButton();
-  //         await AddAccountBottomSheet.tapCreateSolanaAccount();
-  //  // Enter account name
-  //        /* await CreateAccountView.typeAccountName('Solana Test Wallet');
-  //         await CreateAccountView.tapCreateButton();*/
+  it.skip('should remove a solana account after creation', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withGanacheNetwork().build(),
+        restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
+      },
+      async () => {
+        await loginToApp();
 
-  //  // Verify account was created successfully
-  //         await TestHelpers.delay(1000);
-  //         //await Assertions.checkIfVisible(AccountOverviewScreen.accountNameLabel);
-  //         //await Assertions.checkIfElementHasString(AccountOverviewScreen.accountNameLabel, 'Solana Test Wallet');
-
-  //  // Verify account persists after navigation
-  //         await TabBarComponent.tapWallet();
-  //         await TestHelpers.delay(1000);
-  //         await Assertions.checkIfElementHasString(WalletView.accountName, 'Solana Test Wallet');
-
-  //       },
-  //     );
-  //   });
+        // Check that we are on the wallet screen
+        await Assertions.checkIfVisible(WalletView.container);
+        await WalletView.tapIdenticon();
+        await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateSolanaAccount();
+        await TabBarComponent.tapWallet();
+        await TestHelpers.delay(1000);
+        await Assertions.checkIfElementHasString(
+          WalletView.accountName,
+          'Solana Test Wallet',
+        );
+      },
+    );
+  });
 });
