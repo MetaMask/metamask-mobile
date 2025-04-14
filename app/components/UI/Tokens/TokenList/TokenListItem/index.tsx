@@ -60,7 +60,7 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
-} from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+} from '../../../Earn/selectors/featureFlags';
 
 interface TokenListItemProps {
   asset: TokenI;

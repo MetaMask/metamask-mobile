@@ -54,7 +54,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RampType } from '../../../reducers/fiatOrders/types';
-import { selectStablecoinLendingEnabledFlag } from '../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../UI/Earn/selectors/featureFlags';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});

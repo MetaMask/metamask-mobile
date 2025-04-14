@@ -8,8 +8,8 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
 import CurrencyToggle from '../CurrencySwitch';
-import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 export interface InputDisplayProps {
   isOverMaximum: {

@@ -29,7 +29,7 @@ import {
 import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)

@@ -29,7 +29,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { EVENT_LOCATIONS } from '../../constants/events';
 import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { useSelector } from 'react-redux';
-import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectPooledStakingServiceInterruptionBannerEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 export interface StakingEarningsProps {
   asset: TokenI;

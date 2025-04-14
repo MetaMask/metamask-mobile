@@ -1,7 +1,7 @@
 import {
   PoolStakingRemoteFeatureFlags,
   StablecoinLendingRemoteFeatureFlags,
-} from '../../../../selectors/featureFlagController/earnFeatureFlags/types';
+} from '../selectors/featureFlags/types';
 
 const mockedPooledStakingFeatureFlagState: PoolStakingRemoteFeatureFlags = {
   earnPooledStakingEnabled: true,

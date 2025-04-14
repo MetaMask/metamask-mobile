@@ -41,7 +41,7 @@ import { EarnInputViewProps } from './EarnInputView.types';
 import { getEarnInputViewTitle } from './utils';
 import { useEarnTokenDetails } from '../../hooks/useEarnTokenDetails';
 import useEarnInputHandlers from '../../hooks/useEarnInput';
-import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const EarnInputView = () => {
   // navigation hooks

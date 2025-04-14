@@ -39,8 +39,8 @@ import { selectConversionRate } from '../../../../../selectors/currencyRateContr
 import { Hex } from '@metamask/utils';
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
 import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const EarnWithdrawInputView = () => {
   const route = useRoute<EarnWithdrawInputViewProps['route']>();

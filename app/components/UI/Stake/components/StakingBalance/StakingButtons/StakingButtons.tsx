@@ -16,7 +16,7 @@ import useStakingChain from '../../../hooks/useStakingChain';
 import Engine from '../../../../../../core/Engine';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../../../Earn/Views/EarnInputView/EarnInputView.types';
 import { TokenI } from '../../../../Tokens/types';
-import { selectPooledStakingEnabledFlag } from '../../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectPooledStakingEnabledFlag } from '../../../../Earn/selectors/featureFlags';
 
 interface StakingButtonsProps extends Pick<ViewProps, 'style'> {
   asset: TokenI;

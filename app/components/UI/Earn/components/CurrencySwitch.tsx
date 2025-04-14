@@ -16,8 +16,8 @@ import {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
 import { useSelector } from 'react-redux';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

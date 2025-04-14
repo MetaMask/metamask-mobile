@@ -26,7 +26,7 @@ import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { getDecimalChainId } from '../../../../../util/networks';
 import _ from 'lodash';
 import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 interface EarnEmptyStateCta {
   token: TokenI;

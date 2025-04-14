@@ -19,7 +19,7 @@ import * as reactRedux from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),

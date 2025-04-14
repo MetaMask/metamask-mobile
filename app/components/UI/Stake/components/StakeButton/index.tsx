@@ -31,7 +31,7 @@ import { EARN_INPUT_VIEW_ACTIONS } from '../../../Earn/Views/EarnInputView/EarnI
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
-} from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+} from '../../../Earn/selectors/featureFlags';
 
 interface StakeButtonProps {
   asset: TokenI;
