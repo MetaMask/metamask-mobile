@@ -1,4 +1,4 @@
-import { waitFor } from 'detox';
+import { waitFor, element, by } from 'detox';
 import Matchers from './Matchers';
 
 // Global timeout variable
@@ -29,6 +29,38 @@ class Assertions {
     // rename this. We are checking if element is visible.
     return await expect(await elementId).toExist();
   }
+
+
+  /**
+   * Check if text matching a regex pattern exists in the UI, without requiring it to be visible.
+   * @param {RegExp|string} text - The regex pattern or string to check if it exists in any element's text.
+   * @param {number} [index=undefined] - Optional index if multiple elements match the pattern.
+   * @param {number} [timeout=TIMEOUT] - Timeout in milliseconds.
+   */
+    static async checkIfTextRegexExists(text, index = undefined, timeout = TIMEOUT) {
+      let textElement;
+      let regex = text;
+
+      // If text is a string, convert it to a RegExp
+      if (typeof text === 'string') {
+        regex = new RegExp(text);
+      }
+      // Ensure the pattern is a proper regex
+      else if (!(text instanceof RegExp)) {
+        throw new Error('Pattern must be a valid regular expression or string');
+      }
+
+      // Create element matcher directly using Detox's by.text() with regex
+      if (index !== undefined) {
+        textElement = element(by.text(regex)).atIndex(index);
+      } else {
+        textElement = element(by.text(regex));
+      }
+
+      return await waitFor(textElement)
+        .toExist()
+        .withTimeout(timeout);
+    }
 
   /**
    * Check if an element with the specified ID is not visible.
@@ -68,6 +100,7 @@ class Assertions {
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
+
 
   /**
    * Check if text is visible.
