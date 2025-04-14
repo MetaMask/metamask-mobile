@@ -462,7 +462,7 @@
         "setTimeout": true
       }
     },
-    "jest-worker>supports-color>has-flag": {
+    "chalk>supports-color>has-flag": {
       "globals": {
         "process.argv": true
       }
@@ -1043,7 +1043,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "jest-worker>supports-color": {
@@ -1056,7 +1056,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
