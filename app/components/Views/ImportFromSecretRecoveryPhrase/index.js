@@ -594,6 +594,9 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
+  const isError =
+    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -820,7 +823,7 @@ const ImportFromSecretRecoveryPhrase = ({
                             ? IconName.EyeSolid
                             : IconName.EyeSlashSolid
                         }
-                        size={IconSize.Md}
+                        size={IconSize.Lg}
                         color={colors.icon.muted}
                         onPress={() => toggleShowPassword(0)}
                       />
@@ -856,22 +859,17 @@ const ImportFromSecretRecoveryPhrase = ({
                     autoCapitalize="none"
                     value={confirmPassword}
                     placeholderTextColor={colors.text.muted}
+                    isError={isError}
                     keyboardAppearance={themeAppearance || 'light'}
                     endAccessory={
                       <Icon
                         name={
-                          password !== '' && password === confirmPassword
-                            ? IconName.Check
-                            : showPasswordIndex.includes(1)
+                          showPasswordIndex.includes(1)
                             ? IconName.EyeSolid
                             : IconName.EyeSlashSolid
                         }
-                        size={IconSize.Md}
-                        color={
-                          password === confirmPassword
-                            ? colors.success.default
-                            : colors.icon.muted
-                        }
+                        size={IconSize.Lg}
+                        color={colors.icon.muted}
                         onPress={() => toggleShowPassword(1)}
                       />
                     }
@@ -879,11 +877,20 @@ const ImportFromSecretRecoveryPhrase = ({
                       ImportFromSeedSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
                   />
-                  <Text style={styles.passwordStrengthLabel}>
-                    {strings('choose_password.must_be_at_least', {
-                      number: MIN_PASSWORD_LENGTH,
-                    })}
-                  </Text>
+                  {!isError ? (
+                    <Text
+                      variant={TextVariant.BodySM}
+                      color={TextColor.Alternative}
+                    >
+                      {strings('choose_password.must_be_at_least', {
+                        number: MIN_PASSWORD_LENGTH,
+                      })}
+                    </Text>
+                  ) : (
+                    <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                      {strings('import_from_seed.password_error')}
+                    </Text>
+                  )}
                 </View>
                 <SecurityOptionToggle
                   title={strings('import_from_seed.unlock_with_face_id')}
