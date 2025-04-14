@@ -73,8 +73,8 @@ const SDKSessionsManager = (props: SDKSessionsManagerProps) => {
   const { connections, dappConnections } = useSelector(
     (state: RootState) => state.sdk,
   );
-  const connectionsList = Object.values(connections);
-  const dappConnectionsList = Object.values(dappConnections);
+  const connectionsList = Object.values(connections).filter(conn => !conn.markedForDeletion);
+  const dappConnectionsList = Object.values(dappConnections).filter(conn => !conn.markedForDeletion);
   const { trigger } = route.params ?? { trigger: undefined };
   const { colors, typography } = useTheme();
   const styles = createStyles(colors, typography, safeAreaInsets);

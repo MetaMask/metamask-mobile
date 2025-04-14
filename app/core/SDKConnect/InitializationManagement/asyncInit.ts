@@ -35,6 +35,17 @@ const asyncInit = async ({
   const validConnections: SDKSessions = {};
   const validHosts: ApprovedHosts = {};
   try {
+    // Check for any connections marked for deletion
+    for (const id in sdk.connections) {
+      const connInfo = sdk.connections[id];
+      if (connInfo.markedForDeletion) {
+        DevLogger.log(`SDKConnect::init() - retrying termination for ${id}`);
+        instance.removeChannel({
+          channelId: id,
+          sendTerminate: true,
+        });
+      }
+    }
     // Remove connections that have expired.
     const now = Date.now();
     const connectionsLength = Object.keys(sdk.connections).length;

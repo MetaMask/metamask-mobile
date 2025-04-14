@@ -46,7 +46,10 @@ export interface ConnectionProps {
   connected?: boolean;
   validUntil?: number;
   scheme?: string;
-  lastAuthorized?: number; // timestamp of last received activity
+  lastAuthorized?: number;
+  markedForDeletion?: boolean;
+  failedTerminationAttempts?: number;
+  lastTerminationAttempt?: number;
 }
 
 import packageJSON from '../../../../package.json';
@@ -119,6 +122,10 @@ export class Connection extends EventEmitter2 {
   }) => boolean;
   onTerminate: ({ channelId }: { channelId: string }) => void;
 
+  markedForDeletion: boolean;
+  failedTerminationAttempts: number;
+  lastTerminationAttempt: number;
+
   constructor({
     id,
     otherPublicKey,
@@ -141,6 +148,9 @@ export class Connection extends EventEmitter2 {
     isApproved,
     updateOriginatorInfos,
     onTerminate,
+    markedForDeletion,
+    failedTerminationAttempts,
+    lastTerminationAttempt,
   }: ConnectionProps & {
     socketServerUrl: string; // Allow to customize different socket server url
     rpcQueueManager: RPCQueueManager;
@@ -154,6 +164,9 @@ export class Connection extends EventEmitter2 {
       channelId: string;
       originatorInfo: OriginatorInfo;
     }) => void;
+    markedForDeletion: boolean;
+    failedTerminationAttempts: number;
+    lastTerminationAttempt: number;
   }) {
     super();
 
@@ -181,6 +194,10 @@ export class Connection extends EventEmitter2 {
     this.revalidate = revalidate;
     this.isApproved = isApproved;
     this.onTerminate = onTerminate;
+
+    this.markedForDeletion = markedForDeletion ?? false;
+    this.failedTerminationAttempts = failedTerminationAttempts ?? 0;
+    this.lastTerminationAttempt = lastTerminationAttempt ?? 0;
 
     DevLogger.log(
       `Connection::constructor() id=${
