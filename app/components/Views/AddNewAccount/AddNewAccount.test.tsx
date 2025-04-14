@@ -17,6 +17,8 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
+import { act } from 'react-dom/test-utils';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
@@ -44,6 +46,17 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../actions/multiSrp', () => ({
   addNewHdAccount: (keyringId?: string, name?: string) =>
     mockAddNewHdAccount(keyringId, name),
+}));
+
+const mockMultichainWalletSnapClient = {
+  createAccount: jest.fn().mockResolvedValue(null),
+};
+
+jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
+  ...jest.requireActual('../../../core/SnapKeyring/MultichainWalletSnapClient'),
+  MultichainWalletSnapClient: jest
+    .fn()
+    .mockImplementation(() => mockMultichainWalletSnapClient),
 }));
 
 const mockKeyringMetadata1 = {
@@ -281,5 +294,27 @@ describe('AddNewAccount', () => {
         expect(namePlaceholder).toBeDefined();
       },
     );
+
+    it('calls create account with the MultichainWalletSnapClient', async () => {
+      const { getByTestId } = render(initialState, {
+        params: {
+          scope: MultichainNetwork.Solana,
+          clientType: WalletClientType.Solana,
+        },
+      });
+
+      const addButton = getByTestId(AddNewAccountIds.CONFIRM);
+      fireEvent.press(addButton);
+
+      await act(async () => {
+        expect(
+          mockMultichainWalletSnapClient.createAccount,
+        ).toHaveBeenCalledWith({
+          scope: MultichainNetwork.Solana,
+          accountNameSuggestion: 'Solana Account 1',
+          entropySource: mockKeyringMetadata2.id,
+        });
+      });
+    });
   });
 });
