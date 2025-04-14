@@ -157,12 +157,6 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
-  const {
-    chainId: selectedChainId,
-    rpcUrl: selectedRpcUrl,
-    domainIsConnectedDapp,
-    networkName: selectedNetworkName,
-  } = useNetworkInfo(origin);
 
   // Get both chain IDs
   const globalChainId = useSelector(selectChainId);
@@ -173,7 +167,17 @@ const NetworkSelector = () => {
     '>>> NetworkSelector contextualChainId:',
     contextualChainId,
   );
+  const {
+    chainId: perDappChainId,
+    rpcUrl: selectedRpcUrl,
+    domainIsConnectedDapp,
+    networkName: selectedNetworkName,
+  } = useNetworkInfo(origin);
 
+  const selectedChainId =
+    route.params?.source === 'SendFlow' && contextualChainId
+      ? contextualChainId
+      : perDappChainId;
   // Use contextual chain ID for SendFlow, otherwise use global
   const effectiveChainId =
     route.params?.source === 'SendFlow' && contextualChainId
