@@ -462,7 +462,7 @@
         "setTimeout": true
       }
     },
-    "chalk>supports-color>has-flag": {
+    "jest-worker>supports-color>has-flag": {
       "globals": {
         "process.argv": true
       }
@@ -498,9 +498,9 @@
       "globals": {
         "process.nextTick": true
       },
-      "packages": {
+      "packages": { 
         "rimraf>glob>once": true,
-        "rimraf>glob>once>wrappy": true
+        "rimraf>glob>inflight>wrappy": true
       }
     },
     "image-size>queue>inherits": {
@@ -826,7 +826,7 @@
         "metro-source-map>ob1": true,
         "source-map": true,
         "metro-source-map>source-map": true,
-        "metro-source-map>vlq": true
+        "metro-symbolicate>vlq": true
       }
     },
     "metro-symbolicate": {
@@ -842,7 +842,7 @@
         "invariant": true,
         "metro-source-map": true,
         "nullthrows": true,
-        "metro-source-map>vlq": true
+        "metro-symbolicate>vlq": true
       }
     },
     "metro-transform-plugins": {
@@ -942,7 +942,7 @@
     },
     "rimraf>glob>once": {
       "packages": {
-        "rimraf>glob>once>wrappy": true
+        "rimraf>glob>inflight>wrappy": true
       }
     },
     "metro-config>cosmiconfig>parse-json": {
@@ -1043,7 +1043,7 @@
         "process.platform": true
       },
       "packages": {
-        "chalk>supports-color>has-flag": true
+        "jest-worker>supports-color>has-flag": true
       }
     },
     "jest-worker>supports-color": {
@@ -1056,7 +1056,7 @@
         "process.platform": true
       },
       "packages": {
-        "chalk>supports-color>has-flag": true
+        "jest-worker>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
