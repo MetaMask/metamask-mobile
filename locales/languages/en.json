@@ -787,11 +787,11 @@
     "show_accounts": "Show",
     "hide_accounts": "Hide",
     "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet account",
-      "bitcoin_account_name": "Bitcoin account",
-      "solana_devnet_account_name": "Solana Devnet account",
-      "solana_testnet_account_name": "Solana Testnet account",
-      "solana_account_name": "Solana account"
+      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
+      "bitcoin_account_name": "Bitcoin Account",
+      "solana_devnet_account_name": "Solana Devnet Account",
+      "solana_testnet_account_name": "Solana Testnet Account",
+      "solana_account_name": "Solana Account"
     }
   },
   "toast": {
