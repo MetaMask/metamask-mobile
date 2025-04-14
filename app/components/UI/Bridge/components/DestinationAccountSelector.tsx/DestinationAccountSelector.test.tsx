@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { NavigationContainer } from '@react-navigation/native';
@@ -20,6 +20,10 @@ jest.mock('../../../../hooks/useAccounts', () => ({
       {
         address: '0x1234567890123456789012345678901234567890',
         name: 'Account 1',
+      },
+      {
+        address: '0x0987654321098765432109876543210987654321',
+        name: 'Account 2',
       },
     ],
     ensByAccountAddress: {},
@@ -51,7 +55,7 @@ jest.mock('@react-navigation/native', () => {
 const mockStore = configureStore([]);
 
 describe('DestinationAccountSelector', () => {
-  it('renders correctly', () => {
+  const renderComponent = (storeState = {}) => {
     const store = mockStore({
       engine: {
         backgroundState: {
@@ -67,17 +71,60 @@ describe('DestinationAccountSelector', () => {
       settings: {
         useBlockieIcon: false,
       },
+      ...storeState,
     });
 
-    const { getByText } = render(
-      <Provider store={store}>
-        <NavigationContainer>
-          <DestinationAccountSelector />
-        </NavigationContainer>
-      </Provider>,
-    );
+    return {
+      ...render(
+        <Provider store={store}>
+          <NavigationContainer>
+            <DestinationAccountSelector />
+          </NavigationContainer>
+        </Provider>,
+      ),
+      store,
+    };
+  };
 
-    // Verify that the component renders with the expected text
+  it('renders correctly with destination address', () => {
+    const { getByText } = renderComponent();
     expect(getByText('Receive at')).toBeTruthy();
   });
-}); 
+
+  it('hides address when privacy mode is enabled', () => {
+    const { getByText } = renderComponent({
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          PreferencesController: {
+            privacyMode: true,
+          },
+        },
+      },
+    });
+    expect(getByText('Receive at')).toBeTruthy();
+  });
+
+  it('uses blockie icon when blockie setting is enabled', () => {
+    const { getByTestId } = renderComponent({
+      settings: {
+        useBlockieIcon: true,
+      },
+    });
+    const avatar = getByTestId('cellbase-avatar');
+    expect(avatar).toBeTruthy();
+  });
+
+  it('clears destination address when close button is pressed', () => {
+    const { getByTestId, store } = renderComponent();
+    // The close button is a ButtonIcon component with IconName.Close
+    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    fireEvent.press(closeButton);
+
+    const actions = store.getActions();
+    expect(actions).toContainEqual({
+      type: 'bridge/setDestAddress',
+      payload: undefined,
+    });
+  });
+});
