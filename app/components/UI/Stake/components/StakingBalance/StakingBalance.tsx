@@ -50,7 +50,7 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 
 export interface StakingBalanceProps {
   asset: TokenI;

@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { selectRemoteFeatureFlags } from '..';
+import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 
 const prioritizeFlagsByEnv = (localFlag: boolean, remoteFlag: boolean) => {
   const isDev = process.env.NODE_ENV === 'development';

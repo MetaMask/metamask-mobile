@@ -17,7 +17,7 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as reactRedux from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
   context: {

@@ -4,10 +4,10 @@ import {
   selectStablecoinLendingEnabledFlag,
   selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
 } from '.';
-import mockedEngine from '../../../core/__mocks__/MockedEngine';
-import { mockedState } from '../mocks';
+import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
+import { mockedState } from '../../../../../selectors/featureFlagController/mocks';
 
-jest.mock('../../../core/Engine', () => ({
+jest.mock('../../../../../core/Engine', () => ({
   init: () => mockedEngine.init(),
 }));
 

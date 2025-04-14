@@ -52,7 +52,7 @@ import {
 } from '../../../Stake/testUtils';
 import { TOKENS_WITH_DEFAULT_OPTIONS } from '../../../Stake/testUtils/testUtils.types';
 import EarnInputView from './EarnInputView';
-import { selectStablecoinLendingEnabledFlag } from '../../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 
 const MOCK_USDC_MAINNET_ASSET = createMockToken({
   ...getCreateMockTokenOptions(
@@ -141,13 +141,10 @@ const mockPooledStakingContractService: PooledStakingContract = {
   getShares: jest.fn(),
 };
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/earnFeatureFlags',
-  () => ({
-    selectPooledStakingEnabledFlag: jest.fn(),
-    selectStablecoinLendingEnabledFlag: jest.fn(),
-  }),
-);
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPooledStakingEnabledFlag: jest.fn(),
+  selectStablecoinLendingEnabledFlag: jest.fn(),
+}));
 
 jest.mock('../../../Stake/hooks/useStakeContext.ts', () => ({
   useStakeContext: jest.fn(() => {

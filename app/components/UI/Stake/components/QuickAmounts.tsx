@@ -14,7 +14,7 @@ import { Colors } from '../../../../util/theme/models';
 import type { QuickAmount } from '../../Ramp/types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSelector } from 'react-redux';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../../Earn/selectors/featureFlags';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({

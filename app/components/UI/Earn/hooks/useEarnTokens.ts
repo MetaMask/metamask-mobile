@@ -1,9 +1,5 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  selectPooledStakingEnabledFlag,
-  selectStablecoinLendingEnabledFlag,
-} from '../../../../selectors/featureFlagController/earnFeatureFlags';
 import useStakingEligibility from '../../Stake/hooks/useStakingEligibility';
 import { TokenI } from '../../Tokens/types';
 import { getSupportedEarnTokens, filterEligibleTokens } from '../utils';
@@ -11,6 +7,10 @@ import { selectAccountTokensAcrossChains } from '../../../../selectors/multichai
 import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useEarnTokenDetails } from './useEarnTokenDetails';
+import {
+  selectPooledStakingEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+} from '../selectors/featureFlags';
 
 // Filters user's tokens to only return the supported and enabled earn tokens.
 const useEarnTokens = () => {

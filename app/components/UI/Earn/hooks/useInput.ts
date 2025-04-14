@@ -11,7 +11,7 @@ import {
   toTokenMinimalUnit,
 } from '../../../../util/number';
 import { selectChainId } from '../../../../selectors/networkController';
-import { selectStablecoinLendingEnabledFlag } from '../../../../selectors/featureFlagController/earnFeatureFlags';
+import { selectStablecoinLendingEnabledFlag } from '../selectors/featureFlags';
 
 export interface InputHandlerParams {
   balance: string;
