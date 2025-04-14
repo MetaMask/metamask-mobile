@@ -1832,13 +1832,13 @@ workflows:
                 fi
 
                 # Export new names as environment variables
-                envman add --key RENAMED_BINARY_FILE --value "$NEW_BASE_NAME$BINARY_EXTENSION"
                 envman add --key RENAMED_ARCHIVE_FILE --value "$NEW_BASE_NAME.xcarchive"
                 envman add --key BINARY_DEPLOY_PATH --value "$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
       - deploy-to-bitrise-io@2.2.3:
           is_always_run: false
           is_skippable: true
           inputs:
+            - pipeline_intermediate_files: $BINARY_DEPLOY_PATH:BITRISE_APP_STORE_IPA_PATH
             - deploy_path: $BINARY_DEPLOY_PATH
             - is_compress: true
           title: Deploy iOS Binary
