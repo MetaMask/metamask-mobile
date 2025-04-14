@@ -399,6 +399,7 @@ export const initialState = {
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
+    selectedDestChainId: undefined,
     slippage: '0.5',
   },
 };
