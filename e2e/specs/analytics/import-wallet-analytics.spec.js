@@ -39,7 +39,7 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
         optInToMetrics: true,
       });
 
-      const events = await getEventsPayloads(mockServer, [MetaMetricsEvents.WALLET_IMPORTED.category, MetaMetricsEvents.WALLET_SETUP_COMPLETED.category]);
+      const events = await getEventsPayloads(mockServer, [EVENT_NAME.WALLET_IMPORTED, EVENT_NAME.WALLET_SETUP_COMPLETED]);
 
       await Assertions.checkIfArrayHasLength(
         events,
