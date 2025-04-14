@@ -12,7 +12,6 @@ import { isPortfolioViewEnabled } from '../../../../util/networks';
 import { RootState } from '../../BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useEarnTokenDetails } from './useEarnTokenDetails';
 
-// TODO: Add tests
 // Filters user's tokens to only return the supported and enabled earn tokens.
 const useEarnTokens = () => {
   const tokens = useSelector((state: RootState) =>
@@ -44,7 +43,7 @@ const useEarnTokens = () => {
       supportedTokens,
       // TODO: Add eligibility check for stablecoin lending before launch.
       {
-        canStake: isEligibleToStake && Boolean(isPooledStakingEnabled),
+        canStake: isEligibleToStake && isPooledStakingEnabled,
         canLend: isStablecoinLendingEnabled,
       },
     );

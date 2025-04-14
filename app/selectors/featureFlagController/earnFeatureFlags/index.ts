@@ -6,8 +6,7 @@ export const selectPooledStakingEnabledFlag = createSelector(
   (remoteFeatureFlags) => {
     const localFlag = process.env.MM_POOLED_STAKING_ENABLED;
     const remoteFlag = remoteFeatureFlags?.earnPooledStakingEnabled;
-    const result = localFlag ?? remoteFlag;
-    return result as boolean;
+    return (localFlag ?? remoteFlag) as boolean;
   },
 );
 
@@ -17,7 +16,7 @@ export const selectPooledStakingServiceInterruptionBannerEnabledFlag =
       process.env.MM_POOLED_STAKING_SERVICE_INTERRUPTION_BANNER_ENABLED;
     const remoteFlag =
       remoteFeatureFlags?.earnPooledStakingServiceInterruptionBannerEnabled;
-    return localFlag ?? remoteFlag;
+    return (localFlag ?? remoteFlag) as boolean;
   });
 
 export const selectStablecoinLendingEnabledFlag = createSelector(
@@ -25,8 +24,7 @@ export const selectStablecoinLendingEnabledFlag = createSelector(
   (remoteFeatureFlags): boolean => {
     const localFlag = process.env.MM_STABLECOIN_LENDING_UI_ENABLED;
     const remoteFlag = remoteFeatureFlags?.earnStablecoinLendingEnabled;
-    const result = localFlag ?? remoteFlag;
-    return result as boolean;
+    return (localFlag ?? remoteFlag) as boolean;
   },
 );
 
@@ -36,6 +34,5 @@ export const selectStablecoinLendingServiceInterruptionBannerEnabledFlag =
       process.env.MM_STABLE_COIN_SERVICE_INTERRUPTION_BANNER_ENABLED;
     const remoteFlag =
       remoteFeatureFlags?.earnStablecoinLendingServiceInterruptionBannerEnabled;
-    const result = localFlag ?? remoteFlag;
-    return result;
+    return (localFlag ?? remoteFlag) as boolean;
   });
