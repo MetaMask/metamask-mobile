@@ -42,7 +42,6 @@ import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
-import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
@@ -131,7 +130,7 @@ const BridgeView = () => {
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId as Hex,
+    chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
 
@@ -286,7 +285,7 @@ const BridgeView = () => {
             tokenBalance={latestSourceBalance?.displayBalance}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
             networkImageSource={getNetworkImageSource({
-              chainId: sourceToken?.chainId as Hex,
+              chainId: sourceToken?.chainId,
             })}
             autoFocus
             isReadonly
@@ -310,7 +309,7 @@ const BridgeView = () => {
             networkImageSource={
               destToken
                 ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                  getNetworkImageSource({ chainId: destToken?.chainId as Hex })
+                  getNetworkImageSource({ chainId: destToken?.chainId })
                 : undefined
             }
             isReadonly
@@ -320,13 +319,14 @@ const BridgeView = () => {
             isLoading={isLoading}
           />
 
-          { destToken?.chainId && isSolanaChainId(destToken?.chainId as Hex) && (
+          {destToken?.chainId && isSolanaChainId(destToken?.chainId) && (
             <Box>
               <DestinationAccountSelector />
             </Box>
           )}
 
-          { ((destToken?.chainId && !isSolanaChainId(destToken?.chainId as Hex)) || destAddress) && (
+          {((destToken?.chainId && !isSolanaChainId(destToken?.chainId)) ||
+            destAddress) && (
             <Box style={styles.quoteContainer}>
               {activeQuote && !isLoading && <QuoteDetailsCard />}
             </Box>
