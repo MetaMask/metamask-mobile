@@ -71,6 +71,9 @@ const NetworkPermissionsConnected = ({
   const getPermittedChainIds = () => {
     try {
       const caveat = getCaip25Caveat(hostname);
+      if (!caveat) {
+        return [];
+      }
       return getPermittedEthChainIds(caveat.value);
     } catch (e) {
       Logger.error(e as Error, 'Error getting permitted chains caveat');
