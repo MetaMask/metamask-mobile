@@ -526,7 +526,9 @@ class AuthenticationService {
       const seedPhrase = bytesToString(result.at(-1) ?? new Uint8Array());
       await this.newWalletAndRestore(password, authData, seedPhrase, false);
       // add in more srps
-    } else { 
+
+      this.dispatchPasswordSet();
+    } else {
       this.dispatchOauth2Reset();
       throw new Error('No account data found');
     }
