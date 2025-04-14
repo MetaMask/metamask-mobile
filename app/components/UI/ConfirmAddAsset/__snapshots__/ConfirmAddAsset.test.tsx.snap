@@ -15,10 +15,10 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
       {
         "color": "#121314",
         "fontFamily": "CentraNo1-Book",
-        "fontSize": 14,
+        "fontSize": 16,
         "fontWeight": "400",
         "letterSpacing": 0,
-        "lineHeight": 22,
+        "lineHeight": 24,
         "textAlign": "center",
       }
     }
@@ -174,9 +174,9 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                   style={
                     {
                       "alignItems": "center",
-                      "backgroundColor": "#f3f5f9",
+                      "backgroundColor": "#ffffff",
                       "borderColor": "#ffffff",
-                      "borderRadius": 16,
+                      "borderRadius": 8,
                       "borderWidth": 2,
                       "height": 32,
                       "justifyContent": "center",
@@ -197,21 +197,18 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
                     }
                   }
                 >
-                  <Text
-                    accessibilityRole="text"
+                  <Image
+                    onError={[Function]}
+                    resizeMode="contain"
+                    source={1}
                     style={
                       {
-                        "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
-                        "fontSize": 16,
-                        "fontWeight": "400",
-                        "letterSpacing": 0,
-                        "lineHeight": 24,
+                        "height": 32,
+                        "width": 32,
                       }
                     }
-                  >
-                    E
-                  </Text>
+                    testID="network-avatar-image"
+                  />
                 </View>
               </View>
             </View>
@@ -224,7 +221,7 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
               {
                 "color": "#121314",
                 "fontFamily": "CentraNo1-Medium",
-                "fontSize": 16,
+                "fontSize": 18,
                 "fontWeight": "500",
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -238,12 +235,12 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 14,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 16,
                 "fontWeight": "400",
                 "justifyContent": "flex-end",
                 "letterSpacing": 0,
-                "lineHeight": 22,
+                "lineHeight": 24,
                 "textTransform": "uppercase",
               }
             }
@@ -264,8 +261,8 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "EuclidCircularB-Regular",
-                "fontSize": 16,
+                "fontFamily": "CentraNo1-Book",
+                "fontSize": 18,
                 "fontWeight": "400",
                 "justifyContent": "flex-end",
                 "letterSpacing": 0,
@@ -329,10 +326,10 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             {
               "color": "#4459ff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >
@@ -369,10 +366,10 @@ exports[`ConfirmAddAsset render matches previous snapshot 1`] = `
             {
               "color": "#ffffff",
               "fontFamily": "CentraNo1-Medium",
-              "fontSize": 14,
+              "fontSize": 16,
               "fontWeight": "500",
               "letterSpacing": 0,
-              "lineHeight": 22,
+              "lineHeight": 24,
             }
           }
         >

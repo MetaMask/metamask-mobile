@@ -10,7 +10,16 @@
       "title": "High risk request",
       "checkbox_label": "I have acknowledged the alert and still want to proceed",
       "review_alerts": "Review all alerts",
-      "message": "We suggest you reject this request. If you continue, you might put your assets at risk."
+      "message": "We suggest you reject this request. If you continue, you might put your assets at risk.",
+      "title_blockaid": "Your assets may be at risk",
+      "blockaid": {
+        "message": "If you confirm this request, you could lose your assets. We recommend that you cancel this request.",
+        "message1": "If you confirm this request, you’re allowing a scammer to withdraw and spend your assets. You won’t get them back.",
+        "message2": "You’re sending your assets to a scammer. If you continue, you’ll lose those assets.",
+        "message3": "If you continue, all the assets you’ve listed on OpenSea could be at risk.",
+        "message4": "If you continue, all the assets you’ve listed on Blur could be at risk.",
+        "message5": "You’re interacting with a malicious site. If you continue, you will lose your assets."
+      }
     },
     "inline_alert_label": "Alert",
     "review_alerts": "Review alerts",
@@ -428,6 +437,10 @@
     "aggregated": {
       "title": "Your balance is aggregated",
       "subtitle": "Control your balance view in settings"
+    },
+    "multisrp": {
+      "title": "Add multiple Secret Recovery Phrases",
+      "subtitle": "Import and use multiple wallets in MetaMask"
     }
   },
   "wallet": {
@@ -954,9 +967,11 @@
     "networks_desc": "Add and edit custom RPC networks",
     "network_name_label": "Network Name",
     "network_name_placeholder": "Network Name (optional)",
-    "network_rpc_url_label": "RPC Url",
+    "network_rpc_url_label": "RPC URL",
     "network_rpc_name_label": "RPC Name",
     "network_rpc_placeholder": "New RPC Network",
+    "network_failover_rpc_url_label": "Failover RPC URL",
+    "failover": "Failover",
     "network_chain_id_label": "Chain ID",
     "network_chain_id_placeholder": "Chain ID",
     "network_symbol_label": "Symbol",
@@ -2076,7 +2091,8 @@
     "info_text_1": "Take a few moments to finish setting up your MetaMask wallet.",
     "info_text_2": "This will ensure only you can access your funds and will let you recover your wallet if you lose your device",
     "cta_text": "Create Password",
-    "creating_password": "Creating password..."
+    "creating_password": "Creating password...",
+    "srp_list_selection": "Select Secret Recovery Phrase"
   },
   "account_backup_step_1": {
     "remind_me_later": "Remind me later",
@@ -2230,7 +2246,15 @@
     "continue_on_your_own": "continuing at your own risk.",
     "file_an_issue_intro": "If you think this domain is incorrectly flagged or if a blocked legitimate website has resolved its security issues, ",
     "file_an_issue": "please file an issue.",
-    "back_to_safety": "Back to safety"
+    "back_to_safety": "Back to safety",
+    "site_might_be_harmful": "This website might be harmful",
+    "metamask_flagged_site": "MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.",
+    "you_may_proceed_anyway": "You may also",
+    "proceed_anyway": "proceed anyway",
+    "but_please_do_so_at_your_own_risk": "but please do so at your own risk.",
+    "report_detection_problem": "Report a detection problem",
+    "share_on_twitter": "If you found this helpful, share on X!",
+    "share_text": "MetaMask protected me from visiting a potentially harmful site: {{url}}. Stay safe!"
   },
   "notifications": {
     "timeout": "Timeout",
@@ -2709,6 +2733,7 @@
     "minimum": "Minimum deposit is",
     "maximum": "Maximum deposit is",
     "insufficient_balance": "This amount is higher than your balance",
+    "insufficient_native_balance": "You don't have enough {{currency}} to cover the gas fees.",
     "enter_larger_amount": "Enter a larger amount to continue",
     "enter_smaller_amount": "Enter a smaller amount to continue",
     "enter_lower_gas_fees": "Enter a lower amount to pay for gas fees",
@@ -3238,7 +3263,7 @@
     "token_detection_mainnet_link": "You can also add tokens manually.",
     "or": "or",
     "non_evm_first_description": "The native asset on this network is {{ticker}}. It is used for transaction fees.",
-    "non_evm_second_description": "You will loose your assets if you try to send them from or to another network."
+    "non_evm_second_description": "You will lose your assets if you try to send them from or to another network."
   },
   "download_files": {
     "error": "Failed to download attachment.",

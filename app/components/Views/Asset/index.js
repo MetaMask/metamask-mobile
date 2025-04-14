@@ -490,11 +490,9 @@ class Asset extends PureComponent {
   };
 
   onRefresh = async () => {
-    const { chainId } = this.props;
-
     this.setState({ refreshing: true });
 
-    await updateIncomingTransactions([chainId]);
+    await updateIncomingTransactions();
 
     this.setState({ refreshing: false });
   };

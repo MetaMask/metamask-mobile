@@ -10,13 +10,8 @@ import {
   MOCK_ADDRESS_2,
 } from '../../../util/test/accountsControllerTestUtils';
 import { createBuyNavigationDetails } from '../Ramp/routes/utils';
-import {
-  getDecimalChainId,
-  isPortfolioViewEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
-// eslint-disable-next-line import/no-namespace
-import * as networks from '../../../util/networks';
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
 import { mockNetworkState } from '../../../util/test/network';
@@ -27,6 +22,7 @@ import {
   BALANCE_TEST_ID,
   SECONDARY_BALANCE_TEST_ID,
 } from '../AssetElement/index.constants';
+import { SolScope } from '@metamask/keyring-api';
 
 const MOCK_CHAIN_ID = '0x1';
 
@@ -162,27 +158,10 @@ const assetFromSearch = {
 };
 
 describe('AssetOverview', () => {
-  beforeEach(() => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+  afterEach(() => {
+    jest.clearAllMocks();
   });
-
   it('should render correctly', async () => {
-    const container = renderWithProvider(
-      <AssetOverview
-        asset={asset}
-        displayBuyButton
-        displaySwapsButton
-        swapsIsLive
-        networkName="Ethereum Mainnet"
-      />,
-      { state: mockInitialState },
-    );
-    expect(container).toMatchSnapshot();
-  });
-
-  it('should render correctly when portfolio view is enabled', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
     const container = renderWithProvider(
       <AssetOverview
         asset={asset}
@@ -321,34 +300,64 @@ describe('AssetOverview', () => {
     const swapButton = getByTestId('token-swap-button');
     fireEvent.press(swapButton);
 
-    if (isPortfolioViewEnabled()) {
-      expect(navigate).toHaveBeenCalledTimes(3);
-      expect(navigate).toHaveBeenNthCalledWith(1, 'RampBuy', {
-        screen: 'GetStarted',
-        params: {
-          address: asset.address,
-          chainId: getDecimalChainId(MOCK_CHAIN_ID),
-        },
-      });
-      expect(navigate).toHaveBeenNthCalledWith(2, 'SendFlowView', {});
-      expect(navigate).toHaveBeenNthCalledWith(3, 'Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourcePage: 'MainView',
-          address: asset.address,
-          chainId: MOCK_CHAIN_ID,
-        },
-      });
-    } else {
-      expect(navigate).toHaveBeenCalledWith('Swaps', {
-        screen: 'SwapsAmountView',
-        params: {
-          sourcePage: 'MainView',
-          sourceToken: asset.address,
-          chainId: '0x1',
-        },
-      });
-    }
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'WalletTabHome', {
+      screen: 'WalletTabStackFlow',
+      params: {
+        screen: 'WalletView',
+      },
+    });
+    expect(navigate).toHaveBeenNthCalledWith(2, 'Swaps', {
+      screen: 'SwapsAmountView',
+      params: { sourceToken: '0x123', chainId: '0x1', sourcePage: 'MainView' },
+    });
+  });
+
+  it('should handle receive button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-receive-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'QRTabSwitcher', {
+      disableTabber: true,
+      initialScreen: 1,
+      networkName: undefined,
+    });
+  });
+
+  it('should handle bridge button press', async () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetOverview
+        asset={asset}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      { state: mockInitialState },
+    );
+
+    const receiveButton = getByTestId('token-bridge-button');
+    fireEvent.press(receiveButton);
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenNthCalledWith(1, 'BrowserTabHome', {
+      params: {
+        newTabUrl:
+          'https://portfolio.metamask.io/bridge/?metamaskEntry=mobile&srcChain=1',
+        timestamp: 123,
+      },
+      screen: 'BrowserView',
+    });
   });
 
   it('should not render swap button if displaySwapsButton is false', async () => {
@@ -381,8 +390,6 @@ describe('AssetOverview', () => {
   });
 
   it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
     const container = renderWithProvider(
       <AssetOverview
         asset={{
@@ -395,6 +402,37 @@ describe('AssetOverview', () => {
         swapsIsLive
       />,
       { state: mockInitialState },
+    );
+
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should render native balances when non evm network is selected', async () => {
+    const container = renderWithProvider(
+      <AssetOverview
+        asset={{
+          ...asset,
+          chainId: SolScope.Mainnet,
+          isNative: true,
+        }}
+        displayBuyButton
+        displaySwapsButton
+        swapsIsLive
+      />,
+      {
+        state: {
+          ...mockInitialState,
+          engine: {
+            ...mockInitialState.engine,
+            backgroundState: {
+              ...mockInitialState.engine.backgroundState,
+              MultichainNetworkController: {
+                selectedMultichainNetworkChainId: SolScope.Mainnet,
+              },
+            },
+          },
+        },
+      },
     );
 
     expect(container).toMatchSnapshot();
@@ -429,7 +467,6 @@ describe('AssetOverview', () => {
   });
 
   it('should prompt to add the network if coming from search and on a different chain', async () => {
-    jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     (Engine.context.NetworkController.getNetworkConfigurationByChainId as jest.Mock).mockReturnValueOnce(null);
     const differentChainAssetFromSearch = {
       ...assetFromSearch,
@@ -456,7 +493,6 @@ describe('AssetOverview', () => {
 
   describe('Portfolio view network switching', () => {
     beforeEach(() => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
       jest.useFakeTimers();
       // Reset mocks before each test
       jest.clearAllMocks();
@@ -570,8 +606,6 @@ describe('AssetOverview', () => {
     });
 
     it('render mainBalance as fiat and secondaryBalance as native with portfolio view enabled', async () => {
-      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
-
       const { getByTestId } = renderWithProvider(
         <AssetOverview asset={asset} />,
         {

@@ -22,6 +22,12 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AppMetadataController": {
+    "currentAppVersion": "",
+    "currentMigrationVersion": 0,
+    "previousAppVersion": "",
+    "previousMigrationVersion": 0
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -69,6 +75,22 @@
             "networkClientId": "mainnet",
             "type": "infura",
             "url": "https://mainnet.infura.io/v3/{infuraProjectId}",
+            "failoverUrls": []
+          }
+        ]
+      },
+      "0x18c6": {
+        "blockExplorerUrls": ["https://megaexplorer.xyz"],
+        "chainId": "0x18c6",
+        "defaultRpcEndpointIndex": 0,
+        "defaultBlockExplorerUrlIndex": 0,
+        "name": "Mega Testnet",
+        "nativeCurrency": "MegaETH",
+        "rpcEndpoints": [
+          {
+            "networkClientId": "megaeth-testnet",
+            "type": "custom",
+            "url": "https://carrot.megaeth.com/rpc",
             "failoverUrls": []
           }
         ]
@@ -268,7 +290,6 @@
     "approvalTransaction": null,
     "aggregatorMetadataLastFetched": 0,
     "quotesLastFetched": 0,
-    "topAssetsLastFetched": 0,
     "error": {
       "key": null,
       "description": null
@@ -406,7 +427,6 @@
     },
     "quoteFetchError": null,
     "quoteRequest": {
-      "slippage": 0.5,
       "srcTokenAddress": "0x0000000000000000000000000000000000000000"
     },
     "quotes": [],

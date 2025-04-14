@@ -63,7 +63,7 @@ exports[`AssetSearch should render correctly 1`] = `
         [
           {
             "color": "#121314",
-            "fontFamily": "EuclidCircularB-Regular",
+            "fontFamily": "CentraNo1-Book",
             "fontWeight": "400",
           },
           {
@@ -101,6 +101,7 @@ exports[`AssetSearch should render correctly 1`] = `
           "width": 24,
         }
       }
+      testID="clear-search-bar"
     >
       <SvgMock
         color="#121314"
