@@ -44,15 +44,15 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../selector
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { RefreshTestId, SpinnerTestId } from './constants';
-import { debounce } from 'lodash';
+import { debounce, cloneDeep, isEqual } from 'lodash';
 import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../selectors/networkInfos';
-import { isTestNet } from '../../../util/networks';
+import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
-
+import Logger from '../../../util/Logger';
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -370,18 +370,85 @@ const CollectibleContracts = ({
       )
     );
   }, [favoriteCollectibles, collectibles, onItemPress]);
+
+  const compareNftStates = useCallback((previousState, newState) => {
+    const newlyDetected = [];
+
+    // Iterate through chains in new state
+    Object.entries(newState).forEach(([chainId, newChainNfts]) => {
+      const previousChainNfts = previousState[chainId] || [];
+
+      // Find NFTs that exist in new state but not in previous state
+      newChainNfts.forEach((newNft) => {
+        const existsInPrevious = previousChainNfts.some(
+          (prevNft) =>
+            prevNft.address === newNft.address &&
+            prevNft.tokenId === newNft.tokenId,
+        );
+
+        if (!existsInPrevious) {
+          newlyDetected.push({ ...newNft, chainId });
+        }
+      });
+    });
+
+    return newlyDetected;
+  }, []);
+
+  const getNftDetectionAnalyticsParams = useCallback((chainId) => {
+    try {
+      return {
+        chain_id: getDecimalChainId(chainId),
+        source: 'detected',
+      };
+    } catch (error) {
+      Logger.error(
+        error,
+        'CollectibleContracts.getNftDetectionAnalyticsParams',
+      );
+      return undefined;
+    }
+  }, []);
+
   const onRefresh = useCallback(async () => {
     requestAnimationFrame(async () => {
-      setRefreshing(true);
+      // Get initial state of NFTs before refresh
       const { NftDetectionController, NftController } = Engine.context;
+      const previousNfts = cloneDeep(NftController.state.allNfts);
+
+      setRefreshing(true);
+
       const actions = [
         NftDetectionController.detectNfts(chainIdsToDetectNftsFor),
         NftController.checkAndUpdateAllNftsOwnershipStatus(),
       ];
       await Promise.allSettled(actions);
       setRefreshing(false);
+
+      // Get updated state after refresh
+      const newNfts = cloneDeep(NftController.state.allNfts);
+      // Compare states to find newly detected NFTs
+      if (!isEqual(previousNfts, newNfts)) {
+        const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
+        newlyDetectedNfts.forEach((nft) => {
+          const params = getNftDetectionAnalyticsParams(nft.chainId);
+          if (params) {
+            trackEvent(
+              createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+                .addProperties(params)
+                .build(),
+            );
+          }
+        });
+      }
     });
-  }, [setRefreshing, chainIdsToDetectNftsFor]);
+  }, [
+    chainIdsToDetectNftsFor,
+    compareNftStates,
+    createEventBuilder,
+    getNftDetectionAnalyticsParams,
+    trackEvent,
+  ]);
 
   const goToLearnMore = useCallback(
     () =>
