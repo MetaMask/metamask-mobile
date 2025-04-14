@@ -36,7 +36,6 @@ export const compareNftStates = (
   previousState?: AccountNfts,
   newState?: AccountNfts,
 ): Nft[] => {
-  console.log('compareNftStates');
   // Return empty array if newState is missing (nothing new to compare)
   if (!newState) return [];
 
