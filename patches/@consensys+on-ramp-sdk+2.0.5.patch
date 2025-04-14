@@ -1,9 +1,9 @@
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
 new file mode 100644
-index 0000000..bc25816
+index 0000000..43d8adc
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
-@@ -0,0 +1,166 @@
+@@ -0,0 +1,208 @@
 +export interface NativeTransakAccessToken {
 +    id: string;
 +    ttl: number;
@@ -144,6 +144,43 @@ index 0000000..bc25816
 +export interface OrderPaymentMethodField {
 +    name: string;
 +    id: string;
++    value: string;
++}
++export interface UserLimits {
++    response: {
++        data: {
++            isAllowed: boolean;
++            isKycRequired: boolean;
++            minFiatAmount: number;
++            maxFiatAmount: number;
++            limits: {
++                daily: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++                monthly: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++                yearly: {
++                    total: number;
++                    spent: number;
++                    remaining: number;
++                    exceeded: boolean;
++                };
++            };
++        };
++    };
++}
++export interface OttResponse {
++    token: string;
++}
++export interface OrdersList {
++    orders: BuyOrder[];
 +}
 +export declare enum TransakEnvironment {
 +    Production = 0,
@@ -153,6 +190,7 @@ index 0000000..bc25816
 +    private readonly partnerApiKey;
 +    private readonly frontendAuth;
 +    private transakAxios;
++    private environment;
 +    constructor(environment: TransakEnvironment, partnerApiKey: string, frontendAuth: string);
 +    sendUserOtp(email: string): Promise<{
 +        isTncAccepted: boolean;
@@ -169,13 +207,17 @@ index 0000000..bc25816
 +    createOrder(accessToken: NativeTransakAccessToken, reservation: Reservation): Promise<BuyOrder>;
 +    confirmPayment(accessToken: NativeTransakAccessToken, order: BuyOrder, paymentMethod: OrderPaymentMethod): Promise<any>;
 +    getOrder(accessToken: NativeTransakAccessToken, orderId: string): Promise<BuyOrder>;
++    getUserLimits(accessToken: NativeTransakAccessToken, fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
++    requestOtt(accessToken: NativeTransakAccessToken): Promise<OttResponse>;
++    generatePaymentWidgetUrl(ottToken: string, fiatCurrency: string, cryptoCurrency: string, network: string, fiatAmount: string, walletAddress: string, paymentMethod?: string): string;
++    getRecentOrders(accessToken: NativeTransakAccessToken, limit?: number): Promise<OrdersList>;
 +}
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
 new file mode 100644
-index 0000000..5ab9b9c
+index 0000000..d068604
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
-@@ -0,0 +1,241 @@
+@@ -0,0 +1,313 @@
 +"use strict";
 +var __importDefault = (this && this.__importDefault) || function (mod) {
 +    return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -183,6 +225,7 @@ index 0000000..5ab9b9c
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.NativeRampService = exports.TransakEnvironment = void 0;
 +const axios_1 = __importDefault(require("axios"));
++const NativeRampsConfig_1 = require("../test/NativeRampsConfig");
 +var TransakEnvironment;
 +(function (TransakEnvironment) {
 +    TransakEnvironment[TransakEnvironment["Production"] = 0] = "Production";
@@ -192,11 +235,8 @@ index 0000000..5ab9b9c
 +    constructor(environment, partnerApiKey, frontendAuth) {
 +        this.partnerApiKey = partnerApiKey;
 +        this.frontendAuth = frontendAuth;
-+        const endpoint = environment === TransakEnvironment.Production
-+            ? 'https://api.transak.com'
-+            : environment === TransakEnvironment.Staging
-+                ? 'https://api-stg.transak.com'
-+                : null;
++        this.environment = environment;
++        const endpoint = NativeRampsConfig_1.NativeRampsConfig.API_URLS[environment];
 +        if (!endpoint) {
 +            throw new Error('Invalid environment');
 +        }
@@ -414,6 +454,80 @@ index 0000000..5ab9b9c
 +                authorization: accessToken.id,
 +            },
 +        })).data.response;
++    }
++    async getUserLimits(accessToken, fiatCurrency, paymentMethod = 'credit_debit_card', kycType = 'SIMPLE') {
++        try {
++            const response = await this.transakAxios.get('/api/v2/orders/order-limit', {
++                params: {
++                    isBuyOrSell: 'BUY',
++                    paymentCategory: paymentMethod,
++                    kycType: kycType,
++                    fiatCurrency: fiatCurrency,
++                },
++                headers: {
++                    authorization: accessToken.id,
++                },
++            });
++            return response.data || { response: {} };
++        }
++        catch (error) {
++            console.error('Error in getUserLimits:', error);
++            throw error;
++        }
++    }
++    async requestOtt(accessToken) {
++        try {
++            const response = await this.transakAxios.post('/auth/public/v1/request-ott', {
++                partnerApiKey: this.partnerApiKey,
++            }, {
++                headers: {
++                    authorization: `Bearer ${accessToken.id}`,
++                    'Content-Type': 'application/json',
++                },
++            });
++            if (!response.data) {
++                throw new Error('Failed to get OTT token');
++            }
++            return response.data.response;
++        }
++        catch (error) {
++            console.error('Error in requestOtt:', error);
++            throw error;
++        }
++    }
++    generatePaymentWidgetUrl(ottToken, fiatCurrency, cryptoCurrency, network, fiatAmount, walletAddress, paymentMethod = 'credit_debit_card') {
++        const widgetBaseUrl = NativeRampsConfig_1.NativeRampsConfig.WIDGET_URLS[this.environment];
++        const params = new URLSearchParams({
++            ott: ottToken,
++            apiKey: this.partnerApiKey,
++            fiatCurrency: fiatCurrency,
++            cryptoCurrencyCode: cryptoCurrency,
++            productsAvailed: 'BUY',
++            fiatAmount: fiatAmount,
++            network: network,
++            paymentMethod: paymentMethod,
++            hideExchangeScreen: 'true',
++            walletAddress: walletAddress,
++            disableWalletAddressForm: 'true',
++        });
++        return `${widgetBaseUrl}?${params.toString()}`;
++    }
++    async getRecentOrders(accessToken, limit = 10) {
++        try {
++            return (await this.transakAxios.get('/api/v2/orders', {
++                params: {
++                    skip: 0,
++                    limit: limit,
++                },
++                headers: {
++                    authorization: accessToken.id,
++                },
++            })).data.response;
++        }
++        catch (error) {
++            console.error('Error in getRecentOrders:', error);
++            throw error;
++        }
 +    }
 +}
 +exports.NativeRampService = NativeRampService;
