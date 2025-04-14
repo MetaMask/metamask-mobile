@@ -5,7 +5,7 @@ import { personalSignatureConfirmationState } from '../../../../../../util/test/
 import AccountNetworkInfo from './AccountNetworkInfo';
 
 jest.mock('../../../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     AccountsController: {
       state: {
