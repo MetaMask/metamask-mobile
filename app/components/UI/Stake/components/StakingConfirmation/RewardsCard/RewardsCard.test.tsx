@@ -7,7 +7,6 @@ import { strings } from '../../../../../../../locales/i18n';
 
 const mockNavigate = jest.fn();
 
-// Updated mock to ensure it returns a clean navigation object
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
