@@ -184,17 +184,15 @@ stages:
       - run_ios_api_specs: {}
       - run_trade_swimlane_ios_smoke: {}
       - run_trade_swimlane_android_smoke: {}
-      - run_network_expansion_swimlane_ios_smoke: {}
-      - run_network_expansion_swimlane_android_smoke: {}
       - run_network_abstraction_swimlane_ios_smoke: {}
       - run_network_abstraction_swimlane_android_smoke: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
       - run_wallet_platform_swimlane_ios_smoke: {}
       - run_wallet_platform_swimlane_android_smoke: {}
-      # - run_tag_smoke_confirmations_ios: {}
+      - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      # - run_tag_smoke_core_ios: {}
-      # - run_tag_smoke_core_android: {}
       # - run_tag_multichain_permissions_ios: {}
       # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
@@ -209,23 +207,20 @@ stages:
     workflows:
       - ios_run_regression_tests: {}
       - android_run_regression_tests: {}
+      - run_ios_api_specs: {}
+      - run_trade_swimlane_ios_smoke: {}
+      - run_trade_swimlane_android_smoke: {}
+      - run_network_expansion_swimlane_ios_smoke: {}
+      - run_network_expansion_swimlane_android_smoke: {}
+      - run_network_abstraction_swimlane_ios_smoke: {}
+      - run_network_abstraction_swimlane_android_smoke: {}
+      - run_wallet_platform_swimlane_ios_smoke: {}
+      - run_wallet_platform_swimlane_android_smoke: {}
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_network_expansion_swimlane_ios_smoke: {}
-      - run_network_expansion_swimlane_android_smoke: {}
-      - run_tag_smoke_ramps_android: {}
-      - run_tag_smoke_ramps_ios: {}
-      - run_tag_smoke_identity_ios: {}
-      - run_tag_smoke_identity_android: {}
-      # - run_tag_smoke_assets_ios: {}
-      - run_tag_smoke_assets_android: {}
-      # - run_tag_smoke_swaps_ios: {}
-      # - run_tag_smoke_swaps_android: {}
-      - run_tag_smoke_core_ios: {}
-      - run_tag_smoke_core_android: {}
-      # - run_tag_smoke_notifications_ios: {}
-      # - run_tag_smoke_notifications_android: {}
+      - run_tag_multichain_permissions_ios: {}
+      - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
