@@ -1,6 +1,4 @@
-import { bytesToString, hexToBytes } from '@metamask/utils';
-import { NativeModules } from 'react-native';
-import { ShaAlgorithm } from './constants';
+import Crypto from 'react-native-quick-crypto';
 import { bytesLengthToBitsLength } from '../../util/bytes';
 
 /**
@@ -18,16 +16,21 @@ const pbkdf2 = async (
   iterations: number,
   keyLength: number,
 ): Promise<Uint8Array> => {
-  const Aes = NativeModules.Aes;
-  const derivedKey = await Aes.pbkdf2(
-    bytesToString(password),
-    bytesToString(salt),
-    iterations,
-    bytesLengthToBitsLength(keyLength),
-    ShaAlgorithm.Sha512,
+  const key = await Crypto.subtle.importKey(
+    'raw',
+    password,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits', 'deriveKey'],
   );
 
-  return hexToBytes(derivedKey);
+  const derivedBits = await Crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-512' },
+    key,
+    bytesLengthToBitsLength(keyLength)
+  );
+
+  return new Uint8Array(derivedBits);
 };
 
 export { pbkdf2 };

@@ -64,7 +64,10 @@ class AuthenticationService {
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { KeyringController }: any = Engine.context;
+    const start = performance.now();
     await KeyringController.submitPassword(password);
+    const end = performance.now();
+    console.log(`Function Execution Time (loginVaultCreation): ${end - start} milliseconds`);
     password = this.wipeSensitiveData();
   };
 

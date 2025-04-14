@@ -1,4 +1,5 @@
-import { hasProperty, isPlainObject, Json } from '@metamask/utils';
+import Crypto from 'react-native-quick-crypto';
+import { hasProperty, isPlainObject, Json, bytesToHex, remove0x } from '@metamask/utils';
 import {
   SALT_BYTES_COUNT,
   ENCRYPTION_LIBRARY,
@@ -87,7 +88,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
    */
   generateSalt = (size: number = SALT_BYTES_COUNT) => {
     const view = new Uint8Array(size);
-    global.crypto.getRandomValues(view);
+    Crypto.getRandomValues(view);
 
     // From: https://github.com/MetaMask/browser-passworder/blob/main/src/index.ts#L418
     // Uint8Array is a fixed length array and thus does not have methods like pop, etc
@@ -116,10 +117,37 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const key = await getEncryptionLibrary(lib).deriveKey(password, salt, opts);
+    const start = performance.now();
+    const passBuffer = Buffer.from(password, 'utf-8');
+    // This should be decoded from base64, but it wasn't in the previous implementation.
+    const saltBuffer = Buffer.from(salt, 'utf-8');
+
+    const key = await Crypto.subtle.importKey(
+      'raw',
+      passBuffer,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits', 'deriveKey'],
+    );
+
+    const derivedBits = await Crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: saltBuffer, iterations: opts.params.iterations, hash: 'SHA-512' },
+      key,
+      256
+    );
+
+    const derivedKey = await Crypto.subtle.importKey(
+      'raw',
+      derivedBits,
+      { name: 'AES-CBC', length: 256 },
+      exportable,
+      ['encrypt', 'decrypt']
+    );
+    const end = performance.now();
+    console.log(`Function Execution Time (keyFromPassword): ${end - start} milliseconds`);
 
     return {
-      key,
+      key: derivedKey,
       keyMetadata: opts,
       exportable,
       lib,
@@ -141,12 +169,18 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     const text = JSON.stringify(data);
 
     const lib = getEncryptionLibrary(key.lib);
-    const iv = await lib.generateIV(16);
-    const cipher = await lib.encrypt(text, key.key, iv);
+    const iv = Crypto.getRandomValues(new Uint8Array(16));
+    const dataBuffer = Buffer.from(text, 'utf-8');
+    const result = await Crypto.subtle.encrypt(
+      { name: 'AES-CBC', iv },
+      key.key,
+      dataBuffer,
+    );
 
+    const cipher = Buffer.from(result).toString('base64');
     return {
       cipher,
-      iv,
+      iv: remove0x(bytesToHex(iv)),
       keyMetadata: key.keyMetadata,
       lib: key.lib,
     };
@@ -167,8 +201,16 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // TODO: Check for key and payload compatibility?
 
     // We assume that both `payload.lib` and `key.lib` are the same here!
-    const lib = getEncryptionLibrary(payload.lib);
-    const text = await lib.decrypt(payload.cipher, key.key, payload.iv);
+    // const lib = getEncryptionLibrary(payload.lib);
+    const encryptedData = Buffer.from(payload.cipher, 'base64');
+    const vector = Buffer.from(payload.iv, 'hex');
+    const result = await Crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv: vector },
+      key.key,
+      encryptedData,
+    );
+
+    const text = Buffer.from(result).toString('utf-8');
 
     return JSON.parse(text);
   };
@@ -264,7 +306,9 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
       throw new Error('Key is not exportable');
     }
 
-    const json = JSON.stringify(key);
+    const exportedKey = await Crypto.subtle.exportKey('jwk', key.key);
+    const json = JSON.stringify({ ...key, key: exportedKey });
+
     return Buffer.from(json).toString('base64');
   };
 
@@ -279,6 +323,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     try {
       const json = Buffer.from(keyString, 'base64').toString();
       key = JSON.parse(json);
+      key.key = await Crypto.subtle.importKey('jwk', key.key, 'AES-CBC', true, ['encrypt', 'decrypt']);
     } catch (error) {
       throw new Error('Invalid exported key serialization format');
     }
@@ -301,6 +346,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     password: string,
     text: string,
   ): Promise<DetailedDecryptResult> => {
+    const start = performance.now();
     const payload = JSON.parse(text);
     const { salt, keyMetadata } = payload;
     const key = await this.keyFromPassword(
@@ -313,6 +359,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     );
     const exportedKeyString = await this.exportKey(key);
     const vault = await this.decryptWithKey(key, payload);
+    const end = performance.now();
+    console.log(`Function Execution Time (decryptWithDetail): ${end - start} milliseconds`);
 
     return {
       exportedKeyString,
@@ -337,6 +385,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     salt = this.generateSalt(),
     keyDerivationOptions = this.keyDerivationOptions,
   ): Promise<DetailedEncryptionResult> => {
+    const start = performance.now();
     const key = await this.keyFromPassword(
       password,
       salt,
@@ -351,6 +400,8 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     result.keyMetadata = key.keyMetadata;
     const vault = JSON.stringify(result);
 
+    const end = performance.now();
+    console.log(`Function Execution Time (encryptWithDetail): ${end - start} milliseconds`);
     return {
       vault,
       exportedKeyString,
