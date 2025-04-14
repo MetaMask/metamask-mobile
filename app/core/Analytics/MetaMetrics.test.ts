@@ -757,6 +757,7 @@ describe('MetaMetrics', () => {
     });
 
     const testE2EMode = async (isE2E: boolean) => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
       const utils = require('../../util/test/utils');
       utils.isE2E = isE2E;
 
