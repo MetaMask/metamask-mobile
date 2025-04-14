@@ -4675,6 +4675,13 @@
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/utils" "^11.1.0"
 
+"@metamask/app-metadata-controller@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/app-metadata-controller/-/app-metadata-controller-1.0.0.tgz#7d256d4227ed3ad6c58f0e96ea9989dcae081022"
+  integrity sha512-Y/IAIFf9hIAGKrH9YlK508eR+s+asVMk/868n7QseWRVzPsGxbPtjokb6CQeagpYnvkxRiuQ6o7FrqLASPIugA==
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+
 "@metamask/approval-controller@^7.1.3":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@metamask/approval-controller/-/approval-controller-7.1.3.tgz#2d28dfb9261806ab31855ec63bd6781fbd7a4ebf"
@@ -5861,10 +5868,10 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/transaction-controller@52.3.0":
-  version "52.3.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-52.3.0.tgz#8f0eb5340b6ede6819467686d6de6239c481555b"
-  integrity sha512-exodVGZkp34KonzxmxXnJZlC0d2H1TC8Uz6v7DCKUrgyP/oUgAFATibMaLQiu6aMC1Gb+1xUZFsiMVzKr/6XJg==
+"@metamask/transaction-controller@54.0.0":
+  version "54.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-54.0.0.tgz#08645afd4d1e72d409ff7435db8b3c3002afbf73"
+  integrity sha512-5YwclASd/wzf06t8dTe/ayj7ckM9K9WhDBUEx1Dj4Xr1b950I/ubFnrsLEg1heMVBqiBnzYFrp2OgytzehBcyQ==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -5874,7 +5881,7 @@
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/nonce-tracker" "^6.0.0"
