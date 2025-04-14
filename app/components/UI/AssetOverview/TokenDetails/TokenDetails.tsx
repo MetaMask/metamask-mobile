@@ -34,6 +34,9 @@ import { isSupportedLendingTokenByChainId } from '../../Earn/utils/token';
 import EarnEmptyStateCta from '../../Earn/components/EmptyStateCta';
 import { parseFloatSafe } from '../../Earn/utils';
 import { isStablecoinLendingFeatureEnabled } from '../../Stake/constants';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import { selectEvmTokenMarketData } from '../../../../selectors/multichain/evm';
+import { selectNonEvmMarketData } from '../../../../selectors/multichain';
 
 export interface TokenDetails {
   contractAddress: string | null;
@@ -63,33 +66,37 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
   );
-  const tokenExchangeRatesLegacy = useSelector(selectContractExchangeRates);
-  const conversionRateLegacy = useSelector(selectConversionRate);
   const conversionRateBySymbol = useSelector((state: RootState) =>
     selectConversionRateBySymbol(state, nativeCurrency),
   );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const tokenContractAddress = safeToChecksumAddress(asset.address);
-  const tokenList = useSelector(selectTokenList);
+  // const tokenList = useSelector(selectTokenList);
 
-  const conversionRate = isPortfolioViewEnabled()
-    ? conversionRateBySymbol
-    : conversionRateLegacy;
-  const tokenExchangeRates = isPortfolioViewEnabled()
-    ? tokenExchangeRatesByChainId
-    : tokenExchangeRatesLegacy;
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const nonEvmMarketData = useSelector(selectNonEvmMarketData);
+
+  const evmMarketData = useSelector((state: RootState) =>
+    selectEvmTokenMarketData(state, {
+      chainId: asset.chainId as Hex,
+      tokenAddress: asset.address,
+    }),
+  );
+
+  const conversionRate = conversionRateBySymbol;
 
   let tokenMetadata;
   let marketData;
 
-  if (asset.isETH) {
-    marketData = tokenExchangeRates?.[zeroAddress() as Hex];
-  } else if (tokenContractAddress) {
-    tokenMetadata = tokenList?.[tokenContractAddress.toLowerCase()];
-    marketData = tokenExchangeRates?.[tokenContractAddress as Hex];
+  if (isEvmNetworkSelected) {
+    marketData = nonEvmMarketData;
   } else {
-    Logger.log('cannot find contract address');
-    return null;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    tokenMetadata = evmMarketData?.metadata;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    marketData = evmMarketData?.marketData;
   }
 
   if (!conversionRate || conversionRate < 0) {
@@ -150,6 +157,8 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({ asset }) => {
 
   const hasAssetBalance =
     asset.balanceFiat && parseFloatSafe(asset.balanceFiat) > 0;
+
+  console.log('marketData', marketData);
 
   return (
     <View style={styles.tokenDetailsContainer}>
