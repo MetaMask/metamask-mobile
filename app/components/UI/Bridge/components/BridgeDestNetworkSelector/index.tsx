@@ -17,7 +17,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 
 export interface BridgeDestNetworkSelectorRouteParams {
-  shouldGoToTokens: boolean;
+  shouldGoToTokens?: boolean;
 }
 
 const createStyles = () => StyleSheet.create({
