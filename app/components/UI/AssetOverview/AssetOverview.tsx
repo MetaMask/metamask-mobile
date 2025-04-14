@@ -60,6 +60,7 @@ interface AssetOverviewProps {
   asset: TokenI;
   displayBuyButton?: boolean;
   displaySwapsButton?: boolean;
+  displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
   networkName?: string;
 }
@@ -68,6 +69,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
   displayBuyButton,
   displaySwapsButton,
+  displayBridgeButton,
   swapsIsLive,
   networkName,
 }: AssetOverviewProps) => {
@@ -324,6 +326,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           <AssetDetailsActions
             displayBuyButton={displayBuyButton}
             displaySwapsButton={displaySwapsButton}
+            displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}

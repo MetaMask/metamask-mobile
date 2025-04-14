@@ -33,24 +33,33 @@ export const useSwapBridgeNavigation = ({
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
 
-  const nativeSourceToken = getNativeAssetForChainId(
-    tokenBase?.chainId ?? selectedChainId,
-  );
-  const nativeSourceTokenFormatted: BridgeToken = {
-    address: nativeSourceToken.address,
-    name: nativeSourceToken.name ?? '',
-    symbol: nativeSourceToken.symbol,
-    image: nativeSourceToken.iconUrl ?? '',
-    decimals: nativeSourceToken.decimals,
-    chainId: selectedChainId,
-  };
+  let sourceNativeAsset;
+  try {
+    sourceNativeAsset = getNativeAssetForChainId(
+      tokenBase?.chainId ?? selectedChainId,
+    );
+  } catch (error) {
+    console.error(error);
+  }
 
-  const token = tokenBase ?? nativeSourceTokenFormatted;
+  const nativeSourceTokenFormatted: BridgeToken | undefined = sourceNativeAsset ? {
+    address: sourceNativeAsset.address,
+    name: sourceNativeAsset.name ?? '',
+    symbol: sourceNativeAsset.symbol,
+    image: sourceNativeAsset.iconUrl ?? '',
+    decimals: sourceNativeAsset.decimals,
+    chainId: selectedChainId,
+  } : undefined;
+
+  const token = tokenBase ?? nativeSourceTokenFormatted ?? undefined;
 
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
   const goToNativeBridge = useCallback(
     (bridgeViewMode: BridgeViewMode) => {
+      if (!token) {
+        return;
+      }
       navigation.navigate('Bridge', {
         screen: 'BridgeView',
         params: {
@@ -76,6 +85,10 @@ export const useSwapBridgeNavigation = ({
 
   // Swaps
   const handleSwapsNavigation = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+
     navigation.navigate(Routes.WALLET.HOME, {
       screen: Routes.WALLET.TAB_STACK_FLOW,
       params: {

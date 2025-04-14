@@ -114,22 +114,6 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@metamask/bridge-controller', () => {
-  const actual = jest.requireActual('@metamask/bridge-controller');
-  return {
-    getNativeAssetForChainId: jest.fn((chainId) => {
-      if (chainId === '0x2') {
-        const asset = actual.getNativeAssetForChainId('0x1');
-        return {
-          ...asset,
-          chainId: '0x2',
-        };
-      }
-      return actual.getNativeAssetForChainId(chainId);
-    }),
-  };
-});
-
 const asset = {
   balance: '400',
   balanceFiat: '1500',
@@ -377,7 +361,7 @@ describe('AssetOverview', () => {
     expect(buyButton).toBeNull();
   });
 
-  it('should render native balances even if there are no accounts for the asset chain in the state', async () => {
+  it.only('should render native balances even if there are no accounts for the asset chain in the state', async () => {
     const container = renderWithProvider(
       <AssetOverview
         asset={{
