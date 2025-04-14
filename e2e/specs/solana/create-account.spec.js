@@ -24,6 +24,8 @@ import Gestures from '../../utils/Gestures';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
+const ACCOUNT_TWO_TEXT = 'Solana Account 2';
+
 
 describe(SmokeConfirmations('Create Solana account'), () => {
   beforeAll(async () => {
@@ -31,7 +33,7 @@ describe(SmokeConfirmations('Create Solana account'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it.only('should be able to create a solana account', async () => {
+  it.only('should be able to create multiple solana accounts and switch between them', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -47,11 +49,26 @@ describe(SmokeConfirmations('Create Solana account'), () => {
         await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
         await AccountListBottomSheet.tapAddAccountButton();
         await AddAccountBottomSheet.tapCreateSolanaAccount();
-        await Assertions.checkIfTextRegexExists('Solana Account 1', 1);
+        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 1);
         await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
         //Assert solana account on main wallet view
-        await Assertions.checkIfTextRegexExists('Solana Account 1', 0);
+        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
 
+        //Create second solana account
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapAddAccountButton();
+        await AddAccountBottomSheet.tapCreateSolanaAccount();
+        await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 1);
+        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
+
+        //Assert solana account on main wallet view
+        await Assertions.checkIfTextRegexExists(ACCOUNT_TWO_TEXT, 0);
+
+        //Switch back to first solana account
+        await WalletView.tapIdenticon();
+        await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(1);
+        //Assert solana account on main wallet view
+        await Assertions.checkIfTextRegexExists(ACCOUNT_ONE_TEXT, 0);
       },
     );
   });
