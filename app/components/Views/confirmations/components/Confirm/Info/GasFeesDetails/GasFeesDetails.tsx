@@ -9,8 +9,9 @@ import useHideFiatForTestnet from '../../../../../../hooks/useHideFiatForTestnet
 import { useFeeCalculations } from '../../../../hooks/useFeeCalculations';
 import { useTransactionMetadataRequest } from '../../../../hooks/useTransactionMetadataRequest';
 import { useConfirmationMetricEvents } from '../../../../hooks/useConfirmationMetricEvents';
-import InfoRow from '../../../UI/InfoRow';
 import InfoSection from '../../../UI/InfoRow/InfoSection';
+import AlertRow from '../../../UI/InfoRow/AlertRow';
+import { RowAlertKey } from '../../../UI/InfoRow/AlertRow/constants';
 import styleSheet from './GasFeesDetails.styles';
 
 const GasFeesDetails = () => {
@@ -32,7 +33,8 @@ const GasFeesDetails = () => {
 
   return (
     <InfoSection>
-      <InfoRow
+      <AlertRow
+        alertField={RowAlertKey.EstimatedFee}
         label={strings('transactions.network_fee')}
         tooltip={strings('transactions.network_fee_tooltip')}
         onTooltipPress={handleNetworkFeeTooltipClickedEvent}
@@ -47,7 +49,7 @@ const GasFeesDetails = () => {
             {feeCalculations.estimatedFeeNative}
           </Text>
         </View>
-      </InfoRow>
+      </AlertRow>
     </InfoSection>
   );
 };
