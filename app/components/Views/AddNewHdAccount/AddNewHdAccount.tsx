@@ -30,14 +30,20 @@ import Button, {
 import SRPList from '../../UI/SRPList';
 import Logger from '../../../util/Logger';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { getHdKeyringOfSelectedAccountOrPrimaryKeyring } from '../../../selectors/multisrp';
 
 const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
+  const keyringOfSelectedAccount = useSelector(
+    getHdKeyringOfSelectedAccountOrPrimaryKeyring,
+  );
+  const [keyringId, setKeyringId] = useState<string>(
+    keyringOfSelectedAccount.metadata.id,
+  );
   const hdKeyrings = useSelector(selectHDKeyrings);
-  const [keyringId, setKeyringId] = useState<string>(hdKeyrings[0].metadata.id);
   const [showSRPList, setShowSRPList] = useState(false);
 
   const onSubmit = async () => {
