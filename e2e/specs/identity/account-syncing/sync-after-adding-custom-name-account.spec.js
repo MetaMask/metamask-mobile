@@ -108,8 +108,10 @@ describe(
       });
 
       await importWalletWithRecoveryPhrase(
-        IDENTITY_TEAM_SEED_PHRASE,
-        IDENTITY_TEAM_PASSWORD,
+        {
+          seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
+          password: IDENTITY_TEAM_PASSWORD,
+        }
       );
 
       await WalletView.tapIdenticon();

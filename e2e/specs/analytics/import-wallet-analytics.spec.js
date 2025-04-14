@@ -7,7 +7,7 @@ import { withFixtures } from '../../fixtures/fixture-helper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
 import { getEventsPayloads } from './helpers';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { MetaMetricsEvents } from '../../../app/core/Analytics/MetaMetrics.events';
+import { EVENT_NAME } from '../../../app/core/Analytics/MetaMetrics.events';
 import { getBalanceMocks, INFURA_MOCK_BALANCE_1_ETH } from '../../api-mocking/mock-responses/balance-mocks';
 import { IDENTITY_TEAM_PASSWORD, IDENTITY_TEAM_SEED_PHRASE } from '../identity/utils/constants';
 
@@ -48,11 +48,11 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
 
       const walletImportedEvent = events.find(
         (event) =>
-          event.event === MetaMetricsEvents.WALLET_IMPORTED.category,
+          event.event === EVENT_NAME.WALLET_IMPORTED,
       );
       const walletSetupCompletedEvent = events.find(
         (event) =>
-          event.event === MetaMetricsEvents.WALLET_SETUP_COMPLETED.category,
+          event.event === EVENT_NAME.WALLET_SETUP_COMPLETED,
       );
 
       await Assertions.checkIfObjectsMatch(

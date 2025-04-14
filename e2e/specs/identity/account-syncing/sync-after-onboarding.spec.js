@@ -19,7 +19,7 @@ import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { getEventsPayloads } from '../../analytics/helpers';
-import { MetaMetricsEvents } from '../../../../app/core/Analytics/MetaMetrics.events';
+import { EVENT_NAME } from '../../../../app/core/Analytics/MetaMetrics.events';
 
 describe(
   SmokeIdentity('Account syncing - syncs previously synced accounts'),
@@ -99,23 +99,22 @@ describe(
       const events = await getEventsPayloads(
         mockServer,
         [
-          MetaMetricsEvents.ACCOUNTS_SYNC_ADDED.category,
-          MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED.category,
+          EVENT_NAME.ACCOUNTS_SYNC_ADDED,
+          EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
         ],
       );
 
       // There should be 3 events:
       // 1 for adding the account (Since every wallet always adds the first account) and 2 for updating the names (from user storage)
       const addedAccountEvent = events.find(
-        (event) => event.event === MetaMetricsEvents.ACCOUNTS_SYNC_ADDED.category,
+        (event) => event.event === EVENT_NAME.ACCOUNTS_SYNC_ADDED,
       );
       const updatedAccountEvents = events.filter(
-        (event) => event.event === MetaMetricsEvents.ACCOUNTS_SYNC_NAME_UPDATED.category,
+        (event) => event.event === EVENT_NAME.ACCOUNTS_SYNC_NAME_UPDATED,
       );
-      await Assertions.checkIfArrayHasLength(
-        addedAccountEvent,
-        1,
-      );
+
+      await Assertions.checkIfValueIsPresent(addedAccountEvent);
+
       await Assertions.checkIfArrayHasLength(
         updatedAccountEvents,
         2,
