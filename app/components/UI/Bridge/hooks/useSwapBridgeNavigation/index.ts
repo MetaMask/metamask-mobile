@@ -101,6 +101,7 @@ export const useSwapBridgeNavigation = ({
 
     const swapToken = tokenBase ?? {
       // For EVM chains, default swap token addr is zero address
+      // Old Swap UI is EVM only, so we don't need to worry about Solana
       address: ethers.constants.AddressZero,
       chainId: selectedChainId,
     };
