@@ -11,7 +11,7 @@ const CONSOLE_LOG_CONFIG = {
   showHeaders: false,
   showRequestBody: true,
   showResponseBody: false,
-}
+};
 
 /**
  * Checks if a directory exists at the specified path.
@@ -27,7 +27,7 @@ const dirExists = async (dir) => {
   catch (error) {
     return false;
   }
-}
+};
 
 /**
  * Creates a new log file name with timestamp
@@ -171,7 +171,7 @@ export const startApiMonitor = async (port) => {
 
       // Console logging
 
-      console.log(`\n📡 ${method} ${returnUrl}`)
+      console.log(`\n📡 ${method} ${returnUrl}`);
       console.log('----------------------------------------');
 
       if (CONSOLE_LOG_CONFIG.showHeaders) {

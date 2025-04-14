@@ -35,9 +35,7 @@ const mockInstance = {
 jest.mock('./MetaMetricsTestUtils', () => ({
   __esModule: true,
   default: {
-    getInstance: jest.fn().mockImplementation(() => {
-      return mockInstance;
-    }),
+    getInstance: jest.fn().mockImplementation(() => mockInstance),
   },
 }));
 
