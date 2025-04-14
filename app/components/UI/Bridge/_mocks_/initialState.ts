@@ -101,7 +101,7 @@ export const initialState = {
         ],
       },
       NetworkController: {
-        selectedNetworkClientId: 'ethNetworkClientId',
+        selectedNetworkClientId: 'mainnet',
         networksMetadata: {
           mainnet: {
             EIPS: {
@@ -119,7 +119,7 @@ export const initialState = {
             chainId: ethChainId,
             rpcEndpoints: [
               {
-                networkClientId: 'ethNetworkClientId',
+                networkClientId: 'mainnet',
               },
             ],
             defaultRpcEndpointIndex: 0,
@@ -368,6 +368,21 @@ export const initialState = {
             tokensLastFetched: 0,
           },
         },
+      },
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: [
+              evmAccountAddress,
+            ],
+            type: 'HD Key Tree',
+          },
+          { accounts: [], type: 'QR Hardware Wallet Device' },
+          {
+            accounts: [solanaAccountAddress],
+            type: 'Snap Keyring',
+          },
+        ],
       },
     },
   },
