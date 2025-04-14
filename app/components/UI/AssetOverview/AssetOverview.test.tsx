@@ -114,6 +114,22 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('@metamask/bridge-controller', () => {
+  const actual = jest.requireActual('@metamask/bridge-controller');
+  return {
+    getNativeAssetForChainId: jest.fn((chainId) => {
+      if (chainId === '0x2') {
+        const asset = actual.getNativeAssetForChainId('0x1');
+        return {
+          ...asset,
+          chainId: '0x2',
+        };
+      }
+      return actual.getNativeAssetForChainId(chainId);
+    }),
+  };
+});
+
 const asset = {
   balance: '400',
   balanceFiat: '1500',
