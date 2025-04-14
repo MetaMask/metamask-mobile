@@ -6,6 +6,28 @@ import { NavigationContainer } from '@react-navigation/native';
 import DestinationAccountSelector from './index';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
+// Mock Engine
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    AccountsController: {
+      state: {
+        internalAccounts: {
+          accounts: {
+            '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+              address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+              name: 'Account 1',
+            },
+            '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi': {
+              address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+              name: 'Account 2',
+            },
+          },
+        },
+      },
+    },
+  },
+}));
+
 // Mock React Native Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -18,11 +40,11 @@ jest.mock('../../../../hooks/useAccounts', () => ({
   useAccounts: () => ({
     accounts: [
       {
-        address: '0x1234567890123456789012345678901234567890',
+        address: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 1',
       },
       {
-        address: '0x0987654321098765432109876543210987654321',
+        address: '5vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
         name: 'Account 2',
       },
     ],
@@ -118,6 +140,32 @@ describe('DestinationAccountSelector', () => {
   it('clears destination address when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
+    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    fireEvent.press(closeButton);
+
+    const actions = store.getActions();
+    expect(actions).toContainEqual({
+      type: 'bridge/setDestAddress',
+      payload: undefined,
+    });
+  });
+
+  it('sets first account as destination when no destination is set', () => {
+    const { store } = renderComponent({
+      bridge: {
+        destAddress: undefined,
+      },
+    });
+
+    const actions = store.getActions();
+    expect(actions).toContainEqual({
+      type: 'bridge/setDestAddress',
+      payload: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+    });
+  });
+
+  it('clears destination when close button is pressed', () => {
+    const { getByTestId, store } = renderComponent();
     const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
     fireEvent.press(closeButton);
 
