@@ -37,7 +37,9 @@ export default class MetaMetricsTestUtils {
      * });
      * ```
      */
-    this.sendMetaMetricsinE2E = LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>().sendMetaMetricsinE2E ?? false;
+    this.sendMetaMetricsinE2E =
+      LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>?.()
+        ?.sendMetaMetricsinE2E ?? false;
   }
 
   /**
