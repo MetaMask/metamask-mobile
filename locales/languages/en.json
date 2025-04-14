@@ -3579,9 +3579,7 @@
       "start_earning": "Start earning"
     },
     "service_interruption_banner": {
-      "title": "We're experiencing service disruptions for:",
-      "pooled_staking_service_name": "Pooled-Staking",
-      "stablecoin_lending_service_name": "Stablecoin Lending"
+      "maintenance_message": "We're down for maintenance. We'll be back online soon!"
     }
   },
   "stake": {
