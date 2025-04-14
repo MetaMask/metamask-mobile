@@ -1506,7 +1506,7 @@ describe('NetworkSettings', () => {
 
       wrapper.setProps({
         networkConfigurations: {
-          ['0x1']: {
+          '0x1': {
             chainId: '0x1',
             name: 'Mainnet',
           },
