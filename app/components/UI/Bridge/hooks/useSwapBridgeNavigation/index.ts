@@ -12,8 +12,8 @@ import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../useInitialSourceToken';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
-import isBridgeAllowed from '../../utils/isBridgeAllowed';
 ///: END:ONLY_INCLUDE_IF
+import isBridgeAllowed from '../../utils/isBridgeAllowed';
 
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
