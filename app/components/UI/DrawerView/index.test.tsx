@@ -28,7 +28,7 @@ jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   return {
-    getTotalFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
+    getTotalEvmFiatAccountBalance: () => ({ ethFiat: 0, tokenFiat: 0 }),
     context: {
       KeyringController: {
         state: {
