@@ -439,7 +439,7 @@
       "packages": {
         "rimraf>glob>fs.realpath": true,
         "rimraf>glob>inflight": true,
-        "image-size>queue>inherits": true,
+        "rimraf>glob>inherits": true,
         "rimraf>glob>minimatch": true,
         "rimraf>glob>once": true,
         "rimraf>glob>path-is-absolute": true
@@ -462,7 +462,7 @@
         "setTimeout": true
       }
     },
-    "jest-worker>supports-color>has-flag": {
+    "chalk>supports-color>has-flag": {
       "globals": {
         "process.argv": true
       }
@@ -498,12 +498,12 @@
       "globals": {
         "process.nextTick": true
       },
-      "packages": { 
+      "packages": {
         "rimraf>glob>once": true,
         "rimraf>glob>inflight>wrappy": true
       }
     },
-    "image-size>queue>inherits": {
+    "rimraf>glob>inherits": {
       "builtin": {
         "util.inherits": true
       }
@@ -826,7 +826,7 @@
         "metro-source-map>ob1": true,
         "source-map": true,
         "metro-source-map>source-map": true,
-        "metro-symbolicate>vlq": true
+        "metro-source-map>vlq": true
       }
     },
     "metro-symbolicate": {
@@ -842,7 +842,7 @@
         "invariant": true,
         "metro-source-map": true,
         "nullthrows": true,
-        "metro-symbolicate>vlq": true
+        "metro-source-map>vlq": true
       }
     },
     "metro-transform-plugins": {
@@ -992,7 +992,7 @@
         "setTimeout": true
       },
       "packages": {
-        "image-size>queue>inherits": true
+        "rimraf>glob>inherits": true
       }
     },
     "metro-config>jest-validate>pretty-format>react-is": {
@@ -1043,7 +1043,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "jest-worker>supports-color": {
@@ -1056,7 +1056,7 @@
         "process.platform": true
       },
       "packages": {
-        "jest-worker>supports-color>has-flag": true
+        "chalk>supports-color>has-flag": true
       }
     },
     "metro-file-map>micromatch>braces>fill-range>to-regex-range": {
