@@ -20,6 +20,10 @@ jest.mock('../../../util/address', () => {
   };
 });
 
+jest.mock('../../../util/notifications/constants/config', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
