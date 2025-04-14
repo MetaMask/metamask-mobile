@@ -5,14 +5,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import {
-  View,
-  Alert,
-  BackHandler,
-  ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
