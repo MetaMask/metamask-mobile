@@ -12,6 +12,7 @@ import { getNativeAssetForChainId } from '@metamask/bridge-controller';
 import { BridgeRouteParams } from '../useInitialSourceToken';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import isBridgeAllowed from '../../utils/isBridgeAllowed';
 ///: END:ONLY_INCLUDE_IF
 
 /**
@@ -33,25 +34,30 @@ export const useSwapBridgeNavigation = ({
   const selectedChainId = useSelector(selectChainId);
   const goToPortfolioBridge = useGoToPortfolioBridge(location);
 
+  const bridgeAllowed = isBridgeAllowed(selectedChainId);
+
   let sourceNativeAsset;
   try {
-    sourceNativeAsset = getNativeAssetForChainId(
-      tokenBase?.chainId ?? selectedChainId,
-    );
+    if (!tokenBase) {
+      sourceNativeAsset = getNativeAssetForChainId(selectedChainId);
+    }
   } catch (error) {
-    console.error(error);
+    // Suppress error as it's expected when the chain is not supported
   }
 
-  const nativeSourceTokenFormatted: BridgeToken | undefined = sourceNativeAsset ? {
-    address: sourceNativeAsset.address,
-    name: sourceNativeAsset.name ?? '',
-    symbol: sourceNativeAsset.symbol,
-    image: sourceNativeAsset.iconUrl ?? '',
-    decimals: sourceNativeAsset.decimals,
-    chainId: selectedChainId,
-  } : undefined;
+  const nativeSourceTokenFormatted: BridgeToken | undefined = sourceNativeAsset
+    ? {
+        address: sourceNativeAsset.address,
+        name: sourceNativeAsset.name ?? '',
+        symbol: sourceNativeAsset.symbol,
+        image: sourceNativeAsset.iconUrl ?? '',
+        decimals: sourceNativeAsset.decimals,
+        chainId: selectedChainId,
+      }
+    : undefined;
 
-  const token = tokenBase ?? nativeSourceTokenFormatted ?? undefined;
+  const candidateToken = tokenBase ?? nativeSourceTokenFormatted;
+  const token = bridgeAllowed ? candidateToken : undefined;
 
   // Bridge
   // title is consumed by getBridgeNavbar in app/components/UI/Navbar/index.js
