@@ -1,10 +1,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Text } from 'react-native';
 import Button from '@metamask/react-native-button';
 import getStyles from './styledButtonStyles';
 import { ThemeContext, mockTheme } from '../../../util/theme';
-import { ViewPropTypes, TextPropTypes } from 'deprecated-react-native-prop-types';
+import {
+  ViewPropTypes,
+  TextPropTypes,
+} from 'deprecated-react-native-prop-types';
 
 /**
  * @deprecated The `<StyledButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.
