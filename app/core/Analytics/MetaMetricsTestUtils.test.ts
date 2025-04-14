@@ -1,7 +1,10 @@
 import { LaunchArguments } from 'react-native-launch-arguments';
-import MetaMetricsTestUtils from './MetaMetricsTestUtils';
 import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 import { ITrackingEvent } from './MetaMetrics.types';
+
+jest.unmock('./MetaMetricsTestUtils');
+
+import { MetaMetricsTestUtils } from './MetaMetricsTestUtils';
 
 jest.mock('react-native-launch-arguments', () => ({
   LaunchArguments: {
@@ -12,6 +15,7 @@ jest.mock('react-native-launch-arguments', () => ({
 jest.mock('../../util/test/utils', () => ({
   E2E_METAMETRICS_TRACK_URL: 'https://test-server.com/metametrics',
 }));
+
 
 const testEvent: ITrackingEvent = {
   name: 'test_event', properties: {isTest: true},
@@ -41,7 +45,7 @@ describe('MetaMetricsTestUtils', () => {
 
   describe('Singleton pattern', () => {
     it('should return the same instance when getInstance is called multiple times', () => {
-      const instance1 = MetaMetricsTestUtils.getInstance();
+     const instance1 = MetaMetricsTestUtils.getInstance();
       const instance2 = MetaMetricsTestUtils.getInstance();
 
       expect(instance1).toBe(instance2);

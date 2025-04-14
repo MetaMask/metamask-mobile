@@ -2,8 +2,8 @@ import { LaunchArguments } from 'react-native-launch-arguments';
 import { ITrackingEvent } from './MetaMetrics.types';
 import { E2E_METAMETRICS_TRACK_URL } from '../../util/test/utils';
 
-export default class MetaMetricsTestUtils {
-  private static instance: MetaMetricsTestUtils | undefined;
+export class MetaMetricsTestUtils {
+  public static instance: MetaMetricsTestUtils | null = null;
   private readonly sendMetaMetricsinE2E: boolean;
 
   public static getInstance(): MetaMetricsTestUtils {
@@ -18,7 +18,7 @@ export default class MetaMetricsTestUtils {
    * This is used for testing purposes to ensure a fresh instance is created.
    */
   public static resetInstance(): void {
-    MetaMetricsTestUtils.instance = undefined;
+    MetaMetricsTestUtils.instance = null;
   }
 
   constructor() {
@@ -37,8 +37,9 @@ export default class MetaMetricsTestUtils {
      * });
      * ```
      */
-    this.sendMetaMetricsinE2E = LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>().sendMetaMetricsinE2E ?? false;
-  }
+     this.sendMetaMetricsinE2E =
+     LaunchArguments.value<{ sendMetaMetricsinE2E?: boolean }>?.()
+       ?.sendMetaMetricsinE2E ?? false;  }
 
   /**
    * Sends an event to the test server
