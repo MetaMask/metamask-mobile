@@ -390,6 +390,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -406,7 +407,7 @@ exports[`Carousel should only render fund banner when all banners are dismissed 
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1458,6 +1459,7 @@ exports[`Carousel should render correctly 1`] = `
               >
                 <Text
                   allowFontScaling={false}
+                  selectable={false}
                   style={
                     [
                       {
@@ -1474,7 +1476,7 @@ exports[`Carousel should render correctly 1`] = `
                     ]
                   }
                 >
-                  
+                  󰅖
                 </Text>
               </TouchableOpacity>
             </View>
