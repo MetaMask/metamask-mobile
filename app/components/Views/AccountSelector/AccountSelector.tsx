@@ -139,18 +139,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     () => (
       <AddAccountActions
         onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
-        onAddHdAccount={() =>
-          setScreen(AccountSelectorScreens.AddHdAccountSelector)
-        }
-      />
-    ),
-    [],
-  );
-
-  const renderAddHdAccountSelector = useCallback(
-    () => (
-      <AddNewHdAccount
-        onBack={() => setScreen(AccountSelectorScreens.AccountSelector)}
       />
     ),
     [],
@@ -162,8 +150,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountSelectorScreens.AddHdAccountSelector:
-        return renderAddHdAccountSelector();
       default:
         return renderAccountSelector();
     }
@@ -171,7 +157,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     screen,
     renderAccountSelector,
     renderAddAccountActions,
-    renderAddHdAccountSelector,
   ]);
 
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;

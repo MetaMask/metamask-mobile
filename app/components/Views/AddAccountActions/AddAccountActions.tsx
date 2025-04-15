@@ -54,15 +54,7 @@ import { BtcScope } from '@metamask/keyring-api';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 ///: END:ONLY_INCLUDE_IF
 
-const AddAccountActions = (props: AddAccountActionsProps) => {
-  // The props is destructured here because of prettier
-  // causing the fence to be at the ending curly brace.
-  const {
-    onBack,
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    onAddHdAccount,
-    ///: END:ONLY_INCLUDE_IF
-  } = props;
+const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
@@ -126,10 +118,6 @@ const AddAccountActions = (props: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   }, [
-    ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-    hdKeyrings.length,
-    onAddHdAccount,
-    ///: END:ONLY_INCLUDE_IF
     trackEvent,
     createEventBuilder,
     onBack,
