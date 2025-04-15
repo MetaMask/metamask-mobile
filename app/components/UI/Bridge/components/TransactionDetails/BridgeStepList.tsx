@@ -44,10 +44,7 @@ export default function BridgeStepList({
   srcChainTxMeta,
   networkConfigurationsByChainId,
 }: BridgeStepsProps) {
-  const steps = useMemo(
-    () => bridgeHistoryItem?.quote.steps || [],
-    [bridgeHistoryItem?.quote.steps],
-  );
+  const steps = bridgeHistoryItem?.quote.steps || [];
 
   const stepStatuses = useMemo(
     () =>
