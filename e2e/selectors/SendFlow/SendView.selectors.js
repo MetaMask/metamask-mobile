@@ -10,4 +10,5 @@ export const SendViewSelectorsIDs = {
   SEND_BACK_BUTTON: 'send-back-button',
   ADD_ADDRESS_BUTTON: 'add-address-button-a',
   CONTAINER_ID: 'send-screen',
+  SOLANA_INPUT_ADDRESS_FIELD: 'input',
 };
