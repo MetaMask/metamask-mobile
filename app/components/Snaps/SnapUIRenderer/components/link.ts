@@ -15,7 +15,7 @@ export const link: UIComponentFactory<LinkElement> = ({
       return child;
     }
 
-    if (typeof child === 'object' && 'type' in child && child.type === 'Icon') {
+    if (child?.type === 'Icon') {
       return {
         ...child,
         props: {
