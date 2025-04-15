@@ -27,8 +27,13 @@ import { ResultType } from '../../../constants/signatures';
 import styleSheet from './Footer.styles';
 
 export const Footer = () => {
-  const { alerts, fieldAlerts, hasDangerAlerts, hasUnconfirmedDangerAlerts } =
-    useAlerts();
+  const {
+    alerts,
+    fieldAlerts,
+    hasBlockingAlerts,
+    hasDangerAlerts,
+    hasUnconfirmedDangerAlerts,
+  } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { isQRSigningInProgress, needsCameraPermission } =
     useQRHardwareContext();
@@ -91,6 +96,9 @@ export const Footer = () => {
         ? strings('alert_system.review_alerts')
         : strings('alert_system.review_alert');
     }
+    if (hasBlockingAlerts) {
+      return strings('alert_system.review_alerts');
+    }
     return strings('confirm.confirm');
   };
 
@@ -116,7 +124,7 @@ export const Footer = () => {
       isDanger:
         securityAlertResponse?.result_type === ResultType.Malicious ||
         hasDangerAlerts,
-      isDisabled: needsCameraPermission,
+      isDisabled: needsCameraPermission || hasBlockingAlerts,
       label: confirmButtonLabel(),
       size: ButtonSize.Lg,
       onPress: onSignConfirm,

@@ -411,3 +411,13 @@ jest.mock('@react-native-firebase/messaging', () => {
 
   return module;
 });
+
+jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
+  return {
+    default: {
+      getInstance: jest.fn().mockReturnValue({
+        trackEvent: jest.fn(),
+      }),
+    },
+  };
+});

@@ -2,8 +2,10 @@ import { act } from '@testing-library/react-native';
 import React from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
+  generateContractInteractionState,
   personalSignatureConfirmationState,
   securityAlertResponse,
+  stakingClaimConfirmationState,
   stakingDepositConfirmationState,
   stakingWithdrawalConfirmationState,
   typedSignV1ConfirmationState,
@@ -12,6 +14,14 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './Confirm';
+
+jest.mock('../../../../selectors/featureFlagController/confirmations', () => ({
+  selectConfirmationRedesignFlags: () => ({
+    signatures: true,
+    staking_confirmations: true,
+    contract_interaction: true,
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -89,6 +99,7 @@ jest.mock('react-native-gzip', () => ({
 describe('Confirm', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   it('renders modal confirmation', async () => {
@@ -112,7 +123,7 @@ describe('Confirm', () => {
     expect(getByTestId('flat-confirmation-container')).toBeDefined();
   });
 
-  it('renders correct information for personal sign', () => {
+  it('renders information for personal sign', () => {
     const { getAllByRole, getByText } = renderWithProvider(
       <SafeAreaProvider>
         <Confirm />
@@ -132,7 +143,7 @@ describe('Confirm', () => {
     expect(getAllByRole('button')).toHaveLength(2);
   });
 
-  it('renders correct information for typed sign v1', () => {
+  it('renders information for typed sign v1', () => {
     const { getAllByRole, getAllByText, getByText, queryByText } =
       renderWithProvider(
         <SafeAreaProvider>
@@ -151,7 +162,7 @@ describe('Confirm', () => {
     expect(queryByText('This is a deceptive request')).toBeNull();
   });
 
-  it('renders correct information for staking deposit', async () => {
+  it('renders information for staking deposit', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingDepositConfirmationState,
     });
@@ -163,7 +174,7 @@ describe('Confirm', () => {
     expect(getByText('Advanced details')).toBeDefined();
   });
 
-  it('renders correct information for staking withdrawal', async () => {
+  it('renders information for staking withdrawal', async () => {
     const { getByText } = renderWithProvider(<Confirm />, {
       state: stakingWithdrawalConfirmationState,
     });
@@ -171,6 +182,36 @@ describe('Confirm', () => {
     expect(getByText('Unstaking to')).toBeDefined();
     expect(getByText('Interacting with')).toBeDefined();
     expect(getByText('Network')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+  });
+
+  it('renders information for staking claim', async () => {
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: stakingClaimConfirmationState,
+    });
+    expect(getByText('Estimated changes')).toBeDefined();
+    expect(getByText('Claiming to')).toBeDefined();
+    expect(getByText('Interacting with')).toBeDefined();
+    expect(getByText('Pooled Staking')).toBeDefined();
+    expect(getByText('Network')).toBeDefined();
+    expect(getByText('Ethereum Mainnet')).toBeDefined();
+    expect(getByText('Network Fee')).toBeDefined();
+  });
+
+  it('renders information for contract interaction', async () => {
+    jest
+      .spyOn(ConfirmationRedesignEnabled, 'useConfirmationRedesignEnabled')
+      .mockReturnValue({ isRedesignedEnabled: true });
+
+    const { getByText } = renderWithProvider(<Confirm />, {
+      state: generateContractInteractionState,
+    });
+
+    expect(getByText('Transaction request')).toBeDefined();
+    expect(
+      getByText('Review request details before you confirm.'),
+    ).toBeDefined();
+    expect(getByText('Estimated changes')).toBeDefined();
     expect(getByText('Network Fee')).toBeDefined();
   });
 

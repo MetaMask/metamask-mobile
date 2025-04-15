@@ -25,6 +25,7 @@ export interface BridgeState {
   destAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  destAddress: string | undefined;
   selectedSourceChainIds: (Hex | CaipChainId)[] | undefined;
   selectedDestChainId: Hex | CaipChainId | undefined;
   slippage: string;
@@ -35,6 +36,7 @@ export const initialState: BridgeState = {
   destAmount: undefined,
   sourceToken: undefined,
   destToken: undefined,
+  destAddress: undefined,
   selectedSourceChainIds: undefined,
   selectedDestChainId: undefined,
   slippage: '0.5',
@@ -52,7 +54,10 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setSelectedSourceChainIds: (state, action: PayloadAction<(Hex | CaipChainId)[]>) => {
+    setSelectedSourceChainIds: (
+      state,
+      action: PayloadAction<(Hex | CaipChainId)[]>,
+    ) => {
       state.selectedSourceChainIds = action.payload;
     },
     setSelectedDestChainId: (
@@ -67,6 +72,9 @@ const slice = createSlice({
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       state.destToken = action.payload;
+    },
+    setDestAddress: (state, action: PayloadAction<string | undefined>) => {
+      state.destAddress = action.payload;
     },
     setSlippage: (state, action: PayloadAction<string>) => {
       state.slippage = action.payload;
@@ -119,8 +127,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) =>
-    chainId ?
-      bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[formatChainIdToCaip(chainId)].topAssets
+    chainId
+      ? bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ].topAssets
       : undefined,
 );
 
@@ -220,6 +230,11 @@ export const selectSlippage = createSelector(
   (bridgeState) => bridgeState.slippage,
 );
 
+export const selectDestAddress = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.destAddress,
+);
+
 // Actions
 export const {
   setSourceAmount,
@@ -230,4 +245,5 @@ export const {
   setSelectedSourceChainIds,
   setSelectedDestChainId,
   setSlippage,
+  setDestAddress,
 } = actions;

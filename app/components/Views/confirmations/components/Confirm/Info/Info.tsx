@@ -5,6 +5,7 @@ import { UnstakeConfirmationViewProps } from '../../../../../UI/Stake/Views/Unst
 import { useQRHardwareContext } from '../../../context/QRHardwareContext';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
+import ContractInteraction from '../../Info/ContractInteraction';
 import PersonalSign from './PersonalSign';
 import QRInfo from './QRInfo';
 import StakingClaim from './StakingClaim';
@@ -12,6 +13,7 @@ import StakingDeposit from './StakingDeposit';
 import StakingWithdrawal from './StakingWithdrawal';
 import TypedSignV1 from './TypedSignV1';
 import TypedSignV3V4 from './TypedSignV3V4';
+
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
   transactionType?: TransactionType;
@@ -29,12 +31,14 @@ const ConfirmationInfoComponentMap = {
     transactionType,
   }: ConfirmationInfoComponentRequest) => {
     switch (transactionType) {
+      case TransactionType.contractInteraction:
+        return ContractInteraction;
+      case TransactionType.stakingClaim:
+        return StakingClaim;
       case TransactionType.stakingDeposit:
         return StakingDeposit;
       case TransactionType.stakingUnstake:
         return StakingWithdrawal;
-      case TransactionType.stakingClaim:
-        return StakingClaim;
       default:
         return null;
     }
@@ -71,7 +75,8 @@ const Info = ({ route }: InfoProps) => {
   if (!InfoComponent) return null;
 
   if (
-    transactionType && [
+    transactionType &&
+    [
       // We only need this path for stake withdrawal and claim confirmations
       // because they are passed the same route object as an argument that
       // contains the wei amount to be withdrawn / claimed. Staking deposit
@@ -81,11 +86,18 @@ const Info = ({ route }: InfoProps) => {
       TransactionType.stakingClaim,
     ].includes(transactionType)
   ) {
-    const StakingComponentWithArgs = InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
-    return <StakingComponentWithArgs route={route as UnstakeConfirmationViewProps['route']} />;
+    const StakingComponentWithArgs =
+      InfoComponent as React.ComponentType<UnstakeConfirmationViewProps>;
+    return (
+      <StakingComponentWithArgs
+        route={route as UnstakeConfirmationViewProps['route']}
+      />
+    );
   }
 
-  const GenericComponent = InfoComponent as React.ComponentType<Record<string, never>>;
+  const GenericComponent = InfoComponent as React.ComponentType<
+    Record<string, never>
+  >;
   return <GenericComponent />;
 };
 

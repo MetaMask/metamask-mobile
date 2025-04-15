@@ -161,6 +161,18 @@ describe('Footer', () => {
     );
   });
 
+  it('disables confirm button if there is a blocker alert', () => {
+    (useAlerts as jest.Mock).mockReturnValue({
+      hasBlockingAlerts: true,
+    });
+    const { getByTestId } = renderWithProvider(<Footer />, {
+      state: personalSignatureConfirmationState,
+    });
+    expect(
+      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
+    ).toBe(true);
+  });
+
   describe('Confirm Alert Modal', () => {
     const baseMockUseAlerts = {
       alertKey: '',

@@ -1,23 +1,37 @@
-import React from 'react';
-import { View } from 'react-native';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { SignatureRequest } from '@metamask/signature-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import React from 'react';
+import { View } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
-import { useStyles } from '../../../../../../component-library/hooks';
 import Text from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../../component-library/hooks';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
 import { useSignatureRequest } from '../../../hooks/useSignatureRequest';
-import { isSIWESignatureRequest , isRecognizedPermit, parseTypedDataMessageFromSignatureRequest, isPermitDaiRevoke } from '../../../utils/signature';
 import { useStandaloneConfirmation } from '../../../hooks/useStandaloneConfirmation';
+import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
+import {
+  isPermitDaiRevoke,
+  isRecognizedPermit,
+  isSIWESignatureRequest,
+  parseTypedDataMessageFromSignatureRequest,
+} from '../../../utils/signature';
 import styleSheet from './Title.styles';
+import { ApprovalType } from '@metamask/controller-utils';
 
-const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>, signatureRequest?: SignatureRequest) => {
+const getTitleAndSubTitle = (
+  approvalRequest?: ApprovalRequest<{ data: string }>,
+  signatureRequest?: SignatureRequest,
+  transactionMetadata?: TransactionMeta,
+) => {
   const type = approvalRequest?.type;
 
   switch (type) {
-    case TransactionType.personalSign: {
+    case ApprovalType.PersonalSign: {
       if (isSIWESignatureRequest(signatureRequest)) {
         return {
           title: strings('confirm.title.signature_siwe'),
@@ -29,11 +43,12 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
         subTitle: strings('confirm.sub_title.signature'),
       };
     }
-    case TransactionType.signTypedData: {
+    case ApprovalType.EthSignTypedData: {
       const isPermit = isRecognizedPermit(signatureRequest);
 
       if (isPermit) {
-        const parsedMessage = parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
+        const parsedMessage =
+          parseTypedDataMessageFromSignatureRequest(signatureRequest) ?? {};
         const { allowed, tokenId, value } = parsedMessage?.message ?? {};
         const { verifyingContract } = parsedMessage?.domain ?? {};
 
@@ -45,7 +60,11 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
           };
         }
 
-        const isDaiRevoke = isPermitDaiRevoke(verifyingContract, allowed, value);
+        const isDaiRevoke = isPermitDaiRevoke(
+          verifyingContract,
+          allowed,
+          value,
+        );
         const isRevoke = isDaiRevoke || value === '0';
 
         if (isRevoke) {
@@ -65,6 +84,15 @@ const getTitleAndSubTitle = (approvalRequest?: ApprovalRequest<{ data: string }>
         subTitle: strings('confirm.sub_title.signature'),
       };
     }
+    case ApprovalType.Transaction: {
+      if (transactionMetadata?.type === TransactionType.contractInteraction) {
+        return {
+          title: strings('confirm.title.contract_interaction'),
+          subTitle: strings('confirm.sub_title.contract_interaction'),
+        };
+      }
+      return {};
+    }
     default:
       return {};
   }
@@ -75,12 +103,17 @@ const Title = () => {
   const signatureRequest = useSignatureRequest();
   const { styles } = useStyles(styleSheet, {});
   const { isStandaloneConfirmation } = useStandaloneConfirmation();
+  const transactionMetadata = useTransactionMetadataRequest();
 
   if (isStandaloneConfirmation) {
     return null;
   }
 
-  const { title, subTitle } = getTitleAndSubTitle(approvalRequest, signatureRequest);
+  const { title, subTitle } = getTitleAndSubTitle(
+    approvalRequest,
+    signatureRequest,
+    transactionMetadata,
+  );
 
   return (
     <View style={styles.titleContainer}>
