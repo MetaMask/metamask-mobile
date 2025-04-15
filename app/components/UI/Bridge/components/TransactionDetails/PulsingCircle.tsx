@@ -38,8 +38,7 @@ const styleSheet = (params: { theme: Theme }) =>
 export default function PulsingCircle({ color }: { color: IconColor }) {
   const { styles } = useStyles(styleSheet, {});
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
+  const animatedStyle = useAnimatedStyle(() => ({
       transform: [
         {
           scale: withRepeat(
@@ -52,8 +51,8 @@ export default function PulsingCircle({ color }: { color: IconColor }) {
           ),
         },
       ],
-    };
-  });
+    }),
+  );
 
   return (
     <Box style={styles.container}>

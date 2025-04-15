@@ -45,12 +45,11 @@ import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import { QuoteMetadata } from '@metamask/bridge-controller';
+import { QuoteMetadata, isSolanaChainId } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
