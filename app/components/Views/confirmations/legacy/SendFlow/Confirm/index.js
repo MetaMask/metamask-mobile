@@ -897,7 +897,10 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
+    if (
+      isNativeToken(selectedAsset) ||
+      selectedAsset.tokenId
+    ) {
       return insufficientBalanceMessage;
     }
 
@@ -1425,9 +1428,7 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner
-                style={styles.smartTransactionsMigrationBanner}
-              />
+              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
             </>
           )}
           {!selectedAsset.tokenId ? (
