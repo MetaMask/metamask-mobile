@@ -52,7 +52,7 @@ export default function migrate(state: unknown) {
   if (!isObject(smartTransactions)) {
     captureException(
       new Error(
-        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof smartTransactionsControllerState?.smartTransactionsState}'`,
+        `Migration ${migrationVersion}: Missing smart transactions property from SmartTransactionsController: '${typeof (smartTransactionsControllerState as SmartTransactionsControllerState)?.smartTransactionsState}'`,
       ),
     );
     return state;
