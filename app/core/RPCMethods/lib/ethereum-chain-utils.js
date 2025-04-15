@@ -226,7 +226,6 @@ export async function switchToNetwork({
   analytics,
   origin,
   isAddNetworkFlow = false,
-  autoApprove = false,
   hooks,
 }) {
   const {
@@ -263,7 +262,7 @@ export async function switchToNetwork({
   } else {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       chainId,
-      autoApprove,
+      autoApprove: isAddNetworkFlow,
     });
   }
 
@@ -321,7 +320,7 @@ export async function switchToNetwork({
   if (!shouldShowRequestModal && !ethChainIds.includes(chainId)) {
     await requestPermittedChainsPermissionIncrementalForOrigin({
       chainId,
-      autoApprove,
+      autoApprove: isAddNetworkFlow,
     });
   } else if (hasApprovalRequestsForOrigin?.() && !isAddNetworkFlow) {
     await requestUserApproval({
