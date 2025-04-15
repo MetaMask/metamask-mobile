@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeAnalytics } from '../../tags';
+import { SmokeCore } from '../../tags';
 import { importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
@@ -22,7 +22,7 @@ const testSpecificMock = {
   POST: [...balanceMock, mockEvents.POST.segmentTrack, ]
 };
 
-describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
+describe(SmokeCore('Analytics during import wallet flow'), () => {
 
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
@@ -30,9 +30,14 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
 
 
   it('should track analytics events during wallet import', async () => {
-    await withFixtures({fixture: new FixtureBuilder().withOnboardingFixture().build(), restartDevice: true, testSpecificMock, launchArgs: {
+    await withFixtures({
+      fixture: new FixtureBuilder().withOnboardingFixture().build(),
+      restartDevice: true,
+      testSpecificMock,
+      launchArgs: {
       sendMetaMetricsinE2E: true,
     }}, async ({ mockServer }) => {
+
       await importWalletWithRecoveryPhrase({
         seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
         password: IDENTITY_TEAM_PASSWORD,
@@ -71,7 +76,11 @@ describe(SmokeAnalytics('Analytics during import wallet flow'), () => {
   });
 
   it('should not track analytics events when opt-in to metrics is off', async () => {
-    await withFixtures({fixture: new FixtureBuilder().withOnboardingFixture().build(), restartDevice: true, testSpecificMock, launchArgs: {
+    await withFixtures({
+      fixture: new FixtureBuilder().withOnboardingFixture().build(),
+      restartDevice: true,
+      testSpecificMock,
+      launchArgs: {
       sendMetaMetricsinE2E: true,
     }}, async ({ mockServer }) => {
       await importWalletWithRecoveryPhrase({

@@ -160,6 +160,7 @@ class Assertions {
 
   /**
    * Check if two objects match exactly.
+   * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {Object} actualObject - The actual object to check.
    * @param {Object} expectedObject - The expected object to match against.
    */
@@ -185,6 +186,7 @@ class Assertions {
 
   /**
    * Check if an array has the expected length.
+   * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {Array} array - The array to check.
    * @param {number} expectedLength - The expected length of the array.
    */
@@ -210,6 +212,7 @@ class Assertions {
 
   /**
    * Check if a value is present (not null, not undefined, not an empty string).
+   * Note: This assertion does not test UI elements. It is intended for testing values such as events from the mock server or other non-UI data.
    * @param {*} value - The value to check.
    */
   static async checkIfValueIsPresent(value) {

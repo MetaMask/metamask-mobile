@@ -203,8 +203,6 @@ stages:
       - run_tag_multichain_permissions_android: {}
       - run_tag_smoke_notifications_ios: {}
       - run_tag_smoke_notifications_android: {}
-      - run_tag_smoke_analytics_ios: {}
-      - run_tag_smoke_analytics_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -234,8 +232,6 @@ stages:
       - run_tag_smoke_core_android: {}
       - run_tag_smoke_notifications_ios: {}
       - run_tag_smoke_notifications_android: {}
-      - run_tag_smoke_analytics_ios: {}
-      - run_tag_smoke_analytics_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
@@ -864,22 +860,6 @@ workflows:
     envs:
       - TEST_SUITE_FOLDER: './e2e/specs/notifications/*'
       - TEST_SUITE_TAG: '.*SmokeNotifications.*'
-    after_run:
-      - android_e2e_test
-  run_tag_smoke_analytics_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/analytics/*'
-      - TEST_SUITE_TAG: '.*SmokeAnalytics.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_analytics_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/analytics/*'
-      - TEST_SUITE_TAG: '.*SmokeAnalytics.*'
     after_run:
       - android_e2e_test
   android_e2e_build:
