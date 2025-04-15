@@ -110,6 +110,7 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import {
+  getPhishingTestResult,
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
@@ -328,7 +329,6 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     ) {
       return;
     }
-
     setBlockedUrl(urlOrigin);
     setTimeout(() => setShowPhishingModal(true), 1000);
   }, []);
@@ -726,6 +726,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
       return false;
+    }
+
+    // TODO: Make sure to replace with cache hits once EPD has been deprecated.
+    if (!isProductSafetyDappScanningEnabled()) {
+      const scanResult = getPhishingTestResult(urlToLoad);
+      if (scanResult.result) {
+        handleNotAllowedUrl(urlToLoad);
+        return false;
+      }
     }
 
     // Continue request loading it the protocol is whitelisted
