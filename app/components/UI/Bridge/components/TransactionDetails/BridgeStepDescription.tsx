@@ -37,7 +37,7 @@ import { Step } from '@metamask/bridge-controller';
 const getBridgeActionText = (
   stepStatus: StatusTypes | null,
   step: Step,
-  networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>,
+  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>,
 ) => {
   const hexDestChainId = step.destChainId
     ? decimalToPrefixedHex(step.destChainId)
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
 
 interface BridgeStepProps {
   step: Step;
-  networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>;
+  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>;
   time?: string;
   stepStatus: StatusTypes | null;
 }
