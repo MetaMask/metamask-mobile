@@ -16,10 +16,6 @@ export const link: UIComponentFactory<LinkElement> = ({
     }
 
     if (typeof child === 'object' && 'type' in child && child.type === 'Icon') {
-      if (child.props.color === 'muted') {
-        return child;
-      }
-
       return {
         ...child,
         props: {

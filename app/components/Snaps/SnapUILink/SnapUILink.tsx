@@ -12,6 +12,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'flex-start',
   },
   spacer: {
     width: 4,
