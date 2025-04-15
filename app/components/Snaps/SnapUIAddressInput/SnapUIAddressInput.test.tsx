@@ -166,7 +166,7 @@ describe('SnapUIAddressInput', () => {
   });
 
   it('renders with an invalid CAIP Account ID', () => {
-    mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar')
+    mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar');
 
     const { toJSON } = renderWithProvider(<SnapUIAddressInput name="input" chainId="eip155:0" displayAvatar={false} />);
 
