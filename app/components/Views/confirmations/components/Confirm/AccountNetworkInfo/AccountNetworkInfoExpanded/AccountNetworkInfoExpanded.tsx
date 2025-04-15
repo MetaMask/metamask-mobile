@@ -26,8 +26,8 @@ const AccountNetworkInfoExpanded = () => {
     fromAddress = transactionMetadata?.txParams?.from as string;
   }
   const { accountAddress } = useAccountInfo(fromAddress);
-  const { multichainBalances } = useMultichainBalances();
-  const balanceToDisplay = multichainBalances.displayBalance;
+  const { selectedAccountMultichainBalance } = useMultichainBalances();
+  const balanceToDisplay = selectedAccountMultichainBalance?.displayBalance;
 
   return (
     <View>

@@ -3,7 +3,10 @@ import { StyleSheet } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../Base/ScreenView';
 import Keypad from '../../Base/Keypad';
-import { TokenInputArea, TokenInputAreaType } from './components/TokenInputArea';
+import {
+  TokenInputArea,
+  TokenInputAreaType,
+} from './components/TokenInputArea';
 import Button, {
   ButtonVariants,
 } from '../../../component-library/components/Buttons/Button';
@@ -22,14 +25,14 @@ import { getNetworkImageSource } from '../../../util/networks';
 import { useLatestBalance } from './hooks/useLatestBalance';
 import {
   selectSourceAmount,
-  selectDestAmount,
   selectSelectedDestChainId,
-  selectSourceToken,
-  selectDestToken,
   setSourceAmount,
   resetBridgeState,
   setSourceToken,
   setDestToken,
+  selectDestToken,
+  selectSourceToken,
+  selectDestAddress,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -39,11 +42,14 @@ import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
-import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
+import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
+import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
+import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -106,20 +112,6 @@ const BridgeView = () => {
     selectBasicFunctionalityEnabled,
   );
 
-  useEffect(() => {
-    const setBridgeFeatureFlags = async () => {
-      try {
-        if (isBasicFunctionalityEnabled) {
-          await Engine.context.BridgeController.setBridgeFeatureFlags();
-        }
-      } catch (error) {
-        console.error('Error setting bridge feature flags', error);
-      }
-    };
-
-    setBridgeFeatureFlags();
-  }, [isBasicFunctionalityEnabled]);
-
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
@@ -127,17 +119,18 @@ const BridgeView = () => {
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
 
-  // Bridge state from Redux
+  const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
-  const sourceAmount = useSelector(selectSourceAmount);
-  const destAmount = useSelector(selectDestAmount);
   const destChainId = useSelector(selectSelectedDestChainId);
+  const { activeQuote, isLoading, destTokenAmount } = useBridgeQuoteData();
+  const updateQuoteParams = useBridgeQuoteRequest();
+  const destAddress = useSelector(selectDestAddress);
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId as Hex,
+    chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
 
@@ -168,6 +161,36 @@ const BridgeView = () => {
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
+
+  // Update quote parameters when relevant state changes
+  useEffect(() => {
+    if (sourceToken?.chainId && destToken?.chainId && sourceAmount) {
+      updateQuoteParams();
+    }
+    return () => {
+      updateQuoteParams.cancel();
+    };
+  }, [
+    sourceToken?.chainId,
+    destToken?.chainId,
+    sourceAmount,
+    updateQuoteParams,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+    const setBridgeFeatureFlags = async () => {
+      try {
+        if (isBasicFunctionalityEnabled) {
+          await Engine.context.BridgeController.setBridgeFeatureFlags();
+        }
+      } catch (error) {
+        console.error('Error setting bridge feature flags', error);
+      }
+    };
+
+    setBridgeFeatureFlags();
+  }, [isBasicFunctionalityEnabled]);
 
   const handleKeypadChange = ({
     value,
@@ -262,7 +285,7 @@ const BridgeView = () => {
             tokenBalance={latestSourceBalance?.displayBalance}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
             networkImageSource={getNetworkImageSource({
-              chainId: sourceToken?.chainId as Hex,
+              chainId: sourceToken?.chainId,
             })}
             autoFocus
             isReadonly
@@ -281,22 +304,33 @@ const BridgeView = () => {
             </Box>
           </Box>
           <TokenInputArea
-            amount={destAmount}
+            amount={destTokenAmount}
             token={destToken}
             networkImageSource={
               destToken
                 ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                  getNetworkImageSource({ chainId: destToken?.chainId as Hex })
+                  getNetworkImageSource({ chainId: destToken?.chainId })
                 : undefined
             }
             isReadonly
             testID="dest-token-area"
             tokenType={TokenInputAreaType.Destination}
             onTokenPress={handleDestTokenPress}
+            isLoading={isLoading}
           />
-          <Box style={styles.quoteContainer}>
-            <QuoteDetailsCard />
-          </Box>
+
+          {destToken?.chainId && isSolanaChainId(destToken?.chainId) && (
+            <Box>
+              <DestinationAccountSelector />
+            </Box>
+          )}
+
+          {((destToken?.chainId && !isSolanaChainId(destToken?.chainId)) ||
+            destAddress) && (
+            <Box style={styles.quoteContainer}>
+              {activeQuote && !isLoading && <QuoteDetailsCard />}
+            </Box>
+          )}
         </Box>
 
         <Box style={styles.bottomSection}>

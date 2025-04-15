@@ -19,7 +19,7 @@ jest.mock('../../../../util/address', () => ({
 }));
 
 jest.mock('../../../../core/Engine', () => ({
-  getTotalFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     KeyringController: {
       state: {
