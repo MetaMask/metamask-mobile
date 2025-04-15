@@ -25,6 +25,7 @@ import {
   SubjectPermissions,
 } from '@metamask/permission-controller';
 import { pick } from 'lodash';
+import { rejectOriginApprovals } from './utils';
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
@@ -57,6 +58,11 @@ jest.mock('@metamask/assets-controllers', () => {
     RatesController: MockRatesController,
   };
 });
+
+jest.mock('./utils', () => ({
+  ...jest.requireActual('./utils'),
+  rejectOriginApprovals: jest.fn(),
+}));
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -1170,6 +1176,19 @@ describe('Engine', () => {
       ).rejects.toThrow(
         new Error('Invalid merged permissions for subject "test.com"'),
       );
+    });
+  });
+
+  describe('rejectOriginPendingApprovals', () => {
+    const engine = Engine.init({});
+    it('should call rejectOriginApprovals with expected arguments', () => {
+      const origin = 'https://test.com';
+      engine.rejectOriginPendingApprovals(origin);
+      expect(rejectOriginApprovals).toHaveBeenCalledWith({
+        approvalController: engine.context.ApprovalController,
+        deleteInterface: expect.any(Function),
+        origin,
+      });
     });
   });
 });
