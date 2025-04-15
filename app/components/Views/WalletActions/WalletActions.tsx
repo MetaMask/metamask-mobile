@@ -49,7 +49,7 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { sendMultichainTransaction } from '../../../core/SnapKeyring/utils/sendMultichainTransaction';
 ///: END:ONLY_INCLUDE_IF
-import { useSwapBridgeNavigation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,7 +68,7 @@ const WalletActions = () => {
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToBridge: goToBridgeBase, goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
-    location: 'TabBar',
+    location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
   });
 

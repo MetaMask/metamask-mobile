@@ -54,7 +54,7 @@ import { TokenI } from '../Tokens/types';
 import AssetDetailsActions from '../../../components/Views/AssetDetails/AssetDetailsActions';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../util/assets';
-import { useSwapBridgeNavigation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
 import { swapsUtils } from '@metamask/swaps-controller';
 interface AssetOverviewProps {
   asset: TokenI;
@@ -108,7 +108,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
-    location: 'TokenDetails',
+    location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
     token: {
       address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,

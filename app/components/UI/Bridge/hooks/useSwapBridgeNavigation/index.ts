@@ -16,6 +16,11 @@ import { SolScope } from '@metamask/keyring-api';
 import isBridgeAllowed from '../../utils/isBridgeAllowed';
 import { ethers } from 'ethers';
 
+export enum SwapBridgeNavigationLocation {
+  TabBar = 'TabBar',
+  TokenDetails = 'TokenDetails',
+}
+
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
@@ -27,7 +32,7 @@ export const useSwapBridgeNavigation = ({
   sourcePage,
   token: tokenBase,
 }: {
-  location: string;
+  location: SwapBridgeNavigationLocation;
   sourcePage: string;
   token?: BridgeToken;
 }) => {

@@ -1,5 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
-import { useSwapBridgeNavigation } from '.';
+import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
 import { waitFor } from '@testing-library/react-native';
 import { initialState } from '../../_mocks_/initialState';
 import { BridgeToken, BridgeViewMode } from '../../types';
@@ -59,7 +59,7 @@ jest.mock('../../../../../core/Engine', () => ({
 
 describe('useSwapBridgeNavigation', () => {
   const mockChainId = '0x1' as Hex;
-  const mockLocation = 'test-location';
+  const mockLocation = SwapBridgeNavigationLocation.TabBar;
   const mockSourcePage = 'test-source-page';
   const mockNativeAsset = {
     address: '0x0000000000000000000000000000000000000000',
