@@ -426,10 +426,14 @@ const HomeTabs = () => {
     try {
       const permissionsControllerState = selectPermissionControllerState(state);
       const hostname = new URL(activeTabUrl).hostname;
+      // eslint-disable-next-line no-console
+      console.log('MainNavigator hostname', hostname);
       const permittedAcc = getPermittedAccountsByHostname(
         permissionsControllerState,
         hostname,
       );
+      // eslint-disable-next-line no-console
+      console.log('MainNavigator permittedAccounts', permittedAcc);
       return permittedAcc;
     } catch (error) {
       Logger.error(error, {

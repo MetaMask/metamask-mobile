@@ -1,5 +1,11 @@
 import PropTypes from 'prop-types';
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import { captureScreen } from 'react-native-view-shot';
 import { connect, useSelector } from 'react-redux';
@@ -29,7 +35,12 @@ import URL from 'url-parse';
 import { useMetrics } from '../../hooks/useMetrics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { appendURLParams } from '../../../util/browser';
-import { THUMB_WIDTH, THUMB_HEIGHT, IDLE_TIME_CALC_INTERVAL, IDLE_TIME_MAX } from './constants';
+import {
+  THUMB_WIDTH,
+  THUMB_HEIGHT,
+  IDLE_TIME_CALC_INTERVAL,
+  IDLE_TIME_MAX,
+} from './constants';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
@@ -71,27 +82,34 @@ export const Browser = (props) => {
     (state) => state.security.dataCollectionForMarketing,
   );
 
-  const homePageUrl = useCallback(() =>
-    appendURLParams(AppConstants.HOMEPAGE_URL, {
-      metricsEnabled: isEnabled(),
-      marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
-    }).href,
+  const homePageUrl = useCallback(
+    () =>
+      appendURLParams(AppConstants.HOMEPAGE_URL, {
+        metricsEnabled: isEnabled(),
+        marketingEnabled: isDataCollectionForMarketingEnabled ?? false,
+      }).href,
     [isEnabled, isDataCollectionForMarketingEnabled],
   );
 
-  const newTab = useCallback((url, linkType) => {
-    // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
-    if (tabs.length >= MAX_BROWSER_TABS) {
-      navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
-    } else {
-      // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
-      createNewTab(url || homePageUrl(), linkType);
-    }
-  }, [tabs, navigation, homePageUrl, createNewTab]);
+  const newTab = useCallback(
+    (url, linkType) => {
+      // if tabs.length > MAX_BROWSER_TABS, show the max browser tabs modal
+      if (tabs.length >= MAX_BROWSER_TABS) {
+        navigation.navigate(Routes.MODAL.MAX_BROWSER_TABS_MODAL);
+      } else {
+        // When a new tab is created, a new tab is rendered, which automatically sets the url source on the webview
+        createNewTab(url || homePageUrl(), linkType);
+      }
+    },
+    [tabs, navigation, homePageUrl, createNewTab],
+  );
 
-  const updateTabInfo = useCallback((tabID, info) => {
-    updateTab(tabID, info);
-  }, [updateTab]);
+  const updateTabInfo = useCallback(
+    (tabID, info) => {
+      updateTab(tabID, info);
+    },
+    [updateTab],
+  );
 
   const hideTabsAndUpdateUrl = (url) => {
     navigation.setParams({
@@ -125,7 +143,8 @@ export const Browser = (props) => {
           // if it isn't the active tab
           if (tab.id !== activeTabId) {
             // add idle time for each non-active tab
-            newIdleTimes[tab.id] = (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
+            newIdleTimes[tab.id] =
+              (newIdleTimes[tab.id] || 0) + IDLE_TIME_CALC_INTERVAL;
             // if the tab has surpassed the maximum
             if (newIdleTimes[tab.id] > IDLE_TIME_MAX) {
               // then "archive" it
@@ -155,6 +174,8 @@ export const Browser = (props) => {
     const checkIfActiveAccountChanged = async () => {
       const hostname = new URL(browserUrl).hostname;
       const permittedAccounts = await getPermittedAccounts(hostname);
+      // eslint-disable-next-line no-console
+      console.log('Browser permittedAccounts', permittedAccounts);
       const activeAccountAddress = permittedAccounts?.[0];
 
       if (activeAccountAddress) {
@@ -257,27 +278,28 @@ export const Browser = (props) => {
     ],
   );
 
-  const takeScreenshot = useCallback((url, tabID) =>
-    new Promise((resolve, reject) => {
-      captureScreen({
-        format: 'jpg',
-        quality: 0.2,
-        THUMB_WIDTH,
-        THUMB_HEIGHT,
-      }).then(
-        (uri) => {
-          updateTab(tabID, {
-            url,
-            image: uri,
-          });
-          resolve(true);
-        },
-        (error) => {
-          Logger.error(error, `Error saving tab ${url}`);
-          reject(error);
-        },
-      );
-    }),
+  const takeScreenshot = useCallback(
+    (url, tabID) =>
+      new Promise((resolve, reject) => {
+        captureScreen({
+          format: 'jpg',
+          quality: 0.2,
+          THUMB_WIDTH,
+          THUMB_HEIGHT,
+        }).then(
+          (uri) => {
+            updateTab(tabID, {
+              url,
+              image: uri,
+            });
+            resolve(true);
+          },
+          (error) => {
+            Logger.error(error, `Error saving tab ${url}`);
+            reject(error);
+          },
+        );
+      }),
     [updateTab],
   );
 
@@ -362,20 +384,32 @@ export const Browser = (props) => {
     return null;
   };
 
-  const renderBrowserTabWindows = useCallback(() => tabs.filter((tab) => !tab.isArchived).map((tab) => (
-    <BrowserTab
-      id={tab.id}
-      key={`tab_${tab.id}`}
-      initialUrl={tab.url}
-      linkType={tab.linkType}
-      updateTabInfo={updateTabInfo}
-      showTabs={showTabs}
-      newTab={newTab}
-      isInTabsView={route.params?.showTabs}
-      homePageUrl={homePageUrl()}
-    />
-  )), [tabs, route.params?.showTabs, newTab, homePageUrl, updateTabInfo, showTabs]);
-
+  const renderBrowserTabWindows = useCallback(
+    () =>
+      tabs
+        .filter((tab) => !tab.isArchived)
+        .map((tab) => (
+          <BrowserTab
+            id={tab.id}
+            key={`tab_${tab.id}`}
+            initialUrl={tab.url}
+            linkType={tab.linkType}
+            updateTabInfo={updateTabInfo}
+            showTabs={showTabs}
+            newTab={newTab}
+            isInTabsView={route.params?.showTabs}
+            homePageUrl={homePageUrl()}
+          />
+        )),
+    [
+      tabs,
+      route.params?.showTabs,
+      newTab,
+      homePageUrl,
+      updateTabInfo,
+      showTabs,
+    ],
+  );
 
   return (
     <View

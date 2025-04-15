@@ -152,6 +152,12 @@ export const checkActiveAccountAndChainId = async ({
     const origin = isWalletConnect ? hostname : channelId ?? hostname;
     const accounts = await getPermittedAccounts(origin);
 
+    // eslint-disable-next-line no-console
+    console.log(
+      'RpcMethodMiddlware checkActiveAccountAndChainId permitted accounts',
+      accounts,
+    );
+
     const normalizedAccounts = accounts.map(safeToChecksumAddress);
 
     if (!normalizedAccounts.includes(formattedAddress)) {
@@ -338,6 +344,11 @@ export const getRpcMethodMiddleware = ({
       const accounts = await getPermittedAccounts(origin);
       res.result = accounts;
     };
+
+    // eslint-disable-next-line no-console
+    console.log(
+      'RpcMethodMiddlware getRpcMethodMiddleware createAsyncMiddlewares',
+    );
 
     const checkTabActive = () => {
       if (!tabId) return true;
@@ -546,6 +557,12 @@ export const getRpcMethodMiddleware = ({
 
         const permittedAccounts = await getPermittedAccounts(origin);
 
+        // eslint-disable-next-line no-console
+        console.log(
+          'RpcMethodMiddlware eth_requestAccounts permittedAccounts',
+          permittedAccounts,
+        );
+
         if (!params?.force && permittedAccounts.length) {
           res.result = permittedAccounts;
         } else {
@@ -557,6 +574,8 @@ export const getRpcMethodMiddleware = ({
             );
             DevLogger.log(`eth_requestAccounts requestPermissions`);
             const acc = await getPermittedAccounts(origin);
+            // eslint-disable-next-line no-console
+            console.log('RpcMethodMiddlware eth_requestAccounts 2 acc', acc);
             DevLogger.log(`eth_requestAccounts getPermittedAccounts`, acc);
             res.result = acc;
           } catch (error) {
@@ -911,6 +930,11 @@ export const getRpcMethodMiddleware = ({
        */
       metamask_getProviderState: async () => {
         const accounts = await getPermittedAccounts(origin);
+        // eslint-disable-next-line no-console
+        console.log(
+          'RpcMethodMiddlware metamask_getProviderState accounts',
+          accounts,
+        );
         res.result = {
           ...(await getProviderState(origin)),
           accounts,
