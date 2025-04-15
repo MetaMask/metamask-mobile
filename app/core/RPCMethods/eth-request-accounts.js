@@ -10,7 +10,6 @@ const requestEthereumAccounts = {
   hookNames: {
     getAccounts: true,
     getUnlockPromise: true,
-    metamaskState: true,
     getCaip25PermissionFromLegacyPermissionsForOrigin: true,
     requestPermissionsForOrigin: true,
   },
@@ -34,7 +33,6 @@ const locks = new Set();
  * @param options - Method hooks passed to the method implementation
  * @param options.getAccounts - A hook that returns the permitted eth accounts for the origin sorted by lastSelected.
  * @param options.getUnlockPromise - A hook that resolves when the wallet is unlocked.
- * @param options.metamaskState - The MetaMask app state.
  * @param options.getCaip25PermissionFromLegacyPermissionsForOrigin - A hook that returns a CAIP-25 permission from a legacy `eth_accounts` and `endowment:permitted-chains` permission.
  * @param options.requestPermissionsForOrigin - A hook that requests CAIP-25 permissions for the origin.
  * @returns A promise that resolves to nothing
@@ -47,7 +45,6 @@ async function requestEthereumAccountsHandler(
   {
     getAccounts,
     getUnlockPromise,
-    metamaskState,
     getCaip25PermissionFromLegacyPermissionsForOrigin,
     requestPermissionsForOrigin,
   },

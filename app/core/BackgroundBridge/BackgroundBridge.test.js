@@ -115,11 +115,6 @@ describe('BackgroundBridge', () => {
       const eip1193MethodMiddlewareHooks =
         createEip1193MethodMiddleware.mock.calls[0][0];
 
-      // Assert metamaskState
-      expect(eip1193MethodMiddlewareHooks.metamaskState).toEqual(
-        bridge.getState(),
-      );
-
       // Assert getAccounts
       eip1193MethodMiddlewareHooks.getAccounts();
       expect(getPermittedAccounts).toHaveBeenCalledWith(bridge.channelId);

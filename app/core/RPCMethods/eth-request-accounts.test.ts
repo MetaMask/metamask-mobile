@@ -52,15 +52,6 @@ const createMockedHandler = () => {
   const end = jest.fn();
   const getAccounts = jest.fn().mockReturnValue([]);
   const getUnlockPromise = jest.fn();
-  const metamaskState = {
-    permissionHistory: {},
-    metaMetricsId: 'metaMetricsId',
-    accounts: {
-      '0x1': {},
-      '0x2': {},
-      '0x3': {},
-    },
-  };
   const getCaip25PermissionFromLegacyPermissionsForOrigin = jest
     .fn()
     .mockResolvedValue({});
@@ -76,7 +67,6 @@ const createMockedHandler = () => {
     requestEthereumAccounts.implementation(request, response, next, end, {
       getAccounts,
       getUnlockPromise,
-      metamaskState,
       getCaip25PermissionFromLegacyPermissionsForOrigin,
       requestPermissionsForOrigin,
     });
@@ -87,7 +77,6 @@ const createMockedHandler = () => {
     end,
     getAccounts,
     getUnlockPromise,
-    metamaskState,
     getCaip25PermissionFromLegacyPermissionsForOrigin,
     requestPermissionsForOrigin,
     handler,
