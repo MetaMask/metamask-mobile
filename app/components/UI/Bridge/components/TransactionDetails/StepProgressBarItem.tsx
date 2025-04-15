@@ -7,17 +7,17 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import PulsingCircle from './PulsingCircle';
 import { StatusTypes } from '@metamask/bridge-status-controller';
-import { useTheme } from '../../../../../util/theme';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
-import { ThemeColors } from '@metamask/design-tokens';
+import { Theme } from '@metamask/design-tokens';
+import { useStyles } from '../../../../../component-library/hooks';
 
 const ICON_SIZE = IconSize.Xs;
 
-const createStyles = (colors: ThemeColors, color?: IconColor) => {
-  let lineColor = colors.primary.default;
-  if (color === IconColor.Muted) {
-    lineColor = colors.icon.muted;
+const styleSheet = (params: { theme: Theme, vars: { color: IconColor } }) => {
+  let lineColor = params.theme.colors.primary.default;
+  if (params.vars.color === IconColor.Muted) {
+    lineColor = params.theme.colors.icon.muted;
   }
 
   return StyleSheet.create({
@@ -34,15 +34,14 @@ const createStyles = (colors: ThemeColors, color?: IconColor) => {
       marginLeft: 1,
       width: Number(ICON_SIZE) - 2,
       height: Number(ICON_SIZE) - 2,
-      backgroundColor: colors.primary.default,
+      backgroundColor: params.theme.colors.primary.default,
       borderRadius: (Number(ICON_SIZE) - 2)/2,
     },
   });
 };
 
 const VerticalLine = ({ color }: { color: IconColor }) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors, color);
+  const { styles } = useStyles(styleSheet, { color });
 
   return <View style={styles.verticalLine} />;
 };
@@ -69,8 +68,7 @@ export default function StepProgressBarItem({
   isEdgeComplete,
   children,
 }: StepsProgressBarItemProps) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, { color: IconColor.Primary });
 
   return (
     <>

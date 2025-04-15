@@ -29,13 +29,13 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { useTheme } from '../../../../../util/theme';
 import { Theme } from '../../../../../util/theme/models';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useStyles } from '../../../../../component-library/hooks';
 
-const createStyles = (theme: Theme) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       height: 100,
@@ -51,7 +51,7 @@ const createStyles = (theme: Theme) =>
       marginRight: 10,
     },
     text: {
-      color: theme.colors.primary.default,
+      color: params.theme.colors.primary.default,
     },
   });
 
@@ -73,8 +73,7 @@ interface BlockExplorersModalProps {
 
 const BlockExplorersModal = (props: BlockExplorersModalProps) => {
   const navigation = useNavigation();
-  const theme = useTheme();
-  const styles = createStyles(theme);
+  const { styles } = useStyles(styleSheet, {});
 
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     txMeta: props.route.params.tx,

@@ -2,10 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
-import { useTheme } from '../../../../../util/theme';
-import { ThemeColors } from '@metamask/design-tokens';
+import { Theme } from '@metamask/design-tokens';
+import { useStyles } from '../../../../../component-library/hooks';
 
-const createStyles = (colors: ThemeColors) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       position: 'relative',
@@ -18,7 +18,7 @@ const createStyles = (colors: ThemeColors) =>
       left: -2,
       right: -2,
       bottom: -2,
-      backgroundColor: colors.primary.muted,
+      backgroundColor: params.theme.colors.primary.muted,
       borderRadius: 8,
     },
     hollowCircleContainer: {
@@ -39,8 +39,7 @@ const createStyles = (colors: ThemeColors) =>
  * @param options.color - The color of the icon
  */
 export default function PulsingCircle({ color }: { color: IconColor }) {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const { styles } = useStyles(styleSheet, {});
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
