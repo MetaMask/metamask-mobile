@@ -148,9 +148,6 @@ describe('Permission Utility Functions', () => {
         },
       };
 
-      // Mock getEthAccounts to return empty array
-      (getEthAccounts as jest.Mock).mockReturnValue([]);
-
       // Mock sortAccountsByLastSelected to return empty array
       jest.spyOn(permissions, 'sortAccountsByLastSelected').mockReturnValue([]);
 
