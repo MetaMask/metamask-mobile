@@ -50,8 +50,10 @@ describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
   it('navigates to notification settings page', async () => {
     // Onboard - Import SRP
     await importWalletWithRecoveryPhrase(
-      NOTIFICATIONS_TEAM_SEED_PHRASE,
-      NOTIFICATIONS_TEAM_PASSWORD,
+      {
+        seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+        password: NOTIFICATIONS_TEAM_PASSWORD,
+      }
     );
 
     // navigate to notification settings
