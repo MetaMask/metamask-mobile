@@ -20,6 +20,7 @@ import {
   balanceToFiat,
   isDecimal,
   hexToBN,
+  toHexadecimal,
 } from '../../../../../util/number';
 import {
   getTicker,
@@ -142,6 +143,7 @@ import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../utils/generic';
 import { setTransactionSendFlowContextualChainId } from '../../../../../actions/transaction';
+import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -759,7 +761,18 @@ class Confirm extends PureComponent {
       transactionState: { transaction },
     } = this.props;
     const { networkClientId } = this.props;
-    const estimation = await getGasLimit(transaction, true, networkClientId);
+    const { rpcEndpoints, defaultRpcEndpointIndex } =
+      this.props.sendFlowContextualNetworkConfiguration;
+    const { networkClientId: sendFlowContextualNetworkClientId } =
+      rpcEndpoints[defaultRpcEndpointIndex];
+    const effectiveNetworkClientId =
+      sendFlowContextualNetworkClientId || globalNetworkClientId;
+
+    const estimation = await getGasLimit(
+      transaction,
+      true,
+      effectiveNetworkClientId,
+    );
     prepareTransaction({ ...transaction, ...estimation });
   };
 
@@ -1633,8 +1646,7 @@ const mapStateToProps = (state) => {
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
-  console.log('>>> transaction?.networkClientId', transaction?.networkClientId);
-  console.log('>>> globnalNetworkClientId: ', selectNetworkClientId(state));
+  const sendFlowContextualChainId = selectSendFlowContextualChainId(state);
 
   return {
     accounts: selectAccounts(state),
@@ -1665,7 +1677,11 @@ const mapStateToProps = (state) => {
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
-    sendFlowContextualChainId: selectSendFlowContextualChainId(state),
+    sendFlowContextualChainId: sendFlowContextualChainId,
+    sendFlowContextualNetworkConfiguration: selectNetworkConfigurationByChainId(
+      state,
+      toHexadecimal(sendFlowContextualChainId),
+    ),
   };
 };
 
