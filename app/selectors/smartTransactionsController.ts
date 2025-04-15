@@ -11,11 +11,13 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
+import { Hex } from '@metamask/utils';
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
     selectSelectedInternalAccountFormattedAddress,
     selectEvmChainId,
+    (state: RootState, chainId: Hex) => chainId,
     (state: RootState) => selectProviderConfig(state).rpcUrl,
     swapsSmartTxFlagEnabled,
     (state: RootState) =>
@@ -24,27 +26,27 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   ],
   (
     selectedAddress,
-    chainId,
+    globalChainId,
+    transactionChainId,
     providerConfigRpcUrl,
     smartTransactionsFeatureFlagEnabled,
     smartTransactionsLiveness,
   ) => {
+    const effectiveChainId = transactionChainId ?? globalChainId;
     const addrIshardwareAccount = selectedAddress
       ? isHardwareAccount(selectedAddress)
       : false;
     const isAllowedNetwork =
-      getAllowedSmartTransactionsChainIds().includes(chainId);
+      getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
     // Only bypass RPC if we're on the default mainnet RPC.
     const canBypassRpc =
-      chainId === NETWORKS_CHAIN_ID.MAINNET
+      effectiveChainId === NETWORKS_CHAIN_ID.MAINNET
         ? providerConfigRpcUrl === undefined
         : true;
     return Boolean(
-      isAllowedNetwork &&
-        canBypassRpc &&
-        !addrIshardwareAccount &&
-        smartTransactionsFeatureFlagEnabled &&
-        smartTransactionsLiveness,
+      isAllowedNetwork && canBypassRpc && !addrIshardwareAccount, // &&
+      // smartTransactionsFeatureFlagEnabled &&
+      // smartTransactionsLiveness,
     );
   },
 );
