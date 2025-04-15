@@ -38,14 +38,13 @@ import Button, {
 import Routes from '../../../../../constants/navigation/Routes';
 import Loader from '../../../../../component-library/components-temp/Loader';
 
-const createStyles = () =>
-  StyleSheet.create({
-    detailRow: {
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.spaceBetween,
-      alignItems: AlignItems.center,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+const styles = StyleSheet.create({
+  detailRow: {
+    flexDirection: FlexDirection.Row,
+    justifyContent: JustifyContent.spaceBetween,
+    alignItems: AlignItems.center,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     },
     arrowContainer: {
       paddingLeft: 11,
@@ -103,7 +102,6 @@ const StatusToColorMap: Record<StatusTypes, TextColor> = {
 export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
-  const styles = createStyles();
   const navigation = useNavigation();
   const { bridgeTxHistoryItem } = useBridgeTxHistoryData({
     txMeta: props.route.params.tx,

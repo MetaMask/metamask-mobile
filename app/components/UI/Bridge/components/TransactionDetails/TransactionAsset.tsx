@@ -27,10 +27,9 @@ import {
 import { StyleSheet } from 'react-native';
 import TokenIcon from '../../../Swaps/components/TokenIcon';
 
-const createStyles = () =>
-  StyleSheet.create({
-    tokenIcon: {
-      width: 40,
+const styles = StyleSheet.create({
+  tokenIcon: {
+    width: 40,
       height: 40,
     },
     tokenInfo: {
@@ -60,7 +59,6 @@ const TransactionAsset = ({
   tokenAmount,
   chainId,
 }: TransactionAssetProps) => {
-  const styles = createStyles();
   const networkName =
     NETWORK_TO_SHORT_NETWORK_NAME_MAP[chainId as AllowedBridgeChainIds];
   //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
