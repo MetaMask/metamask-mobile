@@ -49,7 +49,7 @@ const addOrUpdateIndex = (array, value, comparator) => {
  * @param params.startApprovalFlow - Flow to trigger at approval start.
  * @param params.endApprovalFlow - Flow to trigger at approval end.
  * @param params.hooks - Method hooks passed to the method implementation.
- * @returns Nothing.
+ * @returns {void}.
  */
 export const wallet_addEthereumChain = async ({
   req,

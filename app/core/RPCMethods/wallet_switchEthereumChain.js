@@ -17,7 +17,7 @@ import { MESSAGE_TYPE } from '../createTracingMiddleware';
  * @param params.requestUserApproval - The callback to trigger user approval flow.
  * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
  * @param params.hooks - Method hooks passed to the method implementation.
- * @returns Nothing.
+ * @returns {void}.
  */
 export const wallet_switchEthereumChain = async ({
   req,
