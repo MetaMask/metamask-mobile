@@ -337,7 +337,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -894,10 +897,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -925,13 +925,10 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
-    const { TransactionController } = Engine.context;
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
-      if (!approve) {
-        TransactionController.cancelTransaction(transactionMeta.id);
-      } else {
+      if (approve) {
         await new Promise((resolve) => resolve(result));
 
         if (transactionMeta.error) {
@@ -1428,7 +1425,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
