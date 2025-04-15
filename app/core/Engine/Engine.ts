@@ -931,9 +931,6 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
-      env: {
-        isAccountSyncingEnabled: true,
-      },
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
