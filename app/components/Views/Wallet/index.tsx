@@ -675,7 +675,10 @@ const Wallet = ({
         eventParams.forEach((params) => {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-              .addProperties(params)
+              .addProperties({
+                chain_id: params.chain_id,
+                source: params.source,
+              })
               .build(),
           );
         });
