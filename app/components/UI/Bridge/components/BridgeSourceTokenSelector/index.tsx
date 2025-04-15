@@ -158,6 +158,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       renderTokenItem={renderItem}
       tokensList={tokensList}
       pending={pending}
+      chainId={selectedChainId}
     />
   );
 };

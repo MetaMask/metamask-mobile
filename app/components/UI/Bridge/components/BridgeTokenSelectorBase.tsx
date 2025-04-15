@@ -21,6 +21,8 @@ import { useTokenSearch } from '../hooks/useTokenSearch';
 import TextFieldSearch from '../../../../component-library/components/Form/TextFieldSearch';
 import { BridgeToken } from '../types';
 import { Skeleton } from '../../../../component-library/components/Skeleton';
+import { useAssetMetadata } from '../hooks/useAssetMetadata';
+import { CaipChainId, Hex } from '@metamask/utils';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -109,18 +111,36 @@ interface BridgeTokenSelectorBaseProps {
   renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
   tokensList: BridgeToken[];
   pending?: boolean;
+  chainId: Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
   BridgeTokenSelectorBaseProps
-> = ({ networksBar, renderTokenItem, tokensList, pending }) => {
+> = ({ networksBar, renderTokenItem, tokensList, pending, chainId }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
+
+  const unlistedAssetMetadata = useAssetMetadata(
+    searchString,
+    Boolean(searchString && searchResults.length === 0),
+    chainId,
+  );
+
   const tokensToRender = useMemo(
-    () => (searchString ? searchResults : tokensList),
-    [searchString, searchResults, tokensList],
+    () => {
+      if (!searchString) {
+        return tokensList;
+      }
+
+      if (searchResults.length > 0) {
+        return searchResults;
+      }
+
+      return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+    },
+    [searchString, searchResults, tokensList, unlistedAssetMetadata],
   );
 
   const keyExtractor = useCallback(
