@@ -21,6 +21,8 @@ export default class OnboardingProgress extends PureComponent<OnboardingProgress
     currentStep: 0,
   };
 
+  declare context: React.ContextType<typeof ThemeContext>;
+
   render() {
     const { currentStep, steps } = this.props;
     const colors = this.context.colors || mockTheme.colors;

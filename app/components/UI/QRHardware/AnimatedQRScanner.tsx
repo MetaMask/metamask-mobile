@@ -141,11 +141,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onError = useCallback(
-    (error) => {
+    (error: Error) => {
       if (onScanError && error) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({ purpose, error })
+            .addProperties({ purpose, error: error.message })
             .build(),
         );
         onScanError(error.message);
@@ -155,7 +155,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onBarCodeRead = useCallback(
-    (response) => {
+    (response: { data: string }) => {
       if (!visible) {
         return;
       }
@@ -220,7 +220,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onStatusChange = useCallback(
-    (event) => {
+    (event: { cameraStatus: string }) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
         onScanError(strings('transaction.no_camera_permission'));
       }

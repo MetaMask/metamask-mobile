@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { Pressable, View, BackHandler, LayoutChangeEvent } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -83,6 +83,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
 import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
+import { CryptoCurrency, FiatCurrency, Payment } from '@consensys/on-ramp-sdk';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -397,7 +398,7 @@ const BuildQuote = () => {
   const onAmountInputPress = useCallback(() => setAmountFocused(true), []);
 
   const handleKeypadChange = useCallback(
-    ({ value, valueAsNumber }) => {
+    ({ value, valueAsNumber }: { value: string; valueAsNumber: number }) => {
       setAmount(`${value}`);
       setAmountNumber(valueAsNumber);
       if (isSell) {
@@ -451,7 +452,7 @@ const BuildQuote = () => {
     ],
   );
 
-  const onKeypadLayout = useCallback((event) => {
+  const onKeypadLayout = useCallback((event: LayoutChangeEvent) => {
     const { height } = event.nativeEvent.layout;
     keyboardHeight.current = height;
   }, []);
@@ -504,7 +505,7 @@ const BuildQuote = () => {
   }, [toggleTokenSelectorModal]);
 
   const handleAssetPress = useCallback(
-    (newAsset) => {
+    (newAsset: CryptoCurrency) => {
       setSelectedAsset(newAsset);
       hideTokenSelectorModal();
     },
@@ -521,7 +522,7 @@ const BuildQuote = () => {
   }, [toggleFiatSelectorModal]);
 
   const handleCurrencyPress = useCallback(
-    (fiatCurrency) => {
+    (fiatCurrency: FiatCurrency) => {
       setSelectedFiatCurrencyId(fiatCurrency?.id);
       setAmount('0');
       setAmountNumber(0);
@@ -535,7 +536,7 @@ const BuildQuote = () => {
    */
 
   const handleChangePaymentMethod = useCallback(
-    (paymentMethodId) => {
+    (paymentMethodId?: Payment['id']) => {
       if (paymentMethodId) {
         setSelectedPaymentMethodId(paymentMethodId);
       }

@@ -159,7 +159,7 @@ function TokenSelectModal({
     [searchString, modalStyles.emptyList],
   );
 
-  const handleSearchTextChange = useCallback((text) => {
+  const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
     if (list.current) {
       list.current.scrollToOffset({ animated: false, offset: 0 });
@@ -195,11 +195,7 @@ function TokenSelectModal({
           >
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
-                <Icon
-                  name="search"
-                  size={20}
-                  style={modalStyles.searchIcon}
-                />
+                <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
                   ref={searchInput}
                   style={modalStyles.input}

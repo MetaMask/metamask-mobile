@@ -131,7 +131,7 @@ function FiatSelectModal({
     [searchString, styles.emptyList],
   );
 
-  const handleSearchTextChange = useCallback((text) => {
+  const handleSearchTextChange = useCallback((text: string) => {
     setSearchString(text);
     if (list.current) {
       list.current.scrollToOffset({ animated: false, offset: 0 });

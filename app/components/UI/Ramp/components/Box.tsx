@@ -44,6 +44,7 @@ interface Props {
   accessible?: boolean;
   accessibilityLabel?: string;
   compact?: boolean;
+  children?: React.ReactNode;
 }
 
 const Box: React.FC<Props> = ({
@@ -56,6 +57,7 @@ const Box: React.FC<Props> = ({
   accessible,
   accessibilityLabel,
   compact,
+  children,
   ...props
 }: Props) => {
   const { colors } = useTheme();
@@ -80,7 +82,9 @@ const Box: React.FC<Props> = ({
             style,
           ]}
           {...props}
-        />
+        >
+          {children}
+        </View>
       </TouchableOpacity>
     </>
   );

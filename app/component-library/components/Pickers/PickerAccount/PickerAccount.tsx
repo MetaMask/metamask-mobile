@@ -18,7 +18,7 @@ import styleSheet from './PickerAccount.styles';
 import { WalletViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/WalletView.selectors';
 
 const PickerAccount: React.ForwardRefRenderFunction<
-  TouchableOpacity,
+  typeof TouchableOpacity,
   PickerAccountProps
 > = (
   {

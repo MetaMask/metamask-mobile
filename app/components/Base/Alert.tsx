@@ -27,7 +27,7 @@ interface Props {
   renderIcon?: () => ReactNode;
   onPress?: () => void;
   onDismiss?: () => void;
-  children?: ReactNode;
+  children?: ReactNode | ((textStyle: StyleProp<TextStyle>) => ReactNode);
 }
 
 // TODO: Replace "any" with type
@@ -111,8 +111,8 @@ const Alert = ({
   ...props
 }: Props) => {
   const Wrapper:
-    | React.ComponentClass<TouchableOpacityProps>
-    | React.ComponentClass<ViewProps> = onPress ? TouchableOpacity : View;
+    | React.ComponentType<TouchableOpacityProps>
+    | React.ComponentType<ViewProps> = onPress ? TouchableOpacity : View;
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

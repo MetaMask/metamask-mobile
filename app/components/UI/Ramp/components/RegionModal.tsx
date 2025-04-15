@@ -301,7 +301,7 @@ const RegionModal: React.FC<Props> = ({
   }, [activeView, dismiss, handleRegionBackButton]);
 
   const handleSearchTextChange = useCallback(
-    (text) => {
+    (text: string) => {
       setSearchString(text);
       scrollToTop();
     },
@@ -364,11 +364,7 @@ const RegionModal: React.FC<Props> = ({
 
             <TouchableWithoutFeedback onPress={handleSearchPress}>
               <View style={modalStyles.inputWrapper}>
-                <Icon
-                  name="search"
-                  size={20}
-                  style={modalStyles.searchIcon}
-                />
+                <Icon name="search" size={20} style={modalStyles.searchIcon} />
                 <TextInput
                   ref={searchInput}
                   style={modalStyles.input}

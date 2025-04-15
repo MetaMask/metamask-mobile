@@ -10,6 +10,7 @@ export interface SnapUIButtonProps {
   loading?: boolean;
   type?: ButtonType;
   form?: string;
+  children: React.ReactNode;
 }
 
 export const SnapUIButton: FunctionComponent<SnapUIButtonProps> = ({

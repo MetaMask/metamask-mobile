@@ -92,12 +92,12 @@ interface PropsStage {
   isTransacted: boolean;
 }
 
-const Row: React.FC = (props) => {
+const Row: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={styles.row} {...props} />;
 };
-const Group: React.FC = (props) => {
+const Group: React.FC<{ children: React.ReactNode }> = (props) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return <View style={styles.group} {...props} />;

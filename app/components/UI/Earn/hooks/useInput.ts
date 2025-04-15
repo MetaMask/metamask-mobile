@@ -94,7 +94,7 @@ const useInputHandler = ({
   );
 
   const handleKeypadChange = useCallback(
-    ({ value, pressedKey }) => {
+    ({ value, pressedKey }: { value: string; pressedKey: string }) => {
       const digitsOnly = value.replace(/[^0-9.]/g, '');
       const [whole = '', fraction = ''] = digitsOnly.split('.');
       const totalDigits = whole.length + fraction.length;

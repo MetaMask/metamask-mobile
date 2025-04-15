@@ -27,6 +27,7 @@ import {
 } from '../../../../../util/navigation/navUtils';
 
 import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
+import { Payment } from '@consensys/on-ramp-sdk';
 
 interface PaymentMethodsParams {
   showBack?: boolean;
@@ -74,7 +75,7 @@ const PaymentMethods = () => {
   }, [isBuy, selectedChainId, trackEvent]);
 
   const handlePaymentMethodPress = useCallback(
-    (id) => {
+    (id: Payment['id']) => {
       setSelectedPaymentMethodId(id);
       trackEvent(
         isBuy

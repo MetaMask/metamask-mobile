@@ -37,7 +37,10 @@ export interface SimulationDetailsProps {
  * @param error.code - The error code.
  * @returns The error content.
  */
-const ErrorContent: React.FC<{ error: SimulationError, isTransactionsRedesign: boolean }> = ({ error, isTransactionsRedesign }) => {
+const ErrorContent: React.FC<{
+  error: SimulationError;
+  isTransactionsRedesign: boolean;
+}> = ({ error, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
 
   function getMessage() {
@@ -75,7 +78,10 @@ const EmptyContent: React.FC = () => (
  * @param children - The children to render in the header.
  * @returns The header layout.
  */
-const HeaderLayout: React.FC<{ isTransactionsRedesign: boolean }> = ({ children, isTransactionsRedesign }) => {
+const HeaderLayout: React.FC<{
+  isTransactionsRedesign: boolean;
+  children?: React.ReactNode;
+}> = ({ children, isTransactionsRedesign }) => {
   const {
     styles,
     theme: { colors },
@@ -118,11 +124,14 @@ const HeaderLayout: React.FC<{ isTransactionsRedesign: boolean }> = ({ children,
 const SimulationDetailsLayout: React.FC<{
   inHeader?: React.ReactNode;
   isTransactionsRedesign: boolean;
+  children?: React.ReactNode;
 }> = ({ inHeader, children, isTransactionsRedesign }) => {
   const { styles } = useStyles(styleSheet, { isTransactionsRedesign });
   return (
     <View style={styles.container}>
-      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>{inHeader}</HeaderLayout>
+      <HeaderLayout isTransactionsRedesign={isTransactionsRedesign}>
+        {inHeader}
+      </HeaderLayout>
       {children}
     </View>
   );
@@ -180,7 +189,10 @@ export const SimulationDetails: React.FC<SimulationDetailsProps> = ({
   if (error) {
     return (
       <SimulationDetailsLayout isTransactionsRedesign={isTransactionsRedesign}>
-        <ErrorContent error={error} isTransactionsRedesign={isTransactionsRedesign} />
+        <ErrorContent
+          error={error}
+          isTransactionsRedesign={isTransactionsRedesign}
+        />
       </SimulationDetailsLayout>
     );
   }
