@@ -9,14 +9,14 @@ import NetworkEducationModal from '../../../../pages/Network/NetworkEducationMod
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import WalletView from '../../../../pages/wallet/WalletView';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
-import { SmokeNetworkAbstractions } from '../../../../tags';
+import { SmokeMultiChainPermissions } from '../../../../tags';
 import Assertions from '../../../../utils/Assertions';
 import { loginToApp } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 
-describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
+describe(SmokeMultiChainPermissions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();

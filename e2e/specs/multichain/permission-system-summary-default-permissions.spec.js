@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../helpers';
-import { Regression } from '../../tags';
+import { SmokeMultiChainPermissions } from '../../tags';
 import Browser from '../../pages/Browser/BrowserView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../pages/Browser/ConnectedAccountsModal';
@@ -12,7 +12,7 @@ import PermissionSummaryBottomSheet from '../../pages/Browser/PermissionSummaryB
 import { PermissionSummaryBottomSheetSelectorsText } from '../../selectors/Browser/PermissionSummaryBottomSheet.selectors';
 
 describe(
-  Regression('Permission System - Default Permissions'),
+  SmokeMultiChainPermissions('Permission System - Default Permissions'),
   () => {
     beforeAll(async () => {
       jest.setTimeout(150000);
