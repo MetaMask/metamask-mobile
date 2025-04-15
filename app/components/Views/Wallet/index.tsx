@@ -21,8 +21,8 @@ import Tokens from '../../UI/Tokens';
 import { getWalletNavbarOptions } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
 import {
-  isPastPrivacyPolicyDate,
   shouldShowNewPrivacyToastSelector,
+  isPastPrivacyPolicyDate as isPastPrivacyPolicyDateFunc,
   storePrivacyPolicyShownDate as storePrivacyPolicyShownDateAction,
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
 } from '../../../reducers/legalNotices';
@@ -166,15 +166,16 @@ const createStyles = ({ colors, typography }: Theme) =>
     },
   });
 
-interface WalletProps {
-  navigation: NavigationProp<ParamListBase>;
-  storePrivacyPolicyShownDate: () => void;
-  shouldShowNewPrivacyToast: boolean;
-  currentRouteName: string;
-  storePrivacyPolicyClickedOrClosed: () => void;
-  showNftFetchingLoadingIndicator: () => void;
-  hideNftFetchingLoadingIndicator: () => void;
-}
+  interface WalletProps {
+    navigation: NavigationProp<ParamListBase>;
+    storePrivacyPolicyShownDate: () => void;
+    shouldShowNewPrivacyToast: boolean;
+    currentRouteName: string;
+    storePrivacyPolicyClickedOrClosed: () => void;
+    showNftFetchingLoadingIndicator: () => void;
+    hideNftFetchingLoadingIndicator: () => void;
+    isPastPrivacyPolicyDate: boolean;
+  }
 
 /**
  * Main view for the wallet
@@ -186,6 +187,7 @@ const Wallet = ({
   storePrivacyPolicyClickedOrClosed,
   showNftFetchingLoadingIndicator,
   hideNftFetchingLoadingIndicator,
+  isPastPrivacyPolicyDate,
 }: WalletProps) => {
   const { navigate } = useNavigation();
   const walletRef = useRef(null);
@@ -282,6 +284,7 @@ const Wallet = ({
     isDataCollectionForMarketingEnabled,
     isParticipatingInMetaMetrics,
     navigate,
+    isPastPrivacyPolicyDate,
   ]);
 
   useEffect(() => {
@@ -779,6 +782,7 @@ const Wallet = ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapStateToProps = (state: any) => ({
   shouldShowNewPrivacyToast: shouldShowNewPrivacyToastSelector(state),
+  isPastPrivacyPolicyDate: isPastPrivacyPolicyDateFunc(state), // Use the correct name that you imported
 });
 
 // TODO: Replace "any" with type
