@@ -255,7 +255,7 @@ export const BridgeTransactionDetails = (
               )}
           </Box>
         </Box>
-        {status.status === StatusTypes.COMPLETE && (
+        {status.status !== StatusTypes.COMPLETE && isStepListExpanded && (
           <Box style={styles.detailRow}>
             <BridgeStepList
               bridgeHistoryItem={bridgeTxHistoryItem}
