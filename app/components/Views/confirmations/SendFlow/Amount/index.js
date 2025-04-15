@@ -535,23 +535,6 @@ class Amount extends PureComponent {
     const { navigation, route, resetTransaction } = this.props;
     const colors = this.context.colors || mockTheme.colors;
     // Check initial value before setting
-    console.log(
-      '>>> Amount initial contextualChainId ',
-      this.props.sendFlowContextualChainId,
-    );
-
-    console.log(
-      '>>> toHexadecimal(this.props.sendFlowContextualChainId) ',
-      toHexadecimal(this.props.sendFlowContextualChainId),
-    );
-    // const networkConfiguration = selectNetworkConfigurationByChainId(
-    //   store.getState(),
-    //   toHexadecimal(this.props.sendFlowContextualChainId),
-    // );
-    console.log(
-      '>>> Amount sendFlowContextualNetworkConfiguration ',
-      this.props.sendFlowContextualNetworkConfiguration,
-    );
 
     navigation.setOptions(
       getSendFlowTitle(
@@ -926,13 +909,21 @@ class Amount extends PureComponent {
       transactionTo,
     } = this.props.transactionState;
     const { globalNetworkClientId } = this.props;
+
+    const { rpcEndpoints, defaultRpcEndpointIndex } =
+      this.props.sendFlowContextualNetworkConfiguration;
+    const { networkClientId: sendFlowContextualNetworkClientId } =
+      rpcEndpoints[defaultRpcEndpointIndex];
+    const effectiveNetworkClientId =
+      sendFlowContextualNetworkClientId || globalNetworkClientId;
+
     const { gas } = await getGasLimit(
       {
         from,
         to: transactionTo,
       },
       false,
-      globalNetworkClientId,
+      effectiveNetworkClientId,
     );
 
     return gas;
