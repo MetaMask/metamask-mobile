@@ -1190,5 +1190,20 @@ describe('Engine', () => {
         origin,
       });
     });
+    it('deleteInterface should call controllerMessenger with expected arguments', () => {
+      const origin = 'https://test.com';
+      jest
+        .spyOn(engine.controllerMessenger, 'call')
+        .mockImplementation(jest.fn());
+      engine.rejectOriginPendingApprovals(origin);
+
+      const { deleteInterface } = (rejectOriginApprovals as jest.Mock).mock
+        .calls[0][0];
+      deleteInterface('id');
+      expect(engine.controllerMessenger.call).toHaveBeenCalledWith(
+        'SnapInterfaceController:deleteInterface',
+        'id',
+      );
+    });
   });
 });
