@@ -5,7 +5,14 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import { View, Alert, BackHandler, ImageSourcePropType } from 'react-native';
+import {
+  View,
+  Alert,
+  BackHandler,
+  ImageSourcePropType,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { isEqual } from 'lodash';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import BrowserBottomBar from '../../UI/BrowserBottomBar';
@@ -1289,116 +1296,118 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   return (
     <ErrorBoundary navigation={navigation} view="BrowserTab">
-      {/*   <KeyboardAvoidingView
+      <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.wrapper, !isTabActive && styles.hide]}
-      > */}
-      <View
-        style={styles.wrapper}
-        //  {...(Device.isAndroid() ? { collapsable: false } : {})}
       >
-        <BrowserUrlBar
-          ref={urlBarRef}
-          connectionType={connectionType}
-          onSubmitEditing={onSubmitEditing}
-          onCancel={onCancelUrlBar}
-          onFocus={onFocusUrlBar}
-          onBlur={hideAutocomplete}
-          onChangeText={onChangeUrlBar}
-          connectedAccounts={permittedAccountsList}
-          activeUrl={resolvedUrlRef.current}
-          setIsUrlBarFocused={setIsUrlBarFocused}
-          isUrlBarFocused={isUrlBarFocused}
-        />
-        <View style={styles.wrapper}>
-          {renderProgressBar()}
-          <View style={styles.webview}>
-            {!!entryScriptWeb3 && firstUrlLoaded && (
-              <>
-                <WebView
-                  originWhitelist={[
-                    'https://',
-                    'http://',
-                    'metamask://',
-                    'dapp://',
-                    'wc://',
-                    'ethereum://',
-                    'file://',
-                    // Needed for Recaptcha
-                    'about:srcdoc',
-                  ]}
-                  decelerationRate={'normal'}
-                  ref={webviewRef}
-                  renderError={() => (
-                    <WebviewErrorComponent
-                      error={error}
-                      returnHome={returnHome}
-                    />
-                  )}
-                  source={{
-                    uri: allowedInitialUrl,
-                    ...(isExternalLink ? { headers: { Cookie: '' } } : null),
-                  }}
-                  injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-                  style={styles.webview}
-                  onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
-                  onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
-                  onLoadProgress={handleWebviewNavigationChange(OnLoadProgress)}
-                  onNavigationStateChange={handleOnNavigationStateChange}
-                  onMessage={onMessage}
-                  onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
-                  allowsInlineMediaPlayback
-                  testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
-                  applicationNameForUserAgent={'WebView MetaMaskMobile'}
-                  onFileDownload={handleOnFileDownload}
-                  webviewDebuggingEnabled={isTest}
-                />
-                {ipfsBannerVisible && (
-                  <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
-                )}
-              </>
-            )}
-          </View>
-          <UrlAutocomplete
-            ref={autocompleteRef}
-            onSelect={onSelect}
-            onDismiss={onDismissAutocomplete}
-          />
-        </View>
-        {isTabActive && (
-          <PhishingModal
-            blockedUrl={blockedUrl}
-            showPhishingModal={showPhishingModal}
-            setShowPhishingModal={setShowPhishingModal}
-            setBlockedUrl={setBlockedUrl}
-            urlBarRef={urlBarRef}
-            addToWhitelist={triggerAddToWhitelist}
-            activeUrl={resolvedUrlRef.current}
-            blockListType={blockListType}
-            goToUrl={onSubmitEditing}
-          />
-        )}
-        {isTabActive && showOptions && (
-          <Options
-            toggleOptions={toggleOptions}
-            onNewTabPress={onNewTabPress}
-            toggleOptionsIfNeeded={toggleOptionsIfNeeded}
-            activeUrl={resolvedUrlRef.current}
-            isHomepage={isHomepage}
-            getMaskedUrl={getMaskedUrl}
+        <View
+          style={styles.wrapper}
+          {...(Device.isAndroid() ? { collapsable: false } : {})}
+        >
+          <BrowserUrlBar
+            ref={urlBarRef}
+            connectionType={connectionType}
             onSubmitEditing={onSubmitEditing}
-            title={titleRef}
-            reload={reload}
-            sessionENSNames={sessionENSNamesRef.current}
-            favicon={favicon}
-            icon={iconRef}
+            onCancel={onCancelUrlBar}
+            onFocus={onFocusUrlBar}
+            onBlur={hideAutocomplete}
+            onChangeText={onChangeUrlBar}
+            connectedAccounts={permittedAccountsList}
+            activeUrl={resolvedUrlRef.current}
+            setIsUrlBarFocused={setIsUrlBarFocused}
+            isUrlBarFocused={isUrlBarFocused}
           />
-        )}
+          <View style={styles.wrapper}>
+            {renderProgressBar()}
+            <View style={styles.webview}>
+              {!!entryScriptWeb3 && firstUrlLoaded && (
+                <>
+                  <WebView
+                    originWhitelist={[
+                      'https://',
+                      'http://',
+                      'metamask://',
+                      'dapp://',
+                      'wc://',
+                      'ethereum://',
+                      'file://',
+                      // Needed for Recaptcha
+                      'about:srcdoc',
+                    ]}
+                    decelerationRate={'normal'}
+                    ref={webviewRef}
+                    renderError={() => (
+                      <WebviewErrorComponent
+                        error={error}
+                        returnHome={returnHome}
+                      />
+                    )}
+                    source={{
+                      uri: allowedInitialUrl,
+                      ...(isExternalLink ? { headers: { Cookie: '' } } : null),
+                    }}
+                    injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                    style={styles.webview}
+                    onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
+                    onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
+                    onLoadProgress={handleWebviewNavigationChange(
+                      OnLoadProgress,
+                    )}
+                    onNavigationStateChange={handleOnNavigationStateChange}
+                    onMessage={onMessage}
+                    onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+                    allowsInlineMediaPlayback
+                    testID={BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}
+                    applicationNameForUserAgent={'WebView MetaMaskMobile'}
+                    onFileDownload={handleOnFileDownload}
+                    webviewDebuggingEnabled={isTest}
+                  />
+                  {ipfsBannerVisible && (
+                    <IpfsBanner setIpfsBannerVisible={setIpfsBannerVisible} />
+                  )}
+                </>
+              )}
+            </View>
+            <UrlAutocomplete
+              ref={autocompleteRef}
+              onSelect={onSelect}
+              onDismiss={onDismissAutocomplete}
+            />
+          </View>
+          {isTabActive && (
+            <PhishingModal
+              blockedUrl={blockedUrl}
+              showPhishingModal={showPhishingModal}
+              setShowPhishingModal={setShowPhishingModal}
+              setBlockedUrl={setBlockedUrl}
+              urlBarRef={urlBarRef}
+              addToWhitelist={triggerAddToWhitelist}
+              activeUrl={resolvedUrlRef.current}
+              blockListType={blockListType}
+              goToUrl={onSubmitEditing}
+            />
+          )}
+          {isTabActive && showOptions && (
+            <Options
+              toggleOptions={toggleOptions}
+              onNewTabPress={onNewTabPress}
+              toggleOptionsIfNeeded={toggleOptionsIfNeeded}
+              activeUrl={resolvedUrlRef.current}
+              isHomepage={isHomepage}
+              getMaskedUrl={getMaskedUrl}
+              onSubmitEditing={onSubmitEditing}
+              title={titleRef}
+              reload={reload}
+              sessionENSNames={sessionENSNamesRef.current}
+              favicon={favicon}
+              icon={iconRef}
+            />
+          )}
 
-        {renderBottomBar()}
-        {isTabActive && renderOnboardingWizard()}
-      </View>
-      {/*     </KeyboardAvoidingView> */}
+          {renderBottomBar()}
+          {isTabActive && renderOnboardingWizard()}
+        </View>
+      </KeyboardAvoidingView>
     </ErrorBoundary>
   );
 };
