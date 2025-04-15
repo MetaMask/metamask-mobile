@@ -17,7 +17,7 @@ import {
 } from '../RPCMethods/lib/ethereum-chain-utils';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import { wait } from '../SDKConnect/utils/wait.util';
-import { KnownCaipNamespace } from '@metamask/utils';
+import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
 import { getRpcMethodMiddlewareHooks } from '../RPCMethods/RPCMethodMiddleware';
 
 export interface WCMultiVersionParams {
@@ -247,7 +247,7 @@ export const checkWCPermissions = async ({
   caip2ChainId,
 }: {
   origin: string;
-  caip2ChainId: string;
+  caip2ChainId: CaipChainId;
 }) => {
   const networkConfigurations = selectNetworkConfigurations(store.getState());
   const decimalChainId = caip2ChainId.split(':')[1];

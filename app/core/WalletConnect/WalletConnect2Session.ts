@@ -24,8 +24,9 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
   // normalizeOrigin,
-  getHostname
+  getHostname,
 } from './wc-utils';
+import { CaipChainId } from '@metamask/utils';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -150,7 +151,10 @@ class WalletConnect2Session {
         this.lastChainId = newChainId;
         const decimalChainId = parseInt(newChainId, 16);
         this.handleChainChange(decimalChainId).catch((error) => {
-          console.warn('WC2::store.subscribe Error handling chain change:', error);
+          console.warn(
+            'WC2::store.subscribe Error handling chain change:',
+            error,
+          );
         });
       }
     });
@@ -208,7 +212,9 @@ class WalletConnect2Session {
         const peerLink = redirect?.native || redirect?.universal;
         if (peerLink) {
           Linking.openURL(peerLink).catch((error) => {
-            DevLogger.log(`WC2::redirect error while opening ${peerLink} with error ${error}`);
+            DevLogger.log(
+              `WC2::redirect error while opening ${peerLink} with error ${error}`,
+            );
             showReturnModal();
           });
         } else {
@@ -239,7 +245,6 @@ class WalletConnect2Session {
 
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
-
     if (this.isHandlingChainChange) return;
     this.isHandlingChainChange = true;
 
@@ -413,7 +418,10 @@ class WalletConnect2Session {
       }
 
       const namespaces = await getScopedPermissions({ origin });
-      DevLogger.log(`🔴🔴 WC2::updateSession updating with namespaces`, namespaces);
+      DevLogger.log(
+        `🔴🔴 WC2::updateSession updating with namespaces`,
+        namespaces,
+      );
 
       await this.web3Wallet.updateSession({
         topic: this.session.topic,
@@ -451,7 +459,14 @@ class WalletConnect2Session {
     const verified = requestEvent.verifyContext?.verified;
     const origin = verified?.origin ?? this.session.peer.metadata.url;
     const method = requestEvent.params.request.method;
-    const caip2ChainId = method === 'wallet_switchEthereumChain' ? `eip155:${parseInt(requestEvent.params.request.params[0].chainId, 16)}` : requestEvent.params.chainId;
+    const caip2ChainId = (
+      method === 'wallet_switchEthereumChain'
+        ? `eip155:${parseInt(
+            requestEvent.params.request.params[0].chainId,
+            16,
+          )}`
+        : requestEvent.params.chainId
+    ) as CaipChainId;
     const methodParams = requestEvent.params.request.params;
 
     DevLogger.log(

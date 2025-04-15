@@ -2,7 +2,7 @@ import { captureException } from '@sentry/react-native';
 import ImportedEngine from '../Engine';
 import Logger from '../../util/Logger';
 import TransactionTypes from '../TransactionTypes';
-import { KnownCaipNamespace, Hex } from '@metamask/utils';
+import { KnownCaipNamespace, Hex, CaipChainId } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   Caip25CaveatType,
@@ -366,7 +366,7 @@ export const getPermittedAccounts = (
  */
 export const getPermittedChains = async (
   hostname: string,
-): Promise<string[]> => {
+): Promise<CaipChainId[]> => {
   const { PermissionController } = Engine.context;
   const caveat = PermissionController.getCaveat(
     hostname,
@@ -375,7 +375,10 @@ export const getPermittedChains = async (
 
   if (caveat) {
     const chains = getPermittedEthChainIds(caveat.value).map(
-      (chainId: string) => `${KnownCaipNamespace.Eip155}:${parseInt(chainId)}`,
+      (chainId: string) =>
+        `${KnownCaipNamespace.Eip155.toString()}:${parseInt(
+          chainId,
+        )}` as CaipChainId,
     );
 
     return chains;
