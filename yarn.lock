@@ -4458,6 +4458,35 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
+"@metamask/auth-network-utils@./auth-network-utils.tgz":
+  version "0.0.0"
+  uid daf330dd5d37cd709ca4a63d4df48d50ee9609ce
+  resolved "./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
+  dependencies:
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    "@toruslabs/bs58" "^1.0.0"
+    "@toruslabs/constants" "^15.0.0"
+    "@toruslabs/eccrypto" "^6.0.2"
+    bn.js "^5.2.1"
+    elliptic "^6.6.1"
+    json-stable-stringify "^1.2.1"
+    loglevel "^1.9.2"
+
+"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@file:./auth-network-utils.tgz":
+  version "0.0.0"
+  resolved "file:./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
+  dependencies:
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    "@toruslabs/bs58" "^1.0.0"
+    "@toruslabs/constants" "^15.0.0"
+    "@toruslabs/eccrypto" "^6.0.2"
+    bn.js "^5.2.1"
+    elliptic "^6.6.1"
+    json-stable-stringify "^1.2.1"
+    loglevel "^1.9.2"
+
 "@metamask/base-controller@^7.0.1", "@metamask/base-controller@^7.0.2", "@metamask/base-controller@^7.0.3", "@metamask/base-controller@^7.1.1":
   version "7.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-7.1.1.tgz#837216ee099563b2106202fa0ed376dc909dfbb9"
@@ -5357,18 +5386,31 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?19c8035ca514d04d55e08c0a9e91610ddd9e03a5":
+"@metamask/seedless-onboarding-controller@file:./package-seedless.tgz":
   version "0.0.1"
-  resolved "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?19c8035ca514d04d55e08c0a9e91610ddd9e03a5#6437857369b2901d2b1cb5738a77764feff3d90f"
+  resolved "file:./package-seedless.tgz#94b5a6babb86d84e35a795902545668d05cdc630"
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/keyring-controller" "^21.0.0"
+    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz"
     "@metamask/utils" "^11.2.0"
-    "@noble/ciphers" "^0.5.2"
-    "@noble/curves" "^1.2.0"
     "@noble/hashes" "^1.4.0"
     async-mutex "^0.5.0"
+    loglevel "^1.8.1"
+
+"@metamask/seedless-onboarding-controller@file:./seedless-onboarding-controller.tgz":
+  version "0.0.1"
+  resolved "file:./seedless-onboarding-controller.tgz#1663636a0aee299b8532c9a50d442c96f502a26e"
+  dependencies:
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/browser-passworder" "^4.3.0"
+    "@metamask/keyring-controller" "^21.0.0"
+    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz"
+    "@metamask/utils" "^11.2.0"
+    "@noble/hashes" "^1.4.0"
+    async-mutex "^0.5.0"
+    loglevel "^1.8.1"
 
 "@metamask/selected-network-controller@^21.0.0":
   version "21.0.0"
@@ -5622,6 +5664,21 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
+"@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:./toprf-secure-backup.tgz":
+  version "0.0.0"
+  resolved "file:./toprf-secure-backup.tgz#65be9bb22084abce031dabfa35195228ae7cc988"
+  dependencies:
+    "@metamask/auth-network-utils" "^0.0.0"
+    "@noble/ciphers" "^1.2.1"
+    "@noble/curves" "^1.8.1"
+    "@noble/hashes" "^1.7.1"
+    "@sentry/core" "^9.10.0"
+    "@toruslabs/constants" "^15.0.0"
+    "@toruslabs/eccrypto" "^6.0.2"
+    "@toruslabs/fetch-node-details" "^15.0.0"
+    "@toruslabs/http-helpers" "^8.1.1"
+    bn.js "^5.2.1"
+
 "@metamask/transaction-controller@45.0.0":
   version "45.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-45.0.0.tgz#960cdc9fcc6dc3f9f6fd3ec082def8d67696e742"
@@ -5753,6 +5810,11 @@
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
   integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
+
+"@noble/ciphers@^1.2.1":
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-1.2.1.tgz#3812b72c057a28b44ff0ad4aff5ca846e5b9cdc9"
+  integrity sha512-rONPWMC7PeExE077uLE4oqWrZ1IvAfz3oH9LibVAcVCopJiA9R62uavnbEzdkVmJYI6M6Zgkbeb07+tWjlq2XA==
 
 "@noble/curves@1.4.2", "@noble/curves@~1.4.0":
   version "1.4.2"
@@ -7163,6 +7225,11 @@
   dependencies:
     "@sentry/types" "7.119.1"
     "@sentry/utils" "7.119.1"
+
+"@sentry/core@^9.10.0":
+  version "9.12.0"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-9.12.0.tgz#164a88af070cd77191ca14c88914e008c7ce7716"
+  integrity sha512-jOqQK/90uzHmsBvkPTj/DAEFvA5poX4ZRyC7LE1zjg4F5jdOp3+M4W3qCy0CkSTu88Zu5VWBoppCU2Bs34XEqg==
 
 "@sentry/hub@7.119.0":
   version "7.119.0"
@@ -9216,6 +9283,48 @@
   version "0.23.0"
   resolved "https://registry.yarnpkg.com/@tootallnate/quickjs-emscripten/-/quickjs-emscripten-0.23.0.tgz#db4ecfd499a9765ab24002c3b696d02e6d32a12c"
   integrity sha512-C5Mc6rdnsaJDjO3UpGW/CQTHtCKaYlScZTly4JIu97Jxo/odCiH0ITnDXSJPTOrEKk/ycSZ0AOgTmkDtkOsvIA==
+
+"@toruslabs/bs58@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@toruslabs/bs58/-/bs58-1.0.0.tgz#a5a9621caba9408521d7f17949b28f9af48f4f23"
+  integrity sha512-osqIgm1MzEB6+fkaQeEUg4tuZXmhhXTn+K7+nZU7xDBcy+8Yr3eGNqJcQ4jds82g+dhkk2cBkge9sffv38iDQQ==
+
+"@toruslabs/constants@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@toruslabs/constants/-/constants-15.0.0.tgz#1de2c1eb578e7ed1b5c1d68d33861b2f591c7a2d"
+  integrity sha512-0nr6vU3FQT2eRsnPYRwfVIkjwawLTkDTkCusiny9DgAw1M2zbmNqPOAqWuljUcDaK/u4VB0/PrN5SzhVBLnNGg==
+
+"@toruslabs/eccrypto@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@toruslabs/eccrypto/-/eccrypto-6.0.2.tgz#ded158a8e6d831c49cae6197f713af88c703874e"
+  integrity sha512-C2MOqtg3UrmAqRSUiOFXzGRaKkQzTN2fIHxxSnaj86no//ziVDPIJLTiPPAqyny/QMPZbCODQAofwPXF0G0juA==
+  dependencies:
+    elliptic "^6.6.1"
+
+"@toruslabs/fetch-node-details@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@toruslabs/fetch-node-details/-/fetch-node-details-15.0.0.tgz#e30fa9f6805b9756183ee9b653a14449b2e2fee9"
+  integrity sha512-uYTV+mv5U6egTQj94zSyy9NqlfUYdwen6GeyDdCA7g0TN+YnRV4WgkcjloN0llscrND7mzuJNSIVDHCE+kSpcQ==
+  dependencies:
+    "@toruslabs/constants" "^15.0.0"
+    "@toruslabs/fnd-base" "^15.0.0"
+    "@toruslabs/http-helpers" "^8.1.1"
+    loglevel "^1.9.2"
+
+"@toruslabs/fnd-base@^15.0.0":
+  version "15.0.0"
+  resolved "https://registry.yarnpkg.com/@toruslabs/fnd-base/-/fnd-base-15.0.0.tgz#6d6282ca6c540fefe277bf9f9fb20652949ba414"
+  integrity sha512-KygYyPBHADmXKmzClbGcKc0oOI/Ay5FP/fUsFvXXRv4ey+VfIKiHHSAo6IojozvVUSrs0kDwocSpeE3sp/hBPA==
+  dependencies:
+    "@toruslabs/constants" "^15.0.0"
+
+"@toruslabs/http-helpers@^8.1.1":
+  version "8.1.1"
+  resolved "https://registry.yarnpkg.com/@toruslabs/http-helpers/-/http-helpers-8.1.1.tgz#49b19bd316e46c6a1d1d81d2bca8c9cdaf35e95e"
+  integrity sha512-bcymgOEAHjWJtqWvbCw+jCLk8vch5V53E/17moM0kAQO+tY0omhsMpZYDtFcbF3xl8/fLyW7G0HGUfThPykQ7A==
+  dependencies:
+    deepmerge "^4.3.1"
+    loglevel "^1.9.2"
 
 "@tradle/react-native-http@2.0.1":
   version "2.0.1"
@@ -13221,7 +13330,7 @@ caf@^15.0.1:
   resolved "https://registry.yarnpkg.com/caf/-/caf-15.0.1.tgz#28f1f17bd93dc4b5d95207ad07066eddf4768160"
   integrity sha512-Xp/IK6vMwujxWZXra7djdYzPdPnEQKa7Mudu2wZgDQ3TJry1I0TgtjEgwZHpoBcMp68j4fb0/FZ1SJyMEgJrXQ==
 
-call-bind-apply-helpers@^1.0.1, call-bind-apply-helpers@^1.0.2:
+call-bind-apply-helpers@^1.0.0, call-bind-apply-helpers@^1.0.1, call-bind-apply-helpers@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/call-bind-apply-helpers/-/call-bind-apply-helpers-1.0.2.tgz#4b5428c222be985d79c3d82657479dbe0b59b2d6"
   integrity sha512-Sp1ablJ0ivDkSzjcaJdxEunN5/XvksFJ2sMBFfq6x0ryhQV/2b/KwFe21cMpmHtPOSij8K99/wSfoEuTObmuMQ==
@@ -13240,7 +13349,17 @@ call-bind@^1.0.0, call-bind@^1.0.2, call-bind@^1.0.5, call-bind@^1.0.6, call-bin
     get-intrinsic "^1.2.4"
     set-function-length "^1.2.1"
 
-call-bound@^1.0.2:
+call-bind@^1.0.8:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/call-bind/-/call-bind-1.0.8.tgz#0736a9660f537e3388826f440d5ec45f744eaa4c"
+  integrity sha512-oKlSFMcMwpUg2ednkhQ454wfWiU/ul3CkJe/PEHcTKuiX6RpbehUiFMXu13HalGZxfUwCQzZG747YXBn1im9ww==
+  dependencies:
+    call-bind-apply-helpers "^1.0.0"
+    es-define-property "^1.0.0"
+    get-intrinsic "^1.2.4"
+    set-function-length "^1.2.2"
+
+call-bound@^1.0.2, call-bound@^1.0.3:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/call-bound/-/call-bound-1.0.4.tgz#238de935d2a2a692928c538c7ccfa91067fd062a"
   integrity sha512-+ys997U96po4Kx/ABpBCqhA9EuxJaQWDQg7295H4hBphv3IZg0boBKuwYpt4YXp6MZ5AmZQnU/tyMTlRpaSejg==
@@ -14753,7 +14872,7 @@ deep-is@^0.1.3:
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
   integrity sha1-s2nW+128E+7PUk+RsHD+7cNXzzQ=
 
-deepmerge@^4.0.0, deepmerge@^4.2.2, deepmerge@^4.3.0:
+deepmerge@^4.0.0, deepmerge@^4.2.2, deepmerge@^4.3.0, deepmerge@^4.3.1:
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-4.3.1.tgz#44b5f2147cd3b00d4b56137685966f26fd25dd4a"
   integrity sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==
@@ -20361,6 +20480,17 @@ json-stable-stringify-without-jsonify@^1.0.1:
   resolved "https://registry.yarnpkg.com/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz#9db7b59496ad3f3cfef30a75142d2d930ad72651"
   integrity sha1-nbe1lJatPzz+8wp1FC0tkwrXJlE=
 
+json-stable-stringify@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/json-stable-stringify/-/json-stable-stringify-1.2.1.tgz#addb683c2b78014d0b78d704c2fcbdf0695a60e2"
+  integrity sha512-Lp6HbbBgosLmJbjx0pBLbgvx68FaFU1sdkmBuckmhhJ88kL13OA51CDtR2yJB50eCNMH9wRqtQNNiAqQH4YXnA==
+  dependencies:
+    call-bind "^1.0.8"
+    call-bound "^1.0.3"
+    isarray "^2.0.5"
+    jsonify "^0.0.1"
+    object-keys "^1.1.1"
+
 json-stringify-safe@^5.0.1, json-stringify-safe@~5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/json-stringify-safe/-/json-stringify-safe-5.0.1.tgz#1296a2d58fd45f19a0f6ce01d65701e2c735b6eb"
@@ -20405,6 +20535,11 @@ jsonfile@^6.0.1, jsonfile@^6.1.0:
     universalify "^2.0.0"
   optionalDependencies:
     graceful-fs "^4.1.6"
+
+jsonify@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.1.tgz#2aa3111dae3d34a0f151c63f3a45d995d9420978"
+  integrity sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==
 
 jsonpath-plus@^7.2.0:
   version "7.2.0"
@@ -21133,6 +21268,11 @@ loglevel@^1.6.0, loglevel@^1.8.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/loglevel/-/loglevel-1.9.1.tgz#d63976ac9bcd03c7c873116d41c2a85bafff1be7"
   integrity sha512-hP3I3kCrDIMuRwAwHltphhDM1r8i55H33GgqjXbrisuJhF4kRhW1dNuxsRklp4bXl8DSdLaNLuiL4A/LWRfxvg==
+
+loglevel@^1.9.2:
+  version "1.9.2"
+  resolved "https://registry.yarnpkg.com/loglevel/-/loglevel-1.9.2.tgz#c2e028d6c757720107df4e64508530db6621ba08"
+  integrity sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==
 
 long@^4.0.0:
   version "4.0.0"
@@ -26047,7 +26187,7 @@ set-blocking@2.0.0, set-blocking@^2.0.0:
   resolved "https://registry.yarnpkg.com/set-blocking/-/set-blocking-2.0.0.tgz#045f9782d011ae9a6803ddd382b24392b3d890f7"
   integrity sha1-BF+XgtARrppoA93TgrJDkrPYkPc=
 
-set-function-length@^1.2.1:
+set-function-length@^1.2.1, set-function-length@^1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/set-function-length/-/set-function-length-1.2.2.tgz#aac72314198eaed975cf77b2c3b6b880695e5449"
   integrity sha512-pgRc4hJ4/sNjWCSS9AmnS40x3bNMDTknHgL5UaMBTMyJnU90EgWh1Rz+MC9eFu4BuN/UwZjKQuY/1v3rM7HMfg==
