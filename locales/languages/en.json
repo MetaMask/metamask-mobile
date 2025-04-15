@@ -3882,6 +3882,8 @@
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
     "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
     "view_on_block_explorer": "View on Block Explorer",
-    "transaction_details": "Transaction Details"
+    "transaction_details": "Transaction Details",
+    "see_other_quotes": "See other quotes",
+    "receive_at": "Receive at"
   }
 }

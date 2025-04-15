@@ -32,6 +32,7 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
+  selectDestAddress,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -41,7 +42,6 @@ import { strings } from '../../../../locales/i18n';
 import useSubmitBridgeTx from '../../../util/bridge/hooks/useSubmitBridgeTx';
 import { QuoteResponse } from './types';
 import Engine from '../../../core/Engine';
-import { Hex } from '@metamask/utils';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
@@ -49,6 +49,8 @@ import { QuoteMetadata } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
+import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
+import { isSolanaChainId } from '@metamask/bridge-controller';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -124,11 +126,12 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const { activeQuote, isLoading, destTokenAmount } = useBridgeQuoteData();
   const updateQuoteParams = useBridgeQuoteRequest();
+  const destAddress = useSelector(selectDestAddress);
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId as Hex,
+    chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
 
@@ -286,7 +289,7 @@ const BridgeView = () => {
             tokenBalance={latestSourceBalance?.displayBalance}
             //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
             networkImageSource={getNetworkImageSource({
-              chainId: sourceToken?.chainId as Hex,
+              chainId: sourceToken?.chainId,
             })}
             autoFocus
             isReadonly
@@ -310,7 +313,7 @@ const BridgeView = () => {
             networkImageSource={
               destToken
                 ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-                  getNetworkImageSource({ chainId: destToken?.chainId as Hex })
+                  getNetworkImageSource({ chainId: destToken?.chainId })
                 : undefined
             }
             isReadonly
@@ -319,9 +322,19 @@ const BridgeView = () => {
             onTokenPress={handleDestTokenPress}
             isLoading={isLoading}
           />
-          <Box style={styles.quoteContainer}>
-            {activeQuote && !isLoading && <QuoteDetailsCard />}
-          </Box>
+
+          {destToken?.chainId && isSolanaChainId(destToken?.chainId) && (
+            <Box>
+              <DestinationAccountSelector />
+            </Box>
+          )}
+
+          {((destToken?.chainId && !isSolanaChainId(destToken?.chainId)) ||
+            destAddress) && (
+            <Box style={styles.quoteContainer}>
+              {activeQuote && !isLoading && <QuoteDetailsCard />}
+            </Box>
+          )}
         </Box>
 
         <Box style={styles.bottomSection}>
