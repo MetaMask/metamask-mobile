@@ -98,6 +98,7 @@ function getAlertNames(alerts: Alert[]): string[] {
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
+  [AlertKeys.InsufficientBalance]: 'insufficient_balance',
 };
 
 function getAlertName(alertKey: string): string {

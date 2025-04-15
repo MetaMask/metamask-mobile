@@ -44,9 +44,7 @@ import type {
 } from '@metamask/network-controller';
 import {
   AccountImportStrategy,
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   KeyringTypes,
-  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/keyring-controller';
 import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
