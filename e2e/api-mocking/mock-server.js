@@ -1,7 +1,6 @@
 /* eslint-disable no-console */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
-
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -66,6 +65,7 @@ export const startMockServer = async (events, port) => {
       return { url: updatedUrl };
     },
   });
+
 
   return mockServer;
 };
