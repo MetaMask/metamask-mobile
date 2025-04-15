@@ -30,7 +30,7 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
     },
     iconButton: {
-      height: 24,
+      height: 60,
       width: 24,
       justifyContent: 'space-around',
       alignItems: 'center',
