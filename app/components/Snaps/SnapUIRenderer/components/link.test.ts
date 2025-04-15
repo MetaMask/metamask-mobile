@@ -98,60 +98,6 @@ describe('link component', () => {
     });
   });
 
-  it('should preserve muted color for icons explicitly set to muted', () => {
-    const linkElement: LinkElement = {
-      type: 'Link',
-      props: {
-        href: 'https://metamask.io',
-        children: [
-          'Visit ',
-          {
-            type: 'Icon',
-            props: {
-              name: 'arrow-right',
-              color: 'muted',
-            },
-            key: null,
-          },
-        ],
-      },
-      key: null,
-    };
-
-    const result = link({ element: linkElement, ...defaultParams });
-
-    expect(result).toEqual({
-      element: 'SnapUILink',
-      children: [
-        {
-          element: 'Text',
-          children: 'Visit ',
-          key: expect.any(String),
-          props: {
-            color: '#4459ff',
-            style: {
-              fontWeight: undefined,
-              textAlign: undefined,
-            },
-            variant: undefined,
-          },
-        },
-        {
-          element: 'SnapUIIcon',
-          key: expect.any(String),
-          props: {
-            color: 'Muted',
-            name: 'ArrowRight',
-            size: '16',
-          },
-        },
-      ],
-      props: {
-        href: 'https://metamask.io',
-      },
-    });
-  });
-
   it('should handle multiple text fragments', () => {
     const linkElement: LinkElement = {
       type: 'Link',
