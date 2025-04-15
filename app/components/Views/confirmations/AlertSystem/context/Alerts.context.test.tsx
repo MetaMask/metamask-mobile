@@ -45,6 +45,7 @@ describe('AlertsContext', () => {
   const alertsMock = [dangerAlertMock, warningAlertMock, infoAlertMock];
 
   const mockUseAlertsConfirmed = {
+    hasBlockingAlerts: false,
     hasUnconfirmedDangerAlerts: false,
     hasUnconfirmedFieldDangerAlerts: false,
     isAlertConfirmed: jest.fn(),
@@ -80,6 +81,7 @@ describe('AlertsContext', () => {
       expect(result.current.setAlertConfirmed).toBeDefined();
       expect(result.current.unconfirmedDangerAlerts).toBeDefined();
       expect(result.current.unconfirmedFieldDangerAlerts).toBeDefined();
+      expect(result.current.hasBlockingAlerts).toBeDefined();
     });
 
     it('provides showAlertModal and hideAlertModal functions', () => {
@@ -109,6 +111,7 @@ describe('AlertsContext', () => {
       expect(result.current.generalAlerts).toEqual([]);
       expect(result.current.hasAlerts).toBe(false);
       expect(result.current.hasDangerAlerts).toBe(false);
+      expect(result.current.hasBlockingAlerts).toBe(false);
     });
 
     it('returns all alerts', () => {
