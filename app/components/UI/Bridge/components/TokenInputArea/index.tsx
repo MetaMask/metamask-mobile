@@ -3,16 +3,26 @@ import { StyleSheet, ImageSourcePropType } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
-import Text, { TextColor } from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 import Input from '../../../../../component-library/components/Form/TextField/foundation/Input';
 import { TokenButton } from '../TokenButton';
-import { selectCurrentCurrency, selectCurrencyRates } from '../../../../../selectors/currencyRateController';
-import { renderNumber, addCurrencySymbol, balanceToFiatNumber } from '../../../../../util/number';
+import {
+  selectCurrentCurrency,
+  selectCurrencyRates,
+} from '../../../../../selectors/currencyRateController';
+import {
+  renderNumber,
+  addCurrencySymbol,
+  balanceToFiatNumber,
+} from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -38,14 +48,19 @@ const createStyles = () =>
     },
   });
 
-const formatAddress = (address?: string) => address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
+const formatAddress = (address?: string) =>
+  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 interface GetDisplayFiatValueParams {
   token: BridgeToken | undefined;
   amount: string | undefined;
-  multiChainMarketData: Record<Hex, Record<Hex, { price: number | undefined }>> | undefined;
+  multiChainMarketData:
+    | Record<Hex, Record<Hex, { price: number | undefined }>>
+    | undefined;
   networkConfigurationsByChainId: Record<Hex, { nativeCurrency: string }>;
-  multiChainCurrencyRates: Record<string, { conversionRate: number | null }> | undefined;
+  multiChainCurrencyRates:
+    | Record<string, { conversionRate: number | null }>
+    | undefined;
   currentCurrency: string;
 }
 
@@ -65,11 +80,17 @@ export const getDisplayFiatValue = ({
   const multiChainExchangeRates = multiChainMarketData?.[chainId];
   const tokenMarketData = multiChainExchangeRates?.[token.address as Hex];
 
-  const nativeCurrency = networkConfigurationsByChainId[chainId]?.nativeCurrency;
-  const multiChainConversionRate = multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
+  const nativeCurrency =
+    networkConfigurationsByChainId[chainId]?.nativeCurrency;
+  const multiChainConversionRate =
+    multiChainCurrencyRates?.[nativeCurrency]?.conversionRate ?? 0;
 
   const balanceFiatCalculation = Number(
-    balanceToFiatNumber(amount, multiChainConversionRate, tokenMarketData?.price ?? 0)
+    balanceToFiatNumber(
+      amount,
+      multiChainConversionRate,
+      tokenMarketData?.price ?? 0,
+    ),
   );
 
   if (balanceFiatCalculation >= 0.01 || balanceFiatCalculation === 0) {
@@ -94,6 +115,7 @@ interface TokenInputAreaProps {
   testID?: string;
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
+  isLoading?: boolean;
 }
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
@@ -107,6 +129,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   testID,
   tokenType,
   onTokenPress,
+  isLoading = false,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -128,26 +151,37 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   });
 
   // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-  const formattedBalance = token?.symbol && tokenBalance ? (
-    `${renderNumber(tokenBalance)} ${token?.symbol}`
-  ) : undefined;
-  const formattedAddress = token?.address && token.address !== ethers.constants.AddressZero ? formatAddress(token?.address) : undefined;
+  const formattedBalance =
+    token?.symbol && tokenBalance
+      ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+      : undefined;
+  const formattedAddress =
+    token?.address && token.address !== ethers.constants.AddressZero
+      ? formatAddress(token?.address)
+      : undefined;
 
-  const subtitle = tokenType === TokenInputAreaType.Source ? formattedBalance : formattedAddress;
+  const subtitle =
+    tokenType === TokenInputAreaType.Source
+      ? formattedBalance
+      : formattedAddress;
 
   return (
     <Box style={styles.container}>
       <Box style={styles.content} gap={4}>
         <Box style={styles.row}>
           <Box style={styles.amountContainer}>
-            <Input
-              value={amount}
-              style={styles.input}
-              isReadonly={isReadonly}
-              autoFocus={autoFocus}
-              placeholder="0"
-              testID={`${testID}-input`}
-            />
+            {isLoading ? (
+              <Skeleton width={100} height={40} style={styles.input} />
+            ) : (
+              <Input
+                value={amount}
+                style={styles.input}
+                isReadonly={isReadonly}
+                autoFocus={autoFocus}
+                placeholder="0"
+                testID={`${testID}-input`}
+              />
+            )}
           </Box>
           <TokenButton
             symbol={token?.symbol}
@@ -159,16 +193,18 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
           />
         </Box>
         <Box style={styles.row}>
-          {fiatValue ? (
-            <Text color={TextColor.Alternative}>
-              {fiatValue}
-            </Text>
-          ) : null}
-          {subtitle ? (
-            <Text color={TextColor.Alternative}>
-              {subtitle}
-            </Text>
-          ) : null}
+          {isLoading ? (
+            <Skeleton width={100} height={10} />
+          ) : (
+            <>
+              {fiatValue ? (
+                <Text color={TextColor.Alternative}>{fiatValue}</Text>
+              ) : null}
+              {subtitle ? (
+                <Text color={TextColor.Alternative}>{subtitle}</Text>
+              ) : null}
+            </>
+          )}
         </Box>
       </Box>
     </Box>
