@@ -87,7 +87,6 @@ export function makeMethodMiddlewareMaker<U>(
       if (handler) {
         const { implementation, hookNames } = handler;
         try {
-          Logger.log({ req }, 'methodMiddleware:');
           // Implementations may or may not be async, so we must await them.
           return await implementation(
             req,
