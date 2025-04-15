@@ -38,7 +38,7 @@ export const useAssetMetadata = (
     selectBasicFunctionalityEnabled,
   );
 
-  const { value: assetMetadata } = useAsyncResult<
+  const { value: assetMetadata, pending } = useAsyncResult<
     | {
         address: Hex | CaipAssetType | string;
         symbol: string;
@@ -79,5 +79,5 @@ export const useAssetMetadata = (
     return undefined;
   }, [shouldFetchMetadata, searchQuery]);
 
-  return assetMetadata;
+  return { assetMetadata, pending };
 };

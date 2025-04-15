@@ -62,7 +62,7 @@ const createStyles = (params: { theme: Theme }) => {
     // Need the flex 1 to make sure this doesn't disappear when FlexDirection.Row is used
     skeletonItem: {
       flex: 1,
-    }
+    },
   });
 };
 
@@ -77,13 +77,13 @@ const SkeletonItem = () => {
     >
       <Skeleton height={30} width={30} style={styles.skeletonCircle} />
 
-    <Box gap={4} style={styles.skeletonItem}>
-      <Skeleton height={24} width={'96%'} />
-      <Skeleton height={24} width={'37%'} />
-    </Box>
+      <Box gap={4} style={styles.skeletonItem}>
+        <Skeleton height={24} width={'96%'} />
+        <Skeleton height={24} width={'37%'} />
+      </Box>
 
-    <Icon name={IconName.Info} />
-  </Box>
+      <Icon name={IconName.Info} />
+    </Box>
   );
 };
 
@@ -116,32 +116,38 @@ interface BridgeTokenSelectorBaseProps {
 
 export const BridgeTokenSelectorBase: React.FC<
   BridgeTokenSelectorBaseProps
-> = ({ networksBar, renderTokenItem, tokensList, pending, chainIdToFetchMetadata: chainId }) => {
+> = ({
+  networksBar,
+  renderTokenItem,
+  tokensList,
+  pending,
+  chainIdToFetchMetadata: chainId,
+}) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { searchString, setSearchString, searchResults } = useTokenSearch({
     tokens: tokensList || [],
   });
 
-  const unlistedAssetMetadata = useAssetMetadata(
+  const {
+    assetMetadata: unlistedAssetMetadata,
+    pending: unlistedAssetMetadataPending,
+  } = useAssetMetadata(
     searchString,
     Boolean(searchString && searchResults.length === 0),
     chainId,
   );
 
-  const tokensToRender = useMemo(
-    () => {
-      if (!searchString) {
-        return tokensList;
-      }
+  const tokensToRender = useMemo(() => {
+    if (!searchString) {
+      return tokensList;
+    }
 
-      if (searchResults.length > 0) {
-        return searchResults;
-      }
+    if (searchResults.length > 0) {
+      return searchResults;
+    }
 
-      return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
-    },
-    [searchString, searchResults, tokensList, unlistedAssetMetadata],
-  );
+    return unlistedAssetMetadata ? [unlistedAssetMetadata] : [];
+  }, [searchString, searchResults, tokensList, unlistedAssetMetadata]);
 
   const keyExtractor = useCallback(
     (token: BridgeToken) => `${token.chainId}-${token.address}`,
@@ -170,6 +176,11 @@ export const BridgeTokenSelectorBase: React.FC<
   const dismissModal = (): void => {
     modalRef.current?.onCloseBottomSheet();
   };
+
+  const shouldRenderLoading = useMemo(
+    () => pending || unlistedAssetMetadataPending,
+    [pending, unlistedAssetMetadataPending],
+  );
 
   return (
     <BottomSheet isFullscreen ref={modalRef}>
@@ -212,10 +223,14 @@ export const BridgeTokenSelectorBase: React.FC<
         </Box>
 
         <FlatList
-          data={pending ? [] : tokensToRender}
+          data={shouldRenderLoading ? [] : tokensToRender}
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
-          ListEmptyComponent={searchString ? renderEmptyList : LoadingSkeleton}
+          ListEmptyComponent={
+            searchString && !shouldRenderLoading
+              ? renderEmptyList
+              : LoadingSkeleton
+          }
         />
       </Box>
     </BottomSheet>
