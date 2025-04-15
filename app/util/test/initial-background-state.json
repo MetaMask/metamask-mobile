@@ -22,6 +22,12 @@
   "AddressBookController": {
     "addressBook": {}
   },
+  "AppMetadataController": {
+    "currentAppVersion": "",
+    "currentMigrationVersion": 0,
+    "previousAppVersion": "",
+    "previousMigrationVersion": 0
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},
@@ -280,7 +286,6 @@
     "approvalTransaction": null,
     "aggregatorMetadataLastFetched": 0,
     "quotesLastFetched": 0,
-    "topAssetsLastFetched": 0,
     "error": {
       "key": null,
       "description": null

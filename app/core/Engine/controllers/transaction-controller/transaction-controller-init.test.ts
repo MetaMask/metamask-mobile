@@ -3,6 +3,7 @@ import {
   TransactionControllerMessenger,
   TransactionControllerOptions,
   TransactionMeta,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { NetworkController } from '@metamask/network-controller';
@@ -54,7 +55,6 @@ function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
 ): jest.Mocked<
   ControllerInitRequest<
-    // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
     TransactionControllerMessenger,
     TransactionControllerInitMessenger
   >
@@ -283,6 +283,22 @@ describe('Transaction Controller Init', () => {
 
     expect(isEnabledFn?.()).toBe(true);
     expect(updateTransactionsProp).toBe(true);
+  });
+
+  it('determines if automatic gas fee update is enabled based on transaction type', () => {
+    const option = testConstructorOption('isAutomaticGasFeeUpdateEnabled');
+    const isEnabledFn = option as ({ type }: { type: string }) => boolean;
+
+    // Redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+
+    // Non-redesigned transaction types
+    expect(isEnabledFn({ type: TransactionType.simpleSend })).toBe(false);
+    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+      false,
+    );
   });
 
   it('gets network state from network controller on option getNetworkState', () => {

@@ -7,7 +7,7 @@ const tags = {
   SmokeSwaps: 'SmokeSwaps:',
   SmokeRest: 'SmokeRest:',
   smokeAssets: 'smokeAssets:',
-  smokeIdentity: 'smokeIdentity:',
+  smokeIdentity: 'SmokeIdentity:',
   smokeMultiChainPermissions: 'SmokeMultiChainPermissions:',
   smokeRamps: 'SmokeRamps:',
   smokeStake: 'SmokeStake:',

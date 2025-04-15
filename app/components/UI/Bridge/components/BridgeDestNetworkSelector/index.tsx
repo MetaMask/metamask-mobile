@@ -10,7 +10,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import ListItem from '../../../../../component-library/components/List/ListItem/ListItem';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem/ListItem.types';
-import { Hex } from '@metamask/utils';
+import { Hex, CaipChainId } from '@metamask/utils';
 import { BridgeNetworkSelectorBase } from '../BridgeNetworkSelectorBase';
 import { NetworkRow } from '../NetworkRow';
 
@@ -26,7 +26,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const dispatch = useDispatch();
   const enabledDestChains = useSelector(selectEnabledDestChains);
 
-  const handleChainSelect = useCallback((chainId: Hex) => {
+  const handleChainSelect = useCallback((chainId: Hex | CaipChainId) => {
     dispatch(setSelectedDestChainId(chainId));
     navigation.goBack();
   }, [dispatch, navigation]);

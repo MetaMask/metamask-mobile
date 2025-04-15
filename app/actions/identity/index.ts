@@ -32,3 +32,23 @@ export const disableProfileSyncing = async () => {
     return getErrorMessage(error);
   }
 };
+
+export const syncInternalAccountsWithUserStorage = async () => {
+  try {
+    await Engine.context.UserStorageController.syncInternalAccountsWithUserStorage();
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
+
+export const setIsAccountSyncingReadyToBeDispatched = async (
+  isAccountSyncingReadyToBeDispatched: boolean,
+) => {
+  try {
+    await Engine.context.UserStorageController.setIsAccountSyncingReadyToBeDispatched(
+      isAccountSyncingReadyToBeDispatched,
+    );
+  } catch (error) {
+    return getErrorMessage(error);
+  }
+};
