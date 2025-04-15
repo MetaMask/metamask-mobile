@@ -40,3 +40,8 @@ export interface ByoaResponse {
     message: string;
     jwt_tokens: Record<string, string>;
 }
+
+
+export const AuthConnectionId = 'byoa-server';
+
+export const GroupedAuthConnectionId = 'mm-seedless-onboarding';
