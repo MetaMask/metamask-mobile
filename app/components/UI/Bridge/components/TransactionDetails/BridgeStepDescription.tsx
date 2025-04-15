@@ -52,6 +52,9 @@ const getBridgeActionText = (
     ];
 
   const destSymbol = step.destAsset?.symbol;
+  // If the destination asset symbol is not available, we cannot display meaningful
+  // bridge action text. This is possible if the API has not yet provided the symbol.
+  // We do expect it to be available eventually, so we return null until then.
   if (!destSymbol) {
     return null;
   }
@@ -111,6 +114,9 @@ const getSwapActionText = (status: StatusTypes | null, step: Step) => {
   const srcSymbol = step.srcAsset?.symbol;
   const destSymbol = step.destAsset?.symbol;
 
+  // If the source or destination asset symbol is not available, we cannot display meaningful
+  // swap action text. This is possible if the API has not yet provided the symbol. We
+  // do expect it to be available eventually, so we return null until then.
   if (!srcSymbol || !destSymbol) {
     return null;
   }
