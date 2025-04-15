@@ -149,7 +149,7 @@ jest.mock('./utils/snaps', () => ({
 }));
 
 // Mock the trackSnapAccountEvent function
-jest.mock('../Analytics/helpers/snaps/trackSnapAccountEvent', () => ({
+jest.mock('../Analytics/helpers/SnapKeyring/trackSnapAccountEvent', () => ({
   trackSnapAccountEvent: jest.fn(),
 }));
 
