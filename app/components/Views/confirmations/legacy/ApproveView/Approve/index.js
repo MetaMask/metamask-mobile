@@ -468,7 +468,7 @@ class Approve extends PureComponent {
 
   onLedgerConfirmation = (approve, transactionId, gaParams) => {
     const { metrics } = this.props;
-    const { ApprovalController } = Engine.context;
+
     try {
       //manual cancel from UI when transaction is awaiting from ledger confirmation
       if (!approve) {
@@ -477,11 +477,6 @@ class Approve extends PureComponent {
         Engine.controllerMessenger.tryUnsubscribe(
           'TransactionController:transactionFinished',
           this.#transactionFinishedSubscription,
-        );
-
-        ApprovalController.reject(
-          transactionId,
-          providerErrors.userRejectedRequest(),
         );
 
         metrics.trackEvent(

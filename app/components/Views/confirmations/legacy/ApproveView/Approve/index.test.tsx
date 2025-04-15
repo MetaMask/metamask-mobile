@@ -55,9 +55,6 @@ jest.mock('../../../../../../core/Engine', () => ({
     AssetsContractController: {
       getERC20BalanceOf: jest.fn().mockResolvedValue(null),
     },
-    ApprovalController: {
-      reject: jest.fn(),
-    },
     KeyringController: {
       getOrAddQRKeyring: jest.fn(),
     },
