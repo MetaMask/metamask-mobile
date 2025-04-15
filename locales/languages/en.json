@@ -3870,7 +3870,8 @@
     "time": "Time",
     "quote_info_content": "This quote offers the best return from our search. It’s based on the swap rate, including bridging fees and a 0.875% MetaMask fee, but not gas fees. Gas fees vary with network activity and transaction complexity.",
     "quote_info_title": "Why we recommend this quote",
-    "see_other_quotes": "See other quotes"
+    "see_other_quotes": "See other quotes",
+    "receive_at": "Receive at"
   },
   "bridge_transaction_details": {
     "status": "Status",
@@ -3882,8 +3883,6 @@
     "bridge_step_action_swap_complete": "Swapped {{srcSymbol}} for {{destSymbol}}",
     "bridge_step_action_swap_pending": "Swapping {{srcSymbol}} for {{destSymbol}}",
     "view_on_block_explorer": "View on Block Explorer",
-    "transaction_details": "Transaction Details",
-    "see_other_quotes": "See other quotes",
-    "receive_at": "Receive at"
+    "transaction_details": "Transaction Details"
   }
 }
