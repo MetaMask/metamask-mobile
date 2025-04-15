@@ -98,7 +98,13 @@ const MatchedAccountInfo = ({
           style={styles.outerTextContainer}
         >
           <Text variant={TextVariant.BodyMDMedium}>{displayName}</Text>
-          <Text variant={TextVariant.BodyXS} numberOfLines={1} ellipsizeMode="tail">{value}</Text>
+          <Text
+            variant={TextVariant.BodyXS}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {value}
+          </Text>
         </Box>
         <ButtonIcon
           onPress={handleClear}
@@ -227,10 +233,7 @@ export const SnapUIAddressInput = ({
         onChangeText={handleChange}
         startAccessory={
           displayAvatar && value && isCaipAccountId(`${chainId}:${value}`) ? (
-            <SnapUIAvatar 
-              address={`${chainId}:${value}`} 
-              size="sm" 
-            />
+            <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
           ) : null
         }
         endAccessory={
