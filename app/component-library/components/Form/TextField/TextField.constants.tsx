@@ -18,9 +18,7 @@ export const DEFAULT_TEXTFIELD_SIZE = TextFieldSize.Md;
 export const TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT = TextVariant.BodyMD;
 
 // Test IDs
-export const TEXTFIELD_TEST_ID = 'textfield';
-export const TEXTFIELD_STARTACCESSORY_TEST_ID = 'textfield-startacccessory';
-export const TEXTFIELD_ENDACCESSORY_TEST_ID = 'textfield-endacccessory';
+//Migrated to Common.selectors.ts
 
 // Sample consts
 export const SAMPLE_TEXTFIELD_PROPS: TextFieldProps = {

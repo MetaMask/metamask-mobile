@@ -14,10 +14,8 @@ import { TextFieldProps } from './TextField.types';
 import {
   DEFAULT_TEXTFIELD_SIZE,
   TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT,
-  TEXTFIELD_TEST_ID,
-  TEXTFIELD_STARTACCESSORY_TEST_ID,
-  TEXTFIELD_ENDACCESSORY_TEST_ID,
 } from './TextField.constants';
+import { CommonSelectorsIDs } from '../../../../../e2e/selectors/Common.selectors';
 
 const TextField = React.forwardRef<TextInput, TextFieldProps>((
   {
@@ -70,11 +68,11 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>((
   );
 
   return (
-    <View style={styles.base} testID={TEXTFIELD_TEST_ID}>
+    <View style={styles.base} testID={CommonSelectorsIDs.TEXTFIELD_INPUT_TEST_ID}>
       {startAccessory && (
         <View
           style={styles.startAccessory}
-          testID={TEXTFIELD_STARTACCESSORY_TEST_ID}
+          testID={CommonSelectorsIDs.TEXTFIELD_STARTACCESSORY_TEST_ID}
         >
           {startAccessory}
         </View>
@@ -98,7 +96,7 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>((
       {endAccessory && (
         <View
           style={styles.endAccessory}
-          testID={TEXTFIELD_ENDACCESSORY_TEST_ID}
+          testID={CommonSelectorsIDs.TEXTFIELD_ENDACCESSORY_TEST_ID}
         >
           {endAccessory}
         </View>

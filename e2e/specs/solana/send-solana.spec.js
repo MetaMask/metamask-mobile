@@ -18,10 +18,11 @@ import Gestures from '../../utils/Gestures';
 import SendView from '../../pages/Send/SendView';
 import WalletViewSelectorsText from '../../selectors/wallet/WalletView.selectors.js';
 
-const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
+const VALID_ADDRESS = '4Nd1mU6z1H7dffRCHfLtUJYXe9aM6sT3V9W2MDADjA9h';
 const INVALID_ADDRESS = '0x0000000000000000000000000000000000000000';
 const ACCOUNT_ONE_TEXT = 'Solana Account 1';
 const INVALID_SOLANA_ADDRESS_TEXT = 'Invalid Solana address';
+
 describe.only(SmokeConfirmations('Send SOL'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);

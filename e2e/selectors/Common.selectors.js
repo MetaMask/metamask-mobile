@@ -15,6 +15,9 @@ export const CommonSelectorsIDs = {
   NAVBAR_TITLE_NETWORKS_TEXT: 'navbar-title-networks',
   TRANSACTION_STATUS: 'transaction-status',
   ANDROID_PROGRESS_BAR: 'android.widget.ProgressBar',
+  TEXTFIELD_ENDACCESSORY_TEST_ID:'textfield-endacccessory',
+  TEXTFIELD_STARTACCESSORY_TEST_ID:'textfield-startacccessory',
+  TEXTFIELD_INPUT_TEST_ID:'textfield-input',
 };
 
 export const CommonSelectorsText = {
