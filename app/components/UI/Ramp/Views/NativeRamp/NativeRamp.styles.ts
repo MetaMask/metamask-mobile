@@ -250,12 +250,70 @@ const styleSheet = (_params: { theme: Theme }) =>
       fontSize: 14,
     },
     networkIndicatorContainer: {
-      marginVertical: 8,
+      marginTop: 16,
+      marginBottom: 8,
+      backgroundColor: _params.theme.colors.background.alternative,
+      padding: 16,
+      borderRadius: 8,
       alignItems: 'center',
     },
     networkHighlight: {
-      color: _params.theme.colors.primary.default,
       fontWeight: 'bold',
+      color: _params.theme.colors.primary.default,
+    },
+    paymentMethodContainer: {
+      marginTop: 16,
+      marginBottom: 16,
+    },
+    paymentMethodTitle: {
+      marginBottom: 8,
+    },
+    paymentMethodDropdown: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      borderWidth: 1,
+      borderColor: _params.theme.colors.border.default,
+      borderRadius: 8,
+      padding: 16,
+      marginBottom: 8,
+    },
+    paymentMethodDropdownOptions: {
+      borderWidth: 1,
+      borderColor: _params.theme.colors.border.default,
+      borderRadius: 8,
+      marginTop: -4,
+      marginBottom: 8,
+      backgroundColor: _params.theme.colors.background.default,
+      overflow: 'hidden',
+    },
+    paymentMethodOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: _params.theme.colors.border.muted,
+    },
+    selectedPaymentMethod: {
+      backgroundColor: _params.theme.colors.background.alternative,
+    },
+    paymentMethodLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    paymentMethodIconContainer: {
+      width: 32,
+      height: 32,
+      backgroundColor: _params.theme.colors.background.alternative,
+      borderRadius: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    paymentMethodCheckmark: {
+      width: 24,
+      height: 24,
     },
   });
 

@@ -20,6 +20,7 @@ import {
   Platform,
   Alert,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
 import { NativeRampService } from '@consensys/on-ramp-sdk';
 import { AmountViewSelectorsIDs } from '../../../../../../e2e/selectors/SendFlow/AmountView.selectors';
@@ -37,8 +38,11 @@ import {
   getTransakToken,
   resetTransakToken,
 } from './TransakTokenVault';
-import { useRampSDK } from '../../sdk';
+import { useRampSDK, callbackBaseDeeplink } from '../../sdk';
 import { createKycWebviewNavDetails } from './NativeRampWebView';
+import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialsIconsIcon from 'react-native-vector-icons/MaterialIcons';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
 
 function NativeRamp() {
   const navigation = useNavigation();
@@ -69,6 +73,10 @@ function NativeRamp() {
   const [orderData, setOrderData] = useState<BuyOrder | null>(null);
   const [sepaData, setSepaData] = useState<OrderPaymentMethod | null>(null);
   const [idProofForm, setIdProofForm] = useState<KycForm | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] =
+    useState<string>('sepa_bank_transfer');
+  const [isPaymentMethodDropdownOpen, setIsPaymentMethodDropdownOpen] =
+    useState(false);
 
   const { selectedAddress } = useRampSDK();
 
@@ -82,6 +90,9 @@ function NativeRamp() {
         process.env.TRANSAK_FRONTEND_AUTH || '',
       ),
   );
+  const [linkingSubscription, setLinkingSubscription] = useState<{
+    remove: () => void;
+  } | null>(null);
 
   useEffect(() => {
     const getScreenTitle = () => {
@@ -173,6 +184,66 @@ function NativeRamp() {
     } finally {
       setIsLoading(false);
       setLoadingMessage('');
+    }
+  };
+
+  const handleDeepLink = (event: { url: string }) => {
+    if (event.url.startsWith(`${callbackBaseDeeplink}payment-`)) {
+      try {
+        // Extract the order ID from the URL
+        const url = event.url;
+        const urlObj = new URL(url);
+        const orderId = urlObj.searchParams.get('orderId');
+
+        if (orderId && accessToken) {
+          if (linkingSubscription) {
+            linkingSubscription.remove();
+            setLinkingSubscription(null);
+          }
+
+          // Start polling for order completion
+          let retries = 0;
+          const maxRetries = 20;
+          const pollInterval = 30000;
+
+          setIsLoading(true);
+          setLoadingMessage('Processing payment...');
+
+          const pollOrderStatus = async () => {
+            try {
+              const updatedOrder = await nativeRampService.getOrder(
+                accessToken,
+                orderId,
+              );
+
+              if (updatedOrder.status === 'COMPLETED') {
+                setOrderData(updatedOrder);
+                setCurrentStep(8);
+                setIsLoading(false);
+                return;
+              }
+
+              retries++;
+              if (retries >= maxRetries) {
+                throw new Error('Order completion timeout reached.');
+              }
+
+              setLoadingMessage(
+                `Checking payment status... Attempt ${retries} of ${maxRetries}`,
+              );
+              setTimeout(pollOrderStatus, pollInterval);
+            } catch (error) {
+              console.error('Error polling order status:', error);
+              Alert.alert('Error', getErrorMessage(error));
+              setIsLoading(false);
+            }
+          };
+
+          pollOrderStatus();
+        }
+      } catch (e) {
+        console.error('Error handling deep link:', e);
+      }
     }
   };
 
@@ -292,30 +363,69 @@ function NativeRamp() {
         return;
       }
 
-      // If KYC is approved, proceed with order creation
-      setLoadingMessage('Creating order...');
-      const reservation = await nativeRampService.walletReserve(
-        quote as BuyQuote,
-        selectedAddress,
-      );
-      const order = await nativeRampService.createOrder(
-        accessToken,
-        reservation,
-      );
-      setOrderData(order);
+      if (
+        selectedPaymentMethod === 'credit_debit_card' ||
+        selectedPaymentMethod === 'apple_pay'
+      ) {
+        setLoadingMessage('Requesting payment token...');
 
-      const sepa = order.paymentOptions.find(
-        (p) => p.id === 'sepa_bank_transfer',
-      );
+        const ottResponse = await nativeRampService.requestOtt(accessToken);
 
-      if (!sepa) throw new Error('SEPA payment option not found');
+        const callbackUrl = `${callbackBaseDeeplink}payment-${Date.now()}`;
 
-      setSepaData(sepa);
-      setCurrentStep(7);
+        // Set up a linking listener to capture the redirect
+        const subscription = Linking.addEventListener('url', handleDeepLink);
+        setLinkingSubscription(subscription);
+
+        // Generate payment widget URL with callback
+        const paymentWidgetUrl = nativeRampService.generatePaymentWidgetUrl(
+          ottResponse.token,
+          quote.fiatCurrency,
+          quote.cryptoCurrency,
+          quote.network,
+          amount,
+          selectedAddress,
+          selectedPaymentMethod,
+          callbackUrl,
+        );
+
+        // Navigate to the payment webview
+        setCurrentStep(7);
+        setIsLoading(false);
+
+        // Use the webview to open the payment URL
+        navigation.navigate(
+          ...createKycWebviewNavDetails({
+            url: paymentWidgetUrl,
+            isPaymentWidget: true,
+          }),
+        );
+      } else {
+        // SEPA Bank Transfer flow
+        setLoadingMessage('Creating order...');
+        const reservation = await nativeRampService.walletReserve(
+          quote as BuyQuote,
+          selectedAddress,
+        );
+        const order = await nativeRampService.createOrder(
+          accessToken,
+          reservation,
+        );
+        setOrderData(order);
+
+        const sepa = order.paymentOptions.find(
+          (p) => p.id === 'sepa_bank_transfer',
+        );
+
+        if (!sepa) throw new Error('SEPA payment option not found');
+
+        setSepaData(sepa);
+        setCurrentStep(7);
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Error creating order:', error);
       Alert.alert('Error', getErrorMessage(error));
-    } finally {
       setIsLoading(false);
       setLoadingMessage('');
     }
@@ -328,7 +438,7 @@ function NativeRamp() {
         'EUR',
         'USDC',
         'arbitrum',
-        'sepa_bank_transfer',
+        selectedPaymentMethod,
         amount,
       );
       setQuote(newQuote);
@@ -834,6 +944,152 @@ function NativeRamp() {
           <Text style={styles.currencyText}>EUR</Text>
         </View>
       </View>
+
+      <View style={styles.paymentMethodContainer}>
+        <Text variant={TextVariant.BodyMD} style={styles.paymentMethodTitle}>
+          Pay with
+        </Text>
+
+        <TouchableOpacity
+          style={styles.paymentMethodDropdown}
+          onPress={() =>
+            setIsPaymentMethodDropdownOpen(!isPaymentMethodDropdownOpen)
+          }
+        >
+          <View style={styles.paymentMethodLeft}>
+            <View style={styles.paymentMethodIconContainer}>
+              {selectedPaymentMethod === 'sepa_bank_transfer' && (
+                <MaterialsCommunityIconsIcon
+                  name="bank"
+                  size={20}
+                  color={colors.icon.default}
+                />
+              )}
+              {selectedPaymentMethod === 'credit_debit_card' && (
+                <MaterialsIconsIcon
+                  name="credit-card"
+                  size={20}
+                  color={colors.icon.default}
+                />
+              )}
+              {selectedPaymentMethod === 'apple_pay' && (
+                <FontAwesomeIcon
+                  name="apple"
+                  size={20}
+                  color={colors.icon.default}
+                />
+              )}
+            </View>
+            <Text variant={TextVariant.BodyMD}>
+              {selectedPaymentMethod === 'sepa_bank_transfer'
+                ? 'SEPA Bank Transfer'
+                : selectedPaymentMethod === 'credit_debit_card'
+                ? 'Debit or credit'
+                : 'Apple Pay'}
+            </Text>
+          </View>
+          <MaterialsIconsIcon
+            name="keyboard-arrow-down"
+            size={24}
+            color={colors.icon.default}
+          />
+        </TouchableOpacity>
+
+        {isPaymentMethodDropdownOpen && (
+          <View style={styles.paymentMethodDropdownOptions}>
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodOption,
+                selectedPaymentMethod === 'sepa_bank_transfer' &&
+                  styles.selectedPaymentMethod,
+              ]}
+              onPress={() => {
+                setSelectedPaymentMethod('sepa_bank_transfer');
+                setIsPaymentMethodDropdownOpen(false);
+              }}
+            >
+              <View style={styles.paymentMethodLeft}>
+                <View style={styles.paymentMethodIconContainer}>
+                  <MaterialsCommunityIconsIcon
+                    name="bank"
+                    size={20}
+                    color={colors.icon.default}
+                  />
+                </View>
+                <Text variant={TextVariant.BodyMD}>SEPA Bank Transfer</Text>
+              </View>
+              {selectedPaymentMethod === 'sepa_bank_transfer' && (
+                <MaterialsIconsIcon
+                  name="check"
+                  size={24}
+                  color={colors.primary.default}
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodOption,
+                selectedPaymentMethod === 'credit_debit_card' &&
+                  styles.selectedPaymentMethod,
+              ]}
+              onPress={() => {
+                setSelectedPaymentMethod('credit_debit_card');
+                setIsPaymentMethodDropdownOpen(false);
+              }}
+            >
+              <View style={styles.paymentMethodLeft}>
+                <View style={styles.paymentMethodIconContainer}>
+                  <MaterialsIconsIcon
+                    name="credit-card"
+                    size={20}
+                    color={colors.icon.default}
+                  />
+                </View>
+                <Text variant={TextVariant.BodyMD}>Debit or credit</Text>
+              </View>
+              {selectedPaymentMethod === 'credit_debit_card' && (
+                <MaterialsIconsIcon
+                  name="check"
+                  size={24}
+                  color={colors.primary.default}
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.paymentMethodOption,
+                selectedPaymentMethod === 'apple_pay' &&
+                  styles.selectedPaymentMethod,
+              ]}
+              onPress={() => {
+                setSelectedPaymentMethod('apple_pay');
+                setIsPaymentMethodDropdownOpen(false);
+              }}
+            >
+              <View style={styles.paymentMethodLeft}>
+                <View style={styles.paymentMethodIconContainer}>
+                  <FontAwesomeIcon
+                    name="apple"
+                    size={20}
+                    color={colors.icon.default}
+                  />
+                </View>
+                <Text variant={TextVariant.BodyMD}>Apple Pay</Text>
+              </View>
+              {selectedPaymentMethod === 'apple_pay' && (
+                <MaterialsIconsIcon
+                  name="check"
+                  size={24}
+                  color={colors.primary.default}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
       <Row style={styles.networkIndicatorContainer}>
         <Text variant={TextVariant.BodyMD} style={styles.centered}>
           Your USDC will be deposited on the{' '}
@@ -1194,6 +1450,8 @@ function NativeRamp() {
       )}
     </>
   );
+
+  useEffect(() => () => linkingSubscription?.remove(), [linkingSubscription]);
 
   return (
     <KeyboardAvoidingView

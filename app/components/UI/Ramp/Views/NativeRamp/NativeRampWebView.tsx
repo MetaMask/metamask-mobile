@@ -13,9 +13,11 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { getNativeRampNavigationOptions } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
+import { callbackBaseDeeplink } from '../../sdk';
 
 interface NativeRampWebViewParams {
   url: string;
+  isPaymentWidget?: boolean;
 }
 
 export const createKycWebviewNavDetails =
@@ -26,14 +28,21 @@ const NativeRampWebView = () => {
   const [key, setKey] = useState(0);
   const navigation = useNavigation();
   const params = useParams<NativeRampWebViewParams>();
-  const { url } = params;
+  const { url, isPaymentWidget } = params;
   const { colors } = useTheme();
 
   useEffect(() => {
+    const title = isPaymentWidget ? 'Complete Payment' : 'KYC Verification';
     navigation.setOptions(
-      getNativeRampNavigationOptions('KYC Verification', colors, navigation),
+      getNativeRampNavigationOptions(title, colors, navigation),
     );
-  }, [navigation, colors]);
+  }, [navigation, colors, isPaymentWidget]);
+
+  const handleNavigationStateChange = (navState: { url: string }) => {
+    if (navState.url.startsWith(callbackBaseDeeplink)) {
+      navigation.goBack();
+    }
+  };
 
   if (error) {
     return (
@@ -58,6 +67,7 @@ const NativeRampWebView = () => {
         <WebView
           key={key}
           source={{ uri: url }}
+          onNavigationStateChange={handleNavigationStateChange}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             if (nativeEvent.url === url) {
