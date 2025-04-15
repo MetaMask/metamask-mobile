@@ -7,6 +7,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
+import { strings } from '../../../../locales/i18n';
 
 const styles = StyleSheet.create({
   container: {
@@ -41,8 +42,8 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
     testID="snaps-ui-link"
     style={styles.container}
     onPress={() => onPress(href)}
-    accessibilityRole="link"
-    accessibilityHint={`Opens ${href} in your browser`}
+    accessibilityRole={strings('snaps.snap_ui.link.accessibilityRole')}
+    accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
   >
     {children}
     <View style={styles.spacer} />
