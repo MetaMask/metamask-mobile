@@ -20,7 +20,7 @@ const config = {
     'node_modules/(?!((@metamask/)?(@react-native|react-native|redux-persist-filesystem|@react-navigation|@react-native-community|@react-native-masked-view|react-navigation|react-navigation-redux-helpers|@sentry|d3-color|@notifee)))',
   ],
   transform: {
-    '^.+\\.[jt]sx?$': ['babel-jest', { configFile: './babel.config.tests.js' }],
+    '^.+\\.[jt]sx?$': 'babel-jest',
     '^.+\\.(png|jpg|jpeg|gif|webp|svg|mp4)$':
       '<rootDir>/app/util/test/assetFileTransformer.js',
   },
