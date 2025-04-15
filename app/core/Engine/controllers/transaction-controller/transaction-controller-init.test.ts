@@ -293,12 +293,12 @@ describe('Transaction Controller Init', () => {
     expect(isEnabledFn({ type: TransactionType.stakingDeposit })).toBe(true);
     expect(isEnabledFn({ type: TransactionType.stakingUnstake })).toBe(true);
     expect(isEnabledFn({ type: TransactionType.stakingClaim })).toBe(true);
+    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
+      true,
+    );
 
     // Non-redesigned transaction types
     expect(isEnabledFn({ type: TransactionType.simpleSend })).toBe(false);
-    expect(isEnabledFn({ type: TransactionType.contractInteraction })).toBe(
-      false,
-    );
   });
 
   it('gets network state from network controller on option getNetworkState', () => {
