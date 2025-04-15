@@ -5,6 +5,7 @@ import {
   CaipChainId,
   parseCaipAccountId,
   parseCaipChainId,
+  isCaipAccountId,
 } from '@metamask/utils';
 import { ViewStyle, TextInput, StyleSheet } from 'react-native';
 import { Box } from '../../UI/Box/Box';
@@ -49,6 +50,7 @@ interface MatchedAccountInfoProps {
   value: string;
   displayName: string;
   handleClear: () => void;
+  disabled?: boolean;
 }
 
 const MatchedAccountInfo = ({
@@ -58,6 +60,7 @@ const MatchedAccountInfo = ({
   value,
   displayName,
   handleClear,
+  disabled,
 }: MatchedAccountInfoProps) => {
   const { colors } = useTheme();
   const styles = StyleSheet.create({
@@ -67,6 +70,7 @@ const MatchedAccountInfo = ({
       borderColor: colors.border.muted,
       paddingHorizontal: 16,
       height: 48,
+      opacity: disabled ? 0.5 : 1,
     },
     outerTextContainer: {
       flex: 1,
@@ -84,6 +88,7 @@ const MatchedAccountInfo = ({
         flexDirection={FlexDirection.Row}
         gap={8}
         style={styles.container}
+        testID="snap-ui-address-input__matched-account-info"
       >
         {displayAvatar && (
           <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
@@ -99,7 +104,9 @@ const MatchedAccountInfo = ({
           onPress={handleClear}
           iconName={IconName.Close}
           iconColor={IconColor.Info}
+          isDisabled={disabled}
           style={styles.icon}
+          testID="snap-ui-address-input__clear-button"
         />
       </Box>
     </Box>
@@ -125,11 +132,32 @@ export const SnapUIAddressInput = ({
   const initialValue = getValue(name, form) as string;
   const { namespace, reference } = parseCaipChainId(chainId);
 
-  const [value, setValue] = useState(
-    initialValue
-      ? parseCaipAccountId(initialValue as CaipAccountId).address
-      : '',
-  );
+  /**
+   * Parses the value to get the address.
+   * If the value is a CAIP-10 account ID, it extracts the address otherwise returns the raw value.
+   *
+   * @param value - The value to parse.
+   * @returns The address or the raw value.
+   */
+  const getParsedValue = (value?: string) => {
+    if (!value) {
+      return '';
+    }
+
+    /*
+     * Safeguard against invalid CAIP-10 account ID.
+     * We can't ensure that when we append the value to the chain ID
+     * it will be a valid CAIP-10 account ID.
+     */
+    if (isCaipAccountId(value)) {
+      const { address } = parseCaipAccountId(value as CaipAccountId);
+      return address;
+    }
+
+    return value;
+  };
+
+  const [value, setValue] = useState(getParsedValue(initialValue));
 
   const displayName = useDisplayName({
     address: value,
@@ -139,6 +167,12 @@ export const SnapUIAddressInput = ({
     },
     chainId,
   });
+
+  useEffect(() => {
+    if (initialValue !== undefined && initialValue !== null) {
+      setValue(getParsedValue(initialValue));
+    }
+  }, [initialValue]);
 
   /*
    * Focus input if the last focused input was this input
@@ -164,7 +198,7 @@ export const SnapUIAddressInput = ({
     handleInputChange(name, '', form);
   };
 
-  if (displayName) {
+  if (displayName && !error) {
     return (
       <MatchedAccountInfo
         label={label}
@@ -173,6 +207,7 @@ export const SnapUIAddressInput = ({
         value={value}
         displayName={displayName}
         handleClear={handleClear}
+        disabled={disabled}
       />
     );
   }
@@ -191,8 +226,11 @@ export const SnapUIAddressInput = ({
         isDisabled={disabled}
         onChangeText={handleChange}
         startAccessory={
-          displayAvatar && value ? (
-            <SnapUIAvatar address={`${chainId}:${value}`} size="sm" />
+          displayAvatar && value && isCaipAccountId(`${chainId}:${value}`) ? (
+            <SnapUIAvatar 
+              address={`${chainId}:${value}`} 
+              size="sm" 
+            />
           ) : null
         }
         endAccessory={
@@ -202,6 +240,8 @@ export const SnapUIAddressInput = ({
               iconName={IconName.Close}
               size={ButtonIconSizes.Sm}
               iconColor={IconColor.Info}
+              isDisabled={disabled}
+              testID="snap-ui-address-input__clear-button"
             />
           ) : null
         }
