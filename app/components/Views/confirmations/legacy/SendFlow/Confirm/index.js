@@ -140,6 +140,7 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { updateTransactionToMaxValue } from './utils';
 import SmartTransactionsMigrationBanner from '../../components/SmartTransactionsMigrationBanner/SmartTransactionsMigrationBanner';
 import { isNativeToken } from '../../../utils/generic';
+import { providerErrors } from '@metamask/rpc-errors';
 
 const EDIT = 'edit';
 const EDIT_NONCE = 'edit_nonce';
@@ -928,10 +929,16 @@ class Confirm extends PureComponent {
     assetType,
     gaParams,
   ) => {
+    const { ApprovalController } = Engine.context;
     const { navigation } = this.props;
     // Manual cancel from UI or rejected from ledger device.
     try {
-      if (approve) {
+      if (!approve) {
+        ApprovalController.reject(
+          transactionMeta.id,
+          providerErrors.userRejectedRequest(),
+        );
+      } else {
         await new Promise((resolve) => resolve(result));
 
         if (transactionMeta.error) {

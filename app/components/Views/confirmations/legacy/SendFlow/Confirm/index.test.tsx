@@ -156,6 +156,9 @@ jest.mock('../../../../../../core/Engine', () => {
         }),
         updateSecurityAlertResponse: jest.fn(),
       },
+      ApprovalController: {
+        reject: jest.fn(),
+      },
       PreferencesController: {
         state: {
           securityAlertsEnabled: true,

@@ -41,6 +41,9 @@ jest.mock('../../../../../core/Engine', () => ({
       stopPolling: jest.fn(),
     },
   },
+  ApprovalController: {
+    reject: jest.fn(),
+  },
   controllerMessenger: {
     tryUnsubscribe: jest.fn(),
     subscribe: jest.fn(),
