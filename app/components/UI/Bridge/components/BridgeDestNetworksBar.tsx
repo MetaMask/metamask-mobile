@@ -11,6 +11,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectEnabledDestChains, selectSelectedDestChainId, setSelectedDestChainId } from '../../../../core/redux/slices/bridge';
 import { ETH_CHAIN_ID, BASE_CHAIN_ID, BSC_CHAIN_ID, LINEA_CHAIN_ID, AVALANCHE_CHAIN_ID, OPTIMISM_CHAIN_ID, POLYGON_CHAIN_ID, ARBITRUM_CHAIN_ID, ZKSYNC_ERA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
+import { NETWORKS_CHAIN_ID } from '../../../../constants/network';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { Box } from '../../Box/Box';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -61,6 +62,7 @@ const ChainPopularity: Record<Hex | CaipChainId, number> = {
   [AVALANCHE_CHAIN_ID]: 9,
   [POLYGON_CHAIN_ID]: 8,
   [ZKSYNC_ERA_CHAIN_ID]: 10,
+  [NETWORKS_CHAIN_ID.SEI]: 11,
 };
 
 const ShortChainNames: Record<Hex | CaipChainId, string> = {

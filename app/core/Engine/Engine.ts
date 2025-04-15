@@ -203,7 +203,7 @@ import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
 } from './controllers/network-controller/messenger-action-handlers';
-import { INFURA_PROJECT_ID } from '../../constants/network';
+import { INFURA_PROJECT_ID, NETWORKS_CHAIN_ID } from '../../constants/network';
 import { getIsQuicknodeEndpointUrl } from './controllers/network-controller/utils';
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -1393,6 +1393,7 @@ export class Engine {
           swapsUtils.ZKSYNC_ERA_CHAIN_ID,
           swapsUtils.LINEA_CHAIN_ID,
           swapsUtils.BASE_CHAIN_ID,
+          NETWORKS_CHAIN_ID.SEI,
         ],
         // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
         messenger: this.controllerMessenger.getRestricted({
