@@ -4,12 +4,7 @@ import { wallet_addEthereumChain } from './wallet_addEthereumChain';
 import Engine from '../Engine';
 import { mockNetworkState } from '../../util/test/network';
 import MetaMetrics from '../Analytics/MetaMetrics';
-
-/**
- * Jest doesn't automatically wait for all asynchronous operations to complete before moving to the next assertion.
- * So we need to ensure all asynchronous operations complete before checking the mock calls. So we have this util function
- */
-const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+import { flushPromises } from '../../util/test/utils';
 
 const mockEngine = Engine;
 
