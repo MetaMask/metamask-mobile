@@ -56,8 +56,7 @@ class RNFSStorageBackend implements StorageBackend {
     data: ArrayBuffer,
     _checksum: string,
   ): Promise<void> {
-    const dataArray = new Uint8Array(data);
-    this.storage.set(this._getDataFilePath(key), dataArray);
+    this.storage.set(this._getDataFilePath(key), data);
   }
 
   public async delete(key: StorageKey): Promise<void> {

@@ -116,7 +116,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     opts: KeyDerivationOptions = this.keyDerivationOptions,
     lib = ENCRYPTION_LIBRARY.original,
   ): Promise<EncryptionKey> => {
-    const key = await getEncryptionLibrary(lib).deriveKey(password, salt, opts);
+    const key = await getEncryptionLibrary().deriveKey(password, salt, opts);
 
     return {
       key,
@@ -140,7 +140,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
   ): Promise<EncryptionResult> => {
     const text = JSON.stringify(data);
 
-    const lib = getEncryptionLibrary(key.lib);
+    const lib = getEncryptionLibrary();
     const iv = await lib.generateIV(16);
     const cipher = await lib.encrypt(text, key.key, iv);
 
@@ -167,7 +167,7 @@ class Encryptor implements WithKeyEncryptor<EncryptionKey, Json> {
     // TODO: Check for key and payload compatibility?
 
     // We assume that both `payload.lib` and `key.lib` are the same here!
-    const lib = getEncryptionLibrary(payload.lib);
+    const lib = getEncryptionLibrary();
     const text = await lib.decrypt(payload.cipher, key.key, payload.iv);
 
     return JSON.parse(text);
