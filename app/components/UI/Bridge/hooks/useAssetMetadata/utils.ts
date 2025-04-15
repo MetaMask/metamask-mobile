@@ -78,7 +78,6 @@ interface AssetMetadata {
 export const fetchAssetMetadata = async (
   address: string | CaipAssetType | Hex,
   chainId: Hex | CaipChainId,
-  // abortSignal?: AbortSignal, // TODO use abortSignal
 ) => {
   const chainIdInCaip = isCaipChainId(chainId)
     ? chainId
