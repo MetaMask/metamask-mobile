@@ -53,10 +53,10 @@ export const compareNftStates = (
   });
 };
 
-export type NftAnalyticsParams = {
+export interface NftAnalyticsParams {
   chain_id: number;
   source: 'detected';
-};
+}
 
 /**
  * Compares previous and new NFT states and prepares analytics events for newly detected NFTs

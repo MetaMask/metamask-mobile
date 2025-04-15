@@ -125,11 +125,8 @@ import {
 } from '../../../selectors/multichain';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
-import { cloneDeep, isEqual } from 'lodash';
-import {
-  compareNftStates,
-  prepareNftDetectionEvents,
-} from '../../../util/assets';
+import { cloneDeep } from 'lodash';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
