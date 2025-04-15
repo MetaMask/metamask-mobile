@@ -1640,7 +1640,7 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),

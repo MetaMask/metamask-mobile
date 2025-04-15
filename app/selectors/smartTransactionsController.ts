@@ -17,7 +17,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
     selectSelectedInternalAccountFormattedAddress,
     selectEvmChainId,
-    (state: RootState, chainId: Hex) => chainId,
+    (state: RootState, chainId?: Hex) => chainId,
     (state: RootState) => selectProviderConfig(state).rpcUrl,
     swapsSmartTxFlagEnabled,
     (state: RootState) =>
@@ -44,9 +44,11 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
         ? providerConfigRpcUrl === undefined
         : true;
     return Boolean(
-      isAllowedNetwork && canBypassRpc && !addrIshardwareAccount, // &&
-      // smartTransactionsFeatureFlagEnabled &&
-      // smartTransactionsLiveness,
+      isAllowedNetwork &&
+        canBypassRpc &&
+        !addrIshardwareAccount // && TODO: Make sure the functions below use the right chainId..
+        // smartTransactionsFeatureFlagEnabled &&
+        // smartTransactionsLiveness,
     );
   },
 );
