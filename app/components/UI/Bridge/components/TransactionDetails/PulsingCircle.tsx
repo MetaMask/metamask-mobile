@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
 import { Theme } from '@metamask/design-tokens';
@@ -36,30 +37,27 @@ const styleSheet = (params: { theme: Theme }) =>
  */
 export default function PulsingCircle({ color }: { color: IconColor }) {
   const { styles } = useStyles(styleSheet, {});
-  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.5,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-      ]),
-    ).start();
-  }, [pulseAnim]);
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          scale: withRepeat(
+            withSequence(
+              withTiming(1.5, { duration: 1000 }),
+              withTiming(1, { duration: 1000 })
+            ),
+            -1,
+            true
+          ),
+        },
+      ],
+    };
+  });
 
   return (
     <Box style={styles.container}>
-      <Animated.View
-        style={[styles.pulsingAura, { transform: [{ scale: pulseAnim }] }]}
-      />
+      <Animated.View style={[styles.pulsingAura, animatedStyle]} />
       <Box style={styles.hollowCircleContainer}>
         <Icon name={IconName.FullCircle} color={color} size={IconSize.Xs} />
       </Box>
