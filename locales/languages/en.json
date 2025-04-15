@@ -1175,6 +1175,12 @@
           "snap_dialog": "Display custom dialogs",
           "snap_manageAccounts": "Add and control Ethereum accounts"
         }
+      },
+      "snap_ui": {
+        "link": {
+          "accessibilityRole": "link",
+          "accessibilityHint": "Opens in a new tab"
+        }
       }
     },
     "privacy_browser_subheading": "Clear privacy or browser data",
