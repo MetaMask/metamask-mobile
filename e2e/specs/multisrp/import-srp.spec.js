@@ -1,18 +1,18 @@
 'use strict';
-import { SmokeAccounts } from '../../../tags';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { SmokeAccounts } from '../../tags';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../../fixtures/fixture-helper';
-import FixtureServer from '../../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../../fixtures/utils';
-import WalletView from '../../../pages/wallet/WalletView';
-import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../utils/Assertions';
-import TestHelpers from '../../../helpers';
-import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
+} from '../../fixtures/fixture-helper';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import WalletView from '../../pages/wallet/WalletView';
+import { loginToApp } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
+import TestHelpers from '../../helpers';
+import ImportSrpView from '../../pages/importSrp/ImportSrpView';
 import { goToImportSrp, inputSrp } from './utils';
 
 const fixtureServer = new FixtureServer();
@@ -53,7 +53,7 @@ describe(SmokeAccounts('Import new srp to wallet'), () => {
     );
   });
 
-  it('should be able to import account', async () => {
+  it('imports a new 24 word srp', async () => {
     await goToImportSrp();
     await inputSrp(valid24WordMnemonic);
     await ImportSrpView.tapImportButton();

@@ -1,21 +1,21 @@
 'use strict';
-import { SmokeAccounts } from '../../../tags';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { SmokeAccounts } from '../../tags';
+import FixtureBuilder from '../../fixtures/fixture-builder';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../../fixtures/fixture-helper';
-import FixtureServer from '../../../fixtures/fixture-server';
-import { getFixturesServerPort } from '../../../fixtures/utils';
-import WalletView from '../../../pages/wallet/WalletView';
-import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../utils/Assertions';
-import TestHelpers from '../../../helpers';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
-import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+} from '../../fixtures/fixture-helper';
+import FixtureServer from '../../fixtures/fixture-server';
+import { getFixturesServerPort } from '../../fixtures/utils';
+import WalletView from '../../pages/wallet/WalletView';
+import { loginToApp } from '../../viewHelper';
+import Assertions from '../../utils/Assertions';
+import TestHelpers from '../../helpers';
+import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
+import SRPListItemComponent from '../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
+import AddNewHdAccountComponent from '../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
 
 const fixtureServer = new FixtureServer();
 
