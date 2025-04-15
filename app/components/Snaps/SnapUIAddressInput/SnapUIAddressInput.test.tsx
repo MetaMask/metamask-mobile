@@ -69,7 +69,7 @@ describe('SnapUIAddressInput', () => {
       `${testChainId}:0x`,
       undefined,
     );
-  })
+  });
 
   it('supports a placeholder', () => {
     const placeholder = 'Enter ETH address';
@@ -163,5 +163,95 @@ describe('SnapUIAddressInput', () => {
 
     const tree = JSON.stringify(toJSON());
     expect(tree.includes('RNSVGSvgView')).toBe(false);
+  });
+
+  it('renders with an invalid CAIP Account ID', () => {
+    mockGetValue.mockReturnValue('eip155:0:https://foobar.baz/foobar')
+
+    const { toJSON } = renderWithProvider(<SnapUIAddressInput name="input" chainId="eip155:0" displayAvatar={false} />);
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders the matched address info in a disabled state', () => {
+    mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
+    const displayName = 'Vitalik.eth';
+    (useDisplayName as jest.Mock).mockReturnValue(displayName);
+
+    const { getByText, toJSON, getByTestId } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText(displayName)).toBeTruthy();
+    expect(getByText(testAddress)).toBeTruthy();
+    const closeButton = getByTestId('snap-ui-address-input__clear-button');
+    expect(closeButton).toBeTruthy();
+
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree).toContain('"opacity":0.5');
+    expect(tree).toContain('"disabled":true');
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('does not render the matched address info if there is an error', () => {
+    mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
+    const displayName = 'Vitalik.eth';
+    (useDisplayName as jest.Mock).mockReturnValue(displayName);
+
+    const { queryByText, queryByTestId, getByText, toJSON } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} error="Error" />,
+      { state: mockInitialState },
+    );
+
+    expect(queryByText(displayName)).toBeFalsy();
+
+    const input = queryByTestId(INPUT_TEST_ID);
+
+    expect(input.props.value).toBe(testAddress);
+    expect(getByText('Error')).toBeTruthy();
+
+    const tree = JSON.stringify(toJSON());
+
+    expect(tree.includes('RNSVGSvgView')).toBe(true);
+  });
+
+  it('disables clear button for the input when disabled', () => {
+    mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
+
+    const { getByTestId, toJSON } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
+    );
+
+    const input = getByTestId(INPUT_TEST_ID);
+    expect(input.props.editable).toBe(false);
+    expect(input.props.value).toBe(testAddress);
+
+    const closeButton = getByTestId('snap-ui-address-input__clear-button');
+    expect(closeButton).toBeTruthy();
+
+    const tree = JSON.stringify(toJSON());
+    expect(tree).toContain('"disabled":true');
+  });
+
+  it('disables clear button for the matched address info when disabled', () => {
+    mockGetValue.mockReturnValue(`${testChainId}:${testAddress}`);
+    const displayName = 'Vitalik.eth';
+    (useDisplayName as jest.Mock).mockReturnValue(displayName);
+
+    const { getByText, getByTestId, toJSON } = renderWithProvider(
+      <SnapUIAddressInput name="testAddress" chainId={testChainId} disabled />,
+      { state: mockInitialState },
+    );
+
+    expect(getByText(displayName)).toBeTruthy();
+    expect(getByText(testAddress)).toBeTruthy();
+
+    const closeButton = getByTestId('snap-ui-address-input__clear-button');
+    expect(closeButton).toBeTruthy();
+
+    const tree = JSON.stringify(toJSON());
+    expect(tree).toContain('"disabled":true');
   });
 });
