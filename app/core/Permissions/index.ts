@@ -117,7 +117,6 @@ export const addPermittedAccounts = (
 
   const updatedEthAccounts = Array.from(new Set([...ethAccounts, ...accounts]));
 
-  // TODO: This was copied over from the old implementation. Why have this check?..
   // No change in permitted account addresses
   if (ethAccounts.length === updatedEthAccounts.length) {
     console.error(
