@@ -1,6 +1,6 @@
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
 new file mode 100644
-index 0000000..43d8adc
+index 0000000..89a81a2
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.d.ts
 @@ -0,0 +1,208 @@
@@ -209,15 +209,15 @@ index 0000000..43d8adc
 +    getOrder(accessToken: NativeTransakAccessToken, orderId: string): Promise<BuyOrder>;
 +    getUserLimits(accessToken: NativeTransakAccessToken, fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
 +    requestOtt(accessToken: NativeTransakAccessToken): Promise<OttResponse>;
-+    generatePaymentWidgetUrl(ottToken: string, fiatCurrency: string, cryptoCurrency: string, network: string, fiatAmount: string, walletAddress: string, paymentMethod?: string): string;
++    generatePaymentWidgetUrl(ottToken: string, fiatCurrency: string, cryptoCurrency: string, network: string, fiatAmount: string, walletAddress: string, paymentMethod: string, redirectUrl: string): string;
 +    getRecentOrders(accessToken: NativeTransakAccessToken, limit?: number): Promise<OrdersList>;
 +}
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
 new file mode 100644
-index 0000000..151012a
+index 0000000..04510f2
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
-@@ -0,0 +1,316 @@
+@@ -0,0 +1,317 @@
 +"use strict";
 +var __importDefault = (this && this.__importDefault) || function (mod) {
 +    return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -496,7 +496,7 @@ index 0000000..151012a
 +            throw error;
 +        }
 +    }
-+    generatePaymentWidgetUrl(ottToken, fiatCurrency, cryptoCurrency, network, fiatAmount, walletAddress, paymentMethod = 'credit_debit_card') {
++    generatePaymentWidgetUrl(ottToken, fiatCurrency, cryptoCurrency, network, fiatAmount, walletAddress, paymentMethod = 'credit_debit_card', redirectUrl) {
 +        const widgetBaseUrl = this.environment === TransakEnvironment.Production
 +            ? 'https://global.transak.com'
 +            : 'https://global-stg.transak.com';
@@ -512,6 +512,7 @@ index 0000000..151012a
 +            hideExchangeScreen: 'true',
 +            walletAddress: walletAddress,
 +            disableWalletAddressForm: 'true',
++            redirectURL: redirectUrl,
 +        });
 +        return `${widgetBaseUrl}?${params.toString()}`;
 +    }
