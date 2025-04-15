@@ -122,5 +122,6 @@ export const switchEthereumChainHandler = {
     requestPermittedChainsPermissionIncrementalForOrigin: true,
     setTokenNetworkFilter: true,
     hasApprovalRequestsForOrigin: true,
+    rejectApprovalRequestsForOrigin: true,
   },
 };

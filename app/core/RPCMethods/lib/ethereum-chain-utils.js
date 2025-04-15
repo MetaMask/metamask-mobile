@@ -235,6 +235,7 @@ export async function switchToNetwork({
     hasApprovalRequestsForOrigin,
     toNetworkConfiguration,
     fromNetworkConfiguration,
+    rejectApprovalRequestsForOrigin,
   } = hooks;
   const {
     MultichainNetworkController,
@@ -332,6 +333,8 @@ export async function switchToNetwork({
       },
     });
   }
+
+  rejectApprovalRequestsForOrigin?.();
 
   const originHasAccountsPermission = getPermittedAccounts(origin).length > 0;
 

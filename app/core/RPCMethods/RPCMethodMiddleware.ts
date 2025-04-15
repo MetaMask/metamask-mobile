@@ -367,6 +367,8 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     Engine.context.NetworkController.getNetworkConfigurationByChainId.bind(
       Engine.context.NetworkController,
     ),
+  rejectApprovalRequestsForOrigin: () =>
+    Engine.rejectOriginPendingApprovals(origin),
 });
 
 /**
