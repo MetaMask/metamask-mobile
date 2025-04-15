@@ -118,8 +118,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
       addCustomNetworkRequest: {},
       switchCustomNetworkRequest: {},
       requestUserApproval: jest.fn(() => Promise.resolve()),
-      startApprovalFlow: jest.fn(() => ({ id: '1', loadingText: null })),
-      endApprovalFlow: jest.fn(),
       hooks: {
         getCurrentChainIdForDomain: jest.fn(),
         getNetworkConfigurationByChainId: jest.fn(),
@@ -366,37 +364,6 @@ describe('RPC Method - wallet_addEthereumChain', () => {
   });
 
   describe('Approval Flow', () => {
-    it('should start and end a new approval flow if chain does not already exist', async () => {
-      jest
-        .spyOn(Engine.context.NetworkController, 'addNetwork')
-        .mockReturnValue(networkConfigurationResult);
-
-      await wallet_addEthereumChain({
-        req: {
-          params: [correctParams],
-        },
-        ...otherOptions,
-      });
-
-      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
-      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
-    });
-
-    it('should end approval flow even if the approval process fails', async () => {
-      await expect(
-        wallet_addEthereumChain({
-          req: {
-            params: [correctParams],
-          },
-          ...otherOptions,
-          requestUserApproval: jest.fn(() => Promise.reject()),
-        }),
-      ).rejects.toThrow(providerErrors.userRejectedRequest());
-
-      expect(otherOptions.startApprovalFlow).toBeCalledTimes(1);
-      expect(otherOptions.endApprovalFlow).toBeCalledTimes(1);
-    });
-
     it('clears existing approval requests', async () => {
       Engine.context.ApprovalController.clear.mockClear();
 

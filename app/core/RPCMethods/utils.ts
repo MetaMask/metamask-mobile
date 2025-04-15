@@ -6,7 +6,6 @@ import { JsonRpcMiddleware } from '@metamask/json-rpc-engine';
 import { PermittedHandlerExport } from '@metamask/permission-controller';
 import { Json, JsonRpcParams, hasProperty } from '@metamask/utils';
 import EthQuery from '@metamask/eth-query';
-import Logger from '../../util/Logger';
 
 export const UNSUPPORTED_RPC_METHODS = new Set([
   // This is implemented later in our middleware stack – specifically, in
