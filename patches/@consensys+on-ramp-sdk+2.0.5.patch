@@ -214,10 +214,10 @@ index 0000000..43d8adc
 +}
 diff --git a/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
 new file mode 100644
-index 0000000..d068604
+index 0000000..151012a
 --- /dev/null
 +++ b/node_modules/@consensys/on-ramp-sdk/dist/NativeRampService.js
-@@ -0,0 +1,313 @@
+@@ -0,0 +1,316 @@
 +"use strict";
 +var __importDefault = (this && this.__importDefault) || function (mod) {
 +    return (mod && mod.__esModule) ? mod : { "default": mod };
@@ -225,7 +225,6 @@ index 0000000..d068604
 +Object.defineProperty(exports, "__esModule", { value: true });
 +exports.NativeRampService = exports.TransakEnvironment = void 0;
 +const axios_1 = __importDefault(require("axios"));
-+const NativeRampsConfig_1 = require("../test/NativeRampsConfig");
 +var TransakEnvironment;
 +(function (TransakEnvironment) {
 +    TransakEnvironment[TransakEnvironment["Production"] = 0] = "Production";
@@ -236,7 +235,9 @@ index 0000000..d068604
 +        this.partnerApiKey = partnerApiKey;
 +        this.frontendAuth = frontendAuth;
 +        this.environment = environment;
-+        const endpoint = NativeRampsConfig_1.NativeRampsConfig.API_URLS[environment];
++        const endpoint = environment === TransakEnvironment.Production
++            ? 'https://api.transak.com'
++            : 'https://api-stg.transak.com';
 +        if (!endpoint) {
 +            throw new Error('Invalid environment');
 +        }
@@ -496,7 +497,9 @@ index 0000000..d068604
 +        }
 +    }
 +    generatePaymentWidgetUrl(ottToken, fiatCurrency, cryptoCurrency, network, fiatAmount, walletAddress, paymentMethod = 'credit_debit_card') {
-+        const widgetBaseUrl = NativeRampsConfig_1.NativeRampsConfig.WIDGET_URLS[this.environment];
++        const widgetBaseUrl = this.environment === TransakEnvironment.Production
++            ? 'https://global.transak.com'
++            : 'https://global-stg.transak.com';
 +        const params = new URLSearchParams({
 +            ott: ottToken,
 +            apiKey: this.partnerApiKey,
