@@ -1,5 +1,5 @@
 import Engine from '../../../core/Engine';
-import { isE2E } from '../../test/utils';
+import { isTest } from '../../test/utils';
 
 /**
  * This feature flag compromises of a build-time flag as well as a remote flag.
@@ -9,7 +9,7 @@ import { isE2E } from '../../test/utils';
  * @returns boolean if notifications feature is enabled.
  */
 export const isNotificationsFeatureEnabled = () => {
-  if (isE2E) {
+  if (isTest) {
     return true;
   }
 

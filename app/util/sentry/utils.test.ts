@@ -1,5 +1,5 @@
-/* eslint-disable dot-notation */
-import { UserFeedback, captureUserFeedback } from '@sentry/react-native';
+/* eslint-disable import/no-namespace */
+import * as Sentry from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
   excludeEvents,
@@ -7,17 +7,23 @@ import {
   maskObject,
   sentryStateMask,
   AllProperties,
+  setupSentry,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
+import { AGREED } from '../../constants/storage';
 
-jest.mock('@sentry/react-native', () => ({
-  ...jest.requireActual('@sentry/react-native'),
-  captureUserFeedback: jest.fn(),
-}));
-const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+jest.mock('@sentry/react-native', () => {
+  const original = jest.requireActual('@sentry/react-native');
+  return {
+    ...original,
+    captureUserFeedback: jest.fn(),
+  };
+});
+
+const mockedCaptureUserFeedback = jest.mocked(Sentry.captureUserFeedback);
 
 describe('deriveSentryEnvironment', () => {
   it('returns production-flask for non-dev production environment and flask build type', async () => {
@@ -119,7 +125,7 @@ describe('captureSentryFeedback', () => {
   it('captures Sentry user feedback', async () => {
     const mockSentryId = '123';
     const mockComments = 'Comment';
-    const expectedUserFeedback: UserFeedback = {
+    const expectedUserFeedback: Sentry.UserFeedback = {
       event_id: mockSentryId,
       name: '',
       email: '',
@@ -735,5 +741,96 @@ describe('captureSentryFeedback', () => {
         exampleObj: 'object',
       },
     });
+  });
+});
+
+describe('Sentry initialization', () => {
+  // We'll create variables to control the mock values
+  let mockIsTest = false;
+  let mockedInit: jest.SpyInstance;
+  let mockedGetItem: jest.Mock;
+
+  // Save original environment to restore later
+  const originalEnv = process.env;
+
+  // Setup mocks for this test block
+  beforeAll(() => {
+    // Mock Sentry.init with a spy
+    mockedInit = jest.spyOn(Sentry, 'init').mockImplementation(jest.fn());
+
+    // Create a mock function for getItem
+    mockedGetItem = jest.fn().mockResolvedValue('1');
+
+    // Mock the isTest value - this requires a module mock
+    jest.doMock('../test/utils', () => ({
+      get isTest() {
+        return mockIsTest;
+      }
+    }));
+
+    // Mock storage wrapper for this test
+    jest.doMock('../../store/storage-wrapper', () => ({
+      getItem: mockedGetItem,
+    }));
+
+    // Mock store for this test
+    jest.doMock('../../store', () => ({
+      store: {
+        getState: jest.fn(),
+      },
+    }));
+
+    // Force a fresh import to use our mocked modules
+    jest.resetModules();
+  });
+
+  beforeEach(() => {
+    // Reset mock state before each test
+    jest.clearAllMocks();
+
+    // Reset mockIsTest to default value
+    mockIsTest = false;
+
+    // Reset environment to original state
+    process.env = { ...originalEnv };
+
+    // Reset the mock for StorageWrapper.getItem
+    mockedGetItem.mockResolvedValue(AGREED);
+  });
+
+  afterAll(() => {
+    // Restore original environment
+    process.env = originalEnv;
+
+    // Restore mocks
+    jest.restoreAllMocks();
+    jest.dontMock('../test/utils');
+    jest.dontMock('../../store/storage-wrapper');
+    jest.dontMock('../../store');
+    jest.resetModules();
+  });
+
+  it('does not initialize Sentry when isTest is true', async () => {
+    // Set isTest to true for this test
+    mockIsTest = true;
+
+    // Set a DSN to ensure we're testing the isTest condition
+    process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
+
+    await setupSentry();
+
+    expect(mockedInit).not.toHaveBeenCalled();
+  });
+
+  it('does not initialize Sentry when DSN is not provided', async () => {
+    // Make sure isTest is false
+    mockIsTest = false;
+
+    // Remove the DSN
+    delete process.env.MM_SENTRY_DSN;
+
+    await setupSentry();
+
+    expect(mockedInit).not.toHaveBeenCalled();
   });
 });

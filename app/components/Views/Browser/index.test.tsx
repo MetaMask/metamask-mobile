@@ -23,6 +23,10 @@ const mockTabs = [
   { id: 5, url: 'about:blank', image: '', isArchived: false },
 ];
 
+jest.mock('../../../util/test/utils', () => ({
+  isTest: true,
+}));
+
 const mockInitialState = {
   engine: {
     backgroundState: {

@@ -4,7 +4,6 @@ import RPCQueueManager from '../RPCQueueManager';
 import { SDKConnect } from '../SDKConnect';
 import DevLogger from './DevLogger';
 import { Connection } from '../Connection';
-import { isE2E } from '../../../util/test/utils';
 import { store } from '../../../../app/store/index';
 
 export const MAX_QUEUE_LOOP = Infinity;
@@ -112,11 +111,6 @@ export const waitForKeychainUnlocked = async ({
   context?: string;
   waitTime?: number;
 }) => {
-  // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
-    return true;
-  }
-
   let i = 1;
   if (!keyringController) {
     console.warn('Keyring controller not found');
@@ -148,11 +142,6 @@ export const waitForUserLoggedIn = async ({
   context?: string;
 }) => {
   let i = 1;
-
-  // Disable during e2e tests otherwise Detox fails
-  if (isE2E) {
-    return true;
-  }
 
   const state = store.getState();
   let isLoggedIn = state.user.userLoggedIn ?? false;
