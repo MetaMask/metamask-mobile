@@ -47,6 +47,7 @@ const AccountSelectorList = ({
   isLoading = false,
   selectedAddresses,
   isMultiSelect = false,
+  isSelectWithoutMenu = false,
   renderRightAccessory,
   isSelectionDisabled,
   isRemoveAccountEnabled = false,
@@ -205,9 +206,13 @@ const AccountSelectorList = ({
       const accountName =
         isDefaultAccountName(name) && ensName ? ensName : name;
       const isDisabled = !!balanceError || isLoading || isSelectionDisabled;
-      const cellVariant = isMultiSelect
-        ? CellVariant.MultiSelect
-        : CellVariant.SelectWithMenu;
+      let cellVariant = CellVariant.SelectWithMenu;
+      if (isMultiSelect) {
+        cellVariant = CellVariant.MultiSelect;
+      }
+      if (isSelectWithoutMenu) {
+        cellVariant = CellVariant.Select;
+      }
       let isSelectedAccount = isSelected;
       if (selectedAddresses) {
         const lowercasedSelectedAddresses = selectedAddresses.map(
@@ -271,6 +276,7 @@ const AccountSelectorList = ({
       isLoading,
       selectedAddresses,
       isMultiSelect,
+      isSelectWithoutMenu,
       renderRightAccessory,
       isSelectionDisabled,
       onLongPress,

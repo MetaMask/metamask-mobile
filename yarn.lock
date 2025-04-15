@@ -5419,14 +5419,14 @@
     "@ethersproject/providers" "^5.7.2"
     async-mutex "^0.3.1"
 
-"@metamask/notification-services-controller@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-5.0.1.tgz#17154a3638be1961d8c693a66579472706215eca"
-  integrity sha512-VNYqJfesXx1ngiYepcb5Lcg1TLpAUXoc0IFJSBgrJY2NHxEmE4ymJgMGZWBfps3en4YgVt1otIlMlZpfgaGzFg==
+"@metamask/notification-services-controller@^6.0.0":
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/notification-services-controller/-/notification-services-controller-6.0.0.tgz#1ceb4562c039c50d4d2d9a639f0aa9093b196b50"
+  integrity sha512-fU/BGcIe6qw/bQNUUoHdp9nVQuMlYMUClbrZiKJ8vbnfbLAA5+brlRo8gmKqUUTjkriPNEzX6mplB2ON8sMbpA==
   dependencies:
     "@contentful/rich-text-html-renderer" "^16.5.2"
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/utils" "^11.2.0"
     bignumber.js "^9.1.2"
     firebase "^11.2.0"
@@ -5556,13 +5556,13 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/controller-utils" "^11.6.0"
 
-"@metamask/profile-sync-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-11.0.0.tgz#d51709ae4d0cb6cd593aab9532ca0c4b6468f33e"
-  integrity sha512-fHzo5E09G4P39UyfBZsnOzcr2Pbji3WvsVJKya6kPt0F2lBjjmD1sYGTQ+n3qv6vjID4CwsHOVDliWox6UCEXw==
+"@metamask/profile-sync-controller@^12.0.0":
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/profile-sync-controller/-/profile-sync-controller-12.0.0.tgz#b41a8ebc31e40803f395e8cdc5ef46a7a91ac49c"
+  integrity sha512-8OTGHij23fFatlrf4G71WhCfb1uzDLfwkoiPfuwDl5k176SrraAApsj/iCrxWT7GFlFbn3s+fGScjnz2b5bs8w==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/keyring-api" "^17.2.0"
+    "@metamask/keyring-api" "^17.4.0"
     "@metamask/snaps-sdk" "^6.17.1"
     "@metamask/snaps-utils" "^8.10.0"
     "@noble/ciphers" "^0.5.2"

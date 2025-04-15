@@ -24,7 +24,9 @@ describe(SmokeCore('Send ERC Token'), () => {
   });
 
   it('should import wallet and go to the wallet view', async () => {
-    await importWalletWithRecoveryPhrase(process.env.MM_TEST_WALLET_SRP);
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: process.env.MM_TEST_WALLET_SRP
+    });
   });
 
   it('should add Sepolia testnet to my networks list', async () => {

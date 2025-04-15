@@ -11,6 +11,7 @@ export interface AlertsContextParams {
   fieldAlerts: Alert[];
   generalAlerts: Alert[];
   hasAlerts: boolean;
+  hasBlockingAlerts: boolean;
   hasDangerAlerts: boolean;
   hideAlertModal: () => void;
   setAlertKey: (key: string) => void;
@@ -31,6 +32,7 @@ const AlertsContext = React.createContext<AlertsContextParams>({
   fieldAlerts: [],
   generalAlerts: [],
   hasAlerts: false,
+  hasBlockingAlerts: false,
   hasDangerAlerts: false,
   hideAlertModal: () => undefined,
   setAlertKey: () => undefined,
@@ -77,6 +79,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
   const [alertKey, setAlertKey] = useState(initialAlertKey);
 
   const {
+    hasBlockingAlerts,
     hasUnconfirmedDangerAlerts,
     hasUnconfirmedFieldDangerAlerts,
     isAlertConfirmed,
@@ -93,6 +96,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     fieldAlerts,
     generalAlerts,
     hasAlerts: alertsMemo.length > 0,
+    hasBlockingAlerts,
     hasDangerAlerts: dangerAlerts.length > 0,
     hideAlertModal: () => setAlertModalVisible(false),
     setAlertKey: (key: string) => setAlertKey(key),
@@ -110,6 +114,7 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     dangerAlerts,
     fieldAlerts,
     generalAlerts,
+    hasBlockingAlerts,
     hasUnconfirmedDangerAlerts,
     hasUnconfirmedFieldDangerAlerts,
     isAlertConfirmed,
