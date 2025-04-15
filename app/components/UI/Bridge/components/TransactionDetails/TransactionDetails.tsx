@@ -40,9 +40,9 @@ import Loader from '../../../../../component-library/components-temp/Loader';
 
 const styles = StyleSheet.create({
   detailRow: {
-    flexDirection: FlexDirection.Row,
-    justifyContent: JustifyContent.spaceBetween,
-    alignItems: AlignItems.center,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
     },
@@ -66,20 +66,20 @@ const styles = StyleSheet.create({
       textTransform: 'capitalize',
     },
     container: {
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.spaceBetween,
-      alignItems: AlignItems.center,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       padding: 8,
     },
     tokenIcon: {
       width: 40,
       height: 40,
       borderRadius: 20,
-      justifyContent: JustifyContent.center,
-      alignItems: AlignItems.center,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     tokenInfo: {
-      flexDirection: FlexDirection.Column,
+      flexDirection: 'column',
       gap: 2,
     },
   });
