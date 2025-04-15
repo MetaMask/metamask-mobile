@@ -52,7 +52,6 @@ const getBridgeActionText = (
     ];
 
   const destSymbol = step.destAsset?.symbol;
-
   if (!destSymbol) {
     return null;
   }
@@ -77,9 +76,9 @@ const getBridgeActionStatus = (bridgeHistoryItem: BridgeHistoryItem) =>
  * Despite not having any actual timestamp,we can infer the status of the swap action
  * based on the status of the source chain tx if srcChainId and destChainId are the same*
  *
- * @param bridgeHistoryItem
- * @param step
- * @param srcChainTxMeta
+ * @param bridgeHistoryItem - The bridge history item
+ * @param step - The step to be rendered
+ * @param srcChainTxMeta - The source chain transaction meta object
  */
 const getSwapActionStatus = (
   bridgeHistoryItem: BridgeHistoryItem,
@@ -157,7 +156,7 @@ const styles = StyleSheet.create({
 
 interface BridgeStepProps {
   step: Step;
-  networkConfigurationsByChainId: Record<Hex, NetworkConfiguration>;
+  networkConfigurationsByChainId: Record<`0x${string}`, NetworkConfiguration>;
   time?: string;
   stepStatus: StatusTypes | null;
 }

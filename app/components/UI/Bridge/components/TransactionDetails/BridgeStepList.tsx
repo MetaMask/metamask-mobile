@@ -11,6 +11,13 @@ import {
   StatusTypes,
 } from '@metamask/bridge-status-controller';
 
+/**
+ * Get the time for a step
+ * @param index - The index of the step
+ * @param isLastIndex - Whether the step is the last step
+ * @param startTime - The start time of the step
+ * @param estimatedProcessingTimeInSeconds - The estimated processing time of the step
+ */
 const getTime = (
   index: number,
   isLastIndex: boolean,
