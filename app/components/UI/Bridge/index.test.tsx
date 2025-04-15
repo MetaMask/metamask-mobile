@@ -16,6 +16,7 @@ import { Hex } from '@metamask/utils';
 import {
   BridgeFeatureFlagsKey,
   formatChainIdToCaip,
+  RequestStatus,
 } from '@metamask/bridge-controller';
 import { ethers } from 'ethers';
 
@@ -121,6 +122,13 @@ describe('BridgeView', () => {
               },
             },
           },
+          quoteRequest: {
+            insufficientBal: false,
+          },
+          quotesLoadingStatus: RequestStatus.FETCHED,
+          quotesLastFetched: null,
+          quotes: [],
+          quotesRefreshCount: 0,
         },
         TokenBalancesController: {
           tokenBalances: {
@@ -393,8 +401,10 @@ describe('BridgeView', () => {
       destToken: undefined,
       sourceAmount: undefined,
       destAmount: undefined,
+      destAddress: undefined,
       selectedDestChainId: undefined,
       selectedSourceChainIds: [mockChainId, optimismChainId],
+      slippage: '0.5',
     } as BridgeState,
   };
 
@@ -534,7 +544,8 @@ describe('BridgeView', () => {
           balanceFiat: '11.07915 cad',
           chainId: '0x1' as Hex,
           decimals: 6,
-          image: 'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          image:
+            'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
           symbol: 'USDC',
         },
       },
@@ -650,7 +661,6 @@ describe('BridgeView', () => {
                 symbol: 'TOKEN2',
                 decimals: 18,
                 image: 'https://token2.com/logo.png',
-                name: 'Token Two',
                 chainId: optimismChainId,
               },
               selectedDestChainId: optimismChainId,
