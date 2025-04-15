@@ -1,6 +1,6 @@
 'use strict';
 import { SmokeCore } from '../../tags';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { CreateNewWallet, importWalletWithRecoveryPhrase } from '../../viewHelper';
 import TestHelpers from '../../helpers';
 import Assertions from '../../utils/Assertions';
 import { withFixtures } from '../../fixtures/fixture-helper';
@@ -29,7 +29,7 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
   });
 
 
-  it('should track analytics events during wallet import', async () => {
+  it('should track analytics events during wallet import flow', async () => {
     await withFixtures({
       fixture: new FixtureBuilder().withOnboardingFixture().build(),
       restartDevice: true,
@@ -70,6 +70,48 @@ describe(SmokeCore('Analytics during import wallet flow'), () => {
 
       await Assertions.checkIfObjectsMatch(
         walletImportedEvent.properties,
+        { biometrics_enabled: false }
+      );
+    });
+  });
+
+  it('should track analytics events during new wallet flow', async () => {
+    await withFixtures({
+      fixture: new FixtureBuilder().withOnboardingFixture().build(),
+      restartDevice: true,
+      testSpecificMock,
+      launchArgs: {
+      sendMetaMetricsinE2E: true,
+    }}, async ({ mockServer }) => {
+
+      await CreateNewWallet()
+
+      const events = await getEventsPayloads(mockServer, [EVENT_NAME.WALLET_CREATED, EVENT_NAME.WALLET_SETUP_COMPLETED]);
+
+      await Assertions.checkIfArrayHasLength(
+        events,
+        2,
+      );
+
+      const walletCreatedEvent = events.find(
+        (event) =>
+          event.event === EVENT_NAME.WALLET_CREATED,
+      );
+      const walletSetupCompletedEvent = events.find(
+        (event) =>
+          event.event === EVENT_NAME.WALLET_SETUP_COMPLETED,
+      );
+
+      await Assertions.checkIfObjectsMatch(
+        walletSetupCompletedEvent.properties,
+        {
+          wallet_setup_type: 'new',
+          new_wallet: true,
+        },
+      );
+
+      await Assertions.checkIfObjectsMatch(
+        walletCreatedEvent.properties,
         { biometrics_enabled: false }
       );
     });
