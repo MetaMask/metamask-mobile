@@ -92,7 +92,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       renderTokenItem={renderToken}
       tokensList={tokensList}
       pending={pending}
-      chainId={selectedDestChainId}
+      chainIdToFetchMetadata={selectedDestChainId}
     />
   );
 };

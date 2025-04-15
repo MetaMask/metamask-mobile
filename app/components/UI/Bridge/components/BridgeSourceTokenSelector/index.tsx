@@ -8,6 +8,7 @@ import {
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/utils';
 import {
+  selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectNetworkConfigurations,
 } from '../../../../../selectors/networkController';
@@ -53,6 +54,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   const { sortedSourceNetworks } = useSortedSourceNetworks();
   const selectedSourceToken = useSelector(selectSourceToken);
   const selectedDestToken = useSelector(selectDestToken);
+  const selectedChainId = useSelector(selectChainId);
 
   const {
     chainId: selectedEvmChainId, // Will be the most recently selected EVM chain if you are on Solana
@@ -158,7 +160,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       renderTokenItem={renderItem}
       tokensList={tokensList}
       pending={pending}
-      chainId={selectedChainId}
+      chainIdToFetchMetadata={selectedChainId}
     />
   );
 };

@@ -1,11 +1,10 @@
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import {
-  fetchAssetMetadata,
-  getAssetImageUrl,
-} from './utils';
+import { fetchAssetMetadata, getAssetImageUrl } from './utils';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { isAddress as isSolanaAddress } from '@solana/addresses';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 
 export enum AssetType {
   /** The native asset for the current network, such as ETH */
@@ -20,7 +19,6 @@ export enum AssetType {
    */
   unknown = 'UNKNOWN',
 }
-
 
 /**
  * Fetches token metadata for a single token if searchQuery is defined but filteredTokenList is empty
@@ -58,15 +56,11 @@ export const useAssetMetadata = (
     }
 
     const trimmedSearchQuery = searchQuery.trim();
-    if (
-      isBasicFunctionalityEnabled &&
-      shouldFetchMetadata &&
-      trimmedSearchQuery.length > 30
-    ) {
-      const metadata = await fetchAssetMetadata(
-        trimmedSearchQuery,
-        chainId,
-      );
+    const isAddress =
+      isSolanaAddress(trimmedSearchQuery) || isEvmAddress(trimmedSearchQuery);
+
+    if (isBasicFunctionalityEnabled && shouldFetchMetadata && isAddress) {
+      const metadata = await fetchAssetMetadata(trimmedSearchQuery, chainId);
 
       if (metadata) {
         return {
