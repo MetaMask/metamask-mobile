@@ -126,7 +126,10 @@ import {
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
 import { cloneDeep, isEqual } from 'lodash';
-import { compareNftStates } from '../../../util/assets';
+import {
+  compareNftStates,
+  prepareNftDetectionEvents,
+} from '../../../util/assets';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -631,7 +634,7 @@ const Wallet = ({
     try {
       return {
         chain_id: getDecimalChainId(nft.chainId),
-        source: 'detected',
+        source: 'detected' as const,
       };
     } catch (error) {
       Logger.error(error as Error, 'Wallet.getNftDetectionAnalyticsParams');
@@ -667,19 +670,18 @@ const Wallet = ({
           NftController.state.allNfts[selectedAddress.toLowerCase()],
         );
 
-        if (!isEqual(previousNfts, newNfts)) {
-          const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
-          newlyDetectedNfts.forEach((nft) => {
-            const params = getNftDetectionAnalyticsParams(nft);
-            if (params) {
-              trackEvent(
-                createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-                  .addProperties(params)
-                  .build(),
-              );
-            }
-          });
-        }
+        const eventParams = prepareNftDetectionEvents(
+          previousNfts,
+          newNfts,
+          getNftDetectionAnalyticsParams,
+        );
+        eventParams.forEach((params) => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+              .addProperties(params)
+              .build(),
+          );
+        });
       }
     },
     [

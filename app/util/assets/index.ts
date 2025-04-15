@@ -1,5 +1,6 @@
 import { Nft, NftControllerState } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
+import { isEqual } from 'lodash';
 
 export const formatWithThreshold = (
   amount: number | null,
@@ -50,4 +51,34 @@ export const compareNftStates = (
         !previousChainNfts.some((prevNft) => isMatchingNft(prevNft, newNft)),
     );
   });
+};
+
+export type NftAnalyticsParams = {
+  chain_id: number;
+  source: 'detected';
+};
+
+/**
+ * Compares previous and new NFT states and prepares analytics events for newly detected NFTs
+ * @param previousNfts - Previous state of NFTs grouped by chainId for a single account
+ * @param newNfts - New state of NFTs grouped by chainId for a single account
+ * @param paramBuilder - Function to build analytics parameters for each NFT
+ * @returns Array of analytics event params for newly detected NFTs
+ */
+export const prepareNftDetectionEvents = (
+  previousNfts: AccountNfts | undefined,
+  newNfts: AccountNfts | undefined,
+  paramBuilder: (nft: Nft) => NftAnalyticsParams | undefined,
+) => {
+  const paramsToSend: NftAnalyticsParams[] = [];
+  if (!isEqual(previousNfts, newNfts)) {
+    const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
+    newlyDetectedNfts.forEach((nft) => {
+      const params = paramBuilder(nft);
+      if (params) {
+        paramsToSend.push(params);
+      }
+    });
+  }
+  return paramsToSend;
 };

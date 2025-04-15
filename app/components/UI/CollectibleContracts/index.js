@@ -53,7 +53,7 @@ import { isTestNet, getDecimalChainId } from '../../../util/networks';
 import { createTokenBottomSheetFilterNavDetails } from '../Tokens/TokensBottomSheet';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
-import { compareNftStates } from '../../../util/assets';
+import { prepareNftDetectionEvents } from '../../../util/assets';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -409,20 +409,19 @@ const CollectibleContracts = ({
       const newNfts = cloneDeep(
         NftController.state.allNfts[selectedAddress.toLowerCase()],
       );
-      // Compare states to find newly detected NFTs
-      if (!isEqual(previousNfts, newNfts)) {
-        const newlyDetectedNfts = compareNftStates(previousNfts, newNfts);
-        newlyDetectedNfts.forEach((nft) => {
-          const params = getNftDetectionAnalyticsParams(nft);
-          if (params) {
-            trackEvent(
-              createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
-                .addProperties(params)
-                .build(),
-            );
-          }
-        });
-      }
+
+      const eventParams = prepareNftDetectionEvents(
+        previousNfts,
+        newNfts,
+        getNftDetectionAnalyticsParams,
+      );
+      eventParams.forEach((params) => {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.COLLECTIBLE_ADDED)
+            .addProperties(params)
+            .build(),
+        );
+      });
     });
   }, [
     chainIdsToDetectNftsFor,

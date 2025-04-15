@@ -1,5 +1,10 @@
 import { Nft } from '@metamask/assets-controllers';
-import { compareNftStates, formatWithThreshold } from '.';
+import {
+  compareNftStates,
+  formatWithThreshold,
+  prepareNftDetectionEvents,
+} from '.';
+import { Hex } from '@metamask/utils';
 
 describe('formatWithThreshold', () => {
   const enUSCurrencyOptions = { style: 'currency', currency: 'USD' };
@@ -202,6 +207,77 @@ describe('NFT State Comparison Utils', () => {
       const newState = {};
       const result = compareNftStates(previousState, newState);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('prepareNftDetectionEvents', () => {
+    const chainId1 = '0x1' as Hex;
+    const chainId2 = '0x2' as Hex;
+
+    const mockParamBuilder = jest.fn().mockImplementation(() => ({
+      chain_id: 1,
+      source: 'detected' as const,
+    }));
+
+    it('should return empty array when states are equal', () => {
+      const state = {
+        [chainId1]: [mockNft1],
+      };
+
+      const result = prepareNftDetectionEvents(state, state, mockParamBuilder);
+      expect(result).toEqual([]);
+    });
+
+    it('should detect new NFTs and prepare analytics params', () => {
+      const previousState = {
+        [chainId1]: [mockNft1],
+      };
+
+      const newState = {
+        [chainId1]: [mockNft1, mockNft2],
+        [chainId2]: [mockNft1],
+      };
+
+      const result = prepareNftDetectionEvents(
+        previousState,
+        newState,
+        mockParamBuilder,
+      );
+      expect(result).toEqual([
+        { chain_id: 1, source: 'detected' },
+        { chain_id: 1, source: 'detected' },
+      ]);
+    });
+
+    it('should handle undefined states', () => {
+      const result = prepareNftDetectionEvents(
+        undefined,
+        undefined,
+        mockParamBuilder,
+      );
+      expect(result).toEqual([]);
+    });
+
+    it('should filter out NFTs where paramBuilder returns undefined', () => {
+      const selectiveParamBuilder = (nft: Nft) =>
+        nft.address === '0x123'
+          ? undefined
+          : { chain_id: 1, source: 'detected' as const };
+
+      const previousState = {
+        [chainId1]: [mockNft1],
+      };
+
+      const newState = {
+        [chainId1]: [mockNft1, mockNft2],
+      };
+
+      const result = prepareNftDetectionEvents(
+        previousState,
+        newState,
+        selectiveParamBuilder,
+      );
+      expect(result).toEqual([{ chain_id: 1, source: 'detected' }]);
     });
   });
 });
