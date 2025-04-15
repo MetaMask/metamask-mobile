@@ -793,8 +793,8 @@ describe('getRpcMethodMiddleware', () => {
           },
         ],
       );
-      MockEngine.getCaip25PermissionFromLegacyPermissions.mockImplementation(
-        () => mockPermission,
+      MockEngine.getCaip25PermissionFromLegacyPermissions.mockReturnValue(
+        mockPermission,
       );
 
       const expectedEthAccountsPermission = {
