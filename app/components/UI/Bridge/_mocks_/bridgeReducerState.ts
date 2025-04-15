@@ -23,6 +23,7 @@ export const mockBridgeReducerState: BridgeState = {
     balanceFiat: '$0',
     chainId: '0xa',
   },
+  destAddress: undefined,
   selectedSourceChainIds: ['0x1'],
   selectedDestChainId: '0xa',
   slippage: '0.5',
