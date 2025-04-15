@@ -12,6 +12,7 @@ import { useSignatureMetrics } from './useSignatureMetrics';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import { useSelector } from 'react-redux';
+import { RootState } from '../../../../reducers';
 
 export const useConfirmActions = () => {
   const {
@@ -29,7 +30,7 @@ export const useConfirmActions = () => {
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const shouldUseSmartTransaction = useSelector(
-    selectShouldUseSmartTransaction,
+    (state: RootState) => selectShouldUseSmartTransaction(state, transactionMetadata?.chainId)
   );
   const isOneOfTheStakingConfirmations = isStakingConfirmation(
     transactionMetadata?.type as string,

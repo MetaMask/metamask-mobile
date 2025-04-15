@@ -244,6 +244,7 @@ describe('Transaction Controller Init', () => {
   it('publish hook calls submitSmartTransactionHook', () => {
     const MOCK_TRANSACTION_META = {
       id: '123',
+      chainId: '0x1',
     } as TransactionMeta;
 
     const hooks = testConstructorOption('hooks');
@@ -252,6 +253,7 @@ describe('Transaction Controller Init', () => {
 
     expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
     expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(expect.anything(), MOCK_TRANSACTION_META.chainId);
     expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
     expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
       expect.objectContaining({
