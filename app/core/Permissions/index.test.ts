@@ -246,6 +246,7 @@ describe('Permission Utility Functions', () => {
 
       const existingAccounts = ['0x1', '0x2'];
       const newAccounts: Hex[] = ['0x3', '0x4'];
+      const allAccounts = ['0x1', '0x2', '0x3', '0x4'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
 
@@ -258,6 +259,11 @@ describe('Permission Utility Functions', () => {
 
       const result = addPermittedAccounts('https://example.com', newAccounts);
 
+      expect(getEthAccounts).toHaveBeenCalledWith(mockCaveat.value);
+      expect(setEthAccounts).toHaveBeenCalledWith(
+        mockCaveat.value,
+        allAccounts,
+      );
       expect(
         Engine.context.PermissionController.updateCaveat,
       ).toHaveBeenCalledWith(
@@ -325,6 +331,7 @@ describe('Permission Utility Functions', () => {
 
       const existingAccounts = ['0x1', '0x2', '0x3'];
       const accountsToRemove: Hex[] = ['0x2', '0x3'];
+      const remainingAccounts = ['0x1'];
 
       mockGetCaveat.mockReturnValue(mockCaveat);
       (getEthAccounts as jest.Mock).mockReturnValue(existingAccounts);
@@ -335,6 +342,11 @@ describe('Permission Utility Functions', () => {
 
       removePermittedAccounts('https://example.com', accountsToRemove);
 
+      expect(getEthAccounts).toHaveBeenCalledWith(mockCaveat.value);
+      expect(setEthAccounts).toHaveBeenCalledWith(
+        mockCaveat.value,
+        remainingAccounts,
+      );
       expect(
         Engine.context.PermissionController.updateCaveat,
       ).toHaveBeenCalledWith(
