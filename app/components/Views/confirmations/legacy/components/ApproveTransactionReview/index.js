@@ -431,7 +431,10 @@ class ApproveTransactionReview extends PureComponent {
             erc20TokenBalance,
             decimals,
           );
-          unroundedAccountBalance = fromTokenMinimalUnit(erc20TokenBalance || 0, decimals);
+          unroundedAccountBalance = fromTokenMinimalUnit(
+            erc20TokenBalance || 0,
+            decimals,
+          );
         }
       } catch (e) {
         tokenSymbol = contract?.symbol || 'ERC20 Token';
@@ -1366,7 +1369,7 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
   };
 };

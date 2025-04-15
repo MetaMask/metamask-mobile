@@ -337,7 +337,10 @@ class Confirm extends PureComponent {
   setNetworkNonce = async () => {
     const { globalNetworkClientId, setNonce, setProposedNonce, transaction } =
       this.props;
-    const proposedNonce = await getNetworkNonce(transaction, globalNetworkClientId);
+    const proposedNonce = await getNetworkNonce(
+      transaction,
+      globalNetworkClientId,
+    );
     setNonce(proposedNonce);
     setProposedNonce(proposedNonce);
   };
@@ -894,10 +897,7 @@ class Confirm extends PureComponent {
       });
     }
 
-    if (
-      isNativeToken(selectedAsset) ||
-      selectedAsset.tokenId
-    ) {
+    if (isNativeToken(selectedAsset) || selectedAsset.tokenId) {
       return insufficientBalanceMessage;
     }
 
@@ -1428,7 +1428,9 @@ class Confirm extends PureComponent {
                 style={styles.blockaidBanner}
                 onContactUsClicked={this.onContactUsClicked}
               />
-              <SmartTransactionsMigrationBanner style={styles.smartTransactionsMigrationBanner}/>
+              <SmartTransactionsMigrationBanner
+                style={styles.smartTransactionsMigrationBanner}
+              />
             </>
           )}
           {!selectedAsset.tokenId ? (
@@ -1624,7 +1626,7 @@ const mapStateToProps = (state) => {
       chainId,
       getRampNetworks(state),
     ),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     confirmationMetricsById: selectConfirmationMetrics(state),
     transactionMetadata: selectCurrentTransactionMetadata(state),
     useTransactionSimulations: selectUseTransactionSimulations(state),

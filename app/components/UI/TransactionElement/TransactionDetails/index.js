@@ -481,7 +481,10 @@ const mapStateToProps = (state, ownProps) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   swapsTransactions: selectSwapsTransactions(state),
   swapsTokens: swapsControllerTokens(state),
-  shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+  shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+    state,
+    ownProps.transactionObject.chainId,
+  ),
 });
 
 TransactionDetails.contextType = ThemeContext;

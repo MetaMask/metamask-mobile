@@ -735,7 +735,7 @@ const mapStateToProps = (state) => {
     browser: state.browser,
     primaryCurrency: state.settings.primaryCurrency,
     tokenList: selectTokenList(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     useTransactionSimulations: selectUseTransactionSimulations(state),
     securityAlertResponse: selectCurrentTransactionSecurityAlertResponse(state),
     transactionMetadata,

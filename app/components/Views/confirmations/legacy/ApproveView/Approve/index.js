@@ -986,7 +986,7 @@ const mapStateToProps = (state) => {
     providerType: selectProviderTypeByChainId(state, chainId),
     providerRpcTarget: selectRpcUrlByChainId(state, chainId),
     networkConfigurations: selectEvmNetworkConfigurationsByChainId(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state, chainId),
     simulationData: selectCurrentTransactionMetadata(state)?.simulationData,
   };
 };

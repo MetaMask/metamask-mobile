@@ -820,7 +820,10 @@ const mapStateToProps = (state) => {
     selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
     dappTransactionModalVisible: state.modals.dappTransactionModalVisible,
     tokenList: selectTokenList(state),
-    shouldUseSmartTransaction: selectShouldUseSmartTransaction(state),
+    shouldUseSmartTransaction: selectShouldUseSmartTransaction(
+      state,
+      state.transaction?.chainId, // TODO: Verify if this is correct.
+    ),
   };
 };
 
