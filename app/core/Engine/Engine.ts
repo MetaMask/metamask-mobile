@@ -931,9 +931,6 @@ export class Engine {
       messenger: userStorageControllerMessenger,
       initialState: initialState.UserStorageController,
       nativeScryptCrypto: calculateScryptKey,
-      env: {
-        isAccountSyncingEnabled: true,
-      },
       config: {
         accountSyncing: {
           onAccountAdded: (profileId) => {
@@ -1035,7 +1032,8 @@ export class Engine {
       messenger: this.controllerMessenger.getRestricted({
         name: 'BridgeController',
         allowedActions: [
-          'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
+          'SnapController:handleRequest',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
           'NetworkController:getNetworkClientById',
