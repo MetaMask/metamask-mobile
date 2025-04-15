@@ -73,20 +73,22 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
           </Text>
         </View>
       )}
-      {displayBridgeButton && <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.Bridge}
-          onPress={goToBridge}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={!canSignTransactions}
-          actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
-        />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.bridge')}
-        </Text>
-      </View>}
+      {displayBridgeButton ? (
+        <View style={styles.buttonWrapper}>
+          <WalletAction
+            iconName={IconName.Bridge}
+            onPress={goToBridge}
+            iconStyle={styles.icon}
+            containerStyle={styles.containerStyle}
+            iconSize={AvatarSize.Lg}
+            disabled={!canSignTransactions}
+            actionID={TokenOverviewSelectorsIDs.BRIDGE_BUTTON}
+          />
+          <Text variant={TextVariant.BodyMD}>
+            {strings('asset_overview.bridge')}
+          </Text>
+        </View>
+      ) : null}
       <View style={styles.buttonWrapper}>
         <WalletAction
           iconName={IconName.Arrow2Upright}
