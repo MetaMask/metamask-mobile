@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Hex, isValidHexAddress } from '@metamask/utils';
 import { View } from 'react-native';
 
@@ -50,7 +50,10 @@ const Message = () => {
     domain: { verifyingContract } = { verifyingContract: '' },
     sanitizedMessage,
     primaryType,
-  } = parseAndSanitizeSignTypedData(typedSignData);
+  } = useMemo(
+    () => parseAndSanitizeSignTypedData(typedSignData),
+    [typedSignData],
+  );
 
   const tokenDecimals = useTokenDecimalsInTypedSignRequest(
     signatureRequest,

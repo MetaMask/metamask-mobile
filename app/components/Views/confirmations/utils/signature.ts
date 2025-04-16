@@ -5,7 +5,6 @@ import {
   SignatureRequestType,
 } from '@metamask/signature-controller';
 import { SignTypedDataVersion } from '@metamask/eth-sig-util';
-import { memoize } from 'lodash';
 
 import {
   PRIMARY_TYPES_ORDER,
@@ -180,14 +179,14 @@ export const parseSignTypedData = (messageParamsData: string) => {
   return result;
 };
 
-export const parseAndSanitizeSignTypedData = memoize((messageParamsData: string) => {
+export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
   const { domain, message, primaryType, types } = parseSignTypedData(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
 
   return { sanitizedMessage, primaryType, domain };
-});
+};
 
 export const parseSignTypedDataFromSignatureRequest = (
   signatureRequest?: SignatureRequest,
