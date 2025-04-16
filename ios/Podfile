@@ -176,4 +176,15 @@ post_install do |installer|
       end
     end
   end
+
+  # Fix for React-Core privacy bundle duplication
+  installer.pods_project.targets.each do |target|
+    if target.name == 'React-Core.common-RCTPushNotificationHeaders-React-Core_privacy'
+      target.build_phases.each do |build_phase|
+        if build_phase.display_name == 'Create Directories'
+          build_phase.shell_script = "mkdir -p \"${BUILT_PRODUCTS_DIR}/React-Core_privacy.bundle\""
+        end
+      end
+    end
+  end
 end
