@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat: add AppMetadataController controller ([#14513](https://github.com/MetaMask/metamask-mobile/pull/14513))
 - feat(bridge): implement bridge quote fetching ([#14413](https://github.com/MetaMask/metamask-mobile/pull/14413))
 
+
+### Changed
+
+- feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
+
 ## [7.44.0]
 
 ### Added
