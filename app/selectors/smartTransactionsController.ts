@@ -3,7 +3,7 @@ import { selectSmartTransactionsOptInStatus } from './preferencesController';
 import { RootState } from '../reducers';
 import { swapsSmartTxFlagEnabled } from '../reducers/swaps';
 import { isHardwareAccount } from '../util/address';
-import { selectEvmChainId, selectProviderConfig } from './networkController';
+import { selectEvmChainId, selectRpcUrlByChainId } from './networkController';
 import {
   SmartTransaction,
   SmartTransactionStatuses,
@@ -11,14 +11,31 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from './accountsController';
 import { getAllowedSmartTransactionsChainIds } from '../../app/constants/smartTransactions';
 import { createDeepEqualSelector } from './util';
+import { isProduction } from '../util/environment';
 import { Hex } from '@metamask/utils';
+
+const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
+  // Allow in non-production environments.
+  if (!isProduction()) {
+    return true;
+  }
+
+  const hostname = rpcUrl && new URL(rpcUrl).hostname;
+
+  return (
+    hostname?.endsWith('.infura.io') ||
+    hostname?.endsWith('.binance.org') ||
+    false
+  );
+};
 
 export const selectSmartTransactionsEnabled = createDeepEqualSelector(
   [
     selectSelectedInternalAccountFormattedAddress,
     selectEvmChainId,
-    (state: RootState, chainId?: Hex) => chainId,
-    (state: RootState) => selectProviderConfig(state).rpcUrl,
+    (_state: RootState, chainId?: Hex) => chainId,
+    (state: RootState, chainId?: Hex) =>
+      selectRpcUrlByChainId(state, chainId || selectEvmChainId(state)),
     swapsSmartTxFlagEnabled,
     (state: RootState) =>
       state.engine.backgroundState.SmartTransactionsController
@@ -38,17 +55,12 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
       : false;
     const isAllowedNetwork =
       getAllowedSmartTransactionsChainIds().includes(effectiveChainId);
-    // Only bypass RPC if we're on the default mainnet RPC.
-    const canBypassRpc =
-      effectiveChainId === NETWORKS_CHAIN_ID.MAINNET
-        ? providerConfigRpcUrl === undefined
-        : true;
     return Boolean(
       isAllowedNetwork &&
-        canBypassRpc &&
-        !addrIshardwareAccount // && TODO: Make sure the functions below use the right chainId..
-        // smartTransactionsFeatureFlagEnabled &&
-        // smartTransactionsLiveness,
+        getIsAllowedRpcUrlForSmartTransactions(providerConfigRpcUrl) &&
+        !addrIshardwareAccount, // && TODO: Make sure the functions below use the right chainId..
+      // smartTransactionsFeatureFlagEnabled &&
+      // smartTransactionsLiveness,
     );
   },
 );
