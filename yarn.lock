@@ -4683,17 +4683,17 @@
     "@metamask/controller-utils" "^11.5.0"
     "@metamask/utils" "^11.1.0"
 
+"@metamask/api-specs@^0.10.12":
+  version "0.10.17"
+  resolved "https://registry.yarnpkg.com/@metamask/api-specs/-/api-specs-0.10.17.tgz#e6974ac38e9ae80f67adfd3b4919322d926e5085"
+  integrity sha512-NCUlmDBLL8Cif5cfYXOgKdU56ZSpWnsbNnCUJUehPnNOyWuADx9blYhb1jdN3gWQwCpCOLawpFRzXsfM0FebaQ==
+
 "@metamask/app-metadata-controller@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/app-metadata-controller/-/app-metadata-controller-1.0.0.tgz#7d256d4227ed3ad6c58f0e96ea9989dcae081022"
   integrity sha512-Y/IAIFf9hIAGKrH9YlK508eR+s+asVMk/868n7QseWRVzPsGxbPtjokb6CQeagpYnvkxRiuQ6o7FrqLASPIugA==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-
-"@metamask/api-specs@^0.10.12":
-  version "0.10.17"
-  resolved "https://registry.yarnpkg.com/@metamask/api-specs/-/api-specs-0.10.17.tgz#e6974ac38e9ae80f67adfd3b4919322d926e5085"
-  integrity sha512-NCUlmDBLL8Cif5cfYXOgKdU56ZSpWnsbNnCUJUehPnNOyWuADx9blYhb1jdN3gWQwCpCOLawpFRzXsfM0FebaQ==
 
 "@metamask/approval-controller@^7.1.3":
   version "7.1.3"
