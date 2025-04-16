@@ -609,7 +609,7 @@ workflows:
                     # Get the conclusion of the most recent run
                     CONCLUSION=$(echo "$COMPLETION_CHECK" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)
                     
-                    if [ -z "$CONCLUSION" ] || [ "$CONCLUSION" = "success" ]; then
+                    if [ "$CONCLUSION" = "success" ]; then
                       echo "Workflow completed successfully!"
                       exit 0
                     elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
