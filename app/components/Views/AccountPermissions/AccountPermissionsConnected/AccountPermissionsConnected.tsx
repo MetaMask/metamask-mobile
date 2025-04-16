@@ -54,7 +54,7 @@ const AccountPermissionsConnected = ({
   const switchActiveAccount = useCallback(
     (address: string) => {
       if (address !== activeAddress) {
-        Engine.setSelectedAddress(address)
+        Engine.setSelectedAddress(address);
       }
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({
@@ -81,7 +81,6 @@ const AccountPermissionsConnected = ({
       onDismissSheet,
       accounts,
       ensByAccountAddress,
-      hostname,
       toastRef,
       accountAvatarType,
     ],

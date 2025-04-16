@@ -49,7 +49,6 @@ import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/se
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { Hex } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 
 const NetworkPermissionsConnected = ({
