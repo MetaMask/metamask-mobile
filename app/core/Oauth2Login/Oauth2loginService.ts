@@ -5,31 +5,36 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import ReduxService from '../redux';
 
-import { OAuthVerifier } from '@metamask/seedless-onboarding-controller';
 import { UserActionType } from '../../actions/user';
 import { handleAndroidAppleLogin } from './android/apple';
 import { handleAndroidGoogleLogin } from './android/google';
-import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork } from './Oauth2loginInterface';
+import { ByoaResponse, HandleFlowParams, ByoaServerUrl, HandleOauth2LoginResult, LoginMode, LoginProvider, Web3AuthNetwork, DefaultWeb3AuthNetwork, GroupedAuthConnectionId, AuthConnectionId } from './Oauth2loginInterface';
 import { handleIosGoogleLogin } from './ios/google';
 import { handleIosAppleLogin } from './ios/apple';
-import { jwtDecode, JwtPayload } from "jwt-decode";
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 export class Oauth2LoginService {
     public localState: {
         loginInProgress: boolean;
-        verifier: OAuthVerifier | null;
-        verifierID: string | null;
+        authConnectionId: string;
+        groupedAuthConnectionId: string;
+        userId: string | null;
     };
 
     public config : {
         web3AuthNetwork: Web3AuthNetwork;
     };
 
-    constructor(config: {web3AuthNetwork: Web3AuthNetwork}) {
+    constructor(config: {web3AuthNetwork: Web3AuthNetwork , authConnectionId: string, groupedAuthConnectionId: string}) {
+        const { web3AuthNetwork, authConnectionId, groupedAuthConnectionId} = config;
         this.localState = {
             loginInProgress: false,
-            verifier: null,
-            verifierID: null,
+            authConnectionId,
+            groupedAuthConnectionId,
+            userId: null,
+        };
+        this.config = {
+            web3AuthNetwork,
         };
         this.config = {
             web3AuthNetwork: config.web3AuthNetwork,
@@ -127,24 +132,23 @@ export class Oauth2LoginService {
             const data = await res.json() as ByoaResponse;
             Logger.log('handleCodeFlow: data', data);
             if (data.success) {
+                const jwtPayload = jwtDecode(data.id_token) as JwtPayload & {email: string};
+                const userId = jwtPayload.sub ?? '';
                 this.updateLocalState({
-                    verifier: data.verifier as OAuthVerifier,
-                    verifierID: data.verifier_id,
+                    userId,
                 });
 
-                const result = await Engine.context.SeedlessOnboardingController.authenticateOAuthUser({
+                const result = await Engine.context.SeedlessOnboardingController.authenticate({
                     idTokens: Object.values(data.jwt_tokens),
-                    verifier: data.verifier as OAuthVerifier,
-                    verifierID: data.verifier_id,
-                    indexes: Object.values(data.indexes),
-                    endpoints: Object.values(data.endpoints),
+                    authConnectionId: this.localState.authConnectionId,
+                    groupedAuthConnectionId: this.localState.groupedAuthConnectionId,
+                    userId,
                 });
                 Logger.log('handleCodeFlow: result', result);
 
-                const jwtPayload = jwtDecode(data.id_token) as JwtPayload & {email: string};
                 const accountName = jwtPayload.email ?? '';
 
-                return {type: 'success', existingUser: result.hasValidEncKey, accountName};
+                return {type: 'success', existingUser: !result.isNewUser, accountName};
             }
             throw new Error('Failed to authenticate OAuth user : ' + data.message);
         } catch (error) {
@@ -198,14 +202,14 @@ export class Oauth2LoginService {
     };
 
     getVerifierDetails = () => ({
-        verifier: this.localState.verifier,
-        verifierID: this.localState.verifierID,
+        authConnectionId: this.localState.authConnectionId,
+        groupedAuthConnectionId: this.localState.groupedAuthConnectionId,
+        userId: this.localState.userId,
     });
 
     clearVerifierDetails = () => {
-        this.localState.verifier = null;
-        this.localState.verifierID = null;
+        this.localState.userId = null;
     };
 }
 
-export default new Oauth2LoginService({web3AuthNetwork: DefaultWeb3AuthNetwork});
+export default new Oauth2LoginService({web3AuthNetwork: DefaultWeb3AuthNetwork, authConnectionId: AuthConnectionId, groupedAuthConnectionId: GroupedAuthConnectionId});

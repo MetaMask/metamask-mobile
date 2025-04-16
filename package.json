@@ -142,7 +142,10 @@
     "nanoid": "^3.3.8",
     "undici": "5.28.5",
     "**/@ethersproject/signing-key/elliptic": "^6.6.1",
-    "**/@walletconnect/utils/elliptic": "^6.6.1"
+    "**/@walletconnect/utils/elliptic": "^6.6.1",
+    "@metamask/auth-network-utils": "file:./auth-network-utils.tgz",
+    "@metamask/toprf-secure-backup": "file:./toprf-secure-backup.tgz",
+    "@metamask/seedless-onboarding-controller": "file:./seedless-onboarding-controller.tgz"
   },
   "dependencies": {
     "@config-plugins/detox": "^8.0.0",
@@ -155,6 +158,7 @@
     "@metamask/address-book-controller": "^6.0.3",
     "@metamask/approval-controller": "^7.1.0",
     "@metamask/assets-controllers": "^51.0.2",
+    "@metamask/auth-network-utils": "./auth-network-utils.tgz",
     "@metamask/base-controller": "^8.0.0",
     "@metamask/bitcoin-wallet-snap": "^0.9.0",
     "@metamask/bridge-controller": "^7.0.0",
@@ -204,7 +208,7 @@
     "@metamask/rpc-errors": "^7.0.2",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.29.0-wallet",
-    "@metamask/seedless-onboarding-controller": "https://gitpkg.vercel.app/Web3Auth/core/packages/seedless-onboarding-controller?19c8035ca514d04d55e08c0a9e91610ddd9e03a5",
+    "@metamask/seedless-onboarding-controller": "file:./package-seedless.tgz",
     "@metamask/selected-network-controller": "^21.0.0",
     "@metamask/signature-controller": "^23.1.0",
     "@metamask/slip44": "^4.1.0",
@@ -334,7 +338,7 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-get-random-values": "^1.8.0",
-    "react-native-google-acm": "git+https://github.com/ieow/react-native-google-acm.git#09de563582649c34069d06d087f22c998b37f436",
+    "react-native-google-acm": "git+https://github.com/Web3Auth/react-native-google-acm.git#71367b39a22cb6684d79752cce0680b63c25c9ea",
     "react-native-gzip": "^1.1.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^4.3.3",

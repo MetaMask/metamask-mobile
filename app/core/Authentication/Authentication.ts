@@ -38,7 +38,6 @@ import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import Oauth2LoginService  from '../Oauth2Login/Oauth2loginService';
 import { resetVaultBackup } from '../BackupVault/backupVault';
-import { bytesToString } from '@metamask/utils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -485,19 +484,24 @@ class AuthenticationService {
     password: string,
   ): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
-    const { verifier, verifierID } = Oauth2LoginService.getVerifierDetails();
-    if (!verifier || !verifierID) {
+    const { authConnectionId, groupedAuthConnectionId, userId } = Oauth2LoginService.getVerifierDetails();
+    if (!authConnectionId || !groupedAuthConnectionId || !userId) {
       this.dispatchOauth2Reset();
       throw new Error('Verifier details not found');
     }
     // rollback on fail ( reset wallet )
     await this.createWalletVaultAndKeychain(password);
-    const uint8ArrayMnemonic =  await getSeedPhrase(password);
-    const seedPhrase = uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist);
+    const seedPhrase =  await getSeedPhrase(password);
 
     Logger.log('SeedlessOnboardingController state', SeedlessOnboardingController.state);
 
-    await SeedlessOnboardingController.createSeedPhraseBackup({password, seedPhrase, verifier, verifierID })
+    await SeedlessOnboardingController.createToprfKeyAndBackupSeedPhrase({
+      password, 
+      seedPhrase,
+      authConnectionId,
+      groupedAuthConnectionId,
+      userId 
+    })
       .catch(async (error) => {
         await this.newWalletAndKeychain(`${Date.now()}`, {
           currentAuthType: AUTHENTICATION_TYPE.UNKNOWN,
@@ -516,17 +520,30 @@ class AuthenticationService {
     authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
-    const { verifier, verifierID } = Oauth2LoginService.getVerifierDetails();
-    if (!verifier || !verifierID) {
+    const { authConnectionId, groupedAuthConnectionId, userId } = Oauth2LoginService.getVerifierDetails();
+    if (!authConnectionId || !groupedAuthConnectionId || !userId) {
       this.dispatchOauth2Reset();
       throw new Error('Verifier details not found');
     }
-    const result = await SeedlessOnboardingController.fetchAndRestoreSeedPhraseMetadata( verifier, verifierID, password);
+
+    const result = await SeedlessOnboardingController.fetchAllSeedPhrases({
+      authConnectionId,
+      groupedAuthConnectionId,
+      userId,
+      password,
+    });
+
     if (result !== null && result.length > 0) {
-      const seedPhrase = bytesToString(result.at(-1) ?? new Uint8Array());
+      const seedPhrase = uint8ArrayToMnemonic(result.at(-1) ?? new Uint8Array(), wordlist);
       await this.newWalletAndRestore(password, authData, seedPhrase, false);
       // add in more srps
-
+      if (result.length > 1) {
+        for (const item of result.slice(0, -1)) {
+          // vault add new seedphrase
+          // const { KeyringController } = Engine.context;
+          // await KeyringController.addSRP(item, password);
+        }
+      }
       this.dispatchPasswordSet();
     } else {
       this.dispatchOauth2Reset();
