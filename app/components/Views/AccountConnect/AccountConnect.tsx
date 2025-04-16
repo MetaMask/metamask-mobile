@@ -297,7 +297,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     const checkOrigin = async () => {
       const scanResult = await getPhishingTestResultAsync(url);
-      if (!scanResult.result) {
+      if (scanResult.result) {
         setBlockedUrl(dappUrl);
         setShowPhishingModal(true);
       }
