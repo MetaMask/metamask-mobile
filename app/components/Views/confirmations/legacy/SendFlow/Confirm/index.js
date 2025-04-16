@@ -130,6 +130,7 @@ import {
 } from './validation';
 import { buildTransactionParams } from '../../../../../../util/confirmation/transactions';
 import {
+  selectEvmChainId,
   selectNativeCurrencyByChainId,
   // Pending updated multichain UX to specify the send chain.
   // eslint-disable-next-line no-restricted-syntax
@@ -1596,7 +1597,7 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = transaction?.chainId;
+  const chainId = selectEvmChainId(state);
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
