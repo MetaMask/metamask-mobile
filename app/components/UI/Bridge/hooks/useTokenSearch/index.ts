@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { BridgeToken } from '../../types';
+import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
 const MAX_TOKENS_RESULTS = 20;
 
@@ -15,7 +16,8 @@ interface UseTokenSearchResult {
 }
 
 export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchResult {
-  const [searchString, setSearchString] = useState('');
+  const [searchStringRaw, setSearchString] = useState('');
+  const debouncedSearchString = useDebouncedValue(searchStringRaw);
 
   const tokenFuse = useMemo(
     () =>
@@ -32,19 +34,19 @@ export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchR
   );
 
   const tokenSearchResults = useMemo(
-    () => (tokenFuse.search(searchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
+    () => (tokenFuse.search(debouncedSearchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
       // Sort results by balance fiat in descending order
       const balanceA = a.tokenFiatAmount ?? 0;
       const balanceB = b.tokenFiatAmount ?? 0;
       return balanceB - balanceA;
     }),
-    [searchString, tokenFuse],
+    [debouncedSearchString, tokenFuse],
   );
 
   const searchResults = tokenSearchResults;
 
   return {
-    searchString,
+    searchString: debouncedSearchString,
     setSearchString,
     searchResults,
   };
