@@ -8,9 +8,7 @@ import { Theme } from '../../../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = (_params: {
-  theme: Theme;
-}) =>
+const styleSheet = (_params: { theme: Theme }) =>
   StyleSheet.create({
     attributionBase: {
       height: 40,

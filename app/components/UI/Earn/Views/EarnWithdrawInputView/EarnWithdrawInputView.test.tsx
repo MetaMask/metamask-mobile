@@ -2,7 +2,10 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import BN4 from 'bnjs4';
 import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
-import { ConfirmationRedesignRemoteFlags, selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  ConfirmationRedesignRemoteFlags,
+  selectConfirmationRedesignFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import {
@@ -133,14 +136,16 @@ jest.mock('../../../Stake/hooks/usePoolStakedUnstake', () => ({
 jest.mock('../../../../../selectors/featureFlagController/confirmations');
 
 describe('UnstakeInputView', () => {
-  const selectConfirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags)
+  const selectConfirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
 
   beforeEach(() => {
     jest.useFakeTimers();
 
     selectConfirmationRedesignFlagsMock.mockReturnValue({
       staking_confirmations: false,
-    } as unknown as ConfirmationRedesignRemoteFlags) ;
+    } as unknown as ConfirmationRedesignRemoteFlags);
   });
 
   it('render matches snapshot', () => {
@@ -225,7 +230,7 @@ describe('UnstakeInputView', () => {
 
       selectConfirmationRedesignFlagsMock.mockReturnValue({
         staking_confirmations: true,
-      } as unknown as ConfirmationRedesignRemoteFlags) ;
+      } as unknown as ConfirmationRedesignRemoteFlags);
     });
 
     afterEach(() => {

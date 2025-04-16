@@ -1,6 +1,8 @@
 import React from 'react';
 
-import renderWithProvider, { DeepPartial } from '../../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../../../util/test/confirm-data-helpers';
 import TokenHero from './token-hero';
 import { fireEvent, waitFor } from '@testing-library/react-native';
@@ -35,10 +37,7 @@ describe('TokenHero', () => {
       },
     );
 
-    const { getByText } = renderWithProvider(
-      <TokenHero />,
-      { state },
-    );
+    const { getByText } = renderWithProvider(<TokenHero />, { state });
 
     expect(getByText('0.0123 ETH')).toBeDefined();
     expect(getByText('$44.40')).toBeDefined();

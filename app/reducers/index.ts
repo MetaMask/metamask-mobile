@@ -31,6 +31,9 @@ import originThrottlingReducer from '../core/redux/slices/originThrottling';
 import notificationsAccountsProvider from '../core/redux/slices/notifications';
 import bannersReducer, { BannersState } from './banners';
 import bridgeReducer from '../core/redux/slices/bridge';
+import performanceReducer, {
+  PerformanceState,
+} from '../core/redux/slices/performance';
 
 /**
  * Infer state from a reducer
@@ -119,6 +122,7 @@ export interface RootState {
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
+  performance: PerformanceState;
 }
 
 // TODO: Fix the Action type. It's set to `any` now because some of the
@@ -159,6 +163,7 @@ const rootReducer = combineReducers<RootState, any>({
   bridge: bridgeReducer,
   banners: bannersReducer,
   confirmationMetrics: confirmationMetricsReducer,
+  performance: performanceReducer,
 });
 
 export default rootReducer;

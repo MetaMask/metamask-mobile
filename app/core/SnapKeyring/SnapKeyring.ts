@@ -14,6 +14,11 @@ import { getSnapName, isSnapPreinstalled } from './utils/snaps';
 import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
 import { getTraceTags } from '../../util/sentry/tags';
 import { store } from '../../store';
+import {
+  startPerformanceTrace,
+  endPerformanceTrace,
+} from '../../core/redux/slices/performance';
+import { PerformanceEventNames } from '../redux/slices/performance/constants';
 import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { trackSnapAccountEvent } from '../Analytics/helpers/SnapKeyring/trackSnapAccountEvent';
 
@@ -159,6 +164,13 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           op: TraceOperation.AddSnapAccount,
           tags: getTraceTags(store.getState()),
         });
+
+        store.dispatch(
+          startPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
+
         // First, wait for the account to be fully saved.
         // NOTE: This might throw, so keep this in the `try` clause.
         const accountId = await onceSaved;
@@ -181,6 +193,11 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
           );
         }
 
+        store.dispatch(
+          endPerformanceTrace({
+            eventName: PerformanceEventNames.AddSnapAccount,
+          }),
+        );
         // Track successful account addition
         const snapName = getSnapName(snapId as SnapId, this.#messenger);
         trackSnapAccountEvent(

@@ -50,7 +50,10 @@ describe('useClearConfirmationOnBackSwipe', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
 
       expect(mockAddListener).toHaveBeenCalledTimes(1);
-      expect(mockAddListener).toHaveBeenCalledWith('gestureEnd', expect.any(Function));
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'gestureEnd',
+        expect.any(Function),
+      );
     });
 
     it('should call onReject when gestureEnd event is triggered', () => {
@@ -86,13 +89,14 @@ describe('useClearConfirmationOnBackSwipe', () => {
 
       expect(BackHandler.addEventListener).toHaveBeenCalledWith(
         'hardwareBackPress',
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
     it('should call onReject when hardware back press is triggered', () => {
       renderHook(() => useClearConfirmationOnBackSwipe());
-      const backHandlerCallback = (BackHandler.addEventListener as jest.Mock).mock.calls[0][1];
+      const backHandlerCallback = (BackHandler.addEventListener as jest.Mock)
+        .mock.calls[0][1];
       const result = backHandlerCallback();
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);

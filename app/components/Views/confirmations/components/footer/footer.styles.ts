@@ -12,8 +12,12 @@ const styleSheet = (params: {
   } = params;
 
   const basePaddingBottom = Device.isIos()
-    ? (isStakingConfirmationBool ? 16 : 8)
-    : (isStakingConfirmationBool ? 36 : 28);
+    ? isStakingConfirmationBool
+      ? 16
+      : 8
+    : isStakingConfirmationBool
+    ? 36
+    : 28;
 
   return StyleSheet.create({
     base: {

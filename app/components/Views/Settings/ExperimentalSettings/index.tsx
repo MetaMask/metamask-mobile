@@ -19,6 +19,16 @@ import Button, {
 import Device from '../../../../../app/util/device';
 import { SES_URL } from '../../../../../app/constants/urls';
 import Routes from '../../../../../app/constants/navigation/Routes';
+import { selectPerformanceMetrics } from '../../../../core/redux/slices/performance';
+import { useSelector } from 'react-redux';
+import { isTest } from '../../../../util/test/utils';
+import ReactNativeBlobUtil from 'react-native-blob-util';
+import Share from 'react-native-share';
+import {
+  getApplicationName,
+  getVersion,
+  getBuildNumber,
+} from 'react-native-device-info';
 
 const storage = new MMKV(); // id: mmkv.default
 
@@ -29,6 +39,8 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
   const [sesEnabled, setSesEnabled] = useState(
     storage.getBoolean('is-ses-enabled'),
   );
+
+  const performanceMetrics = useSelector(selectPerformanceMetrics);
 
   const toggleSesEnabled = () => {
     storage.set('is-ses-enabled', !sesEnabled);
@@ -129,10 +141,57 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </>
   );
 
+  const downloadPerformanceMetrics = async () => {
+    try {
+      const appName = await getApplicationName();
+      const appVersion = await getVersion();
+      const buildNumber = await getBuildNumber();
+
+      // Create a filename with timestamp
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filename = `performance-metrics-${timestamp}.json`;
+
+      // Get the document directory path
+      const documentDir = ReactNativeBlobUtil.fs.dirs.DocumentDir;
+      const filePath = `${documentDir}/${filename}`;
+
+      // Convert performance metrics to JSON string
+      const jsonData = JSON.stringify(performanceMetrics, null, 2);
+
+      // Write the file
+      await ReactNativeBlobUtil.fs.writeFile(filePath, jsonData, 'utf8');
+
+      // Share the file
+      await Share.open({
+        title: `${appName} Performance Metrics - v${appVersion} (${buildNumber})`,
+        subject: `${appName} Performance Metrics - v${appVersion} (${buildNumber})`,
+        url: `file://${filePath}`,
+        type: 'application/json',
+      });
+    } catch (error) {
+      console.error('Error downloading performance metrics:', error);
+    }
+  };
+
+  const renderPerformanceSettings = () => (
+    <View style={styles.heading}>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        Download Performance Metrics
+      </Text>
+      <Button
+        variant={ButtonVariants.Secondary}
+        size={ButtonSize.Lg}
+        label={'Download Performance Metrics'}
+        onPress={downloadPerformanceMetrics}
+        width={ButtonWidthTypes.Full}
+      />
+    </View>
+  );
   return (
     <ScrollView style={styles.wrapper}>
       {renderWalletConnectSettings()}
       {Device.isIos() && renderSesSettings()}
+      {isTest && renderPerformanceSettings()}
     </ScrollView>
   );
 };

@@ -46,7 +46,13 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: false, staking_confirmations: false, contract_interaction: false, } },
+        {
+          confirmation_redesign: {
+            signatures: false,
+            staking_confirmations: false,
+            contract_interaction: false,
+          },
+        },
       ],
       responseCode: 200,
     },
@@ -62,7 +68,13 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: true, staking_confirmations: true, contract_interaction: true, } },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_interaction: true,
+          },
+        },
       ],
       responseCode: 200,
     },
@@ -115,6 +127,6 @@ export const mockEvents = {
     segmentTrack: {
       urlEndpoint: E2E_METAMETRICS_TRACK_URL,
       responseCode: 200,
-    }
+    },
   },
 };

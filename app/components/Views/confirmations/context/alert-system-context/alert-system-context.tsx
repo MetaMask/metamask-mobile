@@ -49,7 +49,10 @@ interface AlertsContextProviderProps {
   alerts: Alert[];
 }
 
-export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ children, alerts }) => {
+export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({
+  children,
+  alerts,
+}) => {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
 
   /**
@@ -60,19 +63,31 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
   /**
    * General alerts (alerts without a specific field).
    */
-  const generalAlerts = useMemo(() => alertsMemo.filter(alertSelected => alertSelected.field === undefined), [alertsMemo]);
+  const generalAlerts = useMemo(
+    () =>
+      alertsMemo.filter((alertSelected) => alertSelected.field === undefined),
+    [alertsMemo],
+  );
 
   /**
    * Field alerts (alerts with a specific field).
    */
-  const fieldAlerts = useMemo(() => alertsMemo.filter(alertSelected => alertSelected.field !== undefined), [alertsMemo]);
+  const fieldAlerts = useMemo(
+    () =>
+      alertsMemo.filter((alertSelected) => alertSelected.field !== undefined),
+    [alertsMemo],
+  );
 
   /**
    * Danger alerts.
    */
-  const dangerAlerts = useMemo(() => alertsMemo.filter(
-    alertSelected => alertSelected.severity === Severity.Danger
-  ), [alertsMemo]);
+  const dangerAlerts = useMemo(
+    () =>
+      alertsMemo.filter(
+        (alertSelected) => alertSelected.severity === Severity.Danger,
+      ),
+    [alertsMemo],
+  );
 
   const initialAlertKey = fieldAlerts[0]?.key ?? '';
 
@@ -85,43 +100,46 @@ export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({ ch
     isAlertConfirmed,
     setAlertConfirmed,
     unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts
+    unconfirmedFieldDangerAlerts,
   } = useAlertsConfirmed(fieldAlerts);
 
-  const contextValue = useMemo(() => ({
-    alertKey,
-    alertModalVisible,
-    alerts: alertsMemo,
-    dangerAlerts,
-    fieldAlerts,
-    generalAlerts,
-    hasAlerts: alertsMemo.length > 0,
-    hasBlockingAlerts,
-    hasDangerAlerts: dangerAlerts.length > 0,
-    hideAlertModal: () => setAlertModalVisible(false),
-    setAlertKey: (key: string) => setAlertKey(key),
-    showAlertModal: () => setAlertModalVisible(true),
-    hasUnconfirmedDangerAlerts,
-    hasUnconfirmedFieldDangerAlerts,
-    isAlertConfirmed,
-    setAlertConfirmed,
-    unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts,
-  }), [
-    alertKey,
-    alertModalVisible,
-    alertsMemo,
-    dangerAlerts,
-    fieldAlerts,
-    generalAlerts,
-    hasBlockingAlerts,
-    hasUnconfirmedDangerAlerts,
-    hasUnconfirmedFieldDangerAlerts,
-    isAlertConfirmed,
-    setAlertConfirmed,
-    unconfirmedDangerAlerts,
-    unconfirmedFieldDangerAlerts,
-  ]);
+  const contextValue = useMemo(
+    () => ({
+      alertKey,
+      alertModalVisible,
+      alerts: alertsMemo,
+      dangerAlerts,
+      fieldAlerts,
+      generalAlerts,
+      hasAlerts: alertsMemo.length > 0,
+      hasBlockingAlerts,
+      hasDangerAlerts: dangerAlerts.length > 0,
+      hideAlertModal: () => setAlertModalVisible(false),
+      setAlertKey: (key: string) => setAlertKey(key),
+      showAlertModal: () => setAlertModalVisible(true),
+      hasUnconfirmedDangerAlerts,
+      hasUnconfirmedFieldDangerAlerts,
+      isAlertConfirmed,
+      setAlertConfirmed,
+      unconfirmedDangerAlerts,
+      unconfirmedFieldDangerAlerts,
+    }),
+    [
+      alertKey,
+      alertModalVisible,
+      alertsMemo,
+      dangerAlerts,
+      fieldAlerts,
+      generalAlerts,
+      hasBlockingAlerts,
+      hasUnconfirmedDangerAlerts,
+      hasUnconfirmedFieldDangerAlerts,
+      isAlertConfirmed,
+      setAlertConfirmed,
+      unconfirmedDangerAlerts,
+      unconfirmedFieldDangerAlerts,
+    ],
+  );
 
   return (
     <AlertsContext.Provider value={contextValue}>
@@ -150,5 +168,7 @@ function sortAlertsBySeverity(alerts: Alert[]): Alert[] {
     [Severity.Warning]: 2,
     [Severity.Info]: 1,
   };
-  return [...alerts].sort((a, b) => severityOrder[b.severity] - severityOrder[a.severity]);
+  return [...alerts].sort(
+    (a, b) => severityOrder[b.severity] - severityOrder[a.severity],
+  );
 }

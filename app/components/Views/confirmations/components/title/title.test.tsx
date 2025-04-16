@@ -9,7 +9,6 @@ import {
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Title from './title';
 
-
 describe('Confirm Title', () => {
   it('renders the title and subtitle for a permit signature', () => {
     const { getByText } = renderWithProvider(<Title />, {
