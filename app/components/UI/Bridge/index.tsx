@@ -50,7 +50,6 @@ import QuoteDetailsCard from './components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
-import { isSolanaChainId } from '@metamask/bridge-controller';
 import { useInitialSourceToken, BridgeRouteParams } from './hooks/useInitialSourceToken';
 import { useInitialDestToken } from './hooks/useInitialDestToken';
 import { BridgeSourceTokenSelectorRouteParams } from './components/BridgeSourceTokenSelector';
