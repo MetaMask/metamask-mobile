@@ -107,7 +107,8 @@ const BridgeView = () => {
     !isWaitingForInitialQuote &&
     (quoteFetchError || (hasValidBridgeInputs && !bestQuote));
 
-  const shouldDisplayKeypad = !hasValidBridgeInputs || isInputFocused;
+  const shouldDisplayKeypad =
+    !hasValidBridgeInputs || isInputFocused || isLoading;
 
   const hasInsufficientBalance = useMemo(() => {
     if (
