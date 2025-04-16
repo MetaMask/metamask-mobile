@@ -1,0 +1,247 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SnapUIInput handles disabled input 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 0.5,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={false}
+                  id="testInput"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value=""
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
+
+exports[`SnapUIInput renders with initial value 1`] = `
+<View
+  style={
+    [
+      {
+        "flexGrow": 1,
+        "minHeight": 667,
+      },
+      undefined,
+    ]
+  }
+>
+  <View
+    style={
+      [
+        {},
+        {
+          "flexDirection": "column",
+          "flexGrow": 1,
+        },
+      ]
+    }
+  >
+    <RCTScrollView
+      style={
+        {
+          "marginBottom": 0,
+        }
+      }
+    >
+      <View>
+        <View
+          color="Default"
+          flexDirection="column"
+          gap={8}
+          justifyContent="flex-start"
+          style={
+            [
+              {
+                "color": "Default",
+                "flexDirection": "column",
+                "gap": 8,
+                "justifyContent": "flex-start",
+              },
+              {
+                "gap": 16,
+                "margin": 16,
+              },
+            ]
+          }
+        >
+          <View
+            style={
+              [
+                {},
+                undefined,
+              ]
+            }
+          >
+            <View
+              style={
+                {
+                  "alignItems": "center",
+                  "backgroundColor": "#ffffff",
+                  "borderColor": "#b7bbc8",
+                  "borderRadius": 8,
+                  "borderWidth": 1,
+                  "flexDirection": "row",
+                  "height": 48,
+                  "opacity": 1,
+                  "paddingHorizontal": 16,
+                }
+              }
+              testID="textfield"
+            >
+              <View
+                style={
+                  {
+                    "flex": 1,
+                  }
+                }
+              >
+                <TextInput
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoFocus={false}
+                  editable={true}
+                  id="testInput"
+                  onBlur={[Function]}
+                  onChangeText={[Function]}
+                  onFocus={[Function]}
+                  style={
+                    {
+                      "backgroundColor": "#ffffff",
+                      "borderColor": "transparent",
+                      "borderWidth": 1,
+                      "color": "#121314",
+                      "fontFamily": "CentraNo1-Book",
+                      "fontSize": 16,
+                      "fontWeight": "400",
+                      "height": 24,
+                      "letterSpacing": 0,
+                      "opacity": 1,
+                      "paddingVertical": 0,
+                    }
+                  }
+                  testID="input"
+                  value="initial value"
+                />
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </RCTScrollView>
+  </View>
+  <View
+    data-renders={1}
+    testID="performance"
+  />
+</View>
+`;
