@@ -17,7 +17,7 @@ interface UseTokenSearchResult {
 
 export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchResult {
   const [searchStringRaw, setSearchString] = useState('');
-  const debouncedSearchString = useDebouncedValue(searchStringRaw);
+  const debouncedSearchString = useDebouncedValue<string>(searchStringRaw);
 
   const tokenFuse = useMemo(
     () =>
