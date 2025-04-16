@@ -114,6 +114,11 @@ const persistUserTransform = createTransform(
   { whitelist: ['user'] },
 );
 
+// Create a custom migrate function with logging
+const customMigrate = createMigrate(migrations, {
+  debug: true, // Enable debug mode to get migration logs
+});
+
 const persistConfig = {
   key: 'root',
   version,
@@ -121,7 +126,7 @@ const persistConfig = {
   storage: MigratedStorage,
   transforms: [persistTransform, persistUserTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
-  migrate: createMigrate(migrations, { debug: false }),
+  migrate: customMigrate,
   timeout: TIMEOUT,
   writeFailHandler: (error: Error) =>
     Logger.error(error, { message: 'Error persisting data' }), // Log error if saving state fails

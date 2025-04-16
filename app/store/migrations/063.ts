@@ -13,6 +13,7 @@ interface SmartTransactionsState {
 }
 
 export default function migrate(state: unknown) {
+  console.log(' ====== MIGRATION 063 started ====== !')
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
