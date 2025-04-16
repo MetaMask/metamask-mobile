@@ -5,7 +5,7 @@ import Text, {
   TextColor
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
-import Tooltip from '../tooltip';
+import Tooltip from '../Tooltip/Tooltip';
 import styleSheet from './info-row.styles';
 
 export interface InfoRowProps {
