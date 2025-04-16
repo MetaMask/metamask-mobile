@@ -17,7 +17,6 @@ import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
-import { buildPermissions } from '../../../../fixtures/utils';
 
 const fixtureServer = new FixtureServer();
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
@@ -142,15 +141,15 @@ describe(
     });
 
     it('should allow switching to permitted network when attempting to use non-permitted network', async () => {
-      const chainIds = ['0x1', CustomNetworks.Sepolia.providerConfig.chainId]; // Initialize with Ethereum mainnet and Sepolia
       await withFixtures(
         {
           dapp: true,
           fixture: new FixtureBuilder()
-            .withPermissionControllerConnectedToTestDapp(
-              buildPermissions(chainIds),
-            )
-            .withChainPermission(chainIds)
+            .withPermissionControllerConnectedToTestDapp()
+            .withChainPermission([
+              '0x1',
+              CustomNetworks.Sepolia.providerConfig.chainId,
+            ]) // Initialize with Ethereum mainnet and Sepolia
             .build(),
           restartDevice: true,
         },
