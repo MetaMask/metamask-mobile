@@ -68,8 +68,13 @@ const BridgeView = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
-  const { activeQuote, isLoading, destTokenAmount, quoteFetchError } =
-    useBridgeQuoteData();
+  const {
+    activeQuote,
+    isLoading,
+    destTokenAmount,
+    quoteFetchError,
+    bestQuote,
+  } = useBridgeQuoteData();
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
@@ -84,19 +89,21 @@ const BridgeView = () => {
     balance: sourceToken?.balance,
   });
 
+  const isValidSourceAmount =
+    !!sourceAmount &&
+    sourceAmount !== '.' &&
+    sourceToken?.decimals &&
+    !ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero();
+
+  const hasValidBridgeInputs =
+    isValidSourceAmount && !!sourceToken && !!destToken;
+
+  const isError = quoteFetchError || (hasValidBridgeInputs && !bestQuote);
+
   const [isInputFocused, setIsInputFocused] = useState(false);
 
-  useEffect(() => {
-    // Reset focus state when quotes are loaded
-    if (!isLoading && !quoteFetchError) {
-      setIsInputFocused(false);
-    }
-  }, [isLoading, quoteFetchError]);
-
   const shouldDisplayKeypad =
-    (!sourceAmount || !sourceToken || !destToken || isInputFocused) &&
-    !quoteFetchError &&
-    !isLoading;
+    (!hasValidBridgeInputs || isInputFocused) && !isLoading;
 
   const hasInsufficientBalance = useMemo(() => {
     if (
@@ -128,19 +135,13 @@ const BridgeView = () => {
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
-    if (sourceToken?.chainId && destToken?.chainId && sourceAmount) {
+    if (hasValidBridgeInputs) {
       updateQuoteParams();
     }
     return () => {
       updateQuoteParams.cancel();
     };
-  }, [
-    sourceToken?.chainId,
-    destToken?.chainId,
-    sourceAmount,
-    updateQuoteParams,
-    dispatch,
-  ]);
+  }, [hasValidBridgeInputs, updateQuoteParams]);
 
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
@@ -199,50 +200,41 @@ const BridgeView = () => {
       params: {},
     });
 
-  const renderBottomContent = () => {
-    const isAmountInvalid =
-      !sourceAmount ||
-      (sourceToken?.decimals &&
-        ethers.utils.parseUnits(sourceAmount, sourceToken.decimals).isZero());
-
-    return (
-      <Box style={styles.buttonContainer}>
-        {isAmountInvalid ? (
-          <Text color={TextColor.Primary}>
-            {strings('bridge.select_amount')}
-          </Text>
-        ) : quoteFetchError ? (
-          <BannerAlert
-            severity={BannerAlertSeverity.Error}
-            description={strings('bridge.error_banner_description')}
+  const renderBottomContent = () => (
+    <Box style={styles.buttonContainer}>
+      {!hasValidBridgeInputs ? (
+        <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
+      ) : isError ? (
+        <BannerAlert
+          severity={BannerAlertSeverity.Error}
+          description={strings('bridge.error_banner_description')}
+        />
+      ) : (
+        <>
+          <Button
+            variant={ButtonVariants.Primary}
+            label={
+              hasInsufficientBalance
+                ? strings('bridge.insufficient_funds')
+                : strings('bridge.continue')
+            }
+            onPress={handleContinue}
+            style={styles.button}
+            isDisabled={hasInsufficientBalance}
           />
-        ) : (
-          <>
-            <Button
-              variant={ButtonVariants.Primary}
-              label={
-                hasInsufficientBalance
-                  ? strings('bridge.insufficient_funds')
-                  : strings('bridge.continue')
-              }
-              onPress={handleContinue}
-              style={styles.button}
-              isDisabled={hasInsufficientBalance}
-            />
-            <Button
-              variant={ButtonVariants.Link}
-              label={
-                <Text color={TextColor.Alternative}>
-                  {strings('bridge.terms_and_conditions')}
-                </Text>
-              }
-              onPress={handleTermsPress}
-            />
-          </>
-        )}
-      </Box>
-    );
-  };
+          <Button
+            variant={ButtonVariants.Link}
+            label={
+              <Text color={TextColor.Alternative}>
+                {strings('bridge.terms_and_conditions')}
+              </Text>
+            }
+            onPress={handleTermsPress}
+          />
+        </>
+      )}
+    </Box>
+  );
 
   return (
     // Need this to be full height of screen
