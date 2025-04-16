@@ -184,7 +184,7 @@ describe('UrlAutocomplete', () => {
 
     const deleteFavorite = await screen.findByTestId(deleteFavoriteTestId(defaultState.bookmarks[0].url), {includeHiddenElements: true});
     fireEvent.press(deleteFavorite);
-    expect(store.dispatch).toHaveBeenCalledWith(removeBookmark({...defaultState.bookmarks[0], type: 'favorites'}));
+    expect(store.dispatch).toHaveBeenCalledWith(removeBookmark({...defaultState.bookmarks[0], category: 'favorites'}));
   });
 
   it('should show a loading indicator when searching tokens', async () => {
