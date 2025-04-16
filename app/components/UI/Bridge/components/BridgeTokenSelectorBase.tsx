@@ -124,7 +124,12 @@ export const BridgeTokenSelectorBase: React.FC<
   chainIdToFetchMetadata: chainId,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
-  const { searchString, setSearchString, searchResults } = useTokenSearch({
+  const {
+    searchString,
+    setSearchString,
+    searchResults,
+    debouncedSearchString,
+  } = useTokenSearch({
     tokens: tokensList || [],
   });
 
@@ -132,8 +137,8 @@ export const BridgeTokenSelectorBase: React.FC<
     assetMetadata: unlistedAssetMetadata,
     pending: unlistedAssetMetadataPending,
   } = useAssetMetadata(
-    searchString,
-    Boolean(searchString && searchResults.length === 0),
+    debouncedSearchString,
+    Boolean(debouncedSearchString && searchResults.length === 0),
     chainId,
   );
 
@@ -165,11 +170,11 @@ export const BridgeTokenSelectorBase: React.FC<
     () => (
       <Box style={styles.emptyList}>
         <Text color={TextColor.Alternative}>
-          {strings('swaps.no_tokens_result', { searchString })}
+          {strings('swaps.no_tokens_result', { searchString: debouncedSearchString })}
         </Text>
       </Box>
     ),
-    [searchString, styles],
+    [debouncedSearchString, styles],
   );
 
   const modalRef = useRef<BottomSheetRef>(null);
@@ -227,7 +232,7 @@ export const BridgeTokenSelectorBase: React.FC<
           renderItem={renderTokenItem}
           keyExtractor={keyExtractor}
           ListEmptyComponent={
-            searchString && !shouldRenderLoading
+            debouncedSearchString && !shouldRenderLoading
               ? renderEmptyList
               : LoadingSkeleton
           }
