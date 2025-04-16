@@ -145,7 +145,6 @@ describe(
         {
           dapp: true,
           fixture: new FixtureBuilder()
-            .withPermissionControllerConnectedToTestDapp()
             .withChainPermission([
               '0x1',
               CustomNetworks.Sepolia.providerConfig.chainId,
