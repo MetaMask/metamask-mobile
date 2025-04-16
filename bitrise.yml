@@ -578,7 +578,7 @@ workflows:
                 set -e
 
                 # Trigger the workflow
-                curl -L \
+                RESPONSE=curl -L \
                   -X POST \
                   -H "Accept: application/vnd.github+json" \
                   -H "Authorization: Bearer $GITHUB_TRIGGER_ACTION_TOKEN" \
@@ -586,8 +586,9 @@ workflows:
                   "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
                   -d "{\"ref\":\"main\",\"inputs\":{\"base-branch\":\"$BITRISE_GIT_BRANCH\"}}" || exit 1
 
-                echo "Waiting 15 seconds for workflow to start..."
-                sleep 15
+                echo "Current status: $RESPONSE"
+                echo "Waiting 25 seconds for workflow to start..."
+                sleep 25
 
                 # Check completion status every 15 seconds for up to 1.25 minutes
                 for i in {1..5}; do
@@ -603,8 +604,9 @@ workflows:
                   TOTAL_COUNT=$(echo "$RESPONSE" | jq -r '.total_count')
                   
                   if [ "$TOTAL_COUNT" = "0" ]; then
-                    echo "No workflow runs found..."
-                    sleep 15
+                    echo "No pending workflow..."
+                    echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
+                    exit 0
                   else
                     # Get the status and conclusion of the most recent run
                     STATUS=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].status')
@@ -612,20 +614,7 @@ workflows:
                     
                     echo "Current status: $STATUS"
                     echo "Current conclusion: $CONCLUSION"
-                    
-                    if [ "$STATUS" = "completed" ]; then
-                      if [ "$CONCLUSION" = "success" ]; then
-                        echo "Workflow completed successfully!"
-                        exit 0
-                      elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
-                        echo "Workflow failed or was cancelled (conclusion: $CONCLUSION)"
-                        echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
-                        exit 1
-                      fi
-                    else
-                      echo "Workflow is still in progress (status: $STATUS)..."
-                      sleep 15
-                    fi
+                    echo "Workflow is still in progress (status: $STATUS)..."
                   fi
                 done
 
