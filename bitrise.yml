@@ -586,7 +586,6 @@ workflows:
                   "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
                   -d "{\"ref\":\"main\",\"inputs\":{\"base-branch\":\"$BITRISE_GIT_BRANCH\"}}" || exit 1
 
-                echo "Current status: $RESPONSE"
                 echo "Waiting 25 seconds for workflow to start..."
                 sleep 25
 
