@@ -1,11 +1,13 @@
 import React, { ReactNode } from 'react';
 import { View } from 'react-native';
+import { IconColor } from '../../../../../../component-library/components/Icons/Icon';
 import Text, {
-  TextVariant,
-  TextColor
+  TextColor,
+  TextVariant
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import Tooltip from '../Tooltip';
+import CopyIcon from './CopyIcon/CopyIcon';
 import styleSheet from './InfoRow.styles';
 
 export interface InfoRowProps {
@@ -17,6 +19,9 @@ export interface InfoRowProps {
   labelChildren?: React.ReactNode;
   testID?: string;
   variant?: TextColor;
+  copyText?: string;
+  isCompact?: boolean;
+  valueOnNewLine?: boolean;
 }
 
 const InfoRow = ({
@@ -28,29 +33,47 @@ const InfoRow = ({
   tooltip,
   testID,
   variant = TextColor.Default,
+  copyText,
+  isCompact = false,
+  valueOnNewLine = false,
 }: InfoRowProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, { isCompact });
+
+  const ValueComponent = typeof children === 'string' ? (
+      <Text style={styles.value}>{children}</Text>
+    ) : (
+      <>{children}</>
+    )
 
   return (
-    <View
-      style={{ ...styles.container, ...style }}
-      testID={testID ?? 'info-row'}
-    >
-      {Boolean(label) && (
-        <View style={styles.labelContainer}>
-          <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
-          {labelChildren}
-          {!labelChildren && tooltip && (
-            <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
-          )}
+    <>
+      <View
+        style={{ ...styles.container, ...style }}
+        testID={testID ?? 'info-row'}
+      >
+        {Boolean(label) && (
+          <View style={styles.labelContainer}>
+            <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
+            {labelChildren}
+            {!labelChildren && tooltip && (
+              <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
+            )}
+          </View>
+        )}
+        {valueOnNewLine ? null : ValueComponent}
+        {copyText && (
+          <CopyIcon
+            textToCopy={copyText ?? ''}
+            color={IconColor.Muted}
+          />
+        )}
+      </View>
+      {valueOnNewLine ? (
+        <View style={styles.valueOnNewLineContainer}>
+          {ValueComponent}
         </View>
-      )}
-      {typeof children === 'string' ? (
-        <Text style={styles.value}>{children}</Text>
-      ) : (
-        <>{children}</>
-      )}
-    </View>
+      ): null}
+    </>
   );
 };
 

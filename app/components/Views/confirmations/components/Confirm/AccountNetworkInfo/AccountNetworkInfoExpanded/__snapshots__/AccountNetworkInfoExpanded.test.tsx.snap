@@ -23,8 +23,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           "flexDirection": "row",
           "flexWrap": "wrap",
           "justifyContent": "space-between",
-          "paddingBottom": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 8,
+          "paddingTop": 0,
         }
       }
       testID="info-row"
@@ -81,8 +82,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           "flexDirection": "row",
           "flexWrap": "wrap",
           "justifyContent": "space-between",
-          "paddingBottom": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 8,
+          "paddingTop": 0,
         }
       }
       testID="info-row"
@@ -153,8 +155,9 @@ exports[`AccountNetworkInfoExpanded should match snapshot when isPortfolioViewEn
           "flexDirection": "row",
           "flexWrap": "wrap",
           "justifyContent": "space-between",
-          "paddingBottom": 8,
+          "paddingBottom": 0,
           "paddingHorizontal": 8,
+          "paddingTop": 0,
         }
       }
       testID="info-row"
