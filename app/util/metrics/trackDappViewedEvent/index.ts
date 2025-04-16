@@ -14,7 +14,7 @@ import { selectInternalAccounts } from '../../../selectors/accountsController';
  * @param params.hostname - Hostname of the Dapp
  * @param params.numberOfConnectedAccounts - Number of connected accounts that are connected to the Dapp
  */
-export const trackDappViewedEvent = ({
+const trackDappViewedEvent = ({
   hostname,
   numberOfConnectedAccounts,
 }: {
@@ -42,3 +42,5 @@ export const trackDappViewedEvent = ({
       .build(),
   );
 };
+
+export default trackDappViewedEvent;

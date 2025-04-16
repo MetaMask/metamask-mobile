@@ -50,6 +50,7 @@ import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwit
 import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -86,7 +87,7 @@ const NetworkPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(key as Hex))
+    .filter(([key]) => permittedChainIds.includes(toHex(key)))
     .map(([key, network]) => ({
       id: key,
       name: network.name,

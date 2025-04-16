@@ -41,6 +41,7 @@ import {
 } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import { Hex } from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -122,7 +123,8 @@ const NetworkConnectMultiSelector = ({
         }
       }
 
-      addPermittedChains(hostname, selectedChainIds as Hex[]);
+      const hexSelectedChainIds = selectedChainIds.map(toHex);
+      addPermittedChains(hostname, hexSelectedChainIds);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [

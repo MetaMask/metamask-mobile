@@ -59,7 +59,7 @@ import { RootState } from '../../../reducers';
 import { getNetworkImageSource } from '../../../util/networks';
 import PermissionsSummary from '../../../components/UI/PermissionsSummary';
 import { PermissionsSummaryProps } from '../../../components/UI/PermissionsSummary/PermissionsSummary.types';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { toChecksumHexAddress, toHex } from '@metamask/controller-utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import { AvatarVariant } from '../../../component-library/components/Avatars/Avatar';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
@@ -319,34 +319,31 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
       const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
 
-      let accountsToRemove: string[] = [];
-      let accountsToAdd: string[] = [];
+      let accountsToRemove: Hex[] = [];
+      let accountsToAdd: Hex[] = [];
 
       // Identify accounts to be added
-      accountsToAdd = normalizedSelectedAddresses.filter(
-        (account) => !normalizedPermittedAccounts.includes(account),
-      );
+      accountsToAdd = normalizedSelectedAddresses
+        .filter((account) => !normalizedPermittedAccounts.includes(account))
+        .map(toHex);
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
-        newActiveAddress = addPermittedAccounts(
-          hostname,
-          accountsToAdd as Hex[],
-        );
+        newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
       } else {
         // If no new accounts were added, set the first selected address as active
         newActiveAddress = normalizedSelectedAddresses[0];
       }
 
       // Identify accounts to be removed
-      accountsToRemove = normalizedPermittedAccounts.filter(
-        (account) => !normalizedSelectedAddresses.includes(account),
-      );
+      accountsToRemove = normalizedPermittedAccounts
+        .filter((account) => !normalizedSelectedAddresses.includes(account))
+        .map(toHex);
       removedAccountCount = accountsToRemove.length;
 
       // Remove accounts that are no longer selected
       if (accountsToRemove.length > 0) {
-        removePermittedAccounts(hostname, accountsToRemove as Hex[]);
+        removePermittedAccounts(hostname, accountsToRemove);
       }
 
       // Calculate the number of connected accounts after changes
