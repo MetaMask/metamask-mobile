@@ -164,14 +164,14 @@ post_install do |installer|
     rescue => e
       Pod::UI.warn "Failed to modify Portability.h: #{e.message}"
     end
+  end
 
-    # Fix for React-Core privacy bundle duplication
-    installer.pods_project.targets.each do |target|
-      if target.name == 'React-Core.common-RCTPushNotificationHeaders-React-Core_privacy'
-        target.resources_build_phase.files.each do |file|
-          if file.display_name == 'React-Core_privacy.bundle'
-            file.remove_from_project
-          end
+  # Fix for React-Core privacy bundle duplication
+  installer.pods_project.targets.each do |target|
+    if target.name == 'React-Core.common-RCTPushNotificationHeaders-React-Core_privacy'
+      target.resources_build_phase.files.each do |file|
+        if file.display_name == 'React-Core_privacy.bundle'
+          file.remove_from_project
         end
       end
     end
