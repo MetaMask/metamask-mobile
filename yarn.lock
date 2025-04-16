@@ -4988,10 +4988,10 @@
     "@metamask/utils" "^11.1.0"
     uuid "^8.3.2"
 
-"@metamask/eth-ledger-bridge-keyring@^11.0.2":
-  version "11.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-11.0.2.tgz#ec30cb32af7460f6f19ffee69ac6146194dd1407"
-  integrity sha512-g+3rDXHfOtq216ewasZx63Y+3F1uNX/OhoS3SoFxTh9zJl2JvXT+NU3u1xih0UMT6c+7e7HH9mml9pwrvFzr2w==
+"@metamask/eth-ledger-bridge-keyring@^11.0.3":
+  version "11.0.3"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-ledger-bridge-keyring/-/eth-ledger-bridge-keyring-11.0.3.tgz#9b646626e833d553ce174e35d2f7217aee3253ce"
+  integrity sha512-eezvOIpBJi3XrClx3vPG6AfomoaG6FKUHsQ1o1H+L0Czj5n036TioubzYThx4PWI5+cWZCw4r8X8uGKdCkjAcw==
   dependencies:
     "@ethereumjs/rlp" "^5.0.2"
     "@ethereumjs/tx" "^5.4.0"
