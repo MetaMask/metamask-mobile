@@ -334,7 +334,7 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^1.10.3",
     "react-native-get-random-values": "^1.8.0",
-    "react-native-google-acm": "git+https://github.com/ieow/react-native-google-acm.git#09de563582649c34069d06d087f22c998b37f436",
+    "react-native-google-acm": "git+https://github.com/Web3Auth/react-native-google-acm.git#edf4e52397f766d56d1644d908246e358f3cf774",
     "react-native-gzip": "^1.1.0",
     "react-native-i18n": "2.0.15",
     "react-native-in-app-review": "^4.3.3",
