@@ -81,13 +81,13 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { Hex } from '@metamask/utils';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
 } from './utils';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -398,20 +398,14 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const handleConnect = useCallback(async () => {
     const requestedCaip25CaveatValue = getRequestedCaip25CaveatValue(
-      hostInfo.permissions,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      hostInfo.permissions as any,
     );
 
     let chainsToPermit = selectedChainIds.length > 0 ? selectedChainIds : [];
     if (chainId && chainsToPermit.length === 0) {
       chainsToPermit = [chainId];
     }
-
-    const hexSelectedAddresses = selectedAddresses.map((account) =>
-      toChecksumHexAddress(account),
-    );
-    const hexChainsToPermit = chainsToPermit.map((chain) =>
-      toChecksumHexAddress(chain),
-    );
 
     const request: PermissionsRequest = {
       ...hostInfo,
@@ -423,8 +417,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         ...hostInfo.permissions,
         ...getCaip25PermissionsResponse(
           requestedCaip25CaveatValue,
-          hexSelectedAddresses,
-          hexChainsToPermit,
+          selectedAddresses as Hex[],
+          chainsToPermit as Hex[],
         ),
       },
     };

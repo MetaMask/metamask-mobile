@@ -86,8 +86,8 @@ function isNonEmptyArrayOfStrings(obj: unknown): obj is NonEmptyArray<string> {
 }
 
 /**
- * Migration to update the legacy `eth_accounts` and `endowment:permitted-chains` state to `endowment:caip25` state.
- * @param state - The current MetaMask mobile state.
+ * TODO: Update this
+ * @param state - The current MetaMask extension state.
  * @returns Migrated Redux state.
  */
 export default function migrate(oldState: unknown) {

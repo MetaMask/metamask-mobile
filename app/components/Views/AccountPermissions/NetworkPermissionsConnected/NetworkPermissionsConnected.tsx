@@ -49,7 +49,7 @@ import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../../../../e2e/se
 import { handleNetworkSwitch } from '../../../../util/networks/handleNetworkSwitch';
 import { getCaip25Caveat } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { Hex } from '@metamask/utils';
 
 const NetworkPermissionsConnected = ({
   onSetPermissionsScreen,
@@ -86,7 +86,7 @@ const NetworkPermissionsConnected = ({
 
   // Filter networks to only show permitted ones, excluding the active network
   const networks = Object.entries(networkConfigurations)
-    .filter(([key]) => permittedChainIds.includes(toChecksumHexAddress(key)))
+    .filter(([key]) => permittedChainIds.includes(key as Hex))
     .map(([key, network]) => ({
       id: key,
       name: network.name,

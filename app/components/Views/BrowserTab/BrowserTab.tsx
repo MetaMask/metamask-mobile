@@ -51,10 +51,7 @@ import { getRpcMethodMiddleware } from '../../../core/RPCMethods/RPCMethodMiddle
 import downloadFile from '../../../util/browser/downloadFile';
 import { MAX_MESSAGE_LENGTH } from '../../../constants/dapp';
 import sanitizeUrlInput from '../../../util/url/sanitizeUrlInput';
-import {
-  getCaip25Caveat,
-  getPermittedAccountsByHostname,
-} from '../../../core/Permissions';
+import { getCaip25Caveat, getPermittedAccountsByHostname } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import {
   selectIpfsGateway,
@@ -111,8 +108,8 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
+import { Hex } from '@metamask/utils';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 /**
  * Tab component for the in-app browser
@@ -621,13 +618,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (isConnected) {
       let permittedChains = [];
       try {
-        const caveat = getCaip25Caveat(hostname);
-        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : [];
+        const caveat = getCaip25Caveat(hostname)
+        permittedChains = caveat ? getPermittedEthChainIds(caveat.value) : []
 
         const currentChainId = activeChainId;
-        const isCurrentChainIdAlreadyPermitted = permittedChains.includes(
-          toChecksumHexAddress(currentChainId),
-        );
+        const isCurrentChainIdAlreadyPermitted =
+          permittedChains.includes(currentChainId as Hex);
 
         if (!isCurrentChainIdAlreadyPermitted) {
           navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -684,9 +680,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
           url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
         });
 
-      updateTabInfo(tabId, {
-        url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
-      });
+      updateTabInfo(
+        tabId,
+        {
+          url: getMaskedUrl(siteInfo.url, sessionENSNamesRef.current),
+        },
+      );
 
       addToBrowserHistory({
         name: siteInfo.title,

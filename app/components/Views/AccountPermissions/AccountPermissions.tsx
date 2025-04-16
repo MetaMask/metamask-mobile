@@ -319,8 +319,8 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
       const normalizedPermittedAccounts = normalizeAddresses(permittedAccounts);
       const normalizedSelectedAddresses = normalizeAddresses(selectedAddresses);
 
-      let accountsToRemove: Hex[] = [];
-      let accountsToAdd: Hex[] = [];
+      let accountsToRemove: string[] = [];
+      let accountsToAdd: string[] = [];
 
       // Identify accounts to be added
       accountsToAdd = normalizedSelectedAddresses.filter(
@@ -329,7 +329,10 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Add newly selected accounts
       if (accountsToAdd.length > 0) {
-        newActiveAddress = addPermittedAccounts(hostname, accountsToAdd);
+        newActiveAddress = addPermittedAccounts(
+          hostname,
+          accountsToAdd as Hex[],
+        );
       } else {
         // If no new accounts were added, set the first selected address as active
         newActiveAddress = normalizedSelectedAddresses[0];
@@ -343,7 +346,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
 
       // Remove accounts that are no longer selected
       if (accountsToRemove.length > 0) {
-        removePermittedAccounts(hostname, accountsToRemove);
+        removePermittedAccounts(hostname, accountsToRemove as Hex[]);
       }
 
       // Calculate the number of connected accounts after changes
