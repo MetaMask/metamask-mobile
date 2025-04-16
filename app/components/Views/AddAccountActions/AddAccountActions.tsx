@@ -35,8 +35,6 @@ import Text, {
 
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
-import { KeyringClient } from '@metamask/keyring-snap-client';
-import { SolanaWalletSnapSender } from '../../../core/SnapKeyring/SolanaWalletSnap';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 // eslint-disable-next-line import/no-duplicates
 import { SolScope } from '@metamask/keyring-api';
@@ -49,7 +47,6 @@ import {
   selectHasCreatedBtcMainnetAccount,
   hasCreatedBtcTestnetAccount,
 } from '../../../selectors/accountsController';
-import { BitcoinWalletSnapSender } from '../../../core/SnapKeyring/BitcoinWalletSnap';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { BtcScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
@@ -132,29 +129,10 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   );
 
   const createBitcoinAccount = async (scope: CaipChainId) => {
-    if (useCreateAccountWithSrps) {
-      navigate(Routes.SHEET.ADD_ACCOUNT, {
-        scope,
-        clientType: WalletClientType.Bitcoin,
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      // Client to create the account using the Bitcoin Snap
-      const client = new KeyringClient(new BitcoinWalletSnapSender());
-
-      // This will trigger the Snap account creation flow (+ account renaming)
-      await client.createAccount({
-        scope,
-      });
-    } catch (error) {
-      Logger.error(error as Error, 'Bitcoin account creation failed');
-    } finally {
-      onBack();
-      setIsLoading(false);
-    }
+    navigate(Routes.SHEET.ADD_ACCOUNT, {
+      scope,
+      clientType: WalletClientType.Bitcoin,
+    });
   };
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -164,28 +142,10 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       op: TraceOperation.CreateSnapAccount,
       tags: getTraceTags(store.getState()),
     });
-    if (useCreateAccountWithSrps) {
-      navigate(Routes.SHEET.ADD_ACCOUNT, {
-        scope,
-        clientType: WalletClientType.Solana,
-      });
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      // Client to create the account using the Solana Snap
-      const client = new KeyringClient(new SolanaWalletSnapSender());
-      // This will trigger the Snap account creation flow (+ account renaming)
-      await client.createAccount({
-        scope,
-      });
-    } catch (error) {
-      Logger.error(error as Error, 'Solana account creation failed');
-    } finally {
-      onBack();
-      setIsLoading(false);
-    }
+    navigate(Routes.SHEET.ADD_ACCOUNT, {
+      scope,
+      clientType: WalletClientType.Solana,
+    });
   };
   ///: END:ONLY_INCLUDE_IF
 

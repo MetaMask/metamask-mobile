@@ -8,13 +8,14 @@ import {
   createMockInternalAccount,
   MOCK_ACCOUNTS_CONTROLLER_STATE,
 } from '../../../util/test/accountsControllerTestUtils';
-import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { MOCK_KEYRING_CONTROLLER } from '../../../selectors/keyringController/testUtils';
 import { Text } from 'react-native';
 import Routes from '../../../constants/navigation/Routes';
 import Logger from '../../../util/Logger';
 import { RootState } from '../../../reducers';
+import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
+import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 
 const mockedNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -203,187 +204,45 @@ describe('AddAccountActions', () => {
   });
 
   describe('Multichain account creation', () => {
-    const MOCK_SOL_ADDRESS = 'ATrXkbX2eEPuusRoLyRMW88wcPT2aho2Lk3xErnjjFH';
-    const MOCK_BTC_MAINNET_ADDRESS =
-      'bc1qkv7xptmd7ejmnnd399z9p643updvula5j4g4nd';
-
-    const solAccount = createMockInternalAccount(
-      MOCK_SOL_ADDRESS,
-      'Solana Account',
-      KeyringTypes.snap,
-      SolAccountType.DataAccount,
-    );
-
-    const btcMainnetAccount = createMockInternalAccount(
-      MOCK_BTC_MAINNET_ADDRESS,
-      'Bitcoin Account',
-      KeyringTypes.snap,
-      BtcAccountType.P2wpkh,
-    );
-
-    it('does not disable Solana account creation when account already exists', () => {
-      const stateWithSolAccount = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [solAccount.id]: solAccount,
-                },
-              },
-            },
+    it.each([
+      {
+        button: AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+      },
+      {
+        button:
+          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON,
+        scope: MultichainNetwork.BitcoinTestnet,
+        clientType: WalletClientType.Bitcoin,
+      },
+      {
+        button: AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+      },
+    ])(
+      'navigates to AddAccount screen on press with $scope and $clientType',
+      async ({ button, scope, clientType }) => {
+        const { getByTestId } = renderScreen(
+          () => <AddAccountActions {...mockProps} />,
+          {
+            name: 'AddAccountActions',
           },
-        },
-      } as unknown as RootState;
-
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: stateWithSolAccount,
-        },
-      );
-
-      const solButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
-      );
-      expect(solButton.findByType(Text).props.children).toBe('Solana account');
-      expect(solButton.props.disabled).toBe(false);
-    });
-
-    it('disables Bitcoin account creation when account already exists', () => {
-      const stateWithBtcAccount = {
-        ...mockInitialState,
-        engine: {
-          ...mockInitialState.engine,
-          backgroundState: {
-            ...mockInitialState.engine.backgroundState,
-            AccountsController: {
-              ...MOCK_ACCOUNTS_CONTROLLER_STATE,
-              internalAccounts: {
-                ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
-                accounts: {
-                  ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
-                  [btcMainnetAccount.id]: btcMainnetAccount,
-                },
-              },
-            },
+          {
+            state: mockInitialState,
           },
-        },
-      } as unknown as RootState;
-
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: stateWithBtcAccount,
-        },
-      );
-
-      const btcButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
-      );
-      expect(btcButton.findByType(Text).props.children).toBe('Bitcoin account');
-      expect(btcButton.props.disabled).toBe(true);
-    });
-
-    it('handles error when creating Bitcoin account fails', async () => {
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const btcButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
-      );
-      fireEvent.press(btcButton);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.any(Error),
-          'Bitcoin account creation failed',
         );
-        expect(mockProps.onBack).toHaveBeenCalled();
-      });
-    });
 
-    it('handles error when creating Solana account fails', async () => {
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: mockInitialState,
-        },
-      );
+        const addButton = getByTestId(button);
+        fireEvent.press(addButton);
 
-      const solButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
-      );
-      fireEvent.press(solButton);
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.any(Error),
-          'Solana account creation failed',
-        );
-        expect(mockProps.onBack).toHaveBeenCalled();
-      });
-    });
-
-    it('disables all buttons while loading', async () => {
-      renderScreen(
-        () => <AddAccountActions {...mockProps} />,
-        {
-          name: 'AddAccountActions',
-        },
-        {
-          state: mockInitialState,
-        },
-      );
-
-      const addButton = screen.getByTestId(
-        AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON,
-      );
-      fireEvent.press(addButton);
-
-      // Check that all buttons are disabled while loading
-      expect(
-        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON)
-          .props.disabled,
-      ).toBe(true);
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
-        ).props.disabled,
-      ).toBe(true);
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON,
-        ).props.disabled,
-      ).toBe(true);
-      expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON,
-        ).props.disabled,
-      ).toBe(true);
-    });
+        expect(mockedNavigate).toHaveBeenCalledWith(Routes.SHEET.ADD_ACCOUNT, {
+          scope,
+          clientType,
+        });
+      },
+    );
   });
 
   describe('Multisrp', () => {

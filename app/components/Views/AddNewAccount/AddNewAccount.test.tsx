@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import AddNewAccount from './AddNewAccount';
@@ -18,7 +18,7 @@ import { MultichainNetwork } from '@metamask/multichain-transactions-controller'
 import { RootState } from '../../../reducers';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { AddNewAccountIds } from '../../../../e2e/selectors/MultiSRP/AddHdAccount.selectors';
-import { act } from 'react-dom/test-utils';
+import Logger from '../../../util/Logger';
 
 const mockAddNewHdAccount = jest.fn().mockResolvedValue(null);
 const mockNavigate = jest.fn();
@@ -48,8 +48,9 @@ jest.mock('../../../actions/multiSrp', () => ({
     mockAddNewHdAccount(keyringId, name),
 }));
 
+const mockCreateMultichainAccount = jest.fn().mockResolvedValue(null);
 const mockMultichainWalletSnapClient = {
-  createAccount: jest.fn().mockResolvedValue(null),
+  createAccount: mockCreateMultichainAccount,
 };
 
 jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
@@ -57,6 +58,10 @@ jest.mock('../../../core/SnapKeyring/MultichainWalletSnapClient', () => ({
   MultichainWalletSnapClient: jest
     .fn()
     .mockImplementation(() => mockMultichainWalletSnapClient),
+}));
+
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 const mockKeyringMetadata1 = {
@@ -306,7 +311,7 @@ describe('AddNewAccount', () => {
       const addButton = getByTestId(AddNewAccountIds.CONFIRM);
       fireEvent.press(addButton);
 
-      await act(async () => {
+      await waitFor(() => {
         expect(
           mockMultichainWalletSnapClient.createAccount,
         ).toHaveBeenCalledWith({
@@ -315,6 +320,56 @@ describe('AddNewAccount', () => {
           entropySource: mockKeyringMetadata2.id,
         });
       });
+    });
+
+    it.each([
+      {
+        scope: MultichainNetwork.Solana,
+        clientType: WalletClientType.Solana,
+      },
+      {
+        scope: MultichainNetwork.Bitcoin,
+        clientType: WalletClientType.Bitcoin,
+      },
+    ])(
+      'handles error when creating $clientType account fails',
+      async ({ scope, clientType }) => {
+        mockCreateMultichainAccount.mockRejectedValueOnce(
+          new Error(`Failed to create ${clientType} account`),
+        );
+
+        const { getByTestId } = render(initialState, {
+          params: {
+            scope,
+            clientType,
+          },
+        });
+
+        const addButton = getByTestId(AddNewAccountIds.CONFIRM);
+        fireEvent.press(addButton);
+
+        await waitFor(() => {
+          expect(mockNavigate).not.toHaveBeenCalled();
+          expect(Logger.error).toHaveBeenCalledWith(
+            expect.any(Error),
+            `Failed to create ${clientType} account`,
+          );
+        });
+      },
+    );
+
+    it('disables buttons while loading', async () => {
+      const { getByTestId } = render(initialState, {
+        params: {
+          scope: MultichainNetwork.Solana,
+          clientType: WalletClientType.Solana,
+        },
+      });
+
+      const addButton = getByTestId(AddNewAccountIds.CONFIRM);
+      fireEvent.press(addButton);
+
+      expect(addButton.props.disabled).toBe(true);
     });
   });
 });

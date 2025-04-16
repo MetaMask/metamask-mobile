@@ -1,5 +1,12 @@
 // Third party dependencies.
-import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { SafeAreaView, View } from 'react-native';
 
 // External dependencies.
@@ -41,6 +48,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
+import { selectInternalAccounts } from '../../../selectors/accountsController';
 
 const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { navigate } = useNavigation();
@@ -50,6 +58,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
   const { colors } = theme;
   const [isLoading, setIsLoading] = useState(false);
   const [accountName, setAccountName] = useState<string | undefined>(undefined);
+  const internalAccounts = useSelector(selectInternalAccounts);
   const keyringOfSelectedAccount = useSelector(
     getHdKeyringOfSelectedAccountOrPrimaryKeyring,
   );
@@ -57,6 +66,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     keyringOfSelectedAccount.metadata.id,
   );
   const hdKeyrings = useSelector(selectHDKeyrings);
+  const hasMultipleSRPs = hdKeyrings.length > 1;
   const [showSRPList, setShowSRPList] = useState(false);
   const [error, setError] = useState<string>('');
 
@@ -64,7 +74,16 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
     navigate(Routes.SHEET.ACCOUNT_SELECTOR);
   };
 
-  const onSubmit = async () => {
+  const isDuplicateName = useMemo(
+    () =>
+      Object.values(internalAccounts).some(
+        (account) =>
+          account.metadata.name.toLowerCase() === accountName?.toLowerCase(),
+      ),
+    [accountName, internalAccounts],
+  );
+
+  const onSubmit = useCallback(async () => {
     if ((clientType && !scope) || (!clientType && scope)) {
       throw new Error('Scope and clientType must be provided');
     }
@@ -85,12 +104,18 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
       }
       navigate(Routes.WALLET.HOME);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Unknown error');
-      Logger.error(e as Error, 'ADD_NEW_HD_ACCOUNT_ERROR');
+      const errorMessage = strings(
+        'accounts.error_messages.failed_to_create_account',
+        {
+          clientType: clientType ?? 'hd',
+        },
+      );
+      setError(errorMessage);
+      Logger.error(e as Error, errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [clientType, scope, accountName, keyringId, navigate]);
 
   useEffect(() => {
     const nextAvailableAccountName =
@@ -192,38 +217,43 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                     onSubmitEditing={onSubmit}
                   />
                 </View>
-                <View style={styles.srpSelectorContainer}>
-                  <Text variant={TextVariant.BodyMDMedium}>
-                    {strings('accounts.select_secret_recovery_phrase')}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.srpSelector}
-                    onPress={() => setShowSRPList(true)}
-                    testID={AddNewAccountIds.SRP_SELECTOR}
-                  >
-                    <View style={styles.srp}>
-                      <View>
-                        <Text variant={TextVariant.BodyMDMedium}>{`${strings(
-                          'accounts.secret_recovery_phrase',
-                        )} ${hdKeyringIndex}`}</Text>
+                {hasMultipleSRPs && (
+                  <View style={styles.srpSelectorContainer}>
+                    <Text variant={TextVariant.BodyMDMedium}>
+                      {strings('accounts.select_secret_recovery_phrase')}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.srpSelector}
+                      onPress={() => setShowSRPList(true)}
+                      testID={AddNewAccountIds.SRP_SELECTOR}
+                    >
+                      <View style={styles.srp}>
+                        <View>
+                          <Text variant={TextVariant.BodyMDMedium}>{`${strings(
+                            'accounts.secret_recovery_phrase',
+                          )} ${hdKeyringIndex}`}</Text>
+                        </View>
+                        <View>
+                          <Text
+                            variant={TextVariant.BodyMD}
+                            color={TextColor.Primary}
+                          >{`${strings(
+                            'accounts.show_accounts',
+                          )} ${numberOfAccounts} ${strings(
+                            'accounts.accounts',
+                          )}`}</Text>
+                        </View>
                       </View>
-                      <View>
-                        <Text
-                          variant={TextVariant.BodyMD}
-                          color={TextColor.Primary}
-                        >{`${strings(
-                          'accounts.show_accounts',
-                        )} ${numberOfAccounts} ${strings(
-                          'accounts.accounts',
-                        )}`}</Text>
-                      </View>
-                    </View>
-                    <Icon style={styles.srpArrow} name={IconName.ArrowRight} />
-                  </TouchableOpacity>
-                  <Text variant={TextVariant.BodySM}>
-                    {strings('accounts.add_new_hd_account_helper_text')}
-                  </Text>
-                </View>
+                      <Icon
+                        style={styles.srpArrow}
+                        name={IconName.ArrowRight}
+                      />
+                    </TouchableOpacity>
+                    <Text variant={TextVariant.BodySM}>
+                      {strings('accounts.add_new_hd_account_helper_text')}
+                    </Text>
+                  </View>
+                )}
                 <View style={styles.footerContainer}>
                   <Button
                     testID={AddNewAccountIds.CANCEL}
@@ -237,7 +267,7 @@ const AddNewAccount = ({ route }: AddNewAccountProps) => {
                   <Button
                     testID={AddNewAccountIds.CONFIRM}
                     loading={isLoading}
-                    disabled={isLoading}
+                    isDisabled={isLoading || isDuplicateName}
                     style={styles.footerContainer.button}
                     variant={ButtonVariants.Primary}
                     onPress={onSubmit}
