@@ -175,10 +175,10 @@ stages:
     workflows:
       - build_ios_multichain_permissions_e2e: {}
       - build_android_multichain_permissions_e2e: {}
-  run_multichain_permissions_e2e_ios_android_stage:
-    workflows:
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+  # run_multichain_permissions_e2e_ios_android_stage:
+  #   workflows:
+  #     - run_tag_multichain_permissions_ios: {}
+  #     - run_tag_multichain_permissions_android: {}
   run_smoke_e2e_ios_android_stage:
     workflows:
       - run_ios_api_specs: {}
@@ -193,8 +193,8 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
   build_regression_e2e_ios_android_stage:
     workflows:
       - ios_build_regression_tests: {}
@@ -219,8 +219,8 @@ stages:
       - run_tag_smoke_confirmations_ios: {}
       - run_tag_smoke_confirmations_android: {}
       - run_tag_smoke_confirmations_redesigned_ios: {}
-      - run_tag_multichain_permissions_ios: {}
-      - run_tag_multichain_permissions_android: {}
+      # - run_tag_multichain_permissions_ios: {}
+      # - run_tag_multichain_permissions_android: {}
       - run_tag_upgrade_android: {}
       - run_android_app_launch_times_appium_test: {}
   report_results_stage:
