@@ -4,6 +4,7 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useContext,
 } from 'react';
 import {
   View,
@@ -110,6 +111,7 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import { getPhishingTestResult } from '../../../util/phishingDetection';
+import { ToastContext } from '../../../component-library/components/Toast';
 
 /**
  * Tab component for the in-app browser
@@ -208,6 +210,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   const whitelist = useSelector((state: RootState) => state.browser.whitelist);
 
   const isFocused = useIsFocused();
+
+  const { toastRef } = useContext(ToastContext);
 
   /**
    * Checks if a given url or the current url is the homepage
@@ -911,6 +915,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
             isWalletConnect: false,
             isMMSDK: false,
             analytics: {},
+            toastRef,
           }),
         isMainFrame,
       });
