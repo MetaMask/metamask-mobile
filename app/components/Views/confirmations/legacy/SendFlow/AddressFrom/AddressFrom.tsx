@@ -117,7 +117,7 @@ const SendFlowAddressFrom = ({
     const accName = ens || name;
     const balanceIsZero = hexToBN(accounts[address].balance).isZero();
     selectedAssetAction(getEther(ticker as string));
-    setAccountAddress(address);
+    setAccountAddress(toChecksumHexAddress(address));
     setAccountName(accName);
     setAccountBalance(balance);
     fromAccountBalanceState(balanceIsZero);
