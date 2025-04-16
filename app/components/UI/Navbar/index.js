@@ -65,6 +65,7 @@ import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain
 
 ///: END:ONLY_INCLUDE_IF
 import { withMetaMetrics } from '../Stake/utils/metaMetrics/withMetaMetrics';
+import { BridgeViewMode } from '../Bridge/types';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -1736,7 +1737,13 @@ export function getBridgeNavbar(navigation, route, themeColors) {
       elevation: 0,
     },
   });
-  const title = route.params?.title ?? 'Swap/Bridge';
+
+  let title = `${strings('swaps.title')}/${strings('bridge.title')}`;
+  if (route.params?.bridgeViewMode === BridgeViewMode.Bridge) {
+    title = strings('bridge.title');
+  } else if (route.params?.bridgeViewMode === BridgeViewMode.Swap) {
+    title = strings('swaps.title');
+  }
 
   const leftAction = () => navigation.pop();
 
@@ -1766,6 +1773,26 @@ export function getBridgeNavbar(navigation, route, themeColors) {
       </TouchableOpacity>
     ),
     headerStyle: innerStyles.headerStyle,
+  };
+}
+
+export function getBridgeTransactionDetailsNavbar(navigation) {
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        title={strings('bridge_transaction_details.transaction_details')}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity onPress={leftAction} style={styles.backButton}>
+        <Icon name={IconName.ArrowLeft} />
+      </TouchableOpacity>
+    ),
   };
 }
 
@@ -1914,7 +1941,12 @@ export function getStakingNavbar(
   navBarOptions,
   metricsOptions,
 ) {
-  const { hasBackButton = true, hasCancelButton = true, hasIconButton = false, handleIconPress } = navBarOptions ?? {};
+  const {
+    hasBackButton = true,
+    hasCancelButton = true,
+    hasIconButton = false,
+    handleIconPress,
+  } = navBarOptions ?? {};
 
   const innerStyles = StyleSheet.create({
     headerStyle: {
