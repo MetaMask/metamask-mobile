@@ -8,7 +8,7 @@ import { TOOLTIP_TYPES } from '../../../../../../../core/Analytics/events/confir
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../../util/test/renderWithProvider';
-import { mockEarnControllerRootState } from '../../../../../../UI/stake/testUtils';
+import { mockEarnControllerRootState } from '../../../../../../UI/Stake/testUtils';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import StakingDetails from './staking-details';
 

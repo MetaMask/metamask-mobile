@@ -3,7 +3,7 @@ import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { stakingDepositConfirmationState } from '../../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { useStakingDetails } from './useStakingDetails';
-import { mockEarnControllerRootState } from '../../../../../UI/stake/testUtils';
+import { mockEarnControllerRootState } from '../../../../../UI/Stake/testUtils';
 
 describe('useStakingDetails', () => {
   const mockEarnControllerState =
