@@ -586,27 +586,34 @@ workflows:
                   "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
                   -d '{"ref": "main", "inputs":{ "base-branch": '$BITRISE_GIT_BRANCH'}}' || exit 1
 
-                echo "Waiting 60 seconds for workflow to complete..."
+                echo "Waiting 60 seconds for workflow to start..."
                 sleep 60
 
                 # Check completion status every 30 seconds for up to 2.5 minutes
                 for i in {1..5}; do
+                  echo "Checking workflow status (Attempt $i of 5)..."
+                  
                   COMPLETION_CHECK=$(curl -L \
                     -H "Accept: application/vnd.github+json" \
                     -H "Authorization: Bearer $GITHUB_CONTENTS_WRITE_TOKEN" \
                     -H "X-GitHub-Api-Version: 2022-11-28" \
                     "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/runs?branch=main&status=completed")
-
-                  if [[ $COMPLETION_CHECK == *"total_count\":0"* ]]; then
-                    echo "Still running... (Attempt $i of 20)"
+                  
+                  # Store the total_count value
+                  TOTAL_COUNT=$(echo "$COMPLETION_CHECK" | grep -o '"total_count":[0-9]*' | cut -d':' -f2)
+                  
+                  if [ "$TOTAL_COUNT" = "0" ]; then
+                    echo "Still running..."
                     sleep 30
                   else
-                    # Check if the workflow succeeded
-                    if [[ $COMPLETION_CHECK == *"conclusion\":\"success\"* ]]; then
+                    # Get the conclusion of the most recent run
+                    CONCLUSION=$(echo "$COMPLETION_CHECK" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)
+                    
+                    if [ "$CONCLUSION" = "success" ]; then
                       echo "Workflow completed successfully!"
                       exit 0
                     else
-                      echo "Workflow failed or was cancelled"
+                      echo "Workflow failed or was cancelled (conclusion: $CONCLUSION)"
                       exit 1
                     fi
                   fi
