@@ -76,6 +76,11 @@ const BridgeView = () => {
     bestQuote,
   } = useBridgeQuoteData();
 
+  // inputRef is used to programmatically blur the input field after a delay
+  // This gives users time to type before the keyboard disappears
+  // The ref is typed to only expose the blur method we need
+  const inputRef = useRef<{ blur: () => void }>(null);
+
   const updateQuoteParams = useBridgeQuoteRequest();
 
   const hasDestinationPicker =
@@ -99,11 +104,15 @@ const BridgeView = () => {
     isValidSourceAmount && !!sourceToken && !!destToken;
 
   const [isInputFocused, setIsInputFocused] = useState(false);
+  // isWaitingForInitialQuote tracks our local loading state for the initial quote request
+  // This is separate from isLoading (from useBridgeQuoteData) to prevent race conditions
+  // when multiple quote requests are in flight or when the loading state changes
   const [isWaitingForInitialQuote, setIsWaitingForInitialQuote] =
     useState(false);
   const [isError, setIsError] = useState(false);
 
   // Update error state when relevant states change
+  // We don't show errors while either loading state is true to prevent flashing
   useEffect(() => {
     if (isLoading || isWaitingForInitialQuote) {
       setIsError(false);
@@ -124,11 +133,49 @@ const BridgeView = () => {
     bestQuote,
   ]);
 
+  // This effect ensures proper coordination between isLoading and isWaitingForInitialQuote
+  // When isLoading becomes false, we know the quote data has been fetched, so we can
+  // safely set isWaitingForInitialQuote to false
   useEffect(() => {
     if (!isLoading) {
       setIsWaitingForInitialQuote(false);
     }
   }, [isLoading]);
+
+  // Update quote parameters when relevant state changes
+  // This effect manages the quote request lifecycle and ensures proper state transitions
+  useEffect(() => {
+    if (hasValidBridgeInputs) {
+      // Set waiting state before starting the quote request
+      setIsWaitingForInitialQuote(true);
+
+      // Add delay before blurring to give users time to type
+      const blurTimeout = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+        }
+      }, 1000);
+
+      const updatePromise = updateQuoteParams();
+      if (updatePromise) {
+        // Clear waiting state after the quote request completes
+        // This ensures we don't show errors prematurely
+        updatePromise.finally(() => {
+          setIsWaitingForInitialQuote(false);
+        });
+      }
+
+      return () => {
+        clearTimeout(blurTimeout);
+        updateQuoteParams.cancel();
+      };
+    }
+    return () => {
+      updateQuoteParams.cancel();
+      // Reset waiting state if component unmounts or inputs become invalid
+      setIsWaitingForInitialQuote(false);
+    };
+  }, [hasValidBridgeInputs, updateQuoteParams]);
 
   const shouldDisplayKeypad =
     !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
@@ -149,8 +196,6 @@ const BridgeView = () => {
     return sourceAmountAtomic.gt(latestSourceBalance.atomicBalance);
   }, [sourceAmount, latestSourceBalance?.atomicBalance, sourceToken?.decimals]);
 
-  const inputRef = useRef<{ blur: () => void }>(null);
-
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
@@ -164,35 +209,6 @@ const BridgeView = () => {
   useEffect(() => {
     navigation.setOptions(getBridgeNavbar(navigation, route, colors));
   }, [navigation, route, colors]);
-
-  // Update quote parameters when relevant state changes
-  useEffect(() => {
-    if (hasValidBridgeInputs) {
-      setIsWaitingForInitialQuote(true);
-      // Add delay before blurring to give users time to type
-      const blurTimeout = setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.blur();
-        }
-      }, 1000); // 1 second delay
-
-      const updatePromise = updateQuoteParams();
-      if (updatePromise) {
-        updatePromise.finally(() => {
-          setIsWaitingForInitialQuote(false);
-        });
-      }
-
-      return () => {
-        clearTimeout(blurTimeout);
-        updateQuoteParams.cancel();
-      };
-    }
-    return () => {
-      updateQuoteParams.cancel();
-      setIsWaitingForInitialQuote(false);
-    };
-  }, [hasValidBridgeInputs, updateQuoteParams]);
 
   useEffect(() => {
     const setBridgeFeatureFlags = async () => {
