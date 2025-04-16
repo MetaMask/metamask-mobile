@@ -11,7 +11,6 @@ import {
   selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { addPermittedChains } from '../../../../core/Permissions';
-import { toHex } from '@metamask/controller-utils';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -20,13 +19,6 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
-
-jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/controller-utils'),
-  toHex: jest.fn(),
-}));
-
-const mockToHex = toHex as jest.Mock;
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -148,8 +140,14 @@ describe('NetworkConnectMultiSelector', () => {
   });
 
   it('handles update permissions when networks are selected', async () => {
+    /**
+     * This is a requirement for now because mocking the entire module globally at the top of the file makes 'renders correctly' test break,
+     * But we need to mock this function specifically for this unit test because the mocked data sends 'network-1' key as the chainId, instead of '0x1'.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+    jest.spyOn(require('@metamask/controller-utils'), 'toHex').mockImplementation((arg) => arg);
+
     mockAddPermittedChains.mockReturnValue(['0x1']);
-    mockToHex.mockImplementation(arg => arg);
     const mockNetworkConfigurationId = Object.keys(
       mockNetworkConfigurations,
     )[0];
