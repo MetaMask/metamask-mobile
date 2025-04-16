@@ -27,7 +27,9 @@ export default function useHandleBridgeTx() {
       txType: TransactionType.bridge,
       txParams: quoteResponse.trade,
       fieldsToAddToTxMeta: {
-        destinationChainId: addHexPrefix(String(quoteResponse.quote.destChainId)).toLowerCase() as Hex,
+        destinationChainId: addHexPrefix(
+          String(quoteResponse.quote.destChainId),
+        ).toLowerCase() as Hex,
         // estimatedBaseFee: decEstimatedBaseFee,
 
         sourceTokenAmount: quoteResponse.quote.srcTokenAmount,
