@@ -14,7 +14,7 @@ import { useStyles } from '../../../../../../../component-library/hooks';
 import images from '../../../../../../../images/image-icons';
 import TokenIcon from '../../../../../../UI/Swaps/components/TokenIcon';
 import { useTokenValues } from '../../../../hooks/useTokenValues';
-import { TooltipModal } from '../../../UI/tooltip/tooltip';
+import { TooltipModal } from '../../../UI/tooltip';
 import styleSheet from './token-hero.styles';
 
 const NetworkAndTokenImage = ({
