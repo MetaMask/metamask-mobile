@@ -584,7 +584,7 @@ workflows:
                   -H "Authorization: Bearer $GITHUB_TRIGGER_ACTION_TOKEN" \
                   -H "X-GitHub-Api-Version: 2022-11-28" \
                   "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
-                  -d '{"ref": "main", "inputs":{ "base-branch": '$BITRISE_GIT_BRANCH'}}' || exit 1
+                  -d "{\"ref\":\"main\",\"inputs\":{\"base-branch\":\"$BITRISE_GIT_BRANCH\"}}" || exit 1
 
                 echo "Waiting 60 seconds for workflow to start..."
                 sleep 60
