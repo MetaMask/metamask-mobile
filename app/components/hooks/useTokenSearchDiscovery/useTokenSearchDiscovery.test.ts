@@ -1,15 +1,12 @@
 import { act } from '@testing-library/react-hooks';
 import Engine from '../../../core/Engine';
-import useTokenSearchDiscovery, { MAX_RESULTS, SearchDiscoveryParams } from './useTokenSearchDiscovery';
+import useTokenSearchDiscovery, { MAX_RESULTS } from './useTokenSearchDiscovery';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
     TokenSearchDiscoveryController: {
-      searchTokens: jest.fn(),
-    },
-    TokenSearchDiscoveryDataController: {
-      fetchSwapsTokens: jest.fn(),
+      searchSwappableTokens: jest.fn(),
     },
   },
 }));
@@ -20,14 +17,6 @@ const mockInitialState = {
       TokenSearchDiscoveryController: {
         recentSearches: [],
         lastSearchTimestamp: 0,
-      },
-      TokenSearchDiscoveryDataController: {
-        swapsTokenAddressesByChainId: {
-          '0x1': {
-            addresses: ['0x123'],
-          },
-        },
-        tokenDisplayData: [],
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
@@ -49,14 +38,11 @@ describe('useTokenSearchDiscovery', () => {
   });
 
   it('updates states correctly when searching tokens', async () => {
-    const mockSearchParams: SearchDiscoveryParams = {
-      chains: ['0x1'],
-      query: 'DAI',
-    };
+    const mockSearchQuery = 'DAI';
     const mockSearchResult = [{ name: 'DAI', tokenAddress: '0x123', chainId: '0x1' }];
 
     (
-      Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
+      Engine.context.TokenSearchDiscoveryController.searchSwappableTokens as jest.Mock
     ).mockResolvedValueOnce(mockSearchResult);
 
     const { result } = renderHookWithProvider(
@@ -73,7 +59,7 @@ describe('useTokenSearchDiscovery', () => {
 
     // Call search
     await act(async () => {
-      result.current.searchTokens(mockSearchParams);
+      result.current.searchTokens(mockSearchQuery);
       jest.advanceTimersByTime(300);
       await Promise.resolve();
     });
@@ -83,11 +69,8 @@ describe('useTokenSearchDiscovery', () => {
     expect(result.current.error).toBe(null);
     expect(result.current.results).toEqual(mockSearchResult);
     expect(
-      Engine.context.TokenSearchDiscoveryController.searchTokens,
-    ).toHaveBeenCalledWith({
-      ...mockSearchParams,
-      limit: MAX_RESULTS,
-    });
+      Engine.context.TokenSearchDiscoveryController.searchSwappableTokens,
+    ).toHaveBeenCalledWith({ query: mockSearchQuery, limit: MAX_RESULTS });
   });
 
   it('does not search when less than two characters are queried', async () => {
@@ -98,19 +81,19 @@ describe('useTokenSearchDiscovery', () => {
       }
     );
     await act(async () => {
-      result.current.searchTokens({ query: 'a' });
+      result.current.searchTokens('a');
       jest.advanceTimersByTime(300);
       await Promise.resolve();
     });
 
-    expect(Engine.context.TokenSearchDiscoveryController.searchTokens).not.toHaveBeenCalled();
+    expect(Engine.context.TokenSearchDiscoveryController.searchSwappableTokens).not.toHaveBeenCalled();
   });
 
   it('resets the state when reset() is called', async () => {
     const mockSearchResult = [{ name: 'DAI', tokenAddress: '0x123', chainId: '0x1' }];
 
     (
-      Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
+      Engine.context.TokenSearchDiscoveryController.searchSwappableTokens as jest.Mock
     ).mockResolvedValueOnce(mockSearchResult);
 
     const { result } = renderHookWithProvider(
@@ -121,9 +104,7 @@ describe('useTokenSearchDiscovery', () => {
     );
 
     await act(async () => {
-      result.current.searchTokens({
-        query: 'doge',
-      });
+      result.current.searchTokens('doge');
       jest.advanceTimersByTime(300);
       await Promise.resolve();
     });
@@ -140,7 +121,7 @@ describe('useTokenSearchDiscovery', () => {
   it('returns error and empty results if search failed', async () => {
     const mockError = new Error('Search failed');
     (
-      Engine.context.TokenSearchDiscoveryController.searchTokens as jest.Mock
+      Engine.context.TokenSearchDiscoveryController.searchSwappableTokens as jest.Mock
     ).mockRejectedValueOnce(mockError);
 
     const { result } = renderHookWithProvider(
@@ -151,9 +132,7 @@ describe('useTokenSearchDiscovery', () => {
     );
 
     await act(async () => {
-      result.current.searchTokens({
-        query: 'doge',
-      });
+      result.current.searchTokens('doge');
       jest.advanceTimersByTime(300);
       await Promise.resolve();
     });

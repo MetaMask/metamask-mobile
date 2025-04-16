@@ -1172,7 +1172,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     // Unfocus the url bar and hide the autocomplete results
     urlBarRef.current?.hide();
 
-    if (item.type === 'tokens') {
+    if (item.category === 'tokens') {
       navigation.navigate(Routes.BROWSER.ASSET_LOADER, {
         chainId: item.chainId,
         address: item.address,

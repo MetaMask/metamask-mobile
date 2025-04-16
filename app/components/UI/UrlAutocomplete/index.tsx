@@ -44,7 +44,7 @@ import { selectCurrentCurrency, selectUsdConversionRate } from '../../../selecto
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'} as const));
+const dappsWithType: FuseSearchResult[] = dappUrlList.map(i => ({...i, category: 'sites'} as const));
 
 const TOKEN_SEARCH_LIMIT = 10;
 
@@ -63,7 +63,7 @@ const UrlAutocomplete = forwardRef<
       tokenSearchResults
       .map(({tokenAddress, usdPricePercentChange, usdPrice, chainId, ...rest}) => ({
         ...rest,
-        type: 'tokens' as const,
+        category: 'tokens' as const,
         address: tokenAddress,
         chainId: chainId as Hex,
         price: usdConversionRate ? usdPrice / usdConversionRate : -1,
@@ -97,8 +97,8 @@ const UrlAutocomplete = forwardRef<
       }
 
       let data = fuseResults.filter((result, index, self) =>
-        result.type === category &&
-        index === self.findIndex(r => r.url === result.url && r.type === result.type)
+        result.category === category &&
+        index === self.findIndex(r => r.url === result.url && r.category === result.category)
       );
       if (data.length === 0) {
         return [];
@@ -144,9 +144,7 @@ const UrlAutocomplete = forwardRef<
       setFuseResults([]);
     }
 
-    searchTokens({
-      query: text,
-    });
+    searchTokens(text);
 
   }, [browserHistory, bookmarks, resetTokenSearch, searchTokens]);
 
@@ -303,9 +301,9 @@ const UrlAutocomplete = forwardRef<
         contentContainerStyle={styles.contentContainer}
         sections={resultsByCategory}
         keyExtractor={(item) =>
-          item.type === 'tokens'
-            ? `${item.type}-${item.chainId}-${item.address}`
-            : `${item.type}-${item.url}`
+          item.category === 'tokens'
+            ? `${item.category}-${item.chainId}-${item.address}`
+            : `${item.category}-${item.url}`
         }
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}

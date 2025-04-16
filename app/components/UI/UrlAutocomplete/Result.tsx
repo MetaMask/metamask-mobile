@@ -14,8 +14,6 @@ import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrap
 import Badge, { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import { NetworkBadgeSource } from '../AssetOverview/Balance/Balance';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { selectSupportedSwapTokenAddressesForChainId } from '../../../selectors/tokenSearchDiscoveryDataController';
-import { RootState } from '../../../reducers';
 import { isSwapsAllowed } from '../Swaps/utils';
 import AppConstants from '../../../core/AppConstants';
 import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
@@ -32,7 +30,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
     const theme = useTheme();
     const styles = stylesheet({theme});
 
-    const name = typeof result.name === 'string' || result.type === 'tokens' ? result.name : getHost(result.url);
+    const name = typeof result.name === 'string' || result.category === 'tokens' ? result.name : getHost(result.url);
 
     const dispatch = useDispatch();
 
@@ -40,9 +38,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
         dispatch(removeBookmark(result));
     }, [dispatch, result]);
 
-    const swapTokenAddresses = useSelector((state: RootState) => selectSupportedSwapTokenAddressesForChainId(state, result.type === 'tokens' ? result.chainId : '0x'));
-
-    const swapsEnabled = result.type === 'tokens' && isSwapsAllowed(result.chainId) && swapTokenAddresses?.includes(result.address) && AppConstants.SWAPS.ACTIVE;
+    const swapsEnabled = result.category === 'tokens' && isSwapsAllowed(result.chainId) && AppConstants.SWAPS.ACTIVE;
 
     const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -52,7 +48,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
         onPress={onPress}
       >
         <View style={styles.itemWrapper}>
-          {result.type === 'tokens' ? (
+          {result.category === 'tokens' ? (
             <BadgeWrapper
               badgeElement={(
                 <Badge
@@ -79,11 +75,11 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
               {result.name}
             </Text>
             <Text style={styles.url} numberOfLines={1}>
-              {result.type === 'tokens' ? result.symbol : result.url}
+              {result.category === 'tokens' ? result.symbol : result.url}
             </Text>
           </View>
           {
-            result.type === 'favorites' && (
+            result.category === 'favorites' && (
               <ButtonIcon
                 testID={deleteFavoriteTestId(result.url)}
                 style={styles.resultActionButton}
@@ -93,7 +89,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
             )
           }
           {
-            result.type === 'tokens' && (
+            result.category === 'tokens' && (
               <View style={styles.priceContainer}>
                 <Text style={styles.price}>
                   {addCurrencySymbol(result.price, currentCurrency, true)}
@@ -103,7 +99,7 @@ export const Result: React.FC<ResultProps> = memo(({ result, onPress, onSwapPres
             )
           }
           {
-            result.type === 'tokens' && (
+            result.category === 'tokens' && (
               <ButtonIcon
                 style={{
                   ...styles.resultActionButton,

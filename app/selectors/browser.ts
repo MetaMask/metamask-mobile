@@ -8,10 +8,10 @@ interface SiteItem {
 
 export const selectBrowserHistoryWithType = createDeepEqualSelector(
     (state: RootState) => state.browser.history,
-    (history: SiteItem[]) => history.map(item => ({...item, type: 'recents'} as const)).reverse()
+    (history: SiteItem[]) => history.map(item => ({...item, category: 'recents'} as const)).reverse()
 );
 
 export const selectBrowserBookmarksWithType = createDeepEqualSelector(
     (state: RootState) => state.bookmarks,
-    (bookmarks: SiteItem[]) => bookmarks.map(item => ({...item, type: 'favorites'} as const))
+    (bookmarks: SiteItem[]) => bookmarks.map(item => ({...item, category: 'favorites'} as const))
 );

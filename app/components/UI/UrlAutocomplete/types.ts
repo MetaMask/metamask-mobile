@@ -42,7 +42,7 @@ export type UrlAutocompleteRef = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type FuseSearchResult = {
-  type: 'sites' | 'recents' | 'favorites';
+  category: 'sites' | 'recents' | 'favorites';
   url: string;
   name: string;
 };
@@ -52,7 +52,7 @@ export type FuseSearchResult = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type TokenSearchResult = {
-  type: 'tokens';
+  category: 'tokens';
   name: string;
   symbol: string;
   address: string;
