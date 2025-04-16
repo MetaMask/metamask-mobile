@@ -601,7 +601,7 @@ workflows:
                   
                   # Store the total_count value
                   TOTAL_COUNT=$(echo "$COMPLETION_CHECK" | grep -o '"total_count":[0-9]*' | cut -d':' -f2)
-                  
+                  echo "$COMPLETION_CHECK"
                   if [ "$TOTAL_COUNT" = "0" ]; then
                     echo "Workflow is still running..."
                     sleep 15
@@ -614,6 +614,7 @@ workflows:
                       exit 0
                     elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
                       echo "Workflow failed or was cancelled (conclusion: $CONCLUSION)"
+                      echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                       exit 1
                     else
                       echo "Workflow is still in progress..."
@@ -623,6 +624,7 @@ workflows:
                 done
 
                 echo "Timeout: Workflow did not complete within 1.25 minutes"
+                echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                 exit 1
   # CI Steps
   ci_test:
