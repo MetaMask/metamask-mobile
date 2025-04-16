@@ -43,8 +43,8 @@ const createStyles = () =>
     input: {
       fontSize: 40,
       borderWidth: 0,
-      lineHeight: 40,
-      height: 40,
+      lineHeight: 50,
+      height: 50,
     },
   });
 
@@ -116,6 +116,7 @@ interface TokenInputAreaProps {
   tokenType?: TokenInputAreaType;
   onTokenPress?: () => void;
   isLoading?: boolean;
+  onFocus?: () => void;
 }
 
 export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
@@ -130,6 +131,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
   tokenType,
   onTokenPress,
   isLoading = false,
+  onFocus,
 }) => {
   const { styles } = useStyles(createStyles, {});
 
@@ -180,6 +182,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
                 autoFocus={autoFocus}
                 placeholder="0"
                 testID={`${testID}-input`}
+                onFocus={onFocus}
               />
             )}
           </Box>
