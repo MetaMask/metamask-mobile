@@ -608,7 +608,6 @@ workflows:
                   else
                     # Get the status and conclusion of the most recent run
                     STATUS=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].status')
-                    
                     echo "Current status: $STATUS"
                     echo "Workflow is still in progress (status: $STATUS)..."
                     sleep 20
@@ -1421,7 +1420,13 @@ workflows:
           inputs:
             - abort_on_fail: 'yes'
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
-
+  # Runway Workflow for Release Candidate Builds
+  runway_build_release_candidate:
+      before_run:
+      - bump_version_code
+    after_run:
+      - build_ios_release_and_upload_sourcemaps
+      - build_android_release_and_upload_sourcemaps
   # Android Builds
   _android_build_template:
     before_run:
@@ -2417,13 +2422,13 @@ app:
       VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 1706
+      VERSION_NUMBER: 1705
     - opts:
         is_expand: false
       FLASK_VERSION_NAME: 7.44.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 1706
+      FLASK_VERSION_NUMBER: 1705
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
