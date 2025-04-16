@@ -150,7 +150,11 @@
     "hint_button": "Create hint",
     "hint_placeholder": "e.g. mom’s home",
     "hint_saved": "Save",
-    "hint_saved_toast": "Password hint saved"
+    "hint_saved_toast": "Password hint saved",
+    "remind_later": "We’ll remind you later",
+    "remind_later_description": "If you don’t back up your Secret Recovery Phrase, you’ll lose access to your funds if you get locked out of the app or get a new device.",
+    "remind_later_description2": "You can back up your wallets or see your Secret Recovery Phrase in",
+    "setting_security_privacy": "Settings > Security & Privacy"
   },
   "onboarding_carousel": {
     "title1": "Welcome to MetaMask",

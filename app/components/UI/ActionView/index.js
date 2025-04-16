@@ -38,6 +38,7 @@ const getStyles = (colors) =>
       width: '100%',
       flexDirection: 'column',
       justifyContent: 'flex-end',
+      marginBottom: 16,
     },
     button: {
       flexDirection: 'column',

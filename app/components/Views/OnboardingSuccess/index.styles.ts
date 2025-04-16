@@ -12,7 +12,6 @@ const createStyles = (colors: any) =>
       flexGrow: 1,
       justifyContent: 'space-between',
       rowGap: 16,
-      marginTop: 16,
     },
     contentWrapper: {
       flex: 1,
@@ -24,6 +23,7 @@ const createStyles = (colors: any) =>
       flex: 1,
       justifyContent: 'flex-end',
       height: '100%',
+      marginBottom: 16,
     },
     emoji: {
       textAlign: 'center',
@@ -42,7 +42,8 @@ const createStyles = (colors: any) =>
       justifyContent: 'space-between',
       rowGap: 16,
       paddingHorizontal: 24,
-      marginTop: 16,
+      marginTop: 30,
+      marginBottom: 16,
     },
     hintContent: {
       flexDirection: 'column',
@@ -74,7 +75,7 @@ const createStyles = (colors: any) =>
       fontWeight: '700',
     },
     descriptionWrapper: {
-      width: '90%',
+      width: '100%',
       flexDirection: 'column',
       rowGap: 16,
     },

@@ -85,7 +85,7 @@ const createStyles = (colors) =>
     },
     wrapper: {
       flex: 1,
-      marginTop: 16,
+      marginTop: 50,
     },
     scrollableWrapper: {
       flex: 1,
@@ -662,8 +662,8 @@ class ChoosePassword extends PureComponent {
                               ? IconName.EyeSolid
                               : IconName.EyeSlashSolid
                           }
-                          size={IconSize.Md}
-                          color={colors.icon.muted}
+                          size={IconSize.Lg}
+                          color={colors.icon.default}
                           onPress={() => this.toggleShowPassword(0)}
                         />
                       }
@@ -718,7 +718,7 @@ class ChoosePassword extends PureComponent {
                               : IconName.EyeSlashSolid
                           }
                           size={IconSize.Lg}
-                          color={colors.icon.muted}
+                          color={colors.icon.default}
                           onPress={() => this.toggleShowPassword(1)}
                         />
                       }
@@ -759,22 +759,24 @@ class ChoosePassword extends PureComponent {
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.IOS_I_UNDERSTAND_BUTTON_ID
                     }
+                    label={
+                      <View style={styles.learnMoreTextContainer}>
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Default}
+                        >
+                          {strings('import_from_seed.learn_more')}
+                        </Text>
+                        <Text
+                          variant={TextVariant.BodySM}
+                          color={TextColor.Primary}
+                          onPress={this.learnMore}
+                        >
+                          {' ' + strings('reset_password.learn_more')}
+                        </Text>
+                      </View>
+                    }
                   />
-                  <View style={styles.learnMoreTextContainer}>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Default}
-                    >
-                      {strings('import_from_seed.learn_more')}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Primary}
-                      onPress={this.learnMore}
-                    >
-                      {' ' + strings('reset_password.learn_more')}
-                    </Text>
-                  </View>
                 </View>
 
                 <View>{this.renderSwitch()}</View>

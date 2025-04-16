@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, StyleSheet, Platform } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -26,6 +26,7 @@ const createStyles = (colors) =>
       paddingVertical: 0,
       width: '100%',
       marginTop: 16,
+      marginBottom: Platform.OS === 'ios' ? 8 : 16,
     },
     modalContainer: {
       flex: 1,
@@ -84,6 +85,7 @@ const SeedphraseModal = ({
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const bottomSheetRef = useRef(null);
 
   const seedPhrasePoints = [
     strings('account_backup_step_1.seedPhrase_point_1'),
@@ -92,7 +94,11 @@ const SeedphraseModal = ({
   ];
 
   return showWhatIsSeedphraseModal ? (
-    <BottomSheet onClose={hideWhatIsSeedphrase} shouldNavigateBack={false}>
+    <BottomSheet
+      ref={bottomSheetRef}
+      onClose={hideWhatIsSeedphrase}
+      shouldNavigateBack={false}
+    >
       <ActionContent
         actionContainerStyle={styles.modalNoBorder}
         displayCancelButton={false}
@@ -105,7 +111,6 @@ const SeedphraseModal = ({
       >
         <View style={styles.modalContainer}>
           <View style={styles.titleContainer}>
-            <View style={styles.auxCenterView} />
             <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
               {strings('account_backup_step_1.what_is_seedphrase_title')}
             </Text>
