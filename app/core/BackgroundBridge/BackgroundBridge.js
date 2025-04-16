@@ -486,8 +486,6 @@ export class BackgroundBridge extends EventEmitter {
             );
           });
         },
-        rejectApprovalRequestsForOrigin: () =>
-          Engine.rejectOriginPendingApprovals(origin),
       }),
     );
 
