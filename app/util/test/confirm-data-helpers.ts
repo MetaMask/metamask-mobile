@@ -9,12 +9,14 @@ import {
 import {
   TransactionControllerState,
   TransactionEnvelopeType,
+  TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-
-import { backgroundState } from './initial-root-state';
 import { merge } from 'lodash';
+import { backgroundState } from './initial-root-state';
+import { ApprovalRequest } from '@metamask/approval-controller';
 
 export const confirmationRedesignRemoteFlagsState = {
   remoteFeatureFlags: {
@@ -29,7 +31,7 @@ const mockTypeDefEIP712Domain = [
   { name: 'name', type: 'string' },
   { name: 'version', type: 'string' },
   { name: 'chainId', type: 'uint256' },
-  { name: 'verifyingContract', type: 'address' }
+  { name: 'verifyingContract', type: 'address' },
 ];
 
 export const personalSignSignatureRequest = {
@@ -621,16 +623,20 @@ const stakingConfirmationBaseState = {
             rpcEndpoints: [
               {
                 networkClientId: 'mainnet',
+                url: 'https://mainnet.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
           '0xaa36a7': {
             nativeCurrency: 'ETH',
             rpcEndpoints: [
               {
                 networkClientId: 'sepolia',
+                url: 'https://sepolia.infura.io/v3/1234567890',
               },
             ],
+            defaultRpcEndpointIndex: 0,
           },
         },
         selectedNetworkClientId: 'mainnet',
@@ -683,9 +689,7 @@ export const stakingDepositConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingDeposit },
-          ],
+          transactions: [{ type: TransactionType.stakingDeposit }],
         } as unknown as TransactionControllerState,
       },
     },
@@ -699,9 +703,7 @@ export const stakingWithdrawalConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingUnstake },
-          ],
+          transactions: [{ type: TransactionType.stakingUnstake }],
         } as unknown as TransactionControllerState,
         AccountsController: {
           internalAccounts: {
@@ -725,9 +727,7 @@ export const stakingClaimConfirmationState = merge(
     engine: {
       backgroundState: {
         TransactionController: {
-          transactions: [
-            { type: TransactionType.stakingClaim },
-          ],
+          transactions: [{ type: TransactionType.stakingClaim }],
         } as unknown as TransactionControllerState,
         AccountsController: {
           internalAccounts: {
@@ -756,20 +756,20 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
       PermitBatch: [
         { name: 'details', type: 'PermitDetails[]' },
         { name: 'spender', type: 'address' },
-        { name: 'sigDeadline', type: 'uint256' }
+        { name: 'sigDeadline', type: 'uint256' },
       ],
       PermitDetails: [
         { name: 'token', type: 'address' },
         { name: 'amount', type: 'uint160' },
         { name: 'expiration', type: 'uint48' },
-        { name: 'nonce', type: 'uint48' }
+        { name: 'nonce', type: 'uint48' },
       ],
     },
     domain: {
       name: 'Permit2',
       chainId: '1',
       version: '1',
-      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3'
+      verifyingContract: '0x000000000022d473030f116ddee9f6b43ac78ba3',
     },
     primaryType: 'PermitBatch',
     message: {
@@ -778,25 +778,25 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
           token: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           amount: '1461501637330902918203684832716283019655932542975',
           expiration: '1722887542',
-          nonce: '5'
+          nonce: '5',
         },
         {
           token: '0xb0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           amount: '250',
           expiration: '1722887642',
-          nonce: '6'
-        }
+          nonce: '6',
+        },
       ],
       spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
-      sigDeadline: '1720297342'
-    }
+      sigDeadline: '1720297342',
+    },
   }),
   [SignTypedDataMockType.DAI]: JSON.stringify({
     domain: {
       name: 'Dai Stablecoin',
       version: '1',
       chainId: 1,
-      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F'
+      verifyingContract: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
     },
     types: {
       EIP712Domain: mockTypeDefEIP712Domain,
@@ -805,8 +805,8 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
         { name: 'spender', type: 'address' },
         { name: 'nonce', type: 'uint256' },
         { name: 'expiry', type: 'uint256' },
-        { name: 'allowed', type: 'bool' }
-      ]
+        { name: 'allowed', type: 'bool' },
+      ],
     },
     primaryType: 'Permit',
     message: {
@@ -814,7 +814,7 @@ const SIGN_TYPE_DATA: Record<SignTypedDataMockType, string> = {
       tokenId: '3606393',
       nonce: 0,
       expiry: 0,
-      allowed: false
+      allowed: false,
     },
   }),
 };
@@ -865,8 +865,7 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
         },
         SignatureController: {
           signatureRequests: {
-            'c5067710-87cf-11ef-916c-71f266571322':
-            mockSignatureRequest,
+            'c5067710-87cf-11ef-916c-71f266571322': mockSignatureRequest,
           },
         },
       },
@@ -874,3 +873,59 @@ export function generateStateSignTypedData(mockType: SignTypedDataMockType) {
   };
 }
 
+const mockTxId = '7e62bcb1-a4e9-11ef-9b51-ddf21c91a998';
+
+const mockApprovalRequest = {
+  id: mockTxId,
+  origin: 'metamask.github.io',
+  type: 'transaction',
+  time: 1731850822653,
+  requestData: {
+    txId: mockTxId,
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    origin: 'metamask.github.io',
+  },
+  requestState: null,
+  expectsResult: true,
+} as unknown as ApprovalRequest<TransactionMeta>;
+
+const mockTransaction = {
+  id: mockTxId,
+  type: TransactionType.contractInteraction,
+  txParams: {
+    data: '0x123456',
+    from: '0x935e73edb9ff52e23bac7f7e043a1ecd06d05477',
+    to: '0x1234567890123456789012345678901234567890',
+    value: '0x0',
+  },
+  chainId: '0x1' as `0x${string}`,
+  networkClientId: 'mainnet',
+  status: TransactionStatus.unapproved,
+  time: Date.now(),
+  origin: 'https://metamask.github.io',
+} as unknown as TransactionMeta;
+
+const contractInteractionBaseState = merge({}, stakingConfirmationBaseState, {
+  engine: {
+    backgroundState: {
+      TransactionController: { transactions: [mockTransaction] },
+    },
+  },
+});
+
+export const generateContractInteractionState = {
+  ...contractInteractionBaseState,
+  engine: {
+    ...contractInteractionBaseState.engine,
+    backgroundState: {
+      ...contractInteractionBaseState.engine.backgroundState,
+      // Set a completely new ApprovalController to reject the approval in
+      // stakingConfirmationBaseState
+      ApprovalController: {
+        pendingApprovals: { [mockTxId]: mockApprovalRequest },
+        pendingApprovalCount: 1,
+        approvalFlows: [],
+      },
+    },
+  },
+};

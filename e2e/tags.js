@@ -12,6 +12,7 @@ const tags = {
   smokeRamps: 'SmokeRamps:',
   smokeStake: 'SmokeStake:',
   smokeNotifications: 'SmokeNotifications:',
+  smokeAnalytics: 'SmokeAnalytics:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -30,6 +31,7 @@ const SmokeMultiChainPermissions = (testName) =>
   `${tags.smokeMultiChainPermissions} ${testName}`;
 const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
+const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
 
 export {
   Regression,
@@ -44,4 +46,5 @@ export {
   SmokeMultiChainPermissions,
   SmokeRamps,
   SmokeNotifications,
+  SmokeAnalytics,
 };

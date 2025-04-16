@@ -2,6 +2,7 @@
  * Mock events for gas fee API responses.
  */
 
+import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 import {
   suggestedGasApiResponses,
   suggestedGasFeesApiGanache,
@@ -45,7 +46,13 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: false } },
+        {
+          confirmation_redesign: {
+            signatures: false,
+            staking_confirmations: false,
+            contract_interaction: false,
+          },
+        },
       ],
       responseCode: 200,
     },
@@ -61,7 +68,13 @@ export const mockEvents = {
             androidMinimumAPIVersion: 21,
           },
         },
-        { confirmation_redesign: { signatures: true } },
+        {
+          confirmation_redesign: {
+            signatures: true,
+            staking_confirmations: true,
+            contract_interaction: true,
+          },
+        },
       ],
       responseCode: 200,
     },
@@ -109,6 +122,11 @@ export const mockEvents = {
         ],
       },
       responseCode: 201,
+    },
+
+    segmentTrack: {
+      urlEndpoint: E2E_METAMETRICS_TRACK_URL,
+      responseCode: 200,
     },
   },
 };
