@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- feat: migrate eth_accounts and permittedChains to CAIP-25 endowment ([#13970](https://github.com/MetaMask/metamask-mobile/pull/13970))
 - feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
 - feat(ramp): Update ramp data flow to fetch cryptos before payment methods ([#14437](https://github.com/MetaMask/metamask-mobile/pull/14437))
 - feat(bridge): add destination account picker ([#14656](https://github.com/MetaMask/metamask-mobile/pull/14656))
