@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
+### Changed
 
 - fix(multi-srp): allow a user to select srp when creating a multichain account ([#14644](https://github.com/MetaMask/metamask-mobile/pull/14644))
 
