@@ -1,18 +1,10 @@
 diff --git a/node_modules/@metamask/controller-utils/dist/util.d.cts b/node_modules/@metamask/controller-utils/dist/util.d.cts
-index f7e651b..163b227 100644
+index f7e651b..ee30b81 100644
 --- a/node_modules/@metamask/controller-utils/dist/util.d.cts
 +++ b/node_modules/@metamask/controller-utils/dist/util.d.cts
-@@ -113,8 +113,15 @@ export declare function safelyExecuteWithTimeout<Result>(operation: () => Promis
-  *
+@@ -114,7 +114,7 @@ export declare function safelyExecuteWithTimeout<Result>(operation: () => Promis
   * @param address - The address to convert.
   * @returns The address in 0x-prefixed hexadecimal checksummed form if it is valid.
-+ *
-+ * PATCH NOTE: This patch change is meant to be temporary, so we don't require typecasting the return values for this function as Hex.
-+ * For more context on why this is necessary, check [following PR discussion](https://github.com/MetaMask/metamask-mobile/pull/13970#discussion_r2046580602).
-+ * Once the next steps are taken:
-+ * [Multichain API on Flask](https://github.com/MetaMask/metamask-extension/pull/27782)
-+ * [SIP-26 integration](https://github.com/MetaMask/metamask-extension/pull/29887)
-+ * We have an [issue](https://github.com/MetaMask/MetaMask-planning/issues/4694) in place to clean this up in controller-utils package
   */
 -export declare function toChecksumHexAddress(address: string): string;
 +export declare function toChecksumHexAddress(address: string): Hex;
