@@ -37,7 +37,7 @@ import { AccountSelectorListProps } from './AccountSelectorList.types';
 import styleSheet from './AccountSelectorList.styles';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import { Hex } from '@metamask/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const AccountSelectorList = ({
   onSelectAccount,
@@ -162,7 +162,7 @@ const AccountSelectorList = ({
               await Engine.context.KeyringController.removeAccount(address);
               // Revocation of accounts from PermissionController is needed whenever accounts are removed.
               // If there is an instance where this is not the case, this logic will need to be updated.
-              removeAccountsFromPermissions([address as Hex]);
+              removeAccountsFromPermissions([toChecksumHexAddress(address)]);
             },
           },
         ],

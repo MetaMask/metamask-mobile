@@ -40,7 +40,7 @@ import {
   getCaip25Caveat,
 } from '../../../../core/Permissions';
 import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
-import { Hex } from '@metamask/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const NetworkConnectMultiSelector = ({
   isLoading,
@@ -121,8 +121,10 @@ const NetworkConnectMultiSelector = ({
           );
         }
       }
-
-      addPermittedChains(hostname, selectedChainIds as Hex[]);
+      const hexSelectedChainIds = selectedChainIds.map((chain) =>
+        toChecksumHexAddress(chain),
+      );
+      addPermittedChains(hostname, hexSelectedChainIds);
       onUserAction(USER_INTENT.Confirm);
     }
   }, [

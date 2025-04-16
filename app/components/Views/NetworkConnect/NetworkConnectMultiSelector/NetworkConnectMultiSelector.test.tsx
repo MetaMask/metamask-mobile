@@ -11,6 +11,7 @@ import {
   selectEvmChainId,
 } from '../../../../selectors/networkController';
 import { addPermittedChains } from '../../../../core/Permissions';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -19,6 +20,13 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
   }),
 }));
+
+jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
+  toChecksumHexAddress: jest.fn(),
+}));
+
+const mockToChecksumHexAddress = toChecksumHexAddress as jest.Mock;
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -141,6 +149,7 @@ describe('NetworkConnectMultiSelector', () => {
 
   it('handles update permissions when networks are selected', async () => {
     mockAddPermittedChains.mockReturnValue(['0x1']);
+    mockToChecksumHexAddress.mockImplementation(arg => arg);
     const mockNetworkConfigurationId = Object.keys(
       mockNetworkConfigurations,
     )[0];
