@@ -70,6 +70,7 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
       {
         dapp: true,
         fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp()
           .withChainPermission([
             '0x1', // Ethereum mainnet
             CustomNetworks.Sepolia.providerConfig.chainId, // Sepolia
