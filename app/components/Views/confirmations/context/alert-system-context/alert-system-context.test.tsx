@@ -65,7 +65,7 @@ describe('AlertsContext', () => {
 
   const renderHookWithProvider = (hook: () => AlertsContextParams) =>
     renderHook(hook, {
-      wrapper: ({ children }) => (
+      wrapper: ({ children }: { children: React.ReactNode }) => (
         <AlertsContextProvider alerts={alertsMock}>
           {children}
         </AlertsContextProvider>
@@ -111,7 +111,7 @@ describe('AlertsContext', () => {
 
     it('context value is correct when there are no alerts', () => {
       const { result } = renderHook(() => useAlerts(), {
-        wrapper: ({ children }) => (
+        wrapper: ({ children }: { children: React.ReactNode }) => (
           <AlertsContextProvider alerts={[]}>{children}</AlertsContextProvider>
         ),
       });

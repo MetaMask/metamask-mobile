@@ -25,13 +25,16 @@ import {
 } from './types';
 import { debounce } from 'lodash';
 import { strings } from '../../../../locales/i18n';
-import { selectBrowserBookmarksWithType, selectBrowserHistoryWithType } from '../../../selectors/browser';
+import {
+  selectBrowserBookmarksWithType,
+  selectBrowserHistoryWithType,
+} from '../../../selectors/browser';
 import { MAX_RECENTS, ORDERED_CATEGORIES } from './UrlAutocomplete.constants';
 import { Result } from './Result';
 
 export * from './types';
 
-const dappsWithType = dappUrlList.map(i => ({...i, type: 'sites'}));
+const dappsWithType = dappUrlList.map((i) => ({ ...i, type: 'sites' }));
 
 /**
  * Autocomplete list that appears when the browser url bar is focused
@@ -40,7 +43,9 @@ const UrlAutocomplete = forwardRef<
   UrlAutocompleteRef,
   UrlAutocompleteComponentProps
 >(({ onSelect, onDismiss }, ref) => {
-  const [resultsByCategory, setResultsByCategory] = useState<{category: string, data: FuseSearchResult[]}[]>([]);
+  const [resultsByCategory, setResultsByCategory] = useState<
+    { category: string; data: FuseSearchResult[] }[]
+  >([]);
   const hasResults = resultsByCategory.length > 0;
 
   const browserHistory = useSelector(selectBrowserHistoryWithType);
@@ -58,9 +63,13 @@ const UrlAutocomplete = forwardRef<
 
   const updateResults = useCallback((results: FuseSearchResult[]) => {
     const newResultsByCategory = ORDERED_CATEGORIES.flatMap((category) => {
-      let data = results.filter((result, index, self) =>
-        result.type === category &&
-        index === self.findIndex(r => r.url === result.url && r.type === result.type)
+      let data = results.filter(
+        (result, index, self) =>
+          result.type === category &&
+          index ===
+            self.findIndex(
+              (r) => r.url === result.url && r.type === result.type,
+            ),
       );
       if (data.length === 0) {
         return [];
@@ -78,22 +87,22 @@ const UrlAutocomplete = forwardRef<
   }, []);
 
   const latestSearchTerm = useRef<string | null>(null);
-  const search = useCallback((text: string) => {
-    latestSearchTerm.current = text;
-    if (!text) {
-      updateResults([
-        ...browserHistory,
-        ...bookmarks,
-      ]);
-      return;
-    }
-    const fuseSearchResult = fuseRef.current?.search(text);
-    if (Array.isArray(fuseSearchResult)) {
-      updateResults([...fuseSearchResult]);
-    } else {
-      updateResults([]);
-    }
-  }, [updateResults, browserHistory, bookmarks]);
+  const search = useCallback(
+    (text: string) => {
+      latestSearchTerm.current = text;
+      if (!text) {
+        updateResults([...browserHistory, ...bookmarks]);
+        return;
+      }
+      const fuseSearchResult = fuseRef.current?.search(text);
+      if (Array.isArray(fuseSearchResult)) {
+        updateResults([...fuseSearchResult]);
+      } else {
+        updateResults([]);
+      }
+    },
+    [updateResults, browserHistory, bookmarks],
+  );
 
   /**
    * Debounce the search function
@@ -148,24 +157,33 @@ const UrlAutocomplete = forwardRef<
     }
   }, [browserHistory, bookmarks, search]);
 
-  const renderSectionHeader = useCallback(({section: {category}}) => (
-    <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
-  ), [styles]);
+  const renderSectionHeader = useCallback(
+    ({ section: { category } }: { section: { category: string } }) => (
+      <Text style={styles.category}>{strings(`autocomplete.${category}`)}</Text>
+    ),
+    [styles],
+  );
 
-  const renderItem = useCallback(({item}) => (
-    <Result
-      result={item}
-      onPress={() => {
-        hide();
-        onSelect(item.url);
-      }}
-    />
-  ), [hide, onSelect]);
+  const renderItem = useCallback(
+    ({ item }: { item: FuseSearchResult }) => (
+      <Result
+        result={item}
+        onPress={() => {
+          hide();
+          onSelect(item.url);
+        }}
+      />
+    ),
+    [hide, onSelect],
+  );
 
   if (!hasResults) {
     return (
       <View ref={resultsRef} style={styles.wrapper}>
-        <TouchableWithoutFeedback style={styles.bg} onPress={dismissAutocomplete}>
+        <TouchableWithoutFeedback
+          style={styles.bg}
+          onPress={dismissAutocomplete}
+        >
           <View style={styles.bg} />
         </TouchableWithoutFeedback>
       </View>
@@ -181,7 +199,7 @@ const UrlAutocomplete = forwardRef<
         renderSectionHeader={renderSectionHeader}
         renderItem={renderItem}
         keyboardShouldPersistTaps="handled"
-    />
+      />
     </View>
   );
 });

@@ -45,7 +45,7 @@ const TurnOffRememberMeModal = () => {
   );
 
   const debouncedIsValidPassword = useCallback(
-    async (text) => setDisableButton(!(await isValidPassword(text))),
+    async (text: string) => setDisableButton(!(await isValidPassword(text))),
     [isValidPassword],
   );
 

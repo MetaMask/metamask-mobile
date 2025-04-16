@@ -358,7 +358,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   }, [internalAccounts, selectedAddresses]);
 
   const cancelPermissionRequest = useCallback(
-    (requestId) => {
+    (requestId: string) => {
       DevLogger.log(
         `AccountConnect::cancelPermissionRequest requestId=${requestId} channelIdOrHostname=${channelIdOrHostname} accountsLength=${accountsLength}`,
       );

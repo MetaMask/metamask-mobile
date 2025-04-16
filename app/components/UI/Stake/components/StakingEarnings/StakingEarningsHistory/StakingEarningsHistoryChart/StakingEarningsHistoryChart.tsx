@@ -251,7 +251,7 @@ export function StakingEarningsHistoryChart({
             <Grid
               svg={{ stroke: 'transparent' }} // remove grid lines
             />
-            <Defs testID="earning-history-chart-gradient">
+            <Defs>
               <LinearGradient
                 id={barGradientId}
                 x1="0%"

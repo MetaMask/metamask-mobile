@@ -227,14 +227,17 @@ const NetworkSelector = () => {
         networkConfiguration.rpcEndpoints.length > 1,
     );
 
-  const openRpcModal = useCallback(({ chainId, networkName }) => {
-    setShowMultiRpcSelectModal({
-      isVisible: true,
-      chainId,
-      networkName,
-    });
-    rpcMenuSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  const openRpcModal = useCallback(
+    ({ chainId, networkName }: { chainId: Hex; networkName: string }) => {
+      setShowMultiRpcSelectModal({
+        isVisible: true,
+        chainId,
+        networkName,
+      });
+      rpcMenuSheetRef.current?.onOpenBottomSheet();
+    },
+    [],
+  );
 
   const closeRpcModal = useCallback(() => {
     setShowMultiRpcSelectModal({
@@ -246,7 +249,12 @@ const NetworkSelector = () => {
   }, []);
 
   const openModal = useCallback(
-    (chainId, displayEdit, networkTypeOrRpcUrl, isReadOnly) => {
+    (
+      chainId: Hex,
+      displayEdit: boolean,
+      networkTypeOrRpcUrl: string,
+      isReadOnly: boolean,
+    ) => {
       setNetworkMenuModal({
         isVisible: true,
         chainId,

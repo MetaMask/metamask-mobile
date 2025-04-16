@@ -11,7 +11,10 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { OutlinedTextField } from 'react-native-material-textfield';
+import {
+  OutlinedTextField,
+  TextFieldProps,
+} from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
@@ -137,7 +140,7 @@ const DeleteWalletModal = () => {
                 })}
               </Text>
               <OutlinedTextField
-                style={styles.input}
+                style={styles.input as TextFieldProps}
                 {...generateTestId(
                   Platform,
                   DeleteWalletModalSelectorsIDs.INPUT,

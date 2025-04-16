@@ -30,7 +30,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
     cellAccountContainerStyle = {},
     ...props
   },
-  ref,
+  ref: React.Ref<View>,
 ) => {
   const { styles } = useStyles(styleSheet, {
     style,
