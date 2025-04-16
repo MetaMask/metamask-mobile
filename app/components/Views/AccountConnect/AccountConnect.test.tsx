@@ -79,6 +79,24 @@ jest.mock('../../../core/Engine', () => {
           if (url === 'phishing.com') return { result: true };
           return { result: false };
         }),
+        scanUrl: jest.fn(async (url: string) => {
+          if (url.includes('phishing')) {
+            return {
+              recommendedAction: 'BLOCK',
+              domainName: url,
+              mainDomain: url,
+              subDomain: '',
+              scanTime: Date.now(),
+            };
+          }
+          return {
+            recommendedAction: 'NONE',
+            domainName: url,
+            mainDomain: url,
+            subDomain: '',
+            scanTime: Date.now(),
+          };
+        }),
       },
       PermissionController: {
         rejectPermissionsRequest: jest.fn(),
@@ -278,6 +296,69 @@ describe('AccountConnect', () => {
       expect(
         await findByTestId('permission-summary-container'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Phishing detection', () => {
+    it('should show phishing modal for phishing URLs', async () => {
+      const { findByText } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'phishing-site.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      // Wait for the phishing modal to appear
+      const warningText = await findByText(
+        `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
+      );
+      expect(warningText).toBeTruthy();
+    });
+
+    it('should not show phishing modal for safe URLs', async () => {
+      const { queryByText } = renderWithProvider(
+        <AccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'safe-site.com',
+                },
+                permissions: {
+                  eth_accounts: {
+                    parentCapability: 'eth_accounts',
+                  },
+                },
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state: mockInitialState },
+      );
+
+      // We should not find the phishing modal text for safe URLs
+      // Add a small delay to allow any async operations to complete
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const warningText = queryByText('Deceptive site ahead');
+      expect(warningText).toBeFalsy();
     });
   });
 
