@@ -589,7 +589,7 @@ workflows:
                 echo "Waiting 25 seconds for workflow to start..."
                 sleep 25
 
-                # Check completion status every 15 seconds for up to 1.25 minutes
+                # Check completion status every 20 seconds
                 for i in {1..5}; do
                   echo "Checking workflow status (Attempt $i of 5)..."
                   
@@ -603,22 +603,19 @@ workflows:
                   TOTAL_COUNT=$(echo "$RESPONSE" | jq -r '.total_count')
                   
                   if [ "$TOTAL_COUNT" = "0" ]; then
-                    echo "No pending workflow..."
-                    echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
+                    echo "Workflow finished result: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                     exit 0
                   else
                     # Get the status and conclusion of the most recent run
                     STATUS=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].status')
-                    CONCLUSION=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].conclusion')
                     
                     echo "Current status: $STATUS"
-                    echo "Current conclusion: $CONCLUSION"
                     echo "Workflow is still in progress (status: $STATUS)..."
-                    sleep 15
+                    sleep 20
                   fi
                 done
 
-                echo "Timeout: Workflow did not complete within 1.25 minutes"
+                echo "Timeout: Workflow did not complete within 100 seconds"
                 echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                 exit 1
     meta:
