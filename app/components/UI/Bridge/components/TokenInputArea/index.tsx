@@ -23,6 +23,13 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 
 const createStyles = () =>
@@ -157,6 +164,16 @@ export const TokenInputArea = forwardRef<
     }));
 
     const { styles } = useStyles(createStyles, {});
+    const navigation = useNavigation();
+
+    const navigateToDestNetworkSelector = () => {
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+        params: {
+          shouldGoToTokens: true,
+        } as BridgeDestNetworkSelectorRouteParams,
+      });
+    };
 
     // Data for fiat value calculation
     const currentCurrency = useSelector(selectCurrentCurrency);
@@ -217,21 +234,29 @@ export const TokenInputArea = forwardRef<
                 />
               )}
             </Box>
-            <TokenButton
-              symbol={token?.symbol}
-              iconUrl={token?.image}
-              networkImageSource={networkImageSource}
-              networkName={networkName}
-              testID={testID}
-              onPress={onTokenPress}
-            />
+            {token ? (
+              <TokenButton
+                symbol={token?.symbol}
+                iconUrl={token?.image}
+                networkImageSource={networkImageSource}
+                networkName={networkName}
+                testID={testID}
+                onPress={onTokenPress}
+              />
+            ) : (
+              <Button
+                variant={ButtonVariants.Primary}
+                label={strings('bridge.bridge_to')}
+                onPress={navigateToDestNetworkSelector}
+              />
+            )}
           </Box>
           <Box style={styles.row}>
             {isLoading ? (
               <Skeleton width={100} height={10} />
             ) : (
               <>
-                {fiatValue ? (
+                {token && fiatValue ? (
                   <Text color={TextColor.Alternative}>{fiatValue}</Text>
                 ) : null}
                 {subtitle ? (

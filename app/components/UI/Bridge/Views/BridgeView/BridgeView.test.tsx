@@ -1,25 +1,14 @@
-import {
-  renderScreen,
-  DeepPartial,
-} from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { RootState } from '../../../../../reducers';
+import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
-  BridgeState,
   setDestToken,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import {
-  BridgeFeatureFlagsKey,
-  formatChainIdToCaip,
-  RequestStatus,
-} from '@metamask/bridge-controller';
-import { ethers } from 'ethers';
 import BridgeView from '.';
 import { createBridgeTestState } from '../../testUtils';
+import { initialState } from '../../_mocks_/initialState';
 
 // TODO remove this mock once we have a real implementation
 jest.mock('../../../../../selectors/confirmTransaction');
@@ -55,21 +44,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
 //   }),
 // }));
 
-const mockInitialState: DeepPartial<RootState> = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
-  },
-  bridge: {
-    sourceAmount: undefined,
-    destAmount: undefined,
-    sourceToken: undefined,
-    destToken: undefined,
-    selectedSourceChainIds: undefined,
-  },
-};
-
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -98,316 +72,9 @@ jest.mock('../../hooks/useLatestBalance', () => ({
 }));
 
 describe('BridgeView', () => {
-  const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
-  const token1Address = '0x0000000000000000000000000000000000000001' as Hex;
   const token2Address = '0x0000000000000000000000000000000000000002' as Hex;
-  const token3Address = '0x0000000000000000000000000000000000000003' as Hex;
-
-  const initialState = {
-    engine: {
-      backgroundState: {
-        BridgeController: {
-          bridgeFeatureFlags: {
-            [BridgeFeatureFlagsKey.MOBILE_CONFIG]: {
-              chains: {
-                [formatChainIdToCaip(mockChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-                [formatChainIdToCaip(optimismChainId)]: {
-                  isActiveSrc: true,
-                  isActiveDest: true,
-                },
-              },
-            },
-          },
-          quoteRequest: {
-            insufficientBal: false,
-          },
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotesLastFetched: null,
-          quotes: [],
-          quotesRefreshCount: 0,
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            [mockAddress]: {
-              [mockChainId]: {
-                [token1Address]: '0x0de0b6b3a7640000' as Hex, // 1 TOKEN1
-                [token2Address]: '0x1bc16d674ec80000' as Hex, // 2 TOKEN2
-              },
-              [optimismChainId]: {
-                [token3Address]: '0x29a2241af62c0000' as Hex, // 3 TOKEN3
-              },
-            },
-          },
-        },
-        TokensController: {
-          allTokens: {
-            [mockChainId]: {
-              [mockAddress]: [
-                {
-                  address: token1Address,
-                  symbol: 'TOKEN1',
-                  decimals: 18,
-                  image: 'https://token1.com/logo.png',
-                  name: 'Token One',
-                  aggregators: ['1inch'],
-                },
-                {
-                  address: token2Address,
-                  symbol: 'TOKEN2',
-                  decimals: 18,
-                  image: 'https://token2.com/logo.png',
-                  name: 'Token Two',
-                  aggregators: ['uniswap'],
-                },
-              ],
-            },
-            [optimismChainId]: {
-              [mockAddress]: [
-                {
-                  address: token3Address,
-                  symbol: 'TOKEN3',
-                  decimals: 18,
-                  image: 'https://token3.com/logo.png',
-                  name: 'Token Three',
-                  aggregators: ['optimism'],
-                  chainId: optimismChainId,
-                },
-              ],
-            },
-          },
-          tokens: [
-            {
-              address: token1Address,
-              symbol: 'TOKEN1',
-              decimals: 18,
-              image: 'https://token1.com/logo.png',
-              name: 'Token One',
-              aggregators: ['1inch'],
-              chainId: mockChainId,
-            },
-            {
-              address: token2Address,
-              symbol: 'TOKEN2',
-              decimals: 18,
-              image: 'https://token2.com/logo.png',
-              name: 'Token Two',
-              aggregators: ['uniswap'],
-              chainId: mockChainId,
-            },
-            {
-              address: token3Address,
-              symbol: 'TOKEN3',
-              decimals: 18,
-              image: 'https://token3.com/logo.png',
-              name: 'Token Three',
-              aggregators: ['optimism'],
-              chainId: optimismChainId,
-            },
-          ],
-        },
-        NetworkController: {
-          selectedNetworkClientId: 'selectedNetworkClientId',
-          networksMetadata: {
-            mainnet: {
-              EIPS: {
-                1559: true,
-              },
-            },
-            selectedNetworkClientId: {
-              EIPS: {
-                1559: true,
-              },
-            },
-            '0xa': {
-              EIPS: {
-                1559: true,
-              },
-            },
-          },
-          networkConfigurationsByChainId: {
-            [mockChainId]: {
-              chainId: mockChainId,
-              rpcEndpoints: [
-                {
-                  networkClientId: 'selectedNetworkClientId',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-              nativeCurrency: 'ETH',
-              ticker: 'ETH',
-              nickname: 'Ethereum Mainnet',
-              name: 'Ethereum Mainnet',
-            },
-            [optimismChainId]: {
-              chainId: optimismChainId,
-              rpcEndpoints: [
-                {
-                  networkClientId: 'optimismNetworkClientId',
-                },
-              ],
-              defaultRpcEndpointIndex: 0,
-              nativeCurrency: 'ETH',
-              ticker: 'ETH',
-              nickname: 'Optimism',
-              name: 'Optimism',
-            },
-          },
-          providerConfig: {
-            chainId: mockChainId,
-            ticker: 'ETH',
-            type: 'infura',
-          },
-        },
-        AccountTrackerController: {
-          accounts: {
-            [mockAddress]: {
-              balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-            },
-          },
-          accountsByChainId: {
-            [mockChainId]: {
-              [mockAddress]: {
-                balance: '0x29a2241af62c0000' as Hex, // 3 ETH
-              },
-            },
-            [optimismChainId]: {
-              [mockAddress]: {
-                balance: '0x1158e460913d00000' as Hex, // 20 ETH on Optimism
-              },
-            },
-          },
-        },
-        MultichainNetworkController: {
-          isEvmSelected: true,
-          selectedMultichainNetworkChainId: undefined,
-          multichainNetworkConfigurationsByChainId: {},
-        },
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'account1',
-            accounts: {
-              account1: {
-                id: 'account1',
-                address: mockAddress,
-                name: 'Account 1',
-              },
-            },
-          },
-        },
-        CurrencyRateController: {
-          currentCurrency: 'USD',
-          currencyRates: {
-            ETH: {
-              conversionRate: 2000, // 1 ETH = $2000
-            },
-          },
-          conversionRate: 2000,
-        },
-        TokenRatesController: {
-          marketData: {
-            [mockChainId]: {
-              [ethers.constants.AddressZero as Hex]: {
-                tokenAddress: ethers.constants.AddressZero as Hex,
-                currency: 'ETH',
-                price: 1, // 1 ETH = 1 ETH
-              },
-              [token1Address]: {
-                tokenAddress: token1Address,
-                currency: 'ETH',
-                price: 10, // 1 TOKEN1 = 10 ETH
-              },
-              [token2Address]: {
-                tokenAddress: token2Address,
-                currency: 'ETH',
-                price: 5, // 1 TOKEN2 = 5 ETH
-              },
-            },
-            [optimismChainId]: {
-              [token3Address]: {
-                tokenAddress: token3Address,
-                currency: 'ETH',
-                price: 8, // 1 TOKEN3 = 8 ETH on Optimism
-              },
-            },
-          },
-        },
-        PreferencesController: {
-          tokenSortConfig: {
-            key: 'tokenFiatAmount',
-            order: 'dsc' as const,
-          },
-          ipfsGateway: 'https://dweb.link/ipfs/',
-        },
-        TokenListController: {
-          tokenList: {
-            [token3Address]: {
-              name: 'Token Three',
-              symbol: 'TOKEN3',
-              decimals: 18,
-              address: token3Address,
-              iconUrl: 'https://token3.com/logo.png',
-              occurrences: 1,
-              aggregators: [],
-            },
-          },
-          tokensChainsCache: {
-            [mockChainId]: {
-              timestamp: Date.now(),
-              data: {
-                [token3Address]: {
-                  name: 'Token Three',
-                  symbol: 'TOKEN3',
-                  decimals: 18,
-                  address: token3Address,
-                  iconUrl: 'https://token3.com/logo.png',
-                  occurrences: 1,
-                  aggregators: [],
-                },
-              },
-            },
-            [optimismChainId]: {
-              timestamp: Date.now(),
-              data: {
-                [token3Address]: {
-                  name: 'Token Three',
-                  symbol: 'TOKEN3',
-                  decimals: 18,
-                  address: token3Address,
-                  iconUrl: 'https://token3.com/logo.png',
-                  occurrences: 1,
-                  aggregators: ['optimism'],
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    settings: {
-      basicFunctionalityEnabled: true,
-    },
-    bridge: {
-      sourceToken: {
-        symbol: 'ETH',
-        decimals: 18,
-        address: '0x0000000000000000000000000000000000000000',
-        image: 'https://example.com/image.png',
-        chainId: '0x1' as Hex,
-      },
-      destToken: undefined,
-      sourceAmount: undefined,
-      destAmount: undefined,
-      destAddress: undefined,
-      selectedDestChainId: undefined,
-      selectedSourceChainIds: [mockChainId, optimismChainId],
-      slippage: '0.5',
-    } as BridgeState,
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -419,7 +86,7 @@ describe('BridgeView', () => {
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: mockInitialState },
+      { state: initialState },
     );
     expect(getByText('Select amount')).toBeDefined();
   });
@@ -445,8 +112,8 @@ describe('BridgeView', () => {
     });
   });
 
-  it('should open BridgeTokenSelector when clicking destination token area', async () => {
-    const { getByTestId } = renderScreen(
+  it('should open BridgeDestNetworkSelector when clicking destination token area', async () => {
+    const { getByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -455,19 +122,21 @@ describe('BridgeView', () => {
     );
 
     // Find and click the destination token area
-    const destTokenArea = getByTestId('dest-token-area');
+    const destTokenArea = getByText('Bridge to');
     expect(destTokenArea).toBeTruthy();
 
     fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {},
+      screen: Routes.BRIDGE.MODALS.DEST_NETWORK_SELECTOR,
+      params: {
+        shouldGoToTokens: true,
+      },
     });
   });
 
-  it('should update source token amount when typing', () => {
+  it('should update source token amount when typing', async () => {
     const { getByTestId, getByText } = renderScreen(
       BridgeView,
       {
@@ -483,7 +152,9 @@ describe('BridgeView', () => {
 
     // Verify the input value is updated
     const input = getByTestId('source-token-area-input');
-    expect(input.props.value).toBe('9.5');
+    await waitFor(() => {
+      expect(input.props.value).toBe('9.5');
+    });
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19000')).toBeTruthy();
@@ -529,20 +200,14 @@ describe('BridgeView', () => {
         ...initialState.bridge,
         sourceToken: {
           address: '0x0000000000000000000000000000000000000000',
-          aggregators: [],
-          balance: '0.31281',
-          balanceFiat: '930.56676 cad',
           chainId: '0x1' as Hex,
           decimals: 18,
           image: '',
-          name: 'Ethereum',
+          name: 'Ether',
           symbol: 'ETH',
         },
         destToken: {
           address: token2Address,
-          aggregators: [],
-          balance: '7.75388',
-          balanceFiat: '11.07915 cad',
           chainId: '0x1' as Hex,
           decimals: 6,
           image:

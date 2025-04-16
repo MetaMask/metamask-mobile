@@ -1,6 +1,7 @@
 import { defaultBridgeControllerState } from './bridgeControllerState';
 import { CaipAssetId, Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { ethers } from 'ethers';
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
@@ -101,7 +102,7 @@ export const initialState = {
         ],
       },
       NetworkController: {
-        selectedNetworkClientId: 'selectedNetworkClientId',
+        selectedNetworkClientId: 'mainnet',
         networksMetadata: {
           mainnet: {
             EIPS: {
@@ -124,7 +125,7 @@ export const initialState = {
             chainId: ethChainId,
             rpcEndpoints: [
               {
-                networkClientId: 'selectedNetworkClientId',
+                networkClientId: 'mainnet',
               },
             ],
             defaultRpcEndpointIndex: 0,
@@ -272,6 +273,11 @@ export const initialState = {
       TokenRatesController: {
         marketData: {
           [ethChainId]: {
+            [ethers.constants.AddressZero as Hex]: {
+              tokenAddress: ethers.constants.AddressZero as Hex,
+              currency: 'ETH',
+              price: 1, // 1 ETH = 1 ETH
+            },
             [ethToken1Address]: {
               tokenAddress: ethToken1Address,
               currency: 'ETH',
@@ -374,6 +380,19 @@ export const initialState = {
           },
         },
       },
+      KeyringController: {
+        keyrings: [
+          {
+            accounts: [evmAccountAddress],
+            type: 'HD Key Tree',
+          },
+          { accounts: [], type: 'QR Hardware Wallet Device' },
+          {
+            accounts: [solanaAccountAddress],
+            type: 'Snap Keyring',
+          },
+        ],
+      },
     },
   },
   bridge: {
@@ -383,6 +402,7 @@ export const initialState = {
     sourceToken: undefined,
     destToken: undefined,
     selectedSourceChainIds: undefined,
+    selectedDestChainId: undefined,
     slippage: '0.5',
   },
 };

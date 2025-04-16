@@ -27,6 +27,11 @@
     "domain_mismatch": {
       "title": "Suspicious sign-in request",
       "message": "The site making the request is not the site you’re signing into. This could be an attempt to steal your login credentials."
+    },
+    "insufficient_balance": {
+      "title": "Insufficient funds",
+      "message": "You do not have enough %{nativeCurrency} in your account to pay for network fees.",
+      "buy_action": "Buy %{nativeCurrency}"
     }
   },
   "blockaid_banner": {
@@ -1117,6 +1122,11 @@
     "snaps": {
       "title": "Snaps",
       "description": "Overview and manage your snaps",
+      "snap_ui": {
+        "link": {
+          "accessibilityHint": "Opens in a new tab"
+        }
+      },
       "snap_settings": {
         "remove_snap_section_title": "Remove Snap",
         "remove_snap_section_description": "This action will delete the snap, its data, and its granted permissions.",
@@ -2840,6 +2850,7 @@
     }
   },
   "swaps": {
+    "title": "Swap",
     "onboarding": {
       "get_the": "Get the",
       "best_price": "best price",
@@ -3781,19 +3792,22 @@
       "permit": "Spending cap request",
       "permit_revoke": "Remove permission",
       "permit_NFTs": "Withdrawal request",
-      "signature_siwe": "Sign-in request"
+      "signature_siwe": "Sign-in request",
+      "contract_interaction": "Transaction request"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
       "permit_NFTs": "This site wants permission to withdraw your NFTs.",
       "signature": "Review request details before you confirm.",
-      "signature_siwe": "A site wants you to sign in to prove you own this account."
+      "signature_siwe": "A site wants you to sign in to prove you own this account.",
+      "contract_interaction": "Review request details before you confirm."
     },
     "request_from": "Request from",
     "staking_from": "Staking from",
     "signing_in_with": "Signing in with",
     "message": "Message",
     "personal_sign_tooltip": "This site is asking for your signature",
+    "transaction_tooltip": "This site is asking for your transaction",
     "details": "Details",
     "qr_get_sign": "Get Signature",
     "qr_scan_text": "Scan with your hardware wallet",
@@ -3873,6 +3887,8 @@
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
-    "select_amount": "Select amount"
+    "select_amount": "Select amount",
+    "bridge_to": "Bridge to",
+    "title": "Bridge"
   }
 }
