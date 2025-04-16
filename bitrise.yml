@@ -614,6 +614,7 @@ workflows:
                     echo "Current status: $STATUS"
                     echo "Current conclusion: $CONCLUSION"
                     echo "Workflow is still in progress (status: $STATUS)..."
+                    sleep 15
                   fi
                 done
 
