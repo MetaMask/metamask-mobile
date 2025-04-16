@@ -173,6 +173,7 @@ const Routes = {
   },
   ///: END:ONLY_INCLUDE_IF
   FOX_LOADER: 'FoxLoader',
+  SEEDPHRASE_MODAL: 'SeedphraseModal',
 };
 
 export default Routes;

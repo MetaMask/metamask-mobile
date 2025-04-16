@@ -207,12 +207,18 @@ const OnboardingSuccessFlow = () => (
     />
   </Stack.Navigator>
 );
+
 /**
  * Stack navigator responsible for the onboarding process
  * Create Wallet and Import from Secret Recovery Phrase
  */
 const OnboardingNav = () => (
-  <Stack.Navigator initialRouteName="OnboardingCarousel">
+  <Stack.Navigator
+    initialRouteName="OnboardingCarousel"
+    screenOptions={{
+      headerTransparent: true,
+    }}
+  >
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />

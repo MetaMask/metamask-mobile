@@ -725,7 +725,11 @@ const Bridge = () => (
 );
 
 const SetPasswordFlow = () => (
-  <Stack.Navigator>
+  <Stack.Navigator
+    screenOptions={{
+      headerTransparent: true,
+    }}
+  >
     <Stack.Screen
       name="ChoosePassword"
       component={ChoosePassword}

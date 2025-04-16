@@ -11,7 +11,6 @@ import {
   Linking,
   TouchableOpacity,
   Image,
-  Text as RNText,
 } from 'react-native';
 import Button, {
   ButtonSize,
@@ -30,7 +29,6 @@ import {
   getOnboardingNavbarOptions,
   getTransparentOnboardingNavbarOptions,
 } from '../../UI/Navbar';
-// import HintModal from '../../UI/HintModal';
 import { useTheme } from '../../../util/theme';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
@@ -40,7 +38,6 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import AppConstants from '../../../core/AppConstants';
-import Emoji from 'react-native-emoji';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import createStyles from './index.styles';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
@@ -174,45 +171,42 @@ const OnboardingSuccess = ({
     fetchHintFromStorage();
   }, [showHint]);
 
-  // const toggleHint = () => {
-  //   setShowHint((hintVisible) => !hintVisible);
-  // };
-
-  // const renderHint = () => (
-  //   <HintModal
-  //     onConfirm={saveHint}
-  //     onCancel={toggleHint}
-  //     modalVisible={showHint}
-  //     onRequestClose={Keyboard.dismiss}
-  //     value={hintText}
-  //     onChangeText={setHintText}
-  //   />
-  // );
-
   const renderContent = () => {
     if (backedUpSRP && !params?.params?.showRecoveryHint) {
       return (
         <>
-          <Emoji name="tada" style={styles.emoji} />
-          <Text style={styles.title}>
+          <Text variant={TextVariant.DisplayMD}>
             {strings('onboarding_success.title')}
           </Text>
+          <Image
+            source={wallet_ready_image}
+            resizeMethod={'auto'}
+            style={styles.walletReadyImage}
+          />
           <View style={styles.descriptionWrapper}>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('onboarding_success.description')}
-              <Text style={styles.descriptionBold}>
+              <Text variant={TextVariant.BodyMDMedium}>
                 {strings('onboarding_success.description_bold')}
                 {'\n'}
                 {'\n'}
               </Text>
-              <Text color={TextColor.Info} onPress={() => setShowHint(true)}>
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Info}
+                onPress={() => setShowHint(true)}
+              >
                 {strings('onboarding_success.leave_hint')}
                 {'\n'}
                 {'\n'}
               </Text>
-              <Text style={styles.description}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
                 {strings('onboarding_success.description_continued')}
-                <Text color={TextColor.Info} onPress={handleLink}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Info}
+                  onPress={handleLink}
+                >
                   {' '}
                   {strings('onboarding_success.learn_more')}
                 </Text>
@@ -224,18 +218,22 @@ const OnboardingSuccess = ({
     } else if (noSRP && !params?.params?.showRecoveryHint) {
       return (
         <>
-          <RNText style={styles.emoji}>🔓</RNText>
-          <Text style={styles.title}>
-            {strings('onboarding_success.no_srp_title')}
+          <Text variant={TextVariant.DisplayMD}>
+            {strings('onboarding_success.remind_later')}
           </Text>
+          <Image
+            source={wallet_ready_image}
+            resizeMethod={'auto'}
+            style={styles.walletReadyImage}
+          />
           <View style={styles.descriptionWrapper}>
-            <Text style={styles.description}>
-              {strings('onboarding_success.no_srp_description')}
-              <Text style={styles.descriptionBold}>
-                {' '}
-                {strings('onboarding_success.description_bold')}
-                {'\n'}
-                {'\n'}
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('onboarding_success.remind_later_description')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('onboarding_success.remind_later_description2')}
+              <Text variant={TextVariant.BodyMDMedium} onPress={handleLink}>
+                {' ' + strings('onboarding_success.setting_security_privacy')}
               </Text>
             </Text>
           </View>
@@ -283,7 +281,10 @@ const OnboardingSuccess = ({
                 color={IconColor.Default}
               />
               <View style={styles.hintTextWrapper}>
-                <Text color={TextColor.Default}>
+                <Text
+                  color={TextColor.Default}
+                  variant={TextVariant.BodyMDMedium}
+                >
                   {strings('onboarding_success.create_hint')}
                 </Text>
                 {savedHint && (
@@ -315,7 +316,7 @@ const OnboardingSuccess = ({
               size={IconSize.Lg}
               color={IconColor.Default}
             />
-            <Text color={TextColor.Default}>
+            <Text color={TextColor.Default} variant={TextVariant.BodyMDMedium}>
               {strings('onboarding_success.manage_default_settings')}
             </Text>
           </View>
@@ -329,9 +330,16 @@ const OnboardingSuccess = ({
     </View>
   );
 
+  const marginTop = params?.params?.showRecoveryHint ? 80 : noSRP ? 100 : 0;
+
   return (
     <ScrollView
-      contentContainerStyle={styles.root}
+      contentContainerStyle={[
+        styles.root,
+        {
+          marginTop,
+        },
+      ]}
       testID={OnboardingSuccessSelectorIDs.CONTAINER_ID}
     >
       {!showHint ? (

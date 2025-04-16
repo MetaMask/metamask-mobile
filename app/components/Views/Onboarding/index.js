@@ -63,6 +63,7 @@ const createStyles = (colors) =>
   StyleSheet.create({
     scroll: {
       flex: 1,
+      marginTop: 100,
     },
     wrapper: {
       flex: 1,
@@ -118,6 +119,7 @@ const createStyles = (colors) =>
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 16,
+      marginBottom: 16,
     },
     buttonWrapper: {
       flexDirection: 'column',
@@ -169,7 +171,6 @@ const createStyles = (colors) =>
       rowGap: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: -24,
     },
     socialBtn: {
       borderColor: colors.border.muted,
@@ -331,6 +332,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressCreate = () => {
+    this.setState({ bottomSheetVisible: false });
     const action = () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {
@@ -354,6 +356,7 @@ class Onboarding extends PureComponent {
   };
 
   onPressImport = () => {
+    this.setState({ bottomSheetVisible: false });
     const action = async () => {
       const { metrics } = this.props;
       if (metrics.isEnabled()) {
@@ -454,6 +457,82 @@ class Onboarding extends PureComponent {
             size={ButtonSize.Lg}
           />
         </View>
+      </View>
+    );
+  }
+
+  handleSimpleNotification = () => {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    if (!this.props.route.params?.delete) return;
+    return (
+      <Animated.View
+        style={[
+          styles.notificationContainer,
+          { transform: [{ translateY: this.notificationAnimated }] },
+        ]}
+      >
+        <ElevatedView style={styles.modalTypeView} elevation={100}>
+          <BaseNotification
+            closeButtonDisabled
+            status="success"
+            data={{
+              title: strings('onboarding.success'),
+              description: strings('onboarding.your_wallet'),
+            }}
+          />
+        </ElevatedView>
+      </Animated.View>
+    );
+  };
+
+  render() {
+    const { loading } = this.props;
+    const { existingUser } = this.state;
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View
+        style={baseStyles.flexGrow}
+        testID={OnboardingSelectorIDs.CONTAINER_ID}
+      >
+        <ScrollView
+          style={baseStyles.flexGrow}
+          contentContainerStyle={styles.scroll}
+        >
+          <View style={styles.wrapper}>
+            {loading && (
+              <View style={styles.foxWrapper}>
+                <Image
+                  source={require('../../../images/branding/fox.png')}
+                  style={styles.image}
+                  resizeMethod={'auto'}
+                />
+              </View>
+            )}
+            {loading ? this.renderLoader() : this.renderContent()}
+          </View>
+          {/* {existingUser && !loading && (
+            <View style={styles.footer}>
+              <ButtonRN style={styles.login} onPress={this.onLogin}>
+                {strings('onboarding.unlock')}
+              </ButtonRN>
+            </View>
+          )} */}
+        </ScrollView>
+
+        <FadeOutOverlay />
+
+        <View>{this.handleSimpleNotification()}</View>
+
+        <WarningExistingUserModal
+          warningModalVisible={this.state.warningModalVisible}
+          onCancelPress={this.warningCallback}
+          onRequestClose={this.toggleWarningModal}
+          onConfirmPress={this.toggleWarningModal}
+        />
 
         {this.state.bottomSheetVisible && (
           <BottomSheet
@@ -553,82 +632,6 @@ class Onboarding extends PureComponent {
             </View>
           </BottomSheet>
         )}
-      </View>
-    );
-  }
-
-  handleSimpleNotification = () => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    if (!this.props.route.params?.delete) return;
-    return (
-      <Animated.View
-        style={[
-          styles.notificationContainer,
-          { transform: [{ translateY: this.notificationAnimated }] },
-        ]}
-      >
-        <ElevatedView style={styles.modalTypeView} elevation={100}>
-          <BaseNotification
-            closeButtonDisabled
-            status="success"
-            data={{
-              title: strings('onboarding.success'),
-              description: strings('onboarding.your_wallet'),
-            }}
-          />
-        </ElevatedView>
-      </Animated.View>
-    );
-  };
-
-  render() {
-    const { loading } = this.props;
-    const { existingUser } = this.state;
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
-
-    return (
-      <View
-        style={baseStyles.flexGrow}
-        testID={OnboardingSelectorIDs.CONTAINER_ID}
-      >
-        <ScrollView
-          style={baseStyles.flexGrow}
-          contentContainerStyle={styles.scroll}
-        >
-          <View style={styles.wrapper}>
-            {loading && (
-              <View style={styles.foxWrapper}>
-                <Image
-                  source={require('../../../images/branding/fox.png')}
-                  style={styles.image}
-                  resizeMethod={'auto'}
-                />
-              </View>
-            )}
-            {loading ? this.renderLoader() : this.renderContent()}
-          </View>
-          {existingUser && !loading && (
-            <View style={styles.footer}>
-              <ButtonRN style={styles.login} onPress={this.onLogin}>
-                {strings('onboarding.unlock')}
-              </ButtonRN>
-            </View>
-          )}
-        </ScrollView>
-
-        <FadeOutOverlay />
-
-        <View>{this.handleSimpleNotification()}</View>
-
-        <WarningExistingUserModal
-          warningModalVisible={this.state.warningModalVisible}
-          onCancelPress={this.warningCallback}
-          onRequestClose={this.toggleWarningModal}
-          onConfirmPress={this.toggleWarningModal}
-        />
       </View>
     );
   }

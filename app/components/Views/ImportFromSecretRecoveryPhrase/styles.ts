@@ -10,12 +10,11 @@ const createStyles = (colors: any) =>
     root: {
       backgroundColor: colors.background.default,
       flex: 1,
-      marginVertical: 4,
     },
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
-      marginTop: 16,
+      marginTop: 50,
     },
     container: {
       marginTop: 6,
@@ -146,7 +145,6 @@ const createStyles = (colors: any) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      gap: 4,
       height: 40,
       fontSize: 14,
       color: colors.text.default,
@@ -174,6 +172,9 @@ const createStyles = (colors: any) =>
     },
     headerRight: {
       marginRight: 16,
+    },
+    inputIndex: {
+      marginRight: -4,
     },
   });
 

@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import PropTypes from 'prop-types';
-import { fontStyles, colors as importedColors } from '../../../styles/common';
+import { fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
@@ -55,7 +55,7 @@ const createStyles = (colors) =>
     wrapper: {
       flex: 1,
       paddingHorizontal: 16,
-      marginTop: 16,
+      marginTop: 50,
     },
     content: {
       alignItems: 'center',
@@ -87,6 +87,7 @@ const createStyles = (colors) =>
       justifyContent: 'flex-end',
       flexDirection: 'column',
       rowGap: 16,
+      marginBottom: 16,
     },
     srpDesign: {
       width: 200,

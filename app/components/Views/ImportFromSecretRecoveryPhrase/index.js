@@ -360,7 +360,7 @@ const ImportFromSecretRecoveryPhrase = ({
     });
   };
 
-  const handleKeyPress = (e, index) => {
+  const handleKeyPress = (e, index, enterPressed = false) => {
     setError(false);
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
@@ -377,18 +377,16 @@ const ImportFromSecretRecoveryPhrase = ({
         seedPhraseInputRefs.current[index]?.focus();
       }
     }
-
     if (
-      (key === ' ' || key === 'Enter' || key === 'return') &&
+      (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
       index === seedPhrase.length - 1 &&
       seedPhrase[index] !== ''
     ) {
       setSeedPhrase([...seedPhrase, '']);
       seedPhraseInputRefs.current[index + 1]?.focus();
     }
-
     if (
-      (key === ' ' || key === 'Enter' || key === 'return') &&
+      (key === ' ' || key === 'Enter' || key === 'return' || enterPressed) &&
       seedPhrase[index] !== ''
     ) {
       const firstList = seedPhrase.slice(0, index + 1);
@@ -644,6 +642,7 @@ const ImportFromSecretRecoveryPhrase = ({
                     <View style={styles.seedPhraseInnerContainer}>
                       {seedPhrase.length <= 1 ? (
                         <TextInput
+                          textAlignVertical="top"
                           label={strings('import_from_seed.srp')}
                           placeholder={strings(
                             'import_from_seed.srp_placeholder',
@@ -660,6 +659,8 @@ const ImportFromSecretRecoveryPhrase = ({
                           multiline
                           autoFocus
                           onKeyPress={(e) => handleKeyPress(e, 0)}
+                          autoComplete="off"
+                          blurOnSubmit={false}
                         />
                       ) : (
                         <View
@@ -684,6 +685,7 @@ const ImportFromSecretRecoveryPhrase = ({
                                     <Text
                                       variant={TextVariant.BodyMD}
                                       color={TextColor.Alternative}
+                                      style={styles.inputIndex}
                                     >
                                       {index + 1}.
                                     </Text>
@@ -713,9 +715,16 @@ const ImportFromSecretRecoveryPhrase = ({
                                       ? false
                                       : index === seedPhrase.length - 1
                                   }
+                                  onSubmitEditing={(e) => {
+                                    handleKeyPress(e, index, true);
+                                  }}
                                   onKeyPress={(e) => handleKeyPress(e, index)}
                                   size={TextFieldSize.Md}
                                   style={styles.input}
+                                  autoComplete="off"
+                                  textAlignVertical="top"
+                                  showSoftInputOnFocus
+                                  blurOnSubmit={false}
                                 />
                               </View>
                             )}
@@ -824,7 +833,7 @@ const ImportFromSecretRecoveryPhrase = ({
                             : IconName.EyeSlashSolid
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.muted}
+                        color={colors.icon.default}
                         onPress={() => toggleShowPassword(0)}
                       />
                     }
@@ -869,7 +878,7 @@ const ImportFromSecretRecoveryPhrase = ({
                             : IconName.EyeSlashSolid
                         }
                         size={IconSize.Lg}
-                        color={colors.icon.muted}
+                        color={colors.icon.default}
                         onPress={() => toggleShowPassword(1)}
                       />
                     }
@@ -903,19 +912,24 @@ const ImportFromSecretRecoveryPhrase = ({
                 <Checkbox
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
+                  label={
+                    <View style={styles.learnMoreTextContainer}>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Default}
+                      >
+                        {strings('import_from_seed.learn_more')}
+                      </Text>
+                      <Text
+                        variant={TextVariant.BodySM}
+                        color={TextColor.Primary}
+                        onPress={() => setLearnMore(!learnMore)}
+                      >
+                        {' ' + strings('import_from_seed.learn_more_link')}
+                      </Text>
+                    </View>
+                  }
                 />
-                <View style={styles.learnMoreTextContainer}>
-                  <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-                    {strings('import_from_seed.learn_more')}
-                  </Text>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Primary}
-                    onPress={() => setLearnMore(!learnMore)}
-                  >
-                    {' ' + strings('import_from_seed.learn_more_link')}
-                  </Text>
-                </View>
               </View>
 
               <View style={styles.seedPhraseCtaContainer}>
