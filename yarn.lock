@@ -24854,9 +24854,9 @@ react-mixin@^3.0.5:
     object-assign "^4.0.1"
     smart-mixin "^2.0.0"
 
-"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#v1.2.2":
-  version "1.2.2"
-  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#d5321d5a25e927d9bb0374bea354a1b219de119f"
+"react-native-aes-crypto-forked@git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25":
+  version "1.2.1"
+  resolved "git+https://github.com/MetaMask/react-native-aes-crypto-forked.git#397d5db5250e8e7408294807965b5b9fd4ca6a25"
 
 react-native-aes-crypto@3.0.3:
   version "3.0.3"
