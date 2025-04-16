@@ -18,7 +18,7 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 16,
     },
     buttonWrapper: {
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
       marginTop: 'auto',
       flex: 1,
       justifyContent: 'flex-end',
