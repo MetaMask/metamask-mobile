@@ -223,6 +223,10 @@ function render(
 describe('Confirm', () => {
   const mockUpdateConfirmationMetric = jest.mocked(updateConfirmationMetric);
 
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', async () => {
     const wrapper = render(Confirm);
     await waitFor(() => {
@@ -296,6 +300,24 @@ describe('Confirm', () => {
         'Transaction not added',
         expect.any(Array),
       );
+    });
+  });
+
+  it('should handle successful transaction submission', async () => {
+    // Mock successful transaction submission
+    const mockTxHash = '0x123456789';
+    const addTransactionMock = jest.fn().mockResolvedValue({ result: mockTxHash, transactionMeta: { id: '123' } });
+    Engine.context.TransactionController.addTransaction = addTransactionMock;
+
+    const { getByTestId } = render(Confirm);
+
+    const sendButton = getByTestId(ConfirmViewSelectorsIDs.SEND_BUTTON);
+    fireEvent.press(sendButton);
+
+    await flushPromises();
+
+    await waitFor(() => {
+      expect(addTransactionMock).toHaveBeenCalled();
     });
   });
 });
