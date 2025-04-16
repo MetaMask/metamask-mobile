@@ -32,7 +32,7 @@ export const selectSmartTransactionsEnabled = createDeepEqualSelector(
     smartTransactionsFeatureFlagEnabled,
     smartTransactionsLiveness,
   ) => {
-    const effectiveChainId = transactionChainId ?? globalChainId;
+    const effectiveChainId = transactionChainId || globalChainId;
     const addrIshardwareAccount = selectedAddress
       ? isHardwareAccount(selectedAddress)
       : false;

@@ -590,7 +590,7 @@ const mapStateToProps = (state) => ({
   providerType: selectProviderType(state),
   shouldUseSmartTransaction: selectShouldUseSmartTransaction(
     state,
-    state.transaction?.chainId, // TODO: Verify if this is correct.
+    selectEvmChainId(state),
   ),
 });
 

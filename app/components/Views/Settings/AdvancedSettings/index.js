@@ -515,7 +515,10 @@ const mapStateToProps = (state) => ({
   isTokenDetectionEnabled: selectUseTokenDetection(state),
   chainId: selectChainId(state),
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
-  smartTransactionsEnabled: selectSmartTransactionsEnabled(state, chainId),
+  smartTransactionsEnabled: selectSmartTransactionsEnabled(
+    state,
+    selectChainId(state),
+  ),
 });
 
 const mapDispatchToProps = (dispatch) => ({
