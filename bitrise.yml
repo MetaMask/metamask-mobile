@@ -1490,10 +1490,6 @@ workflows:
             - pipeline_intermediate_files: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE:BITRISE_PLAY_STORE_ABB_PATH
             - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/$OUTPUT_PATH/$RENAMED_AAB_FILE
           title: Bitrise Deploy AAB
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
   # Actual workflows that inherit from templates
   build_android_release:
     envs:
@@ -1506,6 +1502,10 @@ workflows:
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_beta:
     envs:
       - METAMASK_BUILD_TYPE: 'beta'
@@ -1517,6 +1517,10 @@ workflows:
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_release_and_upload_sourcemaps:
     envs:
       - SENTRY_DISABLE_AUTO_UPLOAD: 'false'
@@ -1529,6 +1533,10 @@ workflows:
       - OUTPUT_PATH: 'prodRelease'
     after_run:
       - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_flask_release:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
@@ -1540,6 +1548,10 @@ workflows:
       - OUTPUT_PATH: 'flaskRelease'
     after_run:
       - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_devbuild:
     envs:
       - IS_DEV_BUILD: 'true'
@@ -1550,6 +1562,10 @@ workflows:
       - APP_NAME: 'prod'
     after_run:
       - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_qa:
       before_run:
         - code_setup
