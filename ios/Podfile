@@ -178,13 +178,11 @@ post_install do |installer|
   end
 
   # Fix for React-Core privacy bundle duplication
-  post_install do |installer|
-    installer.pods_project.targets.each do |target|
-      if target.name == 'RCTPushNotificationHeaders'
-        target.resources_build_phase.files.each do |file|
-          if file.display_name == 'React-Core_privacy.bundle'
-            file.remove_from_project
-          end
+  installer.pods_project.targets.each do |target|
+    if target.name == 'RCTPushNotificationHeaders'
+      target.resources_build_phase.files.each do |file|
+        if file.display_name == 'React-Core_privacy.bundle'
+          file.remove_from_project
         end
       end
     end
