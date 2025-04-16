@@ -50,7 +50,10 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import DestinationAccountSelector from '../../components/DestinationAccountSelector.tsx';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import {
+  isSolanaChainId,
+  type QuoteMetadata,
+} from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
@@ -238,12 +241,21 @@ const BridgeView = () => {
     dispatch(setSourceAmount(value || undefined));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // TODO: Implement bridge transaction with source and destination amounts
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = undefined;
-    if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
+    const quoteResponse = {};
+    // TESTING: Paste quote metadata from extension here to test the bridge flow
+    const quoteMetadata = {};
+    if (
+      Object.keys(quoteResponse).length > 0 &&
+      Object.keys(quoteMetadata).length > 0
+    ) {
+      await submitBridgeTx({
+        quoteResponse: { ...quoteResponse, ...quoteMetadata } as QuoteResponse &
+          QuoteMetadata,
+      });
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
