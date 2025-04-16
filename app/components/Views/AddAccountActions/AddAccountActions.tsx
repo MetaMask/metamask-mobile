@@ -55,7 +55,6 @@ import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnap
 ///: END:ONLY_INCLUDE_IF
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
-
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
@@ -91,7 +90,6 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
   const createNewAccount = useCallback(async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(multi-srp)
-
     if (useCreateAccountWithSrps) {
       navigate(Routes.SHEET.ADD_ACCOUNT, {});
       return;
@@ -118,6 +116,8 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
       setIsLoading(false);
     }
   }, [
+    useCreateAccountWithSrps,
+    navigate,
     trackEvent,
     createEventBuilder,
     onBack,
