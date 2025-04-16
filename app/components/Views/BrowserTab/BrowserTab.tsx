@@ -305,10 +305,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       }
 
       const testResult = await getPhishingTestResultAsync(urlOrigin);
-      if (!testResult?.result && testResult.name) {
+      if (testResult?.result && testResult.name) {
         blockListType.current = testResult.name;
       }
-      return testResult?.result;
+      return !testResult?.result;
     },
     [whitelist],
   );

@@ -81,7 +81,7 @@ describe('Phishing Detection', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(false);
       const testOrigin = 'https://example.com';
       const mockResult = {
-        result: false,
+        result: true,
         name: 'Test',
         type: PhishingDetectorResultType.All,
       };
@@ -108,13 +108,13 @@ describe('Phishing Detection', () => {
 
       expect(mockPhishingController.scanUrl).toHaveBeenCalledWith(testOrigin);
       expect(result).toEqual({
-        result: true,
+        result: false,
         name: 'Product safety dapp scanning is enabled',
         type: 'DAPP_SCANNING',
       });
     });
 
-    it('returns result=true when recommendedAction is None', async () => {
+    it('returns result=false when recommendedAction is None', async () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.None,
@@ -122,10 +122,10 @@ describe('Phishing Detection', () => {
       });
 
       const result = await getPhishingTestResultAsync('example.com');
-      expect(result.result).toBe(true);
+      expect(result.result).toBe(false);
     });
 
-    it('returns result=true when recommendedAction is Warn', async () => {
+    it('returns result=false when recommendedAction is Warn', async () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.Warn,
@@ -133,10 +133,10 @@ describe('Phishing Detection', () => {
       });
 
       const result = await getPhishingTestResultAsync('example.com');
-      expect(result.result).toBe(true);
+      expect(result.result).toBe(false);
     });
 
-    it('returns result=false when recommendedAction is Block', async () => {
+    it('returns result=true when recommendedAction is Block', async () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.Block,
@@ -144,7 +144,7 @@ describe('Phishing Detection', () => {
       });
 
       const result = await getPhishingTestResultAsync('example.com');
-      expect(result.result).toBe(false);
+      expect(result.result).toBe(true);
     });
   });
 });
