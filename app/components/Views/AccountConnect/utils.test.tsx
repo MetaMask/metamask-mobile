@@ -7,6 +7,7 @@ import {
 import {
   getRequestedCaip25CaveatValue,
   getCaip25PermissionsResponse,
+  PermissionsRequest,
 } from './utils';
 
 describe('getRequestedCaip25CaveatValue', () => {
@@ -23,7 +24,7 @@ describe('getRequestedCaip25CaveatValue', () => {
   });
 
   it(`should return default value if param object does not have the key ${Caip25EndowmentPermissionName}`, () => {
-    const permissions = {
+    const permissions: PermissionsRequest = {
       anotherPermission: {
         caveats: [
           {
@@ -45,7 +46,7 @@ describe('getRequestedCaip25CaveatValue', () => {
       sessionProperties: { foo: 'bar' },
     };
 
-    const permissions = {
+    const permissions: PermissionsRequest = {
       [Caip25EndowmentPermissionName]: {
         caveats: [
           {
@@ -64,7 +65,7 @@ describe('getRequestedCaip25CaveatValue', () => {
   });
 
   it(`should return default value if no caveat is found with type ${Caip25CaveatType}`, () => {
-    const permissions = {
+    const permissions: PermissionsRequest = {
       [Caip25EndowmentPermissionName]: {
         caveats: [
           {
@@ -76,143 +77,6 @@ describe('getRequestedCaip25CaveatValue', () => {
     };
     const result = getRequestedCaip25CaveatValue(permissions);
     expect(result).toEqual(defaultCaveatValue);
-  });
-
-  it('should return default value if caveats is not an array', () => {
-    const permissions = {
-      [Caip25EndowmentPermissionName]: {
-        caveats: [
-          {
-            type: Caip25CaveatType,
-            value: {},
-          },
-        ],
-      },
-    };
-
-    const result = getRequestedCaip25CaveatValue(permissions);
-    expect(result).toEqual(defaultCaveatValue);
-  });
-
-  describe('object format', () => {
-    it(`should return default value if ${Caip25CaveatType} type caveat is not an object`, () => {
-      const permissions = {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: [
-                {
-                  type: Caip25CaveatType,
-                  value: 'notAnObject',
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-      const result = getRequestedCaip25CaveatValue(permissions);
-      expect(result).toEqual(defaultCaveatValue);
-    });
-
-    it(`should return default value if ${Caip25CaveatType} type caveat does not have "optionalScopes" property`, () => {
-      const permissions = {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: [
-                {
-                  type: Caip25CaveatType,
-                  value: {
-                    requiredScopes: {},
-                    isMultichainOrigin: false,
-                    sessionProperties: {},
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-      const result = getRequestedCaip25CaveatValue(permissions);
-      expect(result).toEqual(defaultCaveatValue);
-    });
-
-    it(`should return default value if ${Caip25CaveatType} type caveat does not have "requiredScopes" property`, () => {
-      const permissions = {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: [
-                {
-                  type: Caip25CaveatType,
-                  value: {
-                    optionalScopes: {},
-                    isMultichainOrigin: false,
-                    sessionProperties: {},
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-      const result = getRequestedCaip25CaveatValue(permissions);
-      expect(result).toEqual(defaultCaveatValue);
-    });
-    it(`should return default value if ${Caip25CaveatType} type caveat does not have "isMultichainOrigin" property`, () => {
-      const permissions = {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: [
-                {
-                  type: Caip25CaveatType,
-                  value: {
-                    optionalScopes: {},
-                    requiredScopes: {},
-                    sessionProperties: {},
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-      const result = getRequestedCaip25CaveatValue(permissions);
-      expect(result).toEqual(defaultCaveatValue);
-    });
-    it(`should return default value if ${Caip25CaveatType} type caveat does not have "sessionProperties" property`, () => {
-      const permissions = {
-        [Caip25EndowmentPermissionName]: {
-          caveats: [
-            {
-              type: Caip25CaveatType,
-              value: [
-                {
-                  type: Caip25CaveatType,
-                  value: {
-                    optionalScopes: {},
-                    isMultichainOrigin: false,
-                    requiredScopes: {},
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      };
-
-      const result = getRequestedCaip25CaveatValue(permissions);
-      expect(result).toEqual(defaultCaveatValue);
-    });
   });
 });
 

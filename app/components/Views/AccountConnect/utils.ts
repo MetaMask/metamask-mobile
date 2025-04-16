@@ -7,6 +7,11 @@ import {
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
 
+export type PermissionsRequest = Record<
+  string,
+  { caveats?: { type: string; value: Caip25CaveatValue }[] }
+>;
+
 /**
  * Takes in an incoming value and attempts to return the {@link Caip25CaveatValue}.
  *
