@@ -26,11 +26,8 @@ import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
 const createStyles = () =>
   StyleSheet.create({
-    container: {
-      paddingHorizontal: 24,
-    },
     content: {
-      padding: 16,
+      paddingVertical: 16,
     },
     row: {
       flexDirection: 'row',
@@ -168,7 +165,7 @@ export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
       : formattedAddress;
 
   return (
-    <Box style={styles.container}>
+    <Box>
       <Box style={styles.content} gap={4}>
         <Box style={styles.row}>
           <Box style={styles.amountContainer}>
