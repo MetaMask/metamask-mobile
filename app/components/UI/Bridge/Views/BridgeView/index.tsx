@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import Keypad from '../../../../Base/Keypad';
@@ -98,12 +98,16 @@ const BridgeView = () => {
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
 
-  const isError = quoteFetchError || (hasValidBridgeInputs && !bestQuote);
-
   const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isWaitingForInitialQuote, setIsWaitingForInitialQuote] =
+    useState(false);
 
-  const shouldDisplayKeypad =
-    (!hasValidBridgeInputs || isInputFocused) && !isLoading;
+  const isError =
+    !isLoading &&
+    !isWaitingForInitialQuote &&
+    (quoteFetchError || (hasValidBridgeInputs && !bestQuote));
+
+  const shouldDisplayKeypad = !hasValidBridgeInputs || isInputFocused;
 
   const hasInsufficientBalance = useMemo(() => {
     if (
@@ -121,10 +125,14 @@ const BridgeView = () => {
     return sourceAmountAtomic.gt(latestSourceBalance.atomicBalance);
   }, [sourceAmount, latestSourceBalance?.atomicBalance, sourceToken?.decimals]);
 
+  const inputRef = useRef<{ blur: () => void }>(null);
+
   // Reset bridge state when component unmounts
   useEffect(
     () => () => {
       dispatch(resetBridgeState());
+      // Clear bridge controller state
+      Engine.context.BridgeController.resetState();
     },
     [dispatch],
   );
@@ -136,7 +144,25 @@ const BridgeView = () => {
   // Update quote parameters when relevant state changes
   useEffect(() => {
     if (hasValidBridgeInputs) {
-      updateQuoteParams();
+      setIsWaitingForInitialQuote(true);
+      // Add delay before blurring to give users time to type
+      const blurTimeout = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+        }
+      }, 2000); // 1 second delay
+
+      const updatePromise = updateQuoteParams();
+      if (updatePromise) {
+        updatePromise.finally(() => {
+          setIsWaitingForInitialQuote(false);
+        });
+      }
+
+      return () => {
+        clearTimeout(blurTimeout);
+        updateQuoteParams.cancel();
+      };
     }
     return () => {
       updateQuoteParams.cancel();
@@ -164,6 +190,8 @@ const BridgeView = () => {
     valueAsNumber: number;
     pressedKey: string;
   }) => {
+    // Keep focus when editing
+    setIsInputFocused(true);
     dispatch(setSourceAmount(value || undefined));
   };
 
@@ -202,7 +230,7 @@ const BridgeView = () => {
 
   const renderBottomContent = () => (
     <Box style={styles.buttonContainer}>
-      {!hasValidBridgeInputs ? (
+      {!hasValidBridgeInputs || isLoading ? (
         <Text color={TextColor.Primary}>{strings('bridge.select_amount')}</Text>
       ) : isError ? (
         <BannerAlert
@@ -244,6 +272,7 @@ const BridgeView = () => {
         <Box style={styles.mainContent}>
           <Box style={styles.inputsContainer} gap={8}>
             <TokenInputArea
+              ref={inputRef}
               amount={sourceAmount}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
@@ -255,7 +284,8 @@ const BridgeView = () => {
               tokenType={TokenInputAreaType.Source}
               onTokenPress={handleSourceTokenPress}
               onFocus={() => setIsInputFocused(true)}
-              autoFocus={false}
+              onBlur={() => setIsInputFocused(false)}
+              autoFocus
             />
             <Box style={styles.arrowContainer}>
               <Box style={styles.arrowCircle}>
@@ -298,7 +328,7 @@ const BridgeView = () => {
               </Box>
             )}
 
-            {hasQuoteDetails ? (
+            {hasQuoteDetails && !isInputFocused ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>

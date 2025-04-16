@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, ImageSourcePropType } from 'react-native';
+import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import { StyleSheet, ImageSourcePropType, TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import { Box } from '../../../Box/Box';
@@ -101,6 +101,11 @@ export enum TokenInputAreaType {
   Source = 'source',
   Destination = 'destination',
 }
+
+export interface TokenInputAreaRef {
+  blur: () => void;
+}
+
 interface TokenInputAreaProps {
   amount?: string;
   token?: BridgeToken;
@@ -114,99 +119,126 @@ interface TokenInputAreaProps {
   onTokenPress?: () => void;
   isLoading?: boolean;
   onFocus?: () => void;
+  onBlur?: () => void;
 }
 
-export const TokenInputArea: React.FC<TokenInputAreaProps> = ({
-  amount,
-  token,
-  tokenBalance,
-  networkImageSource,
-  networkName,
-  autoFocus,
-  isReadonly = false,
-  testID,
-  tokenType,
-  onTokenPress,
-  isLoading = false,
-  onFocus,
-}) => {
-  const { styles } = useStyles(createStyles, {});
+export const TokenInputArea = forwardRef<
+  TokenInputAreaRef,
+  TokenInputAreaProps
+>(
+  (
+    {
+      amount,
+      token,
+      tokenBalance,
+      networkImageSource,
+      networkName,
+      autoFocus,
+      isReadonly = false,
+      testID,
+      tokenType,
+      onTokenPress,
+      isLoading = false,
+      onFocus,
+      onBlur,
+    },
+    ref,
+  ) => {
+    const inputRef = useRef<TextInput>(null);
 
-  // Data for fiat value calculation
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const multiChainMarketData = useSelector(selectTokenMarketData);
-  const multiChainCurrencyRates = useSelector(selectCurrencyRates);
-  const networkConfigurationsByChainId = useSelector(
-    selectNetworkConfigurations,
-  );
+    useImperativeHandle(ref, () => ({
+      blur: () => {
+        if (inputRef.current) {
+          inputRef.current.blur();
+          onBlur?.();
+        }
+      },
+    }));
 
-  const fiatValue = getDisplayFiatValue({
-    token,
-    amount,
-    multiChainMarketData,
-    networkConfigurationsByChainId,
-    multiChainCurrencyRates,
-    currentCurrency,
-  });
+    const { styles } = useStyles(createStyles, {});
 
-  // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
-  const formattedBalance =
-    token?.symbol && tokenBalance
-      ? `${renderNumber(tokenBalance)} ${token?.symbol}`
-      : undefined;
-  const formattedAddress =
-    token?.address && token.address !== ethers.constants.AddressZero
-      ? formatAddress(token?.address)
-      : undefined;
+    // Data for fiat value calculation
+    const currentCurrency = useSelector(selectCurrentCurrency);
+    const multiChainMarketData = useSelector(selectTokenMarketData);
+    const multiChainCurrencyRates = useSelector(selectCurrencyRates);
+    const networkConfigurationsByChainId = useSelector(
+      selectNetworkConfigurations,
+    );
 
-  const subtitle =
-    tokenType === TokenInputAreaType.Source
-      ? formattedBalance
-      : formattedAddress;
+    const fiatValue = getDisplayFiatValue({
+      token,
+      amount,
+      multiChainMarketData,
+      networkConfigurationsByChainId,
+      multiChainCurrencyRates,
+      currentCurrency,
+    });
 
-  return (
-    <Box>
-      <Box style={styles.content} gap={4}>
-        <Box style={styles.row}>
-          <Box style={styles.amountContainer}>
+    // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
+    const formattedBalance =
+      token?.symbol && tokenBalance
+        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
+        : undefined;
+    const formattedAddress =
+      token?.address && token.address !== ethers.constants.AddressZero
+        ? formatAddress(token?.address)
+        : undefined;
+
+    const subtitle =
+      tokenType === TokenInputAreaType.Source
+        ? formattedBalance
+        : formattedAddress;
+
+    return (
+      <Box>
+        <Box style={styles.content} gap={4}>
+          <Box style={styles.row}>
+            <Box style={styles.amountContainer}>
+              {isLoading ? (
+                <Skeleton width={100} height={40} style={styles.input} />
+              ) : (
+                <Input
+                  ref={inputRef}
+                  value={amount}
+                  style={styles.input}
+                  isReadonly={isReadonly}
+                  autoFocus={autoFocus}
+                  placeholder="0"
+                  testID={`${testID}-input`}
+                  onFocus={() => {
+                    onFocus?.();
+                  }}
+                  onBlur={() => {
+                    onBlur?.();
+                  }}
+                />
+              )}
+            </Box>
+            <TokenButton
+              symbol={token?.symbol}
+              iconUrl={token?.image}
+              networkImageSource={networkImageSource}
+              networkName={networkName}
+              testID={testID}
+              onPress={onTokenPress}
+            />
+          </Box>
+          <Box style={styles.row}>
             {isLoading ? (
-              <Skeleton width={100} height={40} style={styles.input} />
+              <Skeleton width={100} height={10} />
             ) : (
-              <Input
-                value={amount}
-                style={styles.input}
-                isReadonly={isReadonly}
-                autoFocus={autoFocus}
-                placeholder="0"
-                testID={`${testID}-input`}
-                onFocus={onFocus}
-              />
+              <>
+                {fiatValue ? (
+                  <Text color={TextColor.Alternative}>{fiatValue}</Text>
+                ) : null}
+                {subtitle ? (
+                  <Text color={TextColor.Alternative}>{subtitle}</Text>
+                ) : null}
+              </>
             )}
           </Box>
-          <TokenButton
-            symbol={token?.symbol}
-            iconUrl={token?.image}
-            networkImageSource={networkImageSource}
-            networkName={networkName}
-            testID={testID}
-            onPress={onTokenPress}
-          />
-        </Box>
-        <Box style={styles.row}>
-          {isLoading ? (
-            <Skeleton width={100} height={10} />
-          ) : (
-            <>
-              {fiatValue ? (
-                <Text color={TextColor.Alternative}>{fiatValue}</Text>
-              ) : null}
-              {subtitle ? (
-                <Text color={TextColor.Alternative}>{subtitle}</Text>
-              ) : null}
-            </>
-          )}
         </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);
