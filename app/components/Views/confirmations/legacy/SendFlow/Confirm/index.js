@@ -135,6 +135,7 @@ import {
   // eslint-disable-next-line no-restricted-syntax
   selectNetworkClientId,
   selectProviderTypeByChainId,
+  selectEvmChainId,
 } from '../../../../../../selectors/networkController';
 import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { updateTransactionToMaxValue } from './utils';
@@ -1598,7 +1599,8 @@ Confirm.contextType = ThemeContext;
 
 const mapStateToProps = (state) => {
   const transaction = getNormalizedTxState(state);
-  const chainId = transaction?.chainId;
+  const chainId = transaction?.chainId || selectEvmChainId(state);
+
   const networkClientId =
     transaction?.networkClientId || selectNetworkClientId(state);
 
