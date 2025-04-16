@@ -30,14 +30,12 @@ const createStyles = (colors) =>
       justifyContent: 'space-between',
     },
     iconButton: {
-      height: 24,
+      height: 60,
       width: 24,
       justifyContent: 'space-around',
       alignItems: 'center',
       textAlign: 'center',
       flex: 1,
-      paddingTop: 30,
-      paddingBottom: 30,
     },
     tabIcon: {
       marginTop: 0,

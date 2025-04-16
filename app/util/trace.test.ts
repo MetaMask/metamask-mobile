@@ -292,7 +292,7 @@ describe('Trace', () => {
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     it('removes trace after timeout period', () => {

@@ -216,14 +216,14 @@ describe('AccountSelectorList', () => {
   });
 
   it('renders all accounts with balances', async () => {
-    const { queryByTestId, getAllByTestId, toJSON } =
+    const { getByTestId, getAllByTestId, toJSON } =
       renderComponent(initialState);
 
     await waitFor(async () => {
-      const businessAccountItem = await queryByTestId(
+      const businessAccountItem = getByTestId(
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
-      const personalAccountItem = await queryByTestId(
+      const personalAccountItem = getByTestId(
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${PERSONAL_ACCOUNT}`,
       );
 
@@ -296,10 +296,10 @@ describe('AccountSelectorList', () => {
       privacyMode: false,
     };
 
-    const { queryByTestId } = renderComponent(state);
+    const { getByTestId } = renderComponent(state);
 
     await waitFor(() => {
-      const businessAccountItem = queryByTestId(
+      const businessAccountItem = getByTestId(
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 
@@ -317,10 +317,10 @@ describe('AccountSelectorList', () => {
       privacyMode: true,
     };
 
-    const { queryByTestId } = renderComponent(state);
+    const { getByTestId } = renderComponent(state);
 
     await waitFor(() => {
-      const businessAccountItem = queryByTestId(
+      const businessAccountItem = getByTestId(
         `${AccountListBottomSheetSelectorsIDs.ACCOUNT_BALANCE_BY_ADDRESS_TEST_ID}-${BUSINESS_ACCOUNT}`,
       );
 

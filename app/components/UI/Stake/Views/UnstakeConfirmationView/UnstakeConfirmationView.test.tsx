@@ -1,7 +1,7 @@
 import React from 'react';
 import UnstakeConfirmationView from './UnstakeConfirmationView';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { Image } from 'react-native';
+import { Image, ImageSize } from 'react-native';
 import { createMockAccountsControllerState } from '../../../../../util/test/accountsControllerTestUtils';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { UnstakeConfirmationViewProps } from './UnstakeConfirmationView.types';
@@ -27,10 +27,18 @@ const mockInitialState = {
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
-Image.getSize = jest.fn((_uri, success) => {
-  success(100, 100); // Mock successful response for ETH native Icon Image
-});
-
+Image.getSize = jest.fn(
+  (
+    _uri: string,
+    success?: (width: number, height: number) => void,
+    _failure?: (error: Error) => void,
+  ) => {
+    if (success) {
+      success(100, 100);
+    }
+    return Promise.resolve<ImageSize>({ width: 100, height: 100 });
+  },
+);
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 

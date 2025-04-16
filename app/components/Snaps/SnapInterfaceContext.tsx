@@ -51,6 +51,7 @@ export interface SnapInterfaceContextProviderProps {
   snapId: string;
   initialState: InterfaceState;
   context: Json;
+  children: React.ReactNode;
 }
 /**
  * The Snap interface context provider that handles all the interface state operations.

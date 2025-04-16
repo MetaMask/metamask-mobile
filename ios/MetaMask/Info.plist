@@ -22,8 +22,6 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -51,15 +49,9 @@
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>MetaMask needs Bluetooth access to connect to external devices.</string>
@@ -115,8 +107,10 @@
 	<string>LaunchScreen.xib</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
-		<string>armv7</string>
+		<string>arm64</string>
 	</array>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleDefault</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>

@@ -54,7 +54,10 @@ const slice = createSlice({
     setDestAmount: (state, action: PayloadAction<string | undefined>) => {
       state.destAmount = action.payload;
     },
-    setSelectedSourceChainIds: (state, action: PayloadAction<(Hex | CaipChainId)[]>) => {
+    setSelectedSourceChainIds: (
+      state,
+      action: PayloadAction<(Hex | CaipChainId)[]>,
+    ) => {
       state.selectedSourceChainIds = action.payload;
     },
     setSelectedDestChainId: (
@@ -124,8 +127,10 @@ export const selectTopAssetsFromFeatureFlags = createSelector(
   selectBridgeFeatureFlags,
   (_: RootState, chainId: Hex | CaipChainId | undefined) => chainId,
   (bridgeFeatureFlags, chainId) =>
-    chainId ?
-      bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[formatChainIdToCaip(chainId)].topAssets
+    chainId
+      ? bridgeFeatureFlags[BridgeFeatureFlagsKey.MOBILE_CONFIG].chains[
+          formatChainIdToCaip(chainId)
+        ].topAssets
       : undefined,
 );
 

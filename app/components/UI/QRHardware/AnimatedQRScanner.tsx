@@ -82,7 +82,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-const frameImage = require('images/frame.png'); // eslint-disable-line import/no-commonjs
+const frameImage = require('../../../images/frame.png'); // eslint-disable-line import/no-commonjs
 
 interface AnimatedQRScannerProps {
   visible: boolean;
@@ -141,11 +141,11 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onError = useCallback(
-    (error) => {
+    (error: Error) => {
       if (onScanError && error) {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
-            .addProperties({ purpose, error })
+            .addProperties({ purpose, error: error.message })
             .build(),
         );
         onScanError(error.message);
@@ -155,7 +155,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onBarCodeRead = useCallback(
-    (response) => {
+    (response: { data: string }) => {
       if (!visible) {
         return;
       }
@@ -220,7 +220,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
   );
 
   const onStatusChange = useCallback(
-    (event) => {
+    (event: { cameraStatus: string }) => {
       if (event.cameraStatus === 'NOT_AUTHORIZED') {
         onScanError(strings('transaction.no_camera_permission'));
       }
@@ -256,7 +256,7 @@ const AnimatedQRScannerModal = (props: AnimatedQRScannerProps) => {
         >
           <SafeAreaView style={styles.innerView}>
             <TouchableOpacity style={styles.closeIcon} onPress={hideModal}>
-              {<Icon name={'ios-close'} size={50} color={'white'} />}
+              {<Icon name={'close'} size={50} color={'white'} />}
             </TouchableOpacity>
             <Image source={frameImage} style={styles.frame} />
             <Text style={styles.text}>{`${strings('qr_scanner.scanning')} ${

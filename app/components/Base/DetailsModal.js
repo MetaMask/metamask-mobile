@@ -98,7 +98,7 @@ const DetailsModalCloseIcon = ({ style, ...props }) => {
       {...props}
       testID={TransactionDetailsModalSelectorsIDs.CLOSE_ICON}
     >
-      <Ionicons color={colors.text.default} name={'ios-close'} size={38} />
+      <Ionicons color={colors.text.default} name={'close'} size={38} />
     </TouchableOpacity>
   );
 };

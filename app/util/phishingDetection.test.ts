@@ -1,4 +1,8 @@
-import { PhishingController, PhishingDetectorResult, PhishingDetectorResultType } from '@metamask/phishing-controller';
+import {
+  PhishingController,
+  PhishingDetectorResult,
+  PhishingDetectorResultType,
+} from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import {
   getPhishingTestResult,
@@ -20,13 +24,19 @@ jest.mock('../store', () => ({
   },
 }));
 
-jest.mock('../selectors/featureFlagController/productSafetyDappScanning', () => ({
-  selectProductSafetyDappScanningEnabled: jest.fn(),
-}));
+jest.mock(
+  '../selectors/featureFlagController/productSafetyDappScanning',
+  () => ({
+    selectProductSafetyDappScanningEnabled: jest.fn(),
+  }),
+);
 
 describe('Phishing Detection', () => {
-  const mockPhishingController = Engine.context.PhishingController as jest.Mocked<PhishingController>;
-  const mockSelectProductSafetyDappScanningEnabled = jest.requireMock('../selectors/featureFlagController/productSafetyDappScanning').selectProductSafetyDappScanningEnabled;
+  const mockPhishingController = Engine.context
+    .PhishingController as jest.Mocked<PhishingController>;
+  const mockSelectProductSafetyDappScanningEnabled = jest.requireMock(
+    '../selectors/featureFlagController/productSafetyDappScanning',
+  ).selectProductSafetyDappScanningEnabled;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -75,7 +85,11 @@ describe('Phishing Detection', () => {
 
     it('returns hardcoded result when product safety dapp scanning is enabled', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
-      const mockResult = { result: false, name: 'Product safety dapp scanning is enabled', type: PhishingDetectorResultType.All };
+      const mockResult = {
+        result: false,
+        name: 'Product safety dapp scanning is enabled',
+        type: PhishingDetectorResultType.All,
+      };
 
       const result = getPhishingTestResult('example.com');
       expect(mockPhishingController.test).not.toHaveBeenCalled();

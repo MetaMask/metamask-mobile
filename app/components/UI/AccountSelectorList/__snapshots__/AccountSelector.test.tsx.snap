@@ -47,7 +47,7 @@ exports[`AccountSelectorList renders all accounts with balances 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -821,7 +821,7 @@ exports[`AccountSelectorList renders all accounts with right accessory 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >
@@ -1495,7 +1495,7 @@ exports[`AccountSelectorList renders correctly 1`] = `
   removeClippedSubviews={false}
   renderItem={[Function]}
   renderScrollComponent={[Function]}
-  scrollEventThrottle={50}
+  scrollEventThrottle={0.0001}
   stickyHeaderIndices={[]}
   viewabilityConfigCallbackPairs={[]}
 >

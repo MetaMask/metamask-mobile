@@ -38,6 +38,10 @@ jest.mock('../../../util/networks', () => ({
   isPermissionsSettingsV1Enabled: true,
 }));
 
+jest.mock('../../../util/notifications/constants/config', () => ({
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 describe('Settings', () => {
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<Settings />, {

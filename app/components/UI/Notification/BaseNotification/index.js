@@ -200,7 +200,7 @@ const BaseNotification = ({
             {autoDismiss && (
               <TouchableOpacity style={styles.closeTouchable} onPress={onHide}>
                 <IonicIcon
-                  name="ios-close"
+                  name="close"
                   size={36}
                   style={styles.closeIcon}
                 />

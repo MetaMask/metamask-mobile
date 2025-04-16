@@ -217,7 +217,9 @@ class Assertions {
    */
   static async checkIfValueIsPresent(value) {
     if (value === null || value === undefined || value === '') {
-      throw new Error('Value is not present (null, undefined, or empty string)');
+      throw new Error(
+        'Value is not present (null, undefined, or empty string)',
+      );
     }
     return true;
   }

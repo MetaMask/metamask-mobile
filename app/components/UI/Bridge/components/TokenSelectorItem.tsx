@@ -115,10 +115,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
 
   return (
-    <Box
-      flexDirection={FlexDirection.Row}
-      style={styles.container}
-    >
+    <Box flexDirection={FlexDirection.Row} style={styles.container}>
       {isSelected && <View style={styles.selectedIndicator} />}
 
       <TouchableOpacity
@@ -127,7 +124,11 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
         style={styles.itemWrapper}
         {...generateTestId(Platform, getAssetTestId(token.symbol))}
       >
-        <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center} gap={4}>
+        <Box
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          gap={4}
+        >
           {/* Token Icon */}
           <BadgeWrapper
             style={styles.badgeWrapper}

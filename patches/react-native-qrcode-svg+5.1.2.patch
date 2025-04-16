@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-qrcode-svg/src/index.js b/node_modules/react-native-qrcode-svg/src/index.js
+index 6db53b3..f2ffed8 100644
+--- a/node_modules/react-native-qrcode-svg/src/index.js
++++ b/node_modules/react-native-qrcode-svg/src/index.js
+@@ -4,6 +4,8 @@ import PropTypes from 'prop-types'
+ import Svg, { Defs, G, Rect, Path, Image, ClipPath } from 'react-native-svg'
+ import genMatrix from './genMatrix'
+ 
++import { ImagePropTypes } from 'deprecated-react-native-prop-types';
++
+ const DEFAULT_SIZE = 100
+ const DEFAULT_BG_COLOR = 'white'
+ 
+@@ -21,7 +23,7 @@ export default class QRCode extends PureComponent {
+     /* the color of the background */
+     backgroundColor: PropTypes.string,
+     /* an image source object. example {uri: 'base64string'} or {require('pathToImage')} */
+-    logo: RNImage.propTypes.source,
++    logo: ImagePropTypes,
+     /* logo size in pixels */
+     logoSize: PropTypes.number,
+     /* the logo gets a filled rectangular background with this color. Use 'transparent'

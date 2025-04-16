@@ -7,7 +7,7 @@ describe('useInterval', () => {
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    jest.useFakeTimers({ legacyFakeTimers: true });
   });
 
   it('should not start interval if delay is null', () => {

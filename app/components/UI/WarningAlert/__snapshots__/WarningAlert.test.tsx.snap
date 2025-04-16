@@ -51,6 +51,7 @@ exports[`WarningAlert should render correctly 1`] = `
     >
       <Text
         allowFontScaling={false}
+        selectable={false}
         style={
           [
             {
@@ -69,7 +70,7 @@ exports[`WarningAlert should render correctly 1`] = `
           ]
         }
       >
-        
+        󰋼
       </Text>
     </View>
     <Text
@@ -189,6 +190,7 @@ exports[`WarningAlert should render correctly 1`] = `
       >
         <Text
           allowFontScaling={false}
+          selectable={false}
           style={
             [
               {
@@ -207,7 +209,7 @@ exports[`WarningAlert should render correctly 1`] = `
             ]
           }
         >
-          
+          
         </Text>
       </TouchableOpacity>
     </View>

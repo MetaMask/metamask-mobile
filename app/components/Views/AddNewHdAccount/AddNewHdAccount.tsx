@@ -154,7 +154,7 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
                 <Button
                   testID={AddNewHdAccountIds.CANCEL}
                   loading={isLoading}
-                  style={styles.footerContainer.button}
+                  style={styles.button}
                   variant={ButtonVariants.Secondary}
                   onPress={onBack}
                   labelTextVariant={TextVariant.BodyMD}
@@ -163,7 +163,7 @@ const AddNewHdAccount = ({ onBack }: AddNewHdAccountProps) => {
                 <Button
                   testID={AddNewHdAccountIds.CONFIRM}
                   loading={isLoading}
-                  style={styles.footerContainer.button}
+                  style={styles.button}
                   variant={ButtonVariants.Primary}
                   onPress={onSubmit}
                   labelTextVariant={TextVariant.BodyMD}

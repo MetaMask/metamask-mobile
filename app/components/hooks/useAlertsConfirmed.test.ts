@@ -65,7 +65,9 @@ describe('useAlertsConfirmed', () => {
 
   it('returns unconfirmed field danger alerts', () => {
     const { result } = renderHook(() => useAlertsConfirmed(alertsMock));
-    expect(result.current.unconfirmedFieldDangerAlerts).toEqual([dangerAlertMock]);
+    expect(result.current.unconfirmedFieldDangerAlerts).toEqual([
+      dangerAlertMock,
+    ]);
     expect(result.current.hasUnconfirmedFieldDangerAlerts).toBe(true);
   });
 
@@ -75,7 +77,9 @@ describe('useAlertsConfirmed', () => {
   });
 
   it('returns hasUnconfirmedDangerAlerts false when there is a skip confirmation alert', () => {
-    const { result } = renderHook(() => useAlertsConfirmed([skipConfirmationAlertMock]));
+    const { result } = renderHook(() =>
+      useAlertsConfirmed([skipConfirmationAlertMock]),
+    );
     expect(result.current.hasUnconfirmedDangerAlerts).toBe(false);
   });
 });

@@ -1,4 +1,3 @@
-import { JSXElement } from '@metamask/snaps-sdk/jsx';
 import React from 'react';
 import { View, StyleSheet, ViewProps } from 'react-native';
 import { TextColor } from '../../../component-library/components/Texts/Text';
@@ -45,7 +44,7 @@ const getBoxStyles = (props: {
 };
 
 export interface BoxProps extends ViewProps {
-  children: string | JSXElement | React.ReactNode;
+  children: string | React.ReactNode;
   display?: Display;
   flexDirection?: FlexDirection;
   justifyContent?: JustifyContent;
@@ -58,7 +57,7 @@ export interface BoxProps extends ViewProps {
   testID?: string;
 }
 
-export const Box: React.FC<BoxProps> = React.forwardRef(
+export const Box = React.forwardRef<View, BoxProps>(
   ({ children, ...props }, ref) => (
     <View
       {...props}

@@ -184,7 +184,7 @@ const NetworkConnectMultiSelector = ({
   );
 
   const onSelectNetwork = useCallback(
-    (clickedChainId) => {
+    (clickedChainId: string) => {
       const selectedAddressIndex = selectedChainIds.indexOf(clickedChainId);
       // Reconstruct selected network ids.
       const newNetworkList = networks.reduce((acc, { id }) => {

@@ -418,7 +418,7 @@ describe('AssetOverview', () => {
     });
 
     afterEach(() => {
-      jest.useRealTimers();
+      jest.useFakeTimers({ legacyFakeTimers: true });
     });
 
     it('should switch networks before sending when on different chain', async () => {

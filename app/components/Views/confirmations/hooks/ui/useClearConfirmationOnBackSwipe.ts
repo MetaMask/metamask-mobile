@@ -7,7 +7,8 @@ import { StakeNavigationParamsList } from '../../../../UI/Stake/types';
 import { useConfirmActions } from '../useConfirmActions';
 
 const useClearConfirmationOnBackSwipe = () => {
-  const navigation = useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation =
+    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
   const { onReject } = useConfirmActions();
 
   useEffect(() => {
@@ -16,7 +17,7 @@ const useClearConfirmationOnBackSwipe = () => {
         onReject();
       });
 
-    return unsubscribe;
+      return unsubscribe;
     }
   }, [navigation, onReject]);
 
@@ -27,7 +28,7 @@ const useClearConfirmationOnBackSwipe = () => {
         () => {
           onReject();
           return true;
-        }
+        },
       );
 
       return () => {

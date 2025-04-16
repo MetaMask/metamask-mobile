@@ -140,7 +140,9 @@ describe('DestinationAccountSelector', () => {
   it('clears destination address when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
     // The close button is a ButtonIcon component with IconName.Close
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();
@@ -166,7 +168,9 @@ describe('DestinationAccountSelector', () => {
 
   it('clears destination when close button is pressed', () => {
     const { getByTestId, store } = renderComponent();
-    const closeButton = getByTestId('cellselect').findByProps({ iconName: 'Close' });
+    const closeButton = getByTestId('cellselect').findByProps({
+      iconName: 'Close',
+    });
     fireEvent.press(closeButton);
 
     const actions = store.getActions();

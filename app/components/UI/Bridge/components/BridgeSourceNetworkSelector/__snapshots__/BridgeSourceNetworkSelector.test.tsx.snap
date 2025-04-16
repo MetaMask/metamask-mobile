@@ -150,7 +150,13 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
             "top": -1,
           }
         }
+        onGestureCancel={[Function]}
         pointerEvents="box-none"
+        sheetAllowedDetents="large"
+        sheetCornerRadius={-1}
+        sheetExpandsWhenScrolledToEdge={true}
+        sheetGrabberVisible={false}
+        sheetLargestUndimmedDetent="all"
         style={
           {
             "bottom": 0,
@@ -158,6 +164,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
             "position": "absolute",
             "right": 0,
             "top": 0,
+            "zIndex": undefined,
           }
         }
       >

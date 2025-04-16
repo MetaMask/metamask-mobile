@@ -12,7 +12,11 @@ const _findByProp = function (root: Root, prop = '', found: Root[] = []) {
   }
 
   if (root.children?.length) {
-    root.children.forEach((c: Root) => _findByProp(c, prop, found));
+    root.children.forEach((c) => {
+      if (typeof c !== 'string') {
+        _findByProp(c, prop, found);
+      }
+    });
   }
 
   return found;

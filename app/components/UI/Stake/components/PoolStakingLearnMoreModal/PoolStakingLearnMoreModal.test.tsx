@@ -1,4 +1,4 @@
-import React, { ReactElement } from 'react';
+import React from 'react';
 import PoolStakingLearnMoreModal from '.';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../__mocks__/mockData';
@@ -65,9 +65,7 @@ describe('PoolStakingLearnMoreModal', () => {
     const chartContainer = getByTestId(
       INTERACTIVE_TIMESPAN_CHART_DEFAULT_TEST_ID,
     );
-    const areaChart = chartContainer.find(
-      (child: ReactElement) => child.type === AreaChart,
-    );
+    const areaChart = chartContainer.find((child) => child.type === AreaChart);
 
     fireLayoutEvent(areaChart);
 

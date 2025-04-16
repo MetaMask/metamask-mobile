@@ -36,7 +36,9 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../selectors/featureFlagController/confirmations');
 
 describe('useConfirmationRedesignEnabled', () => {
-  const confirmationRedesignFlagsMock = jest.mocked(selectConfirmationRedesignFlags);
+  const confirmationRedesignFlagsMock = jest.mocked(
+    selectConfirmationRedesignFlags,
+  );
 
   describe('signature confirmations', () => {
     it('returns true for personal sign request', async () => {
