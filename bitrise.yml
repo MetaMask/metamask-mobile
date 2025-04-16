@@ -1422,7 +1422,7 @@ workflows:
             - access_token: $BITRISE_START_BUILD_ACCESS_TOKEN
   # Runway Workflow for Release Candidate Builds
   runway_build_release_candidate:
-      before_run:
+    before_run:
       - bump_version_code
     after_run:
       - build_ios_release_and_upload_sourcemaps
