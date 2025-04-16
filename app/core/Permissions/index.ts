@@ -24,85 +24,6 @@ const INTERNAL_ORIGINS = [process.env.MM_FOX_CODE, TransactionTypes.MMM];
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const Engine = ImportedEngine as any;
 
-/**
- * Checks that all accounts referenced have a matching InternalAccount. Sends
- * an error to sentry for any accounts that were expected but are missing from the wallet.
- *
- * @param [internalAccounts] - The list of evm accounts the wallet knows about.
- * @param [accounts] - The list of evm accounts addresses that should exist.
- */
-const captureKeyringTypesWithMissingIdentities = (
-  internalAccounts: InternalAccount[] = [],
-  accounts: Hex[] = [],
-) => {
-  const accountsMissingIdentities = accounts.filter(
-    (address) =>
-      !internalAccounts.some(
-        (account) => account.address.toLowerCase() === address.toLowerCase(),
-      ),
-  );
-  const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
-    (address) =>
-      Engine.context.KeyringController.getAccountKeyringType(address),
-  );
-
-  const internalAccountCount = internalAccounts.length;
-
-  const accountTrackerCount = Object.keys(
-    Engine.context.AccountTrackerController.state.accounts || {},
-  ).length;
-
-  captureException(
-    new Error(
-      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
-    ),
-  );
-};
-
-/**
- * Sorts a list of evm account addresses by most recently selected by using
- * the lastSelected value for the matching InternalAccount object stored in state.
- *
- * @param accounts - The list of evm accounts addresses to sort.
- * @returns The sorted evm accounts addresses.
- */
-export const sortAccountsByLastSelected = (accounts: Hex[]) => {
-  const internalAccounts: InternalAccount[] =
-    Engine.context.AccountsController.listAccounts();
-
-  return accounts.sort((firstAddress, secondAddress) => {
-    const firstAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
-    );
-
-    const secondAccount = internalAccounts.find(
-      (internalAccount) =>
-        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
-    );
-
-    if (!firstAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
-      throw new Error(`Missing identity for address: "${firstAddress}".`);
-    } else if (!secondAccount) {
-      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
-      throw new Error(`Missing identity for address: "${secondAddress}".`);
-    } else if (
-      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
-    ) {
-      return 0;
-    } else if (firstAccount.metadata.lastSelected === undefined) {
-      return 1;
-    } else if (secondAccount.metadata.lastSelected === undefined) {
-      return -1;
-    }
-
-    return (
-      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
-    );
-  });
-};
-
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getAccountsFromSubject(subject: any) {
@@ -305,6 +226,85 @@ export const addPermittedChains = (origin: string, chainIds: Hex[]) => {
     Caip25CaveatType,
     caveatValueWithAccountsSynced,
   );
+};
+
+/**
+ * Checks that all accounts referenced have a matching InternalAccount. Sends
+ * an error to sentry for any accounts that were expected but are missing from the wallet.
+ *
+ * @param [internalAccounts] - The list of evm accounts the wallet knows about.
+ * @param [accounts] - The list of evm accounts addresses that should exist.
+ */
+const captureKeyringTypesWithMissingIdentities = (
+  internalAccounts: InternalAccount[] = [],
+  accounts: Hex[] = [],
+) => {
+  const accountsMissingIdentities = accounts.filter(
+    (address) =>
+      !internalAccounts.some(
+        (account) => account.address.toLowerCase() === address.toLowerCase(),
+      ),
+  );
+  const keyringTypesWithMissingIdentities = accountsMissingIdentities.map(
+    (address) =>
+      Engine.context.KeyringController.getAccountKeyringType(address),
+  );
+
+  const internalAccountCount = internalAccounts.length;
+
+  const accountTrackerCount = Object.keys(
+    Engine.context.AccountTrackerController.state.accounts || {},
+  ).length;
+
+  captureException(
+    new Error(
+      `Attempt to get permission specifications failed because there were ${accounts.length} accounts, but ${internalAccountCount} identities, and the ${keyringTypesWithMissingIdentities} keyrings included accounts with missing identities. Meanwhile, there are ${accountTrackerCount} accounts in the account tracker.`,
+    ),
+  );
+};
+
+/**
+ * Sorts a list of evm account addresses by most recently selected by using
+ * the lastSelected value for the matching InternalAccount object stored in state.
+ *
+ * @param accounts - The list of evm accounts addresses to sort.
+ * @returns The sorted evm accounts addresses.
+ */
+export const sortAccountsByLastSelected = (accounts: Hex[]) => {
+  const internalAccounts: InternalAccount[] =
+    Engine.context.AccountsController.listAccounts();
+
+  return accounts.sort((firstAddress, secondAddress) => {
+    const firstAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === firstAddress.toLowerCase(),
+    );
+
+    const secondAccount = internalAccounts.find(
+      (internalAccount) =>
+        internalAccount.address.toLowerCase() === secondAddress.toLowerCase(),
+    );
+
+    if (!firstAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${firstAddress}".`);
+    } else if (!secondAccount) {
+      captureKeyringTypesWithMissingIdentities(internalAccounts, accounts);
+      throw new Error(`Missing identity for address: "${secondAddress}".`);
+    } else if (
+      firstAccount.metadata.lastSelected === secondAccount.metadata.lastSelected
+    ) {
+      return 0;
+    } else if (firstAccount.metadata.lastSelected === undefined) {
+      return 1;
+    } else if (secondAccount.metadata.lastSelected === undefined) {
+      return -1;
+    }
+
+    return (
+      secondAccount.metadata.lastSelected - firstAccount.metadata.lastSelected
+    );
+  });
 };
 
 /**
