@@ -222,7 +222,7 @@
     "@metamask/stake-sdk": "^1.0.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/swaps-controller": "^13.1.0",
-    "@metamask/token-search-discovery-controller": "^3.0.0",
+    "@metamask/token-search-discovery-controller": "^3.1.0",
     "@metamask/transaction-controller": "54.0.0",
     "@metamask/utils": "^11.2.0",
     "@ngraveio/bc-ur": "^1.1.6",
