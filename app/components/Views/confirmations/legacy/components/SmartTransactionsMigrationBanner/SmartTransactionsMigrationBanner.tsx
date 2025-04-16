@@ -12,6 +12,7 @@ import { SmartTransactionsMigrationBannerProps } from './SmartTransactionsMigrat
 import {
   selectShouldUseSmartTransaction,
 } from '../../../../../../selectors/smartTransactionsController';
+import { selectEvmChainId } from '../../../../../../selectors/networkController';
 import Engine from '../../../../../../core/Engine';
 import Logger from '../../../../../../util/Logger';
 import {
@@ -25,8 +26,11 @@ const SmartTransactionsMigrationBanner = ({
   const { styles } = useStyles(styleSheet, { style });
   const isMigrationApplied = useSelector(selectSmartTransactionsMigrationApplied);
   const isBannerDismissed = useSelector(selectSmartTransactionsBannerDismissed);
+  const chainId = useSelector(selectEvmChainId);
 
-  const shouldUseSmartTransaction = useSelector(selectShouldUseSmartTransaction);
+  const shouldUseSmartTransaction = useSelector((state) => 
+    selectShouldUseSmartTransaction(state, chainId)
+  );
 
   const dismissBanner = useCallback(async () => {
     try {
