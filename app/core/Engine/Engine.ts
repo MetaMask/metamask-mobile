@@ -106,10 +106,6 @@ import {
   unrestrictedMethods,
 } from '../Permissions/specifications.js';
 import { backupVault } from '../BackupVault';
-import {
-  SignatureController,
-  SignatureControllerOptions,
-} from '@metamask/signature-controller';
 import { Hex, Json } from '@metamask/utils';
 import { providerErrors } from '@metamask/rpc-errors';
 
@@ -165,7 +161,6 @@ import {
   SnapControllerUpdateSnapStateAction,
 } from './controllers/snaps';
 ///: END:ONLY_INCLUDE_IF
-import { trace } from '../../util/trace';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import {
   BaseControllerMessenger,
@@ -196,6 +191,7 @@ import { multichainNetworkControllerInit } from './controllers/multichain-networ
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
 import { TransactionControllerInit } from './controllers/transaction-controller';
+import { SignatureControllerInit } from './controllers/signature-controller';
 import { GasFeeControllerInit } from './controllers/gas-fee-controller';
 import I18n from '../../../locales/i18n';
 import { Platform } from '@metamask/profile-sync-controller/sdk';
@@ -1111,6 +1107,7 @@ export class Engine {
         AppMetadataController: appMetadataControllerInit,
         GasFeeController: GasFeeControllerInit,
         TransactionController: TransactionControllerInit,
+        SignatureController: SignatureControllerInit,
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
@@ -1137,8 +1134,9 @@ export class Engine {
     });
 
     const accountsController = controllersByName.AccountsController;
-    const transactionController = controllersByName.TransactionController;
     const gasFeeController = controllersByName.GasFeeController;
+    const signatureController = controllersByName.SignatureController;
+    const transactionController = controllersByName.TransactionController;
 
     // Backwards compatibility for existing references
     this.accountsController = accountsController;
@@ -1419,26 +1417,7 @@ export class Engine {
       PermissionController: permissionController,
       RemoteFeatureFlagController: remoteFeatureFlagController,
       SelectedNetworkController: selectedNetworkController,
-      SignatureController: new SignatureController({
-        messenger: this.controllerMessenger.getRestricted({
-          name: 'SignatureController',
-          allowedActions: [
-            `${approvalController.name}:addRequest`,
-            `${this.keyringController.name}:signPersonalMessage`,
-            `${this.keyringController.name}:signMessage`,
-            `${this.keyringController.name}:signTypedMessage`,
-            `${loggingController.name}:add`,
-            `${networkController.name}:getNetworkClientById`,
-          ],
-          allowedEvents: [],
-        }),
-        // This casting expected due to mismatch of browser and react-native version of Sentry traceContext
-        trace: trace as unknown as SignatureControllerOptions['trace'],
-        decodingApiUrl: AppConstants.DECODING_API_URL,
-        // TODO: check preferences useExternalServices
-        isDecodeSignatureRequestEnabled: () =>
-          preferencesController.state.useTransactionSimulations,
-      }),
+      SignatureController: signatureController,
       TokenSearchDiscoveryController: tokenSearchDiscoveryController,
       LoggingController: loggingController,
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
