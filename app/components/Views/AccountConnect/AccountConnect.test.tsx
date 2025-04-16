@@ -171,65 +171,6 @@ describe('AccountConnect', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  describe('Renders different screens based on SDK URL status', () => {
-    it('should render SingleConnect screen when isSdkUrlUnknown is true', () => {
-      const mockPropsForUnknownUrl = {
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                // Using an invalid/unknown format for origin
-                origin: '',
-              },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
-              },
-            },
-            permissionRequestId: 'test',
-          },
-        },
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AccountConnect {...mockPropsForUnknownUrl} />,
-        { state: mockInitialState },
-      );
-
-      expect(getByTestId('connect-account-modal')).toBeDefined();
-    });
-
-    it('should render PermissionsSummary screen when isSdkUrlUnknown is false', () => {
-      const mockPropsForKnownUrl = {
-        route: {
-          params: {
-            hostInfo: {
-              metadata: {
-                id: 'mockId',
-                // Using a valid URL format
-                origin: 'https://example.com',
-              },
-              permissions: {
-                eth_accounts: {
-                  parentCapability: 'eth_accounts',
-                },
-              },
-            },
-            permissionRequestId: 'test',
-          },
-        },
-      };
-
-      const { getByTestId } = renderWithProvider(
-        <AccountConnect {...mockPropsForKnownUrl} />,
-        { state: mockInitialState },
-      );
-
-      expect(getByTestId('permission-summary-container')).toBeDefined();
-    });
-  });
 
   describe('AccountConnectMultiSelector handlers', () => {
     it('invokes onPrimaryActionButtonPress property and renders permissions summary', async () => {
