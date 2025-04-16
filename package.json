@@ -184,7 +184,7 @@
     "@metamask/json-rpc-middleware-stream": "^8.0.7",
     "@metamask/key-tree": "^10.1.1",
     "@metamask/keyring-api": "^17.4.0",
-    "@metamask/keyring-controller": "^21.0.1",
+    "@metamask/keyring-controller": "^21.0.3",
     "@metamask/keyring-internal-api": "^4.0.3",
     "@metamask/keyring-snap-client": "^4.0.1",
     "@metamask/logging-controller": "^6.0.4",
