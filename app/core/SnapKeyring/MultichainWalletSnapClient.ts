@@ -7,7 +7,6 @@ import { SOLANA_WALLET_SNAP_ID, SOLANA_WALLET_NAME } from './SolanaWalletSnap';
 import Engine from '../Engine';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import Logger from '../../util/Logger';
 
 export enum WalletClientType {
   Bitcoin = 'bitcoin',
