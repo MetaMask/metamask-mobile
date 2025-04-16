@@ -13,11 +13,11 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { getNativeRampNavigationOptions } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
-import { callbackBaseDeeplink } from '../../sdk';
 
 interface NativeRampWebViewParams {
   url: string;
   isPaymentWidget?: boolean;
+  onOrderComplete?: (orderId: string) => void;
 }
 
 export const createKycWebviewNavDetails =
@@ -26,9 +26,10 @@ export const createKycWebviewNavDetails =
 const NativeRampWebView = () => {
   const [error, setError] = useState('');
   const [key, setKey] = useState(0);
+  const [isRedirectionHandled, setIsRedirectionHandled] = useState(false);
   const navigation = useNavigation();
   const params = useParams<NativeRampWebViewParams>();
-  const { url, isPaymentWidget } = params;
+  const { url, isPaymentWidget, onOrderComplete } = params;
   const { colors } = useTheme();
 
   useEffect(() => {
@@ -39,8 +40,22 @@ const NativeRampWebView = () => {
   }, [navigation, colors, isPaymentWidget]);
 
   const handleNavigationStateChange = (navState: { url: string }) => {
-    if (navState.url.startsWith(callbackBaseDeeplink)) {
-      navigation.goBack();
+    if (
+      !isRedirectionHandled &&
+      navState.url.startsWith('https://metamask.io')
+    ) {
+      setIsRedirectionHandled(true);
+
+      try {
+        const urlObj = new URL(navState.url);
+        const orderId = urlObj.searchParams.get('orderId');
+
+        if (orderId && onOrderComplete) {
+          onOrderComplete(orderId);
+        }
+      } catch (e) {
+        console.error('Error extracting orderId from URL:', e);
+      }
     }
   };
 
@@ -53,6 +68,7 @@ const NativeRampWebView = () => {
             ctaOnPress={() => {
               setKey((prevKey) => prevKey + 1);
               setError('');
+              setIsRedirectionHandled(false);
             }}
             location="Provider Webview"
           />

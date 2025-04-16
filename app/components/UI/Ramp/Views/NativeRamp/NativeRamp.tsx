@@ -38,7 +38,7 @@ import {
   getTransakToken,
   resetTransakToken,
 } from './TransakTokenVault';
-import { useRampSDK, callbackBaseDeeplink } from '../../sdk';
+import { useRampSDK } from '../../sdk';
 import { createKycWebviewNavDetails } from './NativeRampWebView';
 import MaterialsCommunityIconsIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialsIconsIcon from 'react-native-vector-icons/MaterialIcons';
@@ -90,9 +90,6 @@ function NativeRamp() {
         process.env.TRANSAK_FRONTEND_AUTH || '',
       ),
   );
-  const [linkingSubscription, setLinkingSubscription] = useState<{
-    remove: () => void;
-  } | null>(null);
 
   useEffect(() => {
     const getScreenTitle = () => {
@@ -187,63 +184,49 @@ function NativeRamp() {
     }
   };
 
-  const handleDeepLink = (event: { url: string }) => {
-    if (event.url.startsWith(`${callbackBaseDeeplink}payment-`)) {
-      try {
-        // Extract the order ID from the URL
-        const url = event.url;
-        const urlObj = new URL(url);
-        const orderId = urlObj.searchParams.get('orderId');
+  const handleOrderCompletion = (orderId: string) => {
+    if (accessToken) {
+      navigation.goBack();
 
-        if (orderId && accessToken) {
-          if (linkingSubscription) {
-            linkingSubscription.remove();
-            setLinkingSubscription(null);
+      // Start polling for order completion
+      let retries = 0;
+      const maxRetries = 20;
+      const pollInterval = 30000;
+
+      setIsLoading(true);
+      setLoadingMessage('Processing payment...');
+
+      const pollOrderStatus = async () => {
+        try {
+          const updatedOrder = await nativeRampService.getOrder(
+            accessToken,
+            orderId,
+          );
+
+          if (updatedOrder.status === 'COMPLETED') {
+            setOrderData(updatedOrder);
+            setCurrentStep(8);
+            setIsLoading(false);
+            return;
           }
 
-          // Start polling for order completion
-          let retries = 0;
-          const maxRetries = 20;
-          const pollInterval = 30000;
+          retries++;
+          if (retries >= maxRetries) {
+            throw new Error('Order completion timeout reached.');
+          }
 
-          setIsLoading(true);
-          setLoadingMessage('Processing payment...');
-
-          const pollOrderStatus = async () => {
-            try {
-              const updatedOrder = await nativeRampService.getOrder(
-                accessToken,
-                orderId,
-              );
-
-              if (updatedOrder.status === 'COMPLETED') {
-                setOrderData(updatedOrder);
-                setCurrentStep(8);
-                setIsLoading(false);
-                return;
-              }
-
-              retries++;
-              if (retries >= maxRetries) {
-                throw new Error('Order completion timeout reached.');
-              }
-
-              setLoadingMessage(
-                `Checking payment status... Attempt ${retries} of ${maxRetries}`,
-              );
-              setTimeout(pollOrderStatus, pollInterval);
-            } catch (error) {
-              console.error('Error polling order status:', error);
-              Alert.alert('Error', getErrorMessage(error));
-              setIsLoading(false);
-            }
-          };
-
-          pollOrderStatus();
+          setLoadingMessage(
+            `Checking payment status... Attempt ${retries} of ${maxRetries}`,
+          );
+          setTimeout(pollOrderStatus, pollInterval);
+        } catch (error) {
+          console.error('Error polling order status:', error);
+          Alert.alert('Error', getErrorMessage(error));
+          setIsLoading(false);
         }
-      } catch (e) {
-        console.error('Error handling deep link:', e);
-      }
+      };
+
+      pollOrderStatus();
     }
   };
 
@@ -371,14 +354,10 @@ function NativeRamp() {
 
         const ottResponse = await nativeRampService.requestOtt(accessToken);
 
-        const callbackUrl = `${callbackBaseDeeplink}payment-${Date.now()}`;
-
-        // Set up a linking listener to capture the redirect
-        const subscription = Linking.addEventListener('url', handleDeepLink);
-        setLinkingSubscription(subscription);
+        const callbackUrl = 'https://metamask.io';
 
         // Generate payment widget URL with callback
-        const paymentWidgetUrl = nativeRampService.generatePaymentWidgetUrl(
+        const widgetUrl = nativeRampService.generatePaymentWidgetUrl(
           ottResponse.token,
           quote.fiatCurrency,
           quote.cryptoCurrency,
@@ -393,11 +372,11 @@ function NativeRamp() {
         setCurrentStep(7);
         setIsLoading(false);
 
-        // Use the webview to open the payment URL
         navigation.navigate(
           ...createKycWebviewNavDetails({
-            url: paymentWidgetUrl,
+            url: widgetUrl,
             isPaymentWidget: true,
+            onOrderComplete: handleOrderCompletion,
           }),
         );
       } else {
@@ -1451,8 +1430,6 @@ function NativeRamp() {
     </>
   );
 
-  useEffect(() => () => linkingSubscription?.remove(), [linkingSubscription]);
-
   return (
     <KeyboardAvoidingView
       style={styles.keyboardAvoidingView}
@@ -1492,23 +1469,25 @@ function NativeRamp() {
 
         <ScreenLayout.Footer>
           <ScreenLayout.Content>
-            <Row style={styles.cta}>
-              <StyledButton
-                type="confirm"
-                onPress={handleContinue}
-                loading={isLoading}
-              >
-                {currentStep === 8
-                  ? 'Swap for tokens'
-                  : currentStep === 7
-                  ? 'Confirm bank transfer'
-                  : currentStep === 6
-                  ? 'Continue to purchase'
-                  : currentStep === 2
-                  ? 'Get started'
-                  : 'Continue'}
-              </StyledButton>
-            </Row>
+            {!(isLoading && currentStep === 7) && (
+              <Row style={styles.cta}>
+                <StyledButton
+                  type="confirm"
+                  onPress={handleContinue}
+                  loading={isLoading}
+                >
+                  {currentStep === 8
+                    ? 'Swap for tokens'
+                    : currentStep === 7
+                    ? 'Confirm bank transfer'
+                    : currentStep === 6
+                    ? 'Continue to purchase'
+                    : currentStep === 2
+                    ? 'Get started'
+                    : 'Continue'}
+                </StyledButton>
+              </Row>
+            )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout>
