@@ -36,8 +36,8 @@ export const BridgeDestTokenSelector: React.FC = () => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const selectedSourceToken = useSelector(selectSourceToken);
   const { tokens: tokensList, pending } = useTokens({
-    topTokensChainId: selectedDestChainId as Hex,
-    balanceChainIds: [selectedDestChainId as Hex],
+    topTokensChainId: selectedDestChainId,
+    balanceChainIds: selectedDestChainId ? [selectedDestChainId] : [],
     tokensToExclude: selectedSourceToken ? [selectedSourceToken] : [],
   });
   const handleTokenPress = useCallback(

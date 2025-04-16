@@ -111,7 +111,7 @@ interface BridgeTokenSelectorBaseProps {
   renderTokenItem: ({ item }: { item: BridgeToken }) => React.JSX.Element;
   tokensList: BridgeToken[];
   pending?: boolean;
-  chainIdToFetchMetadata: Hex | CaipChainId;
+  chainIdToFetchMetadata?: Hex | CaipChainId;
 }
 
 export const BridgeTokenSelectorBase: React.FC<
