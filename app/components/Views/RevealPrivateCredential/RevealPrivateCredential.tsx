@@ -349,6 +349,7 @@ const RevealPrivateCredential = ({
       inactiveTextColor={colors.text.alternative}
       backgroundColor={colors.background.default}
       tabStyle={styles.tabStyle}
+      // @ts-expect-error - TextStyle is not correctly at react-native-scrollable-tab-view, this library is outdated
       textStyle={styles.textStyle}
       style={styles.tabBar}
     />

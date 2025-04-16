@@ -157,7 +157,6 @@ const createStyles = ({ colors, typography }: Theme) =>
       alignItems: 'center',
     },
     banner: {
-      widht: '80%',
       marginTop: 20,
       paddingHorizontal: 16,
     },

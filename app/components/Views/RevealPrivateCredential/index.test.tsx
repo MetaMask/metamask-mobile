@@ -35,7 +35,7 @@ describe('RevealPrivateCredential', () => {
     jest.clearAllMocks();
   });
 
-  const renderWithProviders = (ui: unknown) =>
+  const renderWithProviders = (ui: React.ReactNode) =>
     render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>

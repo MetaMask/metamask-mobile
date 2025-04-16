@@ -8,7 +8,10 @@ import {
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import { OutlinedTextField } from 'react-native-material-textfield';
+import {
+  OutlinedTextField,
+  TextFieldProps,
+} from 'react-native-material-textfield';
 import { createStyles } from './styles';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import WarningExistingUserModal from '../WarningExistingUserModal';
@@ -91,7 +94,7 @@ const TurnOffRememberMeModal = () => {
                 {strings('turn_off_remember_me.description')}
               </Text>
               <OutlinedTextField
-                style={styles.input}
+                style={styles.input as TextFieldProps}
                 secureTextEntry
                 returnKeyType={'done'}
                 onChangeText={checkPassword}

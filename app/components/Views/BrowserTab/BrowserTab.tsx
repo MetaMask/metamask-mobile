@@ -210,7 +210,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   /**
    * Checks if a given url or the current url is the homepage
    */
-  const isHomepage = useCallback((checkUrl = null) => {
+  const isHomepage = useCallback((checkUrl?: string | null) => {
     const currentPage = checkUrl || resolvedUrlRef.current;
     const prefixedUrl = prefixUrlWithProtocol(currentPage);
     const { host: currentHost } = getUrlObj(prefixedUrl);
@@ -219,7 +219,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     );
   }, []);
 
-  const notifyAllConnections = useCallback((payload) => {
+  const notifyAllConnections = useCallback((payload: unknown) => {
     backgroundBridgeRef.current?.sendNotification(payload);
   }, []);
 
@@ -324,8 +324,12 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
    */
   const handleIpfsContent = useCallback(
     async (
-      fullUrl,
-      { hostname, pathname, query },
+      fullUrl: string,
+      {
+        hostname,
+        pathname,
+        query,
+      }: { hostname: string; pathname: string; query: string },
     ): Promise<IpfsContentResult | undefined | null> => {
       const { provider } =
         Engine.context.NetworkController.getProviderAndBlockTracker();
@@ -1126,7 +1130,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   };
 
   const handleOnFileDownload = useCallback(
-    async ({ nativeEvent: { downloadUrl } }) => {
+    async ({
+      nativeEvent: { downloadUrl },
+    }: {
+      nativeEvent: { downloadUrl: string };
+    }) => {
       const downloadResponse = await downloadFile(downloadUrl);
       if (downloadResponse) {
         reload();

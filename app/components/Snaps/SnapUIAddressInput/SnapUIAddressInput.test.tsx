@@ -215,7 +215,7 @@ describe('SnapUIAddressInput', () => {
 
     const input = queryByTestId(INPUT_TEST_ID);
 
-    expect(input.props.value).toBe(testAddress);
+    expect(input?.props.value).toBe(testAddress);
     expect(getByText('Error')).toBeTruthy();
 
     const tree = JSON.stringify(toJSON());

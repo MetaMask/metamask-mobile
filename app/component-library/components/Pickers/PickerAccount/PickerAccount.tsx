@@ -30,7 +30,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
     cellAccountContainerStyle = {},
     ...props
   },
-  ref: React.Ref<View>,
+  ref: React.Ref<typeof TouchableOpacity>,
 ) => {
   const { styles } = useStyles(styleSheet, {
     style,
@@ -67,7 +67,7 @@ const PickerAccount: React.ForwardRefRenderFunction<
         style={styles.base}
         dropdownIconStyle={styles.dropDownIcon}
         {...props}
-        ref={ref}
+        ref={ref as React.Ref<View>}
       >
         {renderCellAccount()}
       </PickerBase>

@@ -47,6 +47,7 @@ const AlertsContext = React.createContext<AlertsContextParams>({
 
 interface AlertsContextProviderProps {
   alerts: Alert[];
+  children: React.ReactNode;
 }
 
 export const AlertsContextProvider: React.FC<AlertsContextProviderProps> = ({

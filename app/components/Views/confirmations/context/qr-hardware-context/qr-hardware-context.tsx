@@ -6,7 +6,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationAction } from '@react-navigation/native';
 
 import Engine from '../../../../../core/Engine';
 import { IQRState } from '../../../../UI/QRHardware/types';
@@ -50,7 +50,7 @@ export const QRHardwareContextProvider: React.FC<{
   const KeyringController = Engine.context.KeyringController;
 
   const cancelRequest = useCallback(
-    (e) => {
+    (e: { preventDefault: () => void; data: { action: NavigationAction } }) => {
       if (isRequestCompleted) {
         return;
       }
