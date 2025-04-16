@@ -151,7 +151,7 @@ const BridgeView = () => {
         if (inputRef.current) {
           inputRef.current.blur();
         }
-      }, 2000); // 1 second delay
+      }, 1000); // 1 second delay
 
       const updatePromise = updateQuoteParams();
       if (updatePromise) {
