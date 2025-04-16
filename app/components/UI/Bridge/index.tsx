@@ -35,7 +35,7 @@ import {
   selectDestAddress,
 } from '../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { getBridgeNavbar } from '../Navbar';
 import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
@@ -45,11 +45,16 @@ import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
+import { QuoteMetadata, isSolanaChainId } from '@metamask/bridge-controller';
 import QuoteDetailsCard from './components/QuoteDetailsCard';
 import { useBridgeQuoteRequest } from './hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from './hooks/useBridgeQuoteData';
 import DestinationAccountSelector from './components/DestinationAccountSelector.tsx';
-import { isSolanaChainId } from '@metamask/bridge-controller';
+import { useInitialSourceToken, BridgeRouteParams } from './hooks/useInitialSourceToken';
+import { useInitialDestToken } from './hooks/useInitialDestToken';
+import { BridgeSourceTokenSelectorRouteParams } from './components/BridgeSourceTokenSelector';
+import { BridgeDestTokenSelectorRouteParams } from './components/BridgeDestTokenSelector';
+
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -115,7 +120,7 @@ const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
 
@@ -127,12 +132,16 @@ const BridgeView = () => {
   const updateQuoteParams = useBridgeQuoteRequest();
   const destAddress = useSelector(selectDestAddress);
 
+  useInitialSourceToken();
+  useInitialDestToken();
+
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
+
 
   const hasInsufficientBalance = useMemo(() => {
     if (
@@ -202,12 +211,15 @@ const BridgeView = () => {
     dispatch(setSourceAmount(value || undefined));
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // TODO: Implement bridge transaction with source and destination amounts
     // TESTING: Paste a quote from the Bridge API here to test the bridge flow
-    const quoteResponse = undefined;
-    if (quoteResponse) {
-      submitBridgeTx({ quoteResponse: quoteResponse as QuoteResponse });
+    const quoteResponse = {};
+    // TESTING: Paste quote metadata from extension here to test the bridge flow
+    const quoteMetadata = {};
+    if (Object.keys(quoteResponse).length > 0 && Object.keys(quoteMetadata).length > 0) {
+      await submitBridgeTx({ quoteResponse: {...quoteResponse, ...quoteMetadata} as QuoteResponse & QuoteMetadata });
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
@@ -226,13 +238,17 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.bridgeViewMode,
+      } as BridgeSourceTokenSelectorRouteParams,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.bridgeViewMode,
+      } as BridgeDestTokenSelectorRouteParams,
     });
 
   const renderBottomContent = () => {
@@ -283,10 +299,14 @@ const BridgeView = () => {
             amount={sourceAmount}
             token={sourceToken}
             tokenBalance={latestSourceBalance?.displayBalance}
-            //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-            networkImageSource={getNetworkImageSource({
-              chainId: sourceToken?.chainId,
-            })}
+            networkImageSource={
+              sourceToken?.chainId
+                ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                  getNetworkImageSource({
+                    chainId: sourceToken?.chainId,
+                  })
+                : undefined
+            }
             autoFocus
             isReadonly
             testID="source-token-area"
