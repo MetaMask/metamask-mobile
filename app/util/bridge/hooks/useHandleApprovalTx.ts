@@ -1,7 +1,12 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import useHandleTx from './useHandleTx';
 import { QuoteResponse } from '../../../components/UI/Bridge/types';
-import { FeeType, isEthUsdt, getEthUsdtResetData, TxData } from '@metamask/bridge-controller';
+import {
+  FeeType,
+  isEthUsdt,
+  getEthUsdtResetData,
+  TxData,
+} from '@metamask/bridge-controller';
 import { decimalToHex } from '../../conversions';
 import { addHexPrefix } from 'ethereumjs-util';
 import BigNumber from 'bignumber.js';
@@ -26,7 +31,10 @@ export default function useHandleApprovalTx() {
   }) => {
     try {
       const allowance = new BigNumber(
-        await Engine.context.BridgeController.getBridgeERC20Allowance(ETH_USDT_ADDRESS, hexChainId),
+        await Engine.context.BridgeController.getBridgeERC20Allowance(
+          ETH_USDT_ADDRESS,
+          hexChainId,
+        ),
       );
 
       // quote.srcTokenAmount is actually after the fees
@@ -65,7 +73,9 @@ export default function useHandleApprovalTx() {
     try {
       // On Ethereum, we need to reset the allowance to 0 for USDT first if we need to set a new allowance
       // https://docs.unizen.io/trade-api/before-you-get-started/token-allowance-management-for-non-updatable-allowance-tokens
-      const hexChainId = addHexPrefix(String(decimalToHex(approval.chainId))) as Hex;
+      const hexChainId = addHexPrefix(
+        String(decimalToHex(approval.chainId)),
+      ) as Hex;
       if (isEthUsdt(hexChainId, quoteResponse.quote.srcAsset.address)) {
         await handleEthUsdtAllowanceReset({
           approval,
