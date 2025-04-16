@@ -101,7 +101,7 @@ export const initialState = {
         ],
       },
       NetworkController: {
-        selectedNetworkClientId: 'ethNetworkClientId',
+        selectedNetworkClientId: 'selectedNetworkClientId',
         networksMetadata: {
           mainnet: {
             EIPS: {
@@ -113,13 +113,18 @@ export const initialState = {
               1559: true,
             },
           },
+          selectedNetworkClientId: {
+            EIPS: {
+              1559: true,
+            },
+          },
         },
         networkConfigurationsByChainId: {
           [ethChainId]: {
             chainId: ethChainId,
             rpcEndpoints: [
               {
-                networkClientId: 'ethNetworkClientId',
+                networkClientId: 'selectedNetworkClientId',
               },
             ],
             defaultRpcEndpointIndex: 0,
