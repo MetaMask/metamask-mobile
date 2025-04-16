@@ -5591,13 +5591,13 @@
     "@metamask/swappable-obj-proxy" "^2.3.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/signature-controller@^25.0.0":
-  version "25.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-25.0.0.tgz#05105413417fc968ad69facee3ecbdf4b93c75f0"
-  integrity sha512-npkXSMdM/QVLeETBzjOkHXH0ZRCtm8/imP5ngGhv4zC1bOlOUuItOhRB06UlivztLKANwyvtoeP7Fs330e2+Ew==
+"@metamask/signature-controller@^27.1.0":
+  version "27.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/signature-controller/-/signature-controller-27.1.0.tgz#534afd60811c25d951b444ebc393bb1183382d4a"
+  integrity sha512-w+CycUMAZ3zwhQH7njthkfJ5zxL7XSQm7vt0832SqXoWAOHhZ6EbTKVzXelttW2KZQwoD2K4b0d2QbiZ7Uhn0g==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
+    "@metamask/controller-utils" "^11.7.0"
     "@metamask/eth-sig-util" "^8.2.0"
     "@metamask/utils" "^11.2.0"
     jsonschema "^1.4.1"
