@@ -586,10 +586,10 @@ workflows:
                   "https://api.github.com/repos/MetaMask/metamask-mobile/actions/workflows/125632963/dispatches" \
                   -d "{\"ref\":\"main\",\"inputs\":{\"base-branch\":\"$BITRISE_GIT_BRANCH\"}}" || exit 1
 
-                echo "Waiting 60 seconds for workflow to start..."
-                sleep 60
+                echo "Waiting 15 seconds for workflow to start..."
+                sleep 15
 
-                # Check completion status every 30 seconds for up to 2.5 minutes
+                # Check completion status every 15 seconds for up to 1.25 minutes
                 for i in {1..5}; do
                   echo "Checking workflow status (Attempt $i of 5)..."
                   
@@ -604,7 +604,7 @@ workflows:
                   
                   if [ "$TOTAL_COUNT" = "0" ]; then
                     echo "Workflow is still running..."
-                    sleep 30
+                    sleep 15
                   else
                     # Get the conclusion of the most recent run
                     CONCLUSION=$(echo "$COMPLETION_CHECK" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)
@@ -617,12 +617,12 @@ workflows:
                       exit 1
                     else
                       echo "Workflow is still in progress..."
-                      sleep 30
+                      sleep 15
                     fi
                   fi
                 done
 
-                echo "Timeout: Workflow did not complete within 2.5 minutes"
+                echo "Timeout: Workflow did not complete within 1.25 minutes"
                 exit 1
   # CI Steps
   ci_test:
