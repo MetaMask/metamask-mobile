@@ -101,14 +101,37 @@ const BridgeView = () => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [isWaitingForInitialQuote, setIsWaitingForInitialQuote] =
     useState(false);
+  const [isError, setIsError] = useState(false);
 
-  const isError =
-    !isLoading &&
-    !isWaitingForInitialQuote &&
-    (quoteFetchError || (hasValidBridgeInputs && !bestQuote));
+  // Update error state when relevant states change
+  useEffect(() => {
+    if (isLoading || isWaitingForInitialQuote) {
+      setIsError(false);
+      return;
+    }
+
+    if (quoteFetchError) {
+      setIsError(true);
+      return;
+    }
+
+    setIsError(Boolean(hasValidBridgeInputs && !bestQuote));
+  }, [
+    isLoading,
+    isWaitingForInitialQuote,
+    quoteFetchError,
+    hasValidBridgeInputs,
+    bestQuote,
+  ]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setIsWaitingForInitialQuote(false);
+    }
+  }, [isLoading]);
 
   const shouldDisplayKeypad =
-    !hasValidBridgeInputs || isInputFocused || isLoading;
+    !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
 
   const hasInsufficientBalance = useMemo(() => {
     if (
@@ -167,6 +190,7 @@ const BridgeView = () => {
     }
     return () => {
       updateQuoteParams.cancel();
+      setIsWaitingForInitialQuote(false);
     };
   }, [hasValidBridgeInputs, updateQuoteParams]);
 
