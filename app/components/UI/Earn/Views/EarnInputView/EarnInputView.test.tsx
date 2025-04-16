@@ -523,8 +523,8 @@ describe('StakeInputView', () => {
         fireEvent.press(getByText(strings('stake.review')));
 
         jest.useRealTimers();
-        // Wait for approval to be processed
-        await flushPromises();
+
+        await new Promise(process.nextTick);
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
         expect(mockNavigate).toHaveBeenLastCalledWith('StakeScreens', {
