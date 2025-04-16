@@ -11,15 +11,6 @@ import * as ConfirmationActions from '../../../hooks/useConfirmActions';
 
 import LedgerSignModal from './LedgerSignModal';
 
-jest.mock('../../../../../../util/trace', () => ({
-  startNewSpan: jest.fn(() => ({
-    end: jest.fn(),
-    setTag: jest.fn(),
-    setData: jest.fn(),
-  })),
-  recordChildSpan: jest.fn(),
-}));
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
