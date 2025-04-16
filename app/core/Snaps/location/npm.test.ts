@@ -45,5 +45,5 @@ describe('NpmLocation', () => {
     expect(bundle.toString()).toStrictEqual(
       `module.exports.onRpcRequest = () => null`,
     );
-  }, 10000); // Increased timeout to 10 seconds
+  });
 });
