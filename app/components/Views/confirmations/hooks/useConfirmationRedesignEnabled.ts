@@ -12,7 +12,7 @@ import {
 import { isHardwareAccount } from '../../../../util/address';
 import { isStakingConfirmation } from '../utils/confirm';
 import useApprovalRequest from './useApprovalRequest';
-import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 const REDESIGNED_SIGNATURE_TYPES = [
   ApprovalType.EthSignTypedData,
