@@ -210,9 +210,9 @@ const ManualBackupStep1 = ({ route, navigation, appTheme }) => {
             <Icon
               name={IconName.EyeSlashSolid}
               size={IconSize.Xl}
-              color={colors.overlay.inverse}
+              color={colors.overlay.default}
             />
-            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
               {strings('manual_backup_step_1.reveal')}
             </Text>
             <Text variant={TextVariant.BodySM} color={TextColor.Default}>

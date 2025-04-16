@@ -38,10 +38,11 @@ import Text, {
 } from '../../../component-library/components/Texts/Text';
 
 const ManualBackupStep2 = ({ navigation, seedphraseBackedUp, route }) => {
+  const words = route.params?.words;
+
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const words = route.params?.words;
   const [showStatusBottomSheet, setShowStatusBottomSheet] = useState(false);
   const [gridWords, setGridWords] = useState([]);
   const [emptySlots, setEmptySlots] = useState([]);
