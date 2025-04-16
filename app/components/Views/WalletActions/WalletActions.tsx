@@ -263,7 +263,7 @@ const WalletActions = () => {
     });
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+      createEventBuilder(MetaMetricsEvents.BRIDGE_BUTTON_CLICKED)
         .addProperties({
           text: 'Bridge',
           tokenSymbol: '',
