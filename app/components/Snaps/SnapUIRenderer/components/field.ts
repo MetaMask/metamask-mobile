@@ -4,6 +4,7 @@ import {
   JSXElement,
   CheckboxElement,
   SelectorElement,
+  AddressInputElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -32,6 +33,24 @@ export const field: UIComponentFactory<FieldElement> = ({
   };
 
   switch (child?.type) {
+    case 'AddressInput': {
+      const addressInput = child as AddressInputElement;
+      return {
+        element: 'SnapUIAddressInput',
+        props: {
+          name: addressInput.props.name,
+          form,
+          chainId: addressInput.props.chainId,
+          displayAvatar: addressInput.props.displayAvatar,
+          disabled: addressInput.props.disabled,
+          placeholder: addressInput.props.placeholder,
+          label: e.props.label,
+          error: e.props.error,
+          style,
+        },
+      };
+    }
+
     case 'Input': {
       const getLeftAccessory = () =>
         mapToTemplate({
