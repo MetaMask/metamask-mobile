@@ -22,7 +22,7 @@ export enum AssetType {
 
 /**
  * Fetches token metadata for a single token if searchQuery is defined but filteredTokenList is empty
- * There's about a 10-15 minute delay between pump.fun and Token API.
+ * There is no minimum age of token that can be queried for. The Token API has a fallback mechanism that will look up tokens it does not have saved.
  *
  * @param searchQuery - The search query to fetch metadata for
  * @param shouldFetchMetadata - Whether to fetch metadata
