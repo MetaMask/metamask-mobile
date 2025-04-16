@@ -46,18 +46,14 @@ const addOrUpdateIndex = (array, value, comparator) => {
  * @param params.res - The JsonRpcEngine result object.
  * @param params.requestUserApproval - The callback to trigger user approval flow.
  * @param params.analytics - Analytics parameters to be passed when tracking event via `MetaMetrics`.
- * @param params.startApprovalFlow - Flow to trigger at approval start.
- * @param params.endApprovalFlow - Flow to trigger at approval end.
  * @param params.hooks - Method hooks passed to the method implementation.
- * @returns {void}.
+ * @returns {Nothing}.
  */
 export const wallet_addEthereumChain = async ({
   req,
   res,
   requestUserApproval,
   analytics,
-  startApprovalFlow,
-  endApprovalFlow,
   hooks,
 }) => {
   const {
@@ -199,102 +195,97 @@ export const wallet_addEthereumChain = async ({
   // If existing approval request was an add network request, wait for
   // it to be rejected and for the corresponding approval flow to be ended.
   await waitForInteraction();
-  const { id: approvalFlowId } = startApprovalFlow();
 
   try {
-    try {
-      await requestUserApproval({
-        type: 'ADD_ETHEREUM_CHAIN',
-        requestData,
-      });
-    } catch (error) {
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
-        )
-          .addProperties({
-            chain_id: getDecimalChainId(chainId),
-            source: 'Custom Network API',
-            symbol: ticker,
-            ...analytics,
-          })
-          .build(),
-      );
-      throw providerErrors.userRejectedRequest();
-    }
+    await requestUserApproval({
+      type: 'ADD_ETHEREUM_CHAIN',
+      requestData,
+    });
+  } catch (error) {
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NETWORK_REQUEST_REJECTED,
+      )
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+          source: 'Custom Network API',
+          symbol: ticker,
+          ...analytics,
+        })
+        .build(),
+    );
+    throw providerErrors.userRejectedRequest();
+  }
 
-    let newNetworkConfiguration;
-    if (existingNetworkConfiguration) {
-      const currentChainId = selectEvmChainId(store.getState());
+  let newNetworkConfiguration;
+  if (existingNetworkConfiguration) {
+    const currentChainId = selectEvmChainId(store.getState());
 
-      const rpcResult = addOrUpdateIndex(
-        existingNetworkConfiguration.rpcEndpoints,
+    const rpcResult = addOrUpdateIndex(
+      existingNetworkConfiguration.rpcEndpoints,
+      {
+        url: firstValidRPCUrl,
+        failoverUrls: [],
+        type: RpcEndpointType.Custom,
+        name: chainName,
+      },
+      (endpoint) => endpoint.url === firstValidRPCUrl,
+    );
+
+    const blockExplorerResult = addOrUpdateIndex(
+      existingNetworkConfiguration.blockExplorerUrls,
+      firstValidBlockExplorerUrl,
+      (url) => url === firstValidBlockExplorerUrl,
+    );
+
+    const updatedNetworkConfiguration = {
+      ...existingNetworkConfiguration,
+      rpcEndpoints: rpcResult.updatedArray,
+      defaultRpcEndpointIndex: rpcResult.index,
+      blockExplorerUrls: blockExplorerResult.updatedArray,
+      defaultBlockExplorerUrlIndex: blockExplorerResult.index,
+    };
+
+    newNetworkConfiguration = await NetworkController.updateNetwork(
+      chainId,
+      updatedNetworkConfiguration,
+      currentChainId === chainId
+        ? {
+            replacementSelectedRpcEndpointIndex:
+              updatedNetworkConfiguration.defaultRpcEndpointIndex,
+          }
+        : undefined,
+    );
+  } else {
+    newNetworkConfiguration = NetworkController.addNetwork({
+      chainId,
+      blockExplorerUrls: [firstValidBlockExplorerUrl],
+      defaultRpcEndpointIndex: 0,
+      defaultBlockExplorerUrlIndex: 0,
+      name: chainName,
+      nativeCurrency: ticker,
+      rpcEndpoints: [
         {
           url: firstValidRPCUrl,
           failoverUrls: [],
-          type: RpcEndpointType.Custom,
           name: chainName,
+          type: RpcEndpointType.Custom,
         },
-        (endpoint) => endpoint.url === firstValidRPCUrl,
-      );
+      ],
+    });
 
-      const blockExplorerResult = addOrUpdateIndex(
-        existingNetworkConfiguration.blockExplorerUrls,
-        firstValidBlockExplorerUrl,
-        (url) => url === firstValidBlockExplorerUrl,
-      );
-
-      const updatedNetworkConfiguration = {
-        ...existingNetworkConfiguration,
-        rpcEndpoints: rpcResult.updatedArray,
-        defaultRpcEndpointIndex: rpcResult.index,
-        blockExplorerUrls: blockExplorerResult.updatedArray,
-        defaultBlockExplorerUrlIndex: blockExplorerResult.index,
-      };
-
-      newNetworkConfiguration = await NetworkController.updateNetwork(
-        chainId,
-        updatedNetworkConfiguration,
-        currentChainId === chainId
-          ? {
-              replacementSelectedRpcEndpointIndex:
-                updatedNetworkConfiguration.defaultRpcEndpointIndex,
-            }
-          : undefined,
-      );
-    } else {
-      newNetworkConfiguration = NetworkController.addNetwork({
-        chainId,
-        blockExplorerUrls: [firstValidBlockExplorerUrl],
-        defaultRpcEndpointIndex: 0,
-        defaultBlockExplorerUrlIndex: 0,
-        name: chainName,
-        nativeCurrency: ticker,
-        rpcEndpoints: [
-          {
-            url: firstValidRPCUrl,
-            failoverUrls: [],
-            name: chainName,
-            type: RpcEndpointType.Custom,
-          },
-        ],
-      });
-
-      MetaMetrics.getInstance().trackEvent(
-        MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
-          .addProperties({
-            chain_id: getDecimalChainId(chainId),
-            source: 'Custom Network API',
-            symbol: ticker,
-            ...analytics,
-          })
-          .build(),
-      );
-    }
-    switchToNetworkAndMetrics(newNetworkConfiguration, true);
-  } finally {
-    endApprovalFlow({ id: approvalFlowId });
+    MetaMetrics.getInstance().trackEvent(
+      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.NETWORK_ADDED)
+        .addProperties({
+          chain_id: getDecimalChainId(chainId),
+          source: 'Custom Network API',
+          symbol: ticker,
+          ...analytics,
+        })
+        .build(),
+    );
   }
+  switchToNetworkAndMetrics(newNetworkConfiguration, true);
 
   res.result = null;
 };
