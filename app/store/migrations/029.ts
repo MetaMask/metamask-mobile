@@ -465,13 +465,13 @@ export default async function migrate(stateAsync: unknown) {
   if (Array.isArray(transactionControllerState.transactions)) {
     transactionControllerState.transactions.forEach(
       (transaction: TransactionParams, index: number) => {
-        if (transaction && !isHexString(transaction.chainId as string)) {
+        if (transaction?.chainId && !isHexString(transaction.chainId)) {
           if (
             Array.isArray(transactionControllerState.transactions) &&
             isObject(transactionControllerState.transactions[index])
           ) {
             transactionControllerState.transactions[index].chainId = toHex(
-              transaction.chainId as string,
+              transaction.chainId,
             );
           }
         }
