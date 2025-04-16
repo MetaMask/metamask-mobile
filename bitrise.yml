@@ -601,7 +601,7 @@ workflows:
                   
                   # Store the total_count value
                   TOTAL_COUNT=$(echo "$COMPLETION_CHECK" | grep -o '"total_count":[0-9]*' | cut -d':' -f2)
-                  echo "$COMPLETION_CHECK"
+                  echo "$COMPLETION_CHECK.workflow_runs[0]"
                   if [ "$TOTAL_COUNT" = "0" ]; then
                     echo "Workflow is still running..."
                     sleep 15
@@ -626,6 +626,10 @@ workflows:
                 echo "Timeout: Workflow did not complete within 1.25 minutes"
                 echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                 exit 1
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: standard
   # CI Steps
   ci_test:
     before_run:
