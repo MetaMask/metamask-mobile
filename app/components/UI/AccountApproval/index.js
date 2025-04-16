@@ -294,7 +294,7 @@ class AccountApproval extends PureComponent {
     const scanResult = await getPhishingTestResultAsync(hostname);
     if (this._isMounted) {
       this.setState({
-        isUrlFlaggedAsPhishing: !scanResult.result,
+        isUrlFlaggedAsPhishing: scanResult.result,
       });
     }
   };
