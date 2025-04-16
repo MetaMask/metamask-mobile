@@ -372,7 +372,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                             "alignItems": "center",
                             "alignSelf": "center",
                             "backgroundColor": "transparent",
-                            "borderRadius": 24,
+                            "borderRadius": 12,
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",

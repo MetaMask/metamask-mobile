@@ -94,6 +94,7 @@ const createStyles = (colors) =>
       marginRight: 5,
       maxWidth: '60%',
       opacity: 0.5,
+      borderRadius: 20,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -103,6 +104,7 @@ const createStyles = (colors) =>
       marginLeft: 5,
       marginRight: 5,
       maxWidth: '60%',
+      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
