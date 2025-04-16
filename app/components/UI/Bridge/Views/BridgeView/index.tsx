@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ScreenView from '../../../../Base/ScreenView';
 import Keypad from '../../../../Base/Keypad';
@@ -29,6 +29,7 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
+  selectBridgeControllerState,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -75,6 +76,7 @@ const BridgeView = () => {
     quoteFetchError,
     bestQuote,
   } = useBridgeQuoteData();
+  const { quoteRequest } = useSelector(selectBridgeControllerState);
 
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -102,6 +104,8 @@ const BridgeView = () => {
 
   const hasValidBridgeInputs =
     isValidSourceAmount && !!sourceToken && !!destToken;
+
+  const hasInsufficientBalance = quoteRequest?.insufficientBal;
 
   const [isInputFocused, setIsInputFocused] = useState(false);
   // isWaitingForInitialQuote tracks our local loading state for the initial quote request
@@ -179,22 +183,6 @@ const BridgeView = () => {
 
   const shouldDisplayKeypad =
     !isError || !hasValidBridgeInputs || isInputFocused || isLoading;
-
-  const hasInsufficientBalance = useMemo(() => {
-    if (
-      !sourceAmount ||
-      !latestSourceBalance?.atomicBalance ||
-      !sourceToken?.decimals
-    ) {
-      return false;
-    }
-
-    const sourceAmountAtomic = ethers.utils.parseUnits(
-      sourceAmount,
-      sourceToken.decimals,
-    );
-    return sourceAmountAtomic.gt(latestSourceBalance.atomicBalance);
-  }, [sourceAmount, latestSourceBalance?.atomicBalance, sourceToken?.decimals]);
 
   // Reset bridge state when component unmounts
   useEffect(

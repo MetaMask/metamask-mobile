@@ -23,6 +23,7 @@ import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { selectBridgeControllerState } from '../../../../../core/redux/slices/bridge';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -164,6 +165,8 @@ export const TokenInputArea = forwardRef<
     const networkConfigurationsByChainId = useSelector(
       selectNetworkConfigurations,
     );
+    const { quoteRequest } = useSelector(selectBridgeControllerState);
+    const isInsufficientBalance = quoteRequest?.insufficientBal;
 
     const fiatValue = getDisplayFiatValue({
       token,
@@ -232,7 +235,16 @@ export const TokenInputArea = forwardRef<
                   <Text color={TextColor.Alternative}>{fiatValue}</Text>
                 ) : null}
                 {subtitle ? (
-                  <Text color={TextColor.Alternative}>{subtitle}</Text>
+                  <Text
+                    color={
+                      tokenType === TokenInputAreaType.Source &&
+                      isInsufficientBalance
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {subtitle}
+                  </Text>
                 ) : null}
               </>
             )}
