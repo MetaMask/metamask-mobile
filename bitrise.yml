@@ -1475,13 +1475,15 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: standard
   deploy_android_to_store:
+    envs:
+      - PROJECT_LOCATION: android
     steps:
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
       - google-play-deploy:
           inputs:
-            - app_path: $BITRISE_PLAY_STORE_ABB_PATH
+            - app_path: $PROJECT_LOCATION/app/build/outputs/bundle/prodRelease/app-prod-release.aab
             - track: internal
             - service_account_json_key_path: $BITRISEIO_BITRISEIO_SERVICE_ACCOUNT_JSON_KEY_URL_URL
             - package_name: $MM_ANDROID_PACKAGE_NAME
