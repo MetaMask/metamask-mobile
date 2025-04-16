@@ -375,7 +375,8 @@
     "confirm": "Confirm",
     "pass_flow": "Continue with Flow",
     "step": "Step {{currentStep}} of {{totalSteps}}",
-    "password_error": "Passwords don’t match. Try again."
+    "password_error": "Passwords don’t match. Try again.",
+    "spellcheck_error": "Entered words are not valid. Please check your phrase and try again."
   },
   "bottom_tab_bar": {
     "dapps": "ÐApps",

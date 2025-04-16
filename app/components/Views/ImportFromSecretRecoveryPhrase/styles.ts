@@ -140,8 +140,6 @@ const createStyles = (colors: any) =>
       paddingHorizontal: 8,
       borderRadius: 8,
       backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',

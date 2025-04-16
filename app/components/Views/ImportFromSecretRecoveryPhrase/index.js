@@ -37,7 +37,6 @@ import {
 } from '../../../util/password';
 import importAdditionalAccounts from '../../../util/importAdditionalAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-
 import { useTheme } from '../../../util/theme';
 import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
@@ -54,7 +53,6 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import Routes from '../../../constants/navigation/Routes';
-
 import createStyles from './styles';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -82,7 +80,6 @@ import Icon, {
 } from '../../../component-library/components/Icons/Icon';
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
-import { validateMnemonic } from '@metamask/scure-bip39';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Label from '../../../component-library/components/Form/Label';
 import Text, {
@@ -90,8 +87,8 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
-import { isTest } from '../../../util/test/utils';
 import SeedphraseModal from '../../UI/SeedphraseModal';
+import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 
 const MINIMUM_SUPPORTED_CLIPBOARD_VERSION = 9;
 
@@ -131,7 +128,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const [rememberMe, setRememberMe] = useState(false);
   const [biometryChoice, setBiometryChoice] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
   const [hideSeedPhraseInput, setHideSeedPhraseInput] = useState(true);
   const [seedPhrase, setSeedPhrase] = useState([]);
   const [seedPhraseInputFocusedIndex, setSeedPhraseInputFocusedIndex] =
@@ -146,7 +143,14 @@ const ImportFromSecretRecoveryPhrase = ({
   const inputPadding = 4;
   const numColumns = 3; // Number of columns
 
-  const isSRPContinueButtonDisabled = () => seedPhrase.length === 0;
+  const seedPhraseLength = seedPhrase.filter((item) => item !== '').length;
+
+  const isSRPContinueButtonDisabled = () =>
+    seedPhraseLength !== 12 &&
+    seedPhraseLength !== 15 &&
+    seedPhraseLength !== 18 &&
+    seedPhraseLength !== 21 &&
+    seedPhraseLength !== 24;
   const hideWhatIsSeedPhrase = () => setWhatIsSeedPhraseModal(false);
 
   const handleLayout = (event) => {
@@ -352,7 +356,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
   const handleSeedPhraseChange = (text, index) => {
-    setError(false);
+    setError('');
     setSeedPhrase((prev) => {
       const newSeedPhrase = [...prev];
       newSeedPhrase[index] = text.trim();
@@ -361,7 +365,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handleKeyPress = (e, index, enterPressed = false) => {
-    setError(false);
+    setError('');
     const { key } = e.nativeEvent;
     if (key === 'Backspace') {
       if (index === 0 && seedPhrase.length === 1) {
@@ -397,7 +401,7 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const handlePaste = async () => {
-    setError(false);
+    setError('');
     const text = await Clipboard.getString(); // Get copied text
     if (text.trim() !== '') {
       const pastedData = text.split(' '); // Split by spaces
@@ -414,7 +418,7 @@ const ImportFromSecretRecoveryPhrase = ({
   const handleClear = () => {
     setSeedPhrase([]);
     setShowAllSeedPhrase(false);
-    setError(false);
+    setError('');
   };
 
   const validateSeedPhrase = () => {
@@ -439,15 +443,15 @@ const ImportFromSecretRecoveryPhrase = ({
       return false;
     }
 
-    if (!validateMnemonic(phrase)) {
-      setError(true);
+    if (!isValidMnemonic(phrase)) {
+      setError(strings('import_from_seed.invalid_seed_phrase'));
       return false;
     }
     return true;
   };
 
-  const handleContinueImportFlow = (passFlow = false) => {
-    if (!validateSeedPhrase() && !passFlow) {
+  const handleContinueImportFlow = () => {
+    if (!validateSeedPhrase()) {
       return;
     }
     if (seedPhrase.length === 0) {
@@ -457,7 +461,6 @@ const ImportFromSecretRecoveryPhrase = ({
       );
       return;
     }
-    const seedPhraseString = seedPhrase.join(' ');
     setCurrentStep(currentStep + 1);
   };
 
@@ -477,8 +480,8 @@ const ImportFromSecretRecoveryPhrase = ({
   };
 
   const onPressImport = async () => {
-    const vaultSeed = await parseVaultValue(password, seed);
-    const parsedSeed = parseSeedPhrase(vaultSeed || seed);
+    const vaultSeed = await parseVaultValue(password, seedPhrase.join(' '));
+    const parsedSeed = parseSeedPhrase(vaultSeed || seedPhrase.join(' '));
     // //Set the seed state with a valid parsed seed phrase (handle vault scenario)
     // setSeed(parsedSeed);
 
@@ -539,10 +542,18 @@ const ImportFromSecretRecoveryPhrase = ({
           new_wallet: false,
         });
         !onboardingWizard && setOnboardingWizardStep(1);
-        navigation.reset({
-          index: 1,
-          routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+        navigation.navigate('OptinMetrics', {
+          onContinue: () => {
+            navigation.reset({
+              index: 1,
+              routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+            });
+          },
         });
+        // navigation.reset({
+        //   index: 1,
+        //   routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
+        // });
         await importAdditionalAccounts();
         await enableProfileSyncing();
       } catch (error) {
@@ -566,34 +577,16 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const onPasswordConfirm = () => {
-    let error = null;
-    if (!passwordRequirementsMet(password)) {
-      error = strings('import_from_seed.password_length_error');
-    } else if (password !== confirmPassword) {
-      error = strings('import_from_seed.password_dont_match');
-    }
-
-    if (error) {
-      Alert.alert(strings('import_from_seed.error'), error);
-      track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'import',
-        error_type: error,
-      });
-    } else {
-      navigation.navigate('OptinMetrics', {
-        onContinue: () => {
-          navigation.reset({
-            index: 1,
-            routes: [{ name: Routes.ONBOARDING.SUCCESS_FLOW }],
-          });
-        },
-      });
-    }
-  };
-
   const isError =
     password !== '' && confirmPassword !== '' && password !== confirmPassword;
+
+  const isValidSeed = (text) => {
+    const isValid = wordlist.includes(text);
+    if (!isValid) {
+      setError(strings('import_from_seed.spellcheck_error'));
+    }
+    return isValid;
+  };
 
   return (
     <SafeAreaView style={styles.root}>
@@ -720,11 +713,12 @@ const ImportFromSecretRecoveryPhrase = ({
                                   }}
                                   onKeyPress={(e) => handleKeyPress(e, index)}
                                   size={TextFieldSize.Md}
-                                  style={styles.input}
+                                  style={[styles.input]}
                                   autoComplete="off"
                                   textAlignVertical="top"
                                   showSoftInputOnFocus
                                   blurOnSubmit={false}
+                                  isError={!isValidSeed(item)}
                                 />
                               </View>
                             )}
@@ -763,12 +757,12 @@ const ImportFromSecretRecoveryPhrase = ({
                       />
                     </View>
                   </View>
-                  {error && (
+                  {error !== '' && (
                     <Text
                       variant={TextVariant.BodySMMedium}
                       color={TextColor.Error}
                     >
-                      {strings('import_from_seed.invalid_seed_phrase')}
+                      {error}
                     </Text>
                   )}
                 </View>
@@ -776,22 +770,11 @@ const ImportFromSecretRecoveryPhrase = ({
                   <Button
                     variant={ButtonVariants.Primary}
                     label={strings('import_from_seed.continue')}
-                    onPress={() => handleContinueImportFlow(false)}
+                    onPress={() => handleContinueImportFlow()}
                     width={ButtonWidthTypes.Full}
                     size={ButtonSize.Lg}
                     isDisabled={isSRPContinueButtonDisabled()}
                   />
-                  {isTest && (
-                    <Button
-                      variant={ButtonVariants.Secondary}
-                      label={strings('import_from_seed.pass_flow')}
-                      onPress={() => {
-                        handleContinueImportFlow(true);
-                      }}
-                      width={ButtonWidthTypes.Full}
-                      size={ButtonSize.Lg}
-                    />
-                  )}
                 </View>
               </View>
             </>
@@ -937,7 +920,7 @@ const ImportFromSecretRecoveryPhrase = ({
                   width={ButtonWidthTypes.Full}
                   variant={ButtonVariants.Primary}
                   label={strings('import_from_seed.confirm')}
-                  onPress={onPasswordConfirm}
+                  onPress={onPressImport}
                   disabled={isContinueButtonDisabled()}
                   size={ButtonSize.Lg}
                   isDisabled={isContinueButtonDisabled()}
