@@ -563,8 +563,6 @@ workflows:
   ### This workflow uses a flag (TEST_SUITE) that defines the specific set of tests to be run.
   ## in this instance Regression. In future iterations we can rename to ios_test_suite_selection & android_test_suite_selection
   ios_build_regression_tests:
-    envs:
-      - TEST_SUITE: 'Regression'
     after_run:
       - ios_e2e_build
   ios_run_regression_tests:
@@ -577,10 +575,6 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: 'Regression'
-      - MM_MULTICHAIN_V1_ENABLED: false
-      - MM_CHAIN_PERMISSIONS: false
     after_run:
       - android_e2e_build
   android_run_regression_tests:
@@ -726,38 +720,23 @@ workflows:
       - TEST_SUITE_TAG: '.*SmokeNetworkAbstraction.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_identity_ios:
+  run_trade_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
-      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_identity_android:
+  run_trade_swimlane_android_smoke:
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/identity/*'
-      - TEST_SUITE_TAG: '.*SmokeIdentity.*'
+      - TEST_SUITE_TAG: '.*SmokeTrade.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_assets_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
-      - TEST_SUITE_TAG: '.*SmokeAssets.*'
+  run_ios_api_specs:
     after_run:
-      - ios_e2e_test
-  run_tag_smoke_assets_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/assets/*'
-      - TEST_SUITE_TAG: '.*SmokeAssets.*'
-    after_run:
-      - android_e2e_test
+      - ios_api_specs
   run_tag_smoke_confirmations_ios:
     envs:
       - TEST_SUITE_TAG: 'SmokeConfirmations '
@@ -777,60 +756,8 @@ workflows:
       - TEST_SUITE_TAG: 'SmokeConfirmationsRedesigned'
     after_run:
       - ios_e2e_test
-  run_tag_smoke_swaps_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_swaps_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/swaps/*'
-      - TEST_SUITE_TAG: '.*SmokeSwaps.*'
-    after_run:
-      - android_e2e_test
-  run_tag_smoke_stake_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
-      - TEST_SUITE_TAG: '.*SmokeStake.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_stake_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/stake/*'
-      - TEST_SUITE_TAG: '.*SmokeStake.*'
-    after_run:
-      - android_e2e_test
-  run_ios_api_specs:
-    after_run:
-      - ios_api_specs
-  run_tag_smoke_core_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_core_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/spec/*/**/*'
-      - TEST_SUITE_TAG: '.*SmokeCore.*'
-    after_run:
-      - android_e2e_test
   run_tag_multichain_permissions_ios:
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - ios_e2e_test
@@ -840,40 +767,10 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/multichain/*'
       - TEST_SUITE_TAG: '.*SmokeMultiChainPermissions.*'
     after_run:
       - android_e2e_test
-  run_tag_smoke_ramps_ios:
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
-      - TEST_SUITE_TAG: '.*SmokeRamps.*'
-    after_run:
-      - ios_e2e_test
-  run_tag_smoke_ramps_android:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_FOLDER: './e2e/specs/ramps/*'
-      - TEST_SUITE_TAG: '.*SmokeRamps.*'
-    after_run:
-      - android_e2e_test
-  run_trade_swimlane_ios_smoke:
-    envs:
-      - TEST_SUITE_TAG: '.*SmokeTrade.*'
-    after_run:
-      - ios_e2e_test
-  run_trade_swimlane_android_smoke:
-    meta:
-      bitrise.io:
-        stack: linux-docker-android-22.04
-        machine_type_id: elite-xl
-    envs:
-      - TEST_SUITE_TAG: '.*SmokeTrade.*'
-    after_run:
-      - android_e2e_test
+
   android_e2e_build:
     before_run:
       - code_setup
@@ -922,11 +819,6 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
-                if [ "$TEST_SUITE" = "Regression" ]; then
-                  TEST_SUITE="Regression"
-                else
-                  TEST_SUITE="Smoke"
-                fi
                 node -v
                 export METAMASK_ENVIRONMENT='local'
                 export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
