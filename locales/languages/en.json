@@ -1119,7 +1119,6 @@
       "description": "Overview and manage your snaps",
       "snap_ui": {
         "link": {
-          "accessibilityRole": "link",
           "accessibilityHint": "Opens in a new tab"
         }
       },

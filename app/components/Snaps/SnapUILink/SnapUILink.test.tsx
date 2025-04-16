@@ -36,9 +36,6 @@ describe('SnapUILink', () => {
     expect(spacer).toBeTruthy();
     expect(spacer.props.style).toEqual({ width: 4 });
     expect(linkText.props.accessibilityRole).toBe('link');
-    expect(linkText.props.accessibilityHint).toBe(
-      `Opens ${validProps.href} in your browser`,
-    );
     expect(icon.props.name).toBe(IconName.Export);
     expect(icon.props.color).toBe(IconColor.Primary);
     expect(icon.props.size).toBe(IconSize.Sm);

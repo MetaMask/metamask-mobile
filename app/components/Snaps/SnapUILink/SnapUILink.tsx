@@ -42,7 +42,7 @@ export const SnapUILink: React.FC<SnapUILinkProps> = ({ href, children }) => (
     testID="snaps-ui-link"
     style={styles.container}
     onPress={() => onPress(href)}
-    accessibilityRole={strings('snaps.snap_ui.link.accessibilityRole')}
+    accessibilityRole="link"
     accessibilityHint={strings('snaps.snap_ui.link.accessibilityHint')}
   >
     {children}
