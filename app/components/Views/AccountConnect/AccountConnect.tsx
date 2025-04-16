@@ -294,15 +294,19 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   useEffect(() => {
     const url = dappUrl || channelIdOrHostname || '';
+    let isMounted = true;
 
     const checkOrigin = async () => {
       const scanResult = await getPhishingTestResultAsync(url);
-      if (scanResult.result) {
+      if (scanResult.result && isMounted) {
         setBlockedUrl(dappUrl);
         setShowPhishingModal(true);
       }
     };
     checkOrigin();
+    return () => {
+      isMounted = false;
+    };
   }, [dappUrl, channelIdOrHostname]);
 
   const faviconSource = useFavicon(
