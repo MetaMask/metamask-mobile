@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import { fontStyles } from '../../../styles/common';
 import StepIndicator from 'react-native-step-indicator';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { Theme } from '@metamask/design-tokens';
 
 const strokeWidth = 2;
 
@@ -21,11 +22,10 @@ export default class OnboardingProgress extends PureComponent<OnboardingProgress
     currentStep: 0,
   };
 
-  declare context: React.ContextType<typeof ThemeContext>;
-
   render() {
     const { currentStep, steps } = this.props;
-    const colors = this.context.colors || mockTheme.colors;
+    const colors =
+      (this.context as unknown as Theme).colors || mockTheme.colors;
     const customStyles = {
       stepIndicatorSize: 20,
       currentStepIndicatorSize: 20,
