@@ -29,7 +29,6 @@ import {
   setDestToken,
   selectDestToken,
   selectSourceToken,
-  selectDestAddress,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -50,6 +49,7 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
+
 // We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
   // The same as getUseExternalServices in Extension
@@ -72,7 +72,10 @@ const BridgeView = () => {
     useBridgeQuoteData();
 
   const updateQuoteParams = useBridgeQuoteRequest();
-  const destAddress = useSelector(selectDestAddress);
+
+  const hasDestinationPicker =
+    destToken?.chainId && isSolanaChainId(destToken.chainId);
+  const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -293,39 +296,39 @@ const BridgeView = () => {
             style={[
               styles.dynamicContent,
               shouldDisplayKeypad
-                ? [
-                    styles.dynamicContentWithKeypad,
-                    destToken?.chainId && isSolanaChainId(destToken.chainId)
-                      ? { justifyContent: 'space-between' }
-                      : null,
-                  ]
+                ? styles.dynamicContentWithKeypad
                 : styles.dynamicContentWithoutKeypad,
             ]}
           >
-            {destToken?.chainId && isSolanaChainId(destToken?.chainId) && (
-              <Box>
+            {hasDestinationPicker && (
+              <Box style={styles.destinationAccountSelectorContainer}>
                 <DestinationAccountSelector />
               </Box>
             )}
 
-            {((destToken?.chainId && !isSolanaChainId(destToken?.chainId)) ||
-              destAddress) &&
-            activeQuote &&
-            !isLoading ? (
+            {hasQuoteDetails ? (
               <Box style={styles.quoteContainer}>
                 <QuoteDetailsCard />
               </Box>
             ) : shouldDisplayKeypad ? (
-              <Keypad
-                style={styles.keypad}
-                value={sourceAmount}
-                onChange={handleKeypadChange}
-                currency={sourceToken?.symbol || 'ETH'}
-                decimals={sourceToken?.decimals || 18}
-                deleteIcon={
-                  <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-                }
-              />
+              <Box
+                style={[
+                  styles.keypadContainer,
+                  hasDestinationPicker &&
+                    styles.keypadContainerWithDestinationPicker,
+                ]}
+              >
+                <Keypad
+                  style={styles.keypad}
+                  value={sourceAmount}
+                  onChange={handleKeypadChange}
+                  currency={sourceToken?.symbol || 'ETH'}
+                  decimals={sourceToken?.decimals || 18}
+                  deleteIcon={
+                    <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
+                  }
+                />
+              </Box>
             ) : null}
           </Box>
         </Box>
