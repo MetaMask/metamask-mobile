@@ -4458,24 +4458,10 @@
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
-"@metamask/auth-network-utils@./auth-network-utils.tgz":
+"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/auth-network-utils.tgz":
   version "0.0.0"
   uid daf330dd5d37cd709ca4a63d4df48d50ee9609ce
-  resolved "./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
-  dependencies:
-    "@noble/curves" "^1.8.1"
-    "@noble/hashes" "^1.7.1"
-    "@toruslabs/bs58" "^1.0.0"
-    "@toruslabs/constants" "^15.0.0"
-    "@toruslabs/eccrypto" "^6.0.2"
-    bn.js "^5.2.1"
-    elliptic "^6.6.1"
-    json-stable-stringify "^1.2.1"
-    loglevel "^1.9.2"
-
-"@metamask/auth-network-utils@^0.0.0", "@metamask/auth-network-utils@file:./auth-network-utils.tgz":
-  version "0.0.0"
-  resolved "file:./auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
+  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/auth-network-utils.tgz#daf330dd5d37cd709ca4a63d4df48d50ee9609ce"
   dependencies:
     "@noble/curves" "^1.8.1"
     "@noble/hashes" "^1.7.1"
@@ -5386,9 +5372,9 @@
     utf-8-validate "^5.0.2"
     uuid "^8.3.2"
 
-"@metamask/seedless-onboarding-controller@file:./package-seedless.tgz":
+"@metamask/seedless-onboarding-controller@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/package-seedless.tgz":
   version "0.0.1"
-  resolved "file:./package-seedless.tgz#94b5a6babb86d84e35a795902545668d05cdc630"
+  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/package-seedless.tgz#94b5a6babb86d84e35a795902545668d05cdc630"
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
@@ -5399,14 +5385,14 @@
     async-mutex "^0.5.0"
     loglevel "^1.8.1"
 
-"@metamask/seedless-onboarding-controller@file:./seedless-onboarding-controller.tgz":
+"@metamask/seedless-onboarding-controller@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/seedless-onboarding-controller.tgz":
   version "0.0.1"
-  resolved "file:./seedless-onboarding-controller.tgz#1663636a0aee299b8532c9a50d442c96f502a26e"
+  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/seedless-onboarding-controller.tgz#dfa6c8444ce21a7ed6e7c5c99ed4e890a49a6a8a"
   dependencies:
     "@metamask/base-controller" "^8.0.0"
     "@metamask/browser-passworder" "^4.3.0"
     "@metamask/keyring-controller" "^21.0.0"
-    "@metamask/toprf-secure-backup" "file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz"
+    "@metamask/toprf-secure-backup" "./toprf-secure-backup.tgz"
     "@metamask/utils" "^11.2.0"
     "@noble/hashes" "^1.4.0"
     async-mutex "^0.5.0"
@@ -5664,9 +5650,9 @@
     "@metamask/base-controller" "^8.0.0"
     "@metamask/utils" "^11.1.0"
 
-"@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/bed4a21ccbd12946dee10cd7fb53148c/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/cf2b3ab9814dbdb69995d9396542a2f7/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:./toprf-secure-backup.tgz":
+"@metamask/toprf-secure-backup@./toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@file:../../../Library/Caches/Yarn/v6/.tmp/ea5e0e24f7777bc954b7e4f37c709ccd/toprf-secure-backup.tgz", "@metamask/toprf-secure-backup@https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/toprf-secure-backup.tgz":
   version "0.0.0"
-  resolved "file:./toprf-secure-backup.tgz#65be9bb22084abce031dabfa35195228ae7cc988"
+  resolved "https://raw.githubusercontent.com/MetaMask/metamask-mobile/refs/heads/feat/seedless-ui-merge-toprf/toprf-secure-backup.tgz#65be9bb22084abce031dabfa35195228ae7cc988"
   dependencies:
     "@metamask/auth-network-utils" "^0.0.0"
     "@noble/ciphers" "^1.2.1"
