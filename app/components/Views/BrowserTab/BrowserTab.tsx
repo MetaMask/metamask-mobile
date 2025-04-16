@@ -110,6 +110,7 @@ import IpfsBanner from './components/IpfsBanner';
 import UrlAutocomplete, { UrlAutocompleteRef } from '../../UI/UrlAutocomplete';
 import { selectSearchEngine } from '../../../reducers/browser/selectors';
 import {
+  getPhishingTestResult,
   getPhishingTestResultAsync,
   isProductSafetyDappScanningEnabled,
 } from '../../../util/phishingDetection';
@@ -304,34 +305,55 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
       }
 
       const testResult = await getPhishingTestResultAsync(urlOrigin);
-      if (!testResult?.result && testResult.name) {
+      if (testResult?.result && testResult.name) {
         blockListType.current = testResult.name;
       }
-      return testResult?.result;
+      return !testResult?.result;
     },
     [whitelist],
   );
 
   /**
+   * Determines if we should show the phishing modal for a detected phishing URL
+   * For real-time dapp scanning, we may want to skip showing the modal in certain cases:
+   * - The user has completely navigated and loaded web content for another website
+   * - The user has started navigating and loading web content for another website
+   *
+   * This is important because if we've navigated to something like metamask.io after being on
+   * a phishing website and the response from the dapp scanning API returns after we've already
+   * navigated away on the phishing website, then the user thinks the modal is for metamask.io.
+   */
+  const shouldShowPhishingModal = useCallback(
+    (phishingUrlOrigin: string): boolean => {
+      if (!isProductSafetyDappScanningEnabled()) {
+        return true;
+      }
+      const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
+      const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
+      const shouldNotShow =
+        resolvedUrlOrigin !== phishingUrlOrigin &&
+        loadingUrlOrigin !== phishingUrlOrigin &&
+        loadingUrlOrigin !== 'null';
+
+      return !shouldNotShow;
+    },
+    [resolvedUrlRef, loadingUrlRef],
+  );
+
+  /**
    * Show a phishing modal when a url is not allowed
    */
-  const handleNotAllowedUrl = useCallback((urlOrigin: string) => {
-    const resolvedUrlOrigin = new URLParse(resolvedUrlRef.current).origin;
-    const loadingUrlOrigin = new URLParse(loadingUrlRef.current).origin;
-    // If the resolved URL and the loading URL are different from the phishing URL
-    // and dapp scanning is enabled, don't show the phishing modal
-    if (
-      resolvedUrlOrigin !== urlOrigin &&
-      loadingUrlOrigin !== urlOrigin &&
-      loadingUrlOrigin !== 'null' &&
-      isProductSafetyDappScanningEnabled()
-    ) {
-      return;
-    }
+  const handleNotAllowedUrl = useCallback(
+    (urlOrigin: string) => {
+      if (!shouldShowPhishingModal(urlOrigin)) {
+        return;
+      }
 
-    setBlockedUrl(urlOrigin);
-    setTimeout(() => setShowPhishingModal(true), 1000);
-  }, []);
+      setBlockedUrl(urlOrigin);
+      setTimeout(() => setShowPhishingModal(true), 1000);
+    },
+    [shouldShowPhishingModal, setBlockedUrl, setShowPhishingModal],
+  );
 
   /**
    * Get IPFS info from a ens url
@@ -726,6 +748,15 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
     if (!isIpfsGatewayEnabled && isResolvedIpfsUrl) {
       setIpfsBannerVisible(true);
       return false;
+    }
+
+    // TODO: Make sure to replace with cache hits once EPD has been deprecated.
+    if (!isProductSafetyDappScanningEnabled()) {
+      const scanResult = getPhishingTestResult(urlToLoad);
+      if (scanResult.result) {
+        handleNotAllowedUrl(urlToLoad);
+        return false;
+      }
     }
 
     // Continue request loading it the protocol is whitelisted

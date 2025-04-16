@@ -41,7 +41,7 @@ export const getPhishingTestResult = (
 /**
  * Gets detailed phishing test results for an origin
  * @param {string} origin - URL origin or hostname to check
- * @returns {PhishingDetectorResult} Phishing test result object or null if protection is disabled
+ * @returns {PhishingDetectorResult} Phishing test result object - result is true if the site is UNSAFE
  */
 export const getPhishingTestResultAsync = async (
   origin: string,
@@ -53,18 +53,17 @@ export const getPhishingTestResultAsync = async (
   if (isProductSafetyDappScanningEnabled()) {
     const scanResult = await PhishingController.scanUrl(origin);
     return {
+      // result is true if site is UNSAFE (Block action)
       result:
-        scanResult.recommendedAction === RecommendedAction.None ||
-        scanResult.recommendedAction === RecommendedAction.Warn,
+        scanResult.recommendedAction !== RecommendedAction.None &&
+        scanResult.recommendedAction !== RecommendedAction.Warn,
       name: 'Product safety dapp scanning is enabled',
       type: 'DAPP_SCANNING' as PhishingDetectorResultType,
     };
   }
+
   PhishingController.maybeUpdateState();
   const result = PhishingController.test(origin);
-  // PhishingDetectorResult.result docs says it is true if the domain is allowed.
-  // This is the opposite of what happens and instead it returns false if it is allowed.
-  // Hence, we negate the result to assume consistency with dev impression of the doc.
-  result.result = !result?.result;
+  // Return the raw result from EPD - result is true if site is UNSAFE
   return result;
 };
