@@ -15,6 +15,7 @@ import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
 import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../selectors/Network/NetworkNonPemittedBottomSheet.selectors';
+import { buildPermissions } from '../../../../fixtures/utils';
 
 describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -66,16 +67,19 @@ describe(SmokeMultiChainPermissions('Chain Permission Management'), () => {
   });
 
   it('follows fallback priority when revoking permission for currently active chain', async () => {
+    const chainIds = [
+      '0x1', // Ethereum mainnet
+      CustomNetworks.Sepolia.providerConfig.chainId, // Sepolia
+      '0xe705', // Linea Sepolia
+    ];
     await withFixtures(
       {
         dapp: true,
         fixture: new FixtureBuilder()
-          .withPermissionControllerConnectedToTestDapp()
-          .withChainPermission([
-            '0x1', // Ethereum mainnet
-            CustomNetworks.Sepolia.providerConfig.chainId, // Sepolia
-            '0xe705', // Linea Sepolia
-          ])
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(chainIds),
+          )
+          .withChainPermission(chainIds)
           .build(),
         restartDevice: true,
       },
