@@ -2,6 +2,7 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
+import AdvancedDetailsBottomSheet from '../../../../../UI/AdvancedDetailsBottomModal/AdvancedDetailsBottomModal';
 import { SimulationDetails } from '../../../../../UI/SimulationDetails/SimulationDetails';
 import { useConfirmationMetricEvents } from '../../../hooks/useConfirmationMetricEvents';
 import { useTransactionMetadataRequest } from '../../../hooks/useTransactionMetadataRequest';
@@ -30,6 +31,7 @@ const ContractInteraction = () => {
       </View>
       <InfoRowOrigin isSignatureRequest={false} />
       <GasFeesDetails />
+      <AdvancedDetailsBottomSheet />
     </View>
   );
 };
