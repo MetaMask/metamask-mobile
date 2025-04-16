@@ -32,7 +32,11 @@ import {
   selectBridgeControllerState,
 } from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { getBridgeNavbar } from '../../../Navbar';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
@@ -50,6 +54,13 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
+import {
+  useInitialSourceToken,
+  type BridgeRouteParams,
+} from '../../hooks/useInitialSourceToken';
+import { useInitialDestToken } from '../../hooks/useInitialDestToken';
+import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
+import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 
 // We get here through handleBridgeNavigation in AssetOverview and WalletActions
 const BridgeView = () => {
@@ -61,7 +72,7 @@ const BridgeView = () => {
   const { styles } = useStyles(createStyles, {});
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const route = useRoute();
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
 
@@ -84,6 +95,9 @@ const BridgeView = () => {
   const inputRef = useRef<{ blur: () => void }>(null);
 
   const updateQuoteParams = useBridgeQuoteRequest();
+
+  useInitialSourceToken();
+  useInitialDestToken();
 
   const hasDestinationPicker =
     destToken?.chainId && isSolanaChainId(destToken.chainId);
@@ -248,13 +262,17 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.bridgeViewMode,
+      } as BridgeSourceTokenSelectorRouteParams,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {},
+      params: {
+        bridgeViewMode: route.params.bridgeViewMode,
+      } as BridgeDestTokenSelectorRouteParams,
     });
 
   const renderBottomContent = () => (
@@ -305,10 +323,14 @@ const BridgeView = () => {
               amount={sourceAmount}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
-              //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
-              networkImageSource={getNetworkImageSource({
-                chainId: sourceToken?.chainId,
-              })}
+              networkImageSource={
+                sourceToken?.chainId
+                  ? //@ts-expect-error - The utils/network file is still JS and this function expects a networkType, and should be optional
+                    getNetworkImageSource({
+                      chainId: sourceToken?.chainId,
+                    })
+                  : undefined
+              }
               testID="source-token-area"
               tokenType={TokenInputAreaType.Source}
               onTokenPress={handleSourceTokenPress}
