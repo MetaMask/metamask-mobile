@@ -148,6 +148,19 @@ export const PopularList = [
       imageSource: require('../../images/zk-sync.png'),
     },
   },
+  {
+    chainId: toHex('1329'),
+    nickname: 'Sei Network',
+    rpcUrl: `https://evm-rpc.sei-apis.com`,
+    failoverRpcUrls: [],
+    ticker: 'SEI',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://seiscan.app/pacific-1/',
+      imageUrl: 'SEI',
+      imageSource: require('../../images/sei.png'),
+    },
+  },
 ] satisfies Network[];
 
 export const getNonEvmNetworkImageSourceByChainId = (chainId: CaipChainId) => {
@@ -291,6 +304,7 @@ export const NETWORK_CHAIN_ID: {
   SONEIUM_MAINNET: '0x74c',
   SONEIUM_MINATO_TESTNET: '0x79a',
   XRPLEVM_TESTNET: '0x161c28',
+  SEI: '0x531',
   ...CHAIN_IDS,
 };
 
@@ -307,4 +321,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.SONEIUM_MINATO_TESTNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.SONEIUM_MAINNET]: require('../../images/soneium.png'),
   [NETWORK_CHAIN_ID.XRPLEVM_TESTNET]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.SEI]: require('../../images/sei.png'),
 };

@@ -33,6 +33,7 @@ const allowedChainIds = [
   LINEA_CHAIN_ID,
   BASE_CHAIN_ID,
   SWAPS_TESTNET_CHAIN_ID,
+  NETWORKS_CHAIN_ID.SEI,
 ];
 
 export const allowedTestnetChainIds = [

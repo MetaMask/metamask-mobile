@@ -22,6 +22,7 @@ const {
   ARBITRUM,
   AVAXCCHAIN: AVALANCHE,
   LINEA_MAINNET: LINEA,
+  SEI,
 } = NETWORKS_CHAIN_ID;
 
 const allowedChainIds = [
@@ -34,6 +35,7 @@ const allowedChainIds = [
   ARBITRUM,
   AVALANCHE,
   LINEA,
+  SEI,
 ];
 
 /**
