@@ -10,11 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - fix(browser): fix browser PermissionsSummary origin spoofing when browser redirects issue ([#13394](https://github.com/MetaMask/metamask-mobile/pull/13394))
+- feat(bridge): add error handling and input management for bridge quotes ([#14693](https://github.com/MetaMask/metamask-mobile/pull/14693))
 - feat(multi-srp): enable multi-srp in main and beta ([#14558](https://github.com/MetaMask/metamask-mobile/pull/14558))
+- feat(ramp): Update ramp data flow to fetch cryptos before payment methods ([#14437](https://github.com/MetaMask/metamask-mobile/pull/14437))
 - feat(bridge): add destination account picker ([#14656](https://github.com/MetaMask/metamask-mobile/pull/14656))
 - feat(bridge): add Solana assets to bridge token pickers ([#14365](https://github.com/MetaMask/metamask-mobile/pull/14365))
 - feat: add AppMetadataController controller ([#14513](https://github.com/MetaMask/metamask-mobile/pull/14513))
 - feat(bridge): implement bridge quote fetching ([#14413](https://github.com/MetaMask/metamask-mobile/pull/14413))
+
+
+### Changed
+
+- feat(bridge): Handle Solana vs EVM swap and bridge routing ([#14614](https://github.com/MetaMask/metamask-mobile/pull/14614))
 
 ## [7.44.0]
 
