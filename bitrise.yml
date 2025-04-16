@@ -678,7 +678,7 @@ workflows:
   ### Separating workflows so they run concurrently during smoke runs
   run_network_expansion_swimlane_ios_smoke:
     envs:
-      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - ios_e2e_test
   run_network_expansion_swimlane_android_smoke:
@@ -687,7 +687,7 @@ workflows:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
     envs:
-      - TEST_SUITE_TAG: '.*SmokeAccounts.*'
+      - TEST_SUITE_TAG: '.*NetworkExpansion.*'
     after_run:
       - android_e2e_test
   
@@ -2168,5 +2168,3 @@ trigger_map:
     pipeline: create_qa_builds_pipeline
   - tag: 'v*.*.*'
     pipeline: create_qa_builds_pipeline
-  - push_branch: ci/optimize-bitrise-e2e-runs
-    pipeline: pr_smoke_e2e_pipeline
