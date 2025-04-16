@@ -58,13 +58,6 @@ export class MultichainWalletSnapClient {
   async createAccount(options: MultichainWalletSnapOptions) {
     const controllerMessenger = Engine.controllerMessenger;
     await Engine.getSnapKeyring();
-    Logger.log(
-      'keyring controller keyrings',
-      controllerMessenger.call(
-        'KeyringController:getKeyringsByType',
-        KeyringTypes.snap,
-      ),
-    );
 
     // This will trigger the Snap account creation flow (+ account renaming)
     const account = await controllerMessenger.call(

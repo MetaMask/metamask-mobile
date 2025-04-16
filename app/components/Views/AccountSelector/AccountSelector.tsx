@@ -38,7 +38,6 @@ import { setReloadAccounts } from '../../../actions/accounts';
 import { RootState } from '../../../reducers';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TraceName, endTrace } from '../../../util/trace';
-import AddNewHdAccount from '../AddNewAccount';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const dispatch = useDispatch();
@@ -153,11 +152,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       default:
         return renderAccountSelector();
     }
-  }, [
-    screen,
-    renderAccountSelector,
-    renderAddAccountActions,
-  ]);
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   return <BottomSheet ref={sheetRef}>{renderAccountScreens()}</BottomSheet>;
 };
