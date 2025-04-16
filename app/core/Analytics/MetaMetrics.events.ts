@@ -381,6 +381,9 @@ enum EVENT_NAME {
 
   // Remove an account
   ACCOUNT_REMOVED = 'Account removed',
+  ACCOUNT_REMOVE_FAILED = 'Account remove failed',
+  // Account added
+  ACCOUNT_ADDED = 'Account Added',
 
   //Notifications
   ALL_NOTIFICATIONS = 'All Notifications',
@@ -863,6 +866,8 @@ const events = {
 
   // Remove an account
   ACCOUNT_REMOVED: generateOpt(EVENT_NAME.ACCOUNT_REMOVED),
+  ACCOUNT_REMOVE_FAILED: generateOpt(EVENT_NAME.ACCOUNT_REMOVE_FAILED),
+  ACCOUNT_ADDED: generateOpt(EVENT_NAME.ACCOUNT_ADDED),
 
   // Smart transactions
   SMART_TRANSACTION_OPT_IN: generateOpt(EVENT_NAME.SMART_TRANSACTION_OPT_IN),

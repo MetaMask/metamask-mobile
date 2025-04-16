@@ -7,7 +7,7 @@ import Regions from './Regions';
 import useRegions from '../../hooks/useRegions';
 import { RampSDK } from '../../sdk';
 import { RampType, Region } from '../../types';
-import { createPaymentMethodsNavDetails } from '../PaymentMethods/PaymentMethods';
+import { createBuildQuoteNavDetails } from '../BuildQuote/BuildQuote';
 import Routes from '../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
@@ -213,9 +213,7 @@ describe('Regions View', () => {
     };
     render(Regions);
     fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
-    expect(mockNavigate).toHaveBeenCalledWith(
-      ...createPaymentMethodsNavDetails(),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuildQuoteNavDetails());
   });
 
   it('navigates and tracks event on cancel button press', async () => {
