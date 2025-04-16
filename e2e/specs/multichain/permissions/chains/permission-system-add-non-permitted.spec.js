@@ -1,4 +1,4 @@
-import { SmokeNetworkAbstractions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import { loginToApp } from '../../../../viewHelper';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
@@ -19,7 +19,7 @@ import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnec
 const SEPOLIA = CustomNetworks.Sepolia.providerConfig.nickname;
 
 describe(
-  SmokeNetworkAbstractions('Chain Permission System, non-permitted chain, '),
+  SmokeNetworkExpansion('Chain Permission System, non-permitted chain, '),
   () => {
     beforeAll(async () => {
       await TestHelpers.reverseServerPort();

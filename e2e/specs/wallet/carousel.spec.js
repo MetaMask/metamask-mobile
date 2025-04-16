@@ -1,5 +1,5 @@
 'use strict';
-import { SmokeNetworkAbstractions } from '../../tags';
+import { Regression } from '../../tags';
 import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../fixtures/fixture-builder';
@@ -16,7 +16,7 @@ import Gestures from '../../utils/Gestures';
 
 const fixtureServer = new FixtureServer();
 
-describe(SmokeNetworkAbstractions('Carousel Tests'), () => {
+describe(Regression('Carousel Tests'), () => {
   beforeAll(async () => {
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder().build();

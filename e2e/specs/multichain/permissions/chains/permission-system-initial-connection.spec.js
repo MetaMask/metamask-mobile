@@ -1,6 +1,6 @@
 'use strict';
 import TestHelpers from '../../../../helpers';
-import { SmokeNetworkAbstractions } from '../../../../tags';
+import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../../pages/Browser/TestDApp';
@@ -13,7 +13,7 @@ import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 
-describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
+describe(SmokeNetworkExpansion('Chain Permission Management'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
     await TestHelpers.reverseServerPort();
