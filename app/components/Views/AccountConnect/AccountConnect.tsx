@@ -81,7 +81,6 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 import { isUUID } from '../../../core/SDKConnect/utils/isUUID';
 import useOriginSource from '../../hooks/useOriginSource';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { Hex } from '@metamask/utils';
 import {
   getCaip25PermissionsResponse,
   getRequestedCaip25CaveatValue,
