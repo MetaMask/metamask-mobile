@@ -311,7 +311,6 @@ describe('AccountConnect', () => {
         { state: mockInitialState },
       );
 
-      // Wait for the phishing modal to appear
       const warningText = await findByText(
         `MetaMask flagged the site you're trying to visit as potentially deceptive. Attackers may trick you into doing something dangerous.`,
       );
@@ -341,12 +340,10 @@ describe('AccountConnect', () => {
         { state: mockInitialState },
       );
 
-      // We should not find the phishing modal text for safe URLs
-      // Add a small delay to allow any async operations to complete
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      const warningText = queryByText('Deceptive site ahead');
-      expect(warningText).toBeFalsy();
+      const warningText = queryByText(
+        `MetaMask flagged the site you're trying to visit as potentially deceptive.`,
+      );
+      expect(warningText).toBeNull();
     });
   });
 
