@@ -603,18 +603,21 @@ workflows:
                   TOTAL_COUNT=$(echo "$COMPLETION_CHECK" | grep -o '"total_count":[0-9]*' | cut -d':' -f2)
                   
                   if [ "$TOTAL_COUNT" = "0" ]; then
-                    echo "Still running..."
+                    echo "Workflow is still running..."
                     sleep 30
                   else
                     # Get the conclusion of the most recent run
                     CONCLUSION=$(echo "$COMPLETION_CHECK" | grep -o '"conclusion":"[^"]*"' | head -1 | cut -d'"' -f4)
                     
-                    if [ "$CONCLUSION" = "success" ]; then
+                    if [ -z "$CONCLUSION" ] || [ "$CONCLUSION" = "success" ]; then
                       echo "Workflow completed successfully!"
                       exit 0
-                    else
+                    elif [ "$CONCLUSION" = "failure" ] || [ "$CONCLUSION" = "cancelled" ]; then
                       echo "Workflow failed or was cancelled (conclusion: $CONCLUSION)"
                       exit 1
+                    else
+                      echo "Workflow is still in progress..."
+                      sleep 30
                     fi
                   fi
                 done
