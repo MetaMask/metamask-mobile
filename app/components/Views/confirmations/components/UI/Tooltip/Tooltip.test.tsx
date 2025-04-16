@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 
-import Tooltip from './tooltip';
+import Tooltip from './Tooltip';
 
 describe('Tooltip', () => {
   it('should match snapshot', async () => {

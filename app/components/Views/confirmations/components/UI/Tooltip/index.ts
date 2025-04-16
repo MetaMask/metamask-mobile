@@ -1,2 +1,2 @@
-export * from './tooltip';
-export { default } from './tooltip';
+export * from './Tooltip';
+export { default } from './Tooltip';

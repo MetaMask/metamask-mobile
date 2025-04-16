@@ -10,7 +10,7 @@ import {
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
 import BottomModal from '../bottom-modal';
-import styleSheet from './tooltip.styles';
+import styleSheet from './Tooltip.styles';
 
 interface TooltipProps {
   content: string | ReactNode;

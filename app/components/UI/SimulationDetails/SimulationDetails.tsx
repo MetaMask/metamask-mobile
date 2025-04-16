@@ -17,7 +17,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../hooks/useStyles';
-import { TooltipModal } from '../../Views/confirmations/components/UI/tooltip';
+import { TooltipModal } from '../../Views/confirmations/components/UI/tooltip/Tooltip';
 import AnimatedSpinner, { SpinnerSize } from '../AnimatedSpinner';
 import BalanceChangeList from './BalanceChangeList/BalanceChangeList';
 import styleSheet from './SimulationDetails.styles';
