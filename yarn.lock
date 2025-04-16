@@ -4774,29 +4774,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.9.0.tgz#47014c75c1e1ed84fef57177901f458fd2b6510a"
   integrity sha512-983twhfOfSCQljT+eV8JLcV0bqGVMObXnEy8TOFAkwwRW2I1ZsVRAfylbGiSwxlhxLntcpLqVu0Sj29xNyA06Q==
 
-"@metamask/bridge-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-11.0.0.tgz#511243c27e7c71881f8a2821aefbd89c1bd4bd7c"
-  integrity sha512-A40qvlGaoLc4gxeMh+Z2j1vWRw+84TZDseL2Ntjxiakj/Wi/P9CWIojUIUaRZuI6z051/w8rqigt/GVkSG1mPQ==
-  dependencies:
-    "@ethersproject/address" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/constants" "^5.7.0"
-    "@ethersproject/contracts" "^5.7.0"
-    "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.6.0"
-    "@metamask/keyring-api" "^17.2.0"
-    "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.3.0"
-    "@metamask/polling-controller" "^13.0.0"
-    "@metamask/snaps-utils" "^8.10.0"
-    "@metamask/utils" "^11.2.0"
-
-"@metamask/bridge-controller@^12.0.0":
-  version "12.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-12.0.0.tgz#d25e4c89899b84b0214a4758c17aa4ed7f29f17b"
-  integrity sha512-d/kYmPYo1Mn816NXL0DHWzNMFS1AibRX/dW/SLZkQk2PMnQrdB23slWt04C0PFsEkBDljhc11jN71fpQc+q8fA==
+"@metamask/bridge-controller@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-13.0.0.tgz#aafb13ab9412a19dee335e04b2d66e75a7c555d9"
+  integrity sha512-K1XfgXZJ712Uy4xJs3Zly/fFzM3sGFYFrPTd3txX9iYYwTHC87VPrXj/tkOTrjqkr+uhc5B36sEtS2NQrNxjYA==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4812,17 +4793,41 @@
     "@metamask/snaps-utils" "^8.10.0"
     "@metamask/utils" "^11.2.0"
 
-"@metamask/bridge-status-controller@^11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-status-controller/-/bridge-status-controller-11.0.0.tgz#6f821f7a5880950277689d25890ba3017634ee5c"
-  integrity sha512-5p1dQTYsDp+il/BFduECVVWr00sy/UgMTaz/tl6DDbK6uriGdHzJ9447DTFqkJdC987jq/5ct4UAh+y3TolEZg==
+"@metamask/bridge-controller@npm:@metamask-previews/bridge-controller@13.0.0-preview-23d1c73f":
+  version "13.0.0-preview-23d1c73f"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-controller/-/bridge-controller-13.0.0-preview-23d1c73f.tgz#410886627c5b680431a92276126c3f92fadf5d8a"
+  integrity sha512-4HLenq28s7ZNQpDVqCydXDyYA9cZgYiEZSB6UPucJ/DIOkju/BPOg5v6fA9fnt5vSMaEvGoU3+sTkj9TlWrMhg==
+  dependencies:
+    "@ethersproject/address" "^5.7.0"
+    "@ethersproject/bignumber" "^5.7.0"
+    "@ethersproject/constants" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
+    "@ethersproject/providers" "^5.7.0"
+    "@metamask/base-controller" "^8.0.0"
+    "@metamask/controller-utils" "^11.7.0"
+    "@metamask/gas-fee-controller" "^23.0.0"
+    "@metamask/keyring-api" "^17.4.0"
+    "@metamask/metamask-eth-abis" "^3.1.1"
+    "@metamask/multichain-network-controller" "^0.3.0"
+    "@metamask/polling-controller" "^13.0.0"
+    "@metamask/utils" "^11.2.0"
+    bignumber.js "^9.1.2"
+    reselect "^5.1.1"
+
+"@metamask/bridge-status-controller@npm:@metamask-previews/bridge-status-controller@12.0.1-preview-23d1c73f":
+  version "12.0.1-preview-23d1c73f"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/bridge-status-controller/-/bridge-status-controller-12.0.1-preview-23d1c73f.tgz#70ad9c86290c27764731eafdfa8ecc85d7c8258f"
+  integrity sha512-ordln1bQ6JbTS1+omi8JmCwBgqpgBzm9ppnrzojTNbm1Gu6tbKmiol3gyfColehJl77per/ltxg2bgFKHsBkWw==
   dependencies:
     "@metamask/base-controller" "^8.0.0"
-    "@metamask/bridge-controller" "^12.0.0"
+    "@metamask/bridge-controller" "^13.0.0"
     "@metamask/controller-utils" "^11.7.0"
+    "@metamask/keyring-api" "^17.4.0"
     "@metamask/polling-controller" "^13.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.2.0"
+    bignumber.js "^9.1.2"
+    uuid "^8.3.2"
 
 "@metamask/browser-passworder@^4.3.0":
   version "4.3.0"
