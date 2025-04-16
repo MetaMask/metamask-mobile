@@ -84,9 +84,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
@@ -99,9 +97,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults[0].symbol).toBe('USDC');
   });
@@ -114,9 +110,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults[0].symbol).toBe('ETH');
   });
@@ -129,9 +123,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -144,9 +136,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(2);
     expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
@@ -161,9 +151,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -176,9 +164,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults).toHaveLength(0);
   });
@@ -204,9 +190,7 @@ describe('useTokenSearch', () => {
     });
 
     // Advance timers to trigger the debounce
-    act(() => {
-      jest.advanceTimersByTime(500);
-    });
+    jest.advanceTimersByTime(500);
 
     expect(result.current.searchResults.length).toBeLessThanOrEqual(20); // MAX_TOKENS_RESULTS is 20
   });
