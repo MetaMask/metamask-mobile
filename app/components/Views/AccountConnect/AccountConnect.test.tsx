@@ -80,22 +80,10 @@ jest.mock('../../../core/Engine', () => {
           return { result: false };
         }),
         scanUrl: jest.fn(async (url: string) => {
-          if (url.includes('phishing')) {
-            return {
-              recommendedAction: 'BLOCK',
-              domainName: url,
-              mainDomain: url,
-              subDomain: '',
-              scanTime: Date.now(),
-            };
+          if (url === 'phishing.com') {
+            return { recommendedAction: 'BLOCK' };
           }
-          return {
-            recommendedAction: 'NONE',
-            domainName: url,
-            mainDomain: url,
-            subDomain: '',
-            scanTime: Date.now(),
-          };
+          return { recommendedAction: 'NONE' };
         }),
       },
       PermissionController: {
@@ -308,7 +296,7 @@ describe('AccountConnect', () => {
               hostInfo: {
                 metadata: {
                   id: 'mockId',
-                  origin: 'phishing-site.com',
+                  origin: 'phishing.com',
                 },
                 permissions: {
                   eth_accounts: {
