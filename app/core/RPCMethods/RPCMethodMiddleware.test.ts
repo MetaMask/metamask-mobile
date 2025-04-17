@@ -21,13 +21,17 @@ import {
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
 } from '../Permissions';
-import { getRpcMethodMiddleware } from './RPCMethodMiddleware';
+import {
+  getRpcMethodMiddleware,
+  getRpcMethodMiddlewareHooks,
+} from './RPCMethodMiddleware';
 import {
   Caveat,
   CaveatSpecificationConstraint,
   ExtractPermission,
   PermissionConstraint,
   PermissionController,
+  PermissionDoesNotExistError,
   PermissionSpecificationConstraint,
   SubjectPermissions,
   ValidPermission,
@@ -59,12 +63,14 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import { CaveatTypes } from '../Permissions/constants';
+import { toHex } from '@metamask/controller-utils';
 
 jest.mock('./spam');
 
 jest.mock('../Engine', () => ({
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
   requestPermittedChainsPermissionIncremental: jest.fn(),
+  rejectOriginPendingApprovals: jest.fn(),
   controllerMessenger: {
     call: { bind: jest.fn() },
   },
@@ -90,7 +96,9 @@ jest.mock('../Engine', () => ({
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
-      getNetworkConfigurationByNetworkClientId: () => ({ chainId: '0x1' }),
+      getNetworkConfigurationByNetworkClientId: jest
+        .fn()
+        .mockImplementation(() => ({ chainId: '0x1' })),
       getNetworkClientById: () => ({
         configuration: {
           chainId: '0x1',
@@ -1767,6 +1775,153 @@ describe('getRpcMethodMiddleware', () => {
         expect.objectContaining({
           error: providerErrors.userRejectedRequest(),
         }),
+      );
+    });
+  });
+});
+
+describe('getRpcMethodMiddlewareHooks', () => {
+  const testOrigin = 'https://test.com';
+  const hooks = getRpcMethodMiddlewareHooks(testOrigin);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Your mocks will go here
+  });
+
+  describe('getCaveat', () => {
+    it('should return caveat when permission exists', () => {
+      const mockCaveat = {
+        value: { optionalScopes: { 'eip155:1': { accounts: [] } } },
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockReturnValue(
+        mockCaveat as unknown as ReturnType<
+          typeof MockEngine.context.PermissionController.getCaveat
+        >,
+      );
+
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      const result = hooks.getCaveat(params);
+
+      expect(
+        MockEngine.context.PermissionController.getCaveat,
+      ).toHaveBeenCalledWith(testOrigin, params.target, params.caveatType);
+      expect(result).toEqual(mockCaveat);
+    });
+
+    it('should return undefined when permission does not exist', () => {
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockImplementation(
+        () => {
+          throw new PermissionDoesNotExistError(testOrigin, params.target);
+        },
+      );
+
+      const result = hooks.getCaveat(params);
+      expect(result).toBeUndefined();
+    });
+
+    it('should propagate unexpected errors', () => {
+      const params = {
+        target: Caip25EndowmentPermissionName,
+        caveatType: Caip25CaveatType,
+      };
+
+      MockEngine.context.PermissionController.getCaveat.mockImplementation(
+        () => {
+          throw new Error('Unexpected error');
+        },
+      );
+
+      expect(() => hooks.getCaveat(params)).toThrow('Unexpected error');
+    });
+  });
+
+  describe('requestPermittedChainsPermissionIncrementalForOrigin', () => {
+    it('should call Engine.requestPermittedChainsPermissionIncremental with correct params', () => {
+      const options = {
+        origin: 'https://other-origin.com', // This should be overridden
+        chainId: toHex('0x1'),
+        autoApprove: true,
+      };
+
+      hooks.requestPermittedChainsPermissionIncrementalForOrigin(options);
+
+      expect(
+        Engine.requestPermittedChainsPermissionIncremental,
+      ).toHaveBeenCalledWith({
+        ...options,
+        origin: testOrigin,
+      });
+    });
+  });
+
+  describe('hasApprovalRequestsForOrigin', () => {
+    it('should call ApprovalController.has with correct origin', () => {
+      hooks.hasApprovalRequestsForOrigin();
+
+      expect(MockEngine.context.ApprovalController.has).toHaveBeenCalledWith({
+        origin: testOrigin,
+      });
+    });
+  });
+
+  describe('getCurrentChainIdForDomain', () => {
+    it('should return chainId for the given domain', () => {
+      const domain = 'test.domain';
+      const networkClientId = 'mainnet';
+      const networkConfig = { chainId: '0x1' };
+
+      MockEngine.context.SelectedNetworkController.getNetworkClientIdForDomain.mockReturnValue(
+        networkClientId,
+      );
+      MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId.mockReturnValue(
+        networkConfig as ReturnType<
+          typeof MockEngine.context.NetworkController.getNetworkConfigurationByNetworkClientId
+        >,
+      );
+
+      const result = hooks.getCurrentChainIdForDomain(domain);
+
+      expect(
+        MockEngine.context.SelectedNetworkController
+          .getNetworkClientIdForDomain,
+      ).toHaveBeenCalledWith(domain);
+      expect(
+        MockEngine.context.NetworkController
+          .getNetworkConfigurationByNetworkClientId,
+      ).toHaveBeenCalledWith(networkClientId);
+      expect(result).toBe('0x1');
+    });
+  });
+
+  describe('getNetworkConfigurationByChainId', () => {
+    it('should call the bound method with correct chainId', () => {
+      const chainId = '0x1';
+
+      hooks.getNetworkConfigurationByChainId(chainId);
+
+      expect(
+        MockEngine.context.NetworkController.getNetworkConfigurationByChainId,
+      ).toHaveBeenCalledWith(chainId);
+    });
+  });
+
+  describe('rejectApprovalRequestsForOrigin', () => {
+    it('should call Engine.rejectOriginPendingApprovals with correct origin', () => {
+      hooks.rejectApprovalRequestsForOrigin();
+
+      expect(Engine.rejectOriginPendingApprovals).toHaveBeenCalledWith(
+        testOrigin,
       );
     });
   });
