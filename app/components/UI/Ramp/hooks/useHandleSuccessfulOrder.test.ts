@@ -1,9 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
-import NotificationManager from '../../../../core/NotificationManager';
-import { addFiatOrder, FiatOrder } from '../../../../reducers/fiatOrders';
+import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { protectWalletModalVisible } from '../../../../actions/user';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import useHandleSuccessfulOrder from './useHandleSuccessfulOrder';
