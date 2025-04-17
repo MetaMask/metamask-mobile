@@ -70,7 +70,6 @@ describe('TransactionElement', () => {
               status: 'CONFIRMED',
             },
           }}
-          i={1}
         />
       </Provider>,
     );

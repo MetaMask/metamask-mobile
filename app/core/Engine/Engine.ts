@@ -1065,6 +1065,7 @@ export class Engine {
         name: 'BridgeStatusController',
         allowedActions: [
           'AccountsController:getSelectedAccount',
+          'AccountsController:getSelectedMultichainAccount',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
           'NetworkController:getState',
@@ -1072,8 +1073,9 @@ export class Engine {
         ],
         allowedEvents: [],
       }),
+      state: initialState.BridgeStatusController,
       clientId: BridgeClientId.MOBILE,
-      fetchFn: fetch,
+      fetchFn: handleFetch,
     });
 
     const existingControllersByName = {
