@@ -23,7 +23,7 @@ export const selectAccounts = createDeepEqualSelector(
 
 export const selectAccountsLength = createSelector(
   selectAccounts,
-  (accounts) => Object.keys(accounts || {}).length,
+  (accounts) => Object.keys(accounts).length,
 );
 
 export const selectAccountBalanceByChainId = createDeepEqualSelector(
