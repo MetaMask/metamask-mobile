@@ -10,10 +10,8 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../../../core/Analytics/MetricsEventBuilder';
 import { KEYSTONE_TX_CANCELED } from '../../../../../../constants/error';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import {
-  parseAndSanitizeSignTypedData,
-  escapeSpecialUnicode,
-} from '../../../../../../util/string';
+import { escapeSpecialUnicode } from '../../../../../../util/string';
+import { parseAndSanitizeSignTypedData } from '../../../../../../components/Views/confirmations/utils/signature';
 
 import {
   addSignatureErrorListener,
