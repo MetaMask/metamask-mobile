@@ -50,6 +50,23 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
   ]),
 };
 
+const getIsStablecoinPair = (
+  sourceTokenAddress: string,
+  destTokenAddress: string,
+  chainId: Hex,
+) => {
+  const stablecoins = StablecoinsByChainId[chainId];
+
+  if (!stablecoins) return false;
+
+  return (
+    (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
+      stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
+    (stablecoins.has(destTokenAddress.toLowerCase()) ||
+      stablecoins.has(toChecksumHexAddress(destTokenAddress)))
+  );
+};
+
 /**
  * This hook is used to update the slippage for stablecoins swaps.
  * It checks if the source and destination tokens are both stablecoins and if so,
@@ -74,16 +91,13 @@ export const useStablecoinsDefaultSlippage = ({
   const prevDestTokenAddress = usePrevious(destTokenAddress);
 
   useEffect(() => {
-    const stablecoins = StablecoinsByChainId[chainId];
-
     if (!sourceTokenAddress || !destTokenAddress) return;
 
-    const isStablecoinPair =
-      stablecoins &&
-      (stablecoins.has(sourceTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(sourceTokenAddress))) &&
-      (stablecoins.has(destTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(destTokenAddress)));
+    const isStablecoinPair = getIsStablecoinPair(
+      sourceTokenAddress,
+      destTokenAddress,
+      chainId,
+    );
 
     if (isStablecoinPair) {
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE_STABLECOINS);
@@ -91,12 +105,11 @@ export const useStablecoinsDefaultSlippage = ({
 
     if (!prevSourceTokenAddress || !prevDestTokenAddress) return;
 
-    const prevIsStablecoinPair =
-      stablecoins &&
-      (stablecoins.has(prevSourceTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(prevSourceTokenAddress))) &&
-      (stablecoins.has(prevDestTokenAddress.toLowerCase()) ||
-        stablecoins.has(toChecksumHexAddress(prevDestTokenAddress)));
+    const prevIsStablecoinPair = getIsStablecoinPair(
+      prevSourceTokenAddress,
+      prevDestTokenAddress,
+      chainId,
+    );
 
     if (prevIsStablecoinPair && !isStablecoinPair) {
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
