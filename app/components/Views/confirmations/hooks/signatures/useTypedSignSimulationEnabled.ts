@@ -6,7 +6,7 @@ import {
   SignatureRequestType,
 } from '@metamask/signature-controller';
 import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
-import { isRecognizedPermit, parseSignTypedData } from '../../utils/signature';
+import { isRecognizedPermit, parseAndNormalizeSignTypedData } from '../../utils/signature';
 import { useSignatureRequest } from './useSignatureRequest';
 
 const NON_PERMIT_SUPPORTED_TYPES_SIGNS = [
@@ -32,7 +32,7 @@ const isNonPermitSupportedByDecodingAPI = (
   const {
     domain: { name, version },
     primaryType,
-  } = parseSignTypedData(data);
+  } = parseAndNormalizeSignTypedData(data);
 
   return NON_PERMIT_SUPPORTED_TYPES_SIGNS.some(
     ({ domainName, primaryTypeList, versionList }) =>

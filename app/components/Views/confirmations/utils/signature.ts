@@ -168,7 +168,7 @@ function extractLargeMessageValue(messageParamsData: string): string | undefined
  * This function has a workaround to extract the large value from the message and replace
  * the message value with the string value.
  */
-export const parseSignTypedData = (messageParamsData: string) => {
+export const parseAndNormalizeSignTypedData = (messageParamsData: string) => {
   const result = JSON.parse(messageParamsData);
 
   const largeMessageValue = extractLargeMessageValue(messageParamsData);
@@ -182,13 +182,13 @@ export const parseSignTypedData = (messageParamsData: string) => {
 export const parseAndSanitizeSignTypedData = (messageParamsData: string) => {
   if (!messageParamsData) { return {}; }
 
-  const { domain, message, primaryType, types } = parseSignTypedData(messageParamsData);
+  const { domain, message, primaryType, types } = parseAndNormalizeSignTypedData(messageParamsData);
   const sanitizedMessage = sanitizeParsedMessage(message, primaryType, types);
 
   return { sanitizedMessage, primaryType, domain };
 };
 
-export const parseSignTypedDataFromSignatureRequest = (
+export const parseAndNormalizeSignTypedDataFromSignatureRequest = (
   signatureRequest?: SignatureRequest,
 ) => {
   if (!signatureRequest || !isTypedSignV3V4Request(signatureRequest)) {
@@ -196,14 +196,14 @@ export const parseSignTypedDataFromSignatureRequest = (
   }
 
   const data = signatureRequest.messageParams?.data as string;
-  return parseSignTypedData(data);
+  return parseAndNormalizeSignTypedData(data);
 };
 
 const isRecognizedOfType = (
   request: SignatureRequest | undefined,
   types: PrimaryType[],
 ) => {
-  const { primaryType } = parseSignTypedDataFromSignatureRequest(request);
+  const { primaryType } = parseAndNormalizeSignTypedDataFromSignatureRequest(request);
   return types.includes(primaryType);
 };
 

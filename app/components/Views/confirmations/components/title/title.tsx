@@ -15,7 +15,7 @@ import {
   isPermitDaiRevoke,
   isRecognizedPermit,
   isSIWESignatureRequest,
-  parseSignTypedDataFromSignatureRequest,
+  parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../utils/signature';
 import styleSheet from './title.styles';
 import { ApprovalType } from '@metamask/controller-utils';
@@ -45,7 +45,7 @@ const getTitleAndSubTitle = (
 
       if (isPermit) {
         const parsedData =
-          parseSignTypedDataFromSignatureRequest(signatureRequest);
+          parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
         const { allowed, tokenId, value } = parsedData.message ?? {};
         const { verifyingContract } = parsedData.domain ?? {};
 

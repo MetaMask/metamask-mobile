@@ -10,7 +10,7 @@ import InfoRowAddress from '../../../UI/info-row/info-value/address';
 import DisplayURL from '../../../UI/info-row/info-value/display-url';
 import {
   isRecognizedPermit,
-  parseSignTypedDataFromSignatureRequest,
+  parseAndNormalizeSignTypedDataFromSignatureRequest,
 } from '../../../../utils/signature';
 import { useSignatureRequest } from '../../../../hooks/signatures/useSignatureRequest';
 import useApprovalRequest from '../../../../hooks/useApprovalRequest';
@@ -29,7 +29,7 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedData = parseSignTypedDataFromSignatureRequest(signatureRequest);
+  const parsedData = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
   const spender = parsedData.message?.spender;
   const verifyingContract = parsedData.domain?.verifyingContract;
 
