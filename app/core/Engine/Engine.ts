@@ -122,7 +122,7 @@ import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import { selectSwapsChainFeatureFlags } from '../../reducers/swaps';
 import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
-import { ApprovalType, ChainId, handleFetch } from '@metamask/controller-utils';
+import { ApprovalType, ChainId, handleFetch, toHex } from '@metamask/controller-utils';
 import { ExtendedControllerMessenger } from '../ExtendedControllerMessenger';
 import DomainProxyMap from '../../lib/DomainProxyMap/DomainProxyMap';
 import {
@@ -1791,7 +1791,7 @@ export class Engine {
    * @param {string} address - A hex address
    */
   removeAccount = async (address: string) => {
-    const addressHex = address as Hex;
+    const addressHex = toHex(address);
     // Remove all associated permissions
     await removeAccountsFromPermissions([addressHex]);
     // Remove account from the keyring
